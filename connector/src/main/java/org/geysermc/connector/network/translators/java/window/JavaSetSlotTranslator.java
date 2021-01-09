@@ -25,6 +25,12 @@
 
 package org.geysermc.connector.network.translators.java.window;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
+import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
+import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
+import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
+import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
@@ -67,60 +73,153 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
 
             InventoryTranslator translator = session.getInventoryTranslator();
             if (translator != null) {
-                if (packet.getSlot() == 0) {
-                    int gridSize = -1;
-                    if (translator instanceof PlayerInventoryTranslator) {
-                        gridSize = 4;
-                    }
-                    if (translator instanceof CraftingInventoryTranslator) {
-                        gridSize = 9;
-                    }
-                    if (gridSize != -1) {
-                        int offset = gridSize == 4 ? 28 : 32;
-                        int gridWidth = gridSize == 4 ? 2 : 3;
-                        ItemData[] ingredients = new ItemData[gridSize];
-                        //construct ingredient list and clear slots on client
-                        for (int i = 0; i < gridSize; i++) {
-                            ingredients[i] = inventory.getItem(i + 1).getItemData(session);
-
-                            InventorySlotPacket slotPacket = new InventorySlotPacket();
-                            slotPacket.setContainerId(ContainerId.UI);
-                            slotPacket.setSlot(i + offset);
-                            slotPacket.setItem(ItemData.AIR);
-                            session.sendUpstreamPacket(slotPacket);
-                        }
-
-                        CraftingDataPacket craftPacket = new CraftingDataPacket();
-                        UUID uuid = UUID.fromString("e0a4971a-698c-40fb-95dd-afc8ed16e108");
-                        craftPacket.getCraftingData().add(CraftingData.fromShaped(
-                                uuid.toString(),
-                                gridWidth,
-                                gridWidth,
-                                Arrays.asList(ingredients),
-                                Collections.singletonList(ItemTranslator.translateToBedrock(session, packet.getItem())),
-                                uuid,
-                                "crafting_table",
-                                0,
-                                session.getLastRecipeNetId().incrementAndGet()
-                        ));
-                        craftPacket.setCleanRecipes(false);
-                        session.sendUpstreamPacket(craftPacket);
-
-                        //restore cleared slots
-                        for (int i = 0; i < gridSize; i++) {
-                            InventorySlotPacket slotPacket = new InventorySlotPacket();
-                            slotPacket.setContainerId(ContainerId.UI);
-                            slotPacket.setSlot(i + offset);
-                            slotPacket.setItem(ingredients[i]);
-                            session.sendUpstreamPacket(slotPacket);
-                        }
-                    }
-                }
+                updateCraftingGrid(session, packet, inventory, translator);
 
                 GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
                 inventory.setItem(packet.getSlot(), newItem, session);
                 translator.updateSlot(session, inventory, packet.getSlot());
             }
         });
+    }
+
+    private void updateCraftingGrid(GeyserSession session, ServerSetSlotPacket packet, Inventory inventory, InventoryTranslator translator) {
+        if (packet.getSlot() == 0) {
+            int gridSize;
+            if (translator instanceof PlayerInventoryTranslator) {
+                gridSize = 4;
+            } else if (translator instanceof CraftingInventoryTranslator) {
+                gridSize = 9;
+            } else {
+                return;
+            }
+
+            if (packet.getItem() == null || packet.getItem().getId() == 0) {
+                return;
+            }
+
+            int offset = gridSize == 4 ? 28 : 32;
+            int gridDimensions = gridSize == 4 ? 2 : 3;
+            int itemsStart = 0;
+            for (int i = 1; i < inventory.getSize(); i++) { // Slot 0 is, well, the output, so we ignore that
+                if (!inventory.getItem(i).isEmpty()) {
+                    System.out.println(inventory.getItem(i).getItemStack().toString());
+                    itemsStart = i;
+                    break;
+                }
+            }
+
+            System.out.println("Items start: " + itemsStart);
+
+            //TODO
+            recipes:
+            for (Recipe recipe : session.getCraftingRecipes().values()) {
+                if (recipe.getType() == RecipeType.CRAFTING_SHAPED) {
+                    ShapedRecipeData data = (ShapedRecipeData) recipe.getData();
+                    if (!data.getResult().equals(packet.getItem())) {
+                        continue;
+                    }
+                    int height = 1;
+                    int width = 1;
+                    for (int i = 0; i < data.getIngredients().length; i++) {
+                        System.out.println(height);
+                        System.out.println(width);
+                        System.out.println(data.getHeight());
+                        System.out.println(data.getWidth());
+                        System.out.println(Arrays.toString(data.getIngredients()));
+                        Ingredient ingredient = data.getIngredients()[i];
+                        GeyserItemStack geyserItemStack = inventory.getItem(itemsStart + (width - 1) + ((data.getWidth() - 1) * (gridDimensions - data.getWidth() + height)));
+                        System.out.println(itemsStart + (width - 1) + ((data.getWidth() - 1) * (gridDimensions - data.getWidth() + height)));
+                        boolean inventoryHasItem = false;
+                        for (ItemStack itemStack : ingredient.getOptions()) {
+                            if (geyserItemStack.isEmpty()) {
+                                inventoryHasItem = itemStack == null || itemStack.getId() == 0;
+                                if (inventoryHasItem) {
+                                    break;
+                                }
+                            } else if (itemStack.equals(geyserItemStack.getItemStack())) {
+                                inventoryHasItem = true;
+                                break;
+                            }
+                        }
+                        if (!inventoryHasItem) {
+                            break recipes;
+                        }
+                        width++;
+                        if (width > data.getWidth()) {
+                            width = 1;
+                            height++;
+                        }
+                    }
+                    // Recipe is had, don't sent packet
+                    return;
+                } else if (recipe.getType() == RecipeType.CRAFTING_SHAPELESS) {
+                    ShapelessRecipeData data = (ShapelessRecipeData) recipe.getData();
+                    if (!data.getResult().equals(packet.getItem())) {
+                        continue;
+                    }
+                    for (int i = 0; i < data.getIngredients().length; i++) {
+                        Ingredient ingredient = data.getIngredients()[i];
+                        for (ItemStack itemStack : ingredient.getOptions()) {
+                            boolean inventoryHasItem = false;
+                            for (int j = 0; j < inventory.getSize(); j++) {
+                                GeyserItemStack geyserItemStack = inventory.getItem(j);
+                                if (geyserItemStack.isEmpty()) {
+                                    inventoryHasItem = itemStack == null || itemStack.getId() == 0;
+                                    if (inventoryHasItem) {
+                                        break;
+                                    }
+                                } else if (itemStack.equals(geyserItemStack.getItemStack())) {
+                                    inventoryHasItem = true;
+                                    break;
+                                }
+                            }
+                            if (!inventoryHasItem) {
+                                continue recipes;
+                            }
+                        }
+                    }
+                    // Recipe is had, don't sent packet
+                    return;
+                }
+            }
+            System.out.println("Sending packet!");
+
+            ItemData[] ingredients = new ItemData[gridSize];
+            //construct ingredient list and clear slots on client
+            for (int i = 0; i < gridSize; i++) {
+                ingredients[i] = inventory.getItem(i + 1).getItemData(session);
+
+                InventorySlotPacket slotPacket = new InventorySlotPacket();
+                slotPacket.setContainerId(ContainerId.UI);
+                slotPacket.setSlot(i + offset);
+                slotPacket.setItem(ItemData.AIR);
+                session.sendUpstreamPacket(slotPacket);
+            }
+
+            CraftingDataPacket craftPacket = new CraftingDataPacket();
+            UUID uuid = UUID.randomUUID();
+            craftPacket.getCraftingData().add(CraftingData.fromShaped(
+                    uuid.toString(),
+                    gridDimensions,
+                    gridDimensions,
+                    Arrays.asList(ingredients),
+                    Collections.singletonList(ItemTranslator.translateToBedrock(session, packet.getItem())),
+                    uuid,
+                    "crafting_table",
+                    0,
+                    session.getLastRecipeNetId().incrementAndGet()
+            ));
+            craftPacket.setCleanRecipes(false);
+            session.sendUpstreamPacket(craftPacket);
+
+            //restore cleared slots
+            for (int i = 0; i < gridSize; i++) {
+                InventorySlotPacket slotPacket = new InventorySlotPacket();
+                slotPacket.setContainerId(ContainerId.UI);
+                slotPacket.setSlot(i + offset);
+                slotPacket.setItem(ingredients[i]);
+                session.sendUpstreamPacket(slotPacket);
+            }
+        }
     }
 }
