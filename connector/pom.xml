@@ -166,6 +166,7 @@
             <artifactId>netty-resolver-dns-native-macos</artifactId>
             <version>${netty.version}</version>
             <scope>compile</scope>
+            <classifier>osx-x86_64</classifier>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
