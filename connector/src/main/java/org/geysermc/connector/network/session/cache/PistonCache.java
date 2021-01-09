@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -55,9 +54,19 @@ public class PistonCache implements Tickable {
 
     /**
      * Stores whether a player has/will collide with any moving blocks.
+     * This is used to cancel movement from Bedrock that pushes players
+     * out of collision.
      */
     @Getter @Setter
     private boolean playerCollided = false;
+
+    /**
+     * Stores whether a player has/will collide with any slime blocks.
+     * This is used to prevent movement from being canceled when players
+     * are about to hit a slime block.
+     */
+    @Getter @Setter
+    private boolean playerSlimeCollision = false;
 
     public PistonCache(GeyserSession session) {
         this.session = session;
@@ -66,35 +75,31 @@ public class PistonCache implements Tickable {
     @Override
     public void tick(GeyserSession session) {
         resetPlayerMovement();
-
-        pistons.values().forEach(PistonBlockEntity::update);
-        pistons.entrySet().removeIf((entry) -> entry.getValue().isDone());
-
+        pistons.values().forEach(PistonBlockEntity::updateMovement);
         sendPlayerMovement();
+        // Update blocks after movement, so that players don't get stuck inside blocks
+        pistons.values().forEach(PistonBlockEntity::updateBlocks);
+
+        pistons.entrySet().removeIf((entry) -> entry.getValue().isDone());
     }
 
     public void resetPlayerMovement() {
         playerDisplacement = Vector3d.ZERO;
         playerCollided = false;
+        playerSlimeCollision = false;
     }
 
     public void sendPlayerMovement() {
         SessionPlayerEntity playerEntity = session.getPlayerEntity();
-        // Sending a movement packet cancels motion from slime blocks in the Y direction
+        // Sending movement packets cancels motion from slime blocks
         if (!playerDisplacement.equals(Vector3d.ZERO) && !isInMotion()) {
             CollisionManager collisionManager = session.getCollisionManager();
             if (collisionManager.correctPlayerPosition()) {
                 Vector3d position = Vector3d.from(collisionManager.getPlayerBoundingBox().getMiddleX(), collisionManager.getPlayerBoundingBox().getMiddleY() - (collisionManager.getPlayerBoundingBox().getSizeY() / 2), collisionManager.getPlayerBoundingBox().getMiddleZ());
-                playerEntity.setPosition(position.toFloat(), true);
-                // Using MoveEntityAbsolutePacket for teleporting seems to be smoother than MovePlayerPacket
-                // It also keeps motion from slime blocks
-                MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
-                moveEntityPacket.setRuntimeEntityId(playerEntity.getGeyserId());
-                moveEntityPacket.setPosition(playerEntity.getPosition());
-                moveEntityPacket.setRotation(playerEntity.getBedrockRotation());
-                moveEntityPacket.setOnGround(playerEntity.isOnGround());
-                moveEntityPacket.setTeleported(true);
-                session.sendUpstreamPacket(moveEntityPacket);
+
+                boolean isOnGround = playerDisplacement.getY() != 0 || playerEntity.isOnGround();
+
+                playerEntity.moveAbsolute(session, position.toFloat(), playerEntity.getRotation(), isOnGround, true);
 
                 ClientPlayerPositionPacket playerPositionPacket = new ClientPlayerPositionPacket(playerEntity.isOnGround(), position.getX(), position.getY(), position.getZ());
                 session.sendDownstreamPacket(playerPositionPacket);
@@ -128,7 +133,7 @@ public class PistonCache implements Tickable {
     }
 
     private boolean isInMotion() {
-        return !playerMotion.equals(Vector3f.ZERO);
+        return !playerMotion.equals(Vector3f.ZERO) || playerSlimeCollision;
     }
 
     private boolean isColliding() {
@@ -137,7 +142,8 @@ public class PistonCache implements Tickable {
 
     /**
      * Check whether a movement packet should be canceled.
-     * This cancels packets when being pushed by a piston and when not recently launched by a slime block
+     * This cancels packets when being pushed by a piston and
+     * when not being launched by a slime block.
      * @return True if the packet should be canceled
      */
     public boolean shouldCancelMovement() {
