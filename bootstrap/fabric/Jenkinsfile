@@ -36,7 +36,7 @@ pipeline {
                                 serverId: "opencollab-artifactory",
                         )
                         rtGradleRun (
-                                usesPlugin: true,
+                                usesPlugin: false,
                                 tool: 'Gradle 6',
                                 rootDir: "",
                                 buildFile: 'build.gradle',
