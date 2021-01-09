@@ -95,7 +95,11 @@ public class GeyserItemStack {
     }
 
     public ItemStack getItemStack() {
-        return isEmpty() ? null : new ItemStack(javaId, amount, nbt);
+        return getItemStack(amount);
+    }
+
+    public ItemStack getItemStack(int newAmount) {
+        return isEmpty() ? null : new ItemStack(javaId, newAmount, nbt);
     }
 
     public ItemData getItemData(GeyserSession session) {

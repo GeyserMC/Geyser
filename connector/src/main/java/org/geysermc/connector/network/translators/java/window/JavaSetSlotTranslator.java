@@ -50,6 +50,7 @@ import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.UUID;
 
 @Translator(packet = ServerSetSlotPacket.class)
@@ -82,7 +83,7 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
         });
     }
 
-    private void updateCraftingGrid(GeyserSession session, ServerSetSlotPacket packet, Inventory inventory, InventoryTranslator translator) {
+    private static void updateCraftingGrid(GeyserSession session, ServerSetSlotPacket packet, Inventory inventory, InventoryTranslator translator) {
         if (packet.getSlot() == 0) {
             int gridSize;
             if (translator instanceof PlayerInventoryTranslator) {
@@ -99,16 +100,35 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
 
             int offset = gridSize == 4 ? 28 : 32;
             int gridDimensions = gridSize == 4 ? 2 : 3;
-            int itemsStart = 0;
-            for (int i = 1; i < inventory.getSize(); i++) { // Slot 0 is, well, the output, so we ignore that
-                if (!inventory.getItem(i).isEmpty()) {
-                    System.out.println(inventory.getItem(i).getItemStack().toString());
-                    itemsStart = i;
-                    break;
+            int firstRow = -1, height = -1;
+            int firstCol = -1, width = -1;
+            for (int row = 0; row < gridDimensions; row++) {
+                for (int col = 0; col < gridDimensions; col++) {
+                    if (!inventory.getItem(col + (row * gridDimensions) + 1).isEmpty()) {
+                        if (firstRow == -1) {
+                            firstRow = row;
+                            firstCol = col;
+                        } else {
+                            firstCol = Math.min(firstCol, col);
+                        }
+                        height = Math.max(height, row);
+                        width = Math.max(width, col);
+                    }
                 }
             }
 
-            System.out.println("Items start: " + itemsStart);
+            //empty grid
+            if (firstRow == -1) {
+                return;
+            }
+
+            height += -firstRow + 1;
+            width += -firstCol + 1;
+
+            System.out.println("Start Row: " + firstRow);
+            System.out.println("Start Column: " + firstCol);
+            System.out.println("Rows: " + height);
+            System.out.println("Columns: " + width);
 
             //TODO
             recipes:
@@ -118,38 +138,27 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
                     if (!data.getResult().equals(packet.getItem())) {
                         continue;
                     }
-                    int height = 1;
-                    int width = 1;
-                    for (int i = 0; i < data.getIngredients().length; i++) {
-                        System.out.println(height);
-                        System.out.println(width);
-                        System.out.println(data.getHeight());
-                        System.out.println(data.getWidth());
-                        System.out.println(Arrays.toString(data.getIngredients()));
-                        Ingredient ingredient = data.getIngredients()[i];
-                        GeyserItemStack geyserItemStack = inventory.getItem(itemsStart + (width - 1) + ((data.getWidth() - 1) * (gridDimensions - data.getWidth() + height)));
-                        System.out.println(itemsStart + (width - 1) + ((data.getWidth() - 1) * (gridDimensions - data.getWidth() + height)));
-                        boolean inventoryHasItem = false;
-                        for (ItemStack itemStack : ingredient.getOptions()) {
-                            if (geyserItemStack.isEmpty()) {
-                                inventoryHasItem = itemStack == null || itemStack.getId() == 0;
-                                if (inventoryHasItem) {
-                                    break;
-                                }
-                            } else if (itemStack.equals(geyserItemStack.getItemStack())) {
-                                inventoryHasItem = true;
-                                break;
+                    if (data.getWidth() != width || data.getHeight() != height || width * height != data.getIngredients().length) {
+                        continue;
+                    }
+
+                    Ingredient[] ingredients = data.getIngredients();
+                    if (!testShapedRecipe(ingredients, inventory, gridDimensions, firstRow, height, firstCol, width)) {
+                        Ingredient[] mirroredIngredients = new Ingredient[data.getIngredients().length];
+                        for (int row = 0; row < height; row++) {
+                            for (int col = 0; col < width; col++) {
+                                mirroredIngredients[col + (row * width)] = ingredients[(width - 1 - col) + (row * width)];
                             }
                         }
-                        if (!inventoryHasItem) {
-                            break recipes;
-                        }
-                        width++;
-                        if (width > data.getWidth()) {
-                            width = 1;
-                            height++;
+
+                        if (Arrays.equals(ingredients, mirroredIngredients)) {
+                            continue;
+                        } else if (!testShapedRecipe(mirroredIngredients, inventory, gridDimensions, firstRow, height, firstCol, width)) {
+                            continue;
                         }
                     }
+                    System.out.println("FOUND SHAPED RECIPE :)");
+                    System.out.println(recipe);
                     // Recipe is had, don't sent packet
                     return;
                 } else if (recipe.getType() == RecipeType.CRAFTING_SHAPELESS) {
@@ -168,7 +177,7 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
                                     if (inventoryHasItem) {
                                         break;
                                     }
-                                } else if (itemStack.equals(geyserItemStack.getItemStack())) {
+                                } else if (itemStack.equals(geyserItemStack.getItemStack(1))) {
                                     inventoryHasItem = true;
                                     break;
                                 }
@@ -221,5 +230,32 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
                 session.sendUpstreamPacket(slotPacket);
             }
         }
+    }
+
+    private static boolean testShapedRecipe(Ingredient[] ingredients, Inventory inventory, int gridDimensions, int firstRow, int height, int firstCol, int width) {
+        int ingredientIndex = 0;
+        for (int row = firstRow; row < height + firstRow; row++) {
+            for (int col = firstCol; col < width + firstCol; col++) {
+                GeyserItemStack geyserItemStack = inventory.getItem(col + (row * gridDimensions) + 1);
+                Ingredient ingredient = ingredients[ingredientIndex++];
+                if (ingredient.getOptions().length == 0) {
+                    if (!geyserItemStack.isEmpty()) {
+                        return false;
+                    }
+                } else {
+                    boolean inventoryHasItem = false;
+                    for (ItemStack item : ingredient.getOptions()) {
+                        if (Objects.equals(geyserItemStack.getItemStack(1), item)) {
+                            inventoryHasItem = true;
+                            break;
+                        }
+                    }
+                    if (!inventoryHasItem) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 }
