@@ -26,13 +26,25 @@
 package org.geysermc.connector.network.translators.java.window;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
+import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.translators.CraftingInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.translators.PlayerInventoryTranslator;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.UUID;
 
 @Translator(packet = ServerSetSlotPacket.class)
 public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket> {
@@ -55,6 +67,56 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
 
             InventoryTranslator translator = session.getInventoryTranslator();
             if (translator != null) {
+                if (packet.getSlot() == 0) {
+                    int gridSize = -1;
+                    if (translator instanceof PlayerInventoryTranslator) {
+                        gridSize = 4;
+                    }
+                    if (translator instanceof CraftingInventoryTranslator) {
+                        gridSize = 9;
+                    }
+                    if (gridSize != -1) {
+                        int offset = gridSize == 4 ? 28 : 32;
+                        int gridWidth = gridSize == 4 ? 2 : 3;
+                        ItemData[] ingredients = new ItemData[gridSize];
+                        //construct ingredient list and clear slots on client
+                        for (int i = 0; i < gridSize; i++) {
+                            ingredients[i] = inventory.getItem(i + 1).getItemData(session);
+
+                            InventorySlotPacket slotPacket = new InventorySlotPacket();
+                            slotPacket.setContainerId(ContainerId.UI);
+                            slotPacket.setSlot(i + offset);
+                            slotPacket.setItem(ItemData.AIR);
+                            session.sendUpstreamPacket(slotPacket);
+                        }
+
+                        CraftingDataPacket craftPacket = new CraftingDataPacket();
+                        UUID uuid = UUID.fromString("e0a4971a-698c-40fb-95dd-afc8ed16e108");
+                        craftPacket.getCraftingData().add(CraftingData.fromShaped(
+                                uuid.toString(),
+                                gridWidth,
+                                gridWidth,
+                                Arrays.asList(ingredients),
+                                Collections.singletonList(ItemTranslator.translateToBedrock(session, packet.getItem())),
+                                uuid,
+                                "crafting_table",
+                                0,
+                                session.getLastRecipeNetId().incrementAndGet()
+                        ));
+                        craftPacket.setCleanRecipes(false);
+                        session.sendUpstreamPacket(craftPacket);
+
+                        //restore cleared slots
+                        for (int i = 0; i < gridSize; i++) {
+                            InventorySlotPacket slotPacket = new InventorySlotPacket();
+                            slotPacket.setContainerId(ContainerId.UI);
+                            slotPacket.setSlot(i + offset);
+                            slotPacket.setItem(ingredients[i]);
+                            session.sendUpstreamPacket(slotPacket);
+                        }
+                    }
+                }
+
                 GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
                 inventory.setItem(packet.getSlot(), newItem, session);
                 translator.updateSlot(session, inventory, packet.getSlot());

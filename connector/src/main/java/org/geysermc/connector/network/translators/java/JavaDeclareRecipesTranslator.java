@@ -186,10 +186,11 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
             }
         }
 
-        session.sendUpstreamPacket(craftingDataPacket);
+        //session.sendUpstreamPacket(craftingDataPacket); //commented out for testing
         session.setCraftingRecipes(recipeMap);
         session.getUnlockedRecipes().clear();
         session.setStonecutterRecipes(stonecutterRecipeMap);
+        session.getLastRecipeNetId().set(netId);
     }
 
     //TODO: rewrite

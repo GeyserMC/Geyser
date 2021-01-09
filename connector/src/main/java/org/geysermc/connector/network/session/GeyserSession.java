@@ -232,6 +232,7 @@ public class GeyserSession implements CommandSender {
     @Setter
     private Int2ObjectMap<Recipe> craftingRecipes;
     private final Set<String> unlockedRecipes;
+    private AtomicInteger lastRecipeNetId;
 
     /**
      * Saves a list of all stonecutter recipes, for use in a stonecutter inventory.
@@ -385,6 +386,7 @@ public class GeyserSession implements CommandSender {
         this.inventoryFuture = CompletableFuture.completedFuture(null);
         this.craftingRecipes = new Int2ObjectOpenHashMap<>();
         this.unlockedRecipes = new ObjectOpenHashSet<>();
+        this.lastRecipeNetId = new AtomicInteger(1);
 
         this.spawned = false;
         this.loggedIn = false;
