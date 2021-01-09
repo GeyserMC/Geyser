@@ -40,6 +40,7 @@ import org.geysermc.connector.entity.living.InsentientEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.AttributeUtils;
+import org.geysermc.connector.utils.DimensionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -93,14 +94,6 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 15) { // Phase
             phase = (int) entityMetadata.getValue();
-            if (phase == 9) {
-                // Dying phase
-                EntityEventPacket entityEventPacket = new EntityEventPacket();
-                entityEventPacket.setType(EntityEventType.ENDER_DRAGON_DEATH);
-                entityEventPacket.setRuntimeEntityId(geyserId);
-                entityEventPacket.setData(0);
-                session.sendUpstreamPacket(entityEventPacket);
-            }
             phaseTicks = 0;
             metadata.getFlags().setFlag(EntityFlag.SITTING, isSitting());
         }
@@ -111,6 +104,13 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
             // Update the health attribute, so that the death animation gets played
             // Round health up, so that Bedrock doesn't consider the dragon to be dead when health is between 0 and 1
             float health = (float) Math.ceil(metadata.getFloat(EntityData.HEALTH));
+            if (phase == 9 && health <= 0) { // Dying phase
+                EntityEventPacket entityEventPacket = new EntityEventPacket();
+                entityEventPacket.setType(EntityEventType.ENDER_DRAGON_DEATH);
+                entityEventPacket.setRuntimeEntityId(geyserId);
+                entityEventPacket.setData(0);
+                session.sendUpstreamPacket(entityEventPacket);
+            }
             attributes.put(AttributeType.HEALTH, AttributeType.HEALTH.getAttribute(health, 200));
             updateBedrockAttributes(session);
         }
@@ -256,38 +256,47 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
                 wingPosition += 0.2f / (speed * 10f + 1) * Math.pow(2, motion.getY());
             }
 
+            phaseTicks++;
             if (phase == 3) { // Landing Phase
-                sendDragonBreathEffect(session);
+                float headHeight = head.getMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT);
+                Vector3f headCenter = head.getPosition().up(headHeight * 0.5f);
+
+                for (int i = 0; i < 8; i++) {
+                    Vector3f particlePos = headCenter.add(random.nextGaussian() / 2f, random.nextGaussian() / 2f, random.nextGaussian() / 2f);
+                    // This is missing velocity information
+                    LevelEventPacket particlePacket = new LevelEventPacket();
+                    particlePacket.setType(LevelEventType.PARTICLE_DRAGONS_BREATH);
+                    particlePacket.setPosition(particlePos);
+                    session.sendUpstreamPacket(particlePacket);
+                }
             } else if (phase == 5) { // Sitting Flaming Phase
-                phaseTicks++;
                 if (phaseTicks % 2 == 0 && phaseTicks < 10) {
-                    metadata.putLong(EntityData.TARGET_EID, head.getGeyserId());
-                    updateBedrockMetadata(session);
                     // Performing breath attack
-                    EntityEventPacket entityEventPacket = new EntityEventPacket();
-                    entityEventPacket.setType(EntityEventType.DRAGON_FLAMING);
-                    entityEventPacket.setRuntimeEntityId(geyserId);
-                    entityEventPacket.setData(0);
-                    session.sendUpstreamPacket(entityEventPacket);
+                    // Entity event DRAGON_FLAMING seems to only come from the origin of the dragon,
+                    // so particles are used instead
+                    for (int i = 0; i < 8; i++) {
+                        SpawnParticleEffectPacket spawnParticleEffectPacket = new SpawnParticleEffectPacket();
+                        spawnParticleEffectPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
+                        spawnParticleEffectPacket.setPosition(head.getPosition().add(random.nextGaussian() / 2f, random.nextGaussian() / 2f, random.nextGaussian() / 2f));
+                        spawnParticleEffectPacket.setIdentifier("minecraft:dragon_breath_fire");
+                        session.sendUpstreamPacket(spawnParticleEffectPacket);
+                    }
                 }
             } else if (phase == 7) { // Sitting Attacking Phase
                 playGrowlSound(session);
+            } else if (phase == 9) { // Dying Phase
+                // Send explosion particles as the dragon move towards the end portal
+                if (phaseTicks % 10 == 0) {
+                    float xOffset = 8f * (random.nextFloat() - 0.5f);
+                    float yOffset = 4f * (random.nextFloat() - 0.5f) + 2f;
+                    float zOffset = 8f * (random.nextFloat() - 0.5f);
+                    Vector3f particlePos = position.add(xOffset, yOffset, zOffset);
+                    LevelEventPacket particlePacket = new LevelEventPacket();
+                    particlePacket.setType(LevelEventType.PARTICLE_EXPLOSION);
+                    particlePacket.setPosition(particlePos);
+                    session.sendUpstreamPacket(particlePacket);
+                }
             }
-        }
-    }
-
-    private void sendDragonBreathEffect(GeyserSession session) {
-        float headHeight = head.getMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT);
-        Vector3f headCenter = head.getPosition().up(headHeight * 0.5f);
-
-        Random random = ThreadLocalRandom.current();
-        for (int i = 0; i < 8; i++) {
-            Vector3f particlePos = headCenter.add(random.nextGaussian() / 2f, random.nextGaussian() / 2f, random.nextGaussian() / 2f);
-            // This is missing velocity information
-            LevelEventPacket particlePacket = new LevelEventPacket();
-            particlePacket.setType(LevelEventType.PARTICLE_DRAGONS_BREATH);
-            particlePacket.setPosition(particlePos);
-            session.sendUpstreamPacket(particlePacket);
         }
     }
 
