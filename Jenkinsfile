@@ -94,6 +94,7 @@ pipeline {
                 if (env.BRANCH_NAME == 'master') {
                     build propagate: false, wait: false, job: 'GeyserMC/Geyser-Fabric/java-1.16'
                     build propagate: false, wait: false, job: 'GeyserMC/GeyserAndroid/master'
+                    build propagate: false, wait: false, job: 'GeyserMC/GeyserConnect/master'
                 }
             }
         }
