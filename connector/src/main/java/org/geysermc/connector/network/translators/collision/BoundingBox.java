@@ -30,7 +30,7 @@ import lombok.*;
 
 @Data
 @AllArgsConstructor
-public class BoundingBox implements Cloneable{
+public class BoundingBox implements Cloneable {
     private double middleX;
     private double middleY;
     private double middleZ;

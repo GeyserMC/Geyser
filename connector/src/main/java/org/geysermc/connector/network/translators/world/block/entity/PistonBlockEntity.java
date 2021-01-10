@@ -115,15 +115,12 @@ public class PistonBlockEntity {
 
     /**
      * Set whether the piston is pulling or pushing blocks
+     *
      * @param action Pulling or Pushing
      */
     public void setAction(PistonValueType action) {
         this.action = action;
-        if (action == PistonValueType.CANCELLED_MID_PUSH) {
-            // Immediately fully extend the piston
-            lastProgress = progress;
-            progress = 1.0f;
-        } else if (action == PistonValueType.PUSHING || (action == PistonValueType.PULLING && sticky)) {
+        if (action == PistonValueType.PUSHING || (action == PistonValueType.PULLING && sticky)) {
             // Blocks only move when pushing or pulling with sticky pistons
             findAffectedBlocks();
             removeBlocks();
@@ -138,7 +135,7 @@ public class PistonBlockEntity {
      */
     public void updateMovement() {
         updateProgress();
-        correctPlayerPosition();
+        pushPlayer();
         BlockEntityUtils.updateBlockEntity(session, buildPistonTag(), position);
     }
 
@@ -147,7 +144,7 @@ public class PistonBlockEntity {
      */
     public void updateBlocks() {
         if (!isDone()) {
-            if (action == PistonValueType.CANCELLED_MID_PUSH && attachedBlocks.size() > 0) {
+            if (action == PistonValueType.CANCELLED_MID_PUSH) {
                 finishMovingBlocks();
                 attachedBlocks.clear();
                 flattenedAttachedBlocks = new int[0];
@@ -177,7 +174,7 @@ public class PistonBlockEntity {
     }
 
     /**
-     * Find the blocks pushed, pulled, or broken by the piston
+     * Find the blocks that will be pushed or pulled by the piston
      */
     private void findAffectedBlocks() {
         attachedBlocks.clear();
@@ -251,7 +248,8 @@ public class PistonBlockEntity {
                 break;
             }
         }
-        if (!moveBlocks) {
+        // This shouldn't happen as the server does all of these checks before sending a block value packet
+        if (!moveBlocks || attachedBlocks.size() > 12) {
             attachedBlocks.clear();
         }
         flattenPositions();
@@ -274,7 +272,7 @@ public class PistonBlockEntity {
             case "block":
             case "destroy":
                 return false;
-            case "push_only":
+            case "push_only": // Glazed terracotta can only be pushed
                 return isPushing;
         }
         // Pistons can't move block entities
@@ -286,8 +284,8 @@ public class PistonBlockEntity {
     }
 
     /**
-     * Checks if a block sticks to other blocks.
-     * Slime and honey blocks.
+     * Checks if a block sticks to other blocks
+     * (Slime and honey blocks)
      * @param javaId The block id
      * @return True if the block sticks to adjacent blocks
      */
@@ -297,6 +295,7 @@ public class PistonBlockEntity {
 
     /**
      * Check if two blocks are attached to each other
+     *
      * @param javaIdA The block id of block a
      * @param javaIdB The block id of block b
      * @return True if the blocks are attached to each other
@@ -314,6 +313,7 @@ public class PistonBlockEntity {
 
     /**
      * Get the direction the piston head points in
+     *
      * @return A Vector3i pointing in the direction of the piston head
      */
     private Vector3i getDirectionOffset() {
@@ -337,6 +337,7 @@ public class PistonBlockEntity {
     /**
      * Get the offset from the current position of the attached blocks
      * to the new positions
+     *
      * @return The movement of the blocks
      */
     private Vector3i getMovement() {
@@ -355,7 +356,7 @@ public class PistonBlockEntity {
         }
     }
 
-    private void correctPlayerPosition() {
+    private void pushPlayer() {
         Vector3i direction = getDirectionOffset();
         Vector3d movement = getMovement().toDouble();
         Vector3d attachedBlockOffset = movement.mul(lastProgress);
@@ -405,7 +406,7 @@ public class PistonBlockEntity {
             if (javaId == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID && testBlockCollision(blockPos, blockCollision, playerBoundingBox, extend)) {
                 Vector3d playerPos = Vector3d.from(playerBoundingBox.getMiddleX(), playerBoundingBox.getMiddleY(), playerBoundingBox.getMiddleZ());
                 playerPos = playerPos.add(movement.mul(displacement));
-                applySlimeBlockMotion(blockPos.add(0.5, 0.5, 0.5), playerPos);
+                applySlimeBlockMotion(blockPos, playerPos);
             }
 
             if (javaId == BlockTranslator.JAVA_RUNTIME_HONEY_BLOCK_ID && isPlayerAttached(blockPos, playerBoundingBox)) {
@@ -437,9 +438,10 @@ public class PistonBlockEntity {
     }
 
     /**
-     * Checks if a player is attached to the top of a honey block.
-     * @param blockPos The position of the honey block.
-     * @param playerBoundingBox The player's bounding box.
+     * Checks if a player is attached to the top of a honey block
+     *
+     * @param blockPos The position of the honey block
+     * @param playerBoundingBox The player's bounding box
      * @return True if the player attached, otherwise false
      */
     private boolean isPlayerAttached(Vector3d blockPos, BoundingBox playerBoundingBox) {
@@ -451,7 +453,8 @@ public class PistonBlockEntity {
 
     /**
      * Launches a player if the player is on the pushing side of the slime block
-     * @param blockPos The center of the slime block
+     *
+     * @param blockPos The position of the slime block
      * @param playerPos The player's position
      */
     private void applySlimeBlockMotion(Vector3d blockPos, Vector3d playerPos) {
@@ -485,6 +488,7 @@ public class PistonBlockEntity {
         double motionX = motion.getX();
         double motionY = motion.getY();
         double motionZ = motion.getZ();
+        blockPos = blockPos.add(0.5, 0.5, 0.5); // Move to the center of the slime block
         switch (movementDirection) {
             case DOWN:
                 if (playerPos.getY() < blockPos.getY()) {
@@ -620,6 +624,7 @@ public class PistonBlockEntity {
 
     /**
      * Get the Bedrock state of the piston
+     *
      * @return 0 - Fully retracted, 1 - Extending, 2 - Fully extended, 3 - Retracting
      */
     private byte getState() {
@@ -675,6 +680,7 @@ public class PistonBlockEntity {
 
     /**
      * Create a piston data tag with the data in this block entity
+     *
      * @return A piston data tag
      */
     private NbtMap buildPistonTag() {
@@ -695,9 +701,10 @@ public class PistonBlockEntity {
 
     /**
      * Create a piston data tag that has fully extended/retracted
+     *
      * @param position The position for the base of the piston
-     * @param extended If the piston is extended or not
-     * @param sticky If the piston is a sticky piston or not
+     * @param extended Whether the piston is extended or retracted
+     * @param sticky Whether the piston is a sticky piston or a regular piston
      * @return A piston data tag for a fully extended/retracted piston
      */
     public static NbtMap buildStaticPistonTag(Vector3i position, boolean extended, boolean sticky) {
@@ -717,7 +724,8 @@ public class PistonBlockEntity {
 
     /**
      * Create a moving block tag of a block that will be moved by a piston
-     * @param position The ending position of the block
+     *
+     * @param position The ending position of the block (The location of the movingBlock block entity)
      * @param javaId The Java Id of the block that is moving
      * @param pistonPosition The position for the base of the piston that's moving the block
      * @return A moving block data tag

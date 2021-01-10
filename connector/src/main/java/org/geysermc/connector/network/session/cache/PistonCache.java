@@ -34,7 +34,6 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.CollisionManager;
@@ -42,7 +41,7 @@ import org.geysermc.connector.network.translators.world.block.entity.PistonBlock
 
 import java.util.Map;
 
-public class PistonCache implements Tickable {
+public class PistonCache {
     private final GeyserSession session;
 
     private final Map<Vector3i, PistonBlockEntity> pistons = Object2ObjectMaps.synchronize(new Object2ObjectOpenHashMap<>());
@@ -72,8 +71,7 @@ public class PistonCache implements Tickable {
         this.session = session;
     }
 
-    @Override
-    public void tick(GeyserSession session) {
+    public void tick() {
         resetPlayerMovement();
         pistons.values().forEach(PistonBlockEntity::updateMovement);
         sendPlayerMovement();
