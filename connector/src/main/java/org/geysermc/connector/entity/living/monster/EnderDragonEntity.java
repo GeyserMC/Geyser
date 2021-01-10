@@ -116,6 +116,13 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
         }
     }
 
+    /**
+     * Send an updated list of attributes to the Bedrock client.
+     * This is overwritten to allow the health attribute to differ from
+     * the health specified in the metadata.
+     *
+     * @param session GeyserSession
+     */
     @Override
     public void updateBedrockAttributes(GeyserSession session) {
         if (!valid) return;
@@ -272,8 +279,8 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
             } else if (phase == 5) { // Sitting Flaming Phase
                 if (phaseTicks % 2 == 0 && phaseTicks < 10) {
                     // Performing breath attack
-                    // Entity event DRAGON_FLAMING seems to only come from the origin of the dragon,
-                    // so particles are used instead
+                    // Entity event DRAGON_FLAMING seems to create particles from the origin of the dragon,
+                    // so we need to manually spawn particles
                     for (int i = 0; i < 8; i++) {
                         SpawnParticleEffectPacket spawnParticleEffectPacket = new SpawnParticleEffectPacket();
                         spawnParticleEffectPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
