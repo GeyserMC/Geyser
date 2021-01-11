@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,6 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
-import org.geysermc.connector.utils.MessageUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,7 +107,7 @@ public class BasicItemTranslator extends NbtItemStackTranslator {
     private String toBedrockMessage(StringTag tag) {
         String message = tag.getValue();
         if (message == null) return null;
-        TextComponent component = (TextComponent) MessageUtils.phraseJavaMessage(message);
+        TextComponent component = (TextComponent) GsonComponentSerializer.gson().deserialize(message);
         String legacy = LegacyComponentSerializer.legacySection().serialize(component);
         if (hasFormatting(LegacyComponentSerializer.legacySection().deserialize(legacy))) {
             return "§r" + legacy;

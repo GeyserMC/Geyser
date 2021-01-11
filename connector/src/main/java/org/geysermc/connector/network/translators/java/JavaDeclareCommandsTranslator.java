@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -52,9 +52,14 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
     public void translate(ServerDeclareCommandsPacket packet, GeyserSession session) {
         // Don't send command suggestions if they are disabled
         if (!session.getConnector().getConfig().isCommandSuggestions()) {
-            session.getConnector().getLogger().debug("Not sending command suggestions as they are disabled.");
+            session.getConnector().getLogger().debug("Not sending translated command suggestions as they are disabled.");
+
+            // Send an empty packet so Bedrock doesn't override /help with its own, built-in help command.
+            AvailableCommandsPacket emptyPacket = new AvailableCommandsPacket();
+            session.sendUpstreamPacket(emptyPacket);
             return;
         }
+
         List<CommandData> commandData = new ArrayList<>();
         Int2ObjectMap<String> commands = new Int2ObjectOpenHashMap<>();
         Int2ObjectMap<List<CommandNode>> commandArgs = new Int2ObjectOpenHashMap<>();
@@ -83,14 +88,14 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
         }
 
         // The command flags, not sure what these do apart from break things
-        List<CommandData.Flag> flags = new ArrayList<>();
+        List<CommandData.Flag> flags = Collections.emptyList();
 
         // Loop through all the found commands
         for (int commandID : commands.keySet()) {
             String commandName = commands.get(commandID);
 
             // Create a basic alias
-            CommandEnumData aliases = new CommandEnumData( commandName + "Aliases", new String[] { commandName.toLowerCase() }, false);
+            CommandEnumData aliases = new CommandEnumData(commandName + "Aliases", new String[] { commandName.toLowerCase() }, false);
 
             // Get and parse all params
             CommandParamData[][] params = getParams(packet.getNodes()[commandID], packet.getNodes());
@@ -102,9 +107,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
 
         // Add our commands to the AvailableCommandsPacket for the bedrock client
         AvailableCommandsPacket availableCommandsPacket = new AvailableCommandsPacket();
-        for (CommandData data : commandData) {
-            availableCommandsPacket.getCommands().add(data);
-        }
+        availableCommandsPacket.getCommands().addAll(commandData);
 
         GeyserConnector.getInstance().getLogger().debug("Sending command packet of " + commandData.size() + " commands");
 

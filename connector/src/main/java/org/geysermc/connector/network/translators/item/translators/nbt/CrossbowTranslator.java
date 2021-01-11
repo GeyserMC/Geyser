@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,15 +45,15 @@ public class CrossbowTranslator extends NbtItemStackTranslator {
             if (!chargedProjectiles.getValue().isEmpty()) {
                 CompoundTag projectile = (CompoundTag) chargedProjectiles.getValue().get(0);
 
-                ItemEntry entry = ItemRegistry.getItemEntry((String) projectile.get("id").getValue());
-                if (entry == null) return;
+                ItemEntry projectileEntry = ItemRegistry.getItemEntry((String) projectile.get("id").getValue());
+                if (projectileEntry == null) return;
                 CompoundTag tag = projectile.get("tag");
                 ItemStack itemStack = new ItemStack(itemEntry.getJavaId(), (byte) projectile.get("Count").getValue(), tag);
                 ItemData itemData = ItemTranslator.translateToBedrock(session, itemStack);
 
                 CompoundTag newProjectile = new CompoundTag("chargedItem");
                 newProjectile.put(new ByteTag("Count", (byte) itemData.getCount()));
-                newProjectile.put(new StringTag("Name", ItemRegistry.getBedrockIdentifer(entry)));
+                newProjectile.put(new StringTag("Name", projectileEntry.getBedrockIdentifier()));
 
                 newProjectile.put(new ShortTag("Damage", itemData.getDamage()));
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,8 +34,8 @@ import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.sound.SoundRegistry;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 @Translator(packet = ServerPlayBuiltinSoundPacket.class)
 public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayBuiltinSoundPacket> {
@@ -82,7 +82,11 @@ public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayB
             // Bedrock has a number for each type of note, then proceeds up the scale by adding to that number
             soundPacket.setExtraData(soundMapping.getExtraData() + (int)(Math.round((Math.log10(packet.getPitch()) / Math.log10(2)) * 12)) + 12);
         } else if (sound == SoundEvent.PLACE && soundMapping.getExtraData() == -1) {
-            soundPacket.setExtraData(BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaBlockState(soundMapping.getIdentifier())));
+            if (!soundMapping.getIdentifier().equals(":")) {
+                soundPacket.setExtraData(BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaBlockState(soundMapping.getIdentifier())));
+            } else {
+                session.getConnector().getLogger().debug("PLACE sound mapping identifier was invalid! Please report: " + packet.toString());
+            }
             soundPacket.setIdentifier(":");
         } else {
             soundPacket.setExtraData(soundMapping.getExtraData());

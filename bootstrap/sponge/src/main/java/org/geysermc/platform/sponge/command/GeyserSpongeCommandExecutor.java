@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -70,7 +70,7 @@ public class GeyserSpongeCommandExecutor implements CommandCallable {
     @Override
     public List<String> getSuggestions(CommandSource source, String arguments, @Nullable Location<World> targetPosition) throws CommandException {
         if (arguments.split(" ").length == 1) {
-            return Arrays.asList("?", "help", "reload", "shutdown", "stop");
+            return connector.getCommandManager().getCommandNames();
         }
         return new ArrayList<>();
     }

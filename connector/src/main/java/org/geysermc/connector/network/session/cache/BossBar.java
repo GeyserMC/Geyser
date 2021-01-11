@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +25,15 @@
 
 package org.geysermc.connector.network.session.cache;
 
-import com.github.steveice10.mc.protocol.data.message.Message;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.BossEventPacket;
 import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
 import lombok.AllArgsConstructor;
+import net.kyori.adventure.text.Component;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 @AllArgsConstructor
 public class BossBar {
@@ -41,7 +41,7 @@ public class BossBar {
     private GeyserSession session;
 
     private long entityId;
-    private Message title;
+    private Component title;
     private float health;
     private int color;
     private int overlay;
@@ -58,7 +58,7 @@ public class BossBar {
         BossEventPacket bossEventPacket = new BossEventPacket();
         bossEventPacket.setBossUniqueEntityId(entityId);
         bossEventPacket.setAction(BossEventPacket.Action.CREATE);
-        bossEventPacket.setTitle(MessageUtils.getTranslatedBedrockMessage(title, session.getClientData().getLanguageCode()));
+        bossEventPacket.setTitle(MessageTranslator.convertMessage(title, session.getLocale()));
         bossEventPacket.setHealthPercentage(health);
         bossEventPacket.setColor(color); //ignored by client
         bossEventPacket.setOverlay(overlay);
@@ -67,12 +67,12 @@ public class BossBar {
         session.sendUpstreamPacket(bossEventPacket);
     }
 
-    public void updateTitle(Message title) {
+    public void updateTitle(Component title) {
         this.title = title;
         BossEventPacket bossEventPacket = new BossEventPacket();
         bossEventPacket.setBossUniqueEntityId(entityId);
         bossEventPacket.setAction(BossEventPacket.Action.UPDATE_NAME);
-        bossEventPacket.setTitle(MessageUtils.getTranslatedBedrockMessage(title, session.getClientData().getLanguageCode()));
+        bossEventPacket.setTitle(MessageTranslator.convertMessage(title, session.getLocale()));
 
         session.sendUpstreamPacket(bossEventPacket);
     }

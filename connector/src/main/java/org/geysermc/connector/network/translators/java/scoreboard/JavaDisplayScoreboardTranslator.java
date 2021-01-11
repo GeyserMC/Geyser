@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,8 +36,7 @@ public class JavaDisplayScoreboardTranslator extends PacketTranslator<ServerDisp
 
     @Override
     public void translate(ServerDisplayScoreboardPacket packet, GeyserSession session) {
-        session.getWorldCache().getScoreboard().registerNewObjective(
-                packet.getName(), packet.getPosition()
-        );
+        session.getWorldCache().getScoreboard()
+                .displayObjective(packet.getName(), packet.getPosition());
     }
 }

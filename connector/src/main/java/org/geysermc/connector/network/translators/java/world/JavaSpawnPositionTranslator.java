@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@ public class JavaSpawnPositionTranslator extends PacketTranslator<ServerSpawnPos
         SetSpawnPositionPacket spawnPositionPacket = new SetSpawnPositionPacket();
         spawnPositionPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
         spawnPositionPacket.setSpawnForced(true);
-        spawnPositionPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getPlayerEntity().getDimension()));
+        spawnPositionPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
         spawnPositionPacket.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
         session.sendUpstreamPacket(spawnPositionPacket);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,9 +50,8 @@ public class ShulkerBoxItemTranslator extends NbtItemStackTranslator {
             boxItemTag.put(new ByteTag("WasPickedUp", (byte) 0)); // ???
 
             ItemEntry boxItemEntry = ItemRegistry.getItemEntry(((StringTag) itemData.get("id")).getValue());
-            String blockName = ItemRegistry.getBedrockIdentifer(boxItemEntry);
 
-            boxItemTag.put(new StringTag("Name", blockName));
+            boxItemTag.put(new StringTag("Name", boxItemEntry.getBedrockIdentifier()));
             boxItemTag.put(new ShortTag("Damage", (short) boxItemEntry.getBedrockData()));
             boxItemTag.put(new ByteTag("Count", ((ByteTag) itemData.get("Count")).getValue()));
             if (itemData.contains("tag")) {

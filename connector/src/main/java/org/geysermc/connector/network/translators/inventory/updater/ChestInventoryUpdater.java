@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,9 @@ import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @AllArgsConstructor
 public class ChestInventoryUpdater extends InventoryUpdater {
     private static final ItemData UNUSUABLE_SPACE_BLOCK = InventoryUtils.createUnusableSpaceBlock(LanguageUtils.getLocaleStringLog("geyser.inventory.unusable_item.slot"));
@@ -46,12 +49,12 @@ public class ChestInventoryUpdater extends InventoryUpdater {
     public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         super.updateInventory(translator, session, inventory);
 
-        ItemData[] bedrockItems = new ItemData[paddedSize];
-        for (int i = 0; i < bedrockItems.length; i++) {
+        List<ItemData> bedrockItems = new ArrayList<>(paddedSize);
+        for (int i = 0; i < paddedSize; i++) {
             if (i < translator.size) {
-                bedrockItems[i] = ItemTranslator.translateToBedrock(session, inventory.getItem(i));
+                bedrockItems.add(ItemTranslator.translateToBedrock(session, inventory.getItem(i)));
             } else {
-                bedrockItems[i] = UNUSUABLE_SPACE_BLOCK;
+                bedrockItems.add(UNUSUABLE_SPACE_BLOCK);
             }
         }
 

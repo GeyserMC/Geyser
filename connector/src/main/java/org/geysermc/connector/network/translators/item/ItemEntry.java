@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,9 +34,10 @@ import lombok.ToString;
 @ToString
 public class ItemEntry {
 
-    public static ItemEntry AIR = new ItemEntry("minecraft:air", 0, 0, 0, false);
+    public static ItemEntry AIR = new ItemEntry("minecraft:air", "minecraft:air", 0, 0, 0, false);
 
     private final String javaIdentifier;
+    private final String bedrockIdentifier;
     private final int javaId;
     private final int bedrockId;
     private final int bedrockData;

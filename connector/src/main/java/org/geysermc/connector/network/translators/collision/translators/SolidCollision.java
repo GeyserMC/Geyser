@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,22 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.common;
+package org.geysermc.connector.network.translators.collision.translators;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import org.geysermc.connector.network.translators.collision.BoundingBox;
+import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 
-@Getter
-@AllArgsConstructor
-public enum PlatformType {
-
-    ANDROID("Android"),
-    BUNGEECORD("BungeeCord"),
-    FABRIC("Fabric"),
-    SPIGOT("Spigot"),
-    SPONGE("Sponge"),
-    STANDALONE("Standalone"),
-    VELOCITY("Velocity");
-
-    private final String platformName;
+@CollisionRemapper(regex = "shulker_box$") // These have no collision in the mappings as it depends on the NBT data
+public class SolidCollision extends BlockCollision {
+    public SolidCollision(String params) {
+        super();
+        boundingBoxes = new BoundingBox[]{
+                new BoundingBox(0.5, 0.5, 0.5, 1, 1, 1)
+        };
+    }
 }

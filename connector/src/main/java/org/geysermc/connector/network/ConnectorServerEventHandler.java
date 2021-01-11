@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network;
 
-import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
@@ -35,9 +34,9 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.LanguageUtils;
-import org.geysermc.connector.utils.MessageUtils;
 
 import java.net.InetSocketAddress;
 
@@ -64,7 +63,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         GeyserPingInfo pingInfo = null;
         if (config.isPassthroughMotd() || config.isPassthroughPlayerCounts()) {
             IGeyserPingPassthrough pingPassthrough = connector.getBootstrap().getGeyserPingPassthrough();
-            pingInfo = pingPassthrough.getPingInformation();
+            pingInfo = pingPassthrough.getPingInformation(inetSocketAddress);
         }
 
         BedrockPong pong = new BedrockPong();
@@ -76,7 +75,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         pong.setIpv4Port(config.getBedrock().getPort());
 
         if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
-            String[] motd = MessageUtils.getBedrockMessage(MessageSerializer.fromString(pingInfo.getDescription())).split("\n");
+            String[] motd = MessageTranslator.convertMessageLenient(pingInfo.getDescription()).split("\n");
             String mainMotd = motd[0]; // First line of the motd.
             String subMotd = (motd.length != 1) ? motd[1] : ""; // Second line of the motd if present, otherwise blank.
 

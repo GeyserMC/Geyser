@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +25,12 @@
 
 package org.geysermc.connector.network.translators.java;
 
-import com.github.steveice10.mc.protocol.data.message.TranslationMessage;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.MessageUtils;
-
-import java.util.List;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 @Translator(packet = ServerChatPacket.class)
 public class JavaChatTranslator extends PacketTranslator<ServerChatPacket> {
@@ -59,21 +56,8 @@ public class JavaChatTranslator extends PacketTranslator<ServerChatPacket> {
                 break;
         }
 
-        String locale = session.getClientData().getLanguageCode();
-
-        if (packet.getMessage() instanceof TranslationMessage) {
-            textPacket.setType(TextPacket.Type.TRANSLATION);
-            textPacket.setNeedsTranslation(true);
-
-            List<String> paramsTranslated = MessageUtils.getTranslationParams(((TranslationMessage) packet.getMessage()).getWith(), locale, packet.getMessage());
-            textPacket.setParameters(paramsTranslated);
-
-            textPacket.setMessage(MessageUtils.insertParams(MessageUtils.getTranslatedBedrockMessage(packet.getMessage(), locale, true, packet.getMessage()), paramsTranslated));
-        } else {
-            textPacket.setNeedsTranslation(false);
-
-            textPacket.setMessage(MessageUtils.getTranslatedBedrockMessage(packet.getMessage(), locale, false, packet.getMessage()));
-        }
+        textPacket.setNeedsTranslation(false);
+        textPacket.setMessage(MessageTranslator.convertMessage(packet.getMessage(), session.getLocale()));
 
         session.sendUpstreamPacket(textPacket);
     }

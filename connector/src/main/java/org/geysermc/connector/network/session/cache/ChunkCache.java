@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -94,12 +94,12 @@ public class ChunkCache {
 
     public int getBlockAt(int x, int y, int z) {
         if (!cache) {
-            return BlockTranslator.AIR;
+            return BlockTranslator.JAVA_AIR_ID;
         }
 
         Column column = this.getChunk(x >> 4, z >> 4);
         if (column == null) {
-            return BlockTranslator.AIR;
+            return BlockTranslator.JAVA_AIR_ID;
         }
 
         Chunk chunk = column.getChunks()[y >> 4];
@@ -107,7 +107,7 @@ public class ChunkCache {
             return chunk.get(x & 0xF, y & 0xF, z & 0xF);
         }
 
-        return BlockTranslator.AIR;
+        return BlockTranslator.JAVA_AIR_ID;
     }
 
     public void removeChunk(int chunkX, int chunkZ) {

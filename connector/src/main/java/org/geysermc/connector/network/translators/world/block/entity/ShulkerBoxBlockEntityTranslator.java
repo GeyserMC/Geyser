@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,23 +26,18 @@
 package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @BlockEntity(name = "ShulkerBox", regex = "shulker_box")
 public class ShulkerBoxBlockEntityTranslator extends BlockEntityTranslator {
-
     @Override
-    public Map<String, Object> translateTag(CompoundTag tag, int blockState) {
-        Map<String, Object> tags = new HashMap<>();
-
+    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
         byte direction = BlockStateValues.getShulkerBoxDirection(blockState);
         // Just in case...
-        if (direction == -1) direction = 1;
-        tags.put("facing", direction);
-        return tags;
+        if (direction == -1) {
+            direction = 1;
+        }
+        builder.put("facing", direction);
     }
-
 }

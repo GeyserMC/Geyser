@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -89,6 +89,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("show-cooldown")
     private boolean showCooldown = true;
 
+    @JsonProperty("show-coordinates")
+    private boolean showCoordinates = true;
+
     @JsonProperty("allow-third-party-ears")
     private boolean allowThirdPartyEars = false;
 
@@ -101,11 +104,17 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("cache-images")
     private int cacheImages = 0;
 
+    @JsonProperty("allow-custom-skulls")
+    private boolean allowCustomSkulls = true;
+
     @JsonProperty("above-bedrock-nether-building")
     private boolean aboveBedrockNetherBuilding = false;
 
     @JsonProperty("force-resource-packs")
     private boolean forceResourcePacks = true;
+
+    @JsonProperty("xbox-achievements-enabled")
+    private boolean xboxAchievementsEnabled = false;
 
     private MetricsInfo metrics = new MetricsInfo();
 
@@ -139,6 +148,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         @Setter
         @JsonProperty("auth-type")
         private String authType = "online";
+
+        @JsonProperty("use-proxy-protocol")
+        private boolean useProxyProtocol = false;
     }
 
     @Getter
@@ -166,6 +178,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @JsonProperty("mtu")
     private int mtu = 1400;
+
+    @JsonProperty("use-adapters")
+    private boolean useAdapters = true;
 
     @JsonProperty("config-version")
     private int configVersion = 0;
