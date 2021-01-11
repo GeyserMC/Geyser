@@ -39,6 +39,7 @@ import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.LanguageUtils;
 
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 
 public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
@@ -95,13 +96,16 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         }
 
         // The ping will not appear if the MOTD + sub-MOTD is of a certain length.
-        if (pong.getMotd().length() + pong.getSubMotd().length() > 339) {
-            // Split the difference
-            if (pong.getMotd().length() > 170) {
-                pong.setMotd(pong.getMotd().substring(0, 170));
-            }
-            if (pong.getSubMotd().length() > 170) {
-                pong.setSubMotd(pong.getSubMotd().substring(0, 170));
+        // We don't know why, though
+        byte[] motdArray = pong.getMotd().getBytes(StandardCharsets.UTF_8);
+        if (motdArray.length + pong.getSubMotd().getBytes(StandardCharsets.UTF_8).length > 338) {
+            // Remove the sub-MOTD first since that only appears locally
+            pong.setSubMotd("");
+            if (motdArray.length > 338) {
+                // If the top MOTD is still too long, we chop it down
+                byte[] newMotdArray = new byte[339];
+                System.arraycopy(motdArray, 0, newMotdArray, 0, newMotdArray.length);
+                pong.setMotd(new String(newMotdArray, StandardCharsets.UTF_8));
             }
         }
 
