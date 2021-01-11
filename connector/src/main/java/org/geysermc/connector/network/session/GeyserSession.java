@@ -497,27 +497,7 @@ public class GeyserSession implements CommandSender {
                 sendUpstreamPacket(packet);
 
                 // Wait for the code to validate
-                while (true) {
-                    if (loggedIn || closed) {
-                        return;
-                    }
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException ignored) { }
-
-                    try {
-                        msaAuthenticationService.login();
-                        break;
-                    } catch (RequestException e) {
-                        if (!(e instanceof AuthPendingException)) {
-                            throw e;
-                        }
-                    }
-                }
-
-                protocol = new MinecraftProtocol(msaAuthenticationService);
-
-                connectDownstream();
+                attemptCodeAuthentication(msaAuthenticationService);
             } catch (InvalidCredentialsException | IllegalArgumentException e) {
                 connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.invalid", getAuthData().getName()));
                 disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
@@ -525,6 +505,28 @@ public class GeyserSession implements CommandSender {
                 ex.printStackTrace();
             }
         }).start();
+    }
+
+    /**
+     * Poll every second to see if the user has successfully signed in
+     */
+    private void attemptCodeAuthentication(MsaAuthenticationService msaAuthenticationService) {
+        if (loggedIn || closed) {
+            return;
+        }
+        try {
+            msaAuthenticationService.login();
+            protocol = new MinecraftProtocol(msaAuthenticationService);
+
+            connectDownstream();
+        } catch (RequestException e) {
+            if (!(e instanceof AuthPendingException)) {
+                e.printStackTrace();
+            } else {
+                // Wait one second before trying again
+                connector.getGeneralThreadPool().schedule(() -> attemptCodeAuthentication(msaAuthenticationService), 1, TimeUnit.SECONDS);
+            }
+        }
     }
 
     /**
