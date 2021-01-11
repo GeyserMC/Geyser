@@ -81,7 +81,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
 
             ChunkUtils.updateChunkPosition(session, pos.toInt());
 
-            session.getConnector().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.entity.player.spawn", packet.getX(), packet.getY(), packet.getZ()));
+            session.getConnector().getLogger().debug(LanguageUtils.getLocaleStringLog("geyser.entity.player.spawn", packet.getX(), packet.getY(), packet.getZ()));
             return;
         }
 
