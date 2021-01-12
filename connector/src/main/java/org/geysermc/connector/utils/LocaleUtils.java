@@ -142,8 +142,9 @@ public class LocaleUtils {
                 try {
                     File hashFile = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("locales/en_us.hash").toFile();
                     if (hashFile.exists()) {
-                        BufferedReader br = new BufferedReader(new FileReader(hashFile));
-                        curHash = br.readLine().trim();
+                        try (BufferedReader br = new BufferedReader(new FileReader(hashFile))) {
+                            curHash = br.readLine().trim();
+                        }
                     }
                 } catch (IOException ignored) { }
                 targetHash = clientJarInfo.getSha1();
