@@ -46,12 +46,10 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
 
     @Override
     public void translate(ServerPlayerPositionRotationPacket packet, GeyserSession session) {
-        PlayerEntity entity = session.getPlayerEntity();
-        if (entity == null)
-            return;
-
         if (!session.isLoggedIn())
             return;
+
+        PlayerEntity entity = session.getPlayerEntity();
 
         if (!session.isSpawned()) {
             Vector3f pos = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
@@ -83,7 +81,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
 
             ChunkUtils.updateChunkPosition(session, pos.toInt());
 
-            session.getConnector().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.entity.player.spawn", packet.getX(), packet.getY(), packet.getZ()));
+            session.getConnector().getLogger().debug(LanguageUtils.getLocaleStringLog("geyser.entity.player.spawn", packet.getX(), packet.getY(), packet.getZ()));
             return;
         }
 

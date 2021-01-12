@@ -161,6 +161,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
             if (info != null) {
                 connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.stored_credentials", session.getAuthData().getName()));
+                session.setMicrosoftAccount(info.isMicrosoftAccount());
                 session.authenticate(info.getEmail(), info.getPassword());
 
                 // TODO send a message to bedrock user telling them they are connected (if nothing like a motd
