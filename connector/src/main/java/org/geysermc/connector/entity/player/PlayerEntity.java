@@ -102,9 +102,11 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.getMetadata().putAll(metadata);
 
         long linkedEntityId = session.getEntityCache().getCachedPlayerEntityLink(entityId);
-        Entity linkedEntity = session.getEntityCache().getEntityByJavaId(linkedEntityId);
-        if (linkedEntityId != -1 && linkedEntity != null) {
-            addPlayerPacket.getEntityLinks().add(new EntityLinkData(linkedEntity.getGeyserId(), geyserId, EntityLinkData.Type.RIDER, false, false));
+        if (linkedEntityId != -1) {
+			Entity linkedEntity = session.getEntityCache().getEntityByJavaId(linkedEntityId);
+			if (linkedEntity != null) {
+            	addPlayerPacket.getEntityLinks().add(new EntityLinkData(linkedEntity.getGeyserId(), geyserId, EntityLinkData.Type.RIDER, false, false));
+			}
         }
 
         valid = true;
