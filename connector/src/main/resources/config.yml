@@ -32,10 +32,14 @@ remote:
   port: 25565
   # Authentication type. Can be offline, online, or floodgate (see https://github.com/GeyserMC/Geyser/wiki/Floodgate).
   auth-type: online
+  # Allow for password-based authentication methods through Geyser. Only useful in online mode.
+  # If this is false, users must authenticate to Microsoft using a code provided by Geyser on their desktop.
+  allow-password-authentication: true
   # Whether to enable PROXY protocol or not while connecting to the server.
   # This is useful only when:
   # 1) Your server supports PROXY protocol (it probably doesn't)
-  # 2) You run Velocity or BungeeCord with respective option enabled.
+  # 2) You run Velocity or BungeeCord with the option enabled in the proxy's main config.
+  # IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!
   use-proxy-protocol: false
 
 # Floodgate uses encryption to ensure use from authorised sources.
@@ -51,10 +55,12 @@ floodgate-key-file: public-key.pem
 #  BedrockAccountUsername: # Your Minecraft: Bedrock Edition username
 #    email: javaccountemail@example.com # Your Minecraft: Java Edition email
 #    password: javaccountpassword123 # Your Minecraft: Java Edition password
+#    microsoft-account: true # Whether the account is a Mojang or Microsoft account.
 #
 #  bluerkelp2: 
 #    email: not_really_my_email_address_mr_minecrafter53267@gmail.com 
 #    password: "this isn't really my password"
+#    microsoft-account: false
 
 # Bedrock clients can freeze when opening up the command prompt for the first time if given a lot of commands.
 # Disabling this will prevent command suggestions from being sent and solve freezing for Bedrock clients.
