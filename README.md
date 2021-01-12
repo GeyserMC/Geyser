@@ -3,7 +3,7 @@
 [![forthebadge made-with-java](http://ForTheBadge.com/images/badges/made-with-java.svg)](https://java.com/)
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Build Status](https://ci.nukkitx.com/job/Geyser/job/master/badge/icon)](https://ci.nukkitx.com/job/GeyserMC/job/Geyser/job/master/)
+[![Build Status](https://ci.opencollab.dev/job/Geyser/job/master/badge/icon)](https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/master/)
 [![Discord](https://img.shields.io/discord/613163671870242838.svg?color=%237289da&label=discord)](http://discord.geysermc.org/)
 [![HitCount](http://hits.dwyl.io/Geyser/GeyserMC.svg)](http://hits.dwyl.io/Geyser/GeyserMC)
 [![Crowdin](https://badges.crowdin.net/geyser/localized.svg)](https://translate.geysermc.org/)
@@ -18,7 +18,7 @@ The ultimate goal of this project is to allow Minecraft: Bedrock Edition users t
 
 Special thanks to the DragonProxy project for being a trailblazer in protocol translation and for all the team members who have now joined us here!
 
-### Currently supporting Minecraft Bedrock v1.16.100/v1.16.101/v1.16.200 and Minecraft Java v1.16.4.
+### Currently supporting Minecraft Bedrock v1.16.100 - v1.16.201 and Minecraft Java v1.16.4.
 
 ## Setting Up
 Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set up Geyser.

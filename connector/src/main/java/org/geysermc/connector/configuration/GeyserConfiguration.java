@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ import java.util.Map;
 
 public interface GeyserConfiguration {
 
-    // Modify this when you update the config
+    // Modify this when you introduce breaking changes into the config
     int CURRENT_CONFIG_VERSION = 4;
 
     IBedrockConfiguration getBedrock();
@@ -117,12 +117,22 @@ public interface GeyserConfiguration {
         void setPort(int port);
 
         String getAuthType();
+
+        boolean isPasswordAuthentication();
+
+        boolean isUseProxyProtocol();
     }
 
     interface IUserAuthenticationInfo {
         String getEmail();
 
         String getPassword();
+
+        /**
+         * Will be removed after Microsoft accounts are fully migrated
+         */
+        @Deprecated
+        boolean isMicrosoftAccount();
     }
 
     interface IMetricsInfo {

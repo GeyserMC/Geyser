@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -148,15 +148,25 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         @Setter
         @JsonProperty("auth-type")
         private String authType = "online";
+
+        @JsonProperty("allow-password-authentication")
+        private boolean passwordAuthentication = true;
+
+        @JsonProperty("use-proxy-protocol")
+        private boolean useProxyProtocol = false;
     }
 
     @Getter
+    @JsonIgnoreProperties(ignoreUnknown = true) // DO NOT REMOVE THIS! Otherwise, after we remove microsoft-account configs will not load
     public static class UserAuthenticationInfo implements IUserAuthenticationInfo {
         @AsteriskSerializer.Asterisk()
         private String email;
 
         @AsteriskSerializer.Asterisk()
         private String password;
+
+        @JsonProperty("microsoft-account")
+        private boolean microsoftAccount = false;
     }
 
     @Getter

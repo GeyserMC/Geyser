@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,12 +39,11 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
-import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
-import com.nukkitx.protocol.bedrock.packet.InventoryTransactionPacket;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.CommandBlockMinecartEntity;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
@@ -64,11 +63,23 @@ import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * BedrockInventoryTransactionTranslator handles most interactions between the client and the world,
+ * or the client and their inventory.
+ */
 @Translator(packet = InventoryTransactionPacket.class)
 public class BedrockInventoryTransactionTranslator extends PacketTranslator<InventoryTransactionPacket> {
 
+    private static final float MAXIMUM_BLOCK_PLACING_DISTANCE = 64f;
+    private static final int CREATIVE_EYE_HEIGHT_PLACE_DISTANCE = 49;
+    private static final int SURVIVAL_EYE_HEIGHT_PLACE_DISTANCE = 36;
+    private static final float MAXIMUM_BLOCK_DESTROYING_DISTANCE = 36f;
+
     @Override
     public void translate(InventoryTransactionPacket packet, GeyserSession session) {
+        // Send book updates before opening inventories
+        session.getBookEditCache().checkForSend();
+
         switch (packet.getTransactionType()) {
             case NORMAL:
                 Inventory inventory = session.getInventoryCache().getOpenInventory();
@@ -108,6 +119,46 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             session.sendDownstreamPacket(interactAtPacket);
                             break;
                         }
+
+                        Vector3i blockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getBlockFace());
+                        /*
+                        Checks to ensure that the range will be accepted by the server.
+                        "Not in range" doesn't refer to how far a vanilla client goes (that's a whole other mess),
+                        but how much a server will accept from the client maximum
+                         */
+                        // CraftBukkit+ check - see https://github.com/PaperMC/Paper/blob/458db6206daae76327a64f4e2a17b67a7e38b426/Spigot-Server-Patches/0532-Move-range-check-for-block-placing-up.patch
+                        Vector3f playerPosition = session.getPlayerEntity().getPosition();
+                        EntityFlags flags = session.getPlayerEntity().getMetadata().getFlags();
+
+                        // Adjust position for current eye height
+                        if (flags.getFlag(EntityFlag.SNEAKING)) {
+                            playerPosition = playerPosition.sub(0, (EntityType.PLAYER.getOffset() - 1.27f), 0);
+                        } else if (flags.getFlag(EntityFlag.SWIMMING) || flags.getFlag(EntityFlag.GLIDING) || flags.getFlag(EntityFlag.DAMAGE_NEARBY_MOBS)) {
+                            // Swimming, gliding, or using the trident spin attack
+                            playerPosition = playerPosition.sub(0, (EntityType.PLAYER.getOffset() - 0.4f), 0);
+                        } else if (flags.getFlag(EntityFlag.SLEEPING)) {
+                            playerPosition = playerPosition.sub(0, (EntityType.PLAYER.getOffset() - 0.2f), 0);
+                        } // else, we don't have to modify the position
+
+                        float diffX = playerPosition.getX() - packet.getBlockPosition().getX();
+                        float diffY = playerPosition.getY() - packet.getBlockPosition().getY();
+                        float diffZ = playerPosition.getZ() - packet.getBlockPosition().getZ();
+                        if (((diffX * diffX) + (diffY * diffY) + (diffZ * diffZ)) >
+                                (session.getGameMode().equals(GameMode.CREATIVE) ? CREATIVE_EYE_HEIGHT_PLACE_DISTANCE : SURVIVAL_EYE_HEIGHT_PLACE_DISTANCE)) {
+                            restoreCorrectBlock(session, blockPos, packet);
+                            return;
+                        }
+
+                        // Vanilla check
+                        if (!(session.getPlayerEntity().getPosition().sub(0, EntityType.PLAYER.getOffset(), 0)
+                                .distanceSquared(packet.getBlockPosition().toFloat().add(0.5f, 0.5f, 0.5f)) < MAXIMUM_BLOCK_PLACING_DISTANCE)) {
+                            // The client thinks that its blocks have been successfully placed. Restore the server's blocks instead.
+                            restoreCorrectBlock(session, blockPos, packet);
+                            return;
+                        }
+                        /*
+                        Block place checks end - client is good to go
+                         */
 
                         ClientPlayerPlaceBlockPacket blockPacket = new ClientPlayerPlaceBlockPacket(
                                 new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()),
@@ -156,7 +207,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             }
                         }
 
-                        Vector3i blockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getBlockFace());
                         ItemEntry handItem = ItemRegistry.getItem(packet.getItemInHand());
                         if (handItem.isBlock()) {
                             session.setLastBlockPlacePosition(blockPos);
@@ -181,18 +231,31 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamPacket(useItemPacket);
                         break;
                     case 2:
-                        int blockState = session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());
-                        double blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(blockState);
-                        if (session.getGameMode() == GameMode.CREATIVE || (session.getConnector().getConfig().isCacheChunks() && blockHardness == 0)) {
-                            session.setLastBlockPlacedId(null);
-                            session.setLastBlockPlacePosition(null);
+                        int blockState = session.getGameMode() == GameMode.CREATIVE ?
+                                session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition()) : session.getBreakingBlock();
 
-                            LevelEventPacket blockBreakPacket = new LevelEventPacket();
-                            blockBreakPacket.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
-                            blockBreakPacket.setPosition(packet.getBlockPosition().toFloat());
-                            blockBreakPacket.setData(BlockTranslator.getBedrockBlockId(blockState));
-                            session.sendUpstreamPacket(blockBreakPacket);
+                        session.setLastBlockPlacedId(null);
+                        session.setLastBlockPlacePosition(null);
+
+                        // Same deal with vanilla block placing as above.
+                        // This is working out the distance using 3d Pythagoras and the extra value added to the Y is the sneaking height of a java player.
+                        playerPosition = session.getPlayerEntity().getPosition();
+                        Vector3f floatBlockPosition = packet.getBlockPosition().toFloat();
+                        diffX = playerPosition.getX() - (floatBlockPosition.getX() + 0.5f);
+                        diffY = (playerPosition.getY() - EntityType.PLAYER.getOffset()) - (floatBlockPosition.getY() + 0.5f) + 1.5f;
+                        diffZ = playerPosition.getZ() - (floatBlockPosition.getZ() + 0.5f);
+                        float distanceSquared = diffX * diffX + diffY * diffY + diffZ * diffZ;
+                        if (distanceSquared > MAXIMUM_BLOCK_DESTROYING_DISTANCE) {
+                            restoreCorrectBlock(session, packet.getBlockPosition(), packet);
+                            return;
                         }
+
+                        LevelEventPacket blockBreakPacket = new LevelEventPacket();
+                        blockBreakPacket.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
+                        blockBreakPacket.setPosition(packet.getBlockPosition().toFloat());
+                        blockBreakPacket.setData(BlockTranslator.getBedrockBlockId(blockState));
+                        session.sendUpstreamPacket(blockBreakPacket);
+                        session.setBreakingBlock(BlockTranslator.JAVA_AIR_ID);
 
                         long frameEntityId = ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition());
                         if (frameEntityId != -1 && session.getEntityCache().getEntityByJavaId(frameEntityId) != null) {
@@ -266,5 +329,35 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 }
                 break;
         }
+    }
+
+    /**
+     * Restore the correct block state from the server without updating the chunk cache.
+     *
+     * @param session the session of the Bedrock client
+     * @param blockPos the block position to restore
+     */
+    private void restoreCorrectBlock(GeyserSession session, Vector3i blockPos, InventoryTransactionPacket packet) {
+        int javaBlockState = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
+        UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+        updateBlockPacket.setDataLayer(0);
+        updateBlockPacket.setBlockPosition(blockPos);
+        updateBlockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(javaBlockState));
+        updateBlockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
+        session.sendUpstreamPacket(updateBlockPacket);
+
+        UpdateBlockPacket updateWaterPacket = new UpdateBlockPacket();
+        updateWaterPacket.setDataLayer(1);
+        updateWaterPacket.setBlockPosition(blockPos);
+        updateWaterPacket.setRuntimeId(BlockTranslator.isWaterlogged(javaBlockState) ? BlockTranslator.BEDROCK_WATER_ID : BlockTranslator.BEDROCK_AIR_ID);
+        updateWaterPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
+        session.sendUpstreamPacket(updateWaterPacket);
+
+        // Reset the item in hand to prevent "missing" blocks
+        InventorySlotPacket slotPacket = new InventorySlotPacket();
+        slotPacket.setContainerId(ContainerId.INVENTORY);
+        slotPacket.setSlot(packet.getHotbarSlot());
+        slotPacket.setItem(packet.getItemInHand());
+        session.sendUpstreamPacket(slotPacket);
     }
 }

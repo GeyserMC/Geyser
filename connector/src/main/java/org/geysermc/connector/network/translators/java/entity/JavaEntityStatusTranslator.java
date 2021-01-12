@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,8 +31,8 @@ import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
-import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.connector.entity.Entity;
@@ -89,6 +89,7 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
             case LIVING_DROWN:
             case LIVING_HURT:
             case LIVING_HURT_SWEET_BERRY_BUSH:
+            case LIVING_HURT_THORNS:
                 entityEventPacket.setType(EntityEventType.HURT);
                 break;
             case LIVING_DEATH:
@@ -182,6 +183,19 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                     return;
                 }
                 break;
+            case LIVING_EQUIPMENT_BREAK_HEAD:
+            case LIVING_EQUIPMENT_BREAK_CHEST:
+            case LIVING_EQUIPMENT_BREAK_LEGS:
+            case LIVING_EQUIPMENT_BREAK_FEET:
+            case LIVING_EQUIPMENT_BREAK_MAIN_HAND:
+            case LIVING_EQUIPMENT_BREAK_OFF_HAND:
+                LevelSoundEvent2Packet equipmentBreakPacket = new LevelSoundEvent2Packet();
+                equipmentBreakPacket.setSound(SoundEvent.BREAK);
+                equipmentBreakPacket.setPosition(entity.getPosition());
+                equipmentBreakPacket.setExtraData(-1);
+                equipmentBreakPacket.setIdentifier("");
+                session.sendUpstreamPacket(equipmentBreakPacket);
+                return;
         }
 
         session.sendUpstreamPacket(entityEventPacket);

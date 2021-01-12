@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.java.world;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerBlockChangePacket;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
@@ -37,17 +38,17 @@ import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHan
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerBlockChangePacket;
-
 @Translator(packet = ServerBlockChangePacket.class)
 public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChangePacket> {
 
     @Override
     public void translate(ServerBlockChangePacket packet, GeyserSession session) {
         Position pos = packet.getRecord().getPosition();
-        boolean updatePlacement = !(session.getConnector().getConfig().isCacheChunks() && session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ()) == packet.getRecord().getBlock());
-        ChunkUtils.updateBlock(session, packet.getRecord().getBlock(), packet.getRecord().getPosition());
-        if (updatePlacement && session.getConnector().getPlatformType() != PlatformType.SPIGOT) {
+        boolean updatePlacement = session.getConnector().getPlatformType() != PlatformType.SPIGOT && // Spigot simply listens for the block place event
+                !(session.getConnector().getConfig().isCacheChunks() &&
+                session.getConnector().getWorldManager().getBlockAt(session, pos) == packet.getRecord().getBlock());
+        ChunkUtils.updateBlock(session, packet.getRecord().getBlock(), pos);
+        if (updatePlacement) {
             this.checkPlace(session, packet);
         }
         this.checkInteract(session, packet);

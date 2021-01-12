@@ -32,7 +32,7 @@
         <dependency>
             <groupId>com.github.CloudburstMC.Protocol</groupId>
             <artifactId>bedrock-v422</artifactId>
-            <version>87d862d69d</version>
+            <version>d41b84e86c</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -125,12 +125,28 @@
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>netty-all</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>net.kyori</groupId>
                     <artifactId>adventure-text-serializer-gson</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.github.steveice10</groupId>
+                    <artifactId>packetlib</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.github.steveice10</groupId>
+                    <artifactId>mcauthlib</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.github.steveice10</groupId>
+            <artifactId>PacketLib</artifactId>
+            <version>54f761c</version>
+            <scope>compile</scope>
+            <exclusions>
+                <exclusion> <!-- Move this exclusion back to MCProtocolLib it gets the latest PacketLib -->
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-all</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -138,6 +154,12 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-resolver-dns</artifactId>
             <version>4.1.43.Final</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-haproxy</artifactId>
+            <version>4.1.56.Final</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -179,6 +201,11 @@
             <artifactId>junit</artifactId>
             <version>4.13.1</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.GeyserMC</groupId>
+            <artifactId>MCAuthLib</artifactId>
+            <version>0e48a094f2</version>
         </dependency>
     </dependencies>
 

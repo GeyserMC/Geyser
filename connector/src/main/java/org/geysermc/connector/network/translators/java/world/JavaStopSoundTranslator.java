@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.entity.player;
+package org.geysermc.connector.network.translators.java.world;
 
 import com.github.steveice10.mc.protocol.data.game.world.sound.BuiltinSound;
 import com.github.steveice10.mc.protocol.data.game.world.sound.CustomSound;
@@ -35,26 +35,35 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.sound.SoundRegistry;
 
 @Translator(packet = ServerStopSoundPacket.class)
-public class JavaPlayerStopSoundTranslator extends PacketTranslator<ServerStopSoundPacket> {
+public class JavaStopSoundTranslator extends PacketTranslator<ServerStopSoundPacket> {
 
     @Override
     public void translate(ServerStopSoundPacket packet, GeyserSession session) {
+        // Runs if all sounds are stopped
+        if (packet.getSound() == null) {
+            StopSoundPacket stopPacket = new StopSoundPacket();
+            stopPacket.setStoppingAllSound(true);
+            stopPacket.setSoundName("");
+            session.sendUpstreamPacket(stopPacket);
+            return;
+        }
+
         String packetSound;
-        if(packet.getSound() instanceof BuiltinSound) {
+        if (packet.getSound() instanceof BuiltinSound) {
             packetSound = ((BuiltinSound) packet.getSound()).getName();
-        } else if(packet.getSound() instanceof CustomSound) {
+        } else if (packet.getSound() instanceof CustomSound) {
             packetSound = ((CustomSound) packet.getSound()).getName();
         } else {
             session.getConnector().getLogger().debug("Unknown sound packet, we were unable to map this. " + packet.toString());
             return;
         }
-        SoundRegistry.SoundMapping soundMapping = SoundRegistry.fromJava(packetSound);
+        SoundRegistry.SoundMapping soundMapping = SoundRegistry.fromJava(packetSound.replace("minecraft:", ""));
         session.getConnector().getLogger()
                 .debug("[StopSound] Sound mapping " + packetSound + " -> "
                         + soundMapping + (soundMapping == null ? "[not found]" : "")
                         + " - " + packet.toString());
         String playsound;
-        if(soundMapping == null || soundMapping.getPlaysound() == null) {
+        if (soundMapping == null || soundMapping.getPlaysound() == null) {
             // no mapping
             session.getConnector().getLogger()
                     .debug("[StopSound] Defaulting to sound server gave us.");
