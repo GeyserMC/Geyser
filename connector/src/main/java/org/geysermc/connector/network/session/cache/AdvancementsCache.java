@@ -39,6 +39,7 @@ import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AdvancementsCache {
@@ -172,22 +173,38 @@ public class AdvancementsCache {
     }
 
     /**
+     * Determine if this advancement has been earned.
      *
-     * @param advancement
+     * @param advancement the advancement to determine
      * @return true if the advancement has been earned.
      */
     public boolean isEarned(GeyserAdvancement advancement) {
-        boolean earned = true;
+        boolean earned = false;
+        if (advancement.getRequirements().size() == 0) {
+            // Minecraft handles this case, so we better as well
+            return false;
+        }
         Map<String, Long> progress = storedAdvancementProgress.get(advancement.getId());
         if (progress != null) {
-            for (Map.Entry<String, Long> entry : progress.entrySet()) {
-                if (entry.getValue() == -1) {
+            // Each advancement's requirement must be fulfilled
+            // For example, [[zombie, blaze, skeleton]] means that one of those three categories must be achieved
+            // But [[zombie], [blaze], [skeleton]] means that all three requirements must be completed
+            for (List<String> requirements : advancement.getRequirements()) {
+                boolean requirementsDone = false;
+                for (String requirement : requirements) {
+                    Long obtained = progress.get(requirement);
                     // -1 means that this particular component required for completing the advancement
                     // has yet to be fulfilled
-                    earned = false;
-                    break;
+                    if (obtained != null && !obtained.equals(-1L)) {
+                        requirementsDone = true;
+                        break;
+                    }
+                }
+                if (!requirementsDone) {
+                    return false;
                 }
             }
+            earned = true;
         }
         return earned;
     }
