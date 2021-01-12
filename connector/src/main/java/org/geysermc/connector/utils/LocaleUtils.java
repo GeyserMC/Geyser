@@ -208,6 +208,12 @@ public class LocaleUtils {
 
             // Insert the locale into the mappings
             LOCALE_MAPPINGS.put(locale.toLowerCase(), langMap);
+
+            try {
+                localeStream.close();
+            } catch (IOException e) {
+                throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.locale.fail.file", locale, e.getMessage()));
+            }
         } else {
             GeyserConnector.getInstance().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.locale.fail.missing", locale));
         }
