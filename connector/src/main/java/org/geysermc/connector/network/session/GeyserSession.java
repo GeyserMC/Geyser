@@ -370,7 +370,9 @@ public class GeyserSession implements CommandSender {
 
         this.inventoryCache.getInventories().put(0, inventory);
 
-        connector.getPlayers().forEach(player -> this.emotes.addAll(player.getEmotes()));
+        // Make a copy to prevent ConcurrentModificationException
+        final List<GeyserSession> tmpPlayers = new ArrayList<>(connector.getPlayers());
+        tmpPlayers.forEach(player -> this.emotes.addAll(player.getEmotes()));
 
         bedrockServerSession.addDisconnectHandler(disconnectReason -> {
             connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.disconnect", bedrockServerSession.getAddress().getAddress(), disconnectReason));
