@@ -338,7 +338,7 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private List<UUID> selectedEmotes = new ArrayList<>();
-    private final Set<UUID> emotes = Collections.synchronizedSet(new HashSet<>());
+    private final Set<UUID> emotes = new HashSet<>();
 
     /**
      * The thread that will run every 50 milliseconds - one Minecraft tick.
@@ -370,7 +370,9 @@ public class GeyserSession implements CommandSender {
 
         this.inventoryCache.getInventories().put(0, inventory);
 
-        connector.getPlayers().forEach(player -> this.emotes.addAll(player.getEmotes()));
+        // Make a copy to prevent ConcurrentModificationException
+        final List<GeyserSession> tmpPlayers = new ArrayList<>(connector.getPlayers());
+        tmpPlayers.forEach(player -> this.emotes.addAll(player.getEmotes()));
 
         bedrockServerSession.addDisconnectHandler(disconnectReason -> {
             connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.disconnect", bedrockServerSession.getAddress().getAddress(), disconnectReason));
