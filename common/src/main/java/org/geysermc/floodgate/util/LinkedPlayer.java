@@ -34,7 +34,7 @@ import java.util.UUID;
 
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public final class LinkedPlayer {
+public final class LinkedPlayer implements Cloneable {
     /**
      * The Java username of the linked player
      */
@@ -73,5 +73,10 @@ public final class LinkedPlayer {
     @Override
     public String toString() {
         return javaUsername + ';' + javaUniqueId.toString() + ';' + bedrockId.toString();
+    }
+
+    @Override
+    public LinkedPlayer clone() throws CloneNotSupportedException {
+        return (LinkedPlayer) super.clone();
     }
 }

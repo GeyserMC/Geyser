@@ -36,7 +36,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public final class BedrockData {
+public final class BedrockData implements Cloneable {
     public static final int EXPECTED_LENGTH = 10;
 
     private final String version;
@@ -95,5 +95,10 @@ public final class BedrockData {
                 languageCode + '\0' + uiProfile + '\0' + inputMode + '\0' + ip + '\0' +
                 (fromProxy ? 1 : 0) + '\0' +
                 (linkedPlayer != null ? linkedPlayer.toString() : "null");
+    }
+
+    @Override
+    public BedrockData clone() throws CloneNotSupportedException {
+        return (BedrockData) super.clone();
     }
 }
