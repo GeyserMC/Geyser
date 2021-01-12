@@ -195,7 +195,7 @@ public class AdvancementsCache {
                     Long obtained = progress.get(requirement);
                     // -1 means that this particular component required for completing the advancement
                     // has yet to be fulfilled
-                    if (!obtained.equals(-1L)) {
+                    if (obtained != null && !obtained.equals(-1L)) {
                         requirementsDone = true;
                         break;
                     }
