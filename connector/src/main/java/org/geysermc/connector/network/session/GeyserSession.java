@@ -338,7 +338,7 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private List<UUID> selectedEmotes = new ArrayList<>();
-    private final Set<UUID> emotes = new HashSet<>();
+    private final Set<UUID> emotes = Collections.synchronizedSet(new HashSet<>());
 
     /**
      * The thread that will run every 50 milliseconds - one Minecraft tick.
