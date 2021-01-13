@@ -39,6 +39,8 @@ import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.SlotType;
+import org.geysermc.connector.network.translators.inventory.translators.CraftingInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.translators.PlayerInventoryTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.*;
@@ -52,6 +54,7 @@ public class ClickPlan {
     private final GeyserSession session;
     private final InventoryTranslator translator;
     private final Inventory inventory;
+    private final int gridSize;
 
     public ClickPlan(GeyserSession session, InventoryTranslator translator, Inventory inventory) {
         this.session = session;
@@ -61,6 +64,14 @@ public class ClickPlan {
         this.simulatedItems = new Int2ObjectOpenHashMap<>(inventory.getSize());
         this.simulatedCursor = session.getPlayerInventory().getCursor().copy();
         this.simulating = true;
+
+        if (translator instanceof PlayerInventoryTranslator) {
+            gridSize = 4;
+        } else if (translator instanceof CraftingInventoryTranslator) {
+            gridSize = 9;
+        } else {
+            gridSize = -1;
+        }
     }
 
     private void resetSimulation() {
@@ -69,6 +80,10 @@ public class ClickPlan {
     }
 
     public void add(Click click, int slot) {
+        add(click, slot, false);
+    }
+
+    public void add(Click click, int slot, boolean force) {
         if (!simulating)
             throw new UnsupportedOperationException("ClickPlan already executed");
 
@@ -76,7 +91,7 @@ public class ClickPlan {
             slot = Click.OUTSIDE_SLOT;
         }
 
-        ClickAction action = new ClickAction(click, slot);
+        ClickAction action = new ClickAction(click, slot, force);
         plan.add(action);
         simulateAction(action);
     }
@@ -114,7 +129,7 @@ public class ClickPlan {
             simulateAction(action);
 
             session.sendDownstreamPacket(clickPacket);
-            if (clickedItemStack == InventoryUtils.REFRESH_ITEM) {
+            if (clickedItemStack == InventoryUtils.REFRESH_ITEM || action.force) {
                 session.sendDownstreamPacket(new ClientConfirmTransactionPacket(inventory.getId(), actionId, true));
             }
             System.out.println(clickPacket);
@@ -128,7 +143,15 @@ public class ClickPlan {
     }
 
     public GeyserItemStack getItem(int slot) {
-        return simulatedItems.computeIfAbsent(slot, k -> inventory.getItem(slot).copy());
+        return getItem(slot, true);
+    }
+
+    public GeyserItemStack getItem(int slot, boolean generate) {
+        if (generate) {
+            return simulatedItems.computeIfAbsent(slot, k -> inventory.getItem(slot).copy());
+        } else {
+            return simulatedItems.getOrDefault(slot, inventory.getItem(slot));
+        }
     }
 
     public GeyserItemStack getCursor() {
@@ -174,6 +197,10 @@ public class ClickPlan {
                     } else if (InventoryUtils.canStack(cursor, clicked)) {
                         cursor.add(clicked.getAmount());
                     }
+                    reduceCraftingGrid(false);
+                    break;
+                case LEFT_SHIFT:
+                    reduceCraftingGrid(true);
                     break;
             }
         } else {
@@ -215,6 +242,35 @@ public class ClickPlan {
         }
     }
 
+    //TODO
+    private void reduceCraftingGrid(boolean makeAll) {
+        if (gridSize == -1)
+            return;
+
+        int crafted;
+        if (!makeAll) {
+            crafted = 1;
+        } else {
+            crafted = 0;
+            for (int i = 0; i < gridSize; i++) {
+                GeyserItemStack item = getItem(i + 1);
+                if (!item.isEmpty()) {
+                    if (crafted == 0) {
+                        crafted = item.getAmount();
+                    }
+                    crafted = Math.min(crafted, item.getAmount());
+                }
+            }
+        }
+
+        for (int i = 0; i < gridSize; i++) {
+            GeyserItemStack item = getItem(i + 1);
+            if (!item.isEmpty())
+                item.sub(crafted);
+        }
+        System.out.println("REDUCED GRID BY " + crafted);
+    }
+
     /**
      * @return a new set of all affected slots. This isn't a constant variable; it's newly generated each time it is run.
      */
@@ -235,5 +291,6 @@ public class ClickPlan {
          * Java slot
          */
         int slot;
+        boolean force;
     }
 }

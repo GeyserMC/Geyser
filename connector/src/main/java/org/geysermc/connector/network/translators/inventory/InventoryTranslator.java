@@ -27,12 +27,12 @@ package org.geysermc.connector.network.translators.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreativeInventoryActionPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientPrepareCraftingGridPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
@@ -40,8 +40,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.*;
 import com.nukkitx.protocol.bedrock.packet.ItemStackRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import org.geysermc.connector.inventory.CartographyContainer;
 import org.geysermc.connector.inventory.GeyserItemStack;
@@ -159,8 +158,10 @@ public abstract class InventoryTranslator {
                 if (shouldHandleRequestFirst(firstAction, inventory)) {
                     // Some special request that shouldn't be processed normally
                     responsePacket.getEntries().add(translateSpecialRequest(session, inventory, request));
-                } else if (firstAction.getType() == StackRequestActionType.CRAFT_RECIPE || firstAction.getType() == StackRequestActionType.CRAFT_RECIPE_AUTO) {
+                } else if (firstAction.getType() == StackRequestActionType.CRAFT_RECIPE) {
                     responsePacket.getEntries().add(translateCraftingRequest(session, inventory, request));
+                } else if (firstAction.getType() == StackRequestActionType.CRAFT_RECIPE_AUTO) {
+                    responsePacket.getEntries().add(translateAutoCraftingRequest(session, inventory, request));
                 } else if (firstAction.getType() == StackRequestActionType.CRAFT_CREATIVE) {
                     // This is also used for pulling items out of creative
                     responsePacket.getEntries().add(translateCreativeRequest(session, inventory, request));
@@ -329,40 +330,16 @@ public abstract class InventoryTranslator {
                         }
                     } else { //transfer from one slot to another
                         int tempSlot = -1;
-                        if (!cursor.isEmpty()) {
+                        if (!plan.getCursor().isEmpty()) {
                             tempSlot = findTempSlot(inventory, cursor, false, sourceSlot, destSlot);
                             if (tempSlot == -1) {
                                 return rejectRequest(request);
                             }
                             plan.add(Click.LEFT, tempSlot); //place cursor into temp slot
                         }
-                        int sourceAmount = plan.getItem(sourceSlot).getAmount();
-                        if (transferAction.getCount() == sourceAmount) { //transfer all
-                            plan.add(Click.LEFT, sourceSlot); //pickup source
-                            plan.add(Click.LEFT, destSlot); //let go of all items and done
-                        } else { //transfer some
-                            //try to transfer items with least clicks possible
-                            int halfSource = sourceAmount - (sourceAmount / 2); //larger half
-                            int holding;
-                            if (plan.getCursor().isEmpty() && transferAction.getCount() <= halfSource) { //faster to take only half. CURSOR MUST BE EMPTY
-                                plan.add(Click.RIGHT, sourceSlot);
-                                holding = halfSource;
-                            } else { //need all
-                                plan.add(Click.LEFT, sourceSlot);
-                                holding = sourceAmount;
-                            }
-                            if (transferAction.getCount() > holding / 2) { //faster to release extra items onto source or dest slot?
-                                for (int i = 0; i < holding - transferAction.getCount(); i++) {
-                                    plan.add(Click.RIGHT, sourceSlot); //prepare cursor
-                                }
-                                plan.add(Click.LEFT, destSlot); //release cursor onto dest slot
-                            } else {
-                                for (int i = 0; i < transferAction.getCount(); i++) {
-                                    plan.add(Click.RIGHT, destSlot); //right click until transfer goal is met
-                                }
-                                plan.add(Click.LEFT, sourceSlot); //return extra items to source slot
-                            }
-                        }
+
+                        transferSlot(plan, sourceSlot, destSlot, transferAction.getCount());
+
                         if (tempSlot != -1) {
                             plan.add(Click.LEFT, tempSlot); //retrieve original cursor
                         }
@@ -557,7 +534,6 @@ public abstract class InventoryTranslator {
         int recipeId = 0;
         int resultSize = 0;
         int timesCrafted = 0;
-        boolean autoCraft = false;
         CraftState craftState = CraftState.START;
 
         int leftover = 0;
@@ -571,28 +547,6 @@ public abstract class InventoryTranslator {
                     }
                     craftState = CraftState.RECIPE_ID;
                     recipeId = craftAction.getRecipeNetworkId();
-                    autoCraft = false;
-                    break;
-                }
-                case CRAFT_RECIPE_AUTO: {
-                    AutoCraftRecipeStackRequestActionData autoCraftAction = (AutoCraftRecipeStackRequestActionData) action;
-                    if (craftState != CraftState.START) {
-                        return rejectRequest(request);
-                    }
-                    craftState = CraftState.RECIPE_ID;
-
-                    recipeId = autoCraftAction.getRecipeNetworkId();
-                    if (!plan.getCursor().isEmpty()) {
-                        return rejectRequest(request);
-                    }
-                    //reject if crafting grid is not clear
-                    int gridSize = inventory.getId() == 0 ? 4 : 9;
-                    for (int i = 1; i <= gridSize; i++) {
-                        if (!inventory.getItem(i).isEmpty()) {
-                            return rejectRequest(request);
-                        }
-                    }
-                    autoCraft = true;
                     break;
                 }
                 case CRAFT_RESULTS_DEPRECATED: {
@@ -638,39 +592,6 @@ public abstract class InventoryTranslator {
                     int sourceSlot = bedrockSlotToJava(transferAction.getSource());
                     int destSlot = bedrockSlotToJava(transferAction.getDestination());
 
-                    if (autoCraft) {
-                        Recipe recipe = session.getCraftingRecipes().get(recipeId);
-                        //cannot use java recipe book if recipe is locked
-                        if (recipe == null || !session.getUnlockedRecipes().contains(recipe.getIdentifier())) {
-                            return rejectRequest(request);
-                        }
-
-                        boolean cursorDest = isCursor(transferAction.getDestination());
-                        boolean makeAll = timesCrafted > 1;
-                        if (cursorDest) {
-                            makeAll = false;
-                        }
-
-                        ClientPrepareCraftingGridPacket prepareCraftingPacket = new ClientPrepareCraftingGridPacket(inventory.getId(), recipe.getIdentifier(), makeAll);
-                        session.sendDownstreamPacket(prepareCraftingPacket);
-
-                        ItemStack output = null;
-                        switch (recipe.getType()) {
-                            case CRAFTING_SHAPED:
-                                output = ((ShapedRecipeData)recipe.getData()).getResult();
-                                break;
-                            case CRAFTING_SHAPELESS:
-                                output = ((ShapelessRecipeData)recipe.getData()).getResult();
-                                break;
-                        }
-                        inventory.setItem(0, GeyserItemStack.from(output), session);
-
-                        plan.add(cursorDest ? Click.LEFT : Click.LEFT_SHIFT, 0);
-                        plan.execute(true);
-
-                        return acceptRequest(request, makeContainerEntries(session, inventory, Collections.emptySet()));
-                    }
-
                     if (isCursor(transferAction.getDestination())) {
                         plan.add(Click.LEFT, sourceSlot);
                         craftState = CraftState.DONE;
@@ -711,9 +632,211 @@ public abstract class InventoryTranslator {
             }
         }
         plan.execute(false);
-        Set<Integer> affectedSlots = plan.getAffectedSlots();
-        affectedSlots.addAll(Arrays.asList(1, 2, 3, 4)); //TODO: crafting grid
-        return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
+        return acceptRequest(request, makeContainerEntries(session, inventory, plan.getAffectedSlots()));
+    }
+
+    public ItemStackResponsePacket.Response translateAutoCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequestPacket.Request request) {
+        int gridSize;
+        int gridDimensions;
+        if (this instanceof PlayerInventoryTranslator) {
+            gridSize = 4;
+            gridDimensions = 2;
+        } else if (this instanceof CraftingInventoryTranslator) {
+            gridSize = 9;
+            gridDimensions = 3;
+        } else {
+            return rejectRequest(request);
+        }
+
+        Recipe recipe;
+        Ingredient[] ingredients = new Ingredient[0];
+        ItemStack output = null;
+        int recipeWidth = 0;
+        int ingRemaining = 0;
+        int ingredientIndex = -1;
+
+        Int2IntMap consumedSlots = new Int2IntOpenHashMap();
+        int prioritySlot = -1;
+        int secondarySlot = -1;
+        int tempSlot = -1;
+        boolean intoCursor = false;
+
+        int resultSize;
+        int timesCrafted = 0;
+        Int2ObjectMap<Int2IntMap> ingredientMap = new Int2ObjectOpenHashMap<>();
+        CraftState craftState = CraftState.START;
+
+        ClickPlan plan = new ClickPlan(session, this, inventory);
+        requestLoop:
+        for (StackRequestActionData action : request.getActions()) {
+            switch (action.getType()) {
+                case CRAFT_RECIPE_AUTO: {
+                    AutoCraftRecipeStackRequestActionData autoCraftAction = (AutoCraftRecipeStackRequestActionData) action;
+                    if (craftState != CraftState.START) {
+                        return rejectRequest(request);
+                    }
+                    craftState = CraftState.RECIPE_ID;
+
+                    int recipeId = autoCraftAction.getRecipeNetworkId();
+                    recipe = session.getCraftingRecipes().get(recipeId);
+                    if (recipe == null) {
+                        return rejectRequest(request);
+                    }
+                    if (!plan.getCursor().isEmpty()) {
+                        return rejectRequest(request);
+                    }
+                    //reject if crafting grid is not clear
+                    for (int i = 1; i <= gridSize; i++) {
+                        if (!inventory.getItem(i).isEmpty()) {
+                            return rejectRequest(request);
+                        }
+                    }
+
+                    switch (recipe.getType()) {
+                        case CRAFTING_SHAPED:
+                            ShapedRecipeData shapedData = (ShapedRecipeData) recipe.getData();
+                            ingredients = shapedData.getIngredients();
+                            recipeWidth = shapedData.getWidth();
+                            output = shapedData.getResult();
+                            if (shapedData.getWidth() > gridDimensions || shapedData.getHeight() > gridDimensions) {
+                                return rejectRequest(request);
+                            }
+                            break;
+                        case CRAFTING_SHAPELESS:
+                            ShapelessRecipeData shapelessData = (ShapelessRecipeData) recipe.getData();
+                            ingredients = shapelessData.getIngredients();
+                            recipeWidth = gridDimensions;
+                            output = shapelessData.getResult();
+                            if (ingredients.length > gridSize) {
+                                return rejectRequest(request);
+                            }
+                            break;
+                    }
+                    break;
+                }
+                case CRAFT_RESULTS_DEPRECATED: {
+                    CraftResultsDeprecatedStackRequestActionData deprecatedCraftAction = (CraftResultsDeprecatedStackRequestActionData) action;
+                    if (craftState != CraftState.RECIPE_ID) {
+                        return rejectRequest(request);
+                    }
+                    craftState = CraftState.DEPRECATED;
+
+                    if (deprecatedCraftAction.getResultItems().length != 1) {
+                        return rejectRequest(request);
+                    }
+                    resultSize = deprecatedCraftAction.getResultItems()[0].getCount();
+                    timesCrafted = deprecatedCraftAction.getTimesCrafted();
+                    if (resultSize <= 0 || timesCrafted <= 0) {
+                        return rejectRequest(request);
+                    }
+                    break;
+                }
+                case CONSUME: {
+                    ConsumeStackRequestActionData consumeAction = (ConsumeStackRequestActionData) action;
+                    if (craftState != CraftState.DEPRECATED && craftState != CraftState.INGREDIENTS) {
+                        return rejectRequest(request);
+                    }
+                    craftState = CraftState.INGREDIENTS;
+
+                    if (ingRemaining == 0) {
+                        while (++ingredientIndex < ingredients.length) {
+                            if (ingredients[ingredientIndex].getOptions().length != 0) {
+                                ingRemaining = timesCrafted;
+                                break;
+                            }
+                        }
+                    }
+
+                    ingRemaining -= consumeAction.getCount();
+                    if (ingRemaining < 0)
+                        return rejectRequest(request);
+
+                    int javaSlot = bedrockSlotToJava(consumeAction.getSource());
+                    consumedSlots.merge(javaSlot, consumeAction.getCount(), Integer::sum);
+
+                    int gridSlot = 1 + ingredientIndex + ((ingredientIndex / recipeWidth) * (gridDimensions - recipeWidth));
+                    Int2IntMap sources = ingredientMap.computeIfAbsent(gridSlot, k -> new Int2IntOpenHashMap());
+                    sources.put(javaSlot, consumeAction.getCount());
+                    break;
+                }
+                case TAKE:
+                case PLACE: {
+                    TransferStackRequestActionData transferAction = (TransferStackRequestActionData) action;
+                    if (craftState != CraftState.INGREDIENTS && craftState != CraftState.TRANSFER) {
+                        return rejectRequest(request);
+                    }
+                    craftState = CraftState.TRANSFER;
+
+                    if (transferAction.getSource().getContainer() != ContainerSlotType.CREATIVE_OUTPUT) {
+                        return rejectRequest(request);
+                    }
+                    if (transferAction.getCount() <= 0) {
+                        return rejectRequest(request);
+                    }
+
+                    int javaSlot = bedrockSlotToJava(transferAction.getDestination());
+                    if (isCursor(transferAction.getDestination())) { //TODO
+                        intoCursor = true;
+                        if (timesCrafted > 1) {
+                            tempSlot = findTempSlot(inventory, GeyserItemStack.from(output), true);
+                            if (tempSlot == -1) {
+                                return rejectRequest(request);
+                            }
+                        }
+                        break requestLoop;
+                    } else if (inventory.getItem(javaSlot).getAmount() == consumedSlots.get(javaSlot)) {
+                        prioritySlot = bedrockSlotToJava(transferAction.getDestination());
+                        break requestLoop;
+                    }
+                    break;
+                }
+                default:
+                    return rejectRequest(request);
+            }
+        }
+
+        final int maxLoops = Math.min(64, timesCrafted);
+        for (int loops = 0; loops < maxLoops; loops++) {
+            boolean done = true;
+            for (Int2ObjectMap.Entry<Int2IntMap> entry : ingredientMap.int2ObjectEntrySet()) {
+                Int2IntMap sources = entry.getValue();
+                System.out.println("Grid slot: " + entry.getIntKey());
+                System.out.println(sources);
+                if (sources.isEmpty())
+                    continue;
+
+                done = false;
+                int gridSlot = entry.getIntKey();
+                if (!plan.getItem(gridSlot).isEmpty())
+                    continue;
+
+                int sourceSlot;
+                if (loops == 0 && sources.containsKey(prioritySlot)) {
+                    sourceSlot = prioritySlot;
+                } else {
+                    sourceSlot = sources.keySet().iterator().nextInt();
+                }
+                int transferAmount = sources.remove(sourceSlot);
+                transferSlot(plan, sourceSlot, gridSlot, transferAmount);
+            }
+
+            for (int x = 0; x < 3; x++) {
+                int offset = x * 3;
+                System.out.println(plan.getItem(1 + offset).getAmount() + " " + plan.getItem(2 + offset).getAmount() + " " + plan.getItem(3 + offset).getAmount());
+            }
+
+            if (!done) {
+                //TODO: sometimes the server does not agree on this slot?
+                plan.add(Click.LEFT_SHIFT, 0, true);
+            } else {
+                System.out.println("Times looped: " + loops);
+                break;
+            }
+        }
+
+        inventory.setItem(0, GeyserItemStack.from(output), session);
+        plan.execute(true);
+        return acceptRequest(request, makeContainerEntries(session, inventory, plan.getAffectedSlots()));
     }
 
     public ItemStackResponsePacket.Response translateCreativeRequest(GeyserSession session, Inventory inventory, ItemStackRequestPacket.Request request) {
@@ -786,6 +909,37 @@ public abstract class InventoryTranslator {
             }
         }
         return rejectRequest(request);
+    }
+
+    private void transferSlot(ClickPlan plan, int sourceSlot, int destSlot, int transferAmount) {
+        boolean tempSwap = !plan.getCursor().isEmpty();
+        int sourceAmount = plan.getItem(sourceSlot).getAmount();
+        if (transferAmount == sourceAmount) { //transfer all
+            plan.add(Click.LEFT, sourceSlot); //pickup source
+            plan.add(Click.LEFT, destSlot); //let go of all items and done
+        } else { //transfer some
+            //try to transfer items with least clicks possible
+            int halfSource = sourceAmount - (sourceAmount / 2); //larger half
+            int holding;
+            if (!tempSwap && transferAmount <= halfSource) { //faster to take only half. CURSOR MUST BE EMPTY
+                plan.add(Click.RIGHT, sourceSlot);
+                holding = halfSource;
+            } else { //need all
+                plan.add(Click.LEFT, sourceSlot);
+                holding = sourceAmount;
+            }
+            if (!tempSwap && transferAmount > holding / 2) { //faster to release extra items onto source or dest slot?
+                for (int i = 0; i < holding - transferAmount; i++) {
+                    plan.add(Click.RIGHT, sourceSlot); //prepare cursor
+                }
+                plan.add(Click.LEFT, destSlot); //release cursor onto dest slot
+            } else {
+                for (int i = 0; i < transferAmount; i++) {
+                    plan.add(Click.RIGHT, destSlot); //right click until transfer goal is met
+                }
+                plan.add(Click.LEFT, sourceSlot); //return extra items to source slot
+            }
+        }
     }
 
     public static ItemStackResponsePacket.Response acceptRequest(ItemStackRequestPacket.Request request, List<ItemStackResponsePacket.ContainerEntry> containerEntries) {
