@@ -64,10 +64,13 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
                     source.sendMessage(Text.of(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail")));
                     return CommandResult.success();
                 }
-                GeyserSession session = getGeyserSession(commandSender);
-                if (command.isBedrockOnly() && session == null) {
-                    source.sendMessage(Text.of(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.bedrock_only")));
-                    return CommandResult.success();
+                GeyserSession session = null;
+                if (command.isBedrockOnly()) {
+                    session = getGeyserSession(commandSender);
+                    if (session == null) {
+                        source.sendMessage(Text.of(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.bedrock_only")));
+                        return CommandResult.success();
+                    }
                 }
                 getCommand(args[0]).execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
             }

@@ -62,12 +62,15 @@ public class GeyserBungeeCommandExecutor extends Command implements TabExecutor 
                     commandSender.sendMessage(ChatColor.RED + message);
                     return;
                 }
-                GeyserSession session = this.commandExecutor.getGeyserSession(commandSender);
-                if (command.isBedrockOnly() && session == null) {
-                    String message = LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", commandSender.getLocale());
+                GeyserSession session = null;
+                if (command.isBedrockOnly()) {
+                    session = this.commandExecutor.getGeyserSession(commandSender);
+                    if (session == null) {
+                        String message = LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", commandSender.getLocale());
 
-                    commandSender.sendMessage(ChatColor.RED + message);
-                    return;
+                        commandSender.sendMessage(ChatColor.RED + message);
+                        return;
+                    }
                 }
                 command.execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
             }

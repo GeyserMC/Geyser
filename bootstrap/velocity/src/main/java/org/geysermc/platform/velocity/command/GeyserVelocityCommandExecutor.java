@@ -54,10 +54,13 @@ public class GeyserVelocityCommandExecutor extends CommandExecutor implements Si
                     sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.getLocale()));
                     return;
                 }
-                GeyserSession session = getGeyserSession(sender);
-                if (command.isBedrockOnly() && session == null) {
-                    sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", sender.getLocale()));
-                    return;
+                GeyserSession session = null;
+                if (command.isBedrockOnly()) {
+                    session = getGeyserSession(sender);
+                    if (session == null) {
+                        sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", sender.getLocale()));
+                        return;
+                    }
                 }
                 command.execute(session, sender, invocation.arguments().length > 1 ? Arrays.copyOfRange(invocation.arguments(), 1, invocation.arguments().length) : new String[0]);
             }
