@@ -46,7 +46,7 @@ public class PistonCache {
 
     private final Map<Vector3i, PistonBlockEntity> pistons = Object2ObjectMaps.synchronize(new Object2ObjectOpenHashMap<>());
 
-    @Getter @Setter
+    @Getter
     private Vector3d playerDisplacement = Vector3d.ZERO;
     @Getter @Setter
     private Vector3f playerMotion = Vector3f.ZERO;
@@ -81,25 +81,27 @@ public class PistonCache {
         pistons.entrySet().removeIf((entry) -> entry.getValue().isDone());
     }
 
-    public void resetPlayerMovement() {
+    private void resetPlayerMovement() {
         playerDisplacement = Vector3d.ZERO;
         playerCollided = false;
         playerSlimeCollision = false;
     }
 
-    public void sendPlayerMovement() {
+    private void sendPlayerMovement() {
         SessionPlayerEntity playerEntity = session.getPlayerEntity();
         // Sending movement packets cancels motion from slime blocks
-        if (!playerDisplacement.equals(Vector3d.ZERO) && !isInMotion()) {
+        if (!playerDisplacement.equals(Vector3d.ZERO)) {
             CollisionManager collisionManager = session.getCollisionManager();
             if (collisionManager.correctPlayerPosition()) {
-                Vector3d position = Vector3d.from(collisionManager.getPlayerBoundingBox().getMiddleX(), collisionManager.getPlayerBoundingBox().getMiddleY() - (collisionManager.getPlayerBoundingBox().getSizeY() / 2), collisionManager.getPlayerBoundingBox().getMiddleZ());
+                Vector3d position = collisionManager.getPlayerBoundingBox().getBottomCenter();
 
-                boolean isOnGround = playerDisplacement.getY() != 0 || playerEntity.isOnGround();
+                boolean isOnGround = playerDisplacement.getY() > 0 || playerEntity.isOnGround();
 
-                playerEntity.moveAbsolute(session, position.toFloat(), playerEntity.getRotation(), isOnGround, true);
+                if (!isInMotion()) {
+                    playerEntity.moveAbsolute(session, position.toFloat(), playerEntity.getRotation(), isOnGround, true);
+                }
 
-                ClientPlayerPositionPacket playerPositionPacket = new ClientPlayerPositionPacket(playerEntity.isOnGround(), position.getX(), position.getY(), position.getZ());
+                ClientPlayerPositionPacket playerPositionPacket = new ClientPlayerPositionPacket(isOnGround, position.getX(), position.getY(), position.getZ());
                 session.sendDownstreamPacket(playerPositionPacket);
 
                 session.setLastMovementTimestamp(System.currentTimeMillis());
@@ -116,6 +118,19 @@ public class PistonCache {
                 playerMotion = Vector3f.ZERO;
             }
         }
+    }
+
+    /**
+     * Set the player displacement and cap it to a range of -0.51 to 0.51
+     *
+     * @param displacement The new player displacement
+     */
+    public void setPlayerDisplacement(Vector3d displacement) {
+        // Clamp to range -0.51 to 0.51
+        Vector3d adjustedDisplacement = displacement.max(-0.51d, -0.51d, -0.51d).min(0.51d, 0.51d, 0.51d);
+        Vector3d delta = adjustedDisplacement.sub(playerDisplacement);
+        session.getCollisionManager().getPlayerBoundingBox().translate(delta.getX(), delta.getY(), delta.getZ());
+        playerDisplacement = adjustedDisplacement;
     }
 
     public PistonBlockEntity getPistonAt(Vector3i position) {

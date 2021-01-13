@@ -150,9 +150,7 @@ public class CollisionManager {
                 return null;
             }
 
-            position = Vector3d.from(playerBoundingBox.getMiddleX(),
-                    playerBoundingBox.getMiddleY() - (playerBoundingBox.getSizeY() / 2),
-                    playerBoundingBox.getMiddleZ());
+            position = playerBoundingBox.getBottomCenter();
         } else {
             // When chunk caching is off, we have to rely on this
             // It rounds the Y position up to the nearest 0.5

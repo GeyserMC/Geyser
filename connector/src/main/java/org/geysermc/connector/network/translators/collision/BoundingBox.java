@@ -97,6 +97,10 @@ public class BoundingBox implements Cloneable {
         return Vector3d.from(x, y, z);
     }
 
+    public Vector3d getBottomCenter() {
+        return Vector3d.from(middleX, middleY - sizeY / 2, middleZ);
+    }
+
     @SneakyThrows(CloneNotSupportedException.class)
     @Override
     public BoundingBox clone() {
