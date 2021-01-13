@@ -34,34 +34,14 @@ import org.geysermc.connector.network.session.GeyserSession;
 
 public class StatisticsCommand extends GeyserCommand {
 
-    private final GeyserConnector connector;
-
     public StatisticsCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);
-
-        this.connector = connector;
     }
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
-        if (sender.isConsole()) {
-            return;
-        }
-
-        // Make sure the sender is a Bedrock edition client
-        GeyserSession session = null;
-        if (sender instanceof GeyserSession) {
-            session = (GeyserSession) sender;
-        } else {
-            // Needed for Spigot - sender is not an instance of GeyserSession
-            for (GeyserSession otherSession : connector.getPlayers()) {
-                if (sender.getName().equals(otherSession.getPlayerEntity().getUsername())) {
-                    session = otherSession;
-                    break;
-                }
-            }
-        }
+    public void execute(GeyserSession session, CommandSender sender, String[] args) {
         if (session == null) return;
+
         session.setWaitingForStatistics(true);
         ClientRequestPacket clientRequestPacket = new ClientRequestPacket(ClientRequest.STATS);
         session.sendDownstreamPacket(clientRequestPacket);
@@ -70,5 +50,10 @@ public class StatisticsCommand extends GeyserCommand {
     @Override
     public boolean isExecutableOnConsole() {
         return false;
+    }
+
+    @Override
+    public boolean isBedrockOnly() {
+        return true;
     }
 }
