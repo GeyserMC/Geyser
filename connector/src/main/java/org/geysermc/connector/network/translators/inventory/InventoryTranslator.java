@@ -465,7 +465,6 @@ public abstract class InventoryTranslator {
                 }
                 case DESTROY: {
                     // Only called when a creative client wants to destroy an item... I think - Camotoy
-                    //TODO there is a Count here we don't use
                     DestroyStackRequestActionData destroyAction = (DestroyStackRequestActionData) action;
                     if (!session.getGameMode().equals(GameMode.CREATIVE)) {
                         // If this happens, let's throw an error and figure out why.
@@ -474,13 +473,23 @@ public abstract class InventoryTranslator {
                     if (!isCursor(destroyAction.getSource())) {
                         // Item exists; let's remove it from the inventory
                         int javaSlot = bedrockSlotToJava(destroyAction.getSource());
-                        ClientCreativeInventoryActionPacket destroyItemPacket = new ClientCreativeInventoryActionPacket(
-                                javaSlot,
-                                new ItemStack(0)
-                        );
+                        GeyserItemStack existingItem = inventory.getItem(javaSlot);
+                        existingItem.setAmount(existingItem.getAmount() - destroyAction.getCount());
+                        ClientCreativeInventoryActionPacket destroyItemPacket;
+                        if (existingItem.isEmpty()) {
+                            destroyItemPacket = new ClientCreativeInventoryActionPacket(
+                                    javaSlot,
+                                    new ItemStack(0)
+                            );
+                            inventory.setItem(javaSlot, GeyserItemStack.EMPTY, session);
+                        } else {
+                            destroyItemPacket = new ClientCreativeInventoryActionPacket(
+                                    javaSlot,
+                                    existingItem.getItemStack()
+                            );
+                        }
                         session.sendDownstreamPacket(destroyItemPacket);
                         System.out.println(destroyItemPacket);
-                        inventory.setItem(javaSlot, GeyserItemStack.EMPTY, session);
                         affectedSlots.add(javaSlot);
                     } else {
                         // Just sync up the item on our end, since the server doesn't care what's in our cursor
