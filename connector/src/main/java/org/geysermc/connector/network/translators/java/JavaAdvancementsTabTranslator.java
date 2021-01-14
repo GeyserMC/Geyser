@@ -23,21 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.monster;
+package org.geysermc.connector.network.translators.java;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.type.EntityType;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerAdvancementTabPacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.AdvancementsCache;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-public class EnderDragonPartEntity extends Entity {
-    public EnderDragonPartEntity(long entityId, long geyserId, EntityType entityType, float width, float height) {
-        super(entityId, geyserId, entityType, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
+/**
+ * Indicates that the client should open a particular advancement tab
+ */
+@Translator(packet = ServerAdvancementTabPacket.class)
+public class JavaAdvancementsTabTranslator extends PacketTranslator<ServerAdvancementTabPacket> {
 
-        metadata.put(EntityData.BOUNDING_BOX_WIDTH, width);
-        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
-        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
-        metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
+    @Override
+    public void translate(ServerAdvancementTabPacket packet, GeyserSession session) {
+        session.getAdvancementsCache().setCurrentAdvancementCategoryId(packet.getTabId());
+        session.sendForm(session.getAdvancementsCache().buildListForm(), AdvancementsCache.ADVANCEMENTS_LIST_FORM_ID);
     }
 }

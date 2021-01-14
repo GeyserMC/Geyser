@@ -217,8 +217,8 @@ public class FileUtils {
      * @return The byte array of the file
      */
     public static byte[] readAllBytes(File file) {
-        try {
-            return readAllBytes(new FileInputStream(file));
+        try (InputStream inputStream = new FileInputStream(file)) {
+            return readAllBytes(inputStream);
         } catch (IOException e) {
             throw new RuntimeException("Cannot read " + file);
         }

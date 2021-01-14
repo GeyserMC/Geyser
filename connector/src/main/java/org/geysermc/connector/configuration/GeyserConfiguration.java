@@ -118,6 +118,8 @@ public interface GeyserConfiguration {
 
         String getAuthType();
 
+        boolean isPasswordAuthentication();
+
         boolean isUseProxyProtocol();
     }
 
@@ -125,6 +127,12 @@ public interface GeyserConfiguration {
         String getEmail();
 
         String getPassword();
+
+        /**
+         * Will be removed after Microsoft accounts are fully migrated
+         */
+        @Deprecated
+        boolean isMicrosoftAccount();
     }
 
     interface IMetricsInfo {

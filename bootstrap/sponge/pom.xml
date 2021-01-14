@@ -86,8 +86,8 @@
                                     <shadedPattern>org.geysermc.platform.sponge.shaded.dom4j</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>net.kyori.adventure</pattern>
-                                    <shadedPattern>org.geysermc.platform.sponge.shaded.adventure</shadedPattern>
+                                    <pattern>net.kyori</pattern>
+                                    <shadedPattern>org.geysermc.platform.sponge.shaded.kyori</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
