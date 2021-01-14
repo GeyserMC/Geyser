@@ -124,6 +124,7 @@ public class GeyserSession implements CommandSender {
 
     private final SessionPlayerEntity playerEntity;
 
+    private AdvancementsCache advancementsCache;
     private BookEditCache bookEditCache;
     private ChunkCache chunkCache;
     private EntityCache entityCache;
@@ -384,6 +385,7 @@ public class GeyserSession implements CommandSender {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);
 
+        this.advancementsCache = new AdvancementsCache(this);
         this.bookEditCache = new BookEditCache(this);
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
@@ -408,6 +410,10 @@ public class GeyserSession implements CommandSender {
         this.loggedIn = false;
 
         connector.getPlayers().forEach(player -> this.emotes.addAll(player.getEmotes()));
+
+        // Make a copy to prevent ConcurrentModificationException
+        final List<GeyserSession> tmpPlayers = new ArrayList<>(connector.getPlayers());
+        tmpPlayers.forEach(player -> this.emotes.addAll(player.getEmotes()));
 
         bedrockServerSession.addDisconnectHandler(disconnectReason -> {
             connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.disconnect", bedrockServerSession.getAddress().getAddress(), disconnectReason));
@@ -723,6 +729,7 @@ public class GeyserSession implements CommandSender {
             tickThread.cancel(true);
         }
 
+        this.advancementsCache = null;
         this.bookEditCache = null;
         this.chunkCache = null;
         this.entityCache = null;
@@ -862,6 +869,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setLevelName(serverName);
 
         startGamePacket.setPremiumWorldTemplateId("00000000-0000-0000-0000-000000000000");
+        // startGamePacket.setCurrentTick(0);
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setItemEntries(ItemRegistry.ITEMS);

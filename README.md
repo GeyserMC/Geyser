@@ -47,6 +47,7 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
   - Horse Inventory
   - Loom
   - Smithing Table
+  - Grindstone
 
 ## What can't be fixed
 The following things can't be fixed because of Bedrock limitations. They might be fixable in the future, but not as of now.
