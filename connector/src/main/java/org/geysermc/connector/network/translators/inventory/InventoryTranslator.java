@@ -151,28 +151,39 @@ public abstract class InventoryTranslator {
     }
 
     public void translateRequests(GeyserSession session, Inventory inventory, List<ItemStackRequestPacket.Request> requests) {
+        boolean refresh = false;
         ItemStackResponsePacket responsePacket = new ItemStackResponsePacket();
         for (ItemStackRequestPacket.Request request : requests) {
+            ItemStackResponsePacket.Response response;
             if (request.getActions().length > 0) {
                 StackRequestActionData firstAction = request.getActions()[0];
                 if (shouldHandleRequestFirst(firstAction, inventory)) {
                     // Some special request that shouldn't be processed normally
-                    responsePacket.getEntries().add(translateSpecialRequest(session, inventory, request));
+                    response = translateSpecialRequest(session, inventory, request);
                 } else if (firstAction.getType() == StackRequestActionType.CRAFT_RECIPE) {
-                    responsePacket.getEntries().add(translateCraftingRequest(session, inventory, request));
+                    response = translateCraftingRequest(session, inventory, request);
                 } else if (firstAction.getType() == StackRequestActionType.CRAFT_RECIPE_AUTO) {
-                    responsePacket.getEntries().add(translateAutoCraftingRequest(session, inventory, request));
+                    response = translateAutoCraftingRequest(session, inventory, request);
                 } else if (firstAction.getType() == StackRequestActionType.CRAFT_CREATIVE) {
                     // This is also used for pulling items out of creative
-                    responsePacket.getEntries().add(translateCreativeRequest(session, inventory, request));
+                    response = translateCreativeRequest(session, inventory, request);
                 } else {
-                    responsePacket.getEntries().add(translateRequest(session, inventory, request));
+                    response = translateRequest(session, inventory, request);
                 }
             } else {
-                responsePacket.getEntries().add(rejectRequest(request));
+                response = rejectRequest(request);
             }
+            if (response.getResult() == ItemStackResponsePacket.ResponseStatus.ERROR) {
+                refresh = true;
+            }
+            responsePacket.getEntries().add(response);
         }
         session.sendUpstreamPacket(responsePacket);
+
+        if (refresh) {
+            InventoryUtils.updateCursor(session);
+            updateInventory(session, inventory);
+        }
     }
 
     public ItemStackResponsePacket.Response translateRequest(GeyserSession session, Inventory inventory, ItemStackRequestPacket.Request request) {
