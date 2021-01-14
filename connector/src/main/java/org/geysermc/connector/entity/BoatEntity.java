@@ -67,6 +67,13 @@ public class BoatEntity extends Entity {
         super.moveAbsolute(session, position.add(0d, this.entityType.getOffset(), 0d), Vector3f.from(rotation.getX() + 90, 0, rotation.getX() + 90), isOnGround, teleported);
     }
 
+    /**
+     * Move the boat without making the adjustments needed to translate from Java
+     */
+    public void moveAbsoluteWithoutAdjustments(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+        super.moveAbsolute(session, position, Vector3f.from(rotation.getX(), 0, rotation.getX()), isOnGround, teleported);
+    }
+
     @Override
     public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
         super.moveRelative(session, relX, relY, relZ, Vector3f.from(rotation.getX(), 0, rotation.getX()), isOnGround);

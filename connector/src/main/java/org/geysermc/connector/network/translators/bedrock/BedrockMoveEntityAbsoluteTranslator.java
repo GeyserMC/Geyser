@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientVehicleMovePacket;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.connector.entity.BoatEntity;
 import org.geysermc.connector.entity.type.EntityType;
@@ -41,6 +42,22 @@ public class BedrockMoveEntityAbsoluteTranslator extends PacketTranslator<MoveEn
 
     @Override
     public void translate(MoveEntityAbsolutePacket packet, GeyserSession session) {
+        if (session.getRidingVehicleEntity() != null && session.isPassingWorldBorderBoundaries(packet.getPosition(), false)) {
+            Vector3f position = Vector3f.from(session.getRidingVehicleEntity().getPosition().getX(), packet.getPosition().getY(),
+                    session.getRidingVehicleEntity().getPosition().getZ());
+            if (session.getRidingVehicleEntity() instanceof BoatEntity) {
+                // Undo the changes usually applied to the boat
+                session.getRidingVehicleEntity().as(BoatEntity.class).moveAbsoluteWithoutAdjustments(session,
+                        position, session.getRidingVehicleEntity().getRotation(),
+                        session.getRidingVehicleEntity().isOnGround(), true);
+            } else {
+                // This doesn't work if teleported is false
+                session.getRidingVehicleEntity().moveAbsolute(session, position,
+                        session.getRidingVehicleEntity().getRotation(),
+                        session.getRidingVehicleEntity().isOnGround(), true);
+            }
+            return;
+        }
         float y = packet.getPosition().getY();
         if (session.getRidingVehicleEntity() instanceof BoatEntity) {
             // Remove some Y position to prevents boats from looking like they're floating in water

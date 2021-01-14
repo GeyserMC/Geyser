@@ -951,21 +951,22 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Confirms that the player is within world border boundaries when they move.
-     * Otherwise, this function will push the player back.
+     * Otherwise, if {@code adjustPosition} is true, this function will push the player back.
      *
      * @return if this player was indeed against the world border. Will return false if no world border was defined for us.
      */
-    public boolean isPassingWorldBorderBoundaries(Vector3f newPosition) {
+    public boolean isPassingWorldBorderBoundaries(Vector3f newPosition, boolean adjustPosition) {
         if (worldBorder == null) {
             return false;
         }
 
         boolean isInWorldBorder = worldBorder.isPassingIntoBorderBoundaries(newPosition);
-        if (isInWorldBorder) {
+        if (isInWorldBorder && adjustPosition) {
             // Move the player back, but allow gravity to take place
+            // Teleported = true makes going back better, but disconnects the player from their mounted entity
             playerEntity.moveAbsolute(this,
                     Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - EntityType.PLAYER.getOffset()), playerEntity.getPosition().getZ()),
-                    playerEntity.getRotation(), playerEntity.isOnGround(), true);
+                    playerEntity.getRotation(), playerEntity.isOnGround(), ridingVehicleEntity == null);
         }
         return isInWorldBorder;
     }
