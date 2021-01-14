@@ -84,7 +84,6 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
         BlockEntityDataPacket packet = new BlockEntityDataPacket();
         packet.setBlockPosition(position);
         packet.setData(builder.build());
-        System.out.println(packet.toString());
         session.sendUpstreamPacket(packet);
     }
 
@@ -98,7 +97,6 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
         // Input a beacon payment
         BeaconPaymentStackRequestActionData beaconPayment = (BeaconPaymentStackRequestActionData) request.getActions()[0];
         ClientSetBeaconEffectPacket packet = new ClientSetBeaconEffectPacket(beaconPayment.getPrimaryEffect(), beaconPayment.getSecondaryEffect());
-        System.out.println(packet.toString());
         session.sendDownstreamPacket(packet);
         return acceptRequest(request, makeContainerEntries(session, inventory, Collections.emptySet()));
     }

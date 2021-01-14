@@ -132,7 +132,6 @@ public class ClickPlan {
             if (clickedItemStack == InventoryUtils.REFRESH_ITEM || action.force) {
                 session.sendDownstreamPacket(new ClientConfirmTransactionPacket(inventory.getId(), actionId, true));
             }
-            System.out.println(clickPacket);
         }
 
         session.getPlayerInventory().setCursor(simulatedCursor, session);
@@ -268,7 +267,6 @@ public class ClickPlan {
             if (!item.isEmpty())
                 item.sub(crafted);
         }
-        System.out.println("REDUCED GRID BY " + crafted);
     }
 
     /**

@@ -99,7 +99,6 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
             enchantingInventory.getEnchantOptions()[slotToUpdate] = enchantingInventory.getGeyserEnchantOptions()[slotToUpdate].build(session);
             PlayerEnchantOptionsPacket packet = new PlayerEnchantOptionsPacket();
             packet.getOptions().addAll(Arrays.asList(enchantingInventory.getEnchantOptions()));
-            System.out.println(packet);
             session.sendUpstreamPacket(packet);
         }
     }
@@ -130,7 +129,6 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
             return rejectRequest(request);
         }
         ClientClickWindowButtonPacket packet = new ClientClickWindowButtonPacket(inventory.getId(), javaSlot);
-        System.out.println(packet);
         session.sendDownstreamPacket(packet);
         return acceptRequest(request, makeContainerEntries(session, inventory, Collections.emptySet()));
     }

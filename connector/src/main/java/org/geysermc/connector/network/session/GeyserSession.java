@@ -887,7 +887,6 @@ public class GeyserSession implements CommandSender {
      */
     public void addInventoryTask(Runnable task) {
         synchronized (inventoryLock) {
-            System.out.println("new task " + task.toString());
             inventoryFuture = inventoryFuture.thenRun(task).exceptionally(throwable -> {
                 GeyserConnector.getInstance().getLogger().error("Error processing inventory task", throwable.getCause());
                 return null;
@@ -905,7 +904,6 @@ public class GeyserSession implements CommandSender {
      */
     public void addInventoryTask(Runnable task, long delayMillis) {
         synchronized (inventoryLock) {
-            System.out.println("new delayed task " + task.toString());
             Executor delayedExecutor = command -> GeyserConnector.getInstance().getGeneralThreadPool().schedule(command, delayMillis, TimeUnit.MILLISECONDS);
             inventoryFuture = inventoryFuture.thenRunAsync(task, delayedExecutor).exceptionally(throwable -> {
                 GeyserConnector.getInstance().getLogger().error("Error processing inventory task", throwable.getCause());

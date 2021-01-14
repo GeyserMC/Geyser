@@ -58,7 +58,6 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
 
     @Override
     public void translate(ServerSetSlotPacket packet, GeyserSession session) {
-        System.out.println(packet.toString());
         session.addInventoryTask(() -> {
             if (packet.getWindowId() == 255) { //cursor
                 GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
@@ -125,11 +124,6 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
             height += -firstRow + 1;
             width += -firstCol + 1;
 
-            System.out.println("Start Row: " + firstRow);
-            System.out.println("Start Column: " + firstCol);
-            System.out.println("Rows: " + height);
-            System.out.println("Columns: " + width);
-
             //TODO
             recipes:
             for (Recipe recipe : session.getCraftingRecipes().values()) {
@@ -157,8 +151,6 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
                             continue;
                         }
                     }
-                    System.out.println("FOUND SHAPED RECIPE :)");
-                    System.out.println(recipe);
                     // Recipe is had, don't sent packet
                     return;
                 } else if (recipe.getType() == RecipeType.CRAFTING_SHAPELESS) {
@@ -191,7 +183,6 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
                     return;
                 }
             }
-            System.out.println("Sending packet!");
 
             UUID uuid = UUID.randomUUID();
             int newRecipeId = session.getLastRecipeNetId().incrementAndGet();
@@ -234,7 +225,6 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
                     newRecipeId
             ));
             craftPacket.setCleanRecipes(false);
-            System.out.println(craftPacket);
             session.sendUpstreamPacket(craftPacket);
 
             index = 0;

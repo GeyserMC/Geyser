@@ -41,7 +41,6 @@ public class JavaConfirmTransactionTranslator extends PacketTranslator<ServerCon
             if (!packet.isAccepted()) {
                 ClientConfirmTransactionPacket confirmPacket = new ClientConfirmTransactionPacket(packet.getWindowId(), packet.getActionId(), true);
                 session.sendDownstreamPacket(confirmPacket);
-                System.out.println(packet);
             }
         });
     }

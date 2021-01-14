@@ -107,7 +107,6 @@ public abstract class ChestedHorseInventoryTranslator extends AbstractHorseInven
         InventoryContentPacket horseContentsPacket = new InventoryContentPacket();
         horseContentsPacket.setContainerId(inventory.getId());
         horseContentsPacket.setContents(Arrays.asList(horseItems));
-        System.out.println(horseContentsPacket);
         session.sendUpstreamPacket(horseContentsPacket);
     }
 }

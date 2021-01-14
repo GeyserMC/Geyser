@@ -99,7 +99,6 @@ public class JavaOpenHorseWindowTranslator extends PacketTranslator<ServerOpenHo
 
     @Override
     public void translate(ServerOpenHorseWindowPacket packet, GeyserSession session) {
-        System.out.println(packet.toString());
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) {
             return;
@@ -130,7 +129,6 @@ public class JavaOpenHorseWindowTranslator extends PacketTranslator<ServerOpenHo
         builder.putList("slots", NbtType.COMPOUND, slots);
 
         updateEquipPacket.setTag(builder.build());
-        System.out.println(updateEquipPacket);
         session.sendUpstreamPacket(updateEquipPacket);
 
         session.setInventoryTranslator(inventoryTranslator);

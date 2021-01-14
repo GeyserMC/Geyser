@@ -173,11 +173,9 @@ public abstract class InventoryTranslator {
             }
         }
         session.sendUpstreamPacket(responsePacket);
-        System.out.println(responsePacket);
     }
 
     public ItemStackResponsePacket.Response translateRequest(GeyserSession session, Inventory inventory, ItemStackRequestPacket.Request request) {
-        System.out.println(request);
         ClickPlan plan = new ClickPlan(session, this, inventory);
         IntSet affectedSlots = new IntOpenHashSet();
         for (StackRequestActionData action : request.getActions()) {
@@ -273,7 +271,6 @@ public abstract class InventoryTranslator {
                                 itemToUpdate.isEmpty() ? new ItemStack(0) : itemToUpdate.getItemStack()
                         );
                         session.sendDownstreamPacket(creativeActionPacket);
-                        System.out.println(creativeActionPacket);
 
                         if (!sourceIsCursor) { // Cursor is always added for us as an affected slot
                             affectedSlots.add(sourceSlot);
@@ -365,7 +362,6 @@ public abstract class InventoryTranslator {
                                     sourceSlot,
                                     oldDestinationItem.isEmpty() ? new ItemStack(0) : oldDestinationItem.getItemStack() // isEmpty check... just in case
                             );
-                            System.out.println(creativeActionPacket);
                             session.sendDownstreamPacket(creativeActionPacket);
                             inventory.setItem(sourceSlot, oldDestinationItem, session);
                         }
@@ -376,7 +372,6 @@ public abstract class InventoryTranslator {
                                     destSlot,
                                     oldSourceItem.isEmpty() ? new ItemStack(0) : oldSourceItem.getItemStack()
                             );
-                            System.out.println(creativeActionPacket);
                             session.sendDownstreamPacket(creativeActionPacket);
                             inventory.setItem(destSlot, oldSourceItem, session);
                         }
@@ -433,7 +428,6 @@ public abstract class InventoryTranslator {
                                     Click.OUTSIDE_SLOT,
                                     droppingItem.getItemStack()
                             );
-                            System.out.println(packet.toString());
                             session.sendDownstreamPacket(packet);
                         } else {
                             int sourceAmount = plan.getCursor().getAmount();
@@ -456,11 +450,6 @@ public abstract class InventoryTranslator {
                             }
                         }
                     }
-                    break;
-                }
-                case CRAFT_CREATIVE: {
-                    CraftCreativeStackRequestActionData creativeAction = (CraftCreativeStackRequestActionData) action;
-                    System.out.println(creativeAction.getCreativeItemNetworkId());
                     break;
                 }
                 case DESTROY: {
@@ -489,7 +478,6 @@ public abstract class InventoryTranslator {
                             );
                         }
                         session.sendDownstreamPacket(destroyItemPacket);
-                        System.out.println(destroyItemPacket);
                         affectedSlots.add(javaSlot);
                     } else {
                         // Just sync up the item on our end, since the server doesn't care what's in our cursor
@@ -538,8 +526,6 @@ public abstract class InventoryTranslator {
     }
     
     public ItemStackResponsePacket.Response translateCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequestPacket.Request request) {
-        System.out.println(request);
-
         int recipeId = 0;
         int resultSize = 0;
         int timesCrafted = 0;
@@ -809,8 +795,6 @@ public abstract class InventoryTranslator {
             boolean done = true;
             for (Int2ObjectMap.Entry<Int2IntMap> entry : ingredientMap.int2ObjectEntrySet()) {
                 Int2IntMap sources = entry.getValue();
-                System.out.println("Grid slot: " + entry.getIntKey());
-                System.out.println(sources);
                 if (sources.isEmpty())
                     continue;
 
@@ -829,16 +813,10 @@ public abstract class InventoryTranslator {
                 transferSlot(plan, sourceSlot, gridSlot, transferAmount);
             }
 
-            for (int x = 0; x < 3; x++) {
-                int offset = x * 3;
-                System.out.println(plan.getItem(1 + offset).getAmount() + " " + plan.getItem(2 + offset).getAmount() + " " + plan.getItem(3 + offset).getAmount());
-            }
-
             if (!done) {
                 //TODO: sometimes the server does not agree on this slot?
                 plan.add(Click.LEFT_SHIFT, 0, true);
             } else {
-                System.out.println("Times looped: " + loops);
                 break;
             }
         }
@@ -908,7 +886,6 @@ public abstract class InventoryTranslator {
                                 javaCreativeItem
                         );
                         session.sendDownstreamPacket(creativeActionPacket);
-                        System.out.println(creativeActionPacket);
                         Set<Integer> affectedSlots = Collections.singleton(javaSlot);
                         return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
                     }
@@ -1017,8 +994,6 @@ public abstract class InventoryTranslator {
             if (!viable) {
                 continue;
             }
-
-            System.out.println("TEMP SLOT CHOSEN: " + i + " => " + inventory.getItem(i));
             return i;
         }
         //could not find a viable temp slot

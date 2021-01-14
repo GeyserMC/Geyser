@@ -81,7 +81,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
         switch (packet.getTransactionType()) {
             case NORMAL:
-                System.out.println(packet);
                 if (packet.getActions().size() == 2) {
                     InventoryActionData worldAction = packet.getActions().get(0);
                     InventoryActionData containerAction = packet.getActions().get(1);

@@ -62,7 +62,6 @@ public class HorseInventoryUpdater extends InventoryUpdater {
         slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
         slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
         session.sendUpstreamPacket(slotPacket);
-        System.out.println(slotPacket);
         return true;
     }
 

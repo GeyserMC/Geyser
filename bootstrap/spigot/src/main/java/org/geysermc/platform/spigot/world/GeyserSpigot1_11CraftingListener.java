@@ -93,7 +93,6 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
             return;
         }
 
-        System.out.println("Sending recipes!");
         sendServerRecipes(session);
     }
 

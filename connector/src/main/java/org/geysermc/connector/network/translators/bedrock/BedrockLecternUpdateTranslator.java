@@ -50,8 +50,6 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
             // So, we enter the GUI and then drop it! :)
             session.setDroppingLecternBook(true);
 
-            Vector3f diff = session.getPlayerEntity().getPosition().sub(packet.getBlockPosition().toFloat());
-            System.out.println(diff);
             // Emulate an interact packet
             ClientPlayerPlaceBlockPacket blockPacket = new ClientPlayerPlaceBlockPacket(
                     new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()),
@@ -79,13 +77,11 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
                 if (newJavaPage > currentJavaPage) {
                     for (int i = currentJavaPage; i < newJavaPage; i++) {
                         ClientClickWindowButtonPacket clickButtonPacket = new ClientClickWindowButtonPacket(session.getOpenInventory().getId(), 2);
-                        System.out.println(clickButtonPacket);
                         session.sendDownstreamPacket(clickButtonPacket);
                     }
                 } else {
                     for (int i = currentJavaPage; i > newJavaPage; i--) {
                         ClientClickWindowButtonPacket clickButtonPacket = new ClientClickWindowButtonPacket(session.getOpenInventory().getId(), 1);
-                        System.out.println(clickButtonPacket);
                         session.sendDownstreamPacket(clickButtonPacket);
                     }
                 }

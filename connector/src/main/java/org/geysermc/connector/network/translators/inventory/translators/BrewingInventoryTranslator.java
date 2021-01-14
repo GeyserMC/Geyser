@@ -69,7 +69,6 @@ public class BrewingInventoryTranslator extends AbstractBlockInventoryTranslator
 
     @Override
     public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
-        System.out.println("Brewing stand: " + slotInfoData);
         if (slotInfoData.getContainer() == ContainerSlotType.BREWING_INPUT) {
             // Ingredient
             // TODO: This hasn't worked and then suddenly, it did.
