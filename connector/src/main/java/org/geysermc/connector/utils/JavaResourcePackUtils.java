@@ -102,7 +102,7 @@ public class JavaResourcePackUtils {
                         session.getConnector().getLogger().info("Downloading resource pack requested by " + session.getName());
                         session.sendMessage(LocaleUtils.getLocaleString("resourcepack.downloading", session.getLocale()));
                         String packName;
-                        if (rpCache.getResourcePackHash().isEmpty()) {
+                        if (rpCache.getResourcePackHash().isEmpty() || rpCache.getResourcePackHash().equals("null")) {
                             packName = session.getName() + "-" + System.currentTimeMillis() + ".zip";
                         } else {
                             packName = rpCache.getResourcePackHash() + ".zip";
