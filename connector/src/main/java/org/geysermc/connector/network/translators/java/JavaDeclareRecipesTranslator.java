@@ -190,6 +190,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
         session.setCraftingRecipes(recipeMap);
         session.getUnlockedRecipes().clear();
         session.setStonecutterRecipes(stonecutterRecipeMap);
+        session.getLastRecipeNetId().set(netId);
     }
 
     //TODO: rewrite

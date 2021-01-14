@@ -25,14 +25,33 @@
 
 package org.geysermc.connector.network.translators.java.window;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
+import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
+import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
+import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
+import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
+import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
+import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.translators.CraftingInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.translators.PlayerInventoryTranslator;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.UUID;
 
 @Translator(packet = ServerSetSlotPacket.class)
 public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket> {
@@ -55,10 +74,207 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
 
             InventoryTranslator translator = session.getInventoryTranslator();
             if (translator != null) {
+                updateCraftingGrid(session, packet, inventory, translator);
+
                 GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
                 inventory.setItem(packet.getSlot(), newItem, session);
                 translator.updateSlot(session, inventory, packet.getSlot());
             }
         });
+    }
+
+    private static void updateCraftingGrid(GeyserSession session, ServerSetSlotPacket packet, Inventory inventory, InventoryTranslator translator) {
+        if (packet.getSlot() == 0) {
+            int gridSize;
+            if (translator instanceof PlayerInventoryTranslator) {
+                gridSize = 4;
+            } else if (translator instanceof CraftingInventoryTranslator) {
+                gridSize = 9;
+            } else {
+                return;
+            }
+
+            if (packet.getItem() == null || packet.getItem().getId() == 0) {
+                return;
+            }
+
+            int offset = gridSize == 4 ? 28 : 32;
+            int gridDimensions = gridSize == 4 ? 2 : 3;
+            int firstRow = -1, height = -1;
+            int firstCol = -1, width = -1;
+            for (int row = 0; row < gridDimensions; row++) {
+                for (int col = 0; col < gridDimensions; col++) {
+                    if (!inventory.getItem(col + (row * gridDimensions) + 1).isEmpty()) {
+                        if (firstRow == -1) {
+                            firstRow = row;
+                            firstCol = col;
+                        } else {
+                            firstCol = Math.min(firstCol, col);
+                        }
+                        height = Math.max(height, row);
+                        width = Math.max(width, col);
+                    }
+                }
+            }
+
+            //empty grid
+            if (firstRow == -1) {
+                return;
+            }
+
+            height += -firstRow + 1;
+            width += -firstCol + 1;
+
+            System.out.println("Start Row: " + firstRow);
+            System.out.println("Start Column: " + firstCol);
+            System.out.println("Rows: " + height);
+            System.out.println("Columns: " + width);
+
+            //TODO
+            recipes:
+            for (Recipe recipe : session.getCraftingRecipes().values()) {
+                if (recipe.getType() == RecipeType.CRAFTING_SHAPED) {
+                    ShapedRecipeData data = (ShapedRecipeData) recipe.getData();
+                    if (!data.getResult().equals(packet.getItem())) {
+                        continue;
+                    }
+                    if (data.getWidth() != width || data.getHeight() != height || width * height != data.getIngredients().length) {
+                        continue;
+                    }
+
+                    Ingredient[] ingredients = data.getIngredients();
+                    if (!testShapedRecipe(ingredients, inventory, gridDimensions, firstRow, height, firstCol, width)) {
+                        Ingredient[] mirroredIngredients = new Ingredient[data.getIngredients().length];
+                        for (int row = 0; row < height; row++) {
+                            for (int col = 0; col < width; col++) {
+                                mirroredIngredients[col + (row * width)] = ingredients[(width - 1 - col) + (row * width)];
+                            }
+                        }
+
+                        if (Arrays.equals(ingredients, mirroredIngredients)) {
+                            continue;
+                        } else if (!testShapedRecipe(mirroredIngredients, inventory, gridDimensions, firstRow, height, firstCol, width)) {
+                            continue;
+                        }
+                    }
+                    System.out.println("FOUND SHAPED RECIPE :)");
+                    System.out.println(recipe);
+                    // Recipe is had, don't sent packet
+                    return;
+                } else if (recipe.getType() == RecipeType.CRAFTING_SHAPELESS) {
+                    ShapelessRecipeData data = (ShapelessRecipeData) recipe.getData();
+                    if (!data.getResult().equals(packet.getItem())) {
+                        continue;
+                    }
+                    for (int i = 0; i < data.getIngredients().length; i++) {
+                        Ingredient ingredient = data.getIngredients()[i];
+                        for (ItemStack itemStack : ingredient.getOptions()) {
+                            boolean inventoryHasItem = false;
+                            for (int j = 0; j < inventory.getSize(); j++) {
+                                GeyserItemStack geyserItemStack = inventory.getItem(j);
+                                if (geyserItemStack.isEmpty()) {
+                                    inventoryHasItem = itemStack == null || itemStack.getId() == 0;
+                                    if (inventoryHasItem) {
+                                        break;
+                                    }
+                                } else if (itemStack.equals(geyserItemStack.getItemStack(1))) {
+                                    inventoryHasItem = true;
+                                    break;
+                                }
+                            }
+                            if (!inventoryHasItem) {
+                                continue recipes;
+                            }
+                        }
+                    }
+                    // Recipe is had, don't sent packet
+                    return;
+                }
+            }
+            System.out.println("Sending packet!");
+
+            UUID uuid = UUID.randomUUID();
+            int newRecipeId = session.getLastRecipeNetId().incrementAndGet();
+
+            ItemData[] ingredients = new ItemData[height * width];
+            //construct ingredient list and clear slots on client
+            Ingredient[] javaIngredients = new Ingredient[height * width];
+            int index = 0;
+            for (int row = firstRow; row < height + firstRow; row++) {
+                for (int col = firstCol; col < width + firstCol; col++) {
+                    GeyserItemStack geyserItemStack = inventory.getItem(col + (row * gridDimensions) + 1);
+                    ingredients[index] = geyserItemStack.getItemData(session);
+                    ItemStack[] itemStacks = new ItemStack[] {geyserItemStack.isEmpty() ? null : geyserItemStack.getItemStack(1)};
+                    javaIngredients[index] = new Ingredient(itemStacks);
+
+                    InventorySlotPacket slotPacket = new InventorySlotPacket();
+                    slotPacket.setContainerId(ContainerId.UI);
+                    slotPacket.setSlot(col + (row * gridDimensions) + offset);
+                    slotPacket.setItem(ItemData.AIR);
+                    session.sendUpstreamPacket(slotPacket);
+                    index++;
+                }
+            }
+
+            ShapedRecipeData data = new ShapedRecipeData(width, height, "", javaIngredients, packet.getItem());
+            session.getConnector().getLogger().error(data.toString());
+            // Cache this recipe so we know the client has received it
+            session.getCraftingRecipes().put(newRecipeId, new Recipe(RecipeType.CRAFTING_SHAPED, uuid.toString(), data));
+
+            CraftingDataPacket craftPacket = new CraftingDataPacket();
+            craftPacket.getCraftingData().add(CraftingData.fromShaped(
+                    uuid.toString(),
+                    width,
+                    height,
+                    Arrays.asList(ingredients),
+                    Collections.singletonList(ItemTranslator.translateToBedrock(session, packet.getItem())),
+                    uuid,
+                    "crafting_table",
+                    0,
+                    newRecipeId
+            ));
+            craftPacket.setCleanRecipes(false);
+            System.out.println(craftPacket);
+            session.sendUpstreamPacket(craftPacket);
+
+            index = 0;
+            for (int row = firstRow; row < height + firstRow; row++) {
+                for (int col = firstCol; col < width + firstCol; col++) {
+                    InventorySlotPacket slotPacket = new InventorySlotPacket();
+                    slotPacket.setContainerId(ContainerId.UI);
+                    slotPacket.setSlot(col + (row * gridDimensions) + offset);
+                    slotPacket.setItem(ingredients[index]);
+                    session.sendUpstreamPacket(slotPacket);
+                    index++;
+                }
+            }
+        }
+    }
+
+    private static boolean testShapedRecipe(Ingredient[] ingredients, Inventory inventory, int gridDimensions, int firstRow, int height, int firstCol, int width) {
+        int ingredientIndex = 0;
+        for (int row = firstRow; row < height + firstRow; row++) {
+            for (int col = firstCol; col < width + firstCol; col++) {
+                GeyserItemStack geyserItemStack = inventory.getItem(col + (row * gridDimensions) + 1);
+                Ingredient ingredient = ingredients[ingredientIndex++];
+                if (ingredient.getOptions().length == 0) {
+                    if (!geyserItemStack.isEmpty()) {
+                        return false;
+                    }
+                } else {
+                    boolean inventoryHasItem = false;
+                    for (ItemStack item : ingredient.getOptions()) {
+                        if (Objects.equals(geyserItemStack.getItemStack(1), item)) {
+                            inventoryHasItem = true;
+                            break;
+                        }
+                    }
+                    if (!inventoryHasItem) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 }

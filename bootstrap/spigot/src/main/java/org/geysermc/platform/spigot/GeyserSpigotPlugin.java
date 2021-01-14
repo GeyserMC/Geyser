@@ -43,6 +43,7 @@ import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandManager;
 import org.geysermc.platform.spigot.command.SpigotCommandSender;
+import org.geysermc.platform.spigot.world.GeyserSpigot1_11CraftingListener;
 import org.geysermc.platform.spigot.world.GeyserSpigotBlockPlaceListener;
 import org.geysermc.platform.spigot.world.manager.*;
 import us.myles.ViaVersion.api.Pair;
@@ -146,8 +147,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             geyserLogger.debug("Legacy version of Minecraft (1.15.2 or older) detected; not using 3D biomes.");
         }
 
+        boolean isPre1_12 = !isCompatible(Bukkit.getServer().getVersion(), "1.12.0");
         // Set if we need to use a different method for getting a player's locale
-        SpigotCommandSender.setUseLegacyLocaleMethod(!isCompatible(Bukkit.getServer().getVersion(), "1.12.0"));
+        SpigotCommandSender.setUseLegacyLocaleMethod(isPre1_12);
 
         if (connector.getConfig().isUseAdapters()) {
             try {
@@ -191,8 +193,12 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             geyserLogger.debug("Using default world manager: " + this.geyserWorldManager.getClass());
         }
         GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(connector, this.geyserWorldManager);
-
         Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
+
+        if (isPre1_12) {
+            // Register events needed to send all recipes to the client
+            Bukkit.getServer().getPluginManager().registerEvents(new GeyserSpigot1_11CraftingListener(this, connector), this);
+        }
 
         this.getCommand("geyser").setExecutor(new GeyserSpigotCommandExecutor(connector));
     }

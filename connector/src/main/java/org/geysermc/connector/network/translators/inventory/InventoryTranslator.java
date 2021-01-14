@@ -968,13 +968,12 @@ public abstract class InventoryTranslator {
     }
 
     public boolean checkNetId(GeyserSession session, Inventory inventory, StackRequestSlotInfoData slotInfoData) {
-        if (slotInfoData.getStackNetworkId() < 0)
+        int netId = slotInfoData.getStackNetworkId();
+        if (netId < 0 || netId == 1)
             return true;
-//        if (slotInfoData.getContainer() == ContainerSlotType.CURSOR) //TODO: temporary
-//            return true;
 
         GeyserItemStack currentItem = isCursor(slotInfoData) ? session.getPlayerInventory().getCursor() : inventory.getItem(bedrockSlotToJava(slotInfoData));
-        return currentItem.getNetId() == slotInfoData.getStackNetworkId();
+        return currentItem.getNetId() == netId;
     }
 
     /**

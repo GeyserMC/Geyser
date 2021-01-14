@@ -23,21 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.monster;
+package org.geysermc.connector.entity;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.session.GeyserSession;
 
-public class EnderDragonPartEntity extends Entity {
-    public EnderDragonPartEntity(long entityId, long geyserId, EntityType entityType, float width, float height) {
-        super(entityId, geyserId, entityType, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
-
-        metadata.put(EntityData.BOUNDING_BOX_WIDTH, width);
-        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
-        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
-        metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
-    }
+/**
+ * Implemented onto anything that should have code ran every Minecraft tick - 50 milliseconds.
+ */
+public interface Tickable {
+    void tick(GeyserSession session);
 }
