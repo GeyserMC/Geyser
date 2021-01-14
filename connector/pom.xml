@@ -121,7 +121,7 @@
         <dependency>
             <groupId>com.github.steveice10</groupId>
             <artifactId>mcprotocollib</artifactId>
-            <version>26201a4</version>
+            <version>62721cf</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>

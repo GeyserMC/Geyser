@@ -47,9 +47,9 @@ public class WorldBorder {
     @Getter @Setter private int warningTime;
     @Getter @Setter private int warningBlocks;
 
-    @Getter @Setter
-    private boolean resizing = false;
-    private double currentDiameter = 0.0D;
+    @Getter
+    private boolean resizing;
+    private double currentDiameter;
 
     /*
      * Boundaries of the actual world border.
@@ -68,6 +68,9 @@ public class WorldBorder {
     private double warningMinX = 0.0D;
     private double warningMinZ = 0.0D;
 
+    /**
+     * If the world border is resizing, this variable saves how many ticks have progressed in the resizing
+     */
     private long lastUpdatedWorldBorderTime = 0;
 
     private final GeyserSession session;
@@ -94,6 +97,7 @@ public class WorldBorder {
         this.warningBlocks = warningBlocks;
 
         this.currentDiameter = newDiameter;
+        this.resizing = speed != 0L;
     }
 
     /**
@@ -161,6 +165,13 @@ public class WorldBorder {
             this.lastUpdatedWorldBorderTime += 50;
         }
         update();
+    }
+
+    public void setResizing(boolean resizing) {
+        this.resizing = resizing;
+        if (!resizing) {
+            this.lastUpdatedWorldBorderTime = 0;
+        }
     }
 
     /**

@@ -42,22 +42,19 @@ public class JavaWorldBorderTranslator extends PacketTranslator<ServerWorldBorde
 
         if (packet.getAction() != WorldBorderAction.INITIALIZE && worldBorder == null) {
             return;
-        } else if (packet.getAction() != WorldBorderAction.INITIALIZE) {
-            // Precaution
-            worldBorder.setResizing(false);
         }
 
-        switch(packet.getAction()) {
+        switch (packet.getAction()) {
             case INITIALIZE:
                 worldBorder = new WorldBorder(session, Vector2f.from(packet.getNewCenterX(), packet.getNewCenterZ()), packet.getOldSize(), packet.getNewSize(),
-                        packet.getLerpTime(), packet.getWarningBlocks(), packet.getWarningTime());
-
+                        packet.getLerpTime(), packet.getWarningTime(), packet.getWarningBlocks());
 
                 session.setWorldBorder(worldBorder);
                 break;
             case SET_SIZE:
                 worldBorder.setOldDiameter(packet.getNewSize());
                 worldBorder.setNewDiameter(packet.getNewSize());
+                worldBorder.setResizing(false);
                 break;
             case LERP_SIZE:
                 worldBorder.setOldDiameter(packet.getOldSize());
