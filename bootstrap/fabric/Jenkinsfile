@@ -4,9 +4,15 @@ pipeline {
         gradle 'Gradle 6'
         jdk 'Java 8'
     }
+
+    parameters{    
+        booleanParam(defaultValue: false, description: 'Skip Discord notification', name: 'SKIP_DISCORD')
+    }
+
     options {
         buildDiscarder(logRotator(artifactNumToKeepStr: '20'))
     }
+
     stages {
         stage ('Build') {
             steps {
@@ -85,8 +91,12 @@ pipeline {
                 env.changes = message
             }
             deleteDir()
-            withCredentials([string(credentialsId: 'geyser-discord-webhook', variable: 'DISCORD_WEBHOOK')]) {
-                discordSend description: "**Build:** [${currentBuild.id}](${env.BUILD_URL})\n**Status:** [${currentBuild.currentResult}](${env.BUILD_URL})\n${changes}\n\n[**Artifacts on Jenkins**](https://ci.nukkitx.com/job/Geyser)", footer: 'Cloudburst Jenkins', link: env.BUILD_URL, successful: currentBuild.resultIsBetterOrEqualTo('SUCCESS'), title: "${env.JOB_NAME} #${currentBuild.id}", webhookURL: DISCORD_WEBHOOK
+            script {
+                if(!params.SKIP_DISCORD) {
+                    withCredentials([string(credentialsId: 'geyser-discord-webhook', variable: 'DISCORD_WEBHOOK')]) {
+                        discordSend description: "**Build:** [${currentBuild.id}](${env.BUILD_URL})\n**Status:** [${currentBuild.currentResult}](${env.BUILD_URL})\n${changes}\n\n[**Artifacts on Jenkins**](https://ci.nukkitx.com/job/Geyser)", footer: 'Cloudburst Jenkins', link: env.BUILD_URL, successful: currentBuild.resultIsBetterOrEqualTo('SUCCESS'), title: "${env.JOB_NAME} #${currentBuild.id}", webhookURL: DISCORD_WEBHOOK
+                    }
+                }
             }
         }
     }
