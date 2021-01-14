@@ -52,6 +52,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Translator(packet = ServerSetSlotPacket.class)
 public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket> {
@@ -73,7 +74,10 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
 
             InventoryTranslator translator = session.getInventoryTranslator();
             if (translator != null) {
-                updateCraftingGrid(session, packet, inventory, translator);
+                if (session.getCraftingGridFuture() != null) {
+                    session.getCraftingGridFuture().cancel(false);
+                }
+                session.setCraftingGridFuture(session.getConnector().getGeneralThreadPool().schedule(() -> session.addInventoryTask(() -> updateCraftingGrid(session, packet, inventory, translator)), 150, TimeUnit.MILLISECONDS));
 
                 GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
                 inventory.setItem(packet.getSlot(), newItem, session);
@@ -208,7 +212,6 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
             }
 
             ShapedRecipeData data = new ShapedRecipeData(width, height, "", javaIngredients, packet.getItem());
-            session.getConnector().getLogger().error(data.toString());
             // Cache this recipe so we know the client has received it
             session.getCraftingRecipes().put(newRecipeId, new Recipe(RecipeType.CRAFTING_SHAPED, uuid.toString(), data));
 

@@ -151,6 +151,9 @@ public class GeyserSession implements CommandSender {
     @Getter(AccessLevel.NONE)
     private CompletableFuture<Void> inventoryFuture;
 
+    @Setter
+    private ScheduledFuture<?> craftingGridFuture;
+
     /**
      * Stores session collision
      */
