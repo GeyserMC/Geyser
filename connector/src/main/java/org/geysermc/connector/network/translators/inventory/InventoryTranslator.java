@@ -217,79 +217,6 @@ public abstract class InventoryTranslator {
 
                     if (isCursor(transferAction.getSource()) && isCursor(transferAction.getDestination())) { //???
                         return rejectRequest(request);
-                    } else if (session.getGameMode().equals(GameMode.CREATIVE) && inventory instanceof PlayerInventory) { // TODO: does the Java server use this stuff all the time in creative?
-                        // Creative acts a little differently because it just edits slots
-                        boolean sourceIsCursor = isCursor(transferAction.getSource());
-                        boolean destIsCursor = isCursor(transferAction.getDestination());
-
-                        GeyserItemStack sourceItem = sourceIsCursor ? session.getPlayerInventory().getCursor() :
-                                inventory.getItem(sourceSlot);
-                        GeyserItemStack newItem = sourceItem.copy();
-                        if (sourceIsCursor) {
-                            GeyserItemStack destItem = inventory.getItem(destSlot);
-                            if (destItem.getJavaId() == sourceItem.getJavaId()) {
-                                // Combining items
-                                int itemsLeftOver = destItem.getAmount() + transferAction.getCount();
-                                if (itemsLeftOver > MAX_ITEM_STACK_SIZE) {
-                                    // Items will remain in cursor because destination slot gets set to 64
-                                    destItem.setAmount(MAX_ITEM_STACK_SIZE);
-                                    sourceItem.setAmount(itemsLeftOver - MAX_ITEM_STACK_SIZE);
-                                } else {
-                                    // Cursor will be emptied
-                                    destItem.setAmount(itemsLeftOver);
-                                    session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY, session);
-                                }
-                                ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
-                                        destSlot,
-                                        destItem.getItemStack()
-                                );
-                                session.sendDownstreamPacket(creativeActionPacket);
-                                affectedSlots.add(destSlot);
-                                break;
-                            }
-                        } else {
-                            // Delete the source since we're moving it
-                            inventory.setItem(sourceSlot, GeyserItemStack.EMPTY, session);
-                            ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
-                                    sourceSlot,
-                                    new ItemStack(0)
-                            );
-                            session.sendDownstreamPacket(creativeActionPacket);
-                            affectedSlots.add(sourceSlot);
-                        }
-                        // Update the item count with however much the client took
-                        newItem.setAmount(transferAction.getCount());
-                        // Remove that amount from the existing item
-                        sourceItem.setAmount(sourceItem.getAmount() - transferAction.getCount());
-                        if (sourceItem.isEmpty()) {
-                            // Item is basically deleted
-                            if (sourceIsCursor) {
-                                session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY, session);
-                            } else {
-                                inventory.setItem(sourceSlot, GeyserItemStack.EMPTY, session);
-                            }
-                        }
-                        if (destIsCursor) {
-                            session.getPlayerInventory().setCursor(newItem, session);
-                        } else {
-                            inventory.setItem(destSlot, newItem, session);
-                        }
-                        GeyserItemStack itemToUpdate = destIsCursor ? sourceItem : newItem;
-                        // The Java server doesn't care about what's in the mouse in creative mode, so we just need to track
-                        // which inventory slot the client modified
-                        ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
-                                destIsCursor ? sourceSlot : destSlot,
-                                itemToUpdate.isEmpty() ? new ItemStack(0) : itemToUpdate.getItemStack()
-                        );
-                        session.sendDownstreamPacket(creativeActionPacket);
-
-                        if (!sourceIsCursor) { // Cursor is always added for us as an affected slot
-                            affectedSlots.add(sourceSlot);
-                        }
-                        if (!destIsCursor) {
-                            affectedSlots.add(destSlot);
-                        }
-
                     } else if (isCursor(transferAction.getSource())) { //releasing cursor
                         int sourceAmount = cursor.getAmount();
                         if (transferAction.getCount() == sourceAmount) { //release all
@@ -359,35 +286,7 @@ public abstract class InventoryTranslator {
                     if (!(checkNetId(session, inventory, swapAction.getSource()) && checkNetId(session, inventory, swapAction.getDestination())))
                         return rejectRequest(request);
 
-                    if (session.getGameMode().equals(GameMode.CREATIVE) && inventory instanceof PlayerInventory) {
-                        int destSlot = bedrockSlotToJava(swapAction.getDestination());
-                        GeyserItemStack oldSourceItem;
-                        GeyserItemStack oldDestinationItem = inventory.getItem(destSlot);
-                        if (isCursor(swapAction.getSource())) {
-                            oldSourceItem = session.getPlayerInventory().getCursor();
-                            session.getPlayerInventory().setCursor(oldDestinationItem, session);
-                        } else {
-                            int sourceSlot = bedrockSlotToJava(swapAction.getSource());
-                            oldSourceItem = inventory.getItem(sourceSlot);
-                            ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
-                                    sourceSlot,
-                                    oldDestinationItem.isEmpty() ? new ItemStack(0) : oldDestinationItem.getItemStack() // isEmpty check... just in case
-                            );
-                            session.sendDownstreamPacket(creativeActionPacket);
-                            inventory.setItem(sourceSlot, oldDestinationItem, session);
-                        }
-                        if (isCursor(swapAction.getDestination())) {
-                            session.getPlayerInventory().setCursor(oldSourceItem, session);
-                        } else {
-                            ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
-                                    destSlot,
-                                    oldSourceItem.isEmpty() ? new ItemStack(0) : oldSourceItem.getItemStack()
-                            );
-                            session.sendDownstreamPacket(creativeActionPacket);
-                            inventory.setItem(destSlot, oldSourceItem, session);
-                        }
-
-                    } else if (isCursor(swapAction.getSource()) && isCursor(swapAction.getDestination())) { //???
+                    if (isCursor(swapAction.getSource()) && isCursor(swapAction.getDestination())) { //???
                         return rejectRequest(request);
                     } else if (isCursor(swapAction.getSource())) { //swap cursor
                         int destSlot = bedrockSlotToJava(swapAction.getDestination());
@@ -425,29 +324,12 @@ public abstract class InventoryTranslator {
                         return rejectRequest(request);
 
                     if (isCursor(dropAction.getSource())) { //clicking outside of window
-                        if (session.getGameMode() == GameMode.CREATIVE && inventory instanceof PlayerInventory) {
-                            GeyserItemStack cursorItem = session.getPlayerInventory().getCursor();
-                            GeyserItemStack droppingItem = cursorItem.copy();
-                            // Subtract the cursor item by however much is being dropped
-                            cursorItem.setAmount(cursorItem.getAmount() - dropAction.getCount());
-                            if (cursorItem.isEmpty()) {
-                                // Cursor item no longer exists
-                                session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY, session);
-                            }
-                            droppingItem.setAmount(dropAction.getCount());
-                            ClientCreativeInventoryActionPacket packet = new ClientCreativeInventoryActionPacket(
-                                    Click.OUTSIDE_SLOT,
-                                    droppingItem.getItemStack()
-                            );
-                            session.sendDownstreamPacket(packet);
-                        } else {
-                            int sourceAmount = plan.getCursor().getAmount();
-                            if (dropAction.getCount() == sourceAmount) { //drop all
-                                plan.add(Click.LEFT_OUTSIDE, Click.OUTSIDE_SLOT);
-                            } else { //drop some
-                                for (int i = 0; i < dropAction.getCount(); i++) {
-                                    plan.add(Click.RIGHT_OUTSIDE, Click.OUTSIDE_SLOT); //drop one until goal is met
-                                }
+                        int sourceAmount = plan.getCursor().getAmount();
+                        if (dropAction.getCount() == sourceAmount) { //drop all
+                            plan.add(Click.LEFT_OUTSIDE, Click.OUTSIDE_SLOT);
+                        } else { //drop some
+                            for (int i = 0; i < dropAction.getCount(); i++) {
+                                plan.add(Click.RIGHT_OUTSIDE, Click.OUTSIDE_SLOT); //drop one until goal is met
                             }
                         }
                     } else { //dropping from inventory
@@ -460,39 +342,6 @@ public abstract class InventoryTranslator {
                                 plan.add(Click.DROP_ONE, sourceSlot); //drop one until goal is met
                             }
                         }
-                    }
-                    break;
-                }
-                case DESTROY: {
-                    // Only called when a creative client wants to destroy an item... I think - Camotoy
-                    DestroyStackRequestActionData destroyAction = (DestroyStackRequestActionData) action;
-                    if (!session.getGameMode().equals(GameMode.CREATIVE)) {
-                        // If this happens, let's throw an error and figure out why.
-                        return rejectRequest(request);
-                    }
-                    if (!isCursor(destroyAction.getSource())) {
-                        // Item exists; let's remove it from the inventory
-                        int javaSlot = bedrockSlotToJava(destroyAction.getSource());
-                        GeyserItemStack existingItem = inventory.getItem(javaSlot);
-                        existingItem.setAmount(existingItem.getAmount() - destroyAction.getCount());
-                        ClientCreativeInventoryActionPacket destroyItemPacket;
-                        if (existingItem.isEmpty()) {
-                            destroyItemPacket = new ClientCreativeInventoryActionPacket(
-                                    javaSlot,
-                                    new ItemStack(0)
-                            );
-                            inventory.setItem(javaSlot, GeyserItemStack.EMPTY, session);
-                        } else {
-                            destroyItemPacket = new ClientCreativeInventoryActionPacket(
-                                    javaSlot,
-                                    existingItem.getItemStack()
-                            );
-                        }
-                        session.sendDownstreamPacket(destroyItemPacket);
-                        affectedSlots.add(javaSlot);
-                    } else {
-                        // Just sync up the item on our end, since the server doesn't care what's in our cursor
-                        session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY, session);
                     }
                     break;
                 }
@@ -838,73 +687,7 @@ public abstract class InventoryTranslator {
     }
 
     public ItemStackResponsePacket.Response translateCreativeRequest(GeyserSession session, Inventory inventory, ItemStackRequestPacket.Request request) {
-        int creativeId = 0;
-        CraftState craftState = CraftState.START;
-        for (StackRequestActionData action : request.getActions()) {
-            switch (action.getType()) {
-                case CRAFT_CREATIVE: {
-                    CraftCreativeStackRequestActionData creativeAction = (CraftCreativeStackRequestActionData) action;
-                    if (craftState != CraftState.START) {
-                        return rejectRequest(request);
-                    }
-                    craftState = CraftState.RECIPE_ID;
-
-                    creativeId = creativeAction.getCreativeItemNetworkId();
-                    break;
-                }
-                case CRAFT_RESULTS_DEPRECATED: {
-                    CraftResultsDeprecatedStackRequestActionData deprecatedCraftAction = (CraftResultsDeprecatedStackRequestActionData) action;
-                    if (craftState != CraftState.RECIPE_ID) {
-                        return rejectRequest(request);
-                    }
-                    craftState = CraftState.DEPRECATED;
-                    break;
-                }
-                case TAKE:
-                case PLACE: {
-                    TransferStackRequestActionData transferAction = (TransferStackRequestActionData) action;
-                    if (craftState != CraftState.DEPRECATED) {
-                        return rejectRequest(request);
-                    }
-                    craftState = CraftState.TRANSFER;
-
-                    if (transferAction.getSource().getContainer() != ContainerSlotType.CREATIVE_OUTPUT) {
-                        return rejectRequest(request);
-                    }
-                    // Reference the creative items list we send to the client to know what it's asking of us
-                    ItemData creativeItem = ItemRegistry.CREATIVE_ITEMS[creativeId - 1];
-                    // Get the correct count
-                    creativeItem = ItemData.of(creativeItem.getId(), creativeItem.getDamage(), transferAction.getCount(),  creativeItem.getTag());
-                    ItemStack javaCreativeItem = ItemTranslator.translateToJava(creativeItem);
-
-                    if (isCursor(transferAction.getDestination())) {
-                        session.getPlayerInventory().setCursor(GeyserItemStack.from(javaCreativeItem), session);
-                        return acceptRequest(request, Collections.singletonList(
-                                new ItemStackResponsePacket.ContainerEntry(ContainerSlotType.CURSOR,
-                                        Collections.singletonList(makeItemEntry(0, session.getPlayerInventory().getCursor())))));
-                    } else {
-                        int javaSlot = bedrockSlotToJava(transferAction.getDestination());
-                        GeyserItemStack existingItem = inventory.getItem(javaSlot);
-                        if (existingItem.getJavaId() == javaCreativeItem.getId()) {
-                            // Adding more to an existing item
-                            existingItem.setAmount(existingItem.getAmount() + transferAction.getCount());
-                            javaCreativeItem = existingItem.getItemStack();
-                        } else {
-                            inventory.setItem(javaSlot, GeyserItemStack.from(javaCreativeItem), session);
-                        }
-                        ClientCreativeInventoryActionPacket creativeActionPacket = new ClientCreativeInventoryActionPacket(
-                                javaSlot,
-                                javaCreativeItem
-                        );
-                        session.sendDownstreamPacket(creativeActionPacket);
-                        Set<Integer> affectedSlots = Collections.singleton(javaSlot);
-                        return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
-                    }
-                }
-                default:
-                    return rejectRequest(request);
-            }
-        }
+        // Handled in PlayerInventoryTranslator
         return rejectRequest(request);
     }
 
@@ -1040,11 +823,11 @@ public abstract class InventoryTranslator {
         return itemEntry;
     }
 
-    private static boolean isCursor(StackRequestSlotInfoData slotInfoData) {
+    protected static boolean isCursor(StackRequestSlotInfoData slotInfoData) {
         return slotInfoData.getContainer() == ContainerSlotType.CURSOR;
     }
 
-    private enum CraftState {
+    protected enum CraftState {
         START,
         RECIPE_ID,
         DEPRECATED,

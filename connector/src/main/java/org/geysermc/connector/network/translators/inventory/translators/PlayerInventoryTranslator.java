@@ -25,18 +25,26 @@
 
 package org.geysermc.connector.network.translators.inventory.translators;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreativeInventoryActionPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.*;
+import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.*;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import com.nukkitx.protocol.bedrock.packet.ItemStackRequestPacket;
+import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.SlotType;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -205,6 +213,253 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     @Override
     public void translateRequests(GeyserSession session, Inventory inventory, List<ItemStackRequestPacket.Request> requests) {
         super.translateRequests(session, inventory, requests);
+    }
+
+    @Override
+    public ItemStackResponsePacket.Response translateRequest(GeyserSession session, Inventory inventory, ItemStackRequestPacket.Request request) {
+        if (session.getGameMode() != GameMode.CREATIVE) {
+            return super.translateRequest(session, inventory, request);
+        }
+
+        PlayerInventory playerInv = session.getPlayerInventory();
+        IntSet affectedSlots = new IntOpenHashSet();
+        for (StackRequestActionData action : request.getActions()) {
+            switch (action.getType()) {
+                case TAKE:
+                case PLACE: {
+                    TransferStackRequestActionData transferAction = (TransferStackRequestActionData) action;
+                    if (!(checkNetId(session, inventory, transferAction.getSource()) && checkNetId(session, inventory, transferAction.getDestination()))) {
+                        return rejectRequest(request);
+                    }
+                    if (isCraftingGrid(transferAction.getSource()) || isCraftingGrid(transferAction.getDestination())) {
+                        return rejectRequest(request, false);
+                    }
+
+                    int transferAmount = transferAction.getCount();
+                    if (isCursor(transferAction.getDestination())) {
+                        int sourceSlot = bedrockSlotToJava(transferAction.getSource());
+                        GeyserItemStack sourceItem = inventory.getItem(sourceSlot);
+                        if (playerInv.getCursor().isEmpty()) {
+                            playerInv.setCursor(sourceItem.copy(0), session);
+                        }
+
+                        playerInv.getCursor().add(transferAmount);
+                        sourceItem.sub(transferAmount);
+
+                        affectedSlots.add(sourceSlot);
+                    } else if (isCursor(transferAction.getSource())) {
+                        int destSlot = bedrockSlotToJava(transferAction.getDestination());
+                        GeyserItemStack sourceItem = playerInv.getCursor();
+                        if (inventory.getItem(destSlot).isEmpty()) {
+                            inventory.setItem(destSlot, sourceItem.copy(0), session);
+                        }
+
+                        inventory.getItem(destSlot).add(transferAmount);
+                        sourceItem.sub(transferAmount);
+
+                        affectedSlots.add(destSlot);
+                    } else {
+                        int sourceSlot = bedrockSlotToJava(transferAction.getSource());
+                        int destSlot = bedrockSlotToJava(transferAction.getDestination());
+                        GeyserItemStack sourceItem = inventory.getItem(sourceSlot);
+                        if (inventory.getItem(destSlot).isEmpty()) {
+                            inventory.setItem(destSlot, sourceItem.copy(0), session);
+                        }
+
+                        inventory.getItem(destSlot).add(transferAmount);
+                        sourceItem.sub(transferAmount);
+
+                        affectedSlots.add(sourceSlot);
+                        affectedSlots.add(destSlot);
+                    }
+                    break;
+                }
+                case SWAP: {
+                    SwapStackRequestActionData swapAction = (SwapStackRequestActionData) action;
+                    if (!(checkNetId(session, inventory, swapAction.getSource()) && checkNetId(session, inventory, swapAction.getDestination()))) {
+                        return rejectRequest(request);
+                    }
+                    if (isCraftingGrid(swapAction.getSource()) || isCraftingGrid(swapAction.getDestination())) {
+                        return rejectRequest(request, false);
+                    }
+
+                    if (isCursor(swapAction.getDestination())) {
+                        int sourceSlot = bedrockSlotToJava(swapAction.getSource());
+                        GeyserItemStack sourceItem = inventory.getItem(sourceSlot);
+                        GeyserItemStack destItem = playerInv.getCursor();
+
+                        playerInv.setCursor(sourceItem, session);
+                        inventory.setItem(sourceSlot, destItem, session);
+
+                        affectedSlots.add(sourceSlot);
+                    } else if (isCursor(swapAction.getSource())) {
+                        int destSlot = bedrockSlotToJava(swapAction.getDestination());
+                        GeyserItemStack sourceItem = playerInv.getCursor();
+                        GeyserItemStack destItem = inventory.getItem(destSlot);
+
+                        inventory.setItem(destSlot, sourceItem, session);
+                        playerInv.setCursor(destItem, session);
+
+                        affectedSlots.add(destSlot);
+                    } else {
+                        int sourceSlot = bedrockSlotToJava(swapAction.getSource());
+                        int destSlot = bedrockSlotToJava(swapAction.getDestination());
+                        GeyserItemStack sourceItem = inventory.getItem(sourceSlot);
+                        GeyserItemStack destItem = inventory.getItem(destSlot);
+
+                        inventory.setItem(destSlot, sourceItem, session);
+                        inventory.setItem(sourceSlot, destItem, session);
+
+                        affectedSlots.add(sourceSlot);
+                        affectedSlots.add(destSlot);
+                    }
+                    break;
+                }
+                case DROP: {
+                    DropStackRequestActionData dropAction = (DropStackRequestActionData) action;
+                    if (!checkNetId(session, inventory, dropAction.getSource())) {
+                        return rejectRequest(request);
+                    }
+                    if (isCraftingGrid(dropAction.getSource())) {
+                        return rejectRequest(request, false);
+                    }
+
+                    GeyserItemStack sourceItem;
+                    if (isCursor(dropAction.getSource())) {
+                        sourceItem = playerInv.getCursor();
+                    } else {
+                        int sourceSlot = bedrockSlotToJava(dropAction.getSource());
+                        sourceItem = inventory.getItem(sourceSlot);
+                        affectedSlots.add(sourceSlot);
+                    }
+
+                    if (sourceItem.isEmpty()) {
+                        return rejectRequest(request);
+                    }
+
+                    ClientCreativeInventoryActionPacket creativeDropPacket = new ClientCreativeInventoryActionPacket(-1, sourceItem.getItemStack(dropAction.getCount()));
+                    session.sendDownstreamPacket(creativeDropPacket);
+
+                    sourceItem.sub(dropAction.getCount());
+                    break;
+                }
+                case DESTROY: {
+                    // Only called when a creative client wants to destroy an item... I think - Camotoy
+                    DestroyStackRequestActionData destroyAction = (DestroyStackRequestActionData) action;
+                    if (!checkNetId(session, inventory, destroyAction.getSource())) {
+                        return rejectRequest(request);
+                    }
+                    if (isCraftingGrid(destroyAction.getSource())) {
+                        return rejectRequest(request, false);
+                    }
+
+                    if (!isCursor(destroyAction.getSource())) {
+                        // Item exists; let's remove it from the inventory
+                        int javaSlot = bedrockSlotToJava(destroyAction.getSource());
+                        GeyserItemStack existingItem = inventory.getItem(javaSlot);
+                        existingItem.sub(destroyAction.getCount());
+                        affectedSlots.add(javaSlot);
+                    } else {
+                        // Just sync up the item on our end, since the server doesn't care what's in our cursor
+                        playerInv.getCursor().sub(destroyAction.getCount());
+                    }
+                    break;
+                }
+                default:
+                    return rejectRequest(request);
+            }
+        }
+        for (int slot : affectedSlots) {
+            sendCreativeAction(session, inventory, slot);
+        }
+        return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
+    }
+
+    @Override
+    public ItemStackResponsePacket.Response translateCreativeRequest(GeyserSession session, Inventory inventory, ItemStackRequestPacket.Request request) {
+        ItemStack javaCreativeItem = null;
+        IntSet affectedSlots = new IntOpenHashSet();
+        CraftState craftState = CraftState.START;
+        for (StackRequestActionData action : request.getActions()) {
+            switch (action.getType()) {
+                case CRAFT_CREATIVE: {
+                    CraftCreativeStackRequestActionData creativeAction = (CraftCreativeStackRequestActionData) action;
+                    if (craftState != CraftState.START) {
+                        return rejectRequest(request);
+                    }
+                    craftState = CraftState.RECIPE_ID;
+
+                    int creativeId = creativeAction.getCreativeItemNetworkId() - 1;
+                    if (creativeId < 0 || creativeId >= ItemRegistry.CREATIVE_ITEMS.length) {
+                        return rejectRequest(request);
+                    }
+                    // Reference the creative items list we send to the client to know what it's asking of us
+                    ItemData creativeItem = ItemRegistry.CREATIVE_ITEMS[creativeId];
+                    javaCreativeItem = ItemTranslator.translateToJava(creativeItem);
+                    break;
+                }
+                case CRAFT_RESULTS_DEPRECATED: {
+                    CraftResultsDeprecatedStackRequestActionData deprecatedCraftAction = (CraftResultsDeprecatedStackRequestActionData) action;
+                    if (craftState != CraftState.RECIPE_ID) {
+                        return rejectRequest(request);
+                    }
+                    craftState = CraftState.DEPRECATED;
+                    break;
+                }
+                case TAKE:
+                case PLACE: {
+                    TransferStackRequestActionData transferAction = (TransferStackRequestActionData) action;
+                    if (!(craftState == CraftState.DEPRECATED || craftState == CraftState.TRANSFER)) {
+                        return rejectRequest(request);
+                    }
+                    craftState = CraftState.TRANSFER;
+
+                    if (transferAction.getSource().getContainer() != ContainerSlotType.CREATIVE_OUTPUT) {
+                        return rejectRequest(request);
+                    }
+
+                    if (isCursor(transferAction.getDestination())) {
+                        if (session.getPlayerInventory().getCursor().isEmpty()) {
+                            GeyserItemStack newItemStack = GeyserItemStack.from(javaCreativeItem);
+                            newItemStack.setAmount(transferAction.getCount());
+                            session.getPlayerInventory().setCursor(newItemStack, session);
+                        } else {
+                            session.getPlayerInventory().getCursor().add(transferAction.getCount());
+                        }
+                        //cursor is always included in response
+                    } else {
+                        int destSlot = bedrockSlotToJava(transferAction.getDestination());
+                        if (inventory.getItem(destSlot).isEmpty()) {
+                            GeyserItemStack newItemStack = GeyserItemStack.from(javaCreativeItem);
+                            newItemStack.setAmount(transferAction.getCount());
+                            inventory.setItem(destSlot, newItemStack, session);
+                        } else {
+                            inventory.getItem(destSlot).add(transferAction.getCount());
+                        }
+                        affectedSlots.add(destSlot);
+                    }
+                    break;
+                }
+                default:
+                    return rejectRequest(request);
+            }
+        }
+        for (int slot : affectedSlots) {
+            sendCreativeAction(session, inventory, slot);
+        }
+        return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
+    }
+
+    private static void sendCreativeAction(GeyserSession session, Inventory inventory, int slot) {
+        GeyserItemStack item = inventory.getItem(slot);
+        ItemStack itemStack = item.isEmpty() ? new ItemStack(-1, 0, null) : item.getItemStack();
+
+        ClientCreativeInventoryActionPacket creativePacket = new ClientCreativeInventoryActionPacket(slot, itemStack);
+        session.sendDownstreamPacket(creativePacket);
+    }
+
+    private static boolean isCraftingGrid(StackRequestSlotInfoData slotInfoData) {
+        return slotInfoData.getContainer() == ContainerSlotType.CRAFTING_INPUT;
     }
 
     @Override
