@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -87,7 +87,9 @@ public class BlockTranslator {
      */
     public static final int BEDROCK_RUNTIME_COMMAND_BLOCK_ID;
 
-    // For block breaking animation math
+    /**
+     * A list of all Java runtime wool IDs, for use with block breaking math and shears
+     */
     public static final IntSet JAVA_RUNTIME_WOOL_IDS = new IntOpenHashSet();
     public static final int JAVA_RUNTIME_COBWEB_ID;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,11 +32,12 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
 
 public class EnderDragonPartEntity extends Entity {
-    public EnderDragonPartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation, float width, float height) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public EnderDragonPartEntity(long entityId, long geyserId, EntityType entityType, float width, float height) {
+        super(entityId, geyserId, entityType, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
 
         metadata.put(EntityData.BOUNDING_BOX_WIDTH, width);
         metadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
         metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
+        metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 }

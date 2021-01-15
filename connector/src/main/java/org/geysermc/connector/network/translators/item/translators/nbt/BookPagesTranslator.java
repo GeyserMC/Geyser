@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -78,9 +78,8 @@ public class BookPagesTranslator extends NbtItemStackTranslator {
             CompoundTag pageTag = (CompoundTag) tag;
 
             StringTag textTag = pageTag.get("text");
-            pages.add(new StringTag(MessageTranslator.convertToJavaMessage(textTag.getValue())));
+            pages.add(new StringTag("", textTag.getValue()));
         }
-
         itemTag.remove("pages");
         itemTag.put(new ListTag("pages", pages));
     }

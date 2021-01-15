@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,6 +44,9 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
             // For the last condition - Don't update the slot if the slot is the same - not Java Edition behavior and messes with plugins such as Grief Prevention
             return;
         }
+
+        // Send book update before switching hotbar slot
+        session.getBookEditCache().checkForSend();
 
         session.getInventory().setHeldItemSlot(packet.getHotbarSlot());
 

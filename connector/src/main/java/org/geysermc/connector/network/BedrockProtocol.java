@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,9 @@ public class BedrockProtocol {
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
      */
-    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v422.V422_CODEC;
+    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v422.V422_CODEC.toBuilder()
+            .minecraftVersion("1.16.201")
+            .build();
     /**
      * A list of all supported Bedrock versions that can join Geyser
      */
@@ -50,7 +52,9 @@ public class BedrockProtocol {
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v419.V419_CODEC.toBuilder()
                 .minecraftVersion("1.16.100/1.16.101") // We change this as 1.16.100.60 is a beta
                 .build());
-        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
+                .minecraftVersion("1.16.200/1.16.201")
+                .build());
     }
 
     /**
