@@ -61,7 +61,7 @@ public class VersionCommand extends GeyserCommand {
             bedrockVersions = BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion();
         }
 
-        sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.version", sender.getLocale(), GeyserConnector.NAME, GeyserConnector.VERSION, MinecraftConstants.GAME_VERSION, bedrockVersions));
+        sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.version", sender.getLocale(), GeyserConnector.NAME, GeyserConnector.VERSION, GeyserConnector.MINECRAFT_VERSION, bedrockVersions));
 
         // Disable update checking in dev mode
         //noinspection ConstantConditions - changes in production
