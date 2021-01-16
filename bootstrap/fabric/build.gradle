@@ -85,10 +85,8 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 shadowJar {
     configurations = [project.configurations.shadow]
     relocate("it.unimi.dsi.fastutil", "org.geysermc.relocate.fastutil")
-    dependencies {
-        // https://github.com/CardboardPowered/cardboard/issues/139
-        exclude(dependency('org.objectweb:asm:*'))
-    }
+    relocate("org.objectweb.asm", "org.geysermc.relocate.asm")
+    relocate("org.yaml", "org.geysermc.relocate.yaml") // https://github.com/CardboardPowered/cardboard/issues/139
 }
 
 jar {
