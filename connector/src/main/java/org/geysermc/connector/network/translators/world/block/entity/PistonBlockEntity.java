@@ -25,9 +25,7 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.value.PistonValue;
 import com.github.steveice10.mc.protocol.data.game.world.block.value.PistonValueType;
-import com.google.common.collect.ImmutableList;
 import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
@@ -48,14 +46,18 @@ import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.BlockEntityUtils;
 import org.geysermc.connector.utils.ChunkUtils;
+import org.geysermc.connector.utils.Direction;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Set;
 
 public class PistonBlockEntity {
     private final GeyserSession session;
     @Getter
     private final Vector3i position;
-    private final PistonValue orientation;
+    private final Direction orientation;
     private final boolean sticky;
 
     private PistonValueType action;
@@ -76,7 +78,6 @@ public class PistonBlockEntity {
     private float lastProgress = 0.0f;
 
     private static final NbtMap AIR_TAG = BlockTranslator.BLOCKS.get(BlockTranslator.BEDROCK_AIR_ID).getCompound("block");
-    private static final List<Vector3i> ALL_DIRECTIONS = ImmutableList.of(Vector3i.from(1, 0, 0), Vector3i.from(0, 1, 0), Vector3i.from(0, 0, 1), Vector3i.from(-1, 0, 0), Vector3i.from(0, -1, 0), Vector3i.from(0, 0, -1));
 
     private static final BoundingBox SOLID_BOUNDING_BOX = new BoundingBox(0.5, 0.5, 0.5, 1, 1, 1);
     private static final BoundingBox HONEY_BOUNDING_BOX;
@@ -91,7 +92,7 @@ public class PistonBlockEntity {
         HONEY_BOUNDING_BOX = new BoundingBox(0.5, honeyHeight + boundingBoxHeight / 2, 0.5, blockBoundingBox.getSizeX(), boundingBoxHeight, blockBoundingBox.getSizeZ());
     }
 
-    public PistonBlockEntity(GeyserSession session, Vector3i position, PistonValue orientation) {
+    public PistonBlockEntity(GeyserSession session, Vector3i position, Direction orientation) {
         this.session = session;
         this.position = position;
         this.orientation = orientation;
@@ -166,7 +167,7 @@ public class PistonBlockEntity {
      * Removes lingering piston heads
      */
     private void removePistonHead() {
-        Vector3i blockInFront = position.add(getDirectionOffset());
+        Vector3i blockInFront = position.add(orientation.getUnitVector());
         int blockId = session.getConnector().getWorldManager().getBlockAt(session, blockInFront);
         if (isPistonHead(blockId)) {
             ChunkUtils.updateBlock(session, BlockTranslator.JAVA_AIR_ID, blockInFront);
@@ -185,7 +186,7 @@ public class PistonBlockEntity {
         Set<Vector3i> blocksChecked = new ObjectOpenHashSet<>();
         Queue<Vector3i> blocksToCheck = new LinkedList<>();
 
-        Vector3i directionOffset = getDirectionOffset();
+        Vector3i directionOffset = orientation.getUnitVector();
         Vector3i movement = getMovement();
         blocksChecked.add(position); // Don't check the piston itself
         if (action == PistonValueType.PULLING) {
@@ -213,7 +214,8 @@ public class PistonBlockEntity {
                 attachedBlocks.put(blockPos, blockId);
                 if (isBlockSticky(blockId)) {
                     // For honey blocks and slime blocks check the blocks adjacent to it
-                    for (Vector3i offset : ALL_DIRECTIONS) {
+                    for (Direction direction : Direction.values()) {
+                        Vector3i offset = direction.getUnitVector();
                         // Only check blocks that aren't being pushed by the current block
                         if (offset.equals(movement)) {
                             continue;
@@ -312,29 +314,6 @@ public class PistonBlockEntity {
     }
 
     /**
-     * Get the direction the piston head points in
-     *
-     * @return A Vector3i pointing in the direction of the piston head
-     */
-    private Vector3i getDirectionOffset() {
-        switch (orientation) {
-            case DOWN:
-                return Vector3i.from(0, -1, 0);
-            case UP:
-                return Vector3i.from(0, 1, 0);
-            case NORTH:
-                return Vector3i.from(0, 0, -1);
-            case SOUTH:
-                return Vector3i.from(0, 0, 1);
-            case WEST:
-                return Vector3i.from(-1, 0, 0);
-            case EAST:
-                return Vector3i.from(1, 0, 0);
-        }
-        return Vector3i.ZERO;
-    }
-
-    /**
      * Get the offset from the current position of the attached blocks
      * to the new positions
      *
@@ -342,9 +321,9 @@ public class PistonBlockEntity {
      */
     private Vector3i getMovement() {
         if (action == PistonValueType.PULLING) {
-            return getDirectionOffset().negate();
+            return orientation.getUnitVector().negate();
         }
-        return getDirectionOffset(); // PUSHING and CANCELLED_MID_PUSH
+        return orientation.getUnitVector(); // PUSHING and CANCELLED_MID_PUSH
     }
 
     /**
@@ -363,7 +342,7 @@ public class PistonBlockEntity {
      * If the player contacts a slime block, playerMotion in PistonCache is updated
      */
     public void pushPlayer() {
-        Vector3i direction = getDirectionOffset();
+        Vector3i direction = orientation.getUnitVector();
         double movementProgress = lastProgress;
         if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
             movementProgress = 1f - lastProgress;
@@ -405,7 +384,7 @@ public class PistonBlockEntity {
      * @return True if the player attached, otherwise false
      */
     private boolean isPlayerAttached(Vector3d blockPos, BoundingBox playerBoundingBox) {
-        if (orientation == PistonValue.UP || orientation == PistonValue.DOWN) {
+        if (orientation.isVertical()) {
             return false;
         }
         return session.getPlayerEntity().isOnGround() && HONEY_BOUNDING_BOX.checkIntersection(blockPos, playerBoundingBox);
@@ -418,29 +397,10 @@ public class PistonBlockEntity {
      * @param playerPos The player's position
      */
     private void applySlimeBlockMotion(Vector3d blockPos, Vector3d playerPos) {
-        PistonValue movementDirection = orientation;
+        Direction movementDirection = orientation;
         // Invert direction when pulling
         if (action == PistonValueType.PULLING) {
-            switch (movementDirection) {
-                case DOWN:
-                    movementDirection = PistonValue.UP;
-                    break;
-                case UP:
-                    movementDirection = PistonValue.DOWN;
-                    break;
-                case NORTH:
-                    movementDirection = PistonValue.SOUTH;
-                    break;
-                case SOUTH:
-                    movementDirection = PistonValue.NORTH;
-                    break;
-                case WEST:
-                    movementDirection = PistonValue.EAST;
-                    break;
-                case EAST:
-                    movementDirection = PistonValue.WEST;
-                    break;
-            }
+            movementDirection = movementDirection.reversed();
         }
 
         Vector3f movement = getMovement().toFloat();
@@ -505,17 +465,14 @@ public class PistonBlockEntity {
             b.extend(extend);
 
             Vector3d intersectionSize = b.getIntersectionSize(blockPos, boundingBox);
-            switch (orientation) {
-                case DOWN:
-                case UP:
+            switch (orientation.getAxis()) {
+                case Y:
                     maxIntersection = Math.max(intersectionSize.getY(), maxIntersection);
                     break;
-                case NORTH:
-                case SOUTH:
+                case Z:
                     maxIntersection = Math.max(intersectionSize.getZ(), maxIntersection);
                     break;
-                case WEST:
-                case EAST:
+                case X:
                     maxIntersection = Math.max(intersectionSize.getX(), maxIntersection);
                     break;
             }
@@ -568,7 +525,7 @@ public class PistonBlockEntity {
     private void createMovingBlocks() {
         Vector3i movement = getMovement();
         BoundingBox playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox().clone();
-        if (orientation == PistonValue.UP) {
+        if (orientation == Direction.UP) {
             // Extend the bounding box down, to catch collisions when the player is falling down
             playerBoundingBox.extend(0, -256, 0);
         }

@@ -38,6 +38,7 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.world.block.entity.NoteblockBlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.PistonBlockEntity;
+import org.geysermc.connector.utils.Direction;
 
 
 @Translator(packet = ServerBlockValuePacket.class)
@@ -66,7 +67,7 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             Vector3i position = Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
             PistonBlockEntity blockEntity = session.getPistonCache().getPistonAt(position);
             if (blockEntity == null) {
-                blockEntity = new PistonBlockEntity(session, position, direction);
+                blockEntity = new PistonBlockEntity(session, position, Direction.fromPistonValue(direction));
                 session.getPistonCache().putPiston(blockEntity);
             }
             blockEntity.setAction(action);
