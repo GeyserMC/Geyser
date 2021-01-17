@@ -29,12 +29,13 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.Collections;
 
 public class StopCommand extends GeyserCommand {
 
-    private GeyserConnector connector;
+    private final GeyserConnector connector;
 
     public StopCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);
@@ -44,7 +45,7 @@ public class StopCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
+    public void execute(GeyserSession session, CommandSender sender, String[] args) {
         if (!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE) {
             return;
         }
