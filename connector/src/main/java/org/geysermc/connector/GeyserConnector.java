@@ -85,6 +85,7 @@ public class GeyserConnector {
     public static final String NAME = "Geyser";
     public static final String GIT_VERSION = "DEV"; // A fallback for running in IDEs
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
+    public static final String MINECRAFT_VERSION = "1.16.4 - 1.16.5";
 
     /**
      * Oauth client ID for Microsoft authentication

@@ -44,7 +44,7 @@ public class ListCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
+    public void execute(GeyserSession session, CommandSender sender, String[] args) {
         String message = "";
         message = LanguageUtils.getPlayerLocaleString("geyser.commands.list.message", sender.getLocale(),
                 connector.getPlayers().size(),

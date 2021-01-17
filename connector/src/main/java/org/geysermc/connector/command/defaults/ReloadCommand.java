@@ -34,7 +34,7 @@ import org.geysermc.connector.utils.LanguageUtils;
 
 public class ReloadCommand extends GeyserCommand {
 
-    private GeyserConnector connector;
+    private final GeyserConnector connector;
 
     public ReloadCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);
@@ -42,7 +42,7 @@ public class ReloadCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
+    public void execute(GeyserSession session, CommandSender sender, String[] args) {
         if (!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE) {
             return;
         }
@@ -51,8 +51,8 @@ public class ReloadCommand extends GeyserCommand {
 
         sender.sendMessage(message);
 
-        for (GeyserSession session : connector.getPlayers()) {
-            session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.commands.reload.kick", session.getLocale()));
+        for (GeyserSession otherSession : connector.getPlayers()) {
+            otherSession.disconnect(LanguageUtils.getPlayerLocaleString("geyser.commands.reload.kick", session.getLocale()));
         }
         connector.reload();
     }
