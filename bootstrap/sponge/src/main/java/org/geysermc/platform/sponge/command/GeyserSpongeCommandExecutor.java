@@ -25,10 +25,12 @@
 
 package org.geysermc.platform.sponge.command;
 
-import lombok.AllArgsConstructor;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.common.ChatColor;
+import org.geysermc.connector.command.CommandExecutor;
+import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.common.ChatColor;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.spongepowered.api.command.CommandCallable;
 import org.spongepowered.api.command.CommandException;
@@ -44,25 +46,36 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-@AllArgsConstructor
-public class GeyserSpongeCommandExecutor implements CommandCallable {
+public class GeyserSpongeCommandExecutor extends CommandExecutor implements CommandCallable {
 
-    private GeyserConnector connector;
+    public GeyserSpongeCommandExecutor(GeyserConnector connector) {
+        super(connector);
+    }
 
     @Override
-    public CommandResult process(CommandSource source, String arguments) throws CommandException {
+    public CommandResult process(CommandSource source, String arguments) {
         String[] args = arguments.split(" ");
         if (args.length > 0) {
-            if (getCommand(args[0]) != null) {
-                if (!source.hasPermission(getCommand(args[0]).getPermission())) {
+            GeyserCommand command = getCommand(args[0]);
+            if (command != null) {
+                CommandSender commandSender = new SpongeCommandSender(source);
+                if (!source.hasPermission(command.getPermission())) {
                     // Not ideal to use log here but we dont get a session
                     source.sendMessage(Text.of(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail")));
                     return CommandResult.success();
                 }
-                getCommand(args[0]).execute(new SpongeCommandSender(source), args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
+                GeyserSession session = null;
+                if (command.isBedrockOnly()) {
+                    session = getGeyserSession(commandSender);
+                    if (session == null) {
+                        source.sendMessage(Text.of(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.bedrock_only")));
+                        return CommandResult.success();
+                    }
+                }
+                getCommand(args[0]).execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
             }
         } else {
-            getCommand("help").execute(new SpongeCommandSender(source), new String[0]);
+            getCommand("help").execute(null, new SpongeCommandSender(source), new String[0]);
         }
         return CommandResult.success();
     }
@@ -93,9 +106,5 @@ public class GeyserSpongeCommandExecutor implements CommandCallable {
     @Override
     public Text getUsage(CommandSource source) {
         return Text.of("/geyser help");
-    }
-
-    private GeyserCommand getCommand(String label) {
-        return connector.getCommandManager().getCommands().get(label);
     }
 }
