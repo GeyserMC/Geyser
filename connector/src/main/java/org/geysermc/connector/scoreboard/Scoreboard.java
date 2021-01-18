@@ -27,15 +27,19 @@ package org.geysermc.connector.scoreboard;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
 import com.nukkitx.protocol.bedrock.data.ScoreInfo;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.RemoveObjectivePacket;
 import com.nukkitx.protocol.bedrock.packet.SetDisplayObjectivePacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.SetScorePacket;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.GeyserLogger;
+import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -49,9 +53,12 @@ public final class Scoreboard {
     private final AtomicLong nextId = new AtomicLong(0);
 
     private final Map<String, Objective> objectives = new HashMap<>();
+    @Getter
     private final Map<ScoreboardPosition, Objective> objectiveSlots = new HashMap<>();
-    private final Map<String, Team> teams = new ConcurrentHashMap<>(); // updated on multiple threads
-    // todo add a 'to add' map so that we don't have to use a concurrentHashMap
+    /**
+     * Updated on multiple threads
+     */
+    private final Map<String, Team> teams = new ConcurrentHashMap<>();
 
     private int lastAddScoreCount = 0;
     private int lastRemoveScoreCount = 0;
@@ -183,6 +190,7 @@ public final class Scoreboard {
             setScorePacket.setAction(SetScorePacket.Action.REMOVE);
             setScorePacket.setInfos(removeScores);
             session.sendUpstreamPacket(setScorePacket);
+            System.out.println(setScorePacket);
         }
 
         if (!addScores.isEmpty()) {
@@ -190,6 +198,7 @@ public final class Scoreboard {
             setScorePacket.setAction(SetScorePacket.Action.SET);
             setScorePacket.setInfos(addScores);
             session.sendUpstreamPacket(setScorePacket);
+            System.out.println(setScorePacket);
         }
 
         // prevents crashes in some cases
@@ -241,6 +250,8 @@ public final class Scoreboard {
         boolean objectiveAdd = objective.getUpdateType() == ADD;
         boolean objectiveRemove = objective.getUpdateType() == REMOVE;
 
+        boolean isBelowName = objective.getDisplaySlot() == ScoreboardPosition.BELOW_NAME;
+
         for (Score score : objective.getScores().values()) {
             Team team = score.getTeam();
 
@@ -285,6 +296,15 @@ public final class Scoreboard {
                 objective.removeScore0(score.getName());
             }
 
+            if (score.getUpdateType() != REMOVE && !objectiveRemove && isBelowName && add) {
+                PlayerEntity entity = session.getEntityCache().getPlayerEntity(score.getName());
+                if (entity != null) {
+                    sendBelowNameUpdate(objective, score, entity);
+                }
+            } else if ((objectiveRemove || score.getUpdateType() == REMOVE) && (isBelowName || score.isHasSentBelowName())) {
+                removeBelowName(score);
+            }
+
             score.setUpdateType(NOTHING);
         }
 
@@ -296,6 +316,7 @@ public final class Scoreboard {
             RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
             removeObjectivePacket.setObjectiveId(objective.getObjectiveName());
             session.sendUpstreamPacket(removeObjectivePacket);
+            System.out.println(removeObjectivePacket);
         }
 
         if ((objectiveAdd || objectiveUpdate) && !objectiveRemove) {
@@ -306,12 +327,14 @@ public final class Scoreboard {
             displayObjectivePacket.setDisplaySlot(objective.getDisplaySlotName());
             displayObjectivePacket.setSortOrder(1); // ??
             session.sendUpstreamPacket(displayObjectivePacket);
+            System.out.println(displayObjectivePacket);
         }
 
         objective.setUpdateType(NOTHING);
     }
 
     private void deactivateObjective(Objective objective) {
+        System.out.println("Deactivating objective " + objective.getObjectiveName());
         // Scoreboard has been removed already
         if (objective.getScores() == null) {
             return;
@@ -320,6 +343,9 @@ public final class Scoreboard {
         List<ScoreInfo> removedScores = new ArrayList<>(objective.getScores().size());
         for (Score score : objective.getScores().values()) {
             removedScores.add(score.getCachedInfo());
+            if (score.isHasSentBelowName()) {
+                removeBelowName(score);
+            }
         }
 
         objective.deactivate();
@@ -328,13 +354,16 @@ public final class Scoreboard {
         scorePacket.setAction(SetScorePacket.Action.REMOVE);
         scorePacket.setInfos(removedScores);
         session.sendUpstreamPacket(scorePacket);
+        System.out.println(scorePacket);
 
         RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
         removeObjectivePacket.setObjectiveId(objective.getObjectiveName());
         session.sendUpstreamPacket(removeObjectivePacket);
+        System.out.println(removeObjectivePacket);
     }
 
     public void deleteObjective(Objective objective) {
+        System.out.println("Deleting objective " + objective.getObjectiveName());
         objectives.remove(objective.getObjectiveName());
 
         Objective storedSlot = objectiveSlots.get(objective.getDisplaySlot());
@@ -349,6 +378,7 @@ public final class Scoreboard {
         RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
         removeObjectivePacket.setObjectiveId(objective.getObjectiveName());
         session.sendUpstreamPacket(removeObjectivePacket);
+        System.out.println(removeObjectivePacket);
     }
 
     public Team getTeamFor(String entity) {
@@ -358,5 +388,31 @@ public final class Scoreboard {
             }
         }
         return null;
+    }
+
+    public void sendBelowNameUpdate(Objective objective, @Nullable Score score, PlayerEntity entity) {
+        // Show the belowname information this player
+        // Even if this player doesn't have a score, the display string is still updated for them
+        String displayString = score == null ? "0" : score.getCurrentData().getScore() + " " + objective.getDisplayName();
+        entity.getMetadata().put(EntityData.SCORE_TAG, displayString);
+        SetEntityDataPacket packet = new SetEntityDataPacket();
+        packet.setRuntimeEntityId(entity.getGeyserId());
+        packet.getMetadata().put(EntityData.SCORE_TAG, displayString);
+        session.sendUpstreamPacket(packet);
+        if (score != null) {
+            score.setHasSentBelowName(true);
+        }
+    }
+
+    public void removeBelowName(Score score) {
+        // Clear the tag from the player
+        PlayerEntity entity = session.getEntityCache().getPlayerEntity(score.getName());
+        if (entity != null) {
+            entity.getMetadata().remove(EntityData.SCORE_TAG);
+            SetEntityDataPacket packet = new SetEntityDataPacket();
+            packet.setRuntimeEntityId(entity.getGeyserId());
+            packet.getMetadata().put(EntityData.SCORE_TAG, "");
+            session.sendUpstreamPacket(packet);
+        }
     }
 }

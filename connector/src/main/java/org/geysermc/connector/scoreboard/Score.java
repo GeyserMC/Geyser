@@ -35,11 +35,13 @@ public final class Score {
     private final long id;
     private final String name;
     private ScoreInfo cachedInfo;
+    @Getter
+    private boolean hasSentBelowName = false;
 
     /**
      * Changes that have been made since the last cached data.
      */
-    private Score.ScoreData currentData;
+    private final Score.ScoreData currentData;
     /**
      * The data that is currently displayed to the Bedrock client.
      */
@@ -72,14 +74,14 @@ public final class Score {
         if (currentData.team != null && team != null) {
             if (!currentData.team.equals(team)) {
                 currentData.team = team;
-                currentData.updateType = UpdateType.UPDATE;
+                setUpdateType(UpdateType.UPDATE);
             }
             return this;
         }
         // simplified from (this.team != null && team == null) || (this.team == null && team != null)
         if (currentData.team != null || team != null) {
             currentData.team = team;
-            currentData.updateType = UpdateType.UPDATE;
+            setUpdateType(UpdateType.UPDATE);
         }
         return this;
     }
@@ -122,6 +124,11 @@ public final class Score {
             name = cachedData.team.getDisplayName(name);
         }
         cachedInfo = new ScoreInfo(id, objectiveName, cachedData.score, name);
+    }
+
+    public Score setHasSentBelowName(boolean hasSentBelowName) {
+        this.hasSentBelowName = hasSentBelowName;
+        return this;
     }
 
     @Getter

@@ -27,6 +27,7 @@ package org.geysermc.connector.entity.player;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
@@ -50,9 +51,11 @@ import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.living.animal.tameable.ParrotEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
+import org.geysermc.connector.scoreboard.Objective;
+import org.geysermc.connector.scoreboard.Score;
 import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.utils.AttributeUtils;
-import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -111,6 +114,22 @@ public class PlayerEntity extends LivingEntity {
 
         updateEquipment(session);
         updateBedrockAttributes(session);
+
+        // Check to see if the player should have a belowname counterpart added
+        Objective objective = session.getWorldCache().getScoreboard().getObjectiveSlots().get(ScoreboardPosition.BELOW_NAME);
+        if (objective != null) {
+            boolean hasScore = false;
+            for (Score score : objective.getScores().values()) {
+                if (score.getName().equals(this.username)) {
+                    hasScore = true;
+                    session.getWorldCache().getScoreboard().sendBelowNameUpdate(objective, score, this);
+                    break;
+                }
+            }
+            if (!hasScore) {
+                //TODO session.getWorldCache().getScoreboard().sendBelowNameUpdate(objective, null, this);
+            }
+        }
     }
 
     public void sendPlayer(GeyserSession session) {
@@ -257,12 +276,7 @@ public class PlayerEntity extends LivingEntity {
             }
             Team team = session.getWorldCache().getScoreboard().getTeamFor(username);
             if (team != null) {
-                String displayName = "";
-                if (team.isVisibleFor(session.getPlayerEntity().getUsername())) {
-                    displayName = MessageTranslator.toChatColor(team.getColor()) + username;
-                    displayName = team.getCurrentData().getDisplayName(displayName);
-                }
-                metadata.put(EntityData.NAMETAG, displayName);
+                metadata.put(EntityData.NAMETAG, team.getDisplayNameFor(username, session.getPlayerEntity().getUsername()));
             }
         }
 

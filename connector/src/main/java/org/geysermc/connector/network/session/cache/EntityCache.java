@@ -124,8 +124,24 @@ public class EntityCache {
         playerEntities.put(entity.getUuid(), entity);
     }
 
+    public Collection<PlayerEntity> getPlayerEntities() {
+        return playerEntities.values();
+    }
+
     public PlayerEntity getPlayerEntity(UUID uuid) {
         return playerEntities.get(uuid);
+    }
+
+    /**
+     * @return a {@link PlayerEntity} with the given username
+     */
+    public PlayerEntity getPlayerEntity(String username) {
+        for (PlayerEntity entity : playerEntities.values()) {
+            if (username.equals(entity.getUsername())) {
+                return entity;
+            }
+        }
+        return null;
     }
 
     public void removePlayerEntity(UUID uuid) {

@@ -48,6 +48,7 @@ public class JavaUpdateScoreTranslator extends PacketTranslator<ServerUpdateScor
 
     @Override
     public void translate(ServerUpdateScorePacket packet, GeyserSession session) {
+        session.getConnector().getLogger().warning(packet.toString());
         WorldCache worldCache = session.getWorldCache();
         Scoreboard scoreboard = worldCache.getScoreboard();
         int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();
