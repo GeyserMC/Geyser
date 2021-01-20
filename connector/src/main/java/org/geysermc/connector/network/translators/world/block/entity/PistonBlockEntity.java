@@ -455,7 +455,33 @@ public class PistonBlockEntity {
         return false;
     }
 
-    private double getBlockIntersection(Vector3d blockPos, BlockCollision blockCollision, BoundingBox boundingBox, Vector3d extend) {
+    /**
+     * Get the distance required to move boundingBoxA to one of boundingBoxB's sides
+     *
+     * @param boundingBoxA The bounding box to move
+     * @param boundingBoxB The stationary bounding box
+     * @param side The side of boundingBoxB to move boundingBoxA to
+     * @return The distance needed to move boundingBoxA
+     */
+    private double getIntersectionSize(BoundingBox boundingBoxA, BoundingBox boundingBoxB, Direction side) {
+        switch (side) {
+            case DOWN:
+                return boundingBoxA.getMax().getY() - boundingBoxB.getMin().getY();
+            case UP:
+                return boundingBoxB.getMax().getY() - boundingBoxA.getMin().getY();
+            case NORTH:
+                return boundingBoxA.getMax().getZ() - boundingBoxB.getMin().getZ();
+            case SOUTH:
+                return boundingBoxB.getMax().getZ() - boundingBoxA.getMin().getZ();
+            case WEST:
+                return boundingBoxA.getMax().getX() - boundingBoxB.getMin().getX();
+            case EAST:
+                return boundingBoxB.getMax().getX() - boundingBoxA.getMin().getX();
+        }
+        return 0;
+    }
+
+    private double getBlockIntersection(Vector3d blockPos, BlockCollision blockCollision, BoundingBox boundingBox, Vector3d extend, Direction direction) {
         if (!testBlockCollision(blockPos, blockCollision, boundingBox, extend)) {
             return 0;
         }
@@ -463,25 +489,20 @@ public class PistonBlockEntity {
         for (BoundingBox b : blockCollision.getBoundingBoxes()) {
             b = b.clone();
             b.extend(extend);
+            b.translate(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
-            Vector3d intersectionSize = b.getIntersectionSize(blockPos, boundingBox);
-            switch (orientation.getAxis()) {
-                case Y:
-                    maxIntersection = Math.max(intersectionSize.getY(), maxIntersection);
-                    break;
-                case Z:
-                    maxIntersection = Math.max(intersectionSize.getZ(), maxIntersection);
-                    break;
-                case X:
-                    maxIntersection = Math.max(intersectionSize.getX(), maxIntersection);
-                    break;
-            }
+            maxIntersection = Math.max(getIntersectionSize(boundingBox, b, direction), maxIntersection);
         }
         return maxIntersection;
     }
 
     private void resolveCollision(Vector3d startingPos, double movementProgress, int javaId, BoundingBox playerBoundingBox) {
         PistonCache pistonCache = session.getPistonCache();
+
+        Direction movementDirection = orientation;
+        if (action == PistonValueType.PULLING) {
+            movementDirection = orientation.reversed();
+        }
         Vector3d movement = getMovement().toDouble();
 
         double delta = Math.abs(progress - lastProgress);
@@ -506,7 +527,7 @@ public class PistonBlockEntity {
             pistonCache.setPlayerDisplacement(totalDisplacement);
         } else {
             // Move the player out of collision
-            double intersection = getBlockIntersection(blockPos, blockCollision, playerBoundingBox, extend);
+            double intersection = getBlockIntersection(blockPos, blockCollision, playerBoundingBox, extend, movementDirection);
             if (intersection > 0) {
                 Vector3d displacement = movement.mul(intersection + 0.01d);
                 Vector3d totalDisplacement = pistonCache.getPlayerDisplacement().add(displacement);
