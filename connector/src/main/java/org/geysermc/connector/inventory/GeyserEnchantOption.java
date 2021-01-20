@@ -67,12 +67,8 @@ public class GeyserEnchantOption {
     }
 
     public EnchantOptionData build(GeyserSession session) {
-        if (enchantLevel == -1) {
-            // Should not be sent to the client, as it is supposed to be empty
-            return null;
-        }
         return new EnchantOptionData(xpCost, javaIndex + 16, EMPTY,
-                Collections.singletonList(new EnchantData(bedrockEnchantIndex, enchantLevel)), EMPTY,
-                javaEnchantIndex == -1 ? "unknown" : ENCHANT_NAMES.get(javaEnchantIndex), session.getNextItemNetId());
+                enchantLevel == -1 ? EMPTY : Collections.singletonList(new EnchantData(bedrockEnchantIndex, enchantLevel)), EMPTY,
+                javaEnchantIndex == -1 ? "unknown" : ENCHANT_NAMES.get(javaEnchantIndex), enchantLevel == -1 ? 0 : session.getNextItemNetId());
     }
 }
