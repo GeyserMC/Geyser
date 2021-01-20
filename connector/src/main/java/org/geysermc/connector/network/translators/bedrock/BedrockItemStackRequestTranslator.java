@@ -32,6 +32,9 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 
+/**
+ * The packet sent for server-authoritative-style inventory transactions.
+ */
 @Translator(packet = ItemStackRequestPacket.class)
 public class BedrockItemStackRequestTranslator extends PacketTranslator<ItemStackRequestPacket> {
 

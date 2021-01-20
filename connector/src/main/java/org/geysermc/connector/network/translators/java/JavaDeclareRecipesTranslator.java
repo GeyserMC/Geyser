@@ -196,6 +196,12 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
     }
 
     //TODO: rewrite
+    /**
+     * The Java server sends an array of items for each ingredient you can use per slot in the crafting grid.
+     * Bedrock recipes take only one ingredient per crafting grid slot.
+     *
+     * @return the Java ingredient list as an array that Bedrock can understand
+     */
     private ItemData[][] combinations(GeyserSession session, Ingredient[] ingredients) {
         Map<Set<ItemData>, IntSet> squashedOptions = new HashMap<>();
         for (int i = 0; i < ingredients.length; i++) {
