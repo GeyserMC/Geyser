@@ -25,8 +25,8 @@
 
 package org.geysermc.platform.fabric.command;
 
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
@@ -47,20 +47,15 @@ public class FabricCommandSender implements CommandSender {
 
     @Override
     public void sendMessage(String message) {
-        try {
-            source.getPlayer().sendMessage(new LiteralText(message), false);
-        } catch (CommandSyntaxException e) { // why
+        if (source.getEntity() instanceof ServerPlayerEntity) {
+            ((ServerPlayerEntity) source.getEntity()).sendMessage(new LiteralText(message), false);
+        } else {
             GeyserConnector.getInstance().getLogger().info(ChatColor.toANSI(message + ChatColor.RESET));
         }
     }
 
     @Override
     public boolean isConsole() {
-        try {
-            source.getPlayer();
-            return false;
-        } catch (CommandSyntaxException e) {
-            return true;
-        }
+        return !(source.getEntity() instanceof ServerPlayerEntity);
     }
 }

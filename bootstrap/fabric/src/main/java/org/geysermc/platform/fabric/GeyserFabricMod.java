@@ -149,11 +149,12 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         // Start command building
         // Set just "geyser" as the help command
         LiteralArgumentBuilder<ServerCommandSource> builder = net.minecraft.server.command.CommandManager.literal("geyser")
-                .executes(new GeyserFabricCommandExecutor(connector, "help", !playerCommands.contains("help")));
+                .executes(new GeyserFabricCommandExecutor(connector, connector.getCommandManager().getCommands().get("help"),
+                        !playerCommands.contains("help")));
         for (Map.Entry<String, GeyserCommand> command : connector.getCommandManager().getCommands().entrySet()) {
             // Register all subcommands as valid
             builder.then(net.minecraft.server.command.CommandManager.literal(
-                    command.getKey()).executes(new GeyserFabricCommandExecutor(connector, command.getKey(),
+                    command.getKey()).executes(new GeyserFabricCommandExecutor(connector, command.getValue(),
                     !playerCommands.contains(command.getKey()))));
         }
         server.getCommandManager().getDispatcher().register(builder);
