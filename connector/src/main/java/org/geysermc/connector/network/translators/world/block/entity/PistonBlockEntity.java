@@ -464,6 +464,9 @@ public class PistonBlockEntity {
      * @return The distance needed to move boundingBoxA
      */
     private double getIntersectionSize(BoundingBox boundingBoxA, BoundingBox boundingBoxB, Direction side) {
+        if (!boundingBoxA.checkIntersection(Vector3d.ZERO, boundingBoxB)) {
+            return 0;
+        }
         switch (side) {
             case DOWN:
                 return boundingBoxA.getMax().getY() - boundingBoxB.getMin().getY();
