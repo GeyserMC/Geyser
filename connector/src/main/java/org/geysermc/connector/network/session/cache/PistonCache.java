@@ -48,6 +48,10 @@ public class PistonCache {
 
     @Getter
     private Vector3d playerDisplacement = Vector3d.ZERO;
+
+    @Getter @Setter
+    private boolean capDisplacement = true;
+
     @Getter @Setter
     private Vector3f playerMotion = Vector3f.ZERO;
 
@@ -71,7 +75,8 @@ public class PistonCache {
         this.session = session;
     }
 
-    public void tick() {
+    public synchronized void tick() {
+        capDisplacement = true;
         resetPlayerMovement();
         pistons.values().forEach(PistonBlockEntity::updateMovement);
         sendPlayerMovement();
@@ -79,6 +84,12 @@ public class PistonCache {
         pistons.values().forEach(PistonBlockEntity::updateBlocks);
 
         pistons.entrySet().removeIf((entry) -> entry.getValue().isDone());
+    }
+
+    public synchronized void correctPlayerPosition() {
+        capDisplacement = false;
+        resetPlayerMovement();
+        pistons.values().forEach(PistonBlockEntity::pushPlayer);
     }
 
     private void resetPlayerMovement() {
@@ -121,13 +132,17 @@ public class PistonCache {
     }
 
     /**
-     * Set the player displacement and cap it to a range of -0.51 to 0.51
+     * Set the player displacement and move the player's bounding box
+     * If capDisplacement is true, displacement is capped to a range of -0.51 to 0.51
      *
      * @param displacement The new player displacement
      */
     public void setPlayerDisplacement(Vector3d displacement) {
         // Clamp to range -0.51 to 0.51
-        Vector3d adjustedDisplacement = displacement.max(-0.51d, -0.51d, -0.51d).min(0.51d, 0.51d, 0.51d);
+        Vector3d adjustedDisplacement = displacement;
+        if (capDisplacement) {
+            adjustedDisplacement = displacement.max(-0.51d, -0.51d, -0.51d).min(0.51d, 0.51d, 0.51d);
+        }
         Vector3d delta = adjustedDisplacement.sub(playerDisplacement);
         session.getCollisionManager().getPlayerBoundingBox().translate(delta.getX(), delta.getY(), delta.getZ());
         playerDisplacement = adjustedDisplacement;

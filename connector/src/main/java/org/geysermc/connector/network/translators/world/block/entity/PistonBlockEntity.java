@@ -42,6 +42,7 @@ import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.collision.CollisionTranslator;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
+import org.geysermc.connector.network.translators.collision.translators.SolidCollision;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.BlockEntityUtils;
@@ -76,6 +77,7 @@ public class PistonBlockEntity {
      */
     private float progress = 0.0f;
     private float lastProgress = 0.0f;
+    private long lastProgressUpdate;
 
     private static final NbtMap AIR_TAG = BlockTranslator.BLOCKS.get(BlockTranslator.BEDROCK_AIR_ID).getCompound("block");
 
@@ -127,6 +129,8 @@ public class PistonBlockEntity {
             removeBlocks();
             createMovingBlocks();
         }
+
+        lastProgressUpdate = System.currentTimeMillis();
 
         BlockEntityUtils.updateBlockEntity(session, buildPistonTag(), position);
     }
@@ -338,6 +342,7 @@ public class PistonBlockEntity {
     /**
      * Push the player bounding box out of collision with any attached blocks.
      * If the player is pushed the displacement is added to playerDisplacement in PistonCache
+     * Displacement can be capped to -0.51 - 0.51 with capDisplacement in PistonCache
      *
      * If the player contacts a slime block, playerMotion in PistonCache is updated
      */
@@ -347,6 +352,9 @@ public class PistonBlockEntity {
         if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
             movementProgress = 1f - lastProgress;
         }
+        // Adjust movement progress when pushPlayer is called in between progress updates
+        movementProgress += 0.5f * Math.round((System.currentTimeMillis() - lastProgressUpdate) / 50f);
+        movementProgress = Math.min(movementProgress, 1f);
 
         BoundingBox playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox();
         // Shrink the collision in the other axes slightly, to avoid false positives when pressed up against the side of blocks
@@ -488,13 +496,18 @@ public class PistonBlockEntity {
         if (!testBlockCollision(blockPos, blockCollision, boundingBox, extend)) {
             return 0;
         }
+        Direction oppositeDirection = direction.reversed();
         double maxIntersection = 0;
         for (BoundingBox b : blockCollision.getBoundingBoxes()) {
             b = b.clone();
             b.extend(extend);
             b.translate(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
-            maxIntersection = Math.max(getIntersectionSize(boundingBox, b, direction), maxIntersection);
+            double intersection = getIntersectionSize(boundingBox, b, direction);
+            double oppositeIntersection = getIntersectionSize(boundingBox, b, oppositeDirection);
+            if (intersection < oppositeIntersection) {
+                maxIntersection = Math.max(getIntersectionSize(boundingBox, b, direction), maxIntersection);
+            }
         }
         return maxIntersection;
     }
@@ -557,7 +570,10 @@ public class PistonBlockEntity {
             Vector3i newPos = blockPos.add(movement);
             // Don't place a movingBlock if it will collide with the player as it has collision and messes with motion
             if (SOLID_BOUNDING_BOX.checkIntersection(newPos.toDouble(), playerBoundingBox)) {
-                return;
+                BlockCollision blockCollision = CollisionTranslator.getCollision(javaId, 0, 0, 0);
+                if (javaId == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID || !(blockCollision instanceof SolidCollision)) {
+                    return;
+                }
             }
             // Place a moving block at the new location of the block
             UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
@@ -629,6 +645,7 @@ public class PistonBlockEntity {
      * Update the progress or position of the piston head
      */
     private void updateProgress() {
+        lastProgressUpdate = System.currentTimeMillis();
         switch (action) {
             case PUSHING:
                 lastProgress = progress;
