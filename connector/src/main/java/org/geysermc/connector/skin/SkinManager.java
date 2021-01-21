@@ -140,7 +140,7 @@ public class SkinManager {
                                 geometry, entity.getUuid()
                         ), geometry, 3);
 
-                        boolean isDeadmau5 = entity.getUsername().equals("deadmau5");
+                        boolean isDeadmau5 = "deadmau5".equals(entity.getUsername());
                         // Not a bedrock player check for ears
                         if (geometry.isFailed() && (SkinProvider.ALLOW_THIRD_PARTY_EARS || isDeadmau5)) {
                             boolean isEars;
