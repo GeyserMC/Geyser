@@ -82,8 +82,8 @@
                                     <shadedPattern>org.geysermc.platform.velocity.shaded.dom4j</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>net.kyori.adventure</pattern>
-                                    <shadedPattern>org.geysermc.platform.velocity.shaded.adventure</shadedPattern>
+                                    <pattern>net.kyori.adventure.text.serializer.gson.legacyimpl</pattern>
+                                    <shadedPattern>org.geysermc.platform.velocity.shaded.kyori.legacyimpl</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
@@ -105,6 +105,13 @@
                             <exclude>io.netty:netty-codec:*</exclude>
                             <exclude>org.slf4j:*</exclude>
                             <exclude>org.ow2.asm:*</exclude>
+                            <!-- Exclude all Kyori dependencies except the legacy NBT serializer -->
+                            <exclude>net.kyori:adventure-api:*</exclude>
+                            <exclude>net.kyori:examination-api:*</exclude>
+                            <exclude>net.kyori:examination-string:*</exclude>
+                            <exclude>net.kyori:adventure-text-serializer-gson:*</exclude>
+                            <exclude>net.kyori:adventure-text-serializer-legacy:*</exclude>
+                            <exclude>net.kyori:adventure-nbt:*</exclude>
                         </excludes>
                     </artifactSet>
                 </configuration>

@@ -23,21 +23,34 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.monster;
+package org.geysermc.connector.command;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.type.EntityType;
+import lombok.AllArgsConstructor;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.session.GeyserSession;
 
-public class EnderDragonPartEntity extends Entity {
-    public EnderDragonPartEntity(long entityId, long geyserId, EntityType entityType, float width, float height) {
-        super(entityId, geyserId, entityType, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
+/**
+ * Represents helper functions for listening to {@code /geyser} commands.
+ */
+@AllArgsConstructor
+public class CommandExecutor {
 
-        metadata.put(EntityData.BOUNDING_BOX_WIDTH, width);
-        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
-        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
-        metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
+    protected final GeyserConnector connector;
+
+    public GeyserCommand getCommand(String label) {
+        return connector.getCommandManager().getCommands().get(label);
+    }
+
+    public GeyserSession getGeyserSession(CommandSender sender) {
+        if (sender.isConsole()) {
+            return null;
+        }
+
+        for (GeyserSession session : connector.getPlayers()) {
+            if (sender.getName().equals(session.getPlayerEntity().getUsername())) {
+                return session;
+            }
+        }
+        return null;
     }
 }

@@ -142,8 +142,9 @@ public class LocaleUtils {
                 try {
                     File hashFile = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("locales/en_us.hash").toFile();
                     if (hashFile.exists()) {
-                        BufferedReader br = new BufferedReader(new FileReader(hashFile));
-                        curHash = br.readLine().trim();
+                        try (BufferedReader br = new BufferedReader(new FileReader(hashFile))) {
+                            curHash = br.readLine().trim();
+                        }
                     }
                 } catch (IOException ignored) { }
                 targetHash = clientJarInfo.getSha1();
@@ -208,6 +209,12 @@ public class LocaleUtils {
 
             // Insert the locale into the mappings
             LOCALE_MAPPINGS.put(locale.toLowerCase(), langMap);
+
+            try {
+                localeStream.close();
+            } catch (IOException e) {
+                throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.locale.fail.file", locale, e.getMessage()));
+            }
         } else {
             GeyserConnector.getInstance().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.locale.fail.missing", locale));
         }

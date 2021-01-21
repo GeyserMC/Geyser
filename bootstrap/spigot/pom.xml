@@ -97,8 +97,8 @@
                                     <shadedPattern>org.geysermc.platform.spigot.shaded.dom4j</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>net.kyori.adventure</pattern>
-                                    <shadedPattern>org.geysermc.platform.spigot.shaded.adventure</shadedPattern>
+                                    <pattern>net.kyori</pattern>
+                                    <shadedPattern>org.geysermc.platform.spigot.shaded.kyori</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
