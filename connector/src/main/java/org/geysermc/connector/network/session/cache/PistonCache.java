@@ -80,6 +80,7 @@ public class PistonCache {
         resetPlayerMovement();
         pistons.values().forEach(PistonBlockEntity::updateMovement);
         sendPlayerMovement();
+        sendPlayerMotion();
         // Update blocks after movement, so that players don't get stuck inside blocks
         pistons.values().forEach(PistonBlockEntity::updateBlocks);
 
@@ -90,6 +91,7 @@ public class PistonCache {
         capDisplacement = false;
         resetPlayerMovement();
         pistons.values().forEach(PistonBlockEntity::pushPlayer);
+        sendPlayerMotion();
     }
 
     private void resetPlayerMovement() {
@@ -119,6 +121,21 @@ public class PistonCache {
             }
         }
         if (!playerMotion.equals(Vector3f.ZERO)) {
+            playerEntity.setMotion(playerMotion);
+            SetEntityMotionPacket setEntityMotionPacket = new SetEntityMotionPacket();
+            setEntityMotionPacket.setRuntimeEntityId(playerEntity.getGeyserId());
+            setEntityMotionPacket.setMotion(playerMotion);
+            session.sendUpstreamPacket(setEntityMotionPacket);
+
+            if (!isColliding()) {
+                playerMotion = Vector3f.ZERO;
+            }
+        }
+    }
+
+    private void sendPlayerMotion() {
+        if (!playerMotion.equals(Vector3f.ZERO)) {
+            SessionPlayerEntity playerEntity = session.getPlayerEntity();
             playerEntity.setMotion(playerMotion);
             SetEntityMotionPacket setEntityMotionPacket = new SetEntityMotionPacket();
             setEntityMotionPacket.setRuntimeEntityId(playerEntity.getGeyserId());

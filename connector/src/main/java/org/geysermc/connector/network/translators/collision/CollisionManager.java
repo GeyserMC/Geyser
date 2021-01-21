@@ -145,9 +145,10 @@ public class CollisionManager {
             // With chunk caching, we can do some proper collision checks
             updatePlayerBoundingBox(position);
 
-            // Correct position when touching a slime block
-            if (pistonCache.isPlayerSlimeCollision()) {
-                pistonCache.correctPlayerPosition();
+            pistonCache.correctPlayerPosition();
+            if (pistonCache.shouldCancelMovement()) {
+                recalculatePosition();
+                return null;
             }
 
             // Correct player position
