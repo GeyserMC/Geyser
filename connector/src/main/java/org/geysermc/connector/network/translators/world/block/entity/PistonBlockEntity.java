@@ -139,6 +139,9 @@ public class PistonBlockEntity {
      * Update the position of the piston head, moving blocks, and players.
      */
     public void updateMovement() {
+        if (isDone()) {
+            return;
+        }
         updateProgress();
         pushPlayer();
         BlockEntityUtils.updateBlockEntity(session, buildPistonTag(), position);
@@ -292,6 +295,7 @@ public class PistonBlockEntity {
     /**
      * Checks if a block sticks to other blocks
      * (Slime and honey blocks)
+     *
      * @param javaId The block id
      * @return True if the block sticks to adjacent blocks
      */
@@ -318,8 +322,7 @@ public class PistonBlockEntity {
     }
 
     /**
-     * Get the offset from the current position of the attached blocks
-     * to the new positions
+     * Get the unit vector for the direction of movement
      *
      * @return The movement of the blocks
      */
@@ -568,9 +571,10 @@ public class PistonBlockEntity {
         }
         attachedBlocks.forEach((blockPos, javaId) -> {
             Vector3i newPos = blockPos.add(movement);
-            // Don't place a movingBlock if it will collide with the player as it has collision and messes with motion
             if (SOLID_BOUNDING_BOX.checkIntersection(newPos.toDouble(), playerBoundingBox)) {
                 BlockCollision blockCollision = CollisionTranslator.getCollision(javaId, 0, 0, 0);
+                // Don't place a movingBlock for slime blocks if it will collide with the player as it messes with motion
+                // Also don't place a movingBlock for other types of collision as it acts like a full block
                 if (javaId == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID || !(blockCollision instanceof SolidCollision)) {
                     return;
                 }

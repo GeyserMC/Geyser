@@ -83,8 +83,6 @@ public class PistonCache {
         sendPlayerMotion();
         // Update blocks after movement, so that players don't get stuck inside blocks
         pistons.values().forEach(PistonBlockEntity::updateBlocks);
-
-        pistons.entrySet().removeIf((entry) -> entry.getValue().isDone());
     }
 
     public synchronized void correctPlayerPosition() {
@@ -92,6 +90,8 @@ public class PistonCache {
         resetPlayerMovement();
         pistons.values().forEach(PistonBlockEntity::pushPlayer);
         sendPlayerMotion();
+        // Clean up done pistons after we've used them for position corrections
+        pistons.entrySet().removeIf((entry) -> entry.getValue().isDone());
     }
 
     private void resetPlayerMovement() {
@@ -118,17 +118,6 @@ public class PistonCache {
                 session.sendDownstreamPacket(playerPositionPacket);
 
                 session.setLastMovementTimestamp(System.currentTimeMillis());
-            }
-        }
-        if (!playerMotion.equals(Vector3f.ZERO)) {
-            playerEntity.setMotion(playerMotion);
-            SetEntityMotionPacket setEntityMotionPacket = new SetEntityMotionPacket();
-            setEntityMotionPacket.setRuntimeEntityId(playerEntity.getGeyserId());
-            setEntityMotionPacket.setMotion(playerMotion);
-            session.sendUpstreamPacket(setEntityMotionPacket);
-
-            if (!isColliding()) {
-                playerMotion = Vector3f.ZERO;
             }
         }
     }
@@ -189,6 +178,7 @@ public class PistonCache {
      * Check whether a movement packet should be canceled.
      * This cancels packets when being pushed by a piston and
      * when not being launched by a slime block.
+     *
      * @return True if the packet should be canceled
      */
     public boolean shouldCancelMovement() {
