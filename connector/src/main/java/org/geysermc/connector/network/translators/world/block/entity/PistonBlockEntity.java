@@ -524,9 +524,6 @@ public class PistonBlockEntity {
         }
         Vector3d movement = getMovement().toDouble();
 
-        double delta = Math.abs(progress - lastProgress);
-        Vector3d extend = movement.mul(delta);
-
         BlockCollision blockCollision = CollisionTranslator.getCollision(javaId, 0, 0, 0);
         // Check if the player collides with the movingBlock block entity
         Vector3d finalBlockPos = startingPos.add(movement);
@@ -542,10 +539,12 @@ public class PistonBlockEntity {
         if (javaId == BlockTranslator.JAVA_RUNTIME_HONEY_BLOCK_ID && isPlayerAttached(blockPos, playerBoundingBox)) {
             pistonCache.setPlayerCollided(true);
 
+            double delta = Math.abs(progress - lastProgress);
             Vector3d totalDisplacement = pistonCache.getPlayerDisplacement().add(movement.mul(delta));
             pistonCache.setPlayerDisplacement(totalDisplacement);
         } else {
             // Move the player out of collision
+            Vector3d extend = movement.mul(Math.min(1 - movementProgress, 0.5));
             double intersection = getBlockIntersection(blockPos, blockCollision, playerBoundingBox, extend, movementDirection);
             if (intersection > 0) {
                 Vector3d displacement = movement.mul(intersection + 0.01d);
