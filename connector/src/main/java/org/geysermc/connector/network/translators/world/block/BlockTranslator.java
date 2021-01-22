@@ -35,9 +35,6 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.event.EventManager;
-import org.geysermc.connector.event.events.registry.BlockEntityRegistryEvent;
-import org.geysermc.connector.network.translators.world.block.entity.BlockEntity;
 import org.geysermc.connector.utils.FileUtils;
 import org.reflections.Reflections;
 
@@ -45,7 +42,6 @@ import java.io.DataInputStream;
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 public class BlockTranslator {
     /**
@@ -58,16 +54,16 @@ public class BlockTranslator {
     public static final int BEDROCK_AIR_ID;
     public static final int BEDROCK_WATER_ID;
 
-    public static final Int2IntMap JAVA_TO_BEDROCK_BLOCK_MAP = new Int2IntOpenHashMap();
-    public static final Int2IntMap BEDROCK_TO_JAVA_BLOCK_MAP = new Int2IntOpenHashMap();
+    private static final Int2IntMap JAVA_TO_BEDROCK_BLOCK_MAP = new Int2IntOpenHashMap();
+    private static final Int2IntMap BEDROCK_TO_JAVA_BLOCK_MAP = new Int2IntOpenHashMap();
     /**
      * Stores a list of differences in block identifiers.
      * Items will not be added to this list if the key and value is the same.
      */
-    public static final Object2ObjectMap<String, String> JAVA_TO_BEDROCK_IDENTIFIERS = new Object2ObjectOpenHashMap<>();
-    public static final BiMap<String, Integer> JAVA_ID_BLOCK_MAP = HashBiMap.create();
-    public static final IntSet WATERLOGGED = new IntOpenHashSet();
-    public static final Object2IntMap<NbtMap> ITEM_FRAMES = new Object2IntOpenHashMap<>();
+    private static final Object2ObjectMap<String, String> JAVA_TO_BEDROCK_IDENTIFIERS = new Object2ObjectOpenHashMap<>();
+    private static final BiMap<String, Integer> JAVA_ID_BLOCK_MAP = HashBiMap.create();
+    private static final IntSet WATERLOGGED = new IntOpenHashSet();
+    private static final Object2IntMap<NbtMap> ITEM_FRAMES = new Object2IntOpenHashMap<>();
 
     // Bedrock carpet ID, used in LlamaEntity.java for decoration
     public static final int CARPET = 171;
@@ -102,7 +98,7 @@ public class BlockTranslator {
 
     public static final int JAVA_RUNTIME_SPAWNER_ID;
 
-    public static final int BLOCK_STATE_VERSION = 17825808;
+    private static final int BLOCK_STATE_VERSION = 17825808;
 
     static {
         /* Load block palette */
