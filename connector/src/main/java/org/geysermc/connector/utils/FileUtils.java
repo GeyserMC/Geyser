@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,7 @@ import org.geysermc.connector.event.events.geyser.ResourceReadEvent;
 import java.io.*;
 import java.nio.file.Paths;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.util.function.Function;
@@ -65,7 +66,8 @@ public class FileUtils {
     }
 
     public static <T> T loadJson(InputStream src, Class<T> valueType) throws IOException {
-        return GeyserConnector.JSON_MAPPER.readValue(src, valueType);
+        // Read specifically with UTF-8 to allow any non-UTF-encoded JSON to read
+        return GeyserConnector.JSON_MAPPER.readValue(new InputStreamReader(src, StandardCharsets.UTF_8), valueType);
     }
 
     /**
@@ -226,8 +228,8 @@ public class FileUtils {
      * @return The byte array of the file
      */
     public static byte[] readAllBytes(File file) {
-        try {
-            return readAllBytes(new FileInputStream(file));
+        try (InputStream inputStream = new FileInputStream(file)) {
+            return readAllBytes(inputStream);
         } catch (IOException e) {
             throw new RuntimeException("Cannot read " + file);
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -62,6 +62,11 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
         Entity entity = session.getPlayerEntity();
         if (entity == null)
             return;
+
+        // Send book update before any player action
+        if (packet.getAction() != PlayerActionPacket.Action.RESPAWN) {
+            session.getBookEditCache().checkForSend();
+        }
 
         Vector3i vector = packet.getBlockPosition();
         Position position = new Position(vector.getX(), vector.getY(), vector.getZ());
@@ -192,14 +197,12 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 // Handled in BedrockInventoryTransactionTranslator
                 break;
             case DIMENSION_CHANGE_SUCCESS:
-                if (session.getPendingDimSwitches().decrementAndGet() == 0) {
-                    //sometimes the client doesn't feel like loading
-                    PlayStatusPacket spawnPacket = new PlayStatusPacket();
-                    spawnPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
-                    session.sendUpstreamPacket(spawnPacket);
-                    entity.updateBedrockAttributes(session);
-                    session.getEntityCache().updateBossBars();
-                }
+                //sometimes the client doesn't feel like loading
+                PlayStatusPacket spawnPacket = new PlayStatusPacket();
+                spawnPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+                session.sendUpstreamPacket(spawnPacket);
+                entity.updateBedrockAttributes(session);
+                session.getEntityCache().updateBossBars();
                 break;
             case JUMP:
                 session.setJumping(true);
