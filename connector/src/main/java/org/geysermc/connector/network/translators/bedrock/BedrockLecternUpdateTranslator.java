@@ -31,7 +31,6 @@ import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPlaceBlockPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientClickWindowButtonPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCloseWindowPacket;
-import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.LecternUpdatePacket;
 import org.geysermc.connector.inventory.LecternContainer;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -60,6 +59,10 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
             session.sendDownstreamPacket(blockPacket);
         } else {
             // Bedrock wants to either move a page or exit
+            if (!(session.getOpenInventory() instanceof LecternContainer)) {
+                session.getConnector().getLogger().debug("Expected lectern but it wasn't open!");
+                return;
+            }
             LecternContainer lecternContainer = (LecternContainer) session.getOpenInventory();
             if (lecternContainer.getCurrentBedrockPage() == packet.getPage()) {
                 // The same page means Bedrock is closing the window
