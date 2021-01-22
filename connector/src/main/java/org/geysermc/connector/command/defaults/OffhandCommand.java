@@ -45,32 +45,23 @@ public class OffhandCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
-        if (sender.isConsole()) {
+    public void execute(GeyserSession session, CommandSender sender, String[] args) {
+        if (session == null) {
             return;
         }
 
-        // Make sure the sender is a Bedrock edition client
-        if (sender instanceof GeyserSession) {
-            GeyserSession session = (GeyserSession) sender;
-            ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.SWAP_HANDS, new Position(0,0,0),
-                    BlockFace.DOWN);
-            session.sendDownstreamPacket(releaseItemPacket);
-            return;
-        }
-        // Needed for Spigot - sender is not an instance of GeyserSession
-        for (GeyserSession session : connector.getPlayers()) {
-            if (sender.getName().equals(session.getPlayerEntity().getUsername())) {
-                ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.SWAP_HANDS, new Position(0,0,0),
-                        BlockFace.DOWN);
-                session.sendDownstreamPacket(releaseItemPacket);
-                break;
-            }
-        }
+        ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.SWAP_HANDS, new Position(0,0,0),
+                BlockFace.DOWN);
+        session.sendDownstreamPacket(releaseItemPacket);
     }
 
     @Override
     public boolean isExecutableOnConsole() {
         return false;
+    }
+
+    @Override
+    public boolean isBedrockOnly() {
+        return true;
     }
 }
