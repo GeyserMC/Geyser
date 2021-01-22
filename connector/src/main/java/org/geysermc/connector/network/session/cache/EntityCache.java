@@ -77,9 +77,7 @@ public class EntityCache {
         if (!entityIdTranslations.containsKey(entity.getEntityId())) {
             entityIdTranslations.put(entity.getEntityId(), entity.getGeyserId());
             entities.put(entity.getGeyserId(), entity);
-
-            if (session.getUpstream().isInitialized())
-                return true;
+            return true;
         }
         return false;
     }

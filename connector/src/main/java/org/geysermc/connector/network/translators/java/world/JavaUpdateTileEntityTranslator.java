@@ -31,7 +31,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdate
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;

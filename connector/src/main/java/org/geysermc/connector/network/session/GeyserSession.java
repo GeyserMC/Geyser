@@ -398,14 +398,8 @@ public class GeyserSession implements CommandSender {
     }
 
     public void connect(RemoteServer remoteServer) {
-        this.remoteServer = remoteServer;
-
-        PlayerListPacket playerListPacket = new PlayerListPacket();
-        playerListPacket.setAction(PlayerListPacket.Action.ADD);
-        playerListPacket.getEntries().add(SkinManager.buildCachedEntry(this, playerEntity));
-        sendUpstreamPacket(playerListPacket);
-
         startGame();
+        this.remoteServer = remoteServer;
 
         // Set the hardcoded shield ID to the ID we just defined in StartGamePacket
         upstream.getSession().getHardcodedBlockingId().set(ItemRegistry.SHIELD.getBedrockId());
@@ -423,6 +417,10 @@ public class GeyserSession implements CommandSender {
         CreativeContentPacket creativePacket = new CreativeContentPacket();
         creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
         sendUpstreamPacket(creativePacket);
+
+        PlayStatusPacket playStatusPacket = new PlayStatusPacket();
+        playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+        sendUpstreamPacket(playStatusPacket);
 
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
         attributesPacket.setRuntimeEntityId(getPlayerEntity().getGeyserId());
@@ -443,11 +441,6 @@ public class GeyserSession implements CommandSender {
         // Ensure client doesn't try and do anything funky; the server handles this for us
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
         sendUpstreamPacket(gamerulePacket);
-
-        // Spawn the player
-        PlayStatusPacket playStatusPacket = new PlayStatusPacket();
-        playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
-        sendUpstreamPacket(playStatusPacket);
     }
 
     public void login() {

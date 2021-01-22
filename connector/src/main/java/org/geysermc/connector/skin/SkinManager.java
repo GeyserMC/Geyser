@@ -174,7 +174,7 @@ public class SkinManager {
                             PlayerListPacket.Entry updatedEntry = buildEntryManually(
                                     session,
                                     entity.getUuid(),
-                                    entity.getName(),
+                                    entity.getUsername(),
                                     entity.getGeyserId(),
                                     skin.getTextureUrl(),
                                     skin.getSkinData(),
@@ -291,7 +291,7 @@ public class SkinManager {
             if ("steve".equals(skinUrl) || "alex".equals(skinUrl)) {
                 GeyserSession session = GeyserConnector.getInstance().getPlayerByUuid(profile.getId());
 
-                if (session.getPlayerEntity().getUuid() != null && session != null) {
+                if (session != null) {
                     skinUrl = session.getClientData().getSkinId();
                     capeUrl = session.getClientData().getCapeId();
                 }
