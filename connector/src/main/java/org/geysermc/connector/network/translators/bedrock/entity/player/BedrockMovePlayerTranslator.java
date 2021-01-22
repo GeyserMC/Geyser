@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,16 +33,12 @@ import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.collision.CollisionManager;
-
-import java.util.concurrent.TimeUnit;
 
 @Translator(packet = MovePlayerPacket.class)
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
@@ -50,7 +46,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
     @Override
     public void translate(MovePlayerPacket packet, GeyserSession session) {
         PlayerEntity entity = session.getPlayerEntity();
-        if (!session.isSpawned() || session.getPendingDimSwitches().get() > 0) return;
+        if (!session.isSpawned()) return;
 
         if (!session.getUpstream().isInitialized()) {
             MoveEntityAbsolutePacket moveEntityBack = new MoveEntityAbsolutePacket();
@@ -63,9 +59,10 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             return;
         }
 
-        if (session.getMovementSendIfIdle() != null) {
-            session.getMovementSendIfIdle().cancel(true);
-        }
+        session.setLastMovementTimestamp(System.currentTimeMillis());
+
+        // Send book update before the player moves
+        session.getBookEditCache().checkForSend();
 
         if (session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityType.PLAYER.getOffset(), 0))) {
             // head yaw, pitch, head yaw
@@ -86,7 +83,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
                 session.sendDownstreamPacket(playerRotationPacket);
             } else {
-                Vector3d position = adjustBedrockPosition(session, packet.getPosition(), packet.isOnGround());
+                Vector3d position = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), packet.isOnGround());
                 if (position != null) { // A null return value cancels the packet
                     if (isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
                         Packet movePacket;
@@ -100,15 +97,35 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                             movePacket = new ClientPlayerPositionPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ());
                         }
 
+                        // Compare positions here for void floor fix below before the player's position variable is set to the packet position
+                        boolean notMovingUp = entity.getPosition().getY() >= packet.getPosition().getY();
+
                         entity.setPosition(packet.getPosition(), false);
                         entity.setOnGround(packet.isOnGround());
 
                         // Send final movement changes
                         session.sendDownstreamPacket(movePacket);
+
+                        if (notMovingUp) {
+                            int floorY = position.getFloorY();
+                            if (floorY <= -38 && floorY >= -40) {
+                                // Work around there being a floor at Y -40 and teleport the player below it
+                                // Moving from below Y -40 to above the void floor works fine
+                                //TODO: This will need to be changed for 1.17
+                                entity.setPosition(entity.getPosition().sub(0, 4f, 0));
+                                MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+                                movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
+                                movePlayerPacket.setPosition(entity.getPosition());
+                                movePlayerPacket.setRotation(entity.getBedrockRotation());
+                                movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
+                                movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
+                                session.sendUpstreamPacket(movePlayerPacket);
+                            }
+                        }
                     } else {
                         // Not a valid move
                         session.getConnector().getLogger().debug("Recalculating position...");
-                        recalculatePosition(session);
+                        session.getCollisionManager().recalculatePosition();
                     }
                 }
             }
@@ -121,13 +138,9 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         if (entity.getRightParrot() != null) {
             entity.getRightParrot().moveAbsolute(session, entity.getPosition(), entity.getRotation(), true, false);
         }
-
-        // Schedule a position send loop if the player is idle
-        session.setMovementSendIfIdle(session.getConnector().getGeneralThreadPool().schedule(() -> sendPositionIfIdle(session),
-                3, TimeUnit.SECONDS));
     }
 
-    public boolean isValidMove(GeyserSession session, MovePlayerPacket.Mode mode, Vector3f currentPosition, Vector3f newPosition) {
+    private boolean isValidMove(GeyserSession session, MovePlayerPacket.Mode mode, Vector3f currentPosition, Vector3f newPosition) {
         if (mode != MovePlayerPacket.Mode.NORMAL)
             return true;
 
@@ -150,82 +163,6 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         }
 
         return true;
-    }
-
-    /**
-     * Adjust the Bedrock position before sending to the Java server to account for inaccuracies in movement between
-     * the two versions.
-     *
-     * @param session the current GeyserSession
-     * @param bedrockPosition the current Bedrock position of the client
-     * @param onGround whether the Bedrock player is on the ground
-     * @return the position to send to the Java server, or null to cancel sending the packet
-     */
-    private Vector3d adjustBedrockPosition(GeyserSession session, Vector3f bedrockPosition, boolean onGround) {
-        // We need to parse the float as a string since casting a float to a double causes us to
-        // lose precision and thus, causes players to get stuck when walking near walls
-        double javaY = bedrockPosition.getY() - EntityType.PLAYER.getOffset();
-
-        Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY,
-                Double.parseDouble(Float.toString(bedrockPosition.getZ())));
-
-        if (session.getConnector().getConfig().isCacheChunks()) {
-            // With chunk caching, we can do some proper collision checks
-            CollisionManager collisionManager = session.getCollisionManager();
-            collisionManager.updatePlayerBoundingBox(position);
-
-            // Correct player position
-            if (!collisionManager.correctPlayerPosition()) {
-                // Cancel the movement if it needs to be cancelled
-                recalculatePosition(session);
-                return null;
-            }
-
-            position = Vector3d.from(collisionManager.getPlayerBoundingBox().getMiddleX(),
-                    collisionManager.getPlayerBoundingBox().getMiddleY() - (collisionManager.getPlayerBoundingBox().getSizeY() / 2),
-                    collisionManager.getPlayerBoundingBox().getMiddleZ());
-        } else {
-            // When chunk caching is off, we have to rely on this
-            // It rounds the Y position up to the nearest 0.5
-            // This snaps players to snap to the top of stairs and slabs like on Java Edition
-            // However, it causes issues such as the player floating on carpets
-            if (onGround) javaY = Math.ceil(javaY * 2) / 2;
-            position = position.up(javaY - position.getY());
-        }
-
-        return position;
-    }
-
-    // TODO: This makes the player look upwards for some reason, rotation values must be wrong
-    public void recalculatePosition(GeyserSession session) {
-        PlayerEntity entity = session.getPlayerEntity();
-        // Gravity might need to be reset...
-        SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
-        entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
-        entityDataPacket.getMetadata().putAll(entity.getMetadata());
-        session.sendUpstreamPacket(entityDataPacket);
-
-        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-        movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
-        movePlayerPacket.setPosition(entity.getPosition());
-        movePlayerPacket.setRotation(entity.getBedrockRotation());
-        movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
-        session.sendUpstreamPacket(movePlayerPacket);
-    }
-
-    private void sendPositionIfIdle(GeyserSession session) {
-        if (session.isClosed()) return;
-        PlayerEntity entity = session.getPlayerEntity();
-        // Recalculate in case something else changed position
-        Vector3d position = adjustBedrockPosition(session, entity.getPosition(), entity.isOnGround());
-        // A null return value cancels the packet
-        if (position != null) {
-            ClientPlayerPositionPacket packet = new ClientPlayerPositionPacket(session.getPlayerEntity().isOnGround(),
-                    position.getX(), position.getY(), position.getZ());
-            session.sendDownstreamPacket(packet);
-        }
-        session.setMovementSendIfIdle(session.getConnector().getGeneralThreadPool().schedule(() -> sendPositionIfIdle(session),
-                3, TimeUnit.SECONDS));
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,6 +50,7 @@ public class BlockUtils {
         if (toolType.equals("shears")) return isWoolBlock ? 5.0 : 15.0;
         if (toolType.equals("")) return 1.0;
         switch (toolTier) {
+            // https://minecraft.gamepedia.com/Breaking#Speed
             case "wooden":
                 return 2.0;
             case "stone":
@@ -58,6 +59,8 @@ public class BlockUtils {
                 return 6.0;
             case "diamond":
                 return 8.0;
+            case "netherite":
+                return 9.0;
             case "golden":
                 return 12.0;
             default:

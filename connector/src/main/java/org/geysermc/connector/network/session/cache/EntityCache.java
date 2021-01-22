@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ package org.geysermc.connector.network.session.cache;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
+import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -40,17 +41,21 @@ import java.util.concurrent.atomic.AtomicLong;
  * for that player (e.g. seeing vanished players from /vanish)
  */
 public class EntityCache {
-    private GeyserSession session;
+    private final GeyserSession session;
 
     @Getter
     private Long2ObjectMap<Entity> entities = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
+    /**
+     * A list of all entities that must be ticked.
+     */
+    private final List<Tickable> tickableEntities = Collections.synchronizedList(new ArrayList<>());
     private Long2LongMap entityIdTranslations = Long2LongMaps.synchronize(new Long2LongOpenHashMap());
     private Map<UUID, PlayerEntity> playerEntities = Collections.synchronizedMap(new HashMap<>());
     private Map<UUID, BossBar> bossBars = Collections.synchronizedMap(new HashMap<>());
-    private Long2LongMap cachedPlayerEntityLinks = Long2LongMaps.synchronize(new Long2LongOpenHashMap());
+    private final Long2LongMap cachedPlayerEntityLinks = Long2LongMaps.synchronize(new Long2LongOpenHashMap());
 
     @Getter
-    private AtomicLong nextEntityId = new AtomicLong(2L);
+    private final AtomicLong nextEntityId = new AtomicLong(2L);
 
     public EntityCache(GeyserSession session) {
         this.session = session;
@@ -59,6 +64,11 @@ public class EntityCache {
     public void spawnEntity(Entity entity) {
         if (cacheEntity(entity)) {
             entity.spawnEntity(session);
+
+            if (entity instanceof Tickable) {
+                // Start ticking it
+                tickableEntities.add((Tickable) entity);
+            }
         }
     }
 
@@ -76,6 +86,10 @@ public class EntityCache {
         if (entity != null && entity.isValid() && (force || entity.despawnEntity(session))) {
             long geyserId = entityIdTranslations.remove(entity.getEntityId());
             entities.remove(geyserId);
+
+            if (entity instanceof Tickable) {
+                tickableEntities.remove(entity);
+            }
             return true;
         }
         return false;
@@ -114,8 +128,8 @@ public class EntityCache {
         return playerEntities.get(uuid);
     }
 
-    public void removePlayerEntity(UUID uuid) {
-        playerEntities.remove(uuid);
+    public PlayerEntity removePlayerEntity(UUID uuid) {
+        return playerEntities.remove(uuid);
     }
 
     public void addBossBar(UUID uuid, BossBar bossBar) {
@@ -151,5 +165,9 @@ public class EntityCache {
 
     public void addCachedPlayerEntityLink(long playerId, long linkedEntityId) {
         cachedPlayerEntityLinks.put(playerId, linkedEntityId);
+    }
+
+    public List<Tickable> getTickableEntities() {
+        return tickableEntities;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,7 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
     public void translate(CommandRequestPacket packet, GeyserSession session) {
         String command = packet.getCommand().replace("/", "");
         CommandManager commandManager = GeyserConnector.getInstance().getCommandManager();
-        if (session.getConnector().getPlatformType() == PlatformType.STANDALONE && command.startsWith("geyser ") && commandManager.getCommands().containsKey(command.split(" ")[1])) {
+        if (session.getConnector().getPlatformType() == PlatformType.STANDALONE && command.trim().startsWith("geyser ") && commandManager.getCommands().containsKey(command.split(" ")[1])) {
             commandManager.runCommand(session, command);
         } else {
             String message = packet.getCommand().trim();

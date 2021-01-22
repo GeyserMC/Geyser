@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -95,6 +95,10 @@ public class ItemRegistry {
      * Wheat item entry, used in AbstractHorseEntity.java
      */
     public static ItemEntry WHEAT;
+    /**
+     * Writable book item entry, used in BedrockBookEditTranslator.java
+     */
+    public static ItemEntry WRITABLE_BOOK;
 
     public static int BARRIER_INDEX = 0;
 
@@ -189,6 +193,9 @@ public class ItemRegistry {
                     break;
                 case "minecraft:wheat":
                     WHEAT = ITEM_ENTRIES.get(itemIndex);
+                    break;
+                case "minecraft:writable_book":
+                    WRITABLE_BOOK = ITEM_ENTRIES.get(itemIndex);
                     break;
                 default:
                     break;

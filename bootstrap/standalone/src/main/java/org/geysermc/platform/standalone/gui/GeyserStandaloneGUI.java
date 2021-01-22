@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -271,17 +271,17 @@ public class GeyserStandaloneGUI {
             JMenuItem commandButton = hasSubCommands ? new JMenu(command.getValue().getName()) : new JMenuItem(command.getValue().getName());
             commandButton.getAccessibleContext().setAccessibleDescription(command.getValue().getDescription());
             if (!hasSubCommands) {
-                commandButton.addActionListener(e -> command.getValue().execute(geyserStandaloneLogger, new String[]{ }));
+                commandButton.addActionListener(e -> command.getValue().execute(null, geyserStandaloneLogger, new String[]{ }));
             } else {
                 // Add a submenu that's the same name as the menu can't be pressed
                 JMenuItem otherCommandButton = new JMenuItem(command.getValue().getName());
                 otherCommandButton.getAccessibleContext().setAccessibleDescription(command.getValue().getDescription());
-                otherCommandButton.addActionListener(e -> command.getValue().execute(geyserStandaloneLogger, new String[]{ }));
+                otherCommandButton.addActionListener(e -> command.getValue().execute(null, geyserStandaloneLogger, new String[]{ }));
                 commandButton.add(otherCommandButton);
                 // Add a menu option for all possible subcommands
                 for (String subCommandName : command.getValue().getSubCommands()) {
                     JMenuItem item = new JMenuItem(subCommandName);
-                    item.addActionListener(e -> command.getValue().execute(geyserStandaloneLogger, new String[]{subCommandName}));
+                    item.addActionListener(e -> command.getValue().execute(null, geyserStandaloneLogger, new String[]{subCommandName}));
                     commandButton.add(item);
                 }
             }
