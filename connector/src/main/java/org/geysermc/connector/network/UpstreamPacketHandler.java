@@ -87,7 +87,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     header.getUuid().toString(), header.getVersionString(), resourcePack.getFile().length(),
                             "", "", "", false, false));
         }
-        ResourcePackCache cache = RECONNECTING_CLIENTS.getOrDefault(session.getAuthData().getXboxUUID(), null);
+        ResourcePackCache cache = RECONNECTING_CLIENTS.get(session.getAuthData().getXboxUUID());
         if (cache != null) {
             session.setResourcePackCache(cache);
             RECONNECTING_CLIENTS.remove(session.getAuthData().getXboxUUID(), cache);

@@ -176,7 +176,7 @@ public abstract class ItemTranslator {
             IntTag customModelData = nbt.get("CustomModelData");
             if (session.getResourcePackCache().isCustomModelDataActive() && customModelData != null) {
                 // If we're expecting custom model data and it's present, look for the Bedrock "replacement" we set up.
-                Int2IntMap map = session.getResourcePackCache().getJavaToCustomModelDataToBedrockId().getOrDefault(stack.getId(), null);
+                Int2IntMap map = session.getResourcePackCache().getJavaToCustomModelDataToBedrockId().get(stack.getId());
                 if (map != null) {
                     itemData = ItemData.of(map.get(customModelData.getValue().intValue()), (short) 0, itemData.getCount(), itemData.getTag(), canPlace, canBreak);
                 }
