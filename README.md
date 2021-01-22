@@ -1,3 +1,12 @@
+## NOTICE
+
+This is a bleeding edge build of Geyser that I use on my own server. Please see the main [GeyserMC](https://github.com/GeyserMC/Geyser) for 
+the official builds.
+
+You may also wish to check [Hellohi3654 Bleeding Build](https://github.com/Hellohi3654/Geyser) as they're a lot
+quicker at updating than I am and have more extras added.
+
+
 <img src="https://geysermc.org/img/geyser-1760-860.png" alt="Geyser" width="600"/>
 
 [![forthebadge made-with-java](http://ForTheBadge.com/images/badges/made-with-java.svg)](https://java.com/)
