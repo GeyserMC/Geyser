@@ -108,7 +108,7 @@ public class PistonCache {
 
                 boolean isOnGround = playerDisplacement.getY() > 0 || playerEntity.isOnGround();
 
-                if (!isInMotion()) {
+                if (playerMotion.getX() == 0 && playerMotion.getZ() == 0) {
                     playerEntity.moveAbsolute(session, position.toFloat(), playerEntity.getRotation(), isOnGround, true);
                 }
 
