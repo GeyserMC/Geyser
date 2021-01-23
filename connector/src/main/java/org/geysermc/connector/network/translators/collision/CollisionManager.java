@@ -136,20 +136,11 @@ public class CollisionManager {
                 Double.parseDouble(Float.toString(bedrockPosition.getZ())));
 
         if (session.getConnector().getConfig().isCacheChunks()) {
-            PistonCache pistonCache = session.getPistonCache();
-            if (pistonCache.shouldCancelMovement()) {
-                recalculatePosition();
-                return null;
-            }
-
             // With chunk caching, we can do some proper collision checks
             updatePlayerBoundingBox(position);
 
+            PistonCache pistonCache = session.getPistonCache();
             pistonCache.correctPlayerPosition();
-            if (pistonCache.shouldCancelMovement()) {
-                recalculatePosition();
-                return null;
-            }
 
             // Correct player position
             if (!correctPlayerPosition()) {
@@ -159,6 +150,11 @@ public class CollisionManager {
             }
 
             position = playerBoundingBox.getBottomCenter();
+
+            // Send corrected position to Bedrock when pushed by a piston
+            if (!pistonCache.getPlayerDisplacement().equals(Vector3d.ZERO)) {
+                pistonCache.sendPlayerMovement(false);
+            }
         } else {
             // When chunk caching is off, we have to rely on this
             // It rounds the Y position up to the nearest 0.5
