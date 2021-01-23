@@ -32,9 +32,7 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.*;
 import lombok.Getter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.PistonCache;
@@ -49,10 +47,7 @@ import org.geysermc.connector.utils.BlockEntityUtils;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.Direction;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 public class PistonBlockEntity {
     private final GeyserSession session;
@@ -374,13 +369,23 @@ public class PistonBlockEntity {
         int pistonHeadId = BlockStateValues.getPistonHead(orientation);
         resolveCollision(headPos, movementProgress, pistonHeadId, playerBoundingBox);
 
-        // Resolve collision with any attached moving blocks
+        // Resolve collision with any attached moving blocks, but skip slime blocks
+        // This prevents players from being launched by slime blocks covered by other blocks
         for (Object2IntMap.Entry<Vector3i> entry : attachedBlocks.object2IntEntrySet()) {
             Vector3d blockPos = entry.getKey().toDouble();
             int blockId = entry.getIntValue();
-            resolveCollision(blockPos, movementProgress, blockId, playerBoundingBox);
+            if (blockId != BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID) {
+                resolveCollision(blockPos, movementProgress, blockId, playerBoundingBox);
+            }
         }
-
+        // Resolve collision with slime blocks
+        for (Object2IntMap.Entry<Vector3i> entry : attachedBlocks.object2IntEntrySet()) {
+            Vector3d blockPos = entry.getKey().toDouble();
+            int blockId = entry.getIntValue();
+            if (blockId == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID) {
+                resolveCollision(blockPos, movementProgress, blockId, playerBoundingBox);
+            }
+        }
         // Undo shrink
         playerBoundingBox.setSizeX(playerBoundingBox.getSizeX() + shrink.getX());
         playerBoundingBox.setSizeY(playerBoundingBox.getSizeY() + shrink.getY());

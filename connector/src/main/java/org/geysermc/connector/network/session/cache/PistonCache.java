@@ -100,7 +100,6 @@ public class PistonCache {
 
     public void sendPlayerMovement(boolean sendToJava) {
         SessionPlayerEntity playerEntity = session.getPlayerEntity();
-        // Sending movement packets cancels motion from slime blocks
         if (!playerDisplacement.equals(Vector3d.ZERO)) {
             CollisionManager collisionManager = session.getCollisionManager();
             if (collisionManager.correctPlayerPosition()) {
@@ -164,10 +163,6 @@ public class PistonCache {
 
     public void clear() {
         pistons.clear();
-    }
-
-    private boolean isInMotion() {
-        return !playerMotion.equals(Vector3f.ZERO) || playerSlimeCollision;
     }
 
     private boolean isColliding() {
