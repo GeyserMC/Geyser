@@ -71,7 +71,8 @@ public class WorldCache {
      * @param value True to show, false to hide
      */
     public void setShowCoordinates(boolean value) {
-        showCoordinates = value;
-        session.sendGameRule("showcoordinates", value);
+        boolean check = !session.isReducedDebugInfo() && session.getConnector().getConfig().isShowCoordinates();
+        showCoordinates = check && value;
+        session.sendGameRule("showcoordinates", check && value);
     }
 }

@@ -836,6 +836,8 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
         upstream.sendPacket(startGamePacket);
+
+        getWorldCache().setShowCoordinates(connector.getConfig().isShowCoordinates());
     }
 
     public void addTeleport(TeleportCache teleportCache) {
@@ -956,8 +958,8 @@ public class GeyserSession implements CommandSender {
      * @param value The new value for reducedDebugInfo
      */
     public void setReducedDebugInfo(boolean value) {
-        worldCache.setShowCoordinates(!value);
         reducedDebugInfo = value;
+        worldCache.setShowCoordinates(!value);
     }
 
     /**
