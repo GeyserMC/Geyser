@@ -117,6 +117,10 @@ public class PistonBlockEntity {
      * @param action Pulling or Pushing
      */
     public void setAction(PistonValueType action) {
+        if (isDone()) {
+            finishMovingBlocks();
+            attachedBlocks.clear();
+        }
         this.action = action;
         if (action == PistonValueType.PUSHING || (action == PistonValueType.PULLING && sticky)) {
             // Blocks only move when pushing or pulling with sticky pistons
@@ -200,7 +204,7 @@ public class PistonBlockEntity {
         }
 
         boolean moveBlocks = true;
-        while (!blocksToCheck.isEmpty() && attachedBlocks.size() < 12) {
+        while (!blocksToCheck.isEmpty() && attachedBlocks.size() <= 12) {
             Vector3i blockPos = blocksToCheck.remove();
             // Skip blocks we've already checked
             if (blocksChecked.contains(blockPos)) {
@@ -252,7 +256,6 @@ public class PistonBlockEntity {
                 break;
             }
         }
-        // This shouldn't happen as the server does all of these checks before sending a block value packet
         if (!moveBlocks || attachedBlocks.size() > 12) {
             attachedBlocks.clear();
         }
@@ -586,7 +589,8 @@ public class PistonBlockEntity {
     }
 
     /**
-     * Replace all moving block entities with the final block
+     * Detach moving blocks from the piston
+     * The Java server handles placing the new blocks for the player
      */
     private void finishMovingBlocks() {
         Vector3i movement = getMovement();
@@ -594,12 +598,6 @@ public class PistonBlockEntity {
             blockPos = blockPos.add(movement);
             // Send a final block entity packet to detach blocks
             BlockEntityUtils.updateBlockEntity(session, buildMovingBlockTag(blockPos, javaId, Vector3i.from(0, -1, 0)), blockPos);
-            // Replace with final block
-            ChunkUtils.updateBlock(session, javaId, blockPos);
-            // Send piston block entity data
-            if (PistonBlockEntityTranslator.isBlock(javaId)) {
-                BlockEntityUtils.updateBlockEntity(session, PistonBlockEntityTranslator.getTag(javaId, blockPos), blockPos);
-            }
         });
     }
 
