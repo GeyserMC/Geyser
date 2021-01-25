@@ -153,11 +153,11 @@ public class PistonCache {
         playerDisplacement = adjustedDisplacement;
     }
 
-    public PistonBlockEntity getPistonAt(Vector3i position) {
+    public synchronized PistonBlockEntity getPistonAt(Vector3i position) {
         return pistons.get(position);
     }
 
-    public void putPiston(PistonBlockEntity pistonBlockEntity) {
+    public synchronized void putPiston(PistonBlockEntity pistonBlockEntity) {
         pistons.put(pistonBlockEntity.getPosition(), pistonBlockEntity);
     }
 

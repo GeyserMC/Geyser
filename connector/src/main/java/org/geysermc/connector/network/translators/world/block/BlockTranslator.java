@@ -93,7 +93,7 @@ public class BlockTranslator {
     /**
      * Runtime moving Block ID, used for blocks moved by pistons
      */
-    public static int BEDROCK_RUNTIME_MOVING_BLOCK_ID;
+    public static final int BEDROCK_RUNTIME_MOVING_BLOCK_ID;
 
     /**
      * A list of all Java runtime wool IDs, for use with block breaking math and shears

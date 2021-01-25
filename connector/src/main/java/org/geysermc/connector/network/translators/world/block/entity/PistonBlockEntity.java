@@ -116,7 +116,7 @@ public class PistonBlockEntity {
      *
      * @param action Pulling or Pushing
      */
-    public void setAction(PistonValueType action) {
+    public synchronized void setAction(PistonValueType action) {
         if (isDone()) {
             finishMovingBlocks();
             attachedBlocks.clear();
@@ -137,7 +137,7 @@ public class PistonBlockEntity {
     /**
      * Update the position of the piston head, moving blocks, and players.
      */
-    public void updateMovement() {
+    public synchronized void updateMovement() {
         if (isDone()) {
             return;
         }
@@ -149,7 +149,7 @@ public class PistonBlockEntity {
     /**
      * Place attached blocks in their final position when done pushing or pulling
      */
-    public void updateBlocks() {
+    public synchronized void updateBlocks() {
         if (!isDone()) {
             if (action == PistonValueType.CANCELLED_MID_PUSH) {
                 finishMovingBlocks();
@@ -347,7 +347,7 @@ public class PistonBlockEntity {
      *
      * If the player contacts a slime block, playerMotion in PistonCache is updated
      */
-    public void pushPlayer() {
+    public synchronized void pushPlayer() {
         Vector3i direction = orientation.getUnitVector();
         double movementProgress = lastProgress;
         if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
