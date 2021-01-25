@@ -386,6 +386,9 @@ public class GeyserSession implements CommandSender {
         startGame();
         this.remoteServer = remoteServer;
 
+        // Update the ShowCoordinates data based on the config setting
+        getWorldCache().setShowCoordinates(connector.getConfig().isShowCoordinates());
+
         // Set the hardcoded shield ID to the ID we just defined in StartGamePacket
         upstream.getSession().getHardcodedBlockingId().set(ItemRegistry.SHIELD.getBedrockId());
 
@@ -836,8 +839,6 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
         upstream.sendPacket(startGamePacket);
-
-        getWorldCache().setShowCoordinates(connector.getConfig().isShowCoordinates());
     }
 
     public void addTeleport(TeleportCache teleportCache) {
