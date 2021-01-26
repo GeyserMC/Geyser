@@ -26,6 +26,8 @@
 package org.geysermc.connector.utils;
 
 import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
+import lombok.Getter;
+import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 
 /**
@@ -34,14 +36,15 @@ import org.geysermc.connector.network.session.GeyserSession;
  */
 public class CooldownUtils {
 
-    private static boolean SHOW_COOLDOWN;
+    @Getter @Setter
+    private static boolean showCooldown;
 
     /**
      * Starts sending the fake cooldown to the Bedrock client.
      * @param session GeyserSession
      */
     public static void sendCooldown(GeyserSession session) {
-        if (!SHOW_COOLDOWN) return;
+        if (!showCooldown) return;
         if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20) return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
         // Needs to be sent or no subtitle packet is recognized by the client
         SetTitlePacket titlePacket = new SetTitlePacket();
@@ -103,13 +106,4 @@ public class CooldownUtils {
         }
         return builder.toString();
     }
-
-    public static boolean isShowCooldown() {
-        return SHOW_COOLDOWN;
-    }
-
-    public static void setShowCooldown(boolean showCooldown) {
-        SHOW_COOLDOWN = showCooldown;
-    }
-
 }
