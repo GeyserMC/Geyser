@@ -49,6 +49,7 @@ public class BlockStateValues {
     private static final Int2BooleanMap IS_STICKY_PISTON = new Int2BooleanOpenHashMap();
     private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
     private static final Object2IntMap<Direction> PISTON_HEADS = new Object2IntOpenHashMap<>();
+    private static final IntSet MOVING_PISTONS = new IntOpenHashSet();
     private static final Int2ByteMap SKULL_VARIANTS = new Int2ByteOpenHashMap();
     private static final Int2ByteMap SKULL_ROTATIONS = new Int2ByteOpenHashMap();
     private static final Int2IntMap SKULL_WALL_DIRECTIONS = new Int2IntOpenHashMap();
@@ -117,6 +118,8 @@ public class BlockStateValues {
                 } else if (entry.getKey().contains("east")) {
                     PISTON_HEADS.put(Direction.EAST, javaBlockState);
                 }       
+            } else if (entry.getKey().contains("moving_piston")) {
+                MOVING_PISTONS.add(javaBlockState);
             }
             return;
         }
@@ -250,6 +253,18 @@ public class BlockStateValues {
      */
     public static int getPistonHead(Direction direction) {
         return PISTON_HEADS.getOrDefault(direction, BlockTranslator.JAVA_AIR_ID);
+    }
+
+    /**
+     * Check if a block is a minecraft:moving_piston
+     * This is used in ChunkUtils to prevent them from being placed as it causes
+     * pistons to flicker and it is not needed
+     *
+     * @param blockState BlockState of the block
+     * @return True if the block is a moving_piston
+     */
+    public static boolean isMovingPiston(int blockState) {
+        return MOVING_PISTONS.contains(blockState);
     }
 
     /**

@@ -368,25 +368,29 @@ public class ChunkUtils {
             skull.despawnEntity(session, position);
         }
 
-        int blockId = BlockTranslator.getBedrockBlockId(blockState);
+        // Prevent moving_piston from being placed
+        // It's used for extending piston heads, but it isn't needed on Bedrock and causes pistons to flicker
+        if (!BlockStateValues.isMovingPiston(blockState)) {
+            int blockId = BlockTranslator.getBedrockBlockId(blockState);
 
-        UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-        updateBlockPacket.setDataLayer(0);
-        updateBlockPacket.setBlockPosition(position);
-        updateBlockPacket.setRuntimeId(blockId);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-        session.sendUpstreamPacket(updateBlockPacket);
+            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+            updateBlockPacket.setDataLayer(0);
+            updateBlockPacket.setBlockPosition(position);
+            updateBlockPacket.setRuntimeId(blockId);
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+            session.sendUpstreamPacket(updateBlockPacket);
 
-        UpdateBlockPacket waterPacket = new UpdateBlockPacket();
-        waterPacket.setDataLayer(1);
-        waterPacket.setBlockPosition(position);
-        if (BlockTranslator.isWaterlogged(blockState)) {
-            waterPacket.setRuntimeId(BEDROCK_WATER_ID);
-        } else {
-            waterPacket.setRuntimeId(BEDROCK_AIR_ID);
+            UpdateBlockPacket waterPacket = new UpdateBlockPacket();
+            waterPacket.setDataLayer(1);
+            waterPacket.setBlockPosition(position);
+            if (BlockTranslator.isWaterlogged(blockState)) {
+                waterPacket.setRuntimeId(BEDROCK_WATER_ID);
+            } else {
+                waterPacket.setRuntimeId(BEDROCK_AIR_ID);
+            }
+            session.sendUpstreamPacket(waterPacket);
         }
-        session.sendUpstreamPacket(waterPacket);
 
         // Since Java stores bed colors/skull information as part of the namespaced ID and Bedrock stores it as a tag
         // This is the only place I could find that interacts with the Java block state and block updates

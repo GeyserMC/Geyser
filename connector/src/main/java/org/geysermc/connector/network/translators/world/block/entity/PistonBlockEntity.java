@@ -129,6 +129,18 @@ public class PistonBlockEntity {
             createMovingBlocks();
         }
 
+        // Set progress and lastProgress to allow 0 tick pistons to animate
+        switch (action) {
+            case PUSHING:
+                progress = 0;
+                break;
+            case PULLING:
+            case CANCELLED_MID_PUSH:
+                progress = 1;
+                break;
+        }
+        lastProgress = progress;
+
         lastProgressUpdate = System.currentTimeMillis();
 
         BlockEntityUtils.updateBlockEntity(session, buildPistonTag(), position);
