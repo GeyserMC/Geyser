@@ -115,22 +115,22 @@ public class BlockCollision {
                         b.getMiddleZ());
 
                 double translateDistance = northFacePos.getZ() - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
-                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 1.1) {
+                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 2) {
                     playerCollision.translate(0, 0, translateDistance);
                 }
                 
                 translateDistance = southFacePos.getZ() - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
-                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 1.1) {
+                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 2) {
                     playerCollision.translate(0, 0, translateDistance);
                 }
 
                 translateDistance = eastFacePos.getX() - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
-                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 1.1) {
+                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 2) {
                     playerCollision.translate(translateDistance, 0, 0);
                 }
 
                 translateDistance = westFacePos.getX() - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
-                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 1.1) {
+                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 2) {
                     playerCollision.translate(translateDistance, 0, 0);
                 }
             }

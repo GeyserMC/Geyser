@@ -88,8 +88,10 @@ public class PistonCache {
         resetPlayerMovement();
         pistons.values().forEach(PistonBlockEntity::pushPlayer);
         sendPlayerMotion();
-        // Clean up done pistons after we've used them for position corrections
-        pistons.entrySet().removeIf((entry) -> entry.getValue().isDone());
+        // Clean up pistons that are done after we are finished using them for position corrections
+        if (playerDisplacement.equals(Vector3d.ZERO)) {
+            pistons.entrySet().removeIf((entry) -> entry.getValue().isDone());
+        }
     }
 
     private void resetPlayerMovement() {
