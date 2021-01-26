@@ -74,6 +74,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("ping-passthrough-interval")
     private int pingPassthroughInterval = 3;
 
+    @JsonProperty("forward-player-ping")
+    private boolean forwardPlayerPing = false;
+
     @JsonProperty("max-players")
     private int maxPlayers = 100;
 

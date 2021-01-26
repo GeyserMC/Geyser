@@ -26,10 +26,7 @@
 package org.geysermc.connector.utils;
 
 import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * Manages the sending of a cooldown indicator to the Bedrock player as there is no cooldown indicator in Bedrock.
@@ -37,11 +34,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class CooldownUtils {
 
-    private final static boolean SHOW_COOLDOWN;
-
-    static {
-        SHOW_COOLDOWN = GeyserConnector.getInstance().getConfig().isShowCooldown();
-    }
+    private static boolean SHOW_COOLDOWN;
 
     /**
      * Starts sending the fake cooldown to the Bedrock client.
@@ -56,18 +49,13 @@ public class CooldownUtils {
         titlePacket.setText(" ");
         session.sendUpstreamPacket(titlePacket);
         session.setLastHitTime(System.currentTimeMillis());
-        long lastHitTime = session.getLastHitTime(); // Used later to prevent multiple scheduled cooldown threads
-        computeCooldown(session, lastHitTime);
     }
 
     /**
-     * Keeps updating the cooldown until the bar is complete.
+     * Keeps updating the cooldown until the bar is complete. This should be executed every tick.
      * @param session GeyserSession
-     * @param lastHitTime The time of the last hit. Used to gauge how long the cooldown is taking.
      */
-    private static void computeCooldown(GeyserSession session, long lastHitTime) {
-        if (session.isClosed()) return; // Don't run scheduled tasks if the client left
-        if (lastHitTime != session.getLastHitTime()) return; // Means another cooldown has started so there's no need to continue this one
+    public static void computeCurrentCooldown(GeyserSession session) {
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
         titlePacket.setText(getTitle(session));
@@ -75,9 +63,8 @@ public class CooldownUtils {
         titlePacket.setFadeOutTime(5);
         titlePacket.setStayTime(2);
         session.sendUpstreamPacket(titlePacket);
-        if (hasCooldown(session)) {
-            session.getConnector().getGeneralThreadPool().schedule(() -> computeCooldown(session, lastHitTime), 50, TimeUnit.MILLISECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
-        } else {
+        if (!hasCooldown(session)) {
+            session.setLastHitTime(-1);
             SetTitlePacket removeTitlePacket = new SetTitlePacket();
             removeTitlePacket.setType(SetTitlePacket.Type.SUBTITLE);
             removeTitlePacket.setText(" ");
@@ -115,6 +102,14 @@ public class CooldownUtils {
             grey--;
         }
         return builder.toString();
+    }
+
+    public static boolean isShowCooldown() {
+        return SHOW_COOLDOWN;
+    }
+
+    public static void setShowCooldown(boolean showCooldown) {
+        SHOW_COOLDOWN = showCooldown;
     }
 
 }
