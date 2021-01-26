@@ -229,8 +229,7 @@ public class GeyserSession implements CommandSender {
     @Setter
     private double attackSpeed = 4.0d;
     /**
-     * The time of the last hit. Used to gauge how long the cooldown is taking.
-     * This is a session variable in order to prevent more scheduled threads than necessary.
+     * The time of the last hit. Used to gauge how long the cooldown has progressed.
      */
     @Setter
     private long lastHitTime = -1;
