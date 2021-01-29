@@ -366,6 +366,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     break;
                 }
                 default:
+                    session.getConnector().getLogger().error("Unknown crafting state induced by " + session.getName());
                     return rejectRequest(request);
             }
         }

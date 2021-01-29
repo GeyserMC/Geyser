@@ -32,10 +32,8 @@ import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreativeInventoryActionPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.*;
 import com.nukkitx.protocol.bedrock.packet.ItemStackRequestPacket;
@@ -55,8 +53,6 @@ import org.geysermc.connector.network.translators.inventory.translators.chest.Si
 import org.geysermc.connector.network.translators.inventory.translators.furnace.BlastFurnaceInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.translators.furnace.FurnaceInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.translators.furnace.SmokerInventoryTranslator;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.*;
@@ -200,7 +196,7 @@ public abstract class InventoryTranslator {
                                 transferAction.getSource().getSlot() >= 28 && transferAction.getSource().getSlot() <= 31) {
                             return rejectRequest(request, false);
                         }
-                        session.getConnector().getLogger().error("DEBUG: About to reject request.");
+                        session.getConnector().getLogger().error("DEBUG: About to reject request made by " + session.getName());
                         session.getConnector().getLogger().error("Source: " + transferAction.getSource().toString() + " Result: " + checkNetId(session, inventory, transferAction.getSource()));
                         session.getConnector().getLogger().error("Destination: " + transferAction.getDestination().toString() + " Result: " + checkNetId(session, inventory, transferAction.getDestination()));
                         return rejectRequest(request);
@@ -733,7 +729,7 @@ public abstract class InventoryTranslator {
     public static ItemStackResponsePacket.Response rejectRequest(ItemStackRequestPacket.Request request, boolean throwError) {
         if (throwError) {
             // Currently for debugging, but might be worth it to keep in the future if something goes terribly wrong.
-            new Throwable("DEBUGGING: ItemStackRequest rejected").printStackTrace();
+            new Throwable("DEBUGGING: ItemStackRequest rejected " + request.toString()).printStackTrace();
         }
         return new ItemStackResponsePacket.Response(ItemStackResponsePacket.ResponseStatus.ERROR, request.getRequestId(), Collections.emptyList());
     }
