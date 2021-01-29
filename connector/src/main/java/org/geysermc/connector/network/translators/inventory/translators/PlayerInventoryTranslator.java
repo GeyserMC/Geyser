@@ -407,6 +407,17 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     craftState = CraftState.DEPRECATED;
                     break;
                 }
+                case DESTROY: {
+                    DestroyStackRequestActionData destroyAction = (DestroyStackRequestActionData) action;
+                    if (craftState != CraftState.DEPRECATED) {
+                        return rejectRequest(request);
+                    }
+
+                    int sourceSlot = bedrockSlotToJava(destroyAction.getSource());
+                    inventory.setItem(sourceSlot, GeyserItemStack.EMPTY, session); //assume all creative destroy requests will empty the slot
+                    affectedSlots.add(sourceSlot);
+                    break;
+                }
                 case TAKE:
                 case PLACE: {
                     TransferStackRequestActionData transferAction = (TransferStackRequestActionData) action;
