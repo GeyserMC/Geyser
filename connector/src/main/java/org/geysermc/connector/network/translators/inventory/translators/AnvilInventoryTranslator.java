@@ -48,7 +48,8 @@ import org.geysermc.connector.network.translators.item.ItemTranslator;
 
 public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
     public AnvilInventoryTranslator() {
-        super(3, "minecraft:anvil[facing=north]", ContainerType.ANVIL, UIInventoryUpdater.INSTANCE);
+        super(3, "minecraft:anvil[facing=north]", ContainerType.ANVIL, UIInventoryUpdater.INSTANCE,
+                "minecraft:chipped_anvil", "minecraft:damaged_anvil");
     }
 
     /* 1.16.100 support start */

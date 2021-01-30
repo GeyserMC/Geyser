@@ -23,35 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.inventory.translators.chest;
+package org.geysermc.connector.network.translators.inventory.translators;
 
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import org.geysermc.connector.inventory.Inventory;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.holder.BlockInventoryHolder;
-import org.geysermc.connector.network.translators.inventory.holder.InventoryHolder;
+import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
+import org.geysermc.connector.network.translators.inventory.updater.UIInventoryUpdater;
 
-public class SingleChestInventoryTranslator extends ChestInventoryTranslator {
-    private final InventoryHolder holder;
-
-    public SingleChestInventoryTranslator(int size) {
-        super(size, 27);
-        this.holder = new BlockInventoryHolder("minecraft:chest[facing=north,type=single,waterlogged=false]", ContainerType.CONTAINER,
-                "minecraft:chest", "minecraft:ender_chest", "minecraft:trapped_chest");
+/**
+ * Implemented on top of any block that does not have special properties implemented
+ */
+public class HopperInventoryTranslator extends AbstractBlockInventoryTranslator {
+    public HopperInventoryTranslator() {
+        super(5, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER, UIInventoryUpdater.INSTANCE);
     }
 
     @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
-        holder.prepareInventory(this, session, inventory);
-    }
-
-    @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
-        holder.openInventory(this, session, inventory);
-    }
-
-    @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
-        holder.closeInventory(this, session, inventory);
+    public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot) {
+        if (javaSlot < this.size) {
+            return new BedrockContainerSlot(ContainerSlotType.CONTAINER, javaSlot);
+        }
+        return super.javaSlotToBedrockContainer(javaSlot);
     }
 }

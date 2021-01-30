@@ -27,6 +27,7 @@ package org.geysermc.connector.inventory;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 
@@ -37,6 +38,12 @@ import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 public class Container extends Inventory {
     private final PlayerInventory playerInventory;
     private final int containerSize;
+
+    /**
+     * Whether we are using a real block when opening this inventory.
+     */
+    @Setter
+    private boolean isUsingRealBlock = false;
 
     public Container(String title, int id, int size, PlayerInventory playerInventory) {
         super(title, id, size);

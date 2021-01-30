@@ -23,26 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.inventory.translators;
+package org.geysermc.connector.inventory;
 
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
-import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
+import lombok.Getter;
+import lombok.Setter;
 
-/**
- * Implemented on top of any block that does not have special properties implemented
- */
-public class GenericBlockInventoryTranslator extends AbstractBlockInventoryTranslator {
-    public GenericBlockInventoryTranslator(int size, String javaBlockIdentifier, ContainerType containerType) {
-        super(size, javaBlockIdentifier, containerType, ContainerInventoryUpdater.INSTANCE);
-    }
+public class Generic3X3Container extends Container {
+    /**
+     * Whether we need to set the container type as {@link com.nukkitx.protocol.bedrock.data.inventory.ContainerType#DROPPER}
+     */
+    @Getter @Setter
+    private boolean isDropper = false;
 
-    @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot) {
-        if (javaSlot < this.size) {
-            return new BedrockContainerSlot(ContainerSlotType.CONTAINER, javaSlot);
-        }
-        return super.javaSlotToBedrockContainer(javaSlot);
+    public Generic3X3Container(String title, int id, int size, PlayerInventory playerInventory) {
+        super(title, id, size, playerInventory);
     }
 }

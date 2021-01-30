@@ -23,35 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.inventory.translators.chest;
+package org.geysermc.connector.network.translators.inventory.translators;
 
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import org.geysermc.connector.inventory.Generic3X3Container;
 import org.geysermc.connector.inventory.Inventory;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.holder.BlockInventoryHolder;
-import org.geysermc.connector.network.translators.inventory.holder.InventoryHolder;
+import org.geysermc.connector.inventory.PlayerInventory;
+import org.geysermc.connector.network.translators.inventory.updater.UIInventoryUpdater;
 
-public class SingleChestInventoryTranslator extends ChestInventoryTranslator {
-    private final InventoryHolder holder;
-
-    public SingleChestInventoryTranslator(int size) {
-        super(size, 27);
-        this.holder = new BlockInventoryHolder("minecraft:chest[facing=north,type=single,waterlogged=false]", ContainerType.CONTAINER,
-                "minecraft:chest", "minecraft:ender_chest", "minecraft:trapped_chest");
+/**
+ * Droppers and dispensers
+ */
+public class Generic3X3InventoryTranslator extends AbstractBlockInventoryTranslator {
+    //TODO allow droppers to use their own block - this requires changing the ContainerType to DROPPER
+    public Generic3X3InventoryTranslator() {
+        super(9, "minecraft:dispenser[facing=north,triggered=false]", ContainerType.DISPENSER, UIInventoryUpdater.INSTANCE);
     }
 
     @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
-        holder.prepareInventory(this, session, inventory);
-    }
-
-    @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
-        holder.openInventory(this, session, inventory);
-    }
-
-    @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
-        holder.closeInventory(this, session, inventory);
+    public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
+        return new Generic3X3Container(name, windowId, this.size, playerInventory);
     }
 }
