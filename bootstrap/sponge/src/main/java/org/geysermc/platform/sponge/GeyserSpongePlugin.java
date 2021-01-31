@@ -71,7 +71,6 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
-        System.out.println(Sponge.getPlatform().getMinecraftVersion().getName());
         if (!configDir.exists())
             configDir.mkdirs();
 
