@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,7 @@ public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
     protected NbtMap getItem(CompoundTag tag) {
         ItemEntry entry = ItemRegistry.getItemEntry((String) tag.get("id").getValue());
         NbtMapBuilder tagBuilder = NbtMap.builder()
-                .putShort("id", (short) entry.getBedrockId())
+                .putString("Name", entry.getBedrockIdentifier())
                 .putByte("Count", (byte) tag.get("Count").getValue())
                 .putShort("Damage", (short) entry.getBedrockData());
         tagBuilder.put("tag", NbtMap.builder().build());

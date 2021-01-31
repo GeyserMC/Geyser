@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,8 +43,6 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
     @Override
     public void translate(ServerRespawnPacket packet, GeyserSession session) {
         Entity entity = session.getPlayerEntity();
-        if (entity == null)
-            return;
 
         float maxHealth = entity.getAttributes().containsKey(AttributeType.MAX_HEALTH) ? entity.getAttributes().get(AttributeType.MAX_HEALTH).getValue() : 20f;
         // Max health must be divisible by two in bedrock
@@ -66,18 +64,24 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
             session.setRaining(false);
         }
 
+        if (session.isThunder()) {
+            LevelEventPacket stopThunderPacket = new LevelEventPacket();
+            stopThunderPacket.setType(LevelEventType.STOP_THUNDERSTORM);
+            stopThunderPacket.setData(0);
+            stopThunderPacket.setPosition(Vector3f.ZERO);
+            session.sendUpstreamPacket(stopThunderPacket);
+            session.setThunder(false);
+        }
+
         String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
-        if (!session.getDimension().equals(newDimension)) {
-            DimensionUtils.switchDimension(session, newDimension);
-        } else {
-            if (session.isManyDimPackets()) { //reloading world
-                String fakeDim = session.getDimension().equals(DimensionUtils.OVERWORLD) ? DimensionUtils.NETHER : DimensionUtils.OVERWORLD;
+        if (!session.getDimension().equals(newDimension) || !packet.getWorldName().equals(session.getWorldName())) {
+            if (!packet.getWorldName().equals(session.getWorldName()) && session.getDimension().equals(newDimension)) {
+                // Switching to a new world (based off the world name change); send a fake dimension change
+                String fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), newDimension);
                 DimensionUtils.switchDimension(session, fakeDim);
-                DimensionUtils.switchDimension(session, newDimension);
-            } else {
-                // Handled in JavaPlayerPositionRotationTranslator
-                session.setSpawned(false);
             }
+            session.setWorldName(packet.getWorldName());
+            DimensionUtils.switchDimension(session, newDimension);
         }
     }
 }

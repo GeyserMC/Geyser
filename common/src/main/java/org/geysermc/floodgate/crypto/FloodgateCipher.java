@@ -37,8 +37,23 @@ import java.security.Key;
  * Responsible for both encrypting and decrypting data
  */
 public interface FloodgateCipher {
-    byte[] IDENTIFIER = "Floodgate".getBytes(StandardCharsets.UTF_8);
+    // use invalid username characters at the beginning and the end of the identifier,
+    // to make sure that it doesn't get messed up with usernames
+    byte[] IDENTIFIER = "^Floodgate^".getBytes(StandardCharsets.UTF_8);
     int HEADER_LENGTH = IDENTIFIER.length;
+
+    static boolean hasHeader(String data) {
+        if (data.length() < IDENTIFIER.length) {
+            return false;
+        }
+
+        for (int i = 0; i < IDENTIFIER.length; i++) {
+            if (IDENTIFIER[i] != data.charAt(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     /**
      * Initializes the instance by giving it the key it needs to encrypt or decrypt data
@@ -57,8 +72,7 @@ public interface FloodgateCipher {
     byte[] encrypt(byte[] data) throws Exception;
 
     /**
-     * Encrypts data from a String.<br>
-     * This method internally calls {@link #encrypt(byte[])}
+     * Encrypts data from a String.<br> This method internally calls {@link #encrypt(byte[])}
      *
      * @param data the data to encrypt
      * @return the encrypted data
@@ -78,9 +92,8 @@ public interface FloodgateCipher {
     byte[] decrypt(byte[] data) throws Exception;
 
     /**
-     * Decrypts a byte[] and turn it into a String.<br>
-     * This method internally calls {@link #decrypt(byte[])}
-     * and converts the returned byte[] into a String.
+     * Decrypts a byte[] and turn it into a String.<br> This method internally calls {@link
+     * #decrypt(byte[])} and converts the returned byte[] into a String.
      *
      * @param data the data to encrypt
      * @return the decrypted data in a UTF-8 String
@@ -95,9 +108,8 @@ public interface FloodgateCipher {
     }
 
     /**
-     * Decrypts a String.<br>
-     * This method internally calls {@link #decrypt(byte[])}
-     * by converting the UTF-8 String into a byte[]
+     * Decrypts a String.<br> This method internally calls {@link #decrypt(byte[])} by converting
+     * the UTF-8 String into a byte[]
      *
      * @param data the data to decrypt
      * @return the decrypted data in a byte[]
@@ -108,8 +120,8 @@ public interface FloodgateCipher {
     }
 
     /**
-     * Checks if the header is valid.
-     * This method will throw an InvalidFormatException when the header is invalid.
+     * Checks if the header is valid. This method will throw an InvalidFormatException when the
+     * header is invalid.
      *
      * @param data the data to check
      * @throws InvalidFormatException when the header is invalid
@@ -140,19 +152,6 @@ public interface FloodgateCipher {
                 );
             }
         }
-    }
-
-    static boolean hasHeader(String data) {
-        if (data.length() < IDENTIFIER.length) {
-            return false;
-        }
-
-        for (int i = 0; i < IDENTIFIER.length; i++) {
-            if (IDENTIFIER[i] != data.charAt(i)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     @Data
