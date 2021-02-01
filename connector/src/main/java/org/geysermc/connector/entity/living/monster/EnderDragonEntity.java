@@ -28,15 +28,26 @@ package org.geysermc.connector.entity.living.monster;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
+import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
-import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.Data;
 import org.geysermc.connector.entity.Tickable;
+import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.living.InsentientEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.AttributeUtils;
+import org.geysermc.connector.utils.DimensionUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class EnderDragonEntity extends InsentientEntity implements Tickable {
     /**
@@ -59,7 +70,19 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
     private final Segment[] segmentHistory = new Segment[19];
     private int latestSegment = -1;
 
-    private boolean hovering;
+    private int phase;
+    /**
+     * The number of ticks since the beginning of the phase
+     */
+    private int phaseTicks;
+
+    private int ticksTillNextGrowl = 100;
+
+    /**
+     * Used to determine when the wing flap sound should be played
+     */
+    private float wingPosition;
+    private float lastWingPosition;
 
     public EnderDragonEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
@@ -69,49 +92,67 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        // Phase
-        if (entityMetadata.getId() == 15) {
-            int value = (int) entityMetadata.getValue();
-            if (value == 5) {
-                // Performing breath attack
+        if (entityMetadata.getId() == 15) { // Phase
+            phase = (int) entityMetadata.getValue();
+            phaseTicks = 0;
+            metadata.getFlags().setFlag(EntityFlag.SITTING, isSitting());
+        }
+
+        super.updateBedrockMetadata(entityMetadata, session);
+
+        if (entityMetadata.getId() == 8) { // Health
+            // Update the health attribute, so that the death animation gets played
+            // Round health up, so that Bedrock doesn't consider the dragon to be dead when health is between 0 and 1
+            float health = (float) Math.ceil(metadata.getFloat(EntityData.HEALTH));
+            if (phase == 9 && health <= 0) { // Dying phase
                 EntityEventPacket entityEventPacket = new EntityEventPacket();
-                entityEventPacket.setType(EntityEventType.DRAGON_FLAMING);
+                entityEventPacket.setType(EntityEventType.ENDER_DRAGON_DEATH);
                 entityEventPacket.setRuntimeEntityId(geyserId);
                 entityEventPacket.setData(0);
                 session.sendUpstreamPacket(entityEventPacket);
             }
-            metadata.getFlags().setFlag(EntityFlag.SITTING, value == 5 || value == 6 || value == 7);
-            hovering = value == 10;
+            attributes.put(AttributeType.HEALTH, AttributeType.HEALTH.getAttribute(health, 200));
+            updateBedrockAttributes(session);
         }
-        super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    /**
+     * Send an updated list of attributes to the Bedrock client.
+     * This is overwritten to allow the health attribute to differ from
+     * the health specified in the metadata.
+     *
+     * @param session GeyserSession
+     */
+    @Override
+    public void updateBedrockAttributes(GeyserSession session) {
+        if (!valid) return;
+
+        List<AttributeData> attributes = new ArrayList<>();
+        for (Map.Entry<AttributeType, org.geysermc.connector.entity.attribute.Attribute> entry : this.attributes.entrySet()) {
+            if (!entry.getValue().getType().isBedrockAttribute())
+                continue;
+            attributes.add(AttributeUtils.getBedrockAttribute(entry.getValue()));
+        }
+
+        UpdateAttributesPacket updateAttributesPacket = new UpdateAttributesPacket();
+        updateAttributesPacket.setRuntimeEntityId(geyserId);
+        updateAttributesPacket.setAttributes(attributes);
+        session.sendUpstreamPacket(updateAttributesPacket);
     }
 
     @Override
     public void spawnEntity(GeyserSession session) {
-        AddEntityPacket addEntityPacket = new AddEntityPacket();
-        addEntityPacket.setIdentifier("minecraft:" + entityType.name().toLowerCase());
-        addEntityPacket.setRuntimeEntityId(geyserId);
-        addEntityPacket.setUniqueEntityId(geyserId);
-        addEntityPacket.setPosition(position);
-        addEntityPacket.setMotion(motion);
-        addEntityPacket.setRotation(getBedrockRotation());
-        addEntityPacket.setEntityType(entityType.getType());
-        addEntityPacket.getMetadata().putAll(metadata);
+        super.spawnEntity(session);
 
-        // Otherwise dragon is always 'dying'
-        addEntityPacket.getAttributes().add(new AttributeData("minecraft:health", 0.0f, 200f, 200f, 200f));
-
-        valid = true;
-        session.sendUpstreamPacket(addEntityPacket);
-
-        head = new EnderDragonPartEntity(entityId + 1, session.getEntityCache().getNextEntityId().incrementAndGet(), EntityType.ENDER_DRAGON_PART, position, motion, rotation, 1, 1);
-        neck = new EnderDragonPartEntity(entityId + 2, session.getEntityCache().getNextEntityId().incrementAndGet(), EntityType.ENDER_DRAGON_PART, position, motion, rotation, 3, 3);
-        body = new EnderDragonPartEntity(entityId + 3, session.getEntityCache().getNextEntityId().incrementAndGet(), EntityType.ENDER_DRAGON_PART, position, motion, rotation, 5, 3);
-        leftWing = new EnderDragonPartEntity(entityId + 4, session.getEntityCache().getNextEntityId().incrementAndGet(), EntityType.ENDER_DRAGON_PART, position, motion, rotation, 4, 2);
-        rightWing = new EnderDragonPartEntity(entityId + 5, session.getEntityCache().getNextEntityId().incrementAndGet(), EntityType.ENDER_DRAGON_PART, position, motion, rotation, 4, 2);
+        AtomicLong nextEntityId = session.getEntityCache().getNextEntityId();
+        head = new EnderDragonPartEntity(entityId + 1, nextEntityId.incrementAndGet(), EntityType.ENDER_DRAGON_PART, 1, 1);
+        neck = new EnderDragonPartEntity(entityId + 2, nextEntityId.incrementAndGet(), EntityType.ENDER_DRAGON_PART, 3, 3);
+        body = new EnderDragonPartEntity(entityId + 3, nextEntityId.incrementAndGet(), EntityType.ENDER_DRAGON_PART, 5, 3);
+        leftWing = new EnderDragonPartEntity(entityId + 4, nextEntityId.incrementAndGet(), EntityType.ENDER_DRAGON_PART, 4, 2);
+        rightWing = new EnderDragonPartEntity(entityId + 5, nextEntityId.incrementAndGet(), EntityType.ENDER_DRAGON_PART, 4, 2);
         tail = new EnderDragonPartEntity[3];
         for (int i = 0; i < 3; i++) {
-            tail[i] = new EnderDragonPartEntity(entityId + 6 + i, session.getEntityCache().getNextEntityId().incrementAndGet(), EntityType.ENDER_DRAGON_PART, position, motion, rotation, 2, 2);
+            tail[i] = new EnderDragonPartEntity(entityId + 6 + i, nextEntityId.incrementAndGet(), EntityType.ENDER_DRAGON_PART, 2, 2);
         }
 
         allParts = new EnderDragonPartEntity[]{head, neck, body, leftWing, rightWing, tail[0], tail[1], tail[2]};
@@ -125,8 +166,6 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
             segmentHistory[i].yaw = rotation.getZ();
             segmentHistory[i].y = position.getY();
         }
-
-        session.getConnector().getLogger().debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
     }
 
     @Override
@@ -139,8 +178,11 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
 
     @Override
     public void tick(GeyserSession session) {
-        pushSegment();
-        updateBoundingBoxes(session);
+        effectTick(session);
+        if (!metadata.getFlags().getFlag(EntityFlag.NO_AI) && isAlive()) {
+            pushSegment();
+            updateBoundingBoxes(session);
+        }
     }
 
     /**
@@ -158,7 +200,7 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
 
         // Lowers the head when the dragon sits/hovers
         float headDuck;
-        if (hovering || metadata.getFlags().getFlag(EntityFlag.SITTING)) {
+        if (isHovering() || isSitting()) {
             headDuck = -1f;
         } else {
             headDuck = baseSegment.y - getSegment(0).y;
@@ -186,6 +228,105 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
         for (EnderDragonPartEntity part : allParts) {
              part.moveAbsolute(session, part.getPosition().add(position), Vector3f.ZERO, false, false);
         }
+    }
+
+    /**
+     * Handles the particles and sounds of the Ender Dragon
+     * @param session GeyserSession.
+     */
+    private void effectTick(GeyserSession session) {
+        Random random = ThreadLocalRandom.current();
+        if (!metadata.getFlags().getFlag(EntityFlag.SILENT)) {
+            if (Math.cos(wingPosition * 2f * Math.PI) <= -0.3f && Math.cos(lastWingPosition * 2f * Math.PI) >= -0.3f) {
+                PlaySoundPacket playSoundPacket = new PlaySoundPacket();
+                playSoundPacket.setSound("mob.enderdragon.flap");
+                playSoundPacket.setPosition(position);
+                playSoundPacket.setVolume(5f);
+                playSoundPacket.setPitch(0.8f + random.nextFloat() * 0.3f);
+                session.sendUpstreamPacket(playSoundPacket);
+            }
+
+            if (!isSitting() && !isHovering() && ticksTillNextGrowl-- == 0) {
+                playGrowlSound(session);
+                ticksTillNextGrowl = 200 + random.nextInt(200);
+            }
+
+            lastWingPosition = wingPosition;
+        }
+        if (isAlive()) {
+            if (metadata.getFlags().getFlag(EntityFlag.NO_AI)) {
+                wingPosition = 0.5f;
+            } else if (isHovering() || isSitting()) {
+                wingPosition += 0.1f;
+            } else {
+                double speed = motion.length();
+                wingPosition += 0.2f / (speed * 10f + 1) * Math.pow(2, motion.getY());
+            }
+
+            phaseTicks++;
+            if (phase == 3) { // Landing Phase
+                float headHeight = head.getMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT);
+                Vector3f headCenter = head.getPosition().up(headHeight * 0.5f);
+
+                for (int i = 0; i < 8; i++) {
+                    Vector3f particlePos = headCenter.add(random.nextGaussian() / 2f, random.nextGaussian() / 2f, random.nextGaussian() / 2f);
+                    // This is missing velocity information
+                    LevelEventPacket particlePacket = new LevelEventPacket();
+                    particlePacket.setType(LevelEventType.PARTICLE_DRAGONS_BREATH);
+                    particlePacket.setPosition(particlePos);
+                    session.sendUpstreamPacket(particlePacket);
+                }
+            } else if (phase == 5) { // Sitting Flaming Phase
+                if (phaseTicks % 2 == 0 && phaseTicks < 10) {
+                    // Performing breath attack
+                    // Entity event DRAGON_FLAMING seems to create particles from the origin of the dragon,
+                    // so we need to manually spawn particles
+                    for (int i = 0; i < 8; i++) {
+                        SpawnParticleEffectPacket spawnParticleEffectPacket = new SpawnParticleEffectPacket();
+                        spawnParticleEffectPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
+                        spawnParticleEffectPacket.setPosition(head.getPosition().add(random.nextGaussian() / 2f, random.nextGaussian() / 2f, random.nextGaussian() / 2f));
+                        spawnParticleEffectPacket.setIdentifier("minecraft:dragon_breath_fire");
+                        session.sendUpstreamPacket(spawnParticleEffectPacket);
+                    }
+                }
+            } else if (phase == 7) { // Sitting Attacking Phase
+                playGrowlSound(session);
+            } else if (phase == 9) { // Dying Phase
+                // Send explosion particles as the dragon move towards the end portal
+                if (phaseTicks % 10 == 0) {
+                    float xOffset = 8f * (random.nextFloat() - 0.5f);
+                    float yOffset = 4f * (random.nextFloat() - 0.5f) + 2f;
+                    float zOffset = 8f * (random.nextFloat() - 0.5f);
+                    Vector3f particlePos = position.add(xOffset, yOffset, zOffset);
+                    LevelEventPacket particlePacket = new LevelEventPacket();
+                    particlePacket.setType(LevelEventType.PARTICLE_EXPLOSION);
+                    particlePacket.setPosition(particlePos);
+                    session.sendUpstreamPacket(particlePacket);
+                }
+            }
+        }
+    }
+
+    private void playGrowlSound(GeyserSession session) {
+        Random random = ThreadLocalRandom.current();
+        PlaySoundPacket playSoundPacket = new PlaySoundPacket();
+        playSoundPacket.setSound("mob.enderdragon.growl");
+        playSoundPacket.setPosition(position);
+        playSoundPacket.setVolume(2.5f);
+        playSoundPacket.setPitch(0.8f + random.nextFloat() * 0.3f);
+        session.sendUpstreamPacket(playSoundPacket);
+    }
+
+    private boolean isAlive() {
+        return metadata.getFloat(EntityData.HEALTH) > 0;
+    }
+
+    private boolean isHovering() {
+        return phase == 10;
+    }
+
+    private boolean isSitting() {
+        return phase == 5 || phase == 6 || phase == 7;
     }
 
     /**

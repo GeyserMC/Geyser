@@ -26,7 +26,27 @@ pipeline {
             }
 
             steps {
-                sh 'mvn javadoc:jar source:jar deploy -DskipTests'
+                rtMavenDeployer(
+                        id: "maven-deployer",
+                        serverId: "opencollab-artifactory",
+                        releaseRepo: "maven-releases",
+                        snapshotRepo: "maven-snapshots"
+                )
+                rtMavenResolver(
+                        id: "maven-resolver",
+                        serverId: "opencollab-artifactory",
+                        releaseRepo: "release",
+                        snapshotRepo: "snapshot"
+                )
+                rtMavenRun(
+                        pom: 'pom.xml',
+                        goals: 'javadoc:jar source:jar install -DskipTests',
+                        deployerId: "maven-deployer",
+                        resolverId: "maven-resolver"
+                )
+                rtPublishBuildInfo(
+                        serverId: "opencollab-artifactory"
+                )
             }
         }
     }
@@ -72,8 +92,9 @@ pipeline {
         success {
             script {
                 if (env.BRANCH_NAME == 'master') {
-                    build propagate: false, wait: false, job: 'GeyserMC/Geyser-Fabric/java-1.16'
-                    build propagate: false, wait: false, job: 'GeyserMC/GeyserAndroid/master'
+                    build propagate: false, wait: false, job: 'GeyserMC/Geyser-Fabric/java-1.16', parameters: [booleanParam(name: 'SKIP_DISCORD', value: true)]
+                    build propagate: false, wait: false, job: 'GeyserMC/GeyserAndroid/master', parameters: [booleanParam(name: 'SKIP_DISCORD', value: true)]
+                    build propagate: false, wait: false, job: 'GeyserMC/GeyserConnect/master', parameters: [booleanParam(name: 'SKIP_DISCORD', value: true)]
                 }
             }
         }

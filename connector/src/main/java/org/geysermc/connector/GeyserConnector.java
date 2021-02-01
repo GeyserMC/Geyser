@@ -85,6 +85,12 @@ public class GeyserConnector {
     public static final String NAME = "Geyser";
     public static final String GIT_VERSION = "DEV"; // A fallback for running in IDEs
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
+    public static final String MINECRAFT_VERSION = "1.16.4 - 1.16.5";
+
+    /**
+     * Oauth client ID for Microsoft authentication
+     */
+    public static final String OAUTH_CLIENT_ID = "204cefd1-4818-4de1-b98d-513fae875d88";
 
     private static final String IP_REGEX = "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b";
 
@@ -101,8 +107,8 @@ public class GeyserConnector {
     private final ScheduledExecutorService generalThreadPool;
 
     private BedrockServer bedrockServer;
-    private PlatformType platformType;
-    private GeyserBootstrap bootstrap;
+    private final PlatformType platformType;
+    private final GeyserBootstrap bootstrap;
 
     private Metrics metrics;
 
