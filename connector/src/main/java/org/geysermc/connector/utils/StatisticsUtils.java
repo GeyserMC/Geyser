@@ -33,6 +33,7 @@ import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.cumulus.SimpleForm;
 import org.geysermc.cumulus.response.SimpleFormResponse;
+import org.geysermc.cumulus.util.FormImage;
 
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -54,15 +55,15 @@ public class StatisticsUtils {
                 SimpleForm.builder()
                         .translator(StatisticsUtils::translate, language)
                         .title("gui.stats")
-                        .button("stat.generalButton")
-                        .button("stat.itemsButton - stat_type.minecraft.mined")
-                        .button("stat.itemsButton - stat_type.minecraft.broken")
-                        .button("stat.itemsButton - stat_type.minecraft.crafted")
-                        .button("stat.itemsButton - stat_type.minecraft.used")
-                        .button("stat.itemsButton - stat_type.minecraft.picked_up")
-                        .button("stat.itemsButton - stat_type.minecraft.dropped")
-                        .button("stat.mobsButton - geyser.statistics.killed")
-                        .button("stat.mobsButton - geyser.statistics.killed_by")
+                        .button("stat.generalButton", FormImage.Type.PATH, "textures/ui/World")
+                        .button("stat.itemsButton - stat_type.minecraft.mined", FormImage.Type.PATH, "textures/items/iron_pickaxe")
+                        .button("stat.itemsButton - stat_type.minecraft.broken", FormImage.Type.PATH, "textures/item/record_11")
+                        .button("stat.itemsButton - stat_type.minecraft.crafted", FormImage.Type.PATH, "textures/blocks/crafting_table_side")
+                        .button("stat.itemsButton - stat_type.minecraft.used", FormImage.Type.PATH, "textures/ui/Wrenches1")
+                        .button("stat.itemsButton - stat_type.minecraft.picked_up", FormImage.Type.PATH, "textures/blocks/chest_front")
+                        .button("stat.itemsButton - stat_type.minecraft.dropped", FormImage.Type.PATH, "textures/ui/trash_default")
+                        .button("stat.mobsButton - geyser.statistics.killed", FormImage.Type.PATH, "textures/items/diamon_sword")
+                        .button("stat.mobsButton - geyser.statistics.killed_by", FormImage.Type.PATH, "textures/ui/wither_heart_flash")
                         .responseHandler((form, responseData) -> {
                             SimpleFormResponse response = form.parseResponse(responseData);
                             if (!response.isCorrect()) {
@@ -178,7 +179,7 @@ public class StatisticsUtils {
 
                             session.sendForm(
                                     builder.content(content.toString())
-                                            .button("gui.back")
+                                            .button("gui.back", FormImage.Type.PATH, "textures/gui/newgui/undo")
                                             .responseHandler((form1, responseData1) -> {
                                                 SimpleFormResponse response1 = form.parseResponse(responseData1);
                                                 if (response1.isCorrect()) {

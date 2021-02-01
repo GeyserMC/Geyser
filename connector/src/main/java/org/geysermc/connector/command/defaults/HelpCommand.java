@@ -29,6 +29,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.common.ChatColor;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
 import java.util.Collections;
@@ -48,7 +49,7 @@ public class HelpCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
+    public void execute(GeyserSession session, CommandSender sender, String[] args) {
         int page = 1;
         int maxPage = 1;
         String header = LanguageUtils.getPlayerLocaleString("geyser.commands.help.header", sender.getLocale(), page, maxPage);

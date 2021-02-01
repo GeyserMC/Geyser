@@ -20,7 +20,7 @@
         <dependency>
             <groupId>net.md-5</groupId>
             <artifactId>bungeecord-api</artifactId>
-            <version>1.15-SNAPSHOT</version>
+            <version>1.16-R0.4-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -86,8 +86,8 @@
                                     <shadedPattern>org.geysermc.platform.bungeecord.shaded.dom4j</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>net.kyori.adventure</pattern>
-                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.adventure</shadedPattern>
+                                    <pattern>net.kyori</pattern>
+                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.kyori</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

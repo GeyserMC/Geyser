@@ -23,33 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.command.defaults;
+package org.geysermc.connector.entity;
 
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.command.CommandSender;
-import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.SettingsUtils;
 
-public class SettingsCommand extends GeyserCommand {
-    public SettingsCommand(GeyserConnector connector, String name, String description, String permission) {
-        super(name, description, permission);
-    }
-
-    @Override
-    public void execute(GeyserSession session, CommandSender sender, String[] args) {
-        if (session != null) {
-            session.sendForm(SettingsUtils.buildForm(session));
-        }
-    }
-
-    @Override
-    public boolean isExecutableOnConsole() {
-        return false;
-    }
-
-    @Override
-    public boolean isBedrockOnly() {
-        return true;
-    }
+/**
+ * Implemented onto anything that should have code ran every Minecraft tick - 50 milliseconds.
+ */
+public interface Tickable {
+    void tick(GeyserSession session);
 }

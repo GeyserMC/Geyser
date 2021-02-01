@@ -29,18 +29,22 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
+import com.github.steveice10.mc.auth.service.MsaAuthenticationService;
 import com.nimbusds.jose.JWSObject;
 import com.nukkitx.network.util.Preconditions;
 import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.auth.AuthData;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
 import org.geysermc.cumulus.CustomForm;
+import org.geysermc.cumulus.ModalForm;
 import org.geysermc.cumulus.SimpleForm;
 import org.geysermc.cumulus.response.CustomFormResponse;
+import org.geysermc.cumulus.response.ModalFormResponse;
 import org.geysermc.cumulus.response.SimpleFormResponse;
 
 import javax.crypto.SecretKey;
@@ -154,12 +158,19 @@ public class LoginEncryptionUtils {
     }
 
     public static void buildAndShowLoginWindow(GeyserSession session) {
+        // Set DoDaylightCycle to false so the time doesn't accelerate while we're here
+        session.setDaylightCycle(false);
+
+        GeyserConfiguration config = session.getConnector().getConfig();
+        boolean isPasswordAuthEnabled = config.getRemote().isPasswordAuthentication();
+
         session.sendForm(
                 SimpleForm.builder()
                         .translator(LanguageUtils::getPlayerLocaleString, session.getLocale())
                         .title("geyser.auth.login.form.notice.title")
                         .content("geyser.auth.login.form.notice.desc")
-                        .button("geyser.auth.login.form.notice.btn_login") // id = 0
+                        .button("geyser.auth.login.form.notice.btn_login.mojang") //todo optional
+                        .button("geyser.auth.login.form.notice.btn_login.microsoft")
                         .button("geyser.auth.login.form.notice.btn_disconnect")
                         .responseHandler((form, responseData) -> {
                             SimpleFormResponse response = form.parseResponse(responseData);
@@ -168,13 +179,29 @@ public class LoginEncryptionUtils {
                                 return;
                             }
 
-                            if (response.getClickedButtonId() == 0) {
+                            int microsoftButton = isPasswordAuthentication ? 1 : 0;
+                            int disconnectButton = isPasswordAuthentication ? 2 : 1;
+
+                            if (isPasswordAuthEnabled && response.getClickedButtonId() == 0) {
+                                session.setMicrosoftAccount(false);
                                 buildAndShowLoginDetailsWindow(session);
                                 return;
                             }
 
-                            session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.getClientData().getLanguageCode()));
-                }));
+                            if (isPasswordAuthEnabled && response.getClickedButtonId() == 1) {
+                                session.setMicrosoftAccount(true);
+                                buildAndShowMicrosoftAuthenticationWindow(session);
+                                return;
+                            }
+
+                            if (response.getClickedButtonId() == 0) {
+                                // Just show the OAuth code
+                                session.authenticateWithMicrosoftCode();
+                                return;
+                            }
+
+                            session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.getLocale()));
+                        }));
     }
 
     public static void buildAndShowLoginDetailsWindow(GeyserSession session) {
@@ -194,5 +221,57 @@ public class LoginEncryptionUtils {
 
                             session.authenticate(response.next(), response.next());
                         }));
+    }
+
+    /**
+     * Promts the user between either OAuth code login or manual password authentication
+     */
+    public static void buildAndShowMicrosoftAuthenticationWindow(GeyserSession session) {
+        session.sendForm(
+                SimpleForm.builder()
+                        .translator(LanguageUtils::getPlayerLocaleString, session.getLocale())
+                        .title("geyser.auth.login.form.notice.btn_login.microsoft")
+                        .button("geyser.auth.login.method.browser")
+                        .button("geyser.auth.login.method.password")
+                        .button("geyser.auth.login.form.notice.btn_disconnect")
+                        .responseHandler((form, responseData) -> {
+                            SimpleFormResponse response = form.parseResponse(responseData);
+                            if (!response.isCorrect()) {
+                                buildAndShowLoginWindow(session);
+                                return;
+                            }
+
+                            if (response.getClickedButtonId() == 0) {
+                                session.authenticateWithMicrosoftCode();
+                            } else if (response.getClickedButtonId() == 1) {
+                                buildAndShowLoginDetailsWindow(session);
+                            } else {
+                                session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.getLocale()));
+                            }
+                        }));
+    }
+
+    /**
+     * Shows the code that a user must input into their browser
+     */
+    public static void buildAndShowMicrosoftCodeWindow(GeyserSession session, MsaAuthenticationService.MsCodeResponse msCode) {
+        session.sendForm(
+                ModalForm.builder()
+                        .title("%xbox.signin")
+                        .content("%xbox.signin.website\n%xbox.signin.url\n%xbox.signin.enterCode\n" + msCode.user_code)
+                        .button1("%gui.done")
+                        .button2("%menu.disconnect")
+                        .responseHandler((form, responseData) -> {
+                            ModalFormResponse response = form.parseResponse(responseData);
+                            if (!response.isCorrect()) {
+                                buildAndShowMicrosoftAuthenticationWindow(session);
+                                return;
+                            }
+
+                            if (response.getClickedButtonId() == 1) {
+                                session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.getLocale()));
+                            }
+                        })
+        )
     }
 }

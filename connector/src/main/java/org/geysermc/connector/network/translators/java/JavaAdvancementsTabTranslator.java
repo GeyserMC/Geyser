@@ -23,33 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.command.defaults;
+package org.geysermc.connector.network.translators.java;
 
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.command.CommandSender;
-import org.geysermc.connector.command.GeyserCommand;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerAdvancementTabPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.SettingsUtils;
+import org.geysermc.connector.network.session.cache.AdvancementsCache;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-public class SettingsCommand extends GeyserCommand {
-    public SettingsCommand(GeyserConnector connector, String name, String description, String permission) {
-        super(name, description, permission);
-    }
-
-    @Override
-    public void execute(GeyserSession session, CommandSender sender, String[] args) {
-        if (session != null) {
-            session.sendForm(SettingsUtils.buildForm(session));
-        }
-    }
+/**
+ * Indicates that the client should open a particular advancement tab
+ */
+@Translator(packet = ServerAdvancementTabPacket.class)
+public class JavaAdvancementsTabTranslator extends PacketTranslator<ServerAdvancementTabPacket> {
 
     @Override
-    public boolean isExecutableOnConsole() {
-        return false;
-    }
-
-    @Override
-    public boolean isBedrockOnly() {
-        return true;
+    public void translate(ServerAdvancementTabPacket packet, GeyserSession session) {
+        session.getAdvancementsCache().setCurrentAdvancementCategoryId(packet.getTabId());
+        session.sendForm(session.getAdvancementsCache().buildListForm(), AdvancementsCache.ADVANCEMENTS_LIST_FORM_ID);
     }
 }
