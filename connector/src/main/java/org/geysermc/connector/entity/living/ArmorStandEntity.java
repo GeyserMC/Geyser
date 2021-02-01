@@ -197,6 +197,7 @@ public class ArmorStandEntity extends LivingEntity {
     private void updateSecondEntityStatus() {
         if (!primaryEntity) return;
         if (!isInvisible || isMarker) {
+            // It is either impossible to show armor, or the armor stand isn't invisible. We good.
             if (secondEntity != null) {
                 secondEntity.despawnEntity(session);
                 secondEntity = null;
@@ -205,8 +206,9 @@ public class ArmorStandEntity extends LivingEntity {
             }
             return;
         }
-        if ((helmet != ItemData.AIR || chestplate != ItemData.AIR || leggings != ItemData.AIR || boots != ItemData.AIR
-                || hand != ItemData.AIR || offHand != ItemData.AIR) && !metadata.getString(EntityData.NAMETAG).equals("")) {
+        boolean isNametagEmpty = metadata.getString(EntityData.NAMETAG).isEmpty();
+        if ((!helmet.equals(ItemData.AIR) || !chestplate.equals(ItemData.AIR) || !leggings.equals(ItemData.AIR) || !boots.equals(ItemData.AIR)
+                || !hand.equals(ItemData.AIR) || !offHand.equals(ItemData.AIR)) && !isNametagEmpty) {
             if (secondEntity != null) return; // No need to recreate
             // Create the second entity. It doesn't need to worry about the items, but it does need to worry about
             // the metadata as it will hold the name tag.
@@ -215,6 +217,7 @@ public class ArmorStandEntity extends LivingEntity {
             secondEntity.primaryEntity = false;
             // Copy metadata
             secondEntity.isSmall = isSmall;
+            secondEntity.lastPositionIncludedOffset = this.lastPositionIncludedOffset;
             secondEntity.getMetadata().putAll(metadata);
             // Copy the flags so they aren't the same object in memory
             secondEntity.getMetadata().putFlags(metadata.getFlags().copy());
@@ -233,13 +236,8 @@ public class ArmorStandEntity extends LivingEntity {
 
             // Update the position of the armor stands
             updatePosition();
-
-            if (lastPositionIncludedOffset) {
-                secondEntity.updatePosition();
-            } else {
-                secondEntity.updatePositionWithOffset();
-            }
-        } else if (metadata.getString(EntityData.NAMETAG).equals("")) {
+            secondEntity.updatePositionWithOffset();
+        } else if (isNametagEmpty) {
             // We can just make an invisible entity
             // Reset scale of the proper armor stand
             metadata.put(EntityData.SCALE, isSmall ? 0.55f : 1f);
@@ -268,10 +266,14 @@ public class ArmorStandEntity extends LivingEntity {
      * Updates position without calling movement code.
      */
     private void updatePosition() {
+        if (lastPositionIncludedOffset) {
+            this.position = position.sub(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d);
+            lastPositionIncludedOffset = false;
+        }
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
-        moveEntityPacket.setPosition(lastPositionIncludedOffset ? position.sub(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d) : position);
-        moveEntityPacket.setRotation(getBedrockRotation());
+        moveEntityPacket.setPosition(position);
+        moveEntityPacket.setRotation(Vector3f.from(rotation.getX(), rotation.getX(), rotation.getX()));
         moveEntityPacket.setOnGround(onGround);
         moveEntityPacket.setTeleported(false);
         session.sendUpstreamPacket(moveEntityPacket);
@@ -281,18 +283,16 @@ public class ArmorStandEntity extends LivingEntity {
      * Updates position without calling movement code and includes the offset.
      */
     private void updatePositionWithOffset() {
+        if (!lastPositionIncludedOffset) {
+            this.position = this.position.add(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d);
+            lastPositionIncludedOffset = true;
+        }
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
-        moveEntityPacket.setPosition(primaryEntity && lastPositionIncludedOffset ?
-                position : position.add(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d));
-        moveEntityPacket.setRotation(getBedrockRotation());
+        moveEntityPacket.setPosition(this.position);
+        moveEntityPacket.setRotation(Vector3f.from(rotation.getX(), rotation.getX(), rotation.getX()));
         moveEntityPacket.setOnGround(onGround);
         moveEntityPacket.setTeleported(false);
         session.sendUpstreamPacket(moveEntityPacket);
-    }
-
-    @Override
-    public Vector3f getBedrockRotation() {
-        return Vector3f.from(rotation.getY(), rotation.getX(), rotation.getZ());
     }
 }
