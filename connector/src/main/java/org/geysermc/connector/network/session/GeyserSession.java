@@ -489,7 +489,7 @@ public class GeyserSession implements CommandSender {
                 MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserConnector.OAUTH_CLIENT_ID);
 
                 MsaAuthenticationService.MsCodeResponse response = msaAuthenticationService.getAuthCode();
-                LoginEncryptionUtils.showMicrosoftCodeWindow(this, response);
+                LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
 
                 // This just looks cool
                 SetTimePacket packet = new SetTimePacket();
@@ -605,7 +605,7 @@ public class GeyserSession implements CommandSender {
 
                 // Let the user know there locale may take some time to download
                 // as it has to be extracted from a JAR
-                if (locale.toLowerCase().equals("en_us") && !LocaleUtils.LOCALE_MAPPINGS.containsKey("en_us")) {
+                if (locale.equalsIgnoreCase("en_us") && !LocaleUtils.LOCALE_MAPPINGS.containsKey("en_us")) {
                     // This should probably be left hardcoded as it will only show for en_us clients
                     sendMessage("Loading your locale (en_us); if this isn't already downloaded, this may take some time");
                 }

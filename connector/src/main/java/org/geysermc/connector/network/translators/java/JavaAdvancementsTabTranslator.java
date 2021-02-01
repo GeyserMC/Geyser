@@ -27,7 +27,6 @@ package org.geysermc.connector.network.translators.java;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerAdvancementTabPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.cache.AdvancementsCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
@@ -36,10 +35,10 @@ import org.geysermc.connector.network.translators.Translator;
  */
 @Translator(packet = ServerAdvancementTabPacket.class)
 public class JavaAdvancementsTabTranslator extends PacketTranslator<ServerAdvancementTabPacket> {
-
     @Override
     public void translate(ServerAdvancementTabPacket packet, GeyserSession session) {
-        session.getAdvancementsCache().setCurrentAdvancementCategoryId(packet.getTabId());
-        session.sendForm(session.getAdvancementsCache().buildListForm(), AdvancementsCache.ADVANCEMENTS_LIST_FORM_ID);
+        session.getAdvancementsCache()
+                .setCurrentAdvancementCategoryId(packet.getTabId())
+                .buildAndShowListForm();
     }
 }

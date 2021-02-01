@@ -169,7 +169,7 @@ public class LoginEncryptionUtils {
                         .translator(LanguageUtils::getPlayerLocaleString, session.getLocale())
                         .title("geyser.auth.login.form.notice.title")
                         .content("geyser.auth.login.form.notice.desc")
-                        .button("geyser.auth.login.form.notice.btn_login.mojang") //todo optional
+                        .optionalButton("geyser.auth.login.form.notice.btn_login.mojang", isPasswordAuthEnabled)
                         .button("geyser.auth.login.form.notice.btn_login.microsoft")
                         .button("geyser.auth.login.form.notice.btn_disconnect")
                         .responseHandler((form, responseData) -> {
@@ -178,9 +178,6 @@ public class LoginEncryptionUtils {
                                 buildAndShowLoginWindow(session);
                                 return;
                             }
-
-                            int microsoftButton = isPasswordAuthentication ? 1 : 0;
-                            int disconnectButton = isPasswordAuthentication ? 2 : 1;
 
                             if (isPasswordAuthEnabled && response.getClickedButtonId() == 0) {
                                 session.setMicrosoftAccount(false);
@@ -272,6 +269,6 @@ public class LoginEncryptionUtils {
                                 session.disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.getLocale()));
                             }
                         })
-        )
+        );
     }
 }
