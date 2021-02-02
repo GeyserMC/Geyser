@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.data.game.statistic.*;
 import org.geysermc.common.window.SimpleFormWindow;
 import org.geysermc.common.window.button.FormButton;
+import org.geysermc.common.window.button.FormImage;
 import org.geysermc.common.window.response.SimpleFormResponse;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
@@ -54,17 +55,17 @@ public class StatisticsUtils {
 
         SimpleFormWindow window = new SimpleFormWindow(LocaleUtils.getLocaleString("gui.stats", language), "");
 
-        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("stat.generalButton", language)));
+        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("stat.generalButton", language), new FormImage(FormImage.FormImageType.PATH, "textures/ui/World")));
 
-        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("stat.itemsButton", language) + " - " + LocaleUtils.getLocaleString("stat_type.minecraft.mined", language)));
-        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("stat.itemsButton", language) + " - " + LocaleUtils.getLocaleString("stat_type.minecraft.broken", language)));
-        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("stat.itemsButton", language) + " - " + LocaleUtils.getLocaleString("stat_type.minecraft.crafted", language)));
-        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("stat.itemsButton", language) + " - " + LocaleUtils.getLocaleString("stat_type.minecraft.used", language)));
-        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("stat.itemsButton", language) + " - " + LocaleUtils.getLocaleString("stat_type.minecraft.picked_up", language)));
-        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("stat.itemsButton", language) + " - " + LocaleUtils.getLocaleString("stat_type.minecraft.dropped", language)));
+        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("stat.itemsButton", language) + " - " + LocaleUtils.getLocaleString("stat_type.minecraft.mined", language), new FormImage(FormImage.FormImageType.PATH, "textures/items/iron_pickaxe")));
+        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("stat.itemsButton", language) + " - " + LocaleUtils.getLocaleString("stat_type.minecraft.broken", language), new FormImage(FormImage.FormImageType.PATH, "textures/items/record_11")));
+        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("stat.itemsButton", language) + " - " + LocaleUtils.getLocaleString("stat_type.minecraft.crafted", language), new FormImage(FormImage.FormImageType.PATH, "textures/blocks/crafting_table_side")));
+        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("stat.itemsButton", language) + " - " + LocaleUtils.getLocaleString("stat_type.minecraft.used", language), new FormImage(FormImage.FormImageType.PATH, "textures/ui/Wrenches1")));
+        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("stat.itemsButton", language) + " - " + LocaleUtils.getLocaleString("stat_type.minecraft.picked_up", language), new FormImage(FormImage.FormImageType.PATH, "textures/blocks/chest_front")));
+        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("stat.itemsButton", language) + " - " + LocaleUtils.getLocaleString("stat_type.minecraft.dropped", language), new FormImage(FormImage.FormImageType.PATH, "textures/ui/trash_default")));
 
-        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("stat.mobsButton", language) + " - " + LanguageUtils.getPlayerLocaleString("geyser.statistics.killed", language)));
-        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("stat.mobsButton", language) + " - " + LanguageUtils.getPlayerLocaleString("geyser.statistics.killed_by", language)));
+        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("stat.mobsButton", language) + " - " + LanguageUtils.getPlayerLocaleString("geyser.statistics.killed", language), new FormImage(FormImage.FormImageType.PATH, "textures/items/diamond_sword")));
+        window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("stat.mobsButton", language) + " - " + LanguageUtils.getPlayerLocaleString("geyser.statistics.killed_by", language), new FormImage(FormImage.FormImageType.PATH, "textures/ui/wither_heart_flash")));
 
         return window;
     }
@@ -189,7 +190,7 @@ public class StatisticsUtils {
             }
 
             SimpleFormWindow window = new SimpleFormWindow(title, content.toString());
-            window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("gui.back", language)));
+            window.getButtons().add(new FormButton(LocaleUtils.getLocaleString("gui.back", language), new FormImage(FormImage.FormImageType.PATH, "textures/gui/newgui/undo")));
             session.sendForm(window, STATISTICS_LIST_FORM_ID);
         }
 
