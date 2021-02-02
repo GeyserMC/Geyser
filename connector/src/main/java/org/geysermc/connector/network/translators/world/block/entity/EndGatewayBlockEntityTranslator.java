@@ -42,7 +42,7 @@ public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
         Tag ageTag = tag.get("Age");
-        if(ageTag instanceof LongTag) {
+        if (ageTag instanceof LongTag) {
             builder.put("Age", (int) ((long) ageTag.getValue()));
         }
         // Java sometimes does not provide this tag, but Bedrock crashes if it doesn't exist
