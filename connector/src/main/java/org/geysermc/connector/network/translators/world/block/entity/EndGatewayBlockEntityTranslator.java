@@ -39,7 +39,9 @@ import java.util.LinkedHashMap;
 public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        builder.put("Age", (int) ((long) tag.get("Age").getValue()));
+        if(tag.contains("Age")) {
+            builder.put("Age", (int) ((long) tag.get("Age").getValue()));
+        }
         // Java sometimes does not provide this tag, but Bedrock crashes if it doesn't exist
         // Linked coordinates
         IntList tagsList = new IntArrayList();
