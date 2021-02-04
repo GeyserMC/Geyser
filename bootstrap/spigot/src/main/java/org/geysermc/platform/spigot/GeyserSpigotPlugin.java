@@ -69,6 +69,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     private GeyserConnector connector;
 
+    /**
+     * The Minecraft server version, formatted as <code>1.#.#</code>
+     */
+    private String minecraftVersion;
+
     @Override
     public void onEnable() {
         // This is manually done instead of using Bukkit methods to save the config because otherwise comments get removed
@@ -117,6 +122,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         }
 
         geyserConfig.loadFloodgate(this);
+
+        // Turn "(MC: 1.16.4)" into 1.16.4.
+        this.minecraftVersion = Bukkit.getServer().getVersion().split("\\(MC: ")[1].split("\\)")[0];
 
         this.connector = GeyserConnector.start(PlatformType.SPIGOT, this);
 
@@ -239,6 +247,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         return new GeyserSpigotDumpInfo();
     }
 
+    @Override
+    public String getMinecraftServerVersion() {
+        return this.minecraftVersion;
+    }
+
     public boolean isCompatible(String version, String whichVersion) {
         int[] currentVersion = parseVersion(version);
         int[] otherVersion = parseVersion(whichVersion);
@@ -277,10 +290,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
      * @return the server version before ViaVersion finishes initializing
      */
     public ProtocolVersion getServerProtocolVersion() {
-        String bukkitVersion = Bukkit.getServer().getVersion();
-        // Turn "(MC: 1.16.4)" into 1.16.4.
-        String version = bukkitVersion.split("\\(MC: ")[1].split("\\)")[0];
-        return ProtocolVersion.getClosest(version);
+        return ProtocolVersion.getClosest(this.minecraftVersion);
     }
 
     /**
