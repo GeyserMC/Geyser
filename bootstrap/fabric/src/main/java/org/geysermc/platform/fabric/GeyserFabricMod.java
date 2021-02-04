@@ -48,6 +48,7 @@ import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.fabric.command.GeyserFabricCommandExecutor;
 import org.geysermc.platform.fabric.command.GeyserFabricCommandManager;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -199,6 +200,11 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     @Override
     public BootstrapDumpInfo getDumpInfo() {
         return new GeyserFabricDumpInfo(server);
+    }
+
+    @Override
+    public String getMinecraftServerVersion() {
+        return this.server.getVersion();
     }
 
     private File fileOrCopiedFromResource(File file, String name) throws IOException {
