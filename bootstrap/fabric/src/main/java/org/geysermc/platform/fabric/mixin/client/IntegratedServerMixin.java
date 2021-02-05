@@ -32,7 +32,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraft.text.LiteralText;
 import net.minecraft.world.GameMode;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.fabric.GeyserFabricMod;
 import org.geysermc.platform.fabric.GeyserServerPortGetter;

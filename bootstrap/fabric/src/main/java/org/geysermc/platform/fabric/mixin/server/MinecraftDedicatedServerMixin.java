@@ -32,7 +32,6 @@ import net.minecraft.resource.ResourcePackManager;
 import net.minecraft.resource.ServerResourceManager;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.WorldGenerationProgressListenerFactory;
-import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.dedicated.MinecraftDedicatedServer;
 import net.minecraft.util.UserCache;
 import net.minecraft.util.registry.DynamicRegistryManager;
@@ -44,8 +43,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import java.net.Proxy;
 
 @Mixin(MinecraftDedicatedServer.class)
-public abstract class MinecraftDedicatedServerMixin extends MinecraftServer implements GeyserServerPortGetter
-{
+public abstract class MinecraftDedicatedServerMixin extends MinecraftServer implements GeyserServerPortGetter {
     // Constructor to compile
     public MinecraftDedicatedServerMixin(Thread thread, DynamicRegistryManager.Impl impl, LevelStorage.Session session, SaveProperties saveProperties, ResourcePackManager resourcePackManager, Proxy proxy, DataFixer dataFixer, ServerResourceManager serverResourceManager, MinecraftSessionService minecraftSessionService, GameProfileRepository gameProfileRepository, UserCache userCache, WorldGenerationProgressListenerFactory worldGenerationProgressListenerFactory) {
         super(thread, impl, session, saveProperties, resourcePackManager, proxy, dataFixer, serverResourceManager, minecraftSessionService, gameProfileRepository, userCache, worldGenerationProgressListenerFactory);

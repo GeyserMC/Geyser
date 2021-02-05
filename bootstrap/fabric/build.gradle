@@ -29,9 +29,6 @@ dependencies {
 
     implementation 'org.geysermc:connector:1.2.0-SNAPSHOT'
     shadow 'org.geysermc:connector:1.2.0-SNAPSHOT'
-
-    compileOnly 'org.projectlombok:lombok:1.18.4'
-    annotationProcessor 'org.projectlombok:lombok:1.18.4'
 }
 
 repositories {

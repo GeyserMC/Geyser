@@ -26,7 +26,6 @@
 package org.geysermc.platform.fabric;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import lombok.Setter;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -48,20 +47,21 @@ import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.fabric.command.GeyserFabricCommandExecutor;
 import org.geysermc.platform.fabric.command.GeyserFabricCommandManager;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
     private static GeyserFabricMod instance;
 
-    @Setter
     private boolean reloading;
 
     private GeyserConnector connector;
@@ -205,6 +205,10 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     @Override
     public String getMinecraftServerVersion() {
         return this.server.getVersion();
+    }
+
+    public void setReloading(boolean reloading) {
+        this.reloading = reloading;
     }
 
     private File fileOrCopiedFromResource(File file, String name) throws IOException {

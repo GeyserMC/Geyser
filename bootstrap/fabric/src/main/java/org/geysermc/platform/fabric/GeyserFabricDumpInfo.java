@@ -25,7 +25,6 @@
 
 package org.geysermc.platform.fabric;
 
-import lombok.Getter;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.server.MinecraftServer;
@@ -35,7 +34,6 @@ import org.geysermc.connector.dump.BootstrapDumpInfo;
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter
 public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
 
     private String serverIP;
@@ -57,4 +55,15 @@ public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
         }
     }
 
+    public String getServerIP() {
+        return this.serverIP;
+    }
+
+    public int getServerPort() {
+        return this.serverPort;
+    }
+
+    public List<ModInfo> getMods() {
+        return this.mods;
+    }
 }

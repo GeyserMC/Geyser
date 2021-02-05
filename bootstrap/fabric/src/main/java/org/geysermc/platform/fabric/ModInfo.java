@@ -25,7 +25,6 @@
 
 package org.geysermc.platform.fabric;
 
-import lombok.Getter;
 import net.fabricmc.loader.api.ModContainer;
 
 import java.util.ArrayList;
@@ -34,13 +33,12 @@ import java.util.List;
 /**
  * A wrapper for Fabric mod information to be presented in a Geyser dump
  */
-@Getter
 public class ModInfo {
 
-    private String name;
-    private String id;
-    private String version;
-    private List<String> authors;
+    private final String name;
+    private final String id;
+    private final String version;
+    private final List<String> authors;
 
     public ModInfo(ModContainer mod) {
         this.name = mod.getMetadata().getName();
@@ -50,4 +48,19 @@ public class ModInfo {
         this.version = mod.getMetadata().getVersion().getFriendlyString();
     }
 
+    public String getName() {
+        return this.name;
+    }
+
+    public String getId() {
+        return this.id;
+    }
+
+    public String getVersion() {
+        return this.version;
+    }
+
+    public List<String> getAuthors() {
+        return this.authors;
+    }
 }

@@ -27,7 +27,6 @@ package org.geysermc.platform.fabric;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Getter;
 
 /**
  * A class outline of the permissions.yml file
@@ -35,8 +34,10 @@ import lombok.Getter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GeyserFabricPermissions {
 
-    @Getter
     @JsonProperty("commands")
     private String[] commands;
 
+    public String[] getCommands() {
+        return this.commands;
+    }
 }
