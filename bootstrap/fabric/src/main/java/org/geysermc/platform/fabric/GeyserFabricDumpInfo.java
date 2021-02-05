@@ -25,6 +25,7 @@
 
 package org.geysermc.platform.fabric;
 
+import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.server.MinecraftServer;
@@ -34,14 +35,25 @@ import org.geysermc.connector.dump.BootstrapDumpInfo;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unused") // The way that the dump renders makes them used
 public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
 
-    private String serverIP;
-    private int serverPort;
-    private List<ModInfo> mods;
+    private String platformVersion = null;
+    private final EnvType environmentType;
+
+    private final String serverIP;
+    private final int serverPort;
+    private final List<ModInfo> mods;
 
     public GeyserFabricDumpInfo(MinecraftServer server) {
         super();
+        for (ModContainer modContainer : FabricLoader.getInstance().getAllMods()) {
+            if (modContainer.getMetadata().getId().equals("fabricloader")) {
+                this.platformVersion = modContainer.getMetadata().getVersion().getFriendlyString();
+                break;
+            }
+        }
+        this.environmentType = FabricLoader.getInstance().getEnvironmentType();
         if (AsteriskSerializer.showSensitive || (server.getServerIp() == null || server.getServerIp().equals("") || server.getServerIp().equals("0.0.0.0"))) {
             this.serverIP = server.getServerIp();
         } else {
@@ -53,6 +65,14 @@ public class GeyserFabricDumpInfo extends BootstrapDumpInfo {
         for (ModContainer mod : FabricLoader.getInstance().getAllMods()) {
             this.mods.add(new ModInfo(mod));
         }
+    }
+
+    public String getPlatformVersion() {
+        return platformVersion;
+    }
+
+    public EnvType getEnvironmentType() {
+        return environmentType;
     }
 
     public String getServerIP() {
