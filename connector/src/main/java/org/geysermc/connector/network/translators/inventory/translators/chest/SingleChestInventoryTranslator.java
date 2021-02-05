@@ -30,14 +30,15 @@ import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.holder.BlockInventoryHolder;
 import org.geysermc.connector.network.translators.inventory.holder.InventoryHolder;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 public class SingleChestInventoryTranslator extends ChestInventoryTranslator {
     private final InventoryHolder holder;
 
     public SingleChestInventoryTranslator(int size) {
         super(size, 27);
-        this.holder = new BlockInventoryHolder("minecraft:chest[facing=north,type=single,waterlogged=false]", ContainerType.CONTAINER,
-                "minecraft:chest", "minecraft:ender_chest", "minecraft:trapped_chest");
+        int javaBlockState = BlockTranslator.getJavaBlockState("minecraft:chest[facing=north,type=single,waterlogged=false]");
+        this.holder = new BlockInventoryHolder(BlockTranslator.getBedrockBlockId(javaBlockState), ContainerType.CONTAINER);
     }
 
     @Override

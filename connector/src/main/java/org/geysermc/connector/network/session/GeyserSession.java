@@ -38,6 +38,7 @@ import com.github.steveice10.mc.protocol.data.SubProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
+import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
@@ -72,10 +73,10 @@ import lombok.Setter;
 import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.inventory.Inventory;
@@ -230,15 +231,7 @@ public class GeyserSession implements CommandSender {
      * Initialized as (0, 0, 0) so it is always not-null.
      */
     @Setter
-    private Vector3i lastInteractionBlockPosition = Vector3i.ZERO;
-
-    /**
-     * Stores the position of the player the last time they interacted.
-     * Used to verify that the player did not move since their last interaction. <br>
-     * Initialized as (0, 0, 0) so it is always not-null.
-     */
-    @Setter
-    private Vector3f lastInteractionPlayerPosition = Vector3f.ZERO;
+    private Vector3i lastInteractionPosition = Vector3i.ZERO;
 
     @Setter
     private Entity ridingVehicleEntity;
@@ -247,12 +240,14 @@ public class GeyserSession implements CommandSender {
     private long lastWindowCloseTime = 0;
 
     @Setter
+    private VillagerTrade[] villagerTrades;
+    @Setter
     private long lastInteractedVillagerEid;
 
     @Setter
     private Int2ObjectMap<Recipe> craftingRecipes;
     private final Set<String> unlockedRecipes;
-    private final AtomicInteger lastRecipeNetId;
+    private AtomicInteger lastRecipeNetId;
 
     /**
      * Saves a list of all stonecutter recipes, for use in a stonecutter inventory.

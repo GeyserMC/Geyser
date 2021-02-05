@@ -33,6 +33,7 @@ import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.*;
 import com.nukkitx.protocol.bedrock.packet.ItemStackRequestPacket;
@@ -93,8 +94,8 @@ public abstract class InventoryTranslator {
             put(WindowType.STONECUTTER, new StonecutterInventoryTranslator());
 
             /* Generics */
-            put(WindowType.GENERIC_3X3, new Generic3X3InventoryTranslator());
-            put(WindowType.HOPPER, new HopperInventoryTranslator());
+            put(WindowType.GENERIC_3X3, new GenericBlockInventoryTranslator(9, "minecraft:dispenser[facing=north,triggered=false]", ContainerType.DISPENSER));
+            put(WindowType.HOPPER, new GenericBlockInventoryTranslator(5, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER));
 
             /* Lectern */
             put(WindowType.LECTERN, new LecternInventoryTranslator());
