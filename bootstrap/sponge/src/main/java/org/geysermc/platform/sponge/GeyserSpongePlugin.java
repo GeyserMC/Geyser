@@ -163,4 +163,9 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     public BootstrapDumpInfo getDumpInfo() {
         return new GeyserSpongeDumpInfo();
     }
+
+    @Override
+    public String getMinecraftServerVersion() {
+        return Sponge.getPlatform().getMinecraftVersion().getName();
+    }
 }

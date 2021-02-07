@@ -33,6 +33,7 @@ import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.network.translators.world.GeyserWorldManager;
 import org.geysermc.connector.network.translators.world.WorldManager;
 
+import javax.annotation.Nullable;
 import java.nio.file.Path;
 
 public interface GeyserBootstrap {
@@ -99,4 +100,18 @@ public interface GeyserBootstrap {
      * @return The info about the bootstrap
      */
     BootstrapDumpInfo getDumpInfo();
+
+    /**
+     * Returns the Minecraft version currently being used on the server. This should be only be implemented on platforms
+     * that have direct server access - platforms such as proxies always have to be on their latest version to support
+     * the newest Minecraft version, but older servers can use ViaVersion to enable newer versions to join.
+     * <br>
+     * If used, this should not be null before {@link org.geysermc.connector.GeyserConnector} initialization.
+     *
+     * @return the Minecraft version being used on the server, or <code>null</code> if not applicable
+     */
+    @Nullable
+    default String getMinecraftServerVersion() {
+        return null;
+    }
 }

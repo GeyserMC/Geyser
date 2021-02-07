@@ -128,8 +128,8 @@ public class EntityCache {
         return playerEntities.get(uuid);
     }
 
-    public void removePlayerEntity(UUID uuid) {
-        playerEntities.remove(uuid);
+    public PlayerEntity removePlayerEntity(UUID uuid) {
+        return playerEntities.remove(uuid);
     }
 
     public void addBossBar(UUID uuid, BossBar bossBar) {
