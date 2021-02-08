@@ -101,7 +101,7 @@ public class LocaleUtils {
                 ASSET_MAP.put(entry.getKey(), asset);
             }
         } catch (Exception e) {
-            GeyserConnector.getInstance().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.locale.fail.asset_cache", (!e.getMessage().isEmpty() ? e.getMessage() : e.getStackTrace())));
+            GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.locale.fail.asset_cache", (!e.getMessage().isEmpty() ? e.getMessage() : e.getStackTrace())));
         }
     }
 
@@ -260,7 +260,7 @@ public class LocaleUtils {
             // Delete the nolonger needed client/server jar
             Files.delete(tmpFilePath);
         } catch (Exception e) {
-            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.locale.fail.en_us"), e);
+            GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.locale.fail.en_us"), e);
         }
     }
 
