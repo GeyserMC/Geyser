@@ -67,8 +67,8 @@ public class LanguageUtils {
         // Load the locale
         if (localeStream != null) {
             Properties localeProp = new Properties();
-            try {
-                localeProp.load(new InputStreamReader(localeStream, StandardCharsets.UTF_8));
+            try (InputStreamReader reader = new InputStreamReader(localeStream, StandardCharsets.UTF_8)) {
+                localeProp.load(reader);
             } catch (Exception e) {
                 throw new AssertionError(getLocaleStringLog("geyser.language.load_failed", locale), e);
             }

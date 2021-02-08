@@ -236,23 +236,22 @@ public class LocaleUtils {
             WebUtils.downloadFile(clientJarInfo.getUrl(), tmpFilePath.toString());
 
             // Load in the JAR as a zip and extract the file
-            ZipFile localeJar = new ZipFile(tmpFilePath.toString());
-            InputStream fileStream = localeJar.getInputStream(localeJar.getEntry("assets/minecraft/lang/en_us.json"));
-            FileOutputStream outStream = new FileOutputStream(localeFile);
+            try (ZipFile localeJar = new ZipFile(tmpFilePath.toString())) {
+                try (InputStream fileStream = localeJar.getInputStream(localeJar.getEntry("assets/minecraft/lang/en_us.json"))) {
+                    try (FileOutputStream outStream = new FileOutputStream(localeFile)) {
 
-            // Write the file to the locale dir
-            byte[] buf = new byte[fileStream.available()];
-            int length;
-            while ((length = fileStream.read(buf)) != -1) {
-                outStream.write(buf, 0, length);
+                        // Write the file to the locale dir
+                        byte[] buf = new byte[fileStream.available()];
+                        int length;
+                        while ((length = fileStream.read(buf)) != -1) {
+                            outStream.write(buf, 0, length);
+                        }
+
+                        // Flush all changes to disk and cleanup
+                        outStream.flush();
+                    }
+                }
             }
-
-            // Flush all changes to disk and cleanup
-            outStream.flush();
-            outStream.close();
-
-            fileStream.close();
-            localeJar.close();
 
             // Store the latest jar hash
             FileUtils.writeFile(GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("locales/en_us.hash").toString(), clientJarInfo.getSha1().toCharArray());
