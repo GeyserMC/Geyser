@@ -26,8 +26,8 @@
 package org.geysermc.connector.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
+import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.AuthType;

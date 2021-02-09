@@ -36,12 +36,12 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.FileUtils;
-import org.reflections.Reflections;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 public class BlockTranslator {
     /**
@@ -98,14 +98,14 @@ public class BlockTranslator {
 
     public static final int JAVA_RUNTIME_SPAWNER_ID;
 
-    private static final int BLOCK_STATE_VERSION = 17825808;
+    private static final int BLOCK_STATE_VERSION = 17879555;
 
     static {
         /* Load block palette */
         InputStream stream = FileUtils.getResource("bedrock/blockpalette.nbt");
 
         NbtList<NbtMap> blocksTag;
-        try (NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(stream))) {
+        try (NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)))) {
             NbtMap blockPalette = (NbtMap) nbtInputStream.readTag();
             blocksTag = (NbtList<NbtMap>) blockPalette.getList("blocks", NbtType.COMPOUND);
         } catch (Exception e) {
@@ -118,11 +118,10 @@ public class BlockTranslator {
 
         for (int i = 0; i < blocksTag.size(); i++) {
             NbtMap tag = blocksTag.get(i);
-            NbtMap blockTag = tag.getCompound("block");
-            if (blockStateOrderedMap.containsKey(blockTag)) {
-                throw new AssertionError("Duplicate block states in Bedrock palette");
+            if (blockStateOrderedMap.containsKey(tag)) {
+                throw new AssertionError("Duplicate block states in Bedrock palette: " + tag);
             }
-            blockStateOrderedMap.put(blockTag, i);
+            blockStateOrderedMap.put(tag, i);
         }
 
         stream = FileUtils.getResource("mappings/blocks.json");
@@ -132,9 +131,6 @@ public class BlockTranslator {
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java block mappings", e);
         }
-
-        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators.world.block.entity")
-                : new Reflections("org.geysermc.connector.network.translators.world.block.entity");
 
         int waterRuntimeId = -1;
         int javaRuntimeId = -1;
@@ -153,7 +149,7 @@ public class BlockTranslator {
             NbtMap blockTag = buildBedrockState(entry.getValue());
             int bedrockRuntimeId = blockStateOrderedMap.getOrDefault(blockTag, -1);
             if (bedrockRuntimeId == -1) {
-                throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID!");
+                throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Built compound tag: \n" + blockTag);
             }
 
             // TODO fix this, (no block should have a null hardness)
