@@ -81,7 +81,11 @@ legacy-ping-passthrough: false
 # Increase if you are getting BrokenPipe errors.
 ping-passthrough-interval: 3
 
-# Maximum amount of players that can connect
+# Whether to forward player ping to the server. While enabling this will allow Bedrock players to have more accurate
+# ping, it may also cause players to time out more easily.
+forward-player-ping: false
+
+# Maximum amount of players that can connect. This is only visual at this time and does not actually limit player count.
 max-players: 100
 
 # If debug messages should be sent through console
