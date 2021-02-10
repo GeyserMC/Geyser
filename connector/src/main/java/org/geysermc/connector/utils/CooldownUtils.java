@@ -26,25 +26,27 @@
 package org.geysermc.connector.utils;
 
 import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
-import lombok.Getter;
-import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Manages the sending of a cooldown indicator to the Bedrock player as there is no cooldown indicator in Bedrock.
  * Much of the work here is from the wonderful folks from ViaRewind: https://github.com/ViaVersion/ViaRewind
  */
 public class CooldownUtils {
+    private static boolean SHOW_COOLDOWN;
 
-    @Getter @Setter
-    private static boolean showCooldown;
+    public static void setShowCooldown(boolean showCooldown) {
+        SHOW_COOLDOWN = showCooldown;
+    }
 
     /**
      * Starts sending the fake cooldown to the Bedrock client.
      * @param session GeyserSession
      */
     public static void sendCooldown(GeyserSession session) {
-        if (!showCooldown) return;
+        if (!SHOW_COOLDOWN) return;
         if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20) return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
         // Needs to be sent or no subtitle packet is recognized by the client
         SetTitlePacket titlePacket = new SetTitlePacket();
@@ -52,13 +54,17 @@ public class CooldownUtils {
         titlePacket.setText(" ");
         session.sendUpstreamPacket(titlePacket);
         session.setLastHitTime(System.currentTimeMillis());
+        long lastHitTime = session.getLastHitTime(); // Used later to prevent multiple scheduled cooldown threads
+        computeCooldown(session, lastHitTime);
     }
 
     /**
-     * Keeps updating the cooldown until the bar is complete. This should be executed every tick.
+     * Keeps updating the cooldown until the bar is complete.
      * @param session GeyserSession
      */
-    public static void computeCurrentCooldown(GeyserSession session) {
+    private static void computeCooldown(GeyserSession session, long lastHitTime) {
+        if (session.isClosed()) return; // Don't run scheduled tasks if the client left
+        if (lastHitTime != session.getLastHitTime()) return; // Means another cooldown has started so there's no need to continue this one
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
         titlePacket.setText(getTitle(session));
@@ -66,7 +72,9 @@ public class CooldownUtils {
         titlePacket.setFadeOutTime(5);
         titlePacket.setStayTime(2);
         session.sendUpstreamPacket(titlePacket);
-        if (!hasCooldown(session)) {
+        if (hasCooldown(session)) {
+            session.getConnector().getGeneralThreadPool().schedule(() -> computeCooldown(session, lastHitTime), 50, TimeUnit.MILLISECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
+        } else {
             session.setLastHitTime(-1);
             SetTitlePacket removeTitlePacket = new SetTitlePacket();
             removeTitlePacket.setType(SetTitlePacket.Type.SUBTITLE);

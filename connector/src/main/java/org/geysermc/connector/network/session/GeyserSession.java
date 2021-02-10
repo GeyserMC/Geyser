@@ -229,10 +229,11 @@ public class GeyserSession implements CommandSender {
     @Setter
     private double attackSpeed = 4.0d;
     /**
-     * The time of the last hit. Used to gauge how long the cooldown has progressed.
+     * The time of the last hit. Used to gauge how long the cooldown is taking.
+     * This is a session variable in order to prevent more scheduled threads than necessary.
      */
     @Setter
-    private long lastHitTime = -1;
+    private long lastHitTime;
 
     /**
      * Saves if the client is steering left on a boat.
@@ -723,11 +724,6 @@ public class GeyserSession implements CommandSender {
                 sendDownstreamPacket(packet);
             }
             lastMovementTimestamp = System.currentTimeMillis();
-        }
-
-        if (CooldownUtils.isShowCooldown() && lastHitTime != -1) {
-            // Show cooldown, if necessary
-            CooldownUtils.computeCurrentCooldown(this);
         }
 
         for (Tickable entity : entityCache.getTickableEntities()) {
