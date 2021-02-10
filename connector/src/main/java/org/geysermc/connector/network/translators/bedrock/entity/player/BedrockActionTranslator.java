@@ -42,7 +42,6 @@ import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerActionPacket;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -57,11 +56,6 @@ import java.util.concurrent.TimeUnit;
 
 @Translator(packet = PlayerActionPacket.class)
 public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket> {
-    private final boolean cacheChunks;
-
-    public BedrockActionTranslator() {
-        this.cacheChunks = GeyserConnector.getInstance().getConfig().isCacheChunks();
-    }
 
     @Override
     public void translate(PlayerActionPacket packet, GeyserSession session) {
@@ -211,7 +205,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.getEntityCache().updateBossBars();
                 break;
             case JUMP:
-                if (!cacheChunks) {
+                if (!session.getConnector().getConfig().isCacheChunks()) {
                     // Save the jumping status for determining teleport status
                     session.setJumping(true);
                     session.getConnector().getGeneralThreadPool().schedule(() -> session.setJumping(false), 1, TimeUnit.SECONDS);

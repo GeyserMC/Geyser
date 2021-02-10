@@ -27,7 +27,6 @@ package org.geysermc.connector.network.translators.java;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerKeepAlivePacket;
 import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -37,15 +36,10 @@ import org.geysermc.connector.network.translators.Translator;
  */
 @Translator(packet = ServerKeepAlivePacket.class)
 public class JavaKeepAliveTranslator extends PacketTranslator<ServerKeepAlivePacket> {
-    private final boolean shouldForwardPlayerPing;
-
-    public JavaKeepAliveTranslator() {
-        this.shouldForwardPlayerPing = GeyserConnector.getInstance().getConfig().isForwardPlayerPing();
-    }
 
     @Override
     public void translate(ServerKeepAlivePacket packet, GeyserSession session) {
-        if (!shouldForwardPlayerPing) {
+        if (!session.getConnector().getConfig().isForwardPlayerPing()) {
             return;
         }
         NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
