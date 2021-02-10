@@ -61,6 +61,7 @@ public class CooldownUtils {
     /**
      * Keeps updating the cooldown until the bar is complete.
      * @param session GeyserSession
+     * @param lastHitTime The time of the last hit. Used to gauge how long the cooldown is taking.
      */
     private static void computeCooldown(GeyserSession session, long lastHitTime) {
         if (session.isClosed()) return; // Don't run scheduled tasks if the client left
@@ -75,7 +76,6 @@ public class CooldownUtils {
         if (hasCooldown(session)) {
             session.getConnector().getGeneralThreadPool().schedule(() -> computeCooldown(session, lastHitTime), 50, TimeUnit.MILLISECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
         } else {
-            session.setLastHitTime(-1);
             SetTitlePacket removeTitlePacket = new SetTitlePacket();
             removeTitlePacket.setType(SetTitlePacket.Type.SUBTITLE);
             removeTitlePacket.setText(" ");
