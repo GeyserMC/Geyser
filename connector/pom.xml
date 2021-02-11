@@ -11,7 +11,7 @@
     <artifactId>connector</artifactId>
 
     <properties>
-        <netty.version>4.1.56.Final</netty.version>
+        <netty.version>4.1.59.Final</netty.version>
     </properties>
 
     <dependencies>
