@@ -26,7 +26,6 @@
 package org.geysermc.connector.utils;
 
 import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.concurrent.TimeUnit;
@@ -36,11 +35,10 @@ import java.util.concurrent.TimeUnit;
  * Much of the work here is from the wonderful folks from ViaRewind: https://github.com/ViaVersion/ViaRewind
  */
 public class CooldownUtils {
+    private static boolean SHOW_COOLDOWN;
 
-    private final static boolean SHOW_COOLDOWN;
-
-    static {
-        SHOW_COOLDOWN = GeyserConnector.getInstance().getConfig().isShowCooldown();
+    public static void setShowCooldown(boolean showCooldown) {
+        SHOW_COOLDOWN = showCooldown;
     }
 
     /**
@@ -116,5 +114,4 @@ public class CooldownUtils {
         }
         return builder.toString();
     }
-
 }

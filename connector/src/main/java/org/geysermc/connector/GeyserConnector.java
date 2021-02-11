@@ -56,10 +56,7 @@ import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
-import org.geysermc.connector.utils.DimensionUtils;
-import org.geysermc.connector.utils.LanguageUtils;
-import org.geysermc.connector.utils.LocaleUtils;
-import org.geysermc.connector.utils.ResourcePack;
+import org.geysermc.connector.utils.*;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
@@ -190,6 +187,7 @@ public class GeyserConnector {
         remoteServer = new RemoteServer(config.getRemote().getAddress(), remotePort);
         authType = AuthType.getByName(config.getRemote().getAuthType());
 
+        CooldownUtils.setShowCooldown(config.isShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
         SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS = config.isAllowCustomSkulls();
 
