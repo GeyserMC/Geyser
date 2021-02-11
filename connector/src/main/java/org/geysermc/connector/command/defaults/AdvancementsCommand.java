@@ -23,21 +23,36 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.monster;
+package org.geysermc.connector.command.defaults;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.common.window.SimpleFormWindow;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandSender;
+import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.AdvancementsCache;
 
-public class EnderDragonPartEntity extends Entity {
-    public EnderDragonPartEntity(long entityId, long geyserId, EntityType entityType, float width, float height) {
-        super(entityId, geyserId, entityType, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
+public class AdvancementsCommand extends GeyserCommand {
 
-        metadata.put(EntityData.BOUNDING_BOX_WIDTH, width);
-        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
-        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
-        metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
+    public AdvancementsCommand(GeyserConnector connector, String name, String description, String permission) {
+        super(name, description, permission);
+    }
+
+    @Override
+    public void execute(GeyserSession session, CommandSender sender, String[] args) {
+        if (session == null) return;
+
+        SimpleFormWindow window = session.getAdvancementsCache().buildMenuForm();
+        session.sendForm(window, AdvancementsCache.ADVANCEMENTS_MENU_FORM_ID);
+    }
+
+    @Override
+    public boolean isExecutableOnConsole() {
+        return false;
+    }
+
+    @Override
+    public boolean isBedrockOnly() {
+        return true;
     }
 }

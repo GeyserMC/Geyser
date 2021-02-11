@@ -56,10 +56,7 @@ import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
-import org.geysermc.connector.utils.DimensionUtils;
-import org.geysermc.connector.utils.LanguageUtils;
-import org.geysermc.connector.utils.LocaleUtils;
-import org.geysermc.connector.utils.ResourcePack;
+import org.geysermc.connector.utils.*;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
@@ -85,6 +82,12 @@ public class GeyserConnector {
     public static final String NAME = "Geyser";
     public static final String GIT_VERSION = "DEV"; // A fallback for running in IDEs
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
+    public static final String MINECRAFT_VERSION = "1.16.4 - 1.16.5";
+
+    /**
+     * Oauth client ID for Microsoft authentication
+     */
+    public static final String OAUTH_CLIENT_ID = "204cefd1-4818-4de1-b98d-513fae875d88";
 
     private static final String IP_REGEX = "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b";
 
@@ -101,8 +104,8 @@ public class GeyserConnector {
     private final ScheduledExecutorService generalThreadPool;
 
     private BedrockServer bedrockServer;
-    private PlatformType platformType;
-    private GeyserBootstrap bootstrap;
+    private final PlatformType platformType;
+    private final GeyserBootstrap bootstrap;
 
     private Metrics metrics;
 
@@ -184,6 +187,7 @@ public class GeyserConnector {
         remoteServer = new RemoteServer(config.getRemote().getAddress(), remotePort);
         authType = AuthType.getByName(config.getRemote().getAuthType());
 
+        CooldownUtils.setShowCooldown(config.isShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
         SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS = config.isAllowCustomSkulls();
 
@@ -238,6 +242,20 @@ public class GeyserConnector {
                 }
                 return valueMap;
             }));
+
+            String minecraftVersion = bootstrap.getMinecraftServerVersion();
+            if (minecraftVersion != null) {
+                Map<String, Map<String, Integer>> versionMap = new HashMap<>();
+                Map<String, Integer> platformMap = new HashMap<>();
+                platformMap.put(platformType.getPlatformName(), 1);
+                versionMap.put(minecraftVersion, platformMap);
+
+                metrics.addCustomChart(new Metrics.DrilldownPie("minecraftServerVersion", () -> {
+                    // By the end, we should return, for example:
+                    // 1.16.5 => (Spigot, 1)
+                    return versionMap;
+                }));
+            }
         }
 
         boolean isGui = false;

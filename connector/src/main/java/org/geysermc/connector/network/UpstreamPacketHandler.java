@@ -33,14 +33,9 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.AdvancementsCache;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
-import org.geysermc.connector.utils.LanguageUtils;
-import org.geysermc.connector.utils.LoginEncryptionUtils;
-import org.geysermc.connector.utils.MathUtils;
-import org.geysermc.connector.utils.ResourcePack;
-import org.geysermc.connector.utils.ResourcePackManifest;
-import org.geysermc.connector.utils.SettingsUtils;
-import org.geysermc.connector.utils.StatisticsUtils;
+import org.geysermc.connector.utils.*;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -144,12 +139,19 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
-        if (packet.getFormId() == SettingsUtils.SETTINGS_FORM_ID) {
-            return SettingsUtils.handleSettingsForm(session, packet.getFormData());
-        } else if (packet.getFormId() == StatisticsUtils.STATISTICS_MENU_FORM_ID) {
-            return StatisticsUtils.handleMenuForm(session, packet.getFormData());
-        } else if (packet.getFormId() == StatisticsUtils.STATISTICS_LIST_FORM_ID) {
-            return StatisticsUtils.handleListForm(session, packet.getFormData());
+        switch (packet.getFormId()) {
+            case AdvancementsCache.ADVANCEMENT_INFO_FORM_ID:
+                return session.getAdvancementsCache().handleInfoForm(packet.getFormData());
+            case AdvancementsCache.ADVANCEMENTS_LIST_FORM_ID:
+                return session.getAdvancementsCache().handleListForm(packet.getFormData());
+            case AdvancementsCache.ADVANCEMENTS_MENU_FORM_ID:
+                return session.getAdvancementsCache().handleMenuForm(packet.getFormData());
+            case SettingsUtils.SETTINGS_FORM_ID:
+                return SettingsUtils.handleSettingsForm(session, packet.getFormData());
+            case StatisticsUtils.STATISTICS_LIST_FORM_ID:
+                return StatisticsUtils.handleListForm(session, packet.getFormData());
+            case StatisticsUtils.STATISTICS_MENU_FORM_ID:
+                return StatisticsUtils.handleMenuForm(session, packet.getFormData());
         }
 
         return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
@@ -161,6 +163,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
             if (info != null) {
                 connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.stored_credentials", session.getAuthData().getName()));
+                session.setMicrosoftAccount(info.isMicrosoftAccount());
                 session.authenticate(info.getEmail(), info.getPassword());
 
                 // TODO send a message to bedrock user telling them they are connected (if nothing like a motd

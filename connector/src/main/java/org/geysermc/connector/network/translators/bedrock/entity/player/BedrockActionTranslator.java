@@ -205,10 +205,11 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.getEntityCache().updateBossBars();
                 break;
             case JUMP:
-                session.setJumping(true);
-                session.getConnector().getGeneralThreadPool().schedule(() -> {
-                    session.setJumping(false);
-                }, 1, TimeUnit.SECONDS);
+                if (!session.getConnector().getConfig().isCacheChunks()) {
+                    // Save the jumping status for determining teleport status
+                    session.setJumping(true);
+                    session.getConnector().getGeneralThreadPool().schedule(() -> session.setJumping(false), 1, TimeUnit.SECONDS);
+                }
                 break;
         }
     }

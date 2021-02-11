@@ -30,15 +30,16 @@ import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
-import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
+import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.LanguageUtils;
 
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 
 public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
@@ -92,6 +93,20 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         } else {
             pong.setPlayerCount(connector.getPlayers().size());
             pong.setMaximumPlayerCount(config.getMaxPlayers());
+        }
+
+        // The ping will not appear if the MOTD + sub-MOTD is of a certain length.
+        // We don't know why, though
+        byte[] motdArray = pong.getMotd().getBytes(StandardCharsets.UTF_8);
+        if (motdArray.length + pong.getSubMotd().getBytes(StandardCharsets.UTF_8).length > 338) {
+            // Remove the sub-MOTD first since that only appears locally
+            pong.setSubMotd("");
+            if (motdArray.length > 338) {
+                // If the top MOTD is still too long, we chop it down
+                byte[] newMotdArray = new byte[339];
+                System.arraycopy(motdArray, 0, newMotdArray, 0, newMotdArray.length);
+                pong.setMotd(new String(newMotdArray, StandardCharsets.UTF_8));
+            }
         }
 
         //Bedrock will not even attempt a connection if the client thinks the server is full

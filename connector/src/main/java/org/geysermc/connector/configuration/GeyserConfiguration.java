@@ -59,6 +59,8 @@ public interface GeyserConfiguration {
 
     int getPingPassthroughInterval();
 
+    boolean isForwardPlayerPing();
+
     int getMaxPlayers();
 
     boolean isDebugMode();
@@ -118,6 +120,8 @@ public interface GeyserConfiguration {
 
         String getAuthType();
 
+        boolean isPasswordAuthentication();
+
         boolean isUseProxyProtocol();
     }
 
@@ -125,6 +129,12 @@ public interface GeyserConfiguration {
         String getEmail();
 
         String getPassword();
+
+        /**
+         * Will be removed after Microsoft accounts are fully migrated
+         */
+        @Deprecated
+        boolean isMicrosoftAccount();
     }
 
     interface IMetricsInfo {
