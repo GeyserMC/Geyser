@@ -30,7 +30,9 @@ import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandExecutor;
 import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
 import java.util.ArrayList;
@@ -38,29 +40,42 @@ import java.util.Arrays;
 
 public class GeyserBungeeCommandExecutor extends Command implements TabExecutor {
 
+    private final CommandExecutor commandExecutor;
     private final GeyserConnector connector;
 
     public GeyserBungeeCommandExecutor(GeyserConnector connector) {
         super("geyser");
 
+        this.commandExecutor = new CommandExecutor(connector);
         this.connector = connector;
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
         if (args.length > 0) {
-            if (getCommand(args[0]) != null) {
-                if (!sender.hasPermission(getCommand(args[0]).getPermission())) {
-                    BungeeCommandSender commandSender = new BungeeCommandSender(sender);
+            GeyserCommand command = this.commandExecutor.getCommand(args[0]);
+            if (command != null) {
+                BungeeCommandSender commandSender = new BungeeCommandSender(sender);
+                if (!sender.hasPermission(command.getPermission())) {
                     String message = LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", commandSender.getLocale());
 
                     commandSender.sendMessage(ChatColor.RED + message);
                     return;
                 }
-                getCommand(args[0]).execute(new BungeeCommandSender(sender), args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
+                GeyserSession session = null;
+                if (command.isBedrockOnly()) {
+                    session = this.commandExecutor.getGeyserSession(commandSender);
+                    if (session == null) {
+                        String message = LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", commandSender.getLocale());
+
+                        commandSender.sendMessage(ChatColor.RED + message);
+                        return;
+                    }
+                }
+                command.execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
             }
         } else {
-            getCommand("help").execute(new BungeeCommandSender(sender), new String[0]);
+            this.commandExecutor.getCommand("help").execute(null, new BungeeCommandSender(sender), new String[0]);
         }
     }
 
@@ -70,9 +85,5 @@ public class GeyserBungeeCommandExecutor extends Command implements TabExecutor 
             return connector.getCommandManager().getCommandNames();
         }
         return new ArrayList<>();
-    }
-
-    private GeyserCommand getCommand(String label) {
-        return connector.getCommandManager().getCommands().get(label);
     }
 }

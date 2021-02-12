@@ -25,21 +25,19 @@
 
 package org.geysermc.connector.command.defaults;
 
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.SettingsUtils;
 
-public class SettingsCommand extends GeyserCommand {
-    public SettingsCommand(GeyserConnector connector, String name, String description, String permission) {
+public class AdvancementsCommand extends GeyserCommand {
+    public AdvancementsCommand(String name, String description, String permission) {
         super(name, description, permission);
     }
 
     @Override
     public void execute(GeyserSession session, CommandSender sender, String[] args) {
         if (session != null) {
-            session.sendForm(SettingsUtils.buildForm(session));
+            session.getAdvancementsCache().buildAndShowMenuForm();
         }
     }
 

@@ -46,17 +46,10 @@ public class JavaUpdateTimeTranslator extends PacketTranslator<ServerUpdateTimeP
         session.sendUpstreamPacket(setTimePacket);
         if (!session.isDaylightCycle() && time >= 0) {
             // Client thinks there is no daylight cycle but there is
-            setDoDaylightCycleGamerule(session, true);
+            session.setDaylightCycle(true);
         } else if (session.isDaylightCycle() && time < 0) {
             // Client thinks there is daylight cycle but there isn't
-            setDoDaylightCycleGamerule(session, false);
+            session.setDaylightCycle(false);
         }
     }
-
-    private void setDoDaylightCycleGamerule(GeyserSession session, boolean doCycle) {
-        session.sendGameRule("dodaylightcycle", doCycle);
-        // Save the value so we don't have to constantly send a daylight cycle gamerule update
-        session.setDaylightCycle(doCycle);
-    }
-
 }
