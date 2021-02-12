@@ -40,7 +40,6 @@ import org.geysermc.connector.network.translators.inventory.updater.ContainerInv
  * Droppers and dispensers
  */
 public class Generic3X3InventoryTranslator extends AbstractBlockInventoryTranslator {
-
     public Generic3X3InventoryTranslator() {
         super(9, "minecraft:dispenser[facing=north,triggered=false]", ContainerType.DISPENSER, ContainerInventoryUpdater.INSTANCE,
                 "minecraft:dropper");
@@ -55,6 +54,7 @@ public class Generic3X3InventoryTranslator extends AbstractBlockInventoryTransla
     public void openInventory(GeyserSession session, Inventory inventory) {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
         containerOpenPacket.setId((byte) inventory.getId());
+        // Required for opening the real block - otherwise, if the container type is incorrect, it refuses to open
         containerOpenPacket.setType(((Generic3X3Container) inventory).isDropper() ? ContainerType.DROPPER : ContainerType.DISPENSER);
         containerOpenPacket.setBlockPosition(inventory.getHolderPosition());
         containerOpenPacket.setUniqueEntityId(inventory.getHolderId());
