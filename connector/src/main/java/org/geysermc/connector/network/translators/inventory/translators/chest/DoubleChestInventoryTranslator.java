@@ -28,32 +28,66 @@ package org.geysermc.connector.network.translators.inventory.translators.chest;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+import org.geysermc.connector.inventory.Container;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.DoubleChestValue;
+import org.geysermc.connector.network.translators.world.block.entity.DoubleChestBlockEntityTranslator;
 
 public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
-    private final int blockId;
+    private final int defaultBedrockBlockId;
 
     public DoubleChestInventoryTranslator(int size) {
         super(size, 54);
         int javaBlockState = BlockTranslator.getJavaBlockState("minecraft:chest[facing=north,type=single,waterlogged=false]");
-        this.blockId = BlockTranslator.getBedrockBlockId(javaBlockState);
+        this.defaultBedrockBlockId = BlockTranslator.getBedrockBlockId(javaBlockState);
     }
 
     @Override
     public void prepareInventory(GeyserSession session, Inventory inventory) {
+        // See BlockInventoryHolder - same concept there except we're also dealing with a specific block state
+        if (session.getLastInteractionPlayerPosition().equals(session.getPlayerEntity().getPosition())) {
+            int javaBlockId = session.getConnector().getWorldManager().getBlockAt(session, session.getLastInteractionBlockPosition());
+            String[] javaBlockString = BlockTranslator.getJavaIdBlockMap().inverse().getOrDefault(javaBlockId, "minecraft:air").split("\\[");
+            if (javaBlockString.length > 1 && (javaBlockString[0].equals("minecraft:chest") || javaBlockString[0].equals("minecraft:trapped_chest"))
+                    && !javaBlockString[1].contains("type=single")) {
+                inventory.setHolderPosition(session.getLastInteractionBlockPosition());
+                ((Container) inventory).setUsingRealBlock(true, javaBlockString[0]);
+
+                NbtMapBuilder tag = NbtMap.builder()
+                        .putString("id", "Chest")
+                        .putInt("x", session.getLastInteractionBlockPosition().getX())
+                        .putInt("y", session.getLastInteractionBlockPosition().getY())
+                        .putInt("z", session.getLastInteractionBlockPosition().getZ())
+                        .putString("CustomName", inventory.getTitle())
+                        .putString("id", "Chest");
+
+                DoubleChestValue chestValue = BlockStateValues.getDoubleChestValues().get(javaBlockId);
+                DoubleChestBlockEntityTranslator.translateChestValue(tag, chestValue,
+                        session.getLastInteractionBlockPosition().getX(), session.getLastInteractionBlockPosition().getZ());
+
+                BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
+                dataPacket.setData(tag.build());
+                dataPacket.setBlockPosition(session.getLastInteractionBlockPosition());
+                session.sendUpstreamPacket(dataPacket);
+                return;
+            }
+        }
+
         Vector3i position = session.getPlayerEntity().getPosition().toInt().add(Vector3i.UP);
         Vector3i pairPosition = position.add(Vector3i.UNIT_X);
 
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
-        blockPacket.setRuntimeId(blockId);
+        blockPacket.setRuntimeId(defaultBedrockBlockId);
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
 
@@ -73,7 +107,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(pairPosition);
-        blockPacket.setRuntimeId(blockId);
+        blockPacket.setRuntimeId(defaultBedrockBlockId);
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
 
@@ -105,6 +139,11 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
 
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
+        if (((Container) inventory).isUsingRealBlock()) {
+            // No need to reset a block since we didn't change any blocks
+            return;
+        }
+
         Vector3i holderPos = inventory.getHolderPosition();
         Position pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
         int realBlock = session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ());

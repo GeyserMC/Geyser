@@ -98,7 +98,7 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
                 CompoundTag tag = geyserItemStack.getNbt();
                 if (tag != null) {
                     // Position has to be the last interacted position... right?
-                    Vector3i position = session.getLastInteractionPosition();
+                    Vector3i position = session.getLastInteractionBlockPosition();
                     // shouldRefresh means that we should boot out the client on our side because their lectern GUI isn't updated yet
                     boolean shouldRefresh = !session.getConnector().getWorldManager().shouldExpectLecternHandled() && !session.getLecternCache().contains(position);
                     int pagesSize = ((ListTag) tag.get("pages")).size();
@@ -124,7 +124,6 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
                         ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(lecternContainer.getId());
                         session.sendDownstreamPacket(closeWindowPacket);
                         InventoryUtils.closeInventory(session, inventory.getId());
-                        session.getConnector().getLogger().warning("Closing inventory");
                     }
                 }
             }

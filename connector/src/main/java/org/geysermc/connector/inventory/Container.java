@@ -38,6 +38,11 @@ public class Container extends Inventory {
     private final PlayerInventory playerInventory;
     private final int containerSize;
 
+    /**
+     * Whether we are using a real block when opening this inventory.
+     */
+    private boolean isUsingRealBlock = false;
+
     public Container(String title, int id, int size, PlayerInventory playerInventory) {
         super(title, id, size);
         this.playerInventory = playerInventory;
@@ -65,5 +70,15 @@ public class Container extends Inventory {
     @Override
     public int getSize() {
         return this.containerSize;
+    }
+
+    /**
+     * Will be overwritten for droppers.
+     *
+     * @param usingRealBlock whether this container is using a real container or not
+     * @param javaBlockId the Java block string of the block, if real
+     */
+    public void setUsingRealBlock(boolean usingRealBlock, String javaBlockId) {
+        isUsingRealBlock = usingRealBlock;
     }
 }

@@ -33,9 +33,9 @@ import org.geysermc.connector.network.translators.inventory.updater.ContainerInv
 /**
  * Implemented on top of any block that does not have special properties implemented
  */
-public class GenericBlockInventoryTranslator extends AbstractBlockInventoryTranslator {
-    public GenericBlockInventoryTranslator(int size, String javaBlockIdentifier, ContainerType containerType) {
-        super(size, javaBlockIdentifier, containerType, ContainerInventoryUpdater.INSTANCE);
+public class HopperInventoryTranslator extends AbstractBlockInventoryTranslator {
+    public HopperInventoryTranslator() {
+        super(5, "minecraft:hopper[enabled=false,facing=down]", ContainerType.HOPPER, ContainerInventoryUpdater.INSTANCE);
     }
 
     @Override

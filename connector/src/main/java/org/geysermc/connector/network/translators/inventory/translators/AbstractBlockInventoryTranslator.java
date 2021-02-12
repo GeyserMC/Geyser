@@ -31,7 +31,6 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.holder.BlockInventoryHolder;
 import org.geysermc.connector.network.translators.inventory.holder.InventoryHolder;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 /**
  * Provided as a base for any inventory that requires a block for opening it
@@ -45,11 +44,12 @@ public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTran
      * @param javaBlockIdentifier a Java block identifier that is used as a temporary block
      * @param containerType the container type of this inventory
      * @param updater updater
+     * @param additionalValidBlocks any other block identifiers that can safely use this inventory without a fake block
      */
-    public AbstractBlockInventoryTranslator(int size, String javaBlockIdentifier, ContainerType containerType, InventoryUpdater updater) {
+    public AbstractBlockInventoryTranslator(int size, String javaBlockIdentifier, ContainerType containerType, InventoryUpdater updater,
+                                            String... additionalValidBlocks) {
         super(size);
-        int javaBlockState = BlockTranslator.getJavaBlockState(javaBlockIdentifier);
-        this.holder = new BlockInventoryHolder(BlockTranslator.getBedrockBlockId(javaBlockState), containerType);
+        this.holder = new BlockInventoryHolder(javaBlockIdentifier, containerType, additionalValidBlocks);
         this.updater = updater;
     }
 

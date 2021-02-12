@@ -93,7 +93,7 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
     }
 
     private void checkInteract(GeyserSession session, ServerBlockChangePacket packet) {
-        Vector3i lastInteractPos = session.getLastInteractionPosition();
+        Vector3i lastInteractPos = session.getLastInteractionBlockPosition();
         if (lastInteractPos == null || !session.isInteracting()) {
             return;
         }
