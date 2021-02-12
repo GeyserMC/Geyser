@@ -67,10 +67,10 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
@@ -85,6 +85,7 @@ import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.inventory.EnchantmentInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.skin.FloodgateSkinUploader;
 import org.geysermc.connector.skin.SkinManager;
 import org.geysermc.connector.utils.*;
 import org.geysermc.cumulus.Form;
@@ -553,7 +554,9 @@ public class GeyserSession implements CommandSender {
                     byte[] encryptedData;
 
                     try {
+                        FloodgateSkinUploader skinUploader = connector.getSkinUploader();
                         FloodgateCipher cipher = connector.getCipher();
+
                         encryptedData = cipher.encryptFromString(BedrockData.of(
                                 clientData.getGameVersion(),
                                 authData.getName(),
@@ -562,7 +565,9 @@ public class GeyserSession implements CommandSender {
                                 clientData.getLanguageCode(),
                                 clientData.getUiProfile().ordinal(),
                                 clientData.getCurrentInputMode().ordinal(),
-                                upstream.getSession().getAddress().getAddress().getHostAddress()
+                                upstream.getSession().getAddress().getAddress().getHostAddress(),
+                                skinUploader.getId(),
+                                skinUploader.getVerifyCode()
                         ).toString());
                     } catch (Exception e) {
                         connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
@@ -570,13 +575,7 @@ public class GeyserSession implements CommandSender {
                         return;
                     }
 
-                    byte[] rawSkin = clientData.getAndTransformImage("Skin").encode();
-                    byte[] finalData = new byte[encryptedData.length + rawSkin.length + 1];
-                    System.arraycopy(encryptedData, 0, finalData, 0, encryptedData.length);
-                    finalData[encryptedData.length] = 0x21; // splitter
-                    System.arraycopy(rawSkin, 0, finalData, encryptedData.length + 1, rawSkin.length);
-
-                    String finalDataString = new String(finalData, StandardCharsets.UTF_8);
+                    String finalDataString = new String(encryptedData, StandardCharsets.UTF_8);
 
                     HandshakePacket handshakePacket = event.getPacket();
                     event.setPacket(new HandshakePacket(
@@ -639,6 +638,10 @@ public class GeyserSession implements CommandSender {
                         if (connector.getAuthType() == AuthType.OFFLINE || playerEntity.getUuid().getMostSignificantBits() == 0) {
                             SkinManager.handleBedrockSkin(playerEntity, clientData);
                         }
+
+                        // We'll send the skin upload a bit after the handshake packet (aka this packet),
+                        // because otherwise the global server returns the data too fast.
+                        getAuthData().upload(connector);
                     }
 
                     PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);

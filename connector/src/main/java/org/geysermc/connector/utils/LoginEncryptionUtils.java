@@ -118,7 +118,8 @@ public class LoginEncryptionUtils {
             session.setAuthenticationData(new AuthData(
                     extraData.get("displayName").asText(),
                     UUID.fromString(extraData.get("identity").asText()),
-                    extraData.get("XUID").asText()
+                    extraData.get("XUID").asText(),
+                    certChainData, clientData
             ));
 
             if (payload.get("identityPublicKey").getNodeType() != JsonNodeType.STRING) {

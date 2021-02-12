@@ -25,12 +25,15 @@
 
 package org.geysermc.connector.utils;
 
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPluginMessagePacket;
 import com.google.common.base.Charsets;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.session.GeyserSession;
 
 import java.nio.ByteBuffer;
 
 public class PluginMessageUtils {
+    private static final String SKIN_CHANNEL = "floodgate:skin";
     private static final byte[] GEYSER_BRAND_DATA;
     private static final byte[] FLOODGATE_REGISTER_DATA;
 
@@ -42,7 +45,7 @@ public class PluginMessageUtils {
                         .put(data)
                         .array();
 
-        FLOODGATE_REGISTER_DATA = "floodgate:skin\0floodgate:form".getBytes(Charsets.UTF_8);
+        FLOODGATE_REGISTER_DATA = (SKIN_CHANNEL + "\0floodgate:form").getBytes(Charsets.UTF_8);
     }
 
     /**
@@ -61,6 +64,22 @@ public class PluginMessageUtils {
      */
     public static byte[] getFloodgateRegisterData() {
         return FLOODGATE_REGISTER_DATA;
+    }
+
+    /**
+     * Returns the skin channel used in Floodgate
+     */
+    public static String getSkinChannel() {
+        return SKIN_CHANNEL;
+    }
+
+    public static void sendMessage(GeyserSession session, String channel, byte[] data) {
+        byte[] finalData =
+                ByteBuffer.allocate(data.length + getVarIntLength(data.length))
+                        .put(writeVarInt(data.length))
+                        .put(data)
+                        .array();
+        session.sendDownstreamPacket(new ServerPluginMessagePacket(channel, finalData));
     }
 
     private static byte[] writeVarInt(int value) {

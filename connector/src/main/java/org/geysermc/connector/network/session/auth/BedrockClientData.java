@@ -34,10 +34,8 @@ import lombok.Getter;
 import org.geysermc.connector.skin.SkinProvider;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.InputMode;
-import org.geysermc.floodgate.util.RawSkin;
 import org.geysermc.floodgate.util.UiProfile;
 
-import java.awt.image.BufferedImage;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -115,75 +113,10 @@ public final class BedrockClientData {
     @JsonProperty(value = "ThirdPartyNameOnly")
     private boolean thirdPartyNameOnly;
 
-    private static RawSkin getLegacyImage(byte[] imageData, boolean alex) {
-        if (imageData == null) {
-            return null;
-        }
-
-        // width * height * 4 (rgba)
-        switch (imageData.length) {
-            case 8192:
-                return new RawSkin(64, 32, imageData, alex);
-            case 16384:
-                return new RawSkin(64, 64, imageData, alex);
-            case 32768:
-                return new RawSkin(64, 128, imageData, alex);
-            case 65536:
-                return new RawSkin(128, 128, imageData, alex);
-            default:
-                throw new IllegalArgumentException("Unknown legacy skin size");
-        }
-    }
-
     public void setJsonData(JsonNode data) {
         if (this.jsonData == null && data != null) {
             this.jsonData = data;
         }
-    }
-
-    /**
-     * Taken from https://github.com/NukkitX/Nukkit/blob/master/src/main/java/cn/nukkit/network/protocol/LoginPacket.java<br>
-     * Internally only used for Skins, but can be used for Capes too
-     */
-    public RawSkin getImage(String name) {
-        if (jsonData == null || !jsonData.has(name + "Data")) {
-            return null;
-        }
-
-        boolean alex = false;
-        if (name.equals("Skin")) {
-            alex = isAlex();
-        }
-
-        byte[] image = Base64.getDecoder().decode(jsonData.get(name + "Data").asText());
-        if (jsonData.has(name + "ImageWidth") && jsonData.has(name + "ImageHeight")) {
-            return new RawSkin(
-                    jsonData.get(name + "ImageWidth").asInt(),
-                    jsonData.get(name + "ImageHeight").asInt(),
-                    image, alex
-            );
-        }
-        return getLegacyImage(image, alex);
-    }
-
-    public RawSkin getAndTransformImage(String name) {
-        RawSkin skin = getImage(name);
-        if (skin != null && (skin.width > 64 || skin.height > 64)) {
-            BufferedImage scaledImage =
-                    SkinProvider.imageDataToBufferedImage(skin.data, skin.width, skin.height);
-
-            int max = Math.max(skin.width, skin.height);
-            while (max > 64) {
-                max /= 2;
-                scaledImage = SkinProvider.scale(scaledImage);
-            }
-
-            byte[] skinData = SkinProvider.bufferedImageToImageData(scaledImage);
-            skin.width = scaledImage.getWidth();
-            skin.height = scaledImage.getHeight();
-            skin.data = skinData;
-        }
-        return skin;
     }
 
     public boolean isAlex() {

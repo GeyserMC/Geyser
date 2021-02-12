@@ -23,28 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session.auth;
+package org.geysermc.connector.utils;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.geysermc.connector.GeyserConnector;
+import java.net.URI;
+import java.net.URISyntaxException;
 
-import java.util.UUID;
+public final class Constants {
+    public static final URI SKIN_UPLOAD_URI;
 
-@RequiredArgsConstructor
-public class AuthData {
-    @Getter private final String name;
-    @Getter private final UUID UUID;
-    @Getter private final String xboxUUID;
-
-    private final JsonNode certChainData;
-    private final String clientData;
-
-    public void upload(GeyserConnector connector) {
-        // we can't upload the skin in LoginEncryptionUtil since the global server would return
-        // the skin too fast, that's why we upload it after we know for sure that the target server
-        // is ready to handle the result of the global server
-        connector.getSkinUploader().uploadSkin(certChainData, clientData);
+    static {
+        URI skinUploadUri = null;
+        try {
+            skinUploadUri = new URI("wss://api.geysermc.org/ws");
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        SKIN_UPLOAD_URI = skinUploadUri;
     }
 }

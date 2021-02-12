@@ -56,6 +56,7 @@ import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
+import org.geysermc.connector.skin.FloodgateSkinUploader;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
@@ -108,6 +109,7 @@ public class GeyserConnector {
     private AuthType authType;
 
     private FloodgateCipher cipher;
+    private FloodgateSkinUploader skinUploader;
 
     private boolean shuttingDown = false;
 
@@ -203,6 +205,7 @@ public class GeyserConnector {
                 cipher = new AesCipher(new Base64Topping());
                 cipher.init(key);
                 logger.info(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
+                skinUploader = new FloodgateSkinUploader(this).start();
             } catch (Exception exception) {
                 logger.severe(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
             }

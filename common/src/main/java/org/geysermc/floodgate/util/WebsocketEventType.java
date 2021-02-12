@@ -23,28 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.session.auth;
+package org.geysermc.floodgate.util;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.geysermc.connector.GeyserConnector;
+public enum WebsocketEventType {
+    SUBSCRIBER_CREATED,
+    SUBSCRIBERS_COUNT,
+    ADDED_TO_QUEUE,
+    SKIN_UPLOADED,
+    CREATOR_DISCONNECTED;
 
-import java.util.UUID;
+    public static final WebsocketEventType[] VALUES = values();
 
-@RequiredArgsConstructor
-public class AuthData {
-    @Getter private final String name;
-    @Getter private final UUID UUID;
-    @Getter private final String xboxUUID;
-
-    private final JsonNode certChainData;
-    private final String clientData;
-
-    public void upload(GeyserConnector connector) {
-        // we can't upload the skin in LoginEncryptionUtil since the global server would return
-        // the skin too fast, that's why we upload it after we know for sure that the target server
-        // is ready to handle the result of the global server
-        connector.getSkinUploader().uploadSkin(certChainData, clientData);
+    public static WebsocketEventType getById(int id) {
+        return VALUES.length > id ? VALUES[id] : null;
     }
 }
