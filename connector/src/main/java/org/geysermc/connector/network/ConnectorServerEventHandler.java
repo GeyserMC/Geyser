@@ -95,6 +95,13 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             pong.setMaximumPlayerCount(config.getMaxPlayers());
         }
 
+        if (pong.getMotd() == null) {
+            pong.setMotd("");
+        }
+        if (pong.getSubMotd() == null) {
+            pong.setSubMotd("");
+        }
+
         // The ping will not appear if the MOTD + sub-MOTD is of a certain length.
         // We don't know why, though
         byte[] motdArray = pong.getMotd().getBytes(StandardCharsets.UTF_8);
