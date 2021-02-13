@@ -38,14 +38,14 @@ public class GrindstoneInventoryTranslator extends AbstractBlockInventoryTransla
 
     @Override
     public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
-        if (slotInfoData.getContainer() == ContainerSlotType.GRINDSTONE_INPUT) {
-            return 0;
-        }
-        if (slotInfoData.getContainer() == ContainerSlotType.GRINDSTONE_ADDITIONAL) {
-            return 1;
-        }
-        if (slotInfoData.getContainer() == ContainerSlotType.GRINDSTONE_RESULT || slotInfoData.getContainer() == ContainerSlotType.CREATIVE_OUTPUT) {
-            return 2;
+        switch (slotInfoData.getContainer()) {
+            case GRINDSTONE_INPUT:
+                return 0;
+            case GRINDSTONE_ADDITIONAL:
+                return 1;
+            case GRINDSTONE_RESULT:
+            case CREATIVE_OUTPUT:
+                return 2;
         }
         return super.bedrockSlotToJava(slotInfoData);
     }

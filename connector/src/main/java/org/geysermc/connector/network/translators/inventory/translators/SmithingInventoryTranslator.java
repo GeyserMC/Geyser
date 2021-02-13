@@ -38,14 +38,14 @@ public class SmithingInventoryTranslator extends AbstractBlockInventoryTranslato
 
     @Override
     public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
-        if (slotInfoData.getContainer() == ContainerSlotType.SMITHING_TABLE_INPUT) {
-            return 0;
-        }
-        if (slotInfoData.getContainer() == ContainerSlotType.SMITHING_TABLE_MATERIAL) {
-            return 1;
-        }
-        if (slotInfoData.getContainer() == ContainerSlotType.SMITHING_TABLE_RESULT || slotInfoData.getContainer() == ContainerSlotType.CREATIVE_OUTPUT) {
-            return 2;
+        switch (slotInfoData.getContainer()) {
+            case SMITHING_TABLE_INPUT:
+                return 0;
+            case SMITHING_TABLE_MATERIAL:
+                return 1;
+            case SMITHING_TABLE_RESULT:
+            case CREATIVE_OUTPUT:
+                return 2;
         }
         return super.bedrockSlotToJava(slotInfoData);
     }

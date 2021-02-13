@@ -48,15 +48,14 @@ import java.util.Set;
  */
 public class BlockInventoryHolder extends InventoryHolder {
     /**
-     * The default Bedrock block ID to use as a fake block
+     * The default Java block ID to translate as a fake block
      */
-    private final int defaultBedrockBlockId;
+    private final int defaultJavaBlockState;
     private final ContainerType containerType;
     private final Set<String> validBlocks;
 
     public BlockInventoryHolder(String javaBlockIdentifier, ContainerType containerType, String... validBlocks) {
-        int javaBlockState = BlockTranslator.getJavaBlockState(javaBlockIdentifier);
-        this.defaultBedrockBlockId = BlockTranslator.getBedrockBlockId(javaBlockState);
+        this.defaultJavaBlockState = BlockTranslator.getJavaBlockState(javaBlockIdentifier);
         this.containerType = containerType;
         if (validBlocks != null) {
             this.validBlocks = Sets.newHashSet(validBlocks);
@@ -90,7 +89,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
-        blockPacket.setRuntimeId(defaultBedrockBlockId);
+        blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(defaultJavaBlockState));
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
         inventory.setHolderPosition(position);

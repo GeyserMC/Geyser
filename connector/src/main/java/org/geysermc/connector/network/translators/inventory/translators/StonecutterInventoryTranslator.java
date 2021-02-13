@@ -91,11 +91,12 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
 
     @Override
     public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
-        if (slotInfoData.getContainer() == ContainerSlotType.STONECUTTER_INPUT) {
-            return 0;
-        }
-        if (slotInfoData.getContainer() == ContainerSlotType.STONECUTTER_RESULT || slotInfoData.getContainer() == ContainerSlotType.CREATIVE_OUTPUT) {
-            return 1;
+        switch (slotInfoData.getContainer()) {
+            case STONECUTTER_INPUT:
+                return 0;
+            case STONECUTTER_RESULT:
+            case CREATIVE_OUTPUT:
+                return 1;
         }
         return super.bedrockSlotToJava(slotInfoData);
     }

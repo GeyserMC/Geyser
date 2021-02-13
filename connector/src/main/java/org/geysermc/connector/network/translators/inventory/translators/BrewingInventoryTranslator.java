@@ -71,7 +71,6 @@ public class BrewingInventoryTranslator extends AbstractBlockInventoryTranslator
     public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
         if (slotInfoData.getContainer() == ContainerSlotType.BREWING_INPUT) {
             // Ingredient
-            // TODO: This hasn't worked and then suddenly, it did.
             return 3;
         }
         if (slotInfoData.getContainer() == ContainerSlotType.BREWING_RESULT) {
@@ -98,14 +97,15 @@ public class BrewingInventoryTranslator extends AbstractBlockInventoryTranslator
 
     @Override
     public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
-        if (slot == 0 || slot == 1 || slot == 2) {
-            return new BedrockContainerSlot(ContainerSlotType.BREWING_RESULT, javaSlotToBedrock(slot));
-        }
-        if (slot == 3) {
-            return new BedrockContainerSlot(ContainerSlotType.BREWING_INPUT, 0);
-        }
-        if (slot == 4) {
-            return new BedrockContainerSlot(ContainerSlotType.BREWING_FUEL, 4);
+        switch (slot) {
+            case 0:
+            case 1:
+            case 2:
+                return new BedrockContainerSlot(ContainerSlotType.BREWING_RESULT, javaSlotToBedrock(slot));
+            case 3:
+                return new BedrockContainerSlot(ContainerSlotType.BREWING_INPUT, 0);
+            case 4:
+                return new BedrockContainerSlot(ContainerSlotType.BREWING_INPUT, 0);
         }
         return super.javaSlotToBedrockContainer(slot);
     }

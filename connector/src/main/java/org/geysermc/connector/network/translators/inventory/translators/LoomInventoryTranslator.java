@@ -172,17 +172,16 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
 
     @Override
     public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
-        if (slotInfoData.getContainer() == ContainerSlotType.LOOM_INPUT) {
-            return 0;
-        }
-        if (slotInfoData.getContainer() == ContainerSlotType.LOOM_DYE) {
-            return 1;
-        }
-        if (slotInfoData.getContainer() == ContainerSlotType.LOOM_MATERIAL) {
-            return 2;
-        }
-        if (slotInfoData.getContainer() == ContainerSlotType.LOOM_RESULT || slotInfoData.getContainer() == ContainerSlotType.CREATIVE_OUTPUT) {
-            return 3;
+        switch (slotInfoData.getContainer()) {
+            case LOOM_INPUT:
+                return 0;
+            case LOOM_DYE:
+                return 1;
+            case LOOM_MATERIAL:
+                return 2;
+            case LOOM_RESULT:
+            case CREATIVE_OUTPUT:
+                return 3;
         }
         return super.bedrockSlotToJava(slotInfoData);
     }
