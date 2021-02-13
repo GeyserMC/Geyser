@@ -29,6 +29,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.nukkitx.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
@@ -38,11 +39,23 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
  */
 public class ThrowableEntity extends Entity implements Tickable {
 
-    private Vector3f lastPosition;
+    protected Vector3f lastJavaPosition;
+
+    /**
+     * Store the last position sent to Bedrock.
+     * Used to determine which axis' should be sent.
+     */
+    private Vector3f lastBedrockPosition = Vector3f.ZERO;
+
+    /**
+     * Store the last rotation sent to Bedrock.
+     * Used to determine which axis' should be sent.
+     */
+    private Vector3f lastBedrockRotation = Vector3f.ZERO;
 
     public ThrowableEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
-        this.lastPosition = position;
+        this.lastJavaPosition = position;
     }
 
     /**
@@ -52,14 +65,59 @@ public class ThrowableEntity extends Entity implements Tickable {
      */
     @Override
     public void tick(GeyserSession session) {
-        super.moveRelative(session, motion.getX(), motion.getY(), motion.getZ(), rotation, onGround);
+        moveAbsoluteImmediate(session, position.add(motion), rotation, onGround, false);
         float drag = getDrag(session);
         float gravity = getGravity();
         motion = motion.mul(drag).down(gravity);
     }
 
     protected void moveAbsoluteImmediate(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(session, position, rotation, isOnGround, teleported);
+        MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
+        moveEntityDeltaPacket.setRuntimeEntityId(geyserId);
+
+        if (isOnGround) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
+        }
+        setOnGround(isOnGround);
+
+        if (teleported) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
+        }
+
+        if (position.getX() != lastBedrockPosition.getX()) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
+            moveEntityDeltaPacket.setX(position.getX());
+        }
+        if (position.getY() != lastBedrockPosition.getY()) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
+            moveEntityDeltaPacket.setY(position.getY());
+        }
+        if (position.getZ() != lastBedrockPosition.getZ()) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
+            moveEntityDeltaPacket.setZ(position.getZ());
+        }
+        setPosition(position);
+        lastBedrockPosition = position;
+
+        setRotation(rotation);
+        rotation = getBedrockRotation();
+        if (rotation.getX() != lastBedrockRotation.getX()) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
+            moveEntityDeltaPacket.setPitch(rotation.getX());
+        }
+        if (rotation.getY() != lastBedrockRotation.getY()) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
+            moveEntityDeltaPacket.setHeadYaw(rotation.getY());
+        }
+        if (rotation.getZ() != lastBedrockRotation.getZ()) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+            moveEntityDeltaPacket.setYaw(rotation.getZ());
+        }
+        lastBedrockRotation = rotation;
+
+        if (!moveEntityDeltaPacket.getFlags().isEmpty()) {
+            session.sendUpstreamPacket(moveEntityDeltaPacket);
+        }
     }
 
     /**
@@ -142,14 +200,13 @@ public class ThrowableEntity extends Entity implements Tickable {
 
     @Override
     public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
-        position = lastPosition;
-        super.moveRelative(session, relX, relY, relZ, rotation, isOnGround);
-        lastPosition = position;
+        moveAbsoluteImmediate(session, lastJavaPosition.add(relX, relY, relZ), rotation, isOnGround, false);
+        lastJavaPosition = position;
     }
 
     @Override
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(session, position, rotation, isOnGround, teleported);
-        lastPosition = position;
+        moveAbsoluteImmediate(session, position, rotation, isOnGround, teleported);
+        lastJavaPosition = position;
     }
 }
