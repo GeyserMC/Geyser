@@ -49,6 +49,7 @@ public class BlockStateValues {
     private static final Int2ByteMap SKULL_ROTATIONS = new Int2ByteOpenHashMap();
     private static final Int2IntMap SKULL_WALL_DIRECTIONS = new Int2IntOpenHashMap();
     private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new Int2ByteOpenHashMap();
+    private static final Int2IntMap WATER_LEVEL = new Int2IntOpenHashMap();
 
     /**
      * Determines if the block state contains Bedrock block information
@@ -134,6 +135,13 @@ public class BlockStateValues {
         JsonNode shulkerDirection = entry.getValue().get("shulker_direction");
         if (shulkerDirection != null) {
             BlockStateValues.SHULKERBOX_DIRECTIONS.put(javaBlockState, (byte) shulkerDirection.intValue());
+        }
+
+        String key = entry.getKey();
+        if (key.startsWith("minecraft:water")) {
+            String strLevel = key.substring(key.lastIndexOf("level=") + 6, key.length() - 1);
+            int level = Integer.parseInt(strLevel);
+            WATER_LEVEL.put(javaBlockState, level);
         }
     }
 
@@ -262,5 +270,16 @@ public class BlockStateValues {
      */
     public static byte getShulkerBoxDirection(int state) {
         return SHULKERBOX_DIRECTIONS.getOrDefault(state, (byte) -1);
+    }
+
+    /**
+     * Get the level of water from the block state.
+     * This is used in FishingHookEntity to create splash sounds when the hook hits the water.
+     *
+     * @param state BlockState of the block
+     * @return The water level or -1 if the block isn't water
+     */
+    public static int getWaterLevel(int state) {
+        return WATER_LEVEL.getOrDefault(state, -1);
     }
 }
