@@ -34,17 +34,35 @@ public class ItemedFireballEntity extends ThrowableEntity {
 
     public ItemedFireballEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, Vector3f.ZERO, rotation);
-        acceleration = motion;
+
+        float magnitude = motion.length();
+        if (magnitude != 0) {
+            acceleration = motion.div(magnitude).mul(0.1f);
+        } else {
+            acceleration = Vector3f.ZERO;
+        }
+    }
+
+    private void tickMovement(GeyserSession session) {
+        position = position.add(motion);
+        float drag = getDrag(session);
+        motion = motion.add(acceleration).mul(drag);
+    }
+
+    @Override
+    protected void moveAbsoluteImmediate(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+        this.position = position;
+        // Advance the position by 3 ticks before sending it to Bedrock
+        tickMovement(session);
+        tickMovement(session);
+        tickMovement(session);
+        super.moveAbsoluteImmediate(session, this.position, rotation, isOnGround, teleported);
+        this.position = position;
     }
 
     @Override
     public void tick(GeyserSession session) {
-        position = position.add(motion);
-        // TODO: While this reduces latency in position updating (needed for better fireball reflecting),
-        // TODO: movement is incredibly stiff.
-        // TODO: Only use this laggy movement for fireballs that be reflected
-        moveAbsoluteImmediate(session, position, rotation, false, true);
-        float drag = getDrag(session);
-        motion = motion.add(acceleration).mul(drag);
+        tickMovement(session);
+        moveAbsoluteImmediate(session, position, rotation, false, false);
     }
 }
