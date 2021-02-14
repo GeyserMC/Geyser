@@ -164,7 +164,7 @@ public class SkinManager {
                                 geometry = SkinProvider.SkinGeometry.getEars(data.isAlex());
 
                                 // Store the skin and geometry for the ears
-                                SkinProvider.storeEarSkin(entity.getUuid(), skin);
+                                SkinProvider.storeEarSkin(skin);
                                 SkinProvider.storeEarGeometry(entity.getUuid(), data.isAlex());
                             }
                         }

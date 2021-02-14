@@ -79,13 +79,12 @@ public class SkinProvider {
             .build();
     private static final Map<String, CompletableFuture<Cape>> requestedCapes = new ConcurrentHashMap<>();
 
-    public static final SkinGeometry EMPTY_GEOMETRY = SkinProvider.SkinGeometry.getLegacy(false);
     private static final Map<UUID, SkinGeometry> cachedGeometry = new ConcurrentHashMap<>();
 
     public static final boolean ALLOW_THIRD_PARTY_EARS = GeyserConnector.getInstance().getConfig().isAllowThirdPartyEars();
-    public static String EARS_GEOMETRY;
-    public static String EARS_GEOMETRY_SLIM;
-    public static SkinGeometry SKULL_GEOMETRY;
+    public static final String EARS_GEOMETRY;
+    public static final String EARS_GEOMETRY_SLIM;
+    public static final SkinGeometry SKULL_GEOMETRY;
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -295,12 +294,11 @@ public class SkinProvider {
     }
 
     /**
-     * Stores the ajusted skin with the ear texture to the cache
+     * Stores the adjusted skin with the ear texture to the cache
      *
-     * @param playerID The UUID to cache it against
      * @param skin The skin to cache
      */
-    public static void storeEarSkin(UUID playerID, Skin skin) {
+    public static void storeEarSkin(Skin skin) {
         cachedSkins.put(skin.getTextureUrl(), skin);
     }
 
