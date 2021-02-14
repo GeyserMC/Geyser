@@ -510,6 +510,7 @@ public class SkinProvider {
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g2.drawImage(bufferedImage, 0, 0, newWidth, newHeight, null);
         g2.dispose();
+        bufferedImage.flush();
         return resized;
     }
 
