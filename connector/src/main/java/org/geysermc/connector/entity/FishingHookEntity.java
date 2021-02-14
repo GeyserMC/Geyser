@@ -26,43 +26,113 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.object.ProjectileData;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.collision.BoundingBox;
+import org.geysermc.connector.network.translators.collision.CollisionManager;
+import org.geysermc.connector.network.translators.collision.CollisionTranslator;
+import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
-public class FishingHookEntity extends Entity {
-    public FishingHookEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation, ProjectileData data) {
+import java.util.List;
+
+public class FishingHookEntity extends ThrowableEntity {
+
+    private boolean hooked = false;
+
+    private final BoundingBox boundingBox;
+
+    public FishingHookEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation, PlayerEntity owner) {
         super(entityId, geyserId, entityType, position, motion, rotation);
 
-        for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
-            Entity entity = session.getEntityCache().getEntityByJavaId(data.getOwnerId());
-            if (entity == null && session.getPlayerEntity().getEntityId() == data.getOwnerId()) {
-                entity = session.getPlayerEntity();
-            }
+        this.boundingBox = new BoundingBox(0.075, 0.075, 0.075, 0.15, 0.15, 0.15);
 
-            if (entity != null) {
-                this.metadata.put(EntityData.OWNER_EID, entity.getGeyserId());
-                return;
-            }
-        }
+        this.metadata.put(EntityData.OWNER_EID, owner.getGeyserId());
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 7) {
-            Entity entity = session.getEntityCache().getEntityByJavaId((Integer) entityMetadata.getValue() - 1);
-            if (entity == null && session.getPlayerEntity().getEntityId() == (Integer) entityMetadata.getValue() - 1) {
+        if (entityMetadata.getId() == 7) { // Hooked entity
+            int hookedEntityId = (int) entityMetadata.getValue() - 1;
+            Entity entity = session.getEntityCache().getEntityByJavaId(hookedEntityId);
+            if (entity == null && session.getPlayerEntity().getEntityId() == hookedEntityId) {
                 entity = session.getPlayerEntity();
             }
 
             if (entity != null) {
                 metadata.put(EntityData.TARGET_EID, entity.getGeyserId());
+                hooked = true;
+            } else {
+                hooked = false;
             }
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    protected void moveAbsoluteImmediate(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+        boundingBox.setMiddleX(position.getX());
+        boundingBox.setMiddleY(position.getY() + boundingBox.getSizeY() / 2);
+        boundingBox.setMiddleZ(position.getZ());
+
+        CollisionManager collisionManager = session.getCollisionManager();
+        List<Vector3i> collidableBlocks = collisionManager.getCollidableBlocks(boundingBox);
+        for (Vector3i blockPos : collidableBlocks) {
+            int blockID = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
+            BlockCollision blockCollision = CollisionTranslator.getCollision(blockID, blockPos.getX(), blockPos.getY(), blockPos.getZ());
+            if (blockCollision != null && blockCollision.checkIntersection(boundingBox)) {
+                // TODO Push bounding box out of collision to improve movement
+                return;
+            }
+        }
+
+        super.moveAbsoluteImmediate(session, position, rotation, isOnGround, teleported);
+    }
+
+    @Override
+    public void tick(GeyserSession session) {
+        if (hooked || !isInAir(session) && !isInWater(session) || isOnGround()) {
+            motion = Vector3f.ZERO;
+            return;
+        }
+        float gravity = getGravity(session);
+        motion = motion.down(gravity);
+
+        moveAbsoluteImmediate(session, position.add(motion), rotation, onGround, false);
+
+        float drag = getDrag(session);
+        motion = motion.mul(drag);
+    }
+
+    @Override
+    protected float getGravity(GeyserSession session) {
+        if (!isInWater(session) && !onGround) {
+            return 0.03f;
+        }
+        return 0;
+    }
+
+    /**
+     * @param session the session of the Bedrock client.
+     * @return true if this entity is currently in air.
+     */
+    protected boolean isInAir(GeyserSession session) {
+        if (session.getConnector().getConfig().isCacheChunks()) {
+            if (0 <= position.getFloorY() && position.getFloorY() <= 255) {
+                int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
+                return block == BlockTranslator.JAVA_AIR_ID;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    protected float getDrag(GeyserSession session) {
+        return 0.92f;
     }
 }

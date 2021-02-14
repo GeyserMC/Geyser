@@ -67,7 +67,7 @@ public class ThrowableEntity extends Entity implements Tickable {
     public void tick(GeyserSession session) {
         moveAbsoluteImmediate(session, position.add(motion), rotation, onGround, false);
         float drag = getDrag(session);
-        float gravity = getGravity();
+        float gravity = getGravity(session);
         motion = motion.mul(drag).down(gravity);
     }
 
@@ -123,9 +123,10 @@ public class ThrowableEntity extends Entity implements Tickable {
     /**
      * Get the gravity of this entity type. Used for applying gravity while the entity is in motion.
      *
+     * @param session the session of the Bedrock client.
      * @return the amount of gravity to apply to this entity while in motion.
      */
-    protected float getGravity() {
+    protected float getGravity(GeyserSession session) {
         if (metadata.getFlags().getFlag(EntityFlag.HAS_GRAVITY)) {
             switch (entityType) {
                 case THROWN_POTION:
