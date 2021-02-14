@@ -229,15 +229,15 @@ public class SkinProvider {
         return CompletableFuture.completedFuture(officialCape);
     }
 
-    public static CompletableFuture<Skin> requestEars(String earsUrl, EarsProvider provider, boolean newThread, Skin skin) {
+    public static CompletableFuture<Skin> requestEars(String earsUrl, boolean newThread, Skin skin) {
         if (earsUrl == null || earsUrl.isEmpty()) return CompletableFuture.completedFuture(skin);
 
         CompletableFuture<Skin> future;
         if (newThread) {
-            future = CompletableFuture.supplyAsync(() -> supplyEars(skin, earsUrl, provider), EXECUTOR_SERVICE)
+            future = CompletableFuture.supplyAsync(() -> supplyEars(skin, earsUrl), EXECUTOR_SERVICE)
                     .whenCompleteAsync((outSkin, throwable) -> { });
         } else {
-            Skin ears = supplyEars(skin, earsUrl, provider); // blocking
+            Skin ears = supplyEars(skin, earsUrl); // blocking
             future = CompletableFuture.completedFuture(ears);
         }
         return future;
@@ -255,7 +255,7 @@ public class SkinProvider {
     public static CompletableFuture<Skin> requestUnofficialEars(Skin officialSkin, UUID playerId, String username, boolean newThread) {
         for (EarsProvider provider : EarsProvider.VALUES) {
             Skin skin1 = getOrDefault(
-                    requestEars(provider.getUrlFor(playerId, username), provider, newThread, officialSkin),
+                    requestEars(provider.getUrlFor(playerId, username), newThread, officialSkin),
                     officialSkin, 4
             );
             if (skin1.isEars()) {
@@ -324,7 +324,7 @@ public class SkinProvider {
     }
 
     private static Cape supplyCape(String capeUrl, CapeProvider provider) {
-        byte[] cape = new byte[0];
+        byte[] cape = EMPTY_CAPE.getCapeData();
         try {
             cape = requestImage(capeUrl, provider);
         } catch (Exception ignored) {} // just ignore I guess
@@ -334,7 +334,7 @@ public class SkinProvider {
         return new Cape(
                 capeUrl,
                 urlSection[urlSection.length - 1], // get the texture id and use it as cape id
-                cape.length > 0 ? cape : EMPTY_CAPE.getCapeData(),
+                cape,
                 System.currentTimeMillis(),
                 cape.length == 0
         );
@@ -345,10 +345,9 @@ public class SkinProvider {
      *
      * @param existingSkin The players current skin
      * @param earsUrl The URL to get the ears texture from
-     * @param provider The ears texture provider
      * @return The updated skin with ears
      */
-    private static Skin supplyEars(Skin existingSkin, String earsUrl, EarsProvider provider) {
+    private static Skin supplyEars(Skin existingSkin, String earsUrl) {
         try {
             // Get the ears texture
             BufferedImage ears = ImageIO.read(new URL(earsUrl));
@@ -415,14 +414,15 @@ public class SkinProvider {
 
         // if the requested image is a cape
         if (provider != null) {
-            while(image.getWidth() > 64) {
-                image = scale(image);
+            if (image.getWidth() > 64) {
+                image = scale(image, 64, 32);
             }
-            BufferedImage newImage = new BufferedImage(64, 32, BufferedImage.TYPE_INT_ARGB);
-            Graphics g = newImage.createGraphics();
-            g.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null);
-            g.dispose();
-            image = newImage;
+        } else {
+            // Very rarely, skins can be larger than Minecraft's default.
+            // Bedrock will not render anything above a width of 128.
+            if (image.getWidth() > 128) {
+                image = scale(image, 128, image.getHeight() / (image.getWidth() / 128));
+            }
         }
 
         byte[] data = bufferedImageToImageData(image);
@@ -506,11 +506,11 @@ public class SkinProvider {
         return null;
     }
 
-    private static BufferedImage scale(BufferedImage bufferedImage) {
-        BufferedImage resized = new BufferedImage(bufferedImage.getWidth() / 2, bufferedImage.getHeight() / 2, BufferedImage.TYPE_INT_ARGB);
+    private static BufferedImage scale(BufferedImage bufferedImage, int newWidth, int newHeight) {
+        BufferedImage resized = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = resized.createGraphics();
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g2.drawImage(bufferedImage, 0, 0, bufferedImage.getWidth() / 2, bufferedImage.getHeight() / 2, null);
+        g2.drawImage(bufferedImage, 0, 0, newWidth, newHeight, null);
         g2.dispose();
         return resized;
     }
@@ -579,17 +579,17 @@ public class SkinProvider {
     @AllArgsConstructor
     @Getter
     public static class SkinAndCape {
-        private Skin skin;
-        private Cape cape;
+        private final Skin skin;
+        private final Cape cape;
     }
 
     @AllArgsConstructor
     @Getter
     public static class Skin {
         private UUID skinOwner;
-        private String textureUrl;
-        private byte[] skinData;
-        private long requestedOn;
+        private final String textureUrl;
+        private final byte[] skinData;
+        private final long requestedOn;
         private boolean updated;
         private boolean ears;
 
@@ -603,19 +603,19 @@ public class SkinProvider {
     @AllArgsConstructor
     @Getter
     public static class Cape {
-        private String textureUrl;
-        private String capeId;
-        private byte[] capeData;
-        private long requestedOn;
-        private boolean failed;
+        private final String textureUrl;
+        private final String capeId;
+        private final byte[] capeData;
+        private final long requestedOn;
+        private final boolean failed;
     }
 
     @AllArgsConstructor
     @Getter
     public static class SkinGeometry {
-        private String geometryName;
-        private String geometryData;
-        private boolean failed;
+        private final String geometryName;
+        private final String geometryData;
+        private final boolean failed;
 
         /**
          * Generate generic geometry
