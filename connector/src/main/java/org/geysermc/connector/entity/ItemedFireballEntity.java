@@ -32,6 +32,11 @@ import org.geysermc.connector.network.session.GeyserSession;
 public class ItemedFireballEntity extends ThrowableEntity {
     private final Vector3f acceleration;
 
+    /**
+     * The number of ticks to advance movement before sending to Bedrock
+     */
+    protected int futureTicks = 2;
+
     public ItemedFireballEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, Vector3f.ZERO, rotation);
 
@@ -52,12 +57,14 @@ public class ItemedFireballEntity extends ThrowableEntity {
     @Override
     protected void moveAbsoluteImmediate(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
         this.position = position;
-        // Advance the position by 3 ticks before sending it to Bedrock
-        tickMovement(session);
-        tickMovement(session);
-        tickMovement(session);
+        // Advance the position by a few ticks before sending it to Bedrock
+        Vector3f lastMotion = motion;
+        for (int i = 0; i < futureTicks; i++) {
+            tickMovement(session);
+        }
         super.moveAbsoluteImmediate(session, this.position, rotation, isOnGround, teleported);
         this.position = position;
+        this.motion = lastMotion;
     }
 
     @Override

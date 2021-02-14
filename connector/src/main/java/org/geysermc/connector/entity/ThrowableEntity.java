@@ -32,7 +32,7 @@ import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
 /**
  * Used as a class for any object-like entity that moves as a projectile
@@ -181,8 +181,7 @@ public class ThrowableEntity extends Entity implements Tickable {
         if (session.getConnector().getConfig().isCacheChunks()) {
             if (0 <= position.getFloorY() && position.getFloorY() <= 255) {
                 int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
-                String javaIdentifier = BlockTranslator.getJavaIdBlockMap().inverse().get(block);
-                return javaIdentifier.startsWith("minecraft:water");
+                return BlockStateValues.getWaterLevel(block) != -1;
             }
         }
         return false;
