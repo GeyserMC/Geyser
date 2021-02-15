@@ -55,7 +55,7 @@ public class FishingHookEntity extends ThrowableEntity {
     public FishingHookEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation, PlayerEntity owner) {
         super(entityId, geyserId, entityType, position, motion, rotation);
 
-        this.boundingBox = new BoundingBox(0.125, 0.125, 0.125, 0.125, 0.125, 0.25);
+        this.boundingBox = new BoundingBox(0.125, 0.125, 0.125, 0.25, 0.25, 0.25);
 
         // Silence splash sounds from bedrock
         this.metadata.putFloat(EntityData.BOUNDING_BOX_HEIGHT, 1e6f);
