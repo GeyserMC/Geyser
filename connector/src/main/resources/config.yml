@@ -18,6 +18,7 @@ bedrock:
   # This option is for the plugin version only.
   clone-remote-port: false
   # The MOTD that will be broadcasted to Minecraft: Bedrock Edition clients. This is irrelevant if "passthrough-motd" is set to true
+  # If either of these are empty, the string will default to "Geyser"
   motd1: "GeyserMC"
   motd2: "Another GeyserMC forced host."
   # The Server Name that will be sent to Minecraft: Bedrock Edition clients. This is visible in both the pause menu and the settings menu.

@@ -42,6 +42,8 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 
 public class ConnectorServerEventHandler implements BedrockServerEventHandler {
+    private static final int MINECRAFT_VERSION_BYTES_LENGTH = BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion().getBytes(StandardCharsets.UTF_8).length;
+    private static final int BRAND_BYTES_LENGTH = GeyserConnector.NAME.getBytes(StandardCharsets.UTF_8).length;
 
     private final GeyserConnector connector;
 
@@ -95,22 +97,27 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             pong.setMaximumPlayerCount(config.getMaxPlayers());
         }
 
-        if (pong.getMotd() == null) {
-            pong.setMotd("");
+        // Fallbacks to prevent errors and allow Bedrock to see the server
+        if (pong.getMotd() == null || pong.getMotd().trim().isEmpty()) {
+            pong.setMotd(GeyserConnector.NAME);
         }
-        if (pong.getSubMotd() == null) {
-            pong.setSubMotd("");
+        if (pong.getSubMotd() == null || pong.getSubMotd().trim().isEmpty()) {
+            // Sub-MOTD cannot be empty as of 1.16.210.59
+            pong.setSubMotd(GeyserConnector.NAME);
         }
 
         // The ping will not appear if the MOTD + sub-MOTD is of a certain length.
         // We don't know why, though
         byte[] motdArray = pong.getMotd().getBytes(StandardCharsets.UTF_8);
-        if (motdArray.length + pong.getSubMotd().getBytes(StandardCharsets.UTF_8).length > 338) {
-            // Remove the sub-MOTD first since that only appears locally
-            pong.setSubMotd("");
-            if (motdArray.length > 338) {
+        int subMotdLength = pong.getSubMotd().getBytes(StandardCharsets.UTF_8).length;
+        if (motdArray.length + subMotdLength > (338 - MINECRAFT_VERSION_BYTES_LENGTH)) {
+            // Shorten the sub-MOTD first since that only appears locally
+            if (subMotdLength > BRAND_BYTES_LENGTH) {
+                pong.setSubMotd(GeyserConnector.NAME);
+            }
+            if (motdArray.length > (338 - MINECRAFT_VERSION_BYTES_LENGTH - BRAND_BYTES_LENGTH)) {
                 // If the top MOTD is still too long, we chop it down
-                byte[] newMotdArray = new byte[339];
+                byte[] newMotdArray = new byte[337 - MINECRAFT_VERSION_BYTES_LENGTH - BRAND_BYTES_LENGTH + 1];
                 System.arraycopy(motdArray, 0, newMotdArray, 0, newMotdArray.length);
                 pong.setMotd(new String(newMotdArray, StandardCharsets.UTF_8));
             }
