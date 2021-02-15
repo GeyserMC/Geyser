@@ -91,7 +91,6 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             session.sendUpstreamPacket(emptyPacket);
             return;
         }
-        System.out.println(packet.toString());
         CommandNode[] nodes = packet.getNodes();
         List<CommandData> commandData = new ArrayList<>();
         IntSet commandNodes = new IntOpenHashSet();
@@ -148,7 +147,6 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
 
         session.getConnector().getLogger().debug("Sending command packet of " + commandData.size() + " commands");
 
-        System.out.println(availableCommandsPacket);
         // Finally, send the commands to the client
         session.sendUpstreamPacket(availableCommandsPacket);
     }
