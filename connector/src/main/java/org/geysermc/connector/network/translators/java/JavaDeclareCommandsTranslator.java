@@ -91,6 +91,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             session.sendUpstreamPacket(emptyPacket);
             return;
         }
+
         CommandNode[] nodes = packet.getNodes();
         List<CommandData> commandData = new ArrayList<>();
         IntSet commandNodes = new IntOpenHashSet();
@@ -124,7 +125,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
         }
 
         // The command flags, not sure what these do apart from break things
-        List<CommandData.Flag> flags = new ArrayList<>();
+        List<CommandData.Flag> flags = Collections.emptyList();
 
         // Loop through all the found commands
 
@@ -141,9 +142,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
 
         // Add our commands to the AvailableCommandsPacket for the bedrock client
         AvailableCommandsPacket availableCommandsPacket = new AvailableCommandsPacket();
-        for (CommandData data : commandData) {
-            availableCommandsPacket.getCommands().add(data);
-        }
+        availableCommandsPacket.getCommands().addAll(commandData);
 
         session.getConnector().getLogger().debug("Sending command packet of " + commandData.size() + " commands");
 
