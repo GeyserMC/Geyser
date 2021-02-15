@@ -114,10 +114,11 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             // Shorten the sub-MOTD first since that only appears locally
             if (subMotdLength > BRAND_BYTES_LENGTH) {
                 pong.setSubMotd(GeyserConnector.NAME);
+                subMotdLength = BRAND_BYTES_LENGTH;
             }
-            if (motdArray.length > (338 - MINECRAFT_VERSION_BYTES_LENGTH - BRAND_BYTES_LENGTH)) {
+            if (motdArray.length > (338 - MINECRAFT_VERSION_BYTES_LENGTH - subMotdLength)) {
                 // If the top MOTD is still too long, we chop it down
-                byte[] newMotdArray = new byte[338 - MINECRAFT_VERSION_BYTES_LENGTH - BRAND_BYTES_LENGTH + 1];
+                byte[] newMotdArray = new byte[338 - MINECRAFT_VERSION_BYTES_LENGTH - subMotdLength + 1];
                 System.arraycopy(motdArray, 0, newMotdArray, 0, newMotdArray.length);
                 pong.setMotd(new String(newMotdArray, StandardCharsets.UTF_8));
             }
