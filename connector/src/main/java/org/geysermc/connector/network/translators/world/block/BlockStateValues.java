@@ -54,66 +54,67 @@ public class BlockStateValues {
     /**
      * Determines if the block state contains Bedrock block information
      *
-     * @param entry          The String to JsonNode map used in BlockTranslator
+     * @param javaId         The Java Identifier of the block
      * @param javaBlockState the Java Block State of the block
+     * @param blockData      JsonNode of info about the block from blocks.json
      */
-    public static void storeBlockStateValues(Map.Entry<String, JsonNode> entry, int javaBlockState) {
-        JsonNode bannerColor = entry.getValue().get("banner_color");
+    public static void storeBlockStateValues(String javaId, int javaBlockState, JsonNode blockData) {
+        JsonNode bannerColor = blockData.get("banner_color");
         if (bannerColor != null) {
             BANNER_COLORS.put(javaBlockState, (byte) bannerColor.intValue());
             return; // There will never be a banner color and a skull variant
         }
 
-        JsonNode bedColor = entry.getValue().get("bed_color");
+        JsonNode bedColor = blockData.get("bed_color");
         if (bedColor != null) {
             BED_COLORS.put(javaBlockState, (byte) bedColor.intValue());
             return;
         }
 
-        if (entry.getKey().contains("command_block")) {
-            COMMAND_BLOCK_VALUES.put(javaBlockState, entry.getKey().contains("conditional=true") ? (byte) 1 : (byte) 0);
+        if (javaId.contains("command_block")) {
+            COMMAND_BLOCK_VALUES.put(javaBlockState, javaId.contains("conditional=true") ? (byte) 1 : (byte) 0);
             return;
         }
 
-        if (entry.getValue().get("double_chest_position") != null) {
-            boolean isX = (entry.getValue().get("x") != null);
-            boolean isDirectionPositive = ((entry.getValue().get("x") != null && entry.getValue().get("x").asBoolean()) ||
-                    (entry.getValue().get("z") != null && entry.getValue().get("z").asBoolean()));
-            boolean isLeft = (entry.getValue().get("double_chest_position").asText().contains("left"));
+        if (blockData.get("double_chest_position") != null) {
+            boolean isX = (blockData.get("x") != null);
+            boolean isDirectionPositive = ((blockData.get("x") != null && blockData.get("x").asBoolean()) ||
+                    (blockData.get("z") != null && blockData.get("z").asBoolean()));
+            boolean isLeft = (blockData.get("double_chest_position").asText().contains("left"));
             DOUBLE_CHEST_VALUES.put(javaBlockState, new DoubleChestValue(isX, isDirectionPositive, isLeft));
             return;
         }
 
-        if (entry.getKey().contains("potted_") || entry.getKey().contains("flower_pot")) {
-            FLOWER_POT_VALUES.put(javaBlockState, entry.getKey().replace("potted_", ""));
+        if (javaId.contains("potted_") || javaId.contains("flower_pot")) {
+            FLOWER_POT_VALUES.put(javaBlockState, javaId.replace("potted_", ""));
             return;
         }
 
-        JsonNode notePitch = entry.getValue().get("note_pitch");
+        JsonNode notePitch = blockData.get("note_pitch");
         if (notePitch != null) {
-            NOTEBLOCK_PITCHES.put(javaBlockState, entry.getValue().get("note_pitch").intValue());
+            NOTEBLOCK_PITCHES.put(javaBlockState, blockData.get("note_pitch").intValue());
             return;
         }
 
-        if (entry.getKey().contains("piston")) {
+        if (javaId.contains("piston")) {
             // True if extended, false if not
-            PISTON_VALUES.put(javaBlockState, entry.getKey().contains("extended=true"));
-            IS_STICKY_PISTON.put(javaBlockState, entry.getKey().contains("sticky"));
+            PISTON_VALUES.put(javaBlockState, javaId.contains("extended=true"));
+            IS_STICKY_PISTON.put(javaBlockState, javaId.contains("sticky"));
             return;
         }
 
-        JsonNode skullVariation = entry.getValue().get("variation");
+        JsonNode skullVariation = blockData.get("variation");
         if (skullVariation != null) {
             SKULL_VARIANTS.put(javaBlockState, (byte) skullVariation.intValue());
         }
 
-        JsonNode skullRotation = entry.getValue().get("skull_rotation");
+        JsonNode skullRotation = blockData.get("skull_rotation");
         if (skullRotation != null) {
             SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
         }
 
-        if (entry.getKey().contains("wall_skull") || entry.getKey().contains("wall_head")) {
-            String direction = entry.getKey().substring(entry.getKey().lastIndexOf("facing=") + 7);
+        if (javaId.contains("wall_skull") || javaId.contains("wall_head")) {
+            String direction = javaId.substring(javaId.lastIndexOf("facing=") + 7);
             int rotation = 0;
             switch (direction.substring(0, direction.length() - 1)) {
                 case "north":
@@ -132,14 +133,13 @@ public class BlockStateValues {
             SKULL_WALL_DIRECTIONS.put(javaBlockState, rotation);
         }
 
-        JsonNode shulkerDirection = entry.getValue().get("shulker_direction");
+        JsonNode shulkerDirection = blockData.get("shulker_direction");
         if (shulkerDirection != null) {
             BlockStateValues.SHULKERBOX_DIRECTIONS.put(javaBlockState, (byte) shulkerDirection.intValue());
         }
 
-        String key = entry.getKey();
-        if (key.startsWith("minecraft:water")) {
-            String strLevel = key.substring(key.lastIndexOf("level=") + 6, key.length() - 1);
+        if (javaId.startsWith("minecraft:water")) {
+            String strLevel = javaId.substring(javaId.lastIndexOf("level=") + 6, javaId.length() - 1);
             int level = Integer.parseInt(strLevel);
             WATER_LEVEL.put(javaBlockState, level);
         }
