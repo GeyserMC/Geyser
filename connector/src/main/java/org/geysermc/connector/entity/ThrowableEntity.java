@@ -135,6 +135,7 @@ public class ThrowableEntity extends Entity implements Tickable {
                 case THROWN_EXP_BOTTLE:
                     return 0.07f;
                 case FIREBALL:
+                case SHULKER_BULLET:
                     return 0;
                 case SNOWBALL:
                 case THROWN_EGG:
@@ -168,6 +169,8 @@ public class ThrowableEntity extends Entity implements Tickable {
                 case SMALL_FIREBALL:
                 case DRAGON_FIREBALL:
                     return 0.95f;
+                case SHULKER_BULLET:
+                    return 1;
             }
         }
         return 1;
