@@ -41,9 +41,13 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.item.Enchantment;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 import java.util.*;
 
@@ -68,13 +72,86 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                 CommandParamData[] b1 = b[i];
                 if (a1.length != b1.length) return false;
 
-                for (int i2 = 0; i2 < a1.length; i2++) {
-                    if (!a1[i].equals(b1[i])) return false;
+                for (int j = 0; j < a1.length; j++) {
+                    if (!a1[j].equals(b1[j])) return false;
                 }
             }
             return true;
         }
     };
+
+    @Override
+    public void translate(ServerDeclareCommandsPacket packet, GeyserSession session) {
+        // Don't send command suggestions if they are disabled
+        if (!session.getConnector().getConfig().isCommandSuggestions()) {
+            session.getConnector().getLogger().debug("Not sending translated command suggestions as they are disabled.");
+
+            // Send an empty packet so Bedrock doesn't override /help with its own, built-in help command.
+            AvailableCommandsPacket emptyPacket = new AvailableCommandsPacket();
+            session.sendUpstreamPacket(emptyPacket);
+            return;
+        }
+        System.out.println(packet.toString());
+        CommandNode[] nodes = packet.getNodes();
+        List<CommandData> commandData = new ArrayList<>();
+        IntSet commandNodes = new IntOpenHashSet();
+        Set<String> knownAliases = new HashSet<>();
+        Map<CommandParamData[][], Set<String>> commands = new Object2ObjectOpenCustomHashMap<>(PARAM_STRATEGY);
+        Int2ObjectMap<List<CommandNode>> commandArgs = new Int2ObjectOpenHashMap<>();
+
+        // Get the first node, it should be a root node
+        CommandNode rootNode = nodes[packet.getFirstNodeIndex()];
+
+        // Loop through the root nodes to get all commands
+        for (int nodeIndex : rootNode.getChildIndices()) {
+            CommandNode node = nodes[nodeIndex];
+
+            // Make sure we don't have duplicated commands (happens if there is more than 1 root node)
+            if (!commandNodes.add(nodeIndex) || !knownAliases.add(node.getName().toLowerCase())) continue;
+
+            // Get and update the commandArgs list with the found arguments
+            if (node.getChildIndices().length >= 1) {
+                for (int childIndex : node.getChildIndices()) {
+                    commandArgs.putIfAbsent(nodeIndex, new ArrayList<>());
+                    commandArgs.get(nodeIndex).add(nodes[childIndex]);
+                }
+            }
+
+            // Get and parse all params
+            CommandParamData[][] params = getParams(nodes[nodeIndex], nodes);
+
+            // Insert the alias name into the command list
+            commands.computeIfAbsent(params, index -> new HashSet<>()).add(node.getName().toLowerCase());
+        }
+
+        // The command flags, not sure what these do apart from break things
+        List<CommandData.Flag> flags = new ArrayList<>();
+
+        // Loop through all the found commands
+
+        for (Map.Entry<CommandParamData[][], Set<String>> entry : commands.entrySet()) {
+            String commandName = entry.getValue().iterator().next(); // We know this has a value
+
+            // Create a basic alias
+            CommandEnumData aliases = new CommandEnumData(commandName + "Aliases", entry.getValue().toArray(new String[0]), false);
+
+            // Build the completed command and add it to the final list
+            CommandData data = new CommandData(commandName, session.getConnector().getCommandManager().getDescription(commandName), flags, (byte) 0, aliases, entry.getKey());
+            commandData.add(data);
+        }
+
+        // Add our commands to the AvailableCommandsPacket for the bedrock client
+        AvailableCommandsPacket availableCommandsPacket = new AvailableCommandsPacket();
+        for (CommandData data : commandData) {
+            availableCommandsPacket.getCommands().add(data);
+        }
+
+        session.getConnector().getLogger().debug("Sending command packet of " + commandData.size() + " commands");
+
+        System.out.println(availableCommandsPacket);
+        // Finally, send the commands to the client
+        session.sendUpstreamPacket(availableCommandsPacket);
+    }
 
     /**
      * Build the command parameter array for the given command
@@ -156,11 +233,21 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             case OPERATION: // Possibly OPERATOR
                 return CommandParamType.OPERATOR;
 
+            case BLOCK_STATE:
+                return BlockTranslator.getAllBlockIdentifiers();
+
+            case ITEM_STACK:
+                return ItemRegistry.ITEM_NAMES;
+
+            case ITEM_ENCHANTMENT:
+                return Enchantment.ALL_JAVA_IDENTIFIERS; //TODO: inventory branch use Java enums
+
+            case ENTITY_SUMMON:
+                return EntityType.ALL_JAVA_IDENTIFIERS;
+
             case STRING:
             case VEC2:
-            case BLOCK_STATE:
             case BLOCK_PREDICATE:
-            case ITEM_STACK:
             case ITEM_PREDICATE:
             case COLOR:
             case COMPONENT:
@@ -176,8 +263,6 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             case ENTITY_ANCHOR:
             case RANGE:
             case FLOAT_RANGE:
-            case ITEM_ENCHANTMENT:
-            case ENTITY_SUMMON:
             case DIMENSION:
             case TIME:
             default:
@@ -185,82 +270,11 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
         }
     }
 
-    @Override
-    public void translate(ServerDeclareCommandsPacket packet, GeyserSession session) {
-        // Don't send command suggestions if they are disabled
-        if (!session.getConnector().getConfig().isCommandSuggestions()) {
-            session.getConnector().getLogger().debug("Not sending translated command suggestions as they are disabled.");
-
-            // Send an empty packet so Bedrock doesn't override /help with its own, built-in help command.
-            AvailableCommandsPacket emptyPacket = new AvailableCommandsPacket();
-            session.sendUpstreamPacket(emptyPacket);
-            return;
-        }
-        CommandNode[] nodes = packet.getNodes();
-        List<CommandData> commandData = new ArrayList<>();
-        IntSet commandNodes = new IntOpenHashSet();
-        Set<String> knownAliases = new HashSet<>();
-        Map<CommandParamData[][], Set<String>> commands = new Object2ObjectOpenCustomHashMap<>(PARAM_STRATEGY);
-        Int2ObjectMap<List<CommandNode>> commandArgs = new Int2ObjectOpenHashMap<>();
-
-        // Get the first node, it should be a root node
-        CommandNode rootNode = nodes[packet.getFirstNodeIndex()];
-
-        // Loop through the root nodes to get all commands
-        for (int nodeIndex : rootNode.getChildIndices()) {
-            CommandNode node = nodes[nodeIndex];
-
-            // Make sure we don't have duplicated commands (happens if there is more than 1 root node)
-            if (!commandNodes.add(nodeIndex) || !knownAliases.add(node.getName().toLowerCase())) continue;
-
-            // Get and update the commandArgs list with the found arguments
-            if (node.getChildIndices().length >= 1) {
-                for (int childIndex : node.getChildIndices()) {
-                    commandArgs.putIfAbsent(nodeIndex, new ArrayList<>());
-                    commandArgs.get(nodeIndex).add(nodes[childIndex]);
-                }
-            }
-
-            // Get and parse all params
-            CommandParamData[][] params = getParams(nodes[nodeIndex], nodes);
-
-            // Insert the alias name into the command list
-            commands.computeIfAbsent(params, index -> new HashSet<>()).add(node.getName().toLowerCase());
-        }
-
-        // The command flags, not sure what these do apart from break things
-        List<CommandData.Flag> flags = new ArrayList<>();
-
-        // Loop through all the found commands
-
-        for (Map.Entry<CommandParamData[][], Set<String>> entry : commands.entrySet()) {
-            String commandName = entry.getValue().iterator().next(); // We know this has a value
-
-            // Create a basic alias
-            CommandEnumData aliases = new CommandEnumData(commandName + "Aliases", entry.getValue().toArray(new String[0]), false);
-
-            // Build the completed command and add it to the final list
-            CommandData data = new CommandData(commandName, session.getConnector().getCommandManager().getDescription(commandName), flags, (byte) 0, aliases, entry.getKey());
-            commandData.add(data);
-        }
-
-        // Add our commands to the AvailableCommandsPacket for the bedrock client
-        AvailableCommandsPacket availableCommandsPacket = new AvailableCommandsPacket();
-        for (CommandData data : commandData) {
-            availableCommandsPacket.getCommands().add(data);
-        }
-
-        GeyserConnector.getInstance().getLogger().debug("Sending command packet of " + commandData.size() + " commands");
-
-        // Finally, send the commands to the client
-        session.sendUpstreamPacket(availableCommandsPacket);
-    }
-
     @Getter
     private static class ParamInfo {
-        private CommandNode paramNode;
-        private CommandParamData paramData;
-        private List<ParamInfo> children;
+        private final CommandNode paramNode;
+        private final CommandParamData paramData;
+        private final List<ParamInfo> children;
 
         /**
          * Create a new parameter info object
@@ -290,15 +304,8 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                         enumIndex = children.size();
 
                         // Create the new enum command
-                        Object mappedType = mapCommandType(paramNode.getParser());
-                        CommandEnumData enumData;
-                        CommandParamType type = null;
-                        if (mappedType instanceof String[]) {
-                            enumData = new CommandEnumData(paramNode.getName(), (String[]) mappedType, false);
-                        } else {
-                            enumData = new CommandEnumData(paramNode.getName(), new String[]{paramNode.getName()}, false);
-                            type = (CommandParamType) mappedType;
-                        }
+                        CommandEnumData enumData = new CommandEnumData(paramNode.getName(), new String[]{paramNode.getName()}, false);
+                        CommandParamType type = CommandParamType.STRING;
 
                         children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), false, enumData, type, null, Collections.emptyList())));
                     } else {
@@ -319,7 +326,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                     CommandEnumData enumData = null;
                     CommandParamType type = null;
                     if (mappedType instanceof String[]) {
-                        enumData = new CommandEnumData(paramNode.getName(), new String[]{paramNode.getName()}, false);
+                        enumData = new CommandEnumData(paramNode.getName(), (String[]) mappedType, false);
                     } else {
                         type = (CommandParamType) mappedType;
                     }
