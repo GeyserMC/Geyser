@@ -112,8 +112,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             // Get and update the commandArgs list with the found arguments
             if (node.getChildIndices().length >= 1) {
                 for (int childIndex : node.getChildIndices()) {
-                    commandArgs.putIfAbsent(nodeIndex, new ArrayList<>());
-                    commandArgs.get(nodeIndex).add(nodes[childIndex]);
+                    commandArgs.computeIfAbsent(nodeIndex, ArrayList::new).add(nodes[childIndex]);
                 }
             }
 
