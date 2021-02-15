@@ -74,7 +74,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         pong.setGameType("Survival"); // Can only be Survival or Creative as of 1.16.210.59
         pong.setNintendoLimited(false);
         pong.setProtocolVersion(BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion());
-        pong.setVersion(BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()); // Required to not be empty as of 1.16.210.59
+        pong.setVersion(BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()); // Required to not be empty as of 1.16.210.59. Can only contain . and numbers.
         pong.setIpv4Port(config.getBedrock().getPort());
 
         if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
@@ -118,7 +118,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             }
             if (motdArray.length > (338 - MINECRAFT_VERSION_BYTES_LENGTH - subMotdLength)) {
                 // If the top MOTD is still too long, we chop it down
-                byte[] newMotdArray = new byte[338 - MINECRAFT_VERSION_BYTES_LENGTH - subMotdLength + 1];
+                byte[] newMotdArray = new byte[338 - MINECRAFT_VERSION_BYTES_LENGTH - subMotdLength];
                 System.arraycopy(motdArray, 0, newMotdArray, 0, newMotdArray.length);
                 pong.setMotd(new String(newMotdArray, StandardCharsets.UTF_8));
             }
