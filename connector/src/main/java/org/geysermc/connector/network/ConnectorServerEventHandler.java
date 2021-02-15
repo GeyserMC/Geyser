@@ -69,10 +69,10 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
         BedrockPong pong = new BedrockPong();
         pong.setEdition("MCPE");
-        pong.setGameType("Default");
+        pong.setGameType("Survival"); // Can only be Survival or Creative as of 1.16.210.59
         pong.setNintendoLimited(false);
         pong.setProtocolVersion(BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion());
-        pong.setVersion(null); // Server tries to connect either way and it looks better
+        pong.setVersion(BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()); // Required to not be empty as of 1.16.210.59
         pong.setIpv4Port(config.getBedrock().getPort());
 
         if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
