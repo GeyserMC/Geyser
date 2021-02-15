@@ -57,7 +57,9 @@ public class FishingHookEntity extends ThrowableEntity {
 
         this.boundingBox = new BoundingBox(0.125, 0.125, 0.125, 0.25, 0.25, 0.25);
 
-        // Silence splash sounds from bedrock
+        // In Java, the splash sound depends on the entity's velocity, but in Bedrock the volume doesn't change.
+        // This splash can be confused with the sound from catching a fish. This silences the splash from Bedrock,
+        // so that it can be handled by moveAbsoluteImmediate.
         this.metadata.putFloat(EntityData.BOUNDING_BOX_HEIGHT, 1e6f);
 
         this.metadata.put(EntityData.OWNER_EID, owner.getGeyserId());

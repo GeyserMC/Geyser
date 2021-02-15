@@ -75,6 +75,7 @@ public class JavaSpawnEntityTranslator extends PacketTranslator<ServerSpawnEntit
                 if (owner == null && session.getPlayerEntity().getEntityId() == ownerEntityId) {
                     owner = session.getPlayerEntity();
                 }
+                // Java clients only spawn fishing hooks with a player as its owner
                 if (owner instanceof PlayerEntity) {
                     entity = new FishingHookEntity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
                             type, position, motion, rotation, (PlayerEntity) owner);
