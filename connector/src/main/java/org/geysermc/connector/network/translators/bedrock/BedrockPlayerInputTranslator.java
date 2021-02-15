@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,9 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-// Makes minecarts respond to player input
+/**
+ * Sent by the client for minecarts and boats.
+ */
 @Translator(packet = PlayerInputPacket.class)
 public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPacket> {
 

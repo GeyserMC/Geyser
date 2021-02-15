@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,8 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.scoreboard.Objective;
 import org.geysermc.connector.scoreboard.Scoreboard;
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.scoreboard.ScoreboardUpdater;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ObjectiveAction;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerScoreboardObjectivePacket;
@@ -41,26 +42,34 @@ public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerSc
 
     @Override
     public void translate(ServerScoreboardObjectivePacket packet, GeyserSession session) {
-        WorldCache cache = session.getWorldCache();
-        Scoreboard scoreboard = cache.getScoreboard();
-
+        WorldCache worldCache = session.getWorldCache();
+        Scoreboard scoreboard = worldCache.getScoreboard();
         Objective objective = scoreboard.getObjective(packet.getName());
+        int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();
 
         if (objective == null && packet.getAction() != ObjectiveAction.REMOVE) {
-            objective = scoreboard.registerNewObjective(packet.getName(), true);
+            objective = scoreboard.registerNewObjective(packet.getName(), false);
         }
 
         switch (packet.getAction()) {
             case ADD:
             case UPDATE:
-                objective.setDisplayName(MessageUtils.getBedrockMessage(packet.getDisplayName()));
-                objective.setType(packet.getType().ordinal());
+                objective.setDisplayName(MessageTranslator.convertMessage(packet.getDisplayName()))
+                        .setType(packet.getType().ordinal());
                 break;
             case REMOVE:
                 scoreboard.unregisterObjective(packet.getName());
                 break;
         }
 
-        if (objective != null && !objective.isTemp()) scoreboard.onUpdate();
+        if (objective == null || !objective.isActive()) {
+            return;
+        }
+
+        // ScoreboardUpdater will handle it for us if the packets per second
+        // (for score and team packets) is higher then the first threshold
+        if (pps < ScoreboardUpdater.FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
+            scoreboard.onUpdate();
+        }
     }
 }

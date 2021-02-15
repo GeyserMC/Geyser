@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,8 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 
+import java.util.Arrays;
+
 public class ContainerInventoryUpdater extends InventoryUpdater {
     @Override
     public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
@@ -45,7 +47,7 @@ public class ContainerInventoryUpdater extends InventoryUpdater {
 
         InventoryContentPacket contentPacket = new InventoryContentPacket();
         contentPacket.setContainerId(inventory.getId());
-        contentPacket.setContents(bedrockItems);
+        contentPacket.setContents(Arrays.asList(bedrockItems));
         session.sendUpstreamPacket(contentPacket);
     }
 

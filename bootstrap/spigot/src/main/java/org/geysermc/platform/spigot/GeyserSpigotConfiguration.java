@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,6 @@ package org.geysermc.platform.spigot;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
@@ -35,26 +34,19 @@ import org.geysermc.connector.FloodgateKeyLoader;
 import org.geysermc.connector.configuration.GeyserJacksonConfiguration;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GeyserSpigotConfiguration extends GeyserJacksonConfiguration {
-
-    @JsonProperty("floodgate-key-file")
-    private String floodgateKeyFile;
-
+public final class GeyserSpigotConfiguration extends GeyserJacksonConfiguration {
     @JsonIgnore
-    private Path floodgateKey;
+    private Path floodgateKeyPath;
 
     public void loadFloodgate(GeyserSpigotPlugin plugin) {
         Plugin floodgate = Bukkit.getPluginManager().getPlugin("floodgate-bukkit");
-        floodgateKey = FloodgateKeyLoader.getKey(plugin.getGeyserLogger(), this, Paths.get(plugin.getDataFolder().toString(), plugin.getConfig().getString("floodgate-key-file", "public-key.pem")), floodgate, floodgate != null ? floodgate.getDataFolder().toPath() : null);
-    }
+        Path geyserDataFolder = plugin.getDataFolder().toPath();
+        Path floodgateDataFolder = floodgate != null ? floodgate.getDataFolder().toPath() : null;
 
-    @Override
-    public Path getFloodgateKeyFile() {
-        return floodgateKey;
+        floodgateKeyPath = FloodgateKeyLoader.getKeyPath(this, floodgate, floodgateDataFolder, geyserDataFolder, plugin.getGeyserLogger());
     }
 
     @Override

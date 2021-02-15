@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,7 +48,7 @@ public enum Potion {
     STRONG_SWIFTNESS(16),
     LONG_SWIFTNESS(15),
     SLOWNESS(17),
-    STRONG_SLOWNESS(18), //does not exist
+    STRONG_SLOWNESS(42),
     LONG_SLOWNESS(18),
     WATER_BREATHING(19),
     LONG_WATER_BREATHING(20),

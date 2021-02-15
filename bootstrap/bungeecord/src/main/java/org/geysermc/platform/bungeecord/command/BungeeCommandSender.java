@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +25,20 @@
 
 package org.geysermc.platform.bungeecord.command;
 
-import lombok.AllArgsConstructor;
-
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
-
 import org.geysermc.connector.command.CommandSender;
+import org.geysermc.connector.utils.LanguageUtils;
 
-@AllArgsConstructor
 public class BungeeCommandSender implements CommandSender {
 
-    private net.md_5.bungee.api.CommandSender handle;
+    private final net.md_5.bungee.api.CommandSender handle;
+
+    public BungeeCommandSender(net.md_5.bungee.api.CommandSender handle) {
+        this.handle = handle;
+        // Ensure even Java players' languages are loaded
+        LanguageUtils.loadGeyserLocale(getLocale());
+    }
 
     @Override
     public String getName() {
@@ -50,5 +53,15 @@ public class BungeeCommandSender implements CommandSender {
     @Override
     public boolean isConsole() {
         return !(handle instanceof ProxiedPlayer);
+    }
+
+    @Override
+    public String getLocale() {
+        if (handle instanceof ProxiedPlayer) {
+            ProxiedPlayer player = (ProxiedPlayer) handle;
+            String locale = player.getLocale().getLanguage() + "_" + player.getLocale().getCountry();
+            return LanguageUtils.formatLocale(locale);
+        }
+        return LanguageUtils.getDefaultLocale();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,13 +26,10 @@
 package org.geysermc.platform.sponge;
 
 import com.google.inject.Inject;
-import ninja.leaping.configurate.ConfigurationNode;
-import ninja.leaping.configurate.loader.ConfigurationLoader;
-import ninja.leaping.configurate.yaml.YAMLConfigurationLoader;
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
-import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
@@ -85,19 +82,13 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             ex.printStackTrace();
         }
 
-        ConfigurationLoader loader = YAMLConfigurationLoader.builder().setPath(configFile.toPath()).build();
-        ConfigurationNode config;
         try {
-            config = loader.load();
-            this.geyserConfig = new GeyserSpongeConfiguration(configDir, config);
+            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserSpongeConfiguration.class);
         } catch (IOException ex) {
             logger.warn(LanguageUtils.getLocaleStringLog("geyser.config.failed"));
             ex.printStackTrace();
             return;
         }
-
-        ConfigurationNode serverIP = config.getNode("remote").getNode("address");
-        ConfigurationNode serverPort = config.getNode("remote").getNode("port");
 
         if (Sponge.getServer().getBoundAddress().isPresent()) {
             InetSocketAddress javaAddr = Sponge.getServer().getBoundAddress().get();
@@ -106,13 +97,12 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             // By default this should be 127.0.0.1 but may need to be changed in some circumstances
             if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
                 this.geyserConfig.setAutoconfiguredRemote(true);
-                serverPort.setValue(javaAddr.getPort());
+                geyserConfig.getRemote().setPort(javaAddr.getPort());
             }
         }
 
-        ConfigurationNode bedrockPort = config.getNode("bedrock").getNode("port");
         if (geyserConfig.getBedrock().isCloneRemotePort()){
-            bedrockPort.setValue(serverPort.getValue());
+            geyserConfig.getBedrock().setPort(geyserConfig.getRemote().getPort());
         }
 
         this.geyserLogger = new GeyserSpongeLogger(logger, geyserConfig.isDebugMode());
@@ -172,5 +162,10 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     @Override
     public BootstrapDumpInfo getDumpInfo() {
         return new GeyserSpongeDumpInfo();
+    }
+
+    @Override
+    public String getMinecraftServerVersion() {
+        return Sponge.getPlatform().getMinecraftVersion().getName();
     }
 }

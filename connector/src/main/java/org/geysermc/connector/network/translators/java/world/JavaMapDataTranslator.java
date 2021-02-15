@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,7 @@ public class JavaMapDataTranslator extends PacketTranslator<ServerMapDataPacket>
         boolean shouldStore = false;
 
         mapItemDataPacket.setUniqueMapId(packet.getMapId());
-        mapItemDataPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getPlayerEntity().getDimension()));
+        mapItemDataPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
         mapItemDataPacket.setLocked(packet.isLocked());
         mapItemDataPacket.setScale(packet.getScale());
 

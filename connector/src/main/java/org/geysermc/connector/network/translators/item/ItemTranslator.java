@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.item;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.message.MessageSerializer;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
@@ -35,21 +34,19 @@ import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
-import org.geysermc.connector.utils.MessageUtils;
 import org.reflections.Reflections;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class ItemTranslator {
-
     private static final Int2ObjectMap<ItemTranslator> ITEM_STACK_TRANSLATORS = new Int2ObjectOpenHashMap<>();
     private static final List<NbtItemStackTranslator> NBT_TRANSLATORS;
 
@@ -62,7 +59,7 @@ public abstract class ItemTranslator {
 
     static {
         /* Load item translators */
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.item");
+        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators.item") : new Reflections("org.geysermc.connector.network.translators.item");
 
         Map<NbtItemStackTranslator, Integer> loadedNbtItemTranslators = new HashMap<>();
         for (Class<?> clazz : ref.getTypesAnnotatedWith(ItemRemapper.class)) {
@@ -114,6 +111,10 @@ public abstract class ItemTranslator {
                     translator.translateToJava(itemStack.getNbt(), javaItem);
                 }
             }
+            if (itemStack.getNbt().isEmpty()) {
+                // Otherwise, seems to causes issues with villagers accepting books, and I don't see how this will break anything else. - Camotoy
+                itemStack = new ItemStack(itemStack.getId(), itemStack.getAmount(), null);
+            }
         }
         return itemStack;
     }
@@ -129,7 +130,7 @@ public abstract class ItemTranslator {
 
         // This is a fallback for maps with no nbt
         if (nbt == null && bedrockItem.getJavaIdentifier().equals("minecraft:filled_map")) {
-            nbt = new com.github.steveice10.opennbt.tag.builtin.CompoundTag("");
+            nbt = new CompoundTag("");
             nbt.put(new IntTag("map", 0));
         }
 
@@ -153,7 +154,41 @@ public abstract class ItemTranslator {
             itemData = DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem);
         }
 
+        if (nbt != null) {
+            // Translate the canDestroy and canPlaceOn Java NBT
+            ListTag canDestroy = nbt.get("CanDestroy");
+            String[] canBreak = new String[0];
+            ListTag canPlaceOn = nbt.get("CanPlaceOn");
+            String[] canPlace = new String[0];
+            canBreak = getCanModify(canDestroy, canBreak);
+            canPlace = getCanModify(canPlaceOn, canPlace);
+            itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), itemData.getTag(), canPlace, canBreak);
+        }
+
         return itemData;
+    }
+
+    /**
+     * Translates the Java NBT of canDestroy and canPlaceOn to its Bedrock counterparts.
+     * In Java, this is treated as normal NBT, but in Bedrock, these arguments are extra parts of the item data itself.
+     * @param canModifyJava the list of items in Java
+     * @param canModifyBedrock the empty list of items in Bedrock
+     * @return the new list of items in Bedrock
+     */
+    private static String[] getCanModify(ListTag canModifyJava, String[] canModifyBedrock) {
+        if (canModifyJava != null && canModifyJava.size() > 0) {
+            canModifyBedrock = new String[canModifyJava.size()];
+            for (int i = 0; i < canModifyBedrock.length; i++) {
+                // Get the Java identifier of the block that can be placed
+                String block = ((StringTag) canModifyJava.get(i)).getValue();
+                // Sometimes this is done but it's still valid
+                if (!block.startsWith("minecraft:")) block = "minecraft:" + block;
+                // Get the Bedrock identifier of the item and replace it.
+                // This will unfortunately be limited - for example, beds and banners will be translated weirdly
+                canModifyBedrock[i] = BlockTranslator.getBedrockBlockIdentifier(block).replace("minecraft:", "");
+            }
+        }
+        return canModifyBedrock;
     }
 
     private static final ItemTranslator DEFAULT_TRANSLATOR = new ItemTranslator() {
@@ -184,19 +219,17 @@ public abstract class ItemTranslator {
     public abstract List<ItemEntry> getAppliedItems();
 
     public NbtMap translateNbtToBedrock(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag) {
-        Map<String, Object> javaValue = new HashMap<>();
+        NbtMapBuilder builder = NbtMap.builder();
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
             for (String str : tag.getValue().keySet()) {
-                com.github.steveice10.opennbt.tag.builtin.Tag javaTag = tag.get(str);
+                Tag javaTag = tag.get(str);
                 Object translatedTag = translateToBedrockNBT(javaTag);
                 if (translatedTag == null)
                     continue;
 
-                javaValue.put(javaTag.getName(), translatedTag);
+                builder.put(javaTag.getName(), translatedTag);
             }
         }
-        NbtMapBuilder builder = NbtMap.builder();
-        javaValue.forEach(builder::put);
         return builder.build();
     }
 
@@ -258,21 +291,21 @@ public abstract class ItemTranslator {
             return new NbtList(type, tagList);
         }
 
-        if (tag instanceof com.github.steveice10.opennbt.tag.builtin.CompoundTag) {
-            com.github.steveice10.opennbt.tag.builtin.CompoundTag compoundTag = (com.github.steveice10.opennbt.tag.builtin.CompoundTag) tag;
+        if (tag instanceof CompoundTag) {
+            CompoundTag compoundTag = (CompoundTag) tag;
             return translateNbtToBedrock(compoundTag);
         }
 
         return null;
     }
 
-    public com.github.steveice10.opennbt.tag.builtin.CompoundTag translateToJavaNBT(String name, NbtMap tag) {
-        com.github.steveice10.opennbt.tag.builtin.CompoundTag javaTag = new com.github.steveice10.opennbt.tag.builtin.CompoundTag(name);
-        Map<String, com.github.steveice10.opennbt.tag.builtin.Tag> javaValue = javaTag.getValue();
+    public CompoundTag translateToJavaNBT(String name, NbtMap tag) {
+        CompoundTag javaTag = new CompoundTag(name);
+        Map<String, Tag> javaValue = javaTag.getValue();
         if (tag != null && !tag.isEmpty()) {
             for (String str : tag.keySet()) {
                 Object bedrockTag = tag.get(str);
-                com.github.steveice10.opennbt.tag.builtin.Tag translatedTag = translateToJavaNBT(str, bedrockTag);
+                Tag translatedTag = translateToJavaNBT(str, bedrockTag);
                 if (translatedTag == null)
                     continue;
 
@@ -284,7 +317,7 @@ public abstract class ItemTranslator {
         return javaTag;
     }
 
-    private com.github.steveice10.opennbt.tag.builtin.Tag translateToJavaNBT(String name, Object object) {
+    private Tag translateToJavaNBT(String name, Object object) {
         if (object instanceof int[]) {
             return new IntArrayTag(name, (int[]) object);
         }
@@ -326,10 +359,10 @@ public abstract class ItemTranslator {
         }
 
         if (object instanceof List) {
-            List<com.github.steveice10.opennbt.tag.builtin.Tag> tags = new ArrayList<>();
+            List<Tag> tags = new ArrayList<>();
 
             for (Object value : (List<?>) object) {
-                com.github.steveice10.opennbt.tag.builtin.Tag javaTag = translateToJavaNBT("", value);
+                Tag javaTag = translateToJavaNBT("", value);
                 if (javaTag != null)
                     tags.add(javaTag);
             }
@@ -352,26 +385,17 @@ public abstract class ItemTranslator {
     public static void translateDisplayProperties(GeyserSession session, CompoundTag tag) {
         if (tag != null) {
             CompoundTag display = tag.get("display");
-            if (display != null && !display.isEmpty() && display.contains("Name")) {
+            if (display != null && display.contains("Name")) {
                 String name = ((StringTag) display.get("Name")).getValue();
 
-                // If its not a message convert it
-                if (!MessageUtils.isMessage(name)) {
-                    TextComponent component = LegacyComponentSerializer.legacySection().deserialize(name);
-                    name = GsonComponentSerializer.gson().serialize(component);
-                }
+                // Get the translated name and prefix it with a reset char
+                name = MessageTranslator.convertMessageLenient(name, session.getLocale());
 
-                // Check if its a message to translate
-                if (MessageUtils.isMessage(name)) {
-                    // Get the translated name
-                    name = MessageUtils.getTranslatedBedrockMessage(MessageSerializer.fromString(name), session.getClientData().getLanguageCode());
+                // Add the new name tag
+                display.put(new StringTag("Name", name));
 
-                    // Add the new name tag
-                    display.put(new StringTag("Name", name));
-
-                    // Add to the new root tag
-                    tag.put(display);
-                }
+                // Add to the new root tag
+                tag.put(display);
             }
         }
     }

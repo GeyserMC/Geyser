@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.world.particle.Particle;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.effect.EffectRegistry;
@@ -43,6 +44,10 @@ public class AreaEffectCloudEntity extends Entity {
 
         // This disabled client side shrink of the cloud
         metadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, 0.0f);
+        metadata.put(EntityData.AREA_EFFECT_CLOUD_CHANGE_RATE, -0.005f);
+        metadata.put(EntityData.AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP, -0.5f);
+
+        metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 
     @Override
@@ -50,11 +55,14 @@ public class AreaEffectCloudEntity extends Entity {
         if (entityMetadata.getId() == 7) {
             metadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, entityMetadata.getValue());
             metadata.put(EntityData.BOUNDING_BOX_WIDTH, 2.0f * (float) entityMetadata.getValue());
+        } else if (entityMetadata.getId() == 8) {
+            metadata.put(EntityData.EFFECT_COLOR, entityMetadata.getValue());
         } else if (entityMetadata.getId() == 10) {
             Particle particle = (Particle) entityMetadata.getValue();
-            metadata.put(EntityData.AREA_EFFECT_CLOUD_PARTICLE_ID, EffectRegistry.getParticleString(particle.getType()));
-        } else if (entityMetadata.getId() == 8) {
-            metadata.put(EntityData.POTION_AUX_VALUE, entityMetadata.getValue());
+            int particleId = EffectRegistry.getParticleId(particle.getType());
+            if (particleId != -1) {
+                metadata.put(EntityData.AREA_EFFECT_CLOUD_PARTICLE_ID, particleId);
+            }
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }

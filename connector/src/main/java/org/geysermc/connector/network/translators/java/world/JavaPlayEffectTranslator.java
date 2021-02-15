@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -78,7 +78,7 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                 textPacket.setMessage("record.nowPlaying");
                 List<String> params = new ArrayList<>();
                 String recordString = "%item." + soundEvent.name().toLowerCase(Locale.ROOT) + ".desc";
-                params.add(LocaleUtils.getLocaleString(recordString, session.getClientData().getLanguageCode()));
+                params.add(LocaleUtils.getLocaleString(recordString, session.getLocale()));
                 textPacket.setParameters(params);
                 session.sendUpstreamPacket(textPacket);
             }

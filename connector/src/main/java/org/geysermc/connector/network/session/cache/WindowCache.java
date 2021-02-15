@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,10 +37,10 @@ import org.geysermc.connector.network.session.GeyserSession;
 
 public class WindowCache {
 
-    private GeyserSession session;
+    private final GeyserSession session;
 
     @Getter
-    private Int2ObjectMap<FormWindow> windows = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectMap<FormWindow> windows = new Int2ObjectOpenHashMap<>();
 
     public WindowCache(GeyserSession session) {
         this.session = session;

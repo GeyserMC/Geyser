@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,11 +38,12 @@ import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.*;
-import org.geysermc.connector.entity.PlayerEntity;
+import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.PlayerInventoryTranslator;
+import org.geysermc.connector.utils.LocaleUtils;
 
 @Translator(packet = ServerNotifyClientPacket.class)
 public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyClientPacket> {
@@ -102,14 +103,12 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
             case CHANGE_GAMEMODE:
                 GameMode gameMode = (GameMode) packet.getValue();
 
-                session.setNoClip(gameMode == GameMode.SPECTATOR);
-                session.setWorldImmutable(gameMode == GameMode.ADVENTURE || gameMode == GameMode.SPECTATOR);
-                session.sendAdventureSettings();
-
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
                 playerGameTypePacket.setGamemode(gameMode.ordinal());
                 session.sendUpstreamPacket(playerGameTypePacket);
                 session.setGameMode(gameMode);
+
+                session.sendAdventureSettings();
 
                 // Update the crafting grid to add/remove barriers for creative inventory
                 PlayerInventoryTranslator.updateCraftingGrid(session, session.getInventory());
@@ -140,6 +139,19 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 gamerulePacket.getGameRules().add(new GameRuleData<>("doimmediaterespawn",
                         packet.getValue() == RespawnScreenValue.IMMEDIATE_RESPAWN));
                 session.sendUpstreamPacket(gamerulePacket);
+                break;
+            case INVALID_BED:
+                // Not sent as a proper message? Odd.
+                session.sendMessage(LocaleUtils.getLocaleString("block.minecraft.spawn.not_valid",
+                        session.getLocale()));
+                break;
+            case ARROW_HIT_PLAYER:
+                PlaySoundPacket arrowSoundPacket = new PlaySoundPacket();
+                arrowSoundPacket.setSound("random.orb");
+                arrowSoundPacket.setPitch(0.5f);
+                arrowSoundPacket.setVolume(0.5f);
+                arrowSoundPacket.setPosition(entity.getPosition());
+                session.sendUpstreamPacket(arrowSoundPacket);
                 break;
             default:
                 break;

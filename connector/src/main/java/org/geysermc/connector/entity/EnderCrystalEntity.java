@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +39,8 @@ public class EnderCrystalEntity extends Entity {
     public EnderCrystalEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
 
+        // Bedrock 1.16.100+ - prevents the entity from appearing on fire itself when fire is underneath it
+        metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 
     @Override

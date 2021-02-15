@@ -11,4 +11,4 @@ assignees: ''
 Add a description
 
 **Alternatives?**
-Any alternatives you have tryed
+List any alternatives you might have tried

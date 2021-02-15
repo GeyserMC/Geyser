@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,11 +31,10 @@ import com.velocitypowered.api.proxy.InboundConnection;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.ServerPing;
 import lombok.AllArgsConstructor;
-import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 
-import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -43,22 +42,20 @@ import java.util.concurrent.ExecutionException;
 @AllArgsConstructor
 public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
 
-    private static final GeyserInboundConnection FAKE_INBOUND_CONNECTION = new GeyserInboundConnection();
-
     private final ProxyServer server;
 
     @Override
-    public GeyserPingInfo getPingInformation() {
+    public GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress) {
         ProxyPingEvent event;
         try {
-            event = server.getEventManager().fire(new ProxyPingEvent(FAKE_INBOUND_CONNECTION, ServerPing.builder()
-                    .description(server.getConfiguration().getMotdComponent()).onlinePlayers(server.getPlayerCount())
+            event = server.getEventManager().fire(new ProxyPingEvent(new GeyserInboundConnection(inetSocketAddress), ServerPing.builder()
+                    .description(server.getConfiguration().getMotd()).onlinePlayers(server.getPlayerCount())
                     .maximumPlayers(server.getConfiguration().getShowMaxPlayers()).build())).get();
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
         GeyserPingInfo geyserPingInfo = new GeyserPingInfo(
-                LegacyComponentSerializer.legacy().serialize(event.getPing().getDescription(), '§'),
+                LegacyComponentSerializer.legacy('§').serialize(event.getPing().getDescriptionComponent()),
                 new GeyserPingInfo.Players(
                         event.getPing().getPlayers().orElseThrow(IllegalStateException::new).getMax(),
                         event.getPing().getPlayers().orElseThrow(IllegalStateException::new).getOnline()
@@ -74,11 +71,15 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
 
     private static class GeyserInboundConnection implements InboundConnection {
 
-        private static final InetSocketAddress FAKE_REMOTE = new InetSocketAddress(Inet4Address.getLoopbackAddress(), 69);
+        private final InetSocketAddress remote;
+
+        public GeyserInboundConnection(InetSocketAddress remote) {
+            this.remote = remote;
+        }
 
         @Override
         public InetSocketAddress getRemoteAddress() {
-            return FAKE_REMOTE;
+            return this.remote;
         }
 
         @Override

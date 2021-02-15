@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,27 +29,22 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import net.md_5.bungee.api.plugin.Plugin;
-import net.md_5.bungee.config.Configuration;
 import org.geysermc.connector.FloodgateKeyLoader;
 import org.geysermc.connector.configuration.GeyserJacksonConfiguration;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GeyserBungeeConfiguration extends GeyserJacksonConfiguration {
-
+public final class GeyserBungeeConfiguration extends GeyserJacksonConfiguration {
     @JsonIgnore
-    private Path floodgateKey;
+    private Path floodgateKeyPath;
 
-    public void loadFloodgate(GeyserBungeePlugin plugin, Configuration configuration) {
+    public void loadFloodgate(GeyserBungeePlugin plugin) {
         Plugin floodgate = plugin.getProxy().getPluginManager().getPlugin("floodgate-bungee");
-        floodgateKey = FloodgateKeyLoader.getKey(plugin.getGeyserLogger(), this, Paths.get(plugin.getDataFolder().toString(), configuration.getString("floodgate-key-file"), "public-key.pem"), floodgate, floodgate != null ? floodgate.getDataFolder().toPath() : null);
-    }
+        Path geyserDataFolder = plugin.getDataFolder().toPath();
+        Path floodgateDataFolder = floodgate != null ? floodgate.getDataFolder().toPath() : null;
 
-    @Override
-    public Path getFloodgateKeyFile() {
-        return floodgateKey;
+        floodgateKeyPath = FloodgateKeyLoader.getKeyPath(this, floodgate, floodgateDataFolder, geyserDataFolder, plugin.getGeyserLogger());
     }
 }

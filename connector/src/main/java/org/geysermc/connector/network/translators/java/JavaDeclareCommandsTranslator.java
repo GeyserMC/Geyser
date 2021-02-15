@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -189,7 +189,11 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
     public void translate(ServerDeclareCommandsPacket packet, GeyserSession session) {
         // Don't send command suggestions if they are disabled
         if (!session.getConnector().getConfig().isCommandSuggestions()) {
-            session.getConnector().getLogger().debug("Not sending command suggestions as they are disabled.");
+            session.getConnector().getLogger().debug("Not sending translated command suggestions as they are disabled.");
+
+            // Send an empty packet so Bedrock doesn't override /help with its own, built-in help command.
+            AvailableCommandsPacket emptyPacket = new AvailableCommandsPacket();
+            session.sendUpstreamPacket(emptyPacket);
             return;
         }
         CommandNode[] nodes = packet.getNodes();

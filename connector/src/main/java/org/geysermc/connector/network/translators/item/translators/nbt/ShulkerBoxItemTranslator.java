@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.item.translators.nbt;
 
 import com.github.steveice10.opennbt.tag.builtin.*;
-import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemEntry;
@@ -42,6 +41,7 @@ public class ShulkerBoxItemTranslator extends NbtItemStackTranslator {
         if (!itemTag.contains("BlockEntityTag")) return; // Empty shulker box
 
         CompoundTag blockEntityTag = itemTag.get("BlockEntityTag");
+        if (blockEntityTag.get("Items") == null) return;
         ListTag itemsList = new ListTag("Items");
         for (Tag item : (ListTag) blockEntityTag.get("Items")) {
             CompoundTag itemData = (CompoundTag) item; // Information about the item
@@ -50,15 +50,8 @@ public class ShulkerBoxItemTranslator extends NbtItemStackTranslator {
             boxItemTag.put(new ByteTag("WasPickedUp", (byte) 0)); // ???
 
             ItemEntry boxItemEntry = ItemRegistry.getItemEntry(((StringTag) itemData.get("id")).getValue());
-            String blockName = "";
-            for (StartGamePacket.ItemEntry startGamePacketItemEntry : ItemRegistry.ITEMS) {
-                if (startGamePacketItemEntry.getId() == (short) boxItemEntry.getBedrockId()) {
-                    blockName = startGamePacketItemEntry.getIdentifier(); // Find the Bedrock string name
-                    break;
-                }
-            }
 
-            boxItemTag.put(new StringTag("Name", blockName));
+            boxItemTag.put(new StringTag("Name", boxItemEntry.getBedrockIdentifier()));
             boxItemTag.put(new ShortTag("Damage", (short) boxItemEntry.getBedrockData()));
             boxItemTag.put(new ByteTag("Count", ((ByteTag) itemData.get("Count")).getValue()));
             if (itemData.contains("tag")) {

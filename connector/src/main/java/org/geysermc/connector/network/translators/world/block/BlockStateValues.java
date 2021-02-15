@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,9 +36,9 @@ import java.util.Map;
  * Used for block entities if the Java block state contains Bedrock block information.
  */
 public class BlockStateValues {
-
     private static final Int2IntMap BANNER_COLORS = new Int2IntOpenHashMap();
     private static final Int2ByteMap BED_COLORS = new Int2ByteOpenHashMap();
+    private static final Int2ByteMap COMMAND_BLOCK_VALUES = new Int2ByteOpenHashMap();
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Map<String, NbtMap> FLOWER_POT_BLOCKS = new HashMap<>();
@@ -47,11 +47,13 @@ public class BlockStateValues {
     private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
     private static final Int2ByteMap SKULL_VARIANTS = new Int2ByteOpenHashMap();
     private static final Int2ByteMap SKULL_ROTATIONS = new Int2ByteOpenHashMap();
+    private static final Int2IntMap SKULL_WALL_DIRECTIONS = new Int2IntOpenHashMap();
     private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new Int2ByteOpenHashMap();
 
     /**
      * Determines if the block state contains Bedrock block information
-     * @param entry The String to JsonNode map used in BlockTranslator
+     *
+     * @param entry          The String to JsonNode map used in BlockTranslator
      * @param javaBlockState the Java Block State of the block
      */
     public static void storeBlockStateValues(Map.Entry<String, JsonNode> entry, int javaBlockState) {
@@ -64,6 +66,11 @@ public class BlockStateValues {
         JsonNode bedColor = entry.getValue().get("bed_color");
         if (bedColor != null) {
             BED_COLORS.put(javaBlockState, (byte) bedColor.intValue());
+            return;
+        }
+
+        if (entry.getKey().contains("command_block")) {
+            COMMAND_BLOCK_VALUES.put(javaBlockState, entry.getKey().contains("conditional=true") ? (byte) 1 : (byte) 0);
             return;
         }
 
@@ -95,13 +102,33 @@ public class BlockStateValues {
         }
 
         JsonNode skullVariation = entry.getValue().get("variation");
-        if(skullVariation != null) {
+        if (skullVariation != null) {
             SKULL_VARIANTS.put(javaBlockState, (byte) skullVariation.intValue());
         }
 
         JsonNode skullRotation = entry.getValue().get("skull_rotation");
         if (skullRotation != null) {
             SKULL_ROTATIONS.put(javaBlockState, (byte) skullRotation.intValue());
+        }
+
+        if (entry.getKey().contains("wall_skull") || entry.getKey().contains("wall_head")) {
+            String direction = entry.getKey().substring(entry.getKey().lastIndexOf("facing=") + 7);
+            int rotation = 0;
+            switch (direction.substring(0, direction.length() - 1)) {
+                case "north":
+                    rotation = 180;
+                    break;
+                case "south":
+                    rotation = 0;
+                    break;
+                case "west":
+                    rotation = 90;
+                    break;
+                case "east":
+                    rotation = 270;
+                    break;
+            }
+            SKULL_WALL_DIRECTIONS.put(javaBlockState, rotation);
         }
 
         JsonNode shulkerDirection = entry.getValue().get("shulker_direction");
@@ -118,10 +145,7 @@ public class BlockStateValues {
      * @return Banner color integer or -1 if no color
      */
     public static int getBannerColor(int state) {
-        if (BANNER_COLORS.containsKey(state)) {
-            return BANNER_COLORS.get(state);
-        }
-        return -1;
+        return BANNER_COLORS.getOrDefault(state, -1);
     }
 
     /**
@@ -132,15 +156,23 @@ public class BlockStateValues {
      * @return Bed color byte or -1 if no color
      */
     public static byte getBedColor(int state) {
-        if (BED_COLORS.containsKey(state)) {
-            return BED_COLORS.get(state);
-        }
-        return -1;
+        return BED_COLORS.getOrDefault(state, (byte) -1);
+    }
+
+    /**
+     * The block state in Java and Bedrock both contain the conditional bit, however command block block entity tags
+     * in Bedrock need the conditional information.
+     *
+     * @return the list of all command blocks and if they are conditional (1 or 0)
+     */
+    public static Int2ByteMap getCommandBlockValues() {
+        return COMMAND_BLOCK_VALUES;
     }
 
     /**
      * All double chest values are part of the block state in Java and part of the block entity tag in Bedrock.
      * This gives the DoubleChestValue that can be calculated into the final tag.
+     *
      * @return The map of all DoubleChestValues.
      */
     public static Int2ObjectMap<DoubleChestValue> getDoubleChestValues() {
@@ -149,6 +181,7 @@ public class BlockStateValues {
 
     /**
      * Get the Int2ObjectMap of flower pot block states to containing plant
+     *
      * @return Int2ObjectMap of flower pot values
      */
     public static Int2ObjectMap<String> getFlowerPotValues() {
@@ -157,6 +190,7 @@ public class BlockStateValues {
 
     /**
      * Get the map of contained flower pot plants to Bedrock CompoundTag
+     *
      * @return Map of flower pot blocks.
      */
     public static Map<String, NbtMap> getFlowerPotBlocks() {
@@ -166,18 +200,17 @@ public class BlockStateValues {
     /**
      * The note that noteblocks output when hit is part of the block state in Java but sent as a BlockEventPacket in Bedrock.
      * This gives an integer pitch that Bedrock can use.
+     *
      * @param state BlockState of the block
      * @return note block note integer or -1 if not present
      */
     public static int getNoteblockPitch(int state) {
-        if (NOTEBLOCK_PITCHES.containsKey(state)) {
-            return NOTEBLOCK_PITCHES.get(state);
-        }
-        return -1;
+        return NOTEBLOCK_PITCHES.getOrDefault(state, -1);
     }
 
     /**
      * Get the Int2BooleanMap showing if a piston block state is extended or not.
+     *
      * @return the Int2BooleanMap of piston extensions.
      */
     public static Int2BooleanMap getPistonValues() {
@@ -196,10 +229,7 @@ public class BlockStateValues {
      * @return Skull variant byte or -1 if no variant
      */
     public static byte getSkullVariant(int state) {
-        if (SKULL_VARIANTS.containsKey(state)) {
-            return SKULL_VARIANTS.get(state);
-        }
-        return -1;
+        return SKULL_VARIANTS.getOrDefault(state, (byte) -1);
     }
 
     /**
@@ -210,12 +240,18 @@ public class BlockStateValues {
      * @return Skull rotation value or -1 if no value
      */
     public static byte getSkullRotation(int state) {
-        if (SKULL_ROTATIONS.containsKey(state)) {
-            return SKULL_ROTATIONS.get(state);
-        }
-        return -1;
+        return SKULL_ROTATIONS.getOrDefault(state, (byte) -1);
     }
 
+    /**
+     * Skull rotations are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
+     * This gives a integer rotation that Bedrock can use.
+     *
+     * @return Skull wall rotation value with the blockstate
+     */
+    public static Int2IntMap getSkullWallDirections() {
+        return SKULL_WALL_DIRECTIONS;
+    }
 
     /**
      * Shulker box directions are part of the namespaced ID in Java Edition, but part of the block entity tag in Bedrock.
@@ -225,9 +261,6 @@ public class BlockStateValues {
      * @return Shulker direction value or -1 if no value
      */
     public static byte getShulkerBoxDirection(int state) {
-        if (SHULKERBOX_DIRECTIONS.containsKey(state)) {
-            return SHULKERBOX_DIRECTIONS.get(state);
-        }
-        return -1;
+        return SHULKERBOX_DIRECTIONS.getOrDefault(state, (byte) -1);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,12 @@ import org.geysermc.connector.network.session.GeyserSession;
 
 public class CreeperEntity extends MonsterEntity {
 
+    /**
+     * Whether the creeper has been ignited and is using ID 17.
+     * In this instance we ignore ID 15 since it's sending us -1 which confuses poor Bedrock.
+     */
+    private boolean ignitedByFlintAndSteel = false;
+
     public CreeperEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }
@@ -40,13 +46,16 @@ public class CreeperEntity extends MonsterEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 15) {
-            metadata.getFlags().setFlag(EntityFlag.IGNITED, (int) entityMetadata.getValue() == 1);
+            if (!ignitedByFlintAndSteel) {
+                metadata.getFlags().setFlag(EntityFlag.IGNITED, (int) entityMetadata.getValue() == 1);
+            }
         }
         if (entityMetadata.getId() == 16) {
             metadata.getFlags().setFlag(EntityFlag.POWERED, (boolean) entityMetadata.getValue());
         }
         if (entityMetadata.getId() == 17) {
-            metadata.getFlags().setFlag(EntityFlag.IGNITED, (boolean) entityMetadata.getValue());
+            ignitedByFlintAndSteel = (boolean) entityMetadata.getValue();
+            metadata.getFlags().setFlag(EntityFlag.IGNITED, ignitedByFlintAndSteel);
         }
 
         super.updateBedrockMetadata(entityMetadata, session);

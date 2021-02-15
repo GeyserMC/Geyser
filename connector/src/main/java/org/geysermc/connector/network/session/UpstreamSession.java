@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -41,17 +41,15 @@ public class UpstreamSession {
     private boolean initialized = false;
 
     public void sendPacket(@NonNull BedrockPacket packet) {
-        if (isClosed())
-            return;
-
-        session.sendPacket(packet);
+        if (!isClosed()) {
+            session.sendPacket(packet);
+        }
     }
 
     public void sendPacketImmediately(@NonNull BedrockPacket packet) {
-        if (isClosed())
-            return;
-
-        session.sendPacketImmediately(packet);
+        if (!isClosed()) {
+            session.sendPacketImmediately(packet);
+        }
     }
 
     public void disconnect(String reason) {

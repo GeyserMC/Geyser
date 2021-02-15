@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 
 public class OffhandCommand extends GeyserCommand {
 
-    private GeyserConnector connector;
+    private final GeyserConnector connector;
 
     public OffhandCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);
@@ -45,27 +45,23 @@ public class OffhandCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
-        if (sender.isConsole()) {
+    public void execute(GeyserSession session, CommandSender sender, String[] args) {
+        if (session == null) {
             return;
         }
 
-        // Make sure the sender is a Bedrock edition client
-        if (sender instanceof GeyserSession) {
-            GeyserSession session = (GeyserSession) sender;
-            ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.SWAP_HANDS, new Position(0,0,0),
-                    BlockFace.DOWN);
-            session.sendDownstreamPacket(releaseItemPacket);
-            return;
-        }
-        // Needed for Bukkit - sender is not an instance of GeyserSession
-        for (GeyserSession session : connector.getPlayers()) {
-            if (sender.getName().equals(session.getPlayerEntity().getUsername())) {
-                ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.SWAP_HANDS, new Position(0,0,0),
-                        BlockFace.DOWN);
-                session.sendDownstreamPacket(releaseItemPacket);
-                break;
-            }
-        }
+        ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.SWAP_HANDS, new Position(0,0,0),
+                BlockFace.DOWN);
+        session.sendDownstreamPacket(releaseItemPacket);
+    }
+
+    @Override
+    public boolean isExecutableOnConsole() {
+        return false;
+    }
+
+    @Override
+    public boolean isBedrockOnly() {
+        return true;
     }
 }

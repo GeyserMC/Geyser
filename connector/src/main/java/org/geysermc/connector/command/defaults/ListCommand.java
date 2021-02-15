@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 
 public class ListCommand extends GeyserCommand {
 
-    private GeyserConnector connector;
+    private final GeyserConnector connector;
 
     public ListCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);
@@ -44,13 +44,11 @@ public class ListCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
+    public void execute(GeyserSession session, CommandSender sender, String[] args) {
         String message = "";
-        if (sender instanceof GeyserSession) {
-            message = LanguageUtils.getPlayerLocaleString("geyser.commands.list.message", ((GeyserSession) sender).getClientData().getLanguageCode(), connector.getPlayers().size(), connector.getPlayers().stream().map(GeyserSession::getName).collect(Collectors.joining(" ")));
-        } else {
-            message = LanguageUtils.getLocaleStringLog("geyser.commands.list.message", connector.getPlayers().size(), connector.getPlayers().stream().map(GeyserSession::getName).collect(Collectors.joining(" ")));
-        }
+        message = LanguageUtils.getPlayerLocaleString("geyser.commands.list.message", sender.getLocale(),
+                connector.getPlayers().size(),
+                connector.getPlayers().stream().map(GeyserSession::getName).collect(Collectors.joining(" ")));
 
         sender.sendMessage(message);
     }

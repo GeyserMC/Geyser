@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,40 +25,115 @@
 
 package org.geysermc.connector.scoreboard;
 
+import com.nukkitx.protocol.bedrock.data.ScoreInfo;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 
-@Getter @Setter
+@Getter
 @Accessors(chain = true)
-public class Score {
-    private Objective objective;
-    private long id;
+public final class Score {
+    private final long id;
+    private final String name;
+    private ScoreInfo cachedInfo;
 
-    private UpdateType updateType = UpdateType.ADD;
-    private String name;
-    private Team team;
-    private int score;
-    private int oldScore = Integer.MIN_VALUE;
+    /**
+     * Changes that have been made since the last cached data.
+     */
+    private Score.ScoreData currentData;
+    /**
+     * The data that is currently displayed to the Bedrock client.
+     */
+    private Score.ScoreData cachedData;
 
-    public Score(Objective objective, String name) {
-        this.id = objective.getScoreboard().getNextId().getAndIncrement();
-        this.objective = objective;
+    public Score(long id, String name) {
+        this.id = id;
         this.name = name;
+        this.currentData = new ScoreData();
     }
 
     public String getDisplayName() {
-        if (team != null && team.getUpdateType() != UpdateType.REMOVE) {
-            return team.getPrefix() + name + team.getSuffix();
+        Team team = cachedData.team;
+        if (team != null) {
+            return team.getDisplayName(name);
         }
         return name;
     }
 
     public Score setScore(int score) {
-        if (oldScore == Integer.MIN_VALUE) {
-            this.oldScore = score;
-        }
-        this.score = score;
+        currentData.score = score;
         return this;
+    }
+
+    public Team getTeam() {
+        return currentData.team;
+    }
+
+    public Score setTeam(Team team) {
+        if (currentData.team != null && team != null) {
+            if (!currentData.team.equals(team)) {
+                currentData.team = team;
+                currentData.updateType = UpdateType.UPDATE;
+            }
+            return this;
+        }
+        // simplified from (this.team != null && team == null) || (this.team == null && team != null)
+        if (currentData.team != null || team != null) {
+            currentData.team = team;
+            currentData.updateType = UpdateType.UPDATE;
+        }
+        return this;
+    }
+
+    public UpdateType getUpdateType() {
+        return currentData.updateType;
+    }
+
+    public Score setUpdateType(UpdateType updateType) {
+        if (updateType != UpdateType.NOTHING) {
+            currentData.updateTime = System.currentTimeMillis();
+        }
+        currentData.updateType = updateType;
+        return this;
+    }
+
+    public boolean shouldUpdate() {
+        return cachedData == null || currentData.updateTime > cachedData.updateTime ||
+                (currentData.team != null && currentData.team.shouldUpdate());
+    }
+
+    public void update(String objectiveName) {
+        if (cachedData == null) {
+            cachedData = new ScoreData();
+            cachedData.updateType = UpdateType.ADD;
+            if (currentData.updateType == UpdateType.REMOVE) {
+                cachedData.updateType = UpdateType.REMOVE;
+            }
+        } else {
+            cachedData.updateType = currentData.updateType;
+        }
+
+        cachedData.updateTime = currentData.updateTime;
+        cachedData.team = currentData.team;
+        cachedData.score = currentData.score;
+
+        String name = this.name;
+        if (cachedData.team != null) {
+            cachedData.team.prepareUpdate();
+            name = cachedData.team.getDisplayName(name);
+        }
+        cachedInfo = new ScoreInfo(id, objectiveName, cachedData.score, name);
+    }
+
+    @Getter
+    public static final class ScoreData {
+        protected UpdateType updateType;
+        protected long updateTime;
+
+        private Team team;
+        private int score;
+
+        protected ScoreData() {
+            updateType = UpdateType.ADD;
+        }
     }
 }

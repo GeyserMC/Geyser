@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,29 +29,31 @@ import lombok.Getter;
 
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.defaults.*;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public abstract class CommandManager {
 
     @Getter
     private final Map<String, GeyserCommand> commands = Collections.synchronizedMap(new HashMap<>());
 
-    private GeyserConnector connector;
+    private final GeyserConnector connector;
 
     public CommandManager(GeyserConnector connector) {
         this.connector = connector;
 
-        registerCommand(new HelpCommand(connector, "help", LanguageUtils.getLocaleStringLog("geyser.commands.help.desc"), "geyser.command.help"));
-        registerCommand(new ListCommand(connector, "list", LanguageUtils.getLocaleStringLog("geyser.commands.list.desc"), "geyser.command.list"));
-        registerCommand(new ReloadCommand(connector, "reload", LanguageUtils.getLocaleStringLog("geyser.commands.reload.desc"), "geyser.command.reload"));
-        registerCommand(new StopCommand(connector, "stop", LanguageUtils.getLocaleStringLog("geyser.commands.stop.desc"), "geyser.command.stop"));
-        registerCommand(new OffhandCommand(connector, "offhand", LanguageUtils.getLocaleStringLog("geyser.commands.offhand.desc"), "geyser.command.offhand"));
-        registerCommand(new DumpCommand(connector, "dump", LanguageUtils.getLocaleStringLog("geyser.commands.dump.desc"), "geyser.command.dump"));
-        registerCommand(new VersionCommand(connector, "version", LanguageUtils.getLocaleStringLog("geyser.commands.version.desc"), "geyser.command.version"));
+        registerCommand(new HelpCommand(connector, "help", "geyser.commands.help.desc", "geyser.command.help"));
+        registerCommand(new ListCommand(connector, "list", "geyser.commands.list.desc", "geyser.command.list"));
+        registerCommand(new ReloadCommand(connector, "reload", "geyser.commands.reload.desc", "geyser.command.reload"));
+        registerCommand(new StopCommand(connector, "stop", "geyser.commands.stop.desc", "geyser.command.stop"));
+        registerCommand(new OffhandCommand(connector, "offhand", "geyser.commands.offhand.desc", "geyser.command.offhand"));
+        registerCommand(new DumpCommand(connector, "dump", "geyser.commands.dump.desc", "geyser.command.dump"));
+        registerCommand(new VersionCommand(connector, "version", "geyser.commands.version.desc", "geyser.command.version"));
+        registerCommand(new SettingsCommand(connector, "settings", "geyser.commands.settings.desc", "geyser.command.settings"));
+        registerCommand(new StatisticsCommand(connector, "statistics", "geyser.commands.statistics.desc", "geyser.command.statistics"));
+        registerCommand(new AdvancementsCommand(connector, "advancements", "geyser.commands.advancements.desc", "geyser.command.advancements"));
     }
 
     public void registerCommand(GeyserCommand command) {
@@ -88,7 +90,22 @@ public abstract class CommandManager {
             return;
         }
 
-        cmd.execute(sender, args);
+        if (sender instanceof GeyserSession) {
+            cmd.execute((GeyserSession) sender, sender, args);
+        } else {
+            if (!cmd.isBedrockOnly()) {
+                cmd.execute(null, sender, args);
+            } else {
+                connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.bedrock_only"));
+            }
+        }
+    }
+
+    /**
+     * @return a list of all subcommands under {@code /geyser}.
+     */
+    public List<String> getCommandNames() {
+        return Arrays.asList(connector.getCommandManager().getCommands().keySet().toArray(new String[0]));
     }
 
     /**

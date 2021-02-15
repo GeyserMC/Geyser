@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,9 @@
 package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreativeInventoryActionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientMoveItemToHotbarPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
@@ -33,14 +36,17 @@ import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
-import org.geysermc.connector.common.ChatColor;
+import com.nukkitx.protocol.bedrock.packet.PlayerHotbarPacket;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.DoubleChestInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 import java.util.Collections;
 import java.util.Objects;
@@ -150,5 +156,100 @@ public class InventoryUtils {
 
         root.put("display", display.build());
         return ItemData.of(ItemRegistry.ITEM_ENTRIES.get(ItemRegistry.BARRIER_INDEX).getBedrockId(), (short) 0, 1, root.build());
+    }
+
+    /**
+     * Attempt to find the specified item name in the session's inventory.
+     * If it is found and in the hotbar, set the user's held item to that slot.
+     * If it is found in another part of the inventory, move it.
+     * If it is not found and the user is in creative mode, create the item,
+     * overriding the current item slot if no other hotbar slots are empty, or otherwise selecting the empty slot.
+     *
+     * This attempts to mimic Java Edition behavior as best as it can.
+     * @param session the Bedrock client's session
+     * @param itemName the Java identifier of the item to search/select
+     */
+    public static void findOrCreateItem(GeyserSession session, String itemName) {
+        // Get the inventory to choose a slot to pick
+        Inventory inventory = session.getInventoryCache().getOpenInventory();
+        if (inventory == null) {
+            inventory = session.getInventory();
+        }
+
+        if (itemName.equals("minecraft:air")) {
+            return;
+        }
+
+        // Check hotbar for item
+        for (int i = 36; i < 45; i++) {
+            if (inventory.getItem(i) == null) {
+                continue;
+            }
+            ItemEntry item = ItemRegistry.getItem(inventory.getItem(i));
+            // If this isn't the item we're looking for
+            if (!item.getJavaIdentifier().equals(itemName)) {
+                continue;
+            }
+
+            setHotbarItem(session, i);
+            // Don't check inventory if item was in hotbar
+            return;
+        }
+
+        // Check inventory for item
+        for (int i = 9; i < 36; i++) {
+            if (inventory.getItem(i) == null) {
+                continue;
+            }
+            ItemEntry item = ItemRegistry.getItem(inventory.getItem(i));
+            // If this isn't the item we're looking for
+            if (!item.getJavaIdentifier().equals(itemName)) {
+                continue;
+            }
+
+            ClientMoveItemToHotbarPacket packetToSend = new ClientMoveItemToHotbarPacket(i); // https://wiki.vg/Protocol#Pick_Item
+            session.sendDownstreamPacket(packetToSend);
+            return;
+        }
+
+        // If we still have not found the item, and we're in creative, ask for the item from the server.
+        if (session.getGameMode() == GameMode.CREATIVE) {
+            int slot = session.getInventory().getHeldItemSlot() + 36;
+            if (session.getInventory().getItemInHand() != null) { // Otherwise we should just use the current slot
+                for (int i = 36; i < 45; i++) {
+                    if (inventory.getItem(i) == null) {
+                        slot = i;
+                        break;
+                    }
+                }
+            }
+
+            ItemEntry entry = ItemRegistry.getItemEntry(itemName);
+            if (entry != null) {
+                ClientCreativeInventoryActionPacket actionPacket = new ClientCreativeInventoryActionPacket(slot,
+                        new ItemStack(entry.getJavaId()));
+                if ((slot - 36) != session.getInventory().getHeldItemSlot()) {
+                    setHotbarItem(session, slot);
+                }
+                session.sendDownstreamPacket(actionPacket);
+            } else {
+                session.getConnector().getLogger().debug("Cannot find item for block " + itemName);
+            }
+        }
+    }
+
+    /**
+     * Changes the held item slot to the specified slot
+     * @param session GeyserSession
+     * @param slot inventory slot to be selected
+     */
+    private static void setHotbarItem(GeyserSession session, int slot) {
+        PlayerHotbarPacket hotbarPacket = new PlayerHotbarPacket();
+        hotbarPacket.setContainerId(0);
+        // Java inventory slot to hotbar slot ID
+        hotbarPacket.setSelectedHotbarSlot(slot - 36);
+        hotbarPacket.setSelectHotbarSlot(true);
+        session.sendUpstreamPacket(hotbarPacket);
+        // No need to send a Java packet as Bedrock sends a confirmation packet back that we translate
     }
 }

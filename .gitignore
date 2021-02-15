@@ -241,4 +241,6 @@ config.yml
 logs/
 public-key.pem
 locales/
-cache/
+/cache/
+/packs/
+/dump.json

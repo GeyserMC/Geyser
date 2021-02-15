@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,13 +27,10 @@ package org.geysermc.platform.bungeecord;
 
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
-import net.md_5.bungee.config.Configuration;
-import net.md_5.bungee.config.ConfigurationProvider;
-import net.md_5.bungee.config.YamlConfiguration;
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
-import org.geysermc.connector.common.PlatformType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
@@ -64,13 +61,11 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         if (!getDataFolder().exists())
             getDataFolder().mkdir();
 
-        Configuration configuration = null;
         try {
             if (!getDataFolder().exists())
                 getDataFolder().mkdir();
             File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserBungeeConfiguration.class);
-            configuration = ConfigurationProvider.getProvider(YamlConfiguration.class).load(new File(getDataFolder(), "config.yml"));
         } catch (IOException ex) {
             getLogger().log(Level.WARNING, LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
@@ -108,7 +103,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             geyserConfig.getRemote().setAuthType("floodgate");
         }
 
-        geyserConfig.loadFloodgate(this, configuration);
+        geyserConfig.loadFloodgate(this);
 
         this.connector = GeyserConnector.start(PlatformType.BUNGEECORD, this);
 

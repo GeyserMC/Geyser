@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,6 @@
 package org.geysermc.platform.standalone;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.geysermc.connector.configuration.GeyserJacksonConfiguration;
 
@@ -35,13 +34,9 @@ import java.nio.file.Paths;
 
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GeyserStandaloneConfiguration extends GeyserJacksonConfiguration {
-
-    @JsonProperty("floodgate-key-file")
-    private String floodgateKeyFile;
-
+public final class GeyserStandaloneConfiguration extends GeyserJacksonConfiguration {
     @Override
-    public Path getFloodgateKeyFile() {
-        return Paths.get(floodgateKeyFile);
+    public Path getFloodgateKeyPath() {
+        return Paths.get(getFloodgateKeyFile());
     }
 }

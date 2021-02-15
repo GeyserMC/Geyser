@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import org.geysermc.connector.common.PlatformType;
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -34,7 +34,7 @@ import org.geysermc.connector.network.translators.Translator;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
 import com.nukkitx.protocol.bedrock.packet.CommandRequestPacket;
-import org.geysermc.connector.utils.MessageUtils;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 @Translator(packet = CommandRequestPacket.class)
 public class BedrockCommandRequestTranslator extends PacketTranslator<CommandRequestPacket> {
@@ -43,12 +43,12 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
     public void translate(CommandRequestPacket packet, GeyserSession session) {
         String command = packet.getCommand().replace("/", "");
         CommandManager commandManager = GeyserConnector.getInstance().getCommandManager();
-        if (session.getConnector().getPlatformType() == PlatformType.STANDALONE && command.startsWith("geyser ") && commandManager.getCommands().containsKey(command.split(" ")[1])) {
+        if (session.getConnector().getPlatformType() == PlatformType.STANDALONE && command.trim().startsWith("geyser ") && commandManager.getCommands().containsKey(command.split(" ")[1])) {
             commandManager.runCommand(session, command);
         } else {
             String message = packet.getCommand().trim();
 
-            if (MessageUtils.isTooLong(message, session)) {
+            if (MessageTranslator.isTooLong(message, session)) {
                 return;
             }
 

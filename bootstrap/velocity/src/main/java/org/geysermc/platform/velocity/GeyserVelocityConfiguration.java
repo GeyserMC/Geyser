@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,6 @@ package org.geysermc.platform.velocity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
@@ -37,25 +36,15 @@ import org.geysermc.connector.configuration.GeyserJacksonConfiguration;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GeyserVelocityConfiguration extends GeyserJacksonConfiguration {
-
-    @JsonProperty("floodgate-key-file")
-    private String floodgateKeyFile;
-
+public final class GeyserVelocityConfiguration extends GeyserJacksonConfiguration {
     @JsonIgnore
-    private Path floodgateKey;
-
-    @Override
-    public Path getFloodgateKeyFile() {
-        return floodgateKey;
-    }
+    private Path floodgateKeyPath;
 
     public void loadFloodgate(GeyserVelocityPlugin plugin, ProxyServer proxyServer, File dataFolder) {
-        Optional<PluginContainer> floodgate = proxyServer.getPluginManager().getPlugin("floodgate");
-        floodgate.ifPresent(it -> floodgateKey = FloodgateKeyLoader.getKey(plugin.getGeyserLogger(), this, Paths.get(dataFolder.toString(), floodgateKeyFile.isEmpty() ? floodgateKeyFile : "public-key.pem"), it, Paths.get("plugins/floodgate/")));
+        PluginContainer floodgate = proxyServer.getPluginManager().getPlugin("floodgate").orElse(null);
+        floodgateKeyPath = FloodgateKeyLoader.getKeyPath(this, floodgate, Paths.get("plugins/floodgate/"), dataFolder.toPath(), plugin.getGeyserLogger());
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.world;
 
+import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
@@ -42,7 +43,7 @@ import org.geysermc.connector.utils.GameRule;
 public abstract class WorldManager {
 
     /**
-     * Gets the block state at the specified location
+     * Gets the Java block state at the specified location
      *
      * @param session the session
      * @param position the position
@@ -53,7 +54,7 @@ public abstract class WorldManager {
     }
 
     /**
-     * Gets the block state at the specified location
+     * Gets the Java block state at the specified location
      *
      * @param session the session
      * @param vector the position
@@ -64,7 +65,7 @@ public abstract class WorldManager {
     }
 
     /**
-     * Gets the block state at the specified location
+     * Gets the Java block state at the specified location
      *
      * @param session the session
      * @param x the x coordinate to get the block at
@@ -73,6 +74,37 @@ public abstract class WorldManager {
      * @return the block state at the specified location
      */
     public abstract int getBlockAt(GeyserSession session, int x, int y, int z);
+
+    /**
+     * Gets all block states in the specified chunk section.
+     *
+     * @param session the session
+     * @param x the chunk's X coordinate
+     * @param y the chunk's Y coordinate
+     * @param z the chunk's Z coordinate
+     * @param section the chunk section to store the block data in
+     */
+    public abstract void getBlocksInSection(GeyserSession session, int x, int y, int z, Chunk section);
+
+    /**
+     * Checks whether or not this world manager has access to more block data than the chunk cache.
+     * <p>
+     * Some world managers (e.g. Spigot) can provide access to block data outside of the chunk cache, and even with chunk caching disabled. This
+     * method provides a means to check if this manager has this capability.
+     *
+     * @return whether or not this world manager has access to more block data than the chunk cache
+     */
+    public abstract boolean hasMoreBlockDataThanChunkCache();
+
+    /**
+     * Gets the Java biome data for the specified chunk.
+     *
+     * @param session the session of the player
+     * @param x the chunk's X coordinate
+     * @param z the chunk's Z coordinate
+     * @return the biome data for the specified region with a length of 1024.
+     */
+    public abstract int[] getBiomeDataAt(GeyserSession session, int x, int z);
 
     /**
      * Updates a gamerule value on the Java server
@@ -84,7 +116,7 @@ public abstract class WorldManager {
     public abstract void setGameRule(GeyserSession session, String name, Object value);
 
     /**
-     * Get a gamerule value as a boolean
+     * Gets a gamerule value as a boolean
      *
      * @param session The session of the user that requested the value
      * @param gameRule The gamerule to fetch the value of

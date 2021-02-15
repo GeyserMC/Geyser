@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import lombok.Getter;
 import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -36,6 +37,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 public class ArmorStandEntity extends LivingEntity {
 
     // These are used to store the state of the armour stand for use when handling invisibility
+    @Getter
     private boolean isMarker = false;
     private boolean isInvisible = false;
     private boolean isSmall = false;
@@ -47,11 +49,11 @@ public class ArmorStandEntity extends LivingEntity {
     @Override
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
         // Fake the height to be above where it is so the nametag appears in the right location for invisible non-marker armour stands
-        if (!isMarker && isInvisible) {
+        if (!isMarker && isInvisible && passengers.isEmpty()) {
             position = position.add(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d);
         }
 
-        super.moveAbsolute(session, position, rotation, isOnGround, teleported);
+        super.moveAbsolute(session, position, Vector3f.from(rotation.getX(), rotation.getX(), rotation.getX()), isOnGround, teleported);
     }
 
     @Override
@@ -92,5 +94,11 @@ public class ArmorStandEntity extends LivingEntity {
             }
         }
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    public void spawnEntity(GeyserSession session) {
+        this.rotation = Vector3f.from(rotation.getX(), rotation.getX(), rotation.getX());
+        super.spawnEntity(session);
     }
 }

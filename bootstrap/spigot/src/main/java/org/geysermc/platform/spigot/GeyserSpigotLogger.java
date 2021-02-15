@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,8 @@
 package org.geysermc.platform.spigot;
 
 import lombok.AllArgsConstructor;
-
+import lombok.Getter;
+import lombok.Setter;
 import org.geysermc.connector.GeyserLogger;
 
 import java.util.logging.Level;
@@ -34,9 +35,9 @@ import java.util.logging.Logger;
 
 @AllArgsConstructor
 public class GeyserSpigotLogger implements GeyserLogger {
-
-    private Logger logger;
-    private boolean debugMode;
+    private final Logger logger;
+    @Getter @Setter
+    private boolean debug;
 
     @Override
     public void severe(String message) {
@@ -70,12 +71,8 @@ public class GeyserSpigotLogger implements GeyserLogger {
 
     @Override
     public void debug(String message) {
-        if (debugMode)
+        if (debug) {
             info(message);
-    }
-
-    @Override
-    public void setDebug(boolean debug) {
-        debugMode = debug;
+        }
     }
 }

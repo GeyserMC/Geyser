@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +25,12 @@
 
 package org.geysermc.platform.spigot.command;
 
-import lombok.AllArgsConstructor;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.CommandExecutor;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -39,31 +39,37 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@AllArgsConstructor
-public class GeyserSpigotCommandExecutor implements TabExecutor {
+public class GeyserSpigotCommandExecutor extends CommandExecutor implements TabExecutor {
 
-    private GeyserConnector connector;
+    public GeyserSpigotCommandExecutor(GeyserConnector connector) {
+        super(connector);
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length > 0) {
-            if (getCommand(args[0]) != null) {
-                if (!sender.hasPermission(getCommand(args[0]).getPermission())) {
-                    String message = "";
-                    if (sender instanceof GeyserSession) {
-                        message = LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", ((GeyserSession) sender).getClientData().getLanguageCode());
-                    } else {
-                        message = LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail");
-                    }
+            GeyserCommand geyserCommand = getCommand(args[0]);
+            if (geyserCommand != null) {
+                SpigotCommandSender commandSender = new SpigotCommandSender(sender);
+                if (!sender.hasPermission(geyserCommand.getPermission())) {
+                    String message = LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", commandSender.getLocale());
 
-                    sender.sendMessage(ChatColor.RED + message);
+                    commandSender.sendMessage(ChatColor.RED + message);
                     return true;
                 }
-                getCommand(args[0]).execute(new SpigotCommandSender(sender), args);
+                GeyserSession session = null;
+                if (geyserCommand.isBedrockOnly()) {
+                    session = getGeyserSession(commandSender);
+                    if (session == null) {
+                        sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", commandSender.getLocale()));
+                        return true;
+                    }
+                }
+                geyserCommand.execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
                 return true;
             }
         } else {
-            getCommand("help").execute(new SpigotCommandSender(sender), args);
+            getCommand("help").execute(null, new SpigotCommandSender(sender), new String[0]);
             return true;
         }
         return true;
@@ -72,12 +78,8 @@ public class GeyserSpigotCommandExecutor implements TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("?", "help", "reload", "shutdown", "stop");
+            return connector.getCommandManager().getCommandNames();
         }
         return new ArrayList<>();
-    }
-
-    private GeyserCommand getCommand(String label) {
-        return connector.getCommandManager().getCommands().get(label);
     }
 }

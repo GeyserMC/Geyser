@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@ import org.geysermc.connector.common.serializer.AsteriskSerializer;
 
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.UUID;
 
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -45,80 +46,94 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @Setter
     private boolean autoconfiguredRemote = false;
 
-    private BedrockConfiguration bedrock;
-    private RemoteConfiguration remote;
+    private BedrockConfiguration bedrock = new BedrockConfiguration();
+    private RemoteConfiguration remote = new RemoteConfiguration();
 
     @JsonProperty("floodgate-key-file")
-    private String floodgateKeyFile;
+    private String floodgateKeyFile = "public-key.pem";
 
-    public abstract Path getFloodgateKeyFile();
+    public abstract Path getFloodgateKeyPath();
 
     private Map<String, UserAuthenticationInfo> userAuths;
 
     @JsonProperty("command-suggestions")
-    private boolean commandSuggestions;
+    private boolean commandSuggestions = true;
 
     @JsonProperty("passthrough-motd")
-    private boolean isPassthroughMotd;
+    private boolean isPassthroughMotd = false;
 
     @JsonProperty("passthrough-player-counts")
-    private boolean isPassthroughPlayerCounts;
+    private boolean isPassthroughPlayerCounts = false;
 
     @JsonProperty("passthrough-protocol-name")
-    private boolean isPassthroughProtocolName;
+    private boolean isPassthroughProtocolName = false;
 
     @JsonProperty("legacy-ping-passthrough")
-    private boolean isLegacyPingPassthrough;
+    private boolean isLegacyPingPassthrough = false;
 
     @JsonProperty("ping-passthrough-interval")
-    private int pingPassthroughInterval;
+    private int pingPassthroughInterval = 3;
+
+    @JsonProperty("forward-player-ping")
+    private boolean forwardPlayerPing = false;
 
     @JsonProperty("max-players")
-    private int maxPlayers;
+    private int maxPlayers = 100;
 
     @JsonProperty("debug-mode")
-    private boolean debugMode;
+    private boolean debugMode = false;
 
     @JsonProperty("general-thread-pool")
-    private int generalThreadPool;
+    private int generalThreadPool = 32;
 
     @JsonProperty("allow-third-party-capes")
-    private boolean allowThirdPartyCapes;
+    private boolean allowThirdPartyCapes = true;
 
     @JsonProperty("show-cooldown")
     private boolean showCooldown = true;
 
+    @JsonProperty("show-coordinates")
+    private boolean showCoordinates = true;
+
     @JsonProperty("allow-third-party-ears")
-    private boolean allowThirdPartyEars;
+    private boolean allowThirdPartyEars = false;
 
     @JsonProperty("default-locale")
-    private String defaultLocale;
+    private String defaultLocale = null; // is null by default so system language takes priority
 
     @JsonProperty("cache-chunks")
-    private boolean cacheChunks;
+    private boolean cacheChunks = false;
 
     @JsonProperty("cache-images")
     private int cacheImages = 0;
 
-    @JsonProperty("above-bedrock-nether-building")
-    private boolean aboveBedrockNetherBuilding;
+    @JsonProperty("allow-custom-skulls")
+    private boolean allowCustomSkulls = true;
 
-    private MetricsInfo metrics;
+    @JsonProperty("above-bedrock-nether-building")
+    private boolean aboveBedrockNetherBuilding = false;
+
+    @JsonProperty("force-resource-packs")
+    private boolean forceResourcePacks = true;
+
+    @JsonProperty("xbox-achievements-enabled")
+    private boolean xboxAchievementsEnabled = false;
+
+    private MetricsInfo metrics = new MetricsInfo();
 
     @Getter
     public static class BedrockConfiguration implements IBedrockConfiguration {
-
         @AsteriskSerializer.Asterisk(sensitive = true)
-        private String address;
+        private String address = "0.0.0.0";
 
         @Setter
-        private int port;
+        private int port = 19132;
 
         @JsonProperty("clone-remote-port")
-        private boolean cloneRemotePort;
+        private boolean cloneRemotePort = false;
 
-        private String motd1;
-        private String motd2;
+        private String motd1 = "GeyserMC";
+        private String motd2 = "Geyser";
 
         @JsonProperty("server-name")
         private String serverName = GeyserConnector.NAME;
@@ -126,36 +141,47 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @Getter
     public static class RemoteConfiguration implements IRemoteConfiguration {
-
         @Setter
         @AsteriskSerializer.Asterisk(sensitive = true)
-        private String address;
+        private String address = "auto";
 
         @Setter
-        private int port;
+        private int port = 25565;
 
         @Setter
         @JsonProperty("auth-type")
-        private String authType;
+        private String authType = "online";
+
+        @JsonProperty("allow-password-authentication")
+        private boolean passwordAuthentication = true;
+
+        @JsonProperty("use-proxy-protocol")
+        private boolean useProxyProtocol = false;
     }
 
     @Getter
+    @JsonIgnoreProperties(ignoreUnknown = true) // DO NOT REMOVE THIS! Otherwise, after we remove microsoft-account configs will not load
     public static class UserAuthenticationInfo implements IUserAuthenticationInfo {
         @AsteriskSerializer.Asterisk()
         private String email;
 
         @AsteriskSerializer.Asterisk()
         private String password;
+
+        @JsonProperty("microsoft-account")
+        private boolean microsoftAccount = false;
     }
 
     @Getter
     public static class MetricsInfo implements IMetricsInfo {
-
-        private boolean enabled;
+        private boolean enabled = true;
 
         @JsonProperty("uuid")
-        private String uniqueId;
+        private String uniqueId = UUID.randomUUID().toString();
     }
+
+    @JsonProperty("scoreboard-packet-threshold")
+    private int scoreboardPacketThreshold = 10;
 
     @JsonProperty("enable-proxy-connections")
     private boolean enableProxyConnections = false;
@@ -163,6 +189,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("mtu")
     private int mtu = 1400;
 
+    @JsonProperty("use-adapters")
+    private boolean useAdapters = true;
+
     @JsonProperty("config-version")
-    private int configVersion;
+    private int configVersion = 0;
 }

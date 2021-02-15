@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,8 @@
 
 package org.geysermc.connector.network.translators.sound;
 
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.utils.FileUtils;
 import org.reflections.Reflections;
 
 import java.util.HashMap;
@@ -38,7 +40,7 @@ public class SoundHandlerRegistry {
     static final Map<SoundHandler, SoundInteractionHandler<?>> INTERACTION_HANDLERS = new HashMap<>();
 
     static {
-        Reflections ref = new Reflections("org.geysermc.connector.network.translators.sound");
+        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators.sound") : new Reflections("org.geysermc.connector.network.translators.sound");
         for (Class<?> clazz : ref.getTypesAnnotatedWith(SoundHandler.class)) {
             try {
                 SoundInteractionHandler<?> interactionHandler = (SoundInteractionHandler<?>) clazz.newInstance();
