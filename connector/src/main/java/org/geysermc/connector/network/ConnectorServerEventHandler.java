@@ -117,7 +117,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             }
             if (motdArray.length > (338 - MINECRAFT_VERSION_BYTES_LENGTH - BRAND_BYTES_LENGTH)) {
                 // If the top MOTD is still too long, we chop it down
-                byte[] newMotdArray = new byte[337 - MINECRAFT_VERSION_BYTES_LENGTH - BRAND_BYTES_LENGTH + 1];
+                byte[] newMotdArray = new byte[338 - MINECRAFT_VERSION_BYTES_LENGTH - BRAND_BYTES_LENGTH + 1];
                 System.arraycopy(motdArray, 0, newMotdArray, 0, newMotdArray.length);
                 pong.setMotd(new String(newMotdArray, StandardCharsets.UTF_8));
             }
