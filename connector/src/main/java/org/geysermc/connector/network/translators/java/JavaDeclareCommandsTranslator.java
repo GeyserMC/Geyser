@@ -57,6 +57,8 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
 
     private static final String[] ENUM_BOOLEAN = {"true", "false"};
 
+    private static final String[] VALID_SCOREBOARD_SLOTS;
+
     private static final Hash.Strategy<CommandParamData[][]> PARAM_STRATEGY = new Hash.Strategy<CommandParamData[][]>() {
         @Override
         public int hashCode(CommandParamData[][] o) {
@@ -80,6 +82,14 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             return true;
         }
     };
+
+    static {
+        List<String> teamOptions = new ArrayList<>(Arrays.asList("list", "sidebar", "belowName"));
+        for (String color : NamedTextColor.NAMES.keys()) {
+            teamOptions.add("sidebar.team." + color);
+        }
+        VALID_SCOREBOARD_SLOTS = teamOptions.toArray(new String[0]);
+    }
 
     @Override
     public void translate(ServerDeclareCommandsPacket packet, GeyserSession session) {
@@ -227,7 +237,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             case BOOL:
                 return ENUM_BOOLEAN;
 
-            case OPERATION: // Possibly OPERATOR
+            case OPERATION: // ">=", "==", etc
                 return CommandParamType.OPERATOR;
 
             case BLOCK_STATE:
@@ -243,7 +253,10 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                 return EntityType.ALL_JAVA_IDENTIFIERS;
 
             case COLOR:
-                return NamedTextColor.NAMES.keys().toArray(new String[0]);
+                return NamedTextColor.NAMES.keys().toArray(new String[0]); // todo Should also include reset.
+
+            case SCOREBOARD_SLOT:
+                return VALID_SCOREBOARD_SLOTS;
 
             case STRING:
             case VEC2:
@@ -253,7 +266,6 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             case OBJECTIVE:
             case OBJECTIVE_CRITERIA:
             case PARTICLE:
-            case SCOREBOARD_SLOT:
             case SCORE_HOLDER:
             case SWIZZLE:
             case TEAM:
@@ -293,38 +305,34 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
          * @param allNodes Every command node
          */
         public void buildChildren(CommandNode[] allNodes) {
-            boolean newChild = true;
-
             for (int paramID : paramNode.getChildIndices()) {
                 CommandNode paramNode = allNodes[paramID];
 
                 if (paramNode.getParser() == null) {
-                    if (newChild) {
-                        newChild = false;
+                    boolean foundCompatible = false;
+                    for (int i = 0; i < children.size(); i++) {
+                        ParamInfo enumParamInfo = children.get(i);
+                        // Check to make sure all descending nodes of this command are compatible - otherwise, create a new overload
+                        if (isCompatible(allNodes, enumParamInfo.getParamNode(), paramNode)) {
+                            foundCompatible = true;
+                            // Extend the current list of enum values
+                            String[] enumOptions = Arrays.copyOf(enumParamInfo.getParamData().getEnumData().getValues(), enumParamInfo.getParamData().getEnumData().getValues().length + 1);
+                            enumOptions[enumOptions.length - 1] = paramNode.getName();
 
-                        // Create the new enum command
-                        createNewParamInfo(paramNode);
-                    } else {
-                        boolean foundCompatible = false;
-                        for (int i = 0; i < children.size(); i++) {
-                            ParamInfo enumParamInfo = children.get(i);
-                            // Check to make sure all descending nodes of this command are compatible - otherwise, create a new overload
-                            if (isCompatible(allNodes, enumParamInfo.getParamNode(), paramNode)) {
-                                foundCompatible = true;
-                                // Extend the current list of enum values
-                                String[] enumOptions = Arrays.copyOf(enumParamInfo.getParamData().getEnumData().getValues(), enumParamInfo.getParamData().getEnumData().getValues().length + 1);
-                                enumOptions[enumOptions.length - 1] = paramNode.getName();
+                            // Re-create the command using the updated values
+                            CommandEnumData enumData = new CommandEnumData(enumParamInfo.getParamData().getEnumData().getName(), enumOptions, false);
+                            children.set(i, new ParamInfo(enumParamInfo.getParamNode(), new CommandParamData(enumParamInfo.getParamData().getName(), this.paramNode.isExecutable(), enumData, null, null, Collections.emptyList())));
+                            break;
+                        }
+                    }
+                    if (!foundCompatible) {
+                        // Create a new subcommand with this exact type
+                        CommandEnumData enumData = new CommandEnumData(paramNode.getName(), new String[]{paramNode.getName()}, false);
 
-                                // Re-create the command using the updated values
-                                CommandEnumData enumData = new CommandEnumData(enumParamInfo.getParamData().getEnumData().getName(), enumOptions, false);
-                                children.set(i, new ParamInfo(enumParamInfo.getParamNode(), new CommandParamData(enumParamInfo.getParamData().getName(), false, enumData, enumParamInfo.getParamData().getType(), null, Collections.emptyList())));
-                                break;
-                            }
-                        }
-                        if (!foundCompatible) {
-                            // Create a new subcommand with this exact type
-                            createNewParamInfo(paramNode);
-                        }
+                        // On setting optional:
+                        // isExecutable is defined as a node "constitutes a valid command."
+                        // Therefore, any children of the parameter must simply be optional.
+                        children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), this.paramNode.isExecutable(), enumData, null, null, Collections.emptyList())));
                     }
                 } else {
                     // Put the non-enum param into the list
@@ -332,11 +340,14 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                     CommandEnumData enumData = null;
                     CommandParamType type = null;
                     if (mappedType instanceof String[]) {
-                        enumData = new CommandEnumData(paramNode.getName(), (String[]) mappedType, false);
+                        enumData = new CommandEnumData(paramNode.getParser().name().toLowerCase(), (String[]) mappedType, false);
                     } else {
                         type = (CommandParamType) mappedType;
                     }
-                    children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), false, enumData, type, null, Collections.emptyList())));
+                    // IF enumData != null:
+                    // In game, this will show up like <paramNode.getName(): enumData.getName()>
+                    // So if paramNode.getName() == "value" and enumData.getName() == "bool": <value: bool>
+                    children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), this.paramNode.isExecutable(), enumData, type, null, Collections.emptyList())));
                 }
             }
 
@@ -344,13 +355,6 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             for (ParamInfo child : children) {
                 child.buildChildren(allNodes);
             }
-        }
-
-        private void createNewParamInfo(CommandNode paramNode) {
-            CommandEnumData enumData = new CommandEnumData(paramNode.getName(), new String[]{paramNode.getName()}, false);
-            CommandParamType type = CommandParamType.STRING;
-
-            children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), false, enumData, type, null, Collections.emptyList())));
         }
 
         /**
