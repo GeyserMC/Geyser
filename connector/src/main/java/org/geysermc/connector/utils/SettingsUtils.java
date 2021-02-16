@@ -147,7 +147,7 @@ public class SettingsUtils {
                 }
 
                 if (Boolean.class.equals(gamerule.getType())) {
-                    Boolean value = settingsResponse.getToggleResponses().get(offset).booleanValue();
+                    boolean value = settingsResponse.getToggleResponses().get(offset);
                     if (value != session.getConnector().getWorldManager().getGameRuleBool(session, gamerule)) {
                         session.getConnector().getWorldManager().setGameRule(session, gamerule.getJavaID(), value);
                     }
