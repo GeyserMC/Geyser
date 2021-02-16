@@ -74,7 +74,6 @@ public final class FloodgateSkinUploader {
 
             @Override
             public void onMessage(String message) {
-                System.out.println(message);
                 // The reason why I don't like Jackson
                 try {
                     JsonNode node = JACKSON.readTree(message);
@@ -109,7 +108,6 @@ public final class FloodgateSkinUploader {
                             String xuid = node.get("xuid").asText();
                             String value = node.get("value").asText();
                             String signature = node.get("signature").asText();
-                            ;
 
                             GeyserSession session = connector.getPlayerByXuid(xuid);
                             if (session != null) {
@@ -182,6 +180,7 @@ public final class FloodgateSkinUploader {
     }
 
     private void reconnectLater(GeyserConnector connector) {
+        //todo doesn't work
         long additionalTime = ThreadLocalRandom.current().nextInt(7);
         connector.getGeneralThreadPool().schedule(() -> {
             try {

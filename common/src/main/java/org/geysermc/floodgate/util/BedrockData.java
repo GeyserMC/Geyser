@@ -26,8 +26,8 @@
 package org.geysermc.floodgate.util;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * This class contains the raw data send by Geyser to Floodgate or from Floodgate to Floodgate. This
@@ -35,9 +35,9 @@ import lombok.Getter;
  * present in the API module of the Floodgate repo)
  */
 @Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class BedrockData implements Cloneable {
-    public static final int EXPECTED_LENGTH = 12;
+    public static final int EXPECTED_LENGTH = 13;
 
     private final String version;
     private final String username;
@@ -53,6 +53,7 @@ public final class BedrockData implements Cloneable {
     private final int subscribeId;
     private final String verifyCode;
 
+    private final long timestamp;
     private final int dataLength;
 
     public static BedrockData of(String version, String username, String xuid, int deviceOs,
@@ -60,7 +61,8 @@ public final class BedrockData implements Cloneable {
                                  LinkedPlayer linkedPlayer, boolean fromProxy, int subscribeId,
                                  String verifyCode) {
         return new BedrockData(version, username, xuid, deviceOs, languageCode, inputMode,
-                uiProfile, ip, linkedPlayer, fromProxy, subscribeId, verifyCode, EXPECTED_LENGTH);
+                uiProfile, ip, linkedPlayer, fromProxy, subscribeId, verifyCode,
+                System.currentTimeMillis(), EXPECTED_LENGTH);
     }
 
     public static BedrockData of(String version, String username, String xuid, int deviceOs,
@@ -81,12 +83,12 @@ public final class BedrockData implements Cloneable {
         return new BedrockData(
                 split[0], split[1], split[2], Integer.parseInt(split[3]), split[4],
                 Integer.parseInt(split[5]), Integer.parseInt(split[6]), split[7], linkedPlayer,
-                "1".equals(split[9]), Integer.parseInt(split[10]), split[11], split.length
+                "1".equals(split[9]), Integer.parseInt(split[10]), split[11], Long.parseLong(split[12]), split.length
         );
     }
 
     private static BedrockData emptyData(int dataLength) {
-        return new BedrockData(null, null, null, -1, null, -1, -1, null, null, false, -1, null,
+        return new BedrockData(null, null, null, -1, null, -1, -1, null, null, false, -1, null, -1,
                 dataLength);
     }
 
@@ -101,7 +103,7 @@ public final class BedrockData implements Cloneable {
                 languageCode + '\0' + uiProfile + '\0' + inputMode + '\0' + ip + '\0' +
                 (fromProxy ? 1 : 0) + '\0' +
                 (linkedPlayer != null ? linkedPlayer.toString() : "null") + '\0' +
-                subscribeId + '\0' + verifyCode;
+                subscribeId + '\0' + verifyCode + '\0' + timestamp;
     }
 
     @Override
