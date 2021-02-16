@@ -393,9 +393,6 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
          *         ]
          *     ]
          * </pre>
-         * <p>
-         * Also note that because this is a deep search of a <code>CommandNode</code>'s children, this only needs to
-         * run for any <code>CommandNode</code>s directly below the root node - any differences will be sorted out there.
          *
          * @return if these two can be merged into one overload.
          */
