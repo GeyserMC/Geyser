@@ -40,6 +40,7 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
 import lombok.Getter;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -220,8 +221,8 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             case FUNCTION:
                 return CommandParamType.FILE_PATH;
 
-            case INT_RANGE:
-                return CommandParamType.INT_RANGE;
+            //case INT_RANGE:
+            //    return CommandParamType.INT_RANGE; - no longer registered
 
             case BOOL:
                 return ENUM_BOOLEAN;
@@ -241,11 +242,13 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             case ENTITY_SUMMON:
                 return EntityType.ALL_JAVA_IDENTIFIERS;
 
+            case COLOR:
+                return NamedTextColor.NAMES.keys().toArray(new String[0]);
+
             case STRING:
             case VEC2:
             case BLOCK_PREDICATE:
             case ITEM_PREDICATE:
-            case COLOR:
             case COMPONENT:
             case OBJECTIVE:
             case OBJECTIVE_CRITERIA:
@@ -270,7 +273,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
     private static class ParamInfo {
         private final CommandNode paramNode;
         private final CommandParamData paramData;
-        private final List<ParamInfo> children;
+        private final List<List<ParamInfo>> children;
 
         /**
          * Create a new parameter info object
@@ -300,21 +303,30 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                         enumIndex = children.size();
 
                         // Create the new enum command
-                        CommandEnumData enumData = new CommandEnumData(paramNode.getName(), new String[]{paramNode.getName()}, false);
-                        CommandParamType type = CommandParamType.STRING;
-
-                        children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), false, enumData, type, null, Collections.emptyList())));
+                        createNewParamInfo(paramNode);
                     } else {
-                        // Get the existing enum
-                        ParamInfo enumParamInfo = children.get(enumIndex);
+                        boolean foundCompatible = false;
+                        for (List<ParamInfo> enumParamInfos : children) {
+                            for (int i = 0; i < enumParamInfos.size(); i++) {
+                                ParamInfo enumParamInfo = enumParamInfos.get(i);
+                                // Check to make sure all descending nodes of this command are compatible - otherwise, create a new overload
+                                if (isCompatible(allNodes, enumParamInfo.getParamNode(), paramNode)) {
+                                    foundCompatible = true;
+                                    // Extend the current list of enum values
+                                    String[] enumOptions = Arrays.copyOf(enumParamInfo.getParamData().getEnumData().getValues(), enumParamInfo.getParamData().getEnumData().getValues().length + 1);
+                                    enumOptions[enumOptions.length - 1] = paramNode.getName();
 
-                        // Extend the current list of enum values
-                        String[] enumOptions = Arrays.copyOf(enumParamInfo.getParamData().getEnumData().getValues(), enumParamInfo.getParamData().getEnumData().getValues().length + 1);
-                        enumOptions[enumOptions.length - 1] = paramNode.getName();
-
-                        // Re-create the command using the updated values
-                        CommandEnumData enumData = new CommandEnumData(enumParamInfo.getParamData().getEnumData().getName(), enumOptions, false);
-                        children.set(enumIndex, new ParamInfo(enumParamInfo.getParamNode(), new CommandParamData(enumParamInfo.getParamData().getName(), false, enumData, enumParamInfo.getParamData().getType(), null, Collections.emptyList())));
+                                    // Re-create the command using the updated values
+                                    CommandEnumData enumData = new CommandEnumData(enumParamInfo.getParamData().getEnumData().getName(), enumOptions, false);
+                                    enumParamInfos.set(i, new ParamInfo(enumParamInfo.getParamNode(), new CommandParamData(enumParamInfo.getParamData().getName(), false, enumData, enumParamInfo.getParamData().getType(), null, Collections.emptyList())));
+                                    break;
+                                }
+                            }
+                        }
+                        if (!foundCompatible) {
+                            // Create a new subcommand with this exact type
+                            createNewParamInfo(paramNode);
+                        }
                     }
                 } else {
                     // Put the non-enum param into the list
@@ -326,14 +338,84 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                     } else {
                         type = (CommandParamType) mappedType;
                     }
-                    children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), false, enumData, type, null, Collections.emptyList())));
+                    List<ParamInfo> infos = new ArrayList<>();
+                    infos.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), false, enumData, type, null, Collections.emptyList())));
+                    children.add(infos);
                 }
             }
 
             // Recursively build all child options
-            for (ParamInfo child : children) {
-                child.buildChildren(allNodes);
+            for (List<ParamInfo> children : children) {
+                for (ParamInfo child : children) {
+                    child.buildChildren(allNodes);
+                }
             }
+        }
+
+        private void createNewParamInfo(CommandNode paramNode) {
+            CommandEnumData enumData = new CommandEnumData(paramNode.getName(), new String[]{paramNode.getName()}, false);
+            CommandParamType type = CommandParamType.STRING;
+
+            List<ParamInfo> infos = new ArrayList<>();
+            infos.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), false, enumData, type, null, Collections.emptyList())));
+            children.add(infos);
+        }
+
+        /**
+         * Comparing CommandNode type a and b, determine if they are in the same overload.
+         * <p>
+         * Take the <code>gamerule</code> command, and let's present three "subcommands" you can perform:
+         *
+         * <ul>
+         *     <li><code>gamerule doDaylightCycle true</code></li>
+         *     <li><code>gamerule announceAdvancements false</code></li>
+         *     <li><code>gamerule randomTickSpeed 3</code></li>
+         * </ul>
+         *
+         * While all three of them are indeed part of the same command, the command setting randomTickSpeed parses an int,
+         * while the others use boolean. In Bedrock, this should be presented as a separate overload to indicate that this
+         * does something a little different.
+         * <p>
+         * Therefore, this function will return <code>true</code> if the first two are compared, as they use the same
+         * parsers. If the third is compared with either of the others, this function will return <code>false</code>.
+         * <p>
+         * Here's an example of how the above would be presented to Bedrock (as of 1.16.200). Notice how the top two <code>CommandParamData</code>
+         * classes of each array are identical in type, but the following class is different:
+         * <pre>
+         *     overloads=[
+         *         [
+         *            CommandParamData(name=doDaylightCycle, optional=false, enumData=CommandEnumData(name=announceAdvancements, values=[announceAdvancements, doDaylightCycle], isSoft=false), type=STRING, postfix=null, options=[])
+         *            CommandParamData(name=value, optional=false, enumData=CommandEnumData(name=value, values=[true, false], isSoft=false), type=null, postfix=null, options=[])
+         *         ]
+         *         [
+         *            CommandParamData(name=randomTickSpeed, optional=false, enumData=CommandEnumData(name=randomTickSpeed, values=[randomTickSpeed], isSoft=false), type=STRING, postfix=null, options=[])
+         *            CommandParamData(name=value, optional=false, enumData=null, type=INT, postfix=null, options=[])
+         *         ]
+         *     ]
+         * </pre>
+         *
+         * @return if these two can be merged into one overload.
+         */
+        private boolean isCompatible(CommandNode[] allNodes, CommandNode a, CommandNode b) {
+            if (a == b) return true;
+            if (a.getParser() != b.getParser()) return false;
+            if (a.getChildIndices().length != b.getChildIndices().length) return false;
+
+            for (int i = 0; i < a.getChildIndices().length; i++) {
+                boolean hasSimilarity = false;
+                CommandNode a1 = allNodes[a.getChildIndices()[i]];
+                // Search "b" until we find a child that matches this one
+                for (int j = 0; j < b.getChildIndices().length; j++) {
+                    if (isCompatible(allNodes, a1, allNodes[b.getChildIndices()[j]])) {
+                        hasSimilarity = true;
+                        break;
+                    }
+                }
+                if (!hasSimilarity) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         /**
@@ -344,29 +426,40 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
         public List<CommandParamData[]> getTree() {
             List<CommandParamData[]> treeParamData = new ArrayList<>();
 
-            for (ParamInfo child : children) {
-                // Get the tree from the child
-                List<CommandParamData[]> childTree = child.getTree();
+            for (List<ParamInfo> children : children) {
+                for (ParamInfo child : children) {
+                    // Get the tree from the child
+                    List<CommandParamData[]> childTree = child.getTree();
 
-                // Un-pack the tree append the child node to it and push into the list
-                for (CommandParamData[] subchild : childTree) {
-                    CommandParamData[] tmpTree = new ArrayList<CommandParamData>() {
-                        {
-                            add(child.getParamData());
-                            addAll(Arrays.asList(subchild));
-                        }
-                    }.toArray(new CommandParamData[0]);
+                    // Un-pack the tree append the child node to it and push into the list
+                    for (CommandParamData[] subChild : childTree) {
+                        CommandParamData[] tmpTree = new ArrayList<CommandParamData>() {
+                            {
+                                add(child.getParamData());
+                                addAll(Arrays.asList(subChild));
+                            }
+                        }.toArray(new CommandParamData[0]);
 
-                    treeParamData.add(tmpTree);
-                }
+                        treeParamData.add(tmpTree);
+                    }
 
-                // If we have no more child parameters just the child
-                if (childTree.size() == 0) {
-                    treeParamData.add(new CommandParamData[] { child.getParamData() });
+                    // If we have no more child parameters just the child
+                    if (childTree.size() == 0) {
+                        treeParamData.add(new CommandParamData[] { child.getParamData() });
+                    }
                 }
             }
 
             return treeParamData;
+        }
+
+        @Override
+        public String toString() {
+            return "ParamInfo{" +
+                    "paramNode=" + paramNode +
+                    ", paramData=" + paramData +
+                    ", children=" + children +
+                    '}';
         }
     }
 }
