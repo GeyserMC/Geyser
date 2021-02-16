@@ -56,7 +56,7 @@ import java.util.*;
 public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclareCommandsPacket> {
 
     private static final String[] ENUM_BOOLEAN = {"true", "false"};
-
+    private static final String[] VALID_COLORS;
     private static final String[] VALID_SCOREBOARD_SLOTS;
 
     private static final Hash.Strategy<CommandParamData[][]> PARAM_STRATEGY = new Hash.Strategy<CommandParamData[][]>() {
@@ -84,6 +84,10 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
     };
 
     static {
+        List<String> validColors = new ArrayList<>(NamedTextColor.NAMES.keys());
+        validColors.add("reset");
+        VALID_COLORS = validColors.toArray(new String[0]);
+
         List<String> teamOptions = new ArrayList<>(Arrays.asList("list", "sidebar", "belowName"));
         for (String color : NamedTextColor.NAMES.keys()) {
             teamOptions.add("sidebar.team." + color);
@@ -253,7 +257,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                 return EntityType.ALL_JAVA_IDENTIFIERS;
 
             case COLOR:
-                return NamedTextColor.NAMES.keys().toArray(new String[0]); // todo Should also include reset.
+                return VALID_COLORS;
 
             case SCOREBOARD_SLOT:
                 return VALID_SCOREBOARD_SLOTS;
@@ -389,6 +393,9 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
          *         ]
          *     ]
          * </pre>
+         * <p>
+         * Also note that because this is a deep search of a <code>CommandNode</code>'s children, this only needs to
+         * run for any <code>CommandNode</code>s directly below the root node - any differences will be sorted out there.
          *
          * @return if these two can be merged into one overload.
          */
@@ -428,12 +435,9 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
 
                 // Un-pack the tree append the child node to it and push into the list
                 for (CommandParamData[] subChild : childTree) {
-                    CommandParamData[] tmpTree = new ArrayList<CommandParamData>() {
-                        {
-                            add(child.getParamData());
-                            addAll(Arrays.asList(subChild));
-                        }
-                    }.toArray(new CommandParamData[0]);
+                    CommandParamData[] tmpTree = new CommandParamData[subChild.length + 1];
+                    tmpTree[0] = child.getParamData();
+                    System.arraycopy(subChild, 0, tmpTree, 1, subChild.length);
 
                     treeParamData.add(tmpTree);
                 }
