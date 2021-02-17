@@ -81,7 +81,7 @@ public class SkinManager {
                                                                  String capeId, byte[] capeData,
                                                                  SkinProvider.SkinGeometry geometry) {
         SerializedSkin serializedSkin = SerializedSkin.of(
-                skinId, geometry.getGeometryName(), ImageData.of(skinData), Collections.emptyList(),
+                skinId, "", geometry.getGeometryName(), ImageData.of(skinData), Collections.emptyList(),
                 ImageData.of(capeData), geometry.getGeometryData(), "", true, false,
                 !capeId.equals(SkinProvider.EMPTY_CAPE.getCapeId()), capeId, skinId
         );
