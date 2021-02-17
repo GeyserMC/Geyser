@@ -329,6 +329,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                             break;
                         }
                     }
+
                     if (!foundCompatible) {
                         // Create a new subcommand with this exact type
                         CommandEnumData enumData = new CommandEnumData(paramNode.getName(), new String[]{paramNode.getName()}, false);
@@ -411,6 +412,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                         break;
                     }
                 }
+
                 if (!hasSimilarity) {
                     return false;
                 }
