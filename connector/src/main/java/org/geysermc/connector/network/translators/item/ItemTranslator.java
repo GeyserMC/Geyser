@@ -303,9 +303,8 @@ public abstract class ItemTranslator {
         CompoundTag javaTag = new CompoundTag(name);
         Map<String, Tag> javaValue = javaTag.getValue();
         if (tag != null && !tag.isEmpty()) {
-            for (String str : tag.keySet()) {
-                Object bedrockTag = tag.get(str);
-                Tag translatedTag = translateToJavaNBT(str, bedrockTag);
+            for (Map.Entry<String, Object> entry : tag.entrySet()) {
+                Tag translatedTag = translateToJavaNBT(entry.getKey(), entry.getValue());
                 if (translatedTag == null)
                     continue;
 
