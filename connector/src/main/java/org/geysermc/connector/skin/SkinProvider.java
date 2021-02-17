@@ -427,6 +427,7 @@ public class SkinProvider {
                 g.dispose();
             }
 
+            image.flush();
             image = newImage;
         } else {
             // Very rarely, skins can be larger than Minecraft's default.
@@ -440,6 +441,8 @@ public class SkinProvider {
             Graphics g = newImage.createGraphics();
             g.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null);
             g.dispose();
+
+            image.flush();
             image = newImage;
         }
 
