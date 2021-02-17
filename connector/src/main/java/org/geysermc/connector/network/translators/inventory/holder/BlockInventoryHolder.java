@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.inventory.holder;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
@@ -40,6 +40,7 @@ import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -58,8 +59,10 @@ public class BlockInventoryHolder extends InventoryHolder {
         this.defaultJavaBlockState = BlockTranslator.getJavaBlockState(javaBlockIdentifier);
         this.containerType = containerType;
         if (validBlocks != null) {
-            this.validBlocks = Sets.newHashSet(validBlocks);
-            this.validBlocks.add(javaBlockIdentifier.split("\\[")[0]);
+            Set<String> validBlocksTemp = new HashSet<>(validBlocks.length + 1);
+            Collections.addAll(validBlocksTemp, validBlocks);
+            validBlocksTemp.add(javaBlockIdentifier.split("\\[")[0]);
+            this.validBlocks = ImmutableSet.copyOf(validBlocksTemp);
         } else {
             this.validBlocks = Collections.singleton(javaBlockIdentifier.split("\\[")[0]);
         }

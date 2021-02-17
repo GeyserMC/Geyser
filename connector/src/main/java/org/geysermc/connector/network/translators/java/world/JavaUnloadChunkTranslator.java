@@ -54,7 +54,7 @@ public class JavaUnloadChunkTranslator extends PacketTranslator<ServerUnloadChun
         iterator = session.getLecternCache().iterator();
         while (iterator.hasNext()) {
             Vector3i position = iterator.next();
-            if (Math.floor((double) position.getX() / 16) == packet.getX() && Math.floor((double) position.getZ() / 16) == packet.getZ()) {
+            if ((position.getX() >> 4) == packet.getX() && (position.getZ() >> 4) == packet.getZ()) {
                 iterator.remove();
             }
         }
