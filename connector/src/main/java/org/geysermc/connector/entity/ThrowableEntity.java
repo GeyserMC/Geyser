@@ -41,18 +41,6 @@ public class ThrowableEntity extends Entity implements Tickable {
 
     protected Vector3f lastJavaPosition;
 
-    /**
-     * Store the last position sent to Bedrock.
-     * Used to determine which axis' should be sent.
-     */
-    private Vector3f lastBedrockPosition = Vector3f.ZERO;
-
-    /**
-     * Store the last rotation sent to Bedrock.
-     * Used to determine which axis' should be sent.
-     */
-    private Vector3f lastBedrockRotation = Vector3f.ZERO;
-
     public ThrowableEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
         this.lastJavaPosition = position;
@@ -84,36 +72,33 @@ public class ThrowableEntity extends Entity implements Tickable {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
         }
 
-        if (position.getX() != lastBedrockPosition.getX()) {
+        if (this.position.getX() != position.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
             moveEntityDeltaPacket.setX(position.getX());
         }
-        if (position.getY() != lastBedrockPosition.getY()) {
+        if (this.position.getY() != position.getY()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
             moveEntityDeltaPacket.setY(position.getY());
         }
-        if (position.getZ() != lastBedrockPosition.getZ()) {
+        if (this.position.getZ() != position.getZ()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
             moveEntityDeltaPacket.setZ(position.getZ());
         }
-        setPosition(position);
-        lastBedrockPosition = position;
+        this.position = position;
 
-        setRotation(rotation);
-        rotation = getBedrockRotation();
-        if (rotation.getX() != lastBedrockRotation.getX()) {
-            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
-            moveEntityDeltaPacket.setPitch(rotation.getX());
-        }
-        if (rotation.getY() != lastBedrockRotation.getY()) {
-            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
-            moveEntityDeltaPacket.setHeadYaw(rotation.getY());
-        }
-        if (rotation.getZ() != lastBedrockRotation.getZ()) {
+        if (this.rotation.getX() != rotation.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
-            moveEntityDeltaPacket.setYaw(rotation.getZ());
+            moveEntityDeltaPacket.setYaw(rotation.getX());
         }
-        lastBedrockRotation = rotation;
+        if (this.rotation.getY() != rotation.getY()) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
+            moveEntityDeltaPacket.setPitch(rotation.getY());
+        }
+        if (this.rotation.getZ() != rotation.getZ()) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
+            moveEntityDeltaPacket.setHeadYaw(rotation.getZ());
+        }
+        this.rotation = rotation;
 
         if (!moveEntityDeltaPacket.getFlags().isEmpty()) {
             session.sendUpstreamPacket(moveEntityDeltaPacket);
