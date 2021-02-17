@@ -47,4 +47,12 @@ public class AbstractArrowEntity extends Entity {
 
         super.updateBedrockMetadata(entityMetadata, session);
     }
+
+    @Override
+    public Vector3f getBedrockRotation() {
+        double horizontalSpeed = Math.sqrt(motion.getX() * motion.getX() + motion.getZ() * motion.getZ());
+        float yaw = (float) Math.toDegrees(Math.atan2(motion.getX(), motion.getZ()));
+        float pitch = (float) Math.toDegrees(Math.atan2(motion.getY(), horizontalSpeed));
+        return Vector3f.from(pitch, yaw, yaw);
+    }
 }
