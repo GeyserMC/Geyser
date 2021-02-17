@@ -88,19 +88,19 @@ public class FishingHookEntity extends ThrowableEntity {
     @Override
     protected void moveAbsoluteImmediate(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
         boundingBox.setMiddleX(position.getX());
-        boundingBox.setMiddleY(position.getY() - boundingBox.getSizeY() / 2);
+        boundingBox.setMiddleY(position.getY() + boundingBox.getSizeY() / 2);
         boundingBox.setMiddleZ(position.getZ());
-        double minY = boundingBox.getMiddleY() - boundingBox.getSizeY() / 2;
 
         CollisionManager collisionManager = session.getCollisionManager();
         List<Vector3i> collidableBlocks = collisionManager.getCollidableBlocks(boundingBox);
         boolean touchingWater = false;
+        boolean collided = false;
         for (Vector3i blockPos : collidableBlocks) {
             int blockID = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
             BlockCollision blockCollision = CollisionTranslator.getCollision(blockID, blockPos.getX(), blockPos.getY(), blockPos.getZ());
             if (blockCollision != null && blockCollision.checkIntersection(boundingBox)) {
                 // TODO Push bounding box out of collision to improve movement
-                return;
+                collided = true;
             }
 
             int waterLevel = BlockStateValues.getWaterLevel(blockID);
@@ -108,39 +108,40 @@ public class FishingHookEntity extends ThrowableEntity {
                 waterLevel = 0;
             }
             if (waterLevel >= 0) {
-                // Flowing water is the same height as still water
-                if (waterLevel >= 8) {
-                    waterLevel = 0;
-                }
                 double waterMaxY = blockPos.getY() + 1 - (waterLevel + 1) / 9.0;
-                if (minY <= waterMaxY) {
+                // Falling water is a full block
+                if (waterLevel >= 8) {
+                    waterMaxY = blockPos.getY() + 1;
+                }
+                if (position.getY() <= waterMaxY) {
                     touchingWater = true;
                 }
             }
         }
 
-        if (touchingWater) {
-            if (!inWater) {
-                inWater = true;
-                // Splash
-                if (!metadata.getFlags().getFlag(EntityFlag.SILENT)) {
-                    float volume = (float) (0.2f * Math.sqrt(0.2 * (motion.getX() * motion.getX() + motion.getZ() * motion.getZ()) + motion.getY() * motion.getY()));
-                    if (volume > 1) {
-                        volume = 1;
-                    }
-                    PlaySoundPacket playSoundPacket = new PlaySoundPacket();
-                    playSoundPacket.setSound("random.splash");
-                    playSoundPacket.setPosition(position);
-                    playSoundPacket.setVolume(volume);
-                    playSoundPacket.setPitch(1f + ThreadLocalRandom.current().nextFloat() * 0.3f);
-                    session.sendUpstreamPacket(playSoundPacket);
-                }
-            }
-        } else {
-            inWater = false;
+        if (!inWater && touchingWater) {
+            sendSplashSound(session);
         }
+        inWater = touchingWater;
 
-        super.moveAbsoluteImmediate(session, position, rotation, isOnGround, teleported);
+        if (!collided) {
+            super.moveAbsoluteImmediate(session, position, rotation, isOnGround, teleported);
+        }
+    }
+
+    private void sendSplashSound(GeyserSession session) {
+        if (!metadata.getFlags().getFlag(EntityFlag.SILENT)) {
+            float volume = (float) (0.2f * Math.sqrt(0.2 * (motion.getX() * motion.getX() + motion.getZ() * motion.getZ()) + motion.getY() * motion.getY()));
+            if (volume > 1) {
+                volume = 1;
+            }
+            PlaySoundPacket playSoundPacket = new PlaySoundPacket();
+            playSoundPacket.setSound("random.splash");
+            playSoundPacket.setPosition(position);
+            playSoundPacket.setVolume(volume);
+            playSoundPacket.setPitch(1f + ThreadLocalRandom.current().nextFloat() * 0.3f);
+            session.sendUpstreamPacket(playSoundPacket);
+        }
     }
 
     @Override
