@@ -93,6 +93,7 @@ import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.floodgate.util.EncryptionUtil;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
@@ -378,7 +379,8 @@ public class GeyserSession implements CommandSender {
         tmpPlayers.forEach(player -> this.emotes.addAll(player.getEmotes()));
 
         bedrockServerSession.addDisconnectHandler(disconnectReason -> {
-            connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.disconnect", bedrockServerSession.getAddress().getAddress(), disconnectReason));
+            InetAddress address = bedrockServerSession.getRealAddress().getAddress();
+            connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.disconnect", address, disconnectReason));
 
             disconnect(disconnectReason.name());
             connector.removePlayer(this);
@@ -588,7 +590,7 @@ public class GeyserSession implements CommandSender {
                                 clientData.getDeviceOS().ordinal(),
                                 clientData.getLanguageCode(),
                                 clientData.getCurrentInputMode().ordinal(),
-                                upstream.getSession().getAddress().getAddress().getHostAddress()
+                                upstream.getAddress().getAddress().getHostAddress()
                         ));
                     } catch (Exception e) {
                         connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
