@@ -46,7 +46,7 @@ public class WitherEntity extends MonsterEntity {
 
         if (entityMetadata.getId() >= 15 && entityMetadata.getId() <= 17) {
             Entity entity = session.getEntityCache().getEntityByJavaId((int) entityMetadata.getValue());
-            if (entity == null && session.getPlayerEntity().getEntityId() == (Integer) entityMetadata.getValue()) {
+            if (entity == null && session.getPlayerEntity().getEntityId() == (int) entityMetadata.getValue()) {
                 entity = session.getPlayerEntity();
             }
 
@@ -62,7 +62,7 @@ public class WitherEntity extends MonsterEntity {
         } else if (entityMetadata.getId() == 17) {
             metadata.put(EntityData.WITHER_TARGET_3, targetID);
         } else if (entityMetadata.getId() == 18) {
-            metadata.put(EntityData.WITHER_INVULNERABLE_TICKS, (int) entityMetadata.getValue());
+            metadata.put(EntityData.WITHER_INVULNERABLE_TICKS, entityMetadata.getValue());
 
             // Show the shield for the first few seconds of spawning (like Java)
             if ((int) entityMetadata.getValue() >= 165) {
