@@ -35,6 +35,8 @@ public class AbstractArrowEntity extends Entity {
 
     public AbstractArrowEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+
+        setMotion(motion);
     }
 
     @Override
@@ -49,10 +51,15 @@ public class AbstractArrowEntity extends Entity {
     }
 
     @Override
-    public Vector3f getBedrockRotation() {
+    public void setRotation(Vector3f rotation) {}
+
+    @Override
+    public void setMotion(Vector3f motion) {
+        super.setMotion(motion);
+
         double horizontalSpeed = Math.sqrt(motion.getX() * motion.getX() + motion.getZ() * motion.getZ());
         float yaw = (float) Math.toDegrees(Math.atan2(motion.getX(), motion.getZ()));
         float pitch = (float) Math.toDegrees(Math.atan2(motion.getY(), horizontalSpeed));
-        return Vector3f.from(pitch, yaw, yaw);
+        rotation = Vector3f.from(yaw, pitch, yaw);
     }
 }

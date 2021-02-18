@@ -84,7 +84,7 @@ public class ThrowableEntity extends Entity implements Tickable {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
             moveEntityDeltaPacket.setZ(position.getZ());
         }
-        this.position = position;
+        setPosition(position);
 
         if (this.rotation.getX() != rotation.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
@@ -98,7 +98,7 @@ public class ThrowableEntity extends Entity implements Tickable {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
             moveEntityDeltaPacket.setHeadYaw(rotation.getZ());
         }
-        this.rotation = rotation;
+        setRotation(rotation);
 
         if (!moveEntityDeltaPacket.getFlags().isEmpty()) {
             session.sendUpstreamPacket(moveEntityDeltaPacket);
