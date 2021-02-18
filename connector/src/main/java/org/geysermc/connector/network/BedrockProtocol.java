@@ -56,7 +56,9 @@ public class BedrockProtocol {
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
                 .minecraftVersion("1.16.200/1.16.201")
                 .build());
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v428.V428_CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v428.V428_CODEC.toBuilder()
+                .minecraftVersion("1.16.210.60")
+                .build());
     }
 
     /**
