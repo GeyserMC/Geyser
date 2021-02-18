@@ -382,4 +382,11 @@ public class BlockTranslator {
         }
         return itemIdentifier;
     }
+
+    /**
+     * @return a list of all Java block identifiers. For use with command suggestions.
+     */
+    public static String[] getAllBlockIdentifiers() {
+        return JAVA_ID_TO_JAVA_IDENTIFIER_MAP.values().toArray(new String[0]);
+    }
 }

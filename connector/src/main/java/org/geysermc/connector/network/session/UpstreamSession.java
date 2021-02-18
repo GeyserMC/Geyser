@@ -61,6 +61,6 @@ public class UpstreamSession {
     }
 
     public InetSocketAddress getAddress() {
-        return session.getAddress();
+        return session.getRealAddress();
     }
 }
