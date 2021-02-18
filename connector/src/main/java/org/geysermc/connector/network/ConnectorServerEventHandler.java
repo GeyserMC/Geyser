@@ -40,6 +40,7 @@ import org.geysermc.connector.utils.LanguageUtils;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     /*
@@ -60,6 +61,21 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
+        List<String> allowedProxyIPs = connector.getConfig().getBedrock().getProxyProtocolWhitelistedIPs();
+        if (connector.getConfig().getBedrock().isEnableProxyProtocol() && !allowedProxyIPs.isEmpty()) {
+            boolean isWhitelistedIP = false;
+            for (CIDRMatcher matcher : connector.getConfig().getBedrock().getWhitelistedIPsMatchers()) {
+                if (matcher.matches(inetSocketAddress.getAddress())) {
+                    isWhitelistedIP = true;
+                    break;
+                }
+            }
+
+            if (!isWhitelistedIP) {
+                return false;
+            }
+        }
+
         connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.attempt_connect", inetSocketAddress));
         return true;
     }

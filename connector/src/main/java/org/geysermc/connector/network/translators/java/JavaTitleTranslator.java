@@ -71,6 +71,7 @@ public class JavaTitleTranslator extends PacketTranslator<ServerTitlePacket> {
                 titlePacket.setFadeInTime(packet.getFadeIn());
                 titlePacket.setFadeOutTime(packet.getFadeOut());
                 titlePacket.setStayTime(packet.getStay());
+                titlePacket.setText("");
                 break;
         }
 

@@ -64,7 +64,7 @@ public class QueryPacketHandler {
      * @param buffer The Query data
      */
     public QueryPacketHandler(GeyserConnector connector, InetSocketAddress sender, ByteBuf buffer) {
-        if(!isQueryPacket(buffer))
+        if (!isQueryPacket(buffer))
             return;
 
         this.connector = connector;
@@ -225,7 +225,7 @@ public class QueryPacketHandler {
             query.write(new byte[] { 0x00, 0x00 });
 
             // Fill player names
-            if(pingInfo != null) {
+            if (pingInfo != null) {
                 for (String username : pingInfo.getPlayerList()) {
                     query.write(username.getBytes());
                     query.write((byte) 0x00);
