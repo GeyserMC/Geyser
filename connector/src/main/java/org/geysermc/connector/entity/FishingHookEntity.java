@@ -60,7 +60,7 @@ public class FishingHookEntity extends ThrowableEntity {
         // In Java, the splash sound depends on the entity's velocity, but in Bedrock the volume doesn't change.
         // This splash can be confused with the sound from catching a fish. This silences the splash from Bedrock,
         // so that it can be handled by moveAbsoluteImmediate.
-        this.metadata.putFloat(EntityData.BOUNDING_BOX_HEIGHT, 1e6f);
+        this.metadata.putFloat(EntityData.BOUNDING_BOX_HEIGHT, 128);
 
         this.metadata.put(EntityData.OWNER_EID, owner.getGeyserId());
     }
@@ -96,25 +96,27 @@ public class FishingHookEntity extends ThrowableEntity {
         boolean touchingWater = false;
         boolean collided = false;
         for (Vector3i blockPos : collidableBlocks) {
-            int blockID = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
-            BlockCollision blockCollision = CollisionTranslator.getCollision(blockID, blockPos.getX(), blockPos.getY(), blockPos.getZ());
-            if (blockCollision != null && blockCollision.checkIntersection(boundingBox)) {
-                // TODO Push bounding box out of collision to improve movement
-                collided = true;
-            }
-
-            int waterLevel = BlockStateValues.getWaterLevel(blockID);
-            if (BlockTranslator.isWaterlogged(blockID)) {
-                waterLevel = 0;
-            }
-            if (waterLevel >= 0) {
-                double waterMaxY = blockPos.getY() + 1 - (waterLevel + 1) / 9.0;
-                // Falling water is a full block
-                if (waterLevel >= 8) {
-                    waterMaxY = blockPos.getY() + 1;
+            if (0 <= blockPos.getY() && blockPos.getY() <= 255) {
+                int blockID = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
+                BlockCollision blockCollision = CollisionTranslator.getCollision(blockID, blockPos.getX(), blockPos.getY(), blockPos.getZ());
+                if (blockCollision != null && blockCollision.checkIntersection(boundingBox)) {
+                    // TODO Push bounding box out of collision to improve movement
+                    collided = true;
                 }
-                if (position.getY() <= waterMaxY) {
-                    touchingWater = true;
+
+                int waterLevel = BlockStateValues.getWaterLevel(blockID);
+                if (BlockTranslator.isWaterlogged(blockID)) {
+                    waterLevel = 0;
+                }
+                if (waterLevel >= 0) {
+                    double waterMaxY = blockPos.getY() + 1 - (waterLevel + 1) / 9.0;
+                    // Falling water is a full block
+                    if (waterLevel >= 8) {
+                        waterMaxY = blockPos.getY() + 1;
+                    }
+                    if (position.getY() <= waterMaxY) {
+                        touchingWater = true;
+                    }
                 }
             }
         }
@@ -126,6 +128,8 @@ public class FishingHookEntity extends ThrowableEntity {
 
         if (!collided) {
             super.moveAbsoluteImmediate(session, position, rotation, isOnGround, teleported);
+        } else {
+            super.moveAbsoluteImmediate(session, this.position, rotation, true, true);
         }
     }
 
