@@ -51,7 +51,10 @@ public class AbstractArrowEntity extends Entity {
     }
 
     @Override
-    public void setRotation(Vector3f rotation) {}
+    public void setRotation(Vector3f rotation) {
+        // Ignore the rotation sent by the Java server since the
+        // Java client calculates the rotation from the motion
+    }
 
     @Override
     public void setMotion(Vector3f motion) {
