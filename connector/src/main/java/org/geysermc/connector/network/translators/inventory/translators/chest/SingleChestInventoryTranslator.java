@@ -37,7 +37,18 @@ public class SingleChestInventoryTranslator extends ChestInventoryTranslator {
     public SingleChestInventoryTranslator(int size) {
         super(size, 27);
         this.holder = new BlockInventoryHolder("minecraft:chest[facing=north,type=single,waterlogged=false]", ContainerType.CONTAINER,
-                "minecraft:ender_chest", "minecraft:trapped_chest");
+                "minecraft:ender_chest", "minecraft:trapped_chest") {
+            @Override
+            protected boolean isValidBlock(String[] javaBlockString) {
+                if (javaBlockString[0].equals("minecraft:ender_chest")) {
+                    // Can't have double ender chests
+                    return true;
+                }
+
+                // Add provision to ensure this isn't a double chest
+                return super.isValidBlock(javaBlockString) && (javaBlockString.length > 1 && javaBlockString[1].contains("type=single"));
+            }
+        };
     }
 
     @Override

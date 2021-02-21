@@ -144,7 +144,7 @@ public class GeyserSession implements CommandSender {
      * Use {@link #getNextItemNetId()} instead for consistency
      */
     @Getter(AccessLevel.NONE)
-    private final AtomicInteger itemNetId = new AtomicInteger(1);
+    private final AtomicInteger itemNetId = new AtomicInteger(2);
 
     @Getter(AccessLevel.NONE)
     private final Object inventoryLock = new Object();

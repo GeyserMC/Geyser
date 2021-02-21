@@ -31,6 +31,7 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
+import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.inventory.Container;
@@ -76,11 +77,11 @@ public class BlockInventoryHolder extends InventoryHolder {
         if (session.getLastInteractionPlayerPosition().equals(session.getPlayerEntity().getPosition())) {
             // Then, check to see if the interacted block is valid for this inventory by ensuring the block state identifier is valid
             int javaBlockId = session.getConnector().getWorldManager().getBlockAt(session, session.getLastInteractionBlockPosition());
-            String javaBlockString = BlockTranslator.getJavaIdBlockMap().inverse().getOrDefault(javaBlockId, "minecraft:air").split("\\[")[0];
-            if (this.validBlocks.contains(javaBlockString)) {
+            String[] javaBlockString = BlockTranslator.getJavaIdBlockMap().inverse().getOrDefault(javaBlockId, "minecraft:air").split("\\[");
+            if (isValidBlock(javaBlockString)) {
                 // We can safely use this block
                 inventory.setHolderPosition(session.getLastInteractionBlockPosition());
-                ((Container) inventory).setUsingRealBlock(true, javaBlockString);
+                ((Container) inventory).setUsingRealBlock(true, javaBlockString[0]);
                 setCustomName(session, session.getLastInteractionBlockPosition(), inventory);
                 return;
             }
@@ -98,6 +99,13 @@ public class BlockInventoryHolder extends InventoryHolder {
         inventory.setHolderPosition(position);
 
         setCustomName(session, position, inventory);
+    }
+
+    /**
+     * @return true if this Java block ID can be used for player inventory.
+     */
+    protected boolean isValidBlock(String[] javaBlockString) {
+        return this.validBlocks.contains(javaBlockString[0]);
     }
 
     protected void setCustomName(GeyserSession session, Vector3i position, Inventory inventory) {
@@ -126,6 +134,11 @@ public class BlockInventoryHolder extends InventoryHolder {
     public void closeInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         if (((Container) inventory).isUsingRealBlock()) {
             // No need to reset a block since we didn't change any blocks
+            // But send a container close packet because we aren't destroying the original.
+            ContainerClosePacket packet = new ContainerClosePacket();
+            packet.setId((byte) inventory.getId());
+            packet.setUnknownBool0(true); //TODO needs to be changed in Protocol to "server-side" or something
+            session.sendUpstreamPacket(packet);
             return;
         }
 
