@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.nukkitx.nbt.NbtMap;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.connector.utils.Direction;
 
 import java.util.HashMap;
