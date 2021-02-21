@@ -45,7 +45,6 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
             if (packet.getWindowId() == 0) {
                 return;
             }
-            session.getConnector().getLogger().info("Opening window ID " + packet.getWindowId());
 
             InventoryTranslator newTranslator = InventoryTranslator.INVENTORY_TRANSLATORS.get(packet.getType());
             Inventory openInventory = session.getOpenInventory();
