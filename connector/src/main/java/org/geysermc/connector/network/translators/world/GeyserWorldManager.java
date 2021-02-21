@@ -37,6 +37,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.ChunkCache;
 import org.geysermc.connector.network.translators.inventory.translators.LecternInventoryTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.GameRule;
 
 public class GeyserWorldManager extends WorldManager {
@@ -49,7 +50,7 @@ public class GeyserWorldManager extends WorldManager {
         if (chunkCache != null) { // Chunk cache can be null if the session is closed asynchronously
             return chunkCache.getBlockAt(x, y, z);
         }
-        return 0;
+        return BlockTranslator.JAVA_AIR_ID;
     }
 
     @Override
@@ -105,7 +106,7 @@ public class GeyserWorldManager extends WorldManager {
                         .putString("text", "")
                         .build())
                 .build());
-        lecternTag.putInt("page", -1); // I'm surprisingly glad this exists - it forces Bedrock to stop reading immediately
+        lecternTag.putInt("page", -1); // I'm surprisingly glad this exists - it forces Bedrock to stop reading immediately. Usually.
         return lecternTag.build();
     }
 
