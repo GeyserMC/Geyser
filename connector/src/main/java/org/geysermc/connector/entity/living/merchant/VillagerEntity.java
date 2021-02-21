@@ -125,7 +125,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
             Pattern r = Pattern.compile("facing=([a-z]+)");
             Matcher m = r.matcher(bedRotationZ);
             if (m.find()) {
-                switch (m.group(0)){
+                switch (m.group(0)) {
                     case "facing=south":
                         //bed is facing south
                         z = 180;

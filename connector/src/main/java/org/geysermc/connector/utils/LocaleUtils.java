@@ -101,7 +101,7 @@ public class LocaleUtils {
                 ASSET_MAP.put(entry.getKey(), asset);
             }
         } catch (Exception e) {
-            GeyserConnector.getInstance().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.locale.fail.asset_cache", (!e.getMessage().isEmpty() ? e.getMessage() : e.getStackTrace())));
+            GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.locale.fail.asset_cache", (!e.getMessage().isEmpty() ? e.getMessage() : e.getStackTrace())));
         }
     }
 
@@ -236,23 +236,22 @@ public class LocaleUtils {
             WebUtils.downloadFile(clientJarInfo.getUrl(), tmpFilePath.toString());
 
             // Load in the JAR as a zip and extract the file
-            ZipFile localeJar = new ZipFile(tmpFilePath.toString());
-            InputStream fileStream = localeJar.getInputStream(localeJar.getEntry("assets/minecraft/lang/en_us.json"));
-            FileOutputStream outStream = new FileOutputStream(localeFile);
+            try (ZipFile localeJar = new ZipFile(tmpFilePath.toString())) {
+                try (InputStream fileStream = localeJar.getInputStream(localeJar.getEntry("assets/minecraft/lang/en_us.json"))) {
+                    try (FileOutputStream outStream = new FileOutputStream(localeFile)) {
 
-            // Write the file to the locale dir
-            byte[] buf = new byte[fileStream.available()];
-            int length;
-            while ((length = fileStream.read(buf)) != -1) {
-                outStream.write(buf, 0, length);
+                        // Write the file to the locale dir
+                        byte[] buf = new byte[fileStream.available()];
+                        int length;
+                        while ((length = fileStream.read(buf)) != -1) {
+                            outStream.write(buf, 0, length);
+                        }
+
+                        // Flush all changes to disk and cleanup
+                        outStream.flush();
+                    }
+                }
             }
-
-            // Flush all changes to disk and cleanup
-            outStream.flush();
-            outStream.close();
-
-            fileStream.close();
-            localeJar.close();
 
             // Store the latest jar hash
             FileUtils.writeFile(GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("locales/en_us.hash").toString(), clientJarInfo.getSha1().toCharArray());
@@ -260,7 +259,7 @@ public class LocaleUtils {
             // Delete the nolonger needed client/server jar
             Files.delete(tmpFilePath);
         } catch (Exception e) {
-            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.locale.fail.en_us"), e);
+            GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.locale.fail.en_us"), e);
         }
     }
 

@@ -103,6 +103,8 @@ public class BedrockClientData {
     private String skinColor;
     @JsonProperty(value = "ThirdPartyNameOnly")
     private boolean thirdPartyNameOnly;
+    @JsonProperty(value = "PlayFabId")
+    private String playFabId;
 
     public enum UIProfile {
         @JsonEnumDefaultValue
