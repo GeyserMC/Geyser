@@ -52,7 +52,7 @@ public class JavaPlaySoundTranslator extends PacketTranslator<ServerPlaySoundPac
 
         SoundRegistry.SoundMapping soundMapping = SoundRegistry.fromJava(packetSound.replace("minecraft:", ""));
         String playsound;
-        if(soundMapping == null || soundMapping.getPlaysound() == null) {
+        if (soundMapping == null || soundMapping.getPlaysound() == null) {
             // no mapping
             session.getConnector().getLogger()
                     .debug("[PlaySound] Defaulting to sound server gave us for " + packet.toString());
