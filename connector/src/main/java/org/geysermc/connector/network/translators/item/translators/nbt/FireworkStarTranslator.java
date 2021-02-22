@@ -85,6 +85,8 @@ public class FireworkStarTranslator extends FireworkBaseTranslator {
             itemTag.remove("FireworksItem");
             itemTag.put(newExplosion);
         }
+        // Remove custom color, if any, since this only exists on Bedrock
+        itemTag.remove("customColor");
     }
 
     @Override
