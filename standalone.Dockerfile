@@ -2,7 +2,7 @@ FROM maven:3.6-jdk-11 as build
 
 COPY . .
 
-RUN git submodule update --init --recursive&&\
+RUN git submodule update --init --recursive &&\
 	mvn clean install
 
 FROM adoptopenjdk/openjdk11:alpine-jre
