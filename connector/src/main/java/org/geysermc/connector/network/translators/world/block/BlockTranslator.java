@@ -34,16 +34,18 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.FileUtils;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
-public class BlockTranslator {
+public abstract class BlockTranslator {
     /**
      * The Java block runtime ID of air
      */
@@ -51,8 +53,8 @@ public class BlockTranslator {
     /**
      * The Bedrock block runtime ID of air
      */
-    public static final int BEDROCK_AIR_ID;
-    public static final int BEDROCK_WATER_ID;
+    private final int bedrockAirId;
+    private final int bedrockWaterId;
 
     private static final Int2IntMap JAVA_TO_BEDROCK_BLOCK_MAP = new Int2IntOpenHashMap();
     private static final Int2IntMap BEDROCK_TO_JAVA_BLOCK_MAP = new Int2IntOpenHashMap();
@@ -63,7 +65,8 @@ public class BlockTranslator {
     private static final Object2ObjectMap<String, String> JAVA_TO_BEDROCK_IDENTIFIERS = new Object2ObjectOpenHashMap<>();
     private static final BiMap<String, Integer> JAVA_ID_BLOCK_MAP = HashBiMap.create();
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
-    private static final Object2IntMap<NbtMap> ITEM_FRAMES = new Object2IntOpenHashMap<>();
+    private final Object2IntMap<NbtMap> ITEM_FRAMES = new Object2IntOpenHashMap<>();
+    private final Map<String, NbtMap> FLOWER_POT_BLOCKS = new HashMap<>();
 
     // Bedrock carpet ID, used in LlamaEntity.java for decoration
     public static final int CARPET = 171;
@@ -85,7 +88,8 @@ public class BlockTranslator {
     /**
      * Runtime command block ID, used for fixing command block minecart appearances
      */
-    public static final int BEDROCK_RUNTIME_COMMAND_BLOCK_ID;
+    @Getter
+    private final int bedrockRuntimeCommandBlockId;
 
     /**
      * A list of all Java runtime wool IDs, for use with block breaking math and shears
@@ -98,33 +102,8 @@ public class BlockTranslator {
 
     public static final int JAVA_RUNTIME_SPAWNER_ID;
 
-    private static final int BLOCK_STATE_VERSION = 17879555;
-
     static {
-        /* Load block palette */
-        InputStream stream = FileUtils.getResource("bedrock/blockpalette.nbt");
-
-        NbtList<NbtMap> blocksTag;
-        try (NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)))) {
-            NbtMap blockPalette = (NbtMap) nbtInputStream.readTag();
-            blocksTag = (NbtList<NbtMap>) blockPalette.getList("blocks", NbtType.COMPOUND);
-        } catch (Exception e) {
-            throw new AssertionError("Unable to get blocks from runtime block states", e);
-        }
-
-        // New since 1.16.100 - find the block runtime ID by the order given to us in the block palette,
-        // as we no longer send a block palette
-        Object2IntMap<NbtMap> blockStateOrderedMap = new Object2IntOpenHashMap<>(blocksTag.size());
-
-        for (int i = 0; i < blocksTag.size(); i++) {
-            NbtMap tag = blocksTag.get(i);
-            if (blockStateOrderedMap.containsKey(tag)) {
-                throw new AssertionError("Duplicate block states in Bedrock palette: " + tag);
-            }
-            blockStateOrderedMap.put(tag, i);
-        }
-
-        stream = FileUtils.getResource("mappings/blocks.json");
+        InputStream stream = FileUtils.getResource("mappings/blocks.json");
         JsonNode blocks;
         try {
             blocks = GeyserConnector.JSON_MAPPER.readTree(stream);
@@ -132,11 +111,8 @@ public class BlockTranslator {
             throw new AssertionError("Unable to load Java block mappings", e);
         }
 
-        int waterRuntimeId = -1;
         int javaRuntimeId = -1;
-        int airRuntimeId = -1;
         int cobwebRuntimeId = -1;
-        int commandBlockRuntimeId = -1;
         int furnaceRuntimeId = -1;
         int furnaceLitRuntimeId = -1;
         int spawnerRuntimeId = -1;
@@ -146,11 +122,6 @@ public class BlockTranslator {
             javaRuntimeId++;
             Map.Entry<String, JsonNode> entry = blocksIterator.next();
             String javaId = entry.getKey();
-            NbtMap blockTag = buildBedrockState(entry.getValue());
-            int bedrockRuntimeId = blockStateOrderedMap.getOrDefault(blockTag, -1);
-            if (bedrockRuntimeId == -1) {
-                throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Built compound tag: \n" + blockTag);
-            }
 
             // TODO fix this, (no block should have a null hardness)
             JsonNode hardnessNode = entry.getValue().get("block_hardness");
@@ -192,41 +163,16 @@ public class BlockTranslator {
 
             String bedrockIdentifier = entry.getValue().get("bedrock_identifier").asText();
 
+            // Keeping this here since this is currently unchanged between versions
             if (!cleanJavaIdentifier.equals(bedrockIdentifier)) {
                 JAVA_TO_BEDROCK_IDENTIFIERS.put(cleanJavaIdentifier, bedrockIdentifier);
             }
 
-            // Get the tag needed for non-empty flower pots
-            if (entry.getValue().get("pottable") != null) {
-                BlockStateValues.getFlowerPotBlocks().put(cleanJavaIdentifier, buildBedrockState(entry.getValue()));
-            }
-
-            if ("minecraft:water[level=0]".equals(javaId)) {
-                waterRuntimeId = bedrockRuntimeId;
-            }
-            boolean waterlogged = entry.getKey().contains("waterlogged=true")
-                    || javaId.contains("minecraft:bubble_column") || javaId.contains("minecraft:kelp") || javaId.contains("seagrass");
-
-            if (waterlogged) {
-                BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId | 1 << 31, javaRuntimeId);
-                WATERLOGGED.add(javaRuntimeId);
-            } else {
-                BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId, javaRuntimeId);
-            }
-
-            JAVA_TO_BEDROCK_BLOCK_MAP.put(javaRuntimeId, bedrockRuntimeId);
-
-            if (bedrockIdentifier.equals("minecraft:air")) {
-                airRuntimeId = bedrockRuntimeId;
-
-            } else if (javaId.contains("wool")) {
+            if (javaId.contains("wool")) {
                 JAVA_RUNTIME_WOOL_IDS.add(javaRuntimeId);
 
             } else if (javaId.contains("cobweb")) {
                 cobwebRuntimeId = javaRuntimeId;
-
-            } else if (javaId.equals("minecraft:command_block[conditional=false,facing=north]")) {
-                commandBlockRuntimeId = bedrockRuntimeId;
 
             } else if (javaId.startsWith("minecraft:furnace[facing=north")) {
                 if (javaId.contains("lit=true")) {
@@ -245,11 +191,6 @@ public class BlockTranslator {
         }
         JAVA_RUNTIME_COBWEB_ID = cobwebRuntimeId;
 
-        if (commandBlockRuntimeId == -1) {
-            throw new AssertionError("Unable to find command block in palette");
-        }
-        BEDROCK_RUNTIME_COMMAND_BLOCK_ID = commandBlockRuntimeId;
-
         if (furnaceRuntimeId == -1) {
             throw new AssertionError("Unable to find furnace in palette");
         }
@@ -264,16 +205,102 @@ public class BlockTranslator {
             throw new AssertionError("Unable to find spawner in palette");
         }
         JAVA_RUNTIME_SPAWNER_ID = spawnerRuntimeId;
+    }
+
+    public BlockTranslator(String paletteFile) {
+        /* Load block palette */
+        InputStream stream = FileUtils.getResource(paletteFile);
+
+        NbtList<NbtMap> blocksTag;
+        try (NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)))) {
+            NbtMap blockPalette = (NbtMap) nbtInputStream.readTag();
+            blocksTag = (NbtList<NbtMap>) blockPalette.getList("blocks", NbtType.COMPOUND);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to get blocks from runtime block states", e);
+        }
+
+        // New since 1.16.100 - find the block runtime ID by the order given to us in the block palette,
+        // as we no longer send a block palette
+        Object2IntMap<NbtMap> blockStateOrderedMap = new Object2IntOpenHashMap<>(blocksTag.size());
+
+        for (int i = 0; i < blocksTag.size(); i++) {
+            NbtMap tag = blocksTag.get(i);
+            if (blockStateOrderedMap.containsKey(tag)) {
+                throw new AssertionError("Duplicate block states in Bedrock palette: " + tag);
+            }
+            blockStateOrderedMap.put(tag, i);
+        }
+
+        // TODO don't duplicate
+        stream = FileUtils.getResource("mappings/blocks.json");
+        JsonNode blocks;
+        try {
+            blocks = GeyserConnector.JSON_MAPPER.readTree(stream);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load Java block mappings", e);
+        }
+
+        int airRuntimeId = -1;
+        int commandBlockRuntimeId = -1;
+        int javaRuntimeId = -1;
+        int waterRuntimeId = -1;
+        Iterator<Map.Entry<String, JsonNode>> blocksIterator = blocks.fields();
+        while (blocksIterator.hasNext()) {
+            javaRuntimeId++;
+            Map.Entry<String, JsonNode> entry = blocksIterator.next();
+            String javaId = entry.getKey();
+
+            NbtMap blockTag = buildBedrockState(entry.getValue());
+            int bedrockRuntimeId = blockStateOrderedMap.getOrDefault(blockTag, -1);
+            if (bedrockRuntimeId == -1) {
+                throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Built compound tag: \n" + blockTag);
+            }
+
+            if (javaId.equals("minecraft:air")) {
+                airRuntimeId = bedrockRuntimeId;
+
+            } else if ("minecraft:water[level=0]".equals(javaId)) {
+                waterRuntimeId = bedrockRuntimeId;
+            } else if (javaId.equals("minecraft:command_block[conditional=false,facing=north]")) {
+                commandBlockRuntimeId = bedrockRuntimeId;
+
+            }
+            boolean waterlogged = entry.getKey().contains("waterlogged=true")
+                    || javaId.contains("minecraft:bubble_column") || javaId.contains("minecraft:kelp") || javaId.contains("seagrass");
+
+            if (waterlogged) {
+                BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId | 1 << 31, javaRuntimeId);
+                WATERLOGGED.add(javaRuntimeId);
+            } else {
+                BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId, javaRuntimeId);
+            }
+
+            String cleanJavaIdentifier = entry.getKey().split("\\[")[0];
+
+            // Get the tag needed for non-empty flower pots
+            if (entry.getValue().get("pottable") != null) {
+                FLOWER_POT_BLOCKS.put(cleanJavaIdentifier, buildBedrockState(entry.getValue()));
+            }
+
+            JAVA_TO_BEDROCK_BLOCK_MAP.put(javaRuntimeId, bedrockRuntimeId);
+
+
+        }
+
+        if (commandBlockRuntimeId == -1) {
+            throw new AssertionError("Unable to find command block in palette");
+        }
+        bedrockRuntimeCommandBlockId = commandBlockRuntimeId;
 
         if (waterRuntimeId == -1) {
             throw new AssertionError("Unable to find water in palette");
         }
-        BEDROCK_WATER_ID = waterRuntimeId;
+        bedrockWaterId = waterRuntimeId;
 
         if (airRuntimeId == -1) {
             throw new AssertionError("Unable to find air in palette");
         }
-        BEDROCK_AIR_ID = airRuntimeId;
+        bedrockAirId = airRuntimeId;
 
         // Loop around again to find all item frame runtime IDs
         for (Object2IntMap.Entry<NbtMap> entry : blockStateOrderedMap.object2IntEntrySet()) {
@@ -283,17 +310,14 @@ public class BlockTranslator {
         }
     }
 
-    private BlockTranslator() {
-    }
-
     public static void init() {
         // no-op
     }
 
-    private static NbtMap buildBedrockState(JsonNode node) {
+    private NbtMap buildBedrockState(JsonNode node) {
         NbtMapBuilder tagBuilder = NbtMap.builder();
         tagBuilder.putString("name", node.get("bedrock_identifier").textValue())
-                .putInt("version", BlockTranslator.BLOCK_STATE_VERSION);
+                .putInt("version", getBlockStateVersion());
 
         NbtMapBuilder statesBuilder = NbtMap.builder();
 
@@ -320,11 +344,11 @@ public class BlockTranslator {
         return tagBuilder.build();
     }
 
-    public static int getBedrockBlockId(int state) {
+    public int getBedrockBlockId(int state) {
         return JAVA_TO_BEDROCK_BLOCK_MAP.get(state);
     }
 
-    public static int getJavaBlockState(int bedrockId) {
+    public int getJavaBlockState(int bedrockId) {
         return BEDROCK_TO_JAVA_BLOCK_MAP.get(bedrockId);
     }
 
@@ -332,21 +356,36 @@ public class BlockTranslator {
      * @param javaIdentifier the Java identifier of the block to search for
      * @return the Bedrock identifier if different, or else the Java identifier
      */
-    public static String getBedrockBlockIdentifier(String javaIdentifier) {
+    public String getBedrockBlockIdentifier(String javaIdentifier) {
         return JAVA_TO_BEDROCK_IDENTIFIERS.getOrDefault(javaIdentifier, javaIdentifier);
     }
 
-    public static int getItemFrame(NbtMap tag) {
+    public int getItemFrame(NbtMap tag) {
         return ITEM_FRAMES.getOrDefault(tag, -1);
     }
 
-    public static boolean isItemFrame(int bedrockBlockRuntimeId) {
+    public boolean isItemFrame(int bedrockBlockRuntimeId) {
         return ITEM_FRAMES.values().contains(bedrockBlockRuntimeId);
     }
 
-    public static int getBlockStateVersion() {
-        return BLOCK_STATE_VERSION;
+    /**
+     * Get the map of contained flower pot plants to Bedrock CompoundTag
+     *
+     * @return Map of flower pot blocks.
+     */
+    public Map<String, NbtMap> getFlowerPotBlocks() {
+        return FLOWER_POT_BLOCKS;
     }
+
+    public int getBedrockAirId() {
+        return bedrockAirId;
+    }
+
+    public int getBedrockWaterId() {
+        return bedrockWaterId;
+    }
+
+    public abstract int getBlockStateVersion();
 
     /**
      * @param javaId the Java string identifier to search for
@@ -362,10 +401,6 @@ public class BlockTranslator {
 
     public static BiMap<String, Integer> getJavaIdBlockMap() {
         return JAVA_ID_BLOCK_MAP;
-    }
-
-    public static int getJavaWaterloggedState(int bedrockId) {
-        return BEDROCK_TO_JAVA_BLOCK_MAP.get(1 << 31 | bedrockId);
     }
 
     /**

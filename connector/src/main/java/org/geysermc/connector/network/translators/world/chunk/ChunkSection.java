@@ -34,7 +34,7 @@ public class ChunkSection {
 
     private final BlockStorage[] storage;
 
-    public ChunkSection() {
+    public ChunkSection(int airId) {
         this(new BlockStorage[]{new BlockStorage(), new BlockStorage()});
     }
 

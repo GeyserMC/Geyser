@@ -161,20 +161,20 @@ public class ChunkUtils {
 
             if (javaPalette instanceof GlobalPalette) {
                 // As this is the global palette, simply iterate through the whole chunk section once
-                ChunkSection section = new ChunkSection();
+                ChunkSection section = new ChunkSection(session.getBlockTranslator().getBedrockAirId());
                 for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
                     int javaId = javaData.get(yzx);
-                    int bedrockId = BlockTranslator.getBedrockBlockId(javaId);
+                    int bedrockId = session.getBlockTranslator().getBedrockBlockId(javaId);
                     int xzy = indexYZXtoXZY(yzx);
                     section.getBlockStorageArray()[0].setFullBlock(xzy, bedrockId);
 
                     if (BlockTranslator.isWaterlogged(javaId)) {
-                        section.getBlockStorageArray()[1].setFullBlock(xzy, BEDROCK_WATER_ID);
+                        section.getBlockStorageArray()[1].setFullBlock(xzy, session.getBlockTranslator().getBedrockWaterId());
                     }
 
                     // Check if block is piston or flower to see if we'll need to create additional block entities, as they're only block entities in Bedrock
                     if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId)) {
-                        bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(
+                        bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(session,
                                 Vector3i.from((column.getX() << 4) + (yzx & 0xF), (sectionY << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
                                 javaId
                         ));
@@ -191,7 +191,7 @@ public class ChunkUtils {
             // Iterate through palette and convert state IDs to Bedrock, doing some additional checks as we go
             for (int i = 0; i < javaPalette.size(); i++) {
                 int javaId = javaPalette.idToState(i);
-                bedrockPalette.add(BlockTranslator.getBedrockBlockId(javaId));
+                bedrockPalette.add(session.getBlockTranslator().getBedrockBlockId(javaId));
 
                 if (BlockTranslator.isWaterlogged(javaId)) {
                     waterloggedPaletteIds.set(i);
@@ -210,7 +210,7 @@ public class ChunkUtils {
                 for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
                     int paletteId = javaData.get(yzx);
                     if (pistonOrFlowerPaletteIds.get(paletteId)) {
-                        bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(
+                        bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(session,
                                 Vector3i.from((column.getX() << 4) + (yzx & 0xF), (sectionY << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
                                 javaPalette.idToState(paletteId)
                         ));
@@ -247,8 +247,8 @@ public class ChunkUtils {
 
                 // V1 palette
                 IntList layer1Palette = new IntArrayList(2);
-                layer1Palette.add(BEDROCK_AIR_ID); // Air - see BlockStorage's constructor for more information
-                layer1Palette.add(BEDROCK_WATER_ID);
+                layer1Palette.add(session.getBlockTranslator().getBedrockAirId()); // Air - see BlockStorage's constructor for more information
+                layer1Palette.add(session.getBlockTranslator().getBedrockWaterId());
 
                 layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
             }
@@ -368,7 +368,7 @@ public class ChunkUtils {
             skull.despawnEntity(session, position);
         }
 
-        int blockId = BlockTranslator.getBedrockBlockId(blockState);
+        int blockId = session.getBlockTranslator().getBedrockBlockId(blockState);
 
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
@@ -382,9 +382,9 @@ public class ChunkUtils {
         waterPacket.setDataLayer(1);
         waterPacket.setBlockPosition(position);
         if (BlockTranslator.isWaterlogged(blockState)) {
-            waterPacket.setRuntimeId(BEDROCK_WATER_ID);
+            waterPacket.setRuntimeId(session.getBlockTranslator().getBedrockWaterId());
         } else {
-            waterPacket.setRuntimeId(BEDROCK_AIR_ID);
+            waterPacket.setRuntimeId(session.getBlockTranslator().getBedrockAirId());
         }
         session.sendUpstreamPacket(waterPacket);
 

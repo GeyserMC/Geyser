@@ -51,7 +51,7 @@ public class BlockStorage {
     public BlockStorage(BitArrayVersion version) {
         this.bitArray = version.createArray(SIZE);
         this.palette = new IntArrayList(16);
-        this.palette.add(BlockTranslator.BEDROCK_AIR_ID); // Air is at the start of every palette and controls what the default block is in second-layer non-air block spaces.
+        this.palette.add(BlockTranslator.bedrockAirId); // Air is at the start of every palette and controls what the default block is in second-layer non-air block spaces.
     }
 
     public BlockStorage(BitArray bitArray, IntList palette) {

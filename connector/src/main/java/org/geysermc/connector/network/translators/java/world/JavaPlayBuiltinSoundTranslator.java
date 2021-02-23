@@ -83,7 +83,7 @@ public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayB
             soundPacket.setExtraData(soundMapping.getExtraData() + (int)(Math.round((Math.log10(packet.getPitch()) / Math.log10(2)) * 12)) + 12);
         } else if (sound == SoundEvent.PLACE && soundMapping.getExtraData() == -1) {
             if (!soundMapping.getIdentifier().equals(":")) {
-                soundPacket.setExtraData(BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaBlockState(soundMapping.getIdentifier())));
+                soundPacket.setExtraData(session.getBlockTranslator().getBedrockBlockId(BlockTranslator.getJavaBlockState(soundMapping.getIdentifier())));
             } else {
                 session.getConnector().getLogger().debug("PLACE sound mapping identifier was invalid! Please report: " + packet.toString());
             }

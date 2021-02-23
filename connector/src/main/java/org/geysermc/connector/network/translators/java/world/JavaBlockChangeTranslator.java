@@ -84,7 +84,7 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
         placeBlockSoundPacket.setSound(SoundEvent.PLACE);
         placeBlockSoundPacket.setPosition(lastPlacePos.toFloat());
         placeBlockSoundPacket.setBabySound(false);
-        placeBlockSoundPacket.setExtraData(BlockTranslator.getBedrockBlockId(packet.getRecord().getBlock()));
+        placeBlockSoundPacket.setExtraData(session.getBlockTranslator().getBedrockBlockId(packet.getRecord().getBlock()));
         placeBlockSoundPacket.setIdentifier(":");
         session.sendUpstreamPacket(placeBlockSoundPacket);
         session.setLastBlockPlacePosition(null);

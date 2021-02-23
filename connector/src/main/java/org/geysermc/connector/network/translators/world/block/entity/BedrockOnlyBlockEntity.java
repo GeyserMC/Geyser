@@ -47,9 +47,9 @@ public interface BedrockOnlyBlockEntity {
      * @param blockState Java BlockState of block.
      * @return Bedrock tag, or null if not a Bedrock-only Block Entity
      */
-    static NbtMap getTag(Vector3i position, int blockState) {
+    static NbtMap getTag(GeyserSession session, Vector3i position, int blockState) {
         if (FlowerPotBlockEntityTranslator.isFlowerBlock(blockState)) {
-            return FlowerPotBlockEntityTranslator.getTag(blockState, position);
+            return FlowerPotBlockEntityTranslator.getTag(session, blockState, position);
         } else if (PistonBlockEntityTranslator.isBlock(blockState)) {
             return PistonBlockEntityTranslator.getTag(blockState, position);
         }
