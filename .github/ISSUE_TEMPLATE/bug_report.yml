@@ -1,5 +1,5 @@
-name: Report a bug
-about: File a bug report for Geyser
+name: Bug report
+about: Create a report to help us improve
 labels: "Unconfirmed Bug"
 body:
 - type: markdown
