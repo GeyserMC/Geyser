@@ -31,7 +31,6 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 /**
  * Used as a class for any object-like entity that moves as a projectile
@@ -118,7 +117,7 @@ public class ThrowableEntity extends Entity implements Tickable {
     protected boolean isInWater(GeyserSession session) {
         if (session.getConnector().getConfig().isCacheChunks()) {
             int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
-            return block == BlockTranslator.bedrockWaterId;
+            return block == session.getBlockTranslator().getBedrockWaterId();
         }
         return false;
     }

@@ -25,15 +25,35 @@
 
 package org.geysermc.connector.network.translators.world.block;
 
+import com.google.common.collect.ImmutableSet;
+import com.nukkitx.nbt.NbtMapBuilder;
+
+import java.util.Set;
+
 public class BlockTranslator1_16_100 extends BlockTranslator {
+    private static final Set<String> CORRECTED_STATES = ImmutableSet.of("minecraft:stripped_warped_stem",
+            "minecraft:stripped_warped_hyphae", "minecraft:stripped_crimson_stem", "minecraft:stripped_crimson_hyphae");
+
     public static final BlockTranslator1_16_100 INSTANCE = new BlockTranslator1_16_100();
 
     public BlockTranslator1_16_100() {
-        super("");
+        super("bedrock/blockpalette.1_16_100.nbt");
     }
 
     @Override
     public int getBlockStateVersion() {
-        return 0;
+        return 17825808;
+    }
+
+    @Override
+    protected NbtMapBuilder adjustBlockStateForVersion(String bedrockIdentifier, NbtMapBuilder statesBuilder) {
+        if (CORRECTED_STATES.contains(bedrockIdentifier)) {
+            statesBuilder.putInt("deprecated", 0);
+        }
+        return super.adjustBlockStateForVersion(bedrockIdentifier, statesBuilder);
+    }
+
+    public static void init() {
+        // no-op
     }
 }

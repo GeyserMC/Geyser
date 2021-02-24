@@ -36,6 +36,8 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
+import org.geysermc.connector.network.translators.world.chunk.EmptyChunkProvider;
 import org.geysermc.connector.utils.FileUtils;
 
 import java.io.DataInputStream;
@@ -56,8 +58,8 @@ public abstract class BlockTranslator {
     private final int bedrockAirId;
     private final int bedrockWaterId;
 
-    private static final Int2IntMap JAVA_TO_BEDROCK_BLOCK_MAP = new Int2IntOpenHashMap();
-    private static final Int2IntMap BEDROCK_TO_JAVA_BLOCK_MAP = new Int2IntOpenHashMap();
+    private final Int2IntMap javaToBedrockBlockMap = new Int2IntOpenHashMap();
+    private final Int2IntMap bedrockToJavaBlockMap = new Int2IntOpenHashMap();
     /**
      * Stores a list of differences in block identifiers.
      * Items will not be added to this list if the key and value is the same.
@@ -65,8 +67,8 @@ public abstract class BlockTranslator {
     private static final Object2ObjectMap<String, String> JAVA_TO_BEDROCK_IDENTIFIERS = new Object2ObjectOpenHashMap<>();
     private static final BiMap<String, Integer> JAVA_ID_BLOCK_MAP = HashBiMap.create();
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
-    private final Object2IntMap<NbtMap> ITEM_FRAMES = new Object2IntOpenHashMap<>();
-    private final Map<String, NbtMap> FLOWER_POT_BLOCKS = new HashMap<>();
+    private final Object2IntMap<NbtMap> itemFrames = new Object2IntOpenHashMap<>();
+    private final Map<String, NbtMap> flowerPotBlocks = new HashMap<>();
 
     // Bedrock carpet ID, used in LlamaEntity.java for decoration
     public static final int CARPET = 171;
@@ -90,6 +92,8 @@ public abstract class BlockTranslator {
      */
     @Getter
     private final int bedrockRuntimeCommandBlockId;
+
+    private final EmptyChunkProvider emptyChunkProvider;
 
     /**
      * A list of all Java runtime wool IDs, for use with block breaking math and shears
@@ -205,6 +209,9 @@ public abstract class BlockTranslator {
             throw new AssertionError("Unable to find spawner in palette");
         }
         JAVA_RUNTIME_SPAWNER_ID = spawnerRuntimeId;
+
+        BlockTranslator1_16_100.init();
+        BlockTranslator1_16_210.init();
     }
 
     public BlockTranslator(String paletteFile) {
@@ -256,35 +263,36 @@ public abstract class BlockTranslator {
                 throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Built compound tag: \n" + blockTag);
             }
 
-            if (javaId.equals("minecraft:air")) {
-                airRuntimeId = bedrockRuntimeId;
-
-            } else if ("minecraft:water[level=0]".equals(javaId)) {
-                waterRuntimeId = bedrockRuntimeId;
-            } else if (javaId.equals("minecraft:command_block[conditional=false,facing=north]")) {
-                commandBlockRuntimeId = bedrockRuntimeId;
-
+            switch (javaId) {
+                case "minecraft:air":
+                    airRuntimeId = bedrockRuntimeId;
+                    break;
+                case "minecraft:water[level=0]":
+                    waterRuntimeId = bedrockRuntimeId;
+                    break;
+                case "minecraft:command_block[conditional=false,facing=north]":
+                    commandBlockRuntimeId = bedrockRuntimeId;
+                    break;
             }
+
             boolean waterlogged = entry.getKey().contains("waterlogged=true")
                     || javaId.contains("minecraft:bubble_column") || javaId.contains("minecraft:kelp") || javaId.contains("seagrass");
 
             if (waterlogged) {
-                BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId | 1 << 31, javaRuntimeId);
+                bedrockToJavaBlockMap.putIfAbsent(bedrockRuntimeId | 1 << 31, javaRuntimeId);
                 WATERLOGGED.add(javaRuntimeId);
             } else {
-                BEDROCK_TO_JAVA_BLOCK_MAP.putIfAbsent(bedrockRuntimeId, javaRuntimeId);
+                bedrockToJavaBlockMap.putIfAbsent(bedrockRuntimeId, javaRuntimeId);
             }
 
             String cleanJavaIdentifier = entry.getKey().split("\\[")[0];
 
             // Get the tag needed for non-empty flower pots
             if (entry.getValue().get("pottable") != null) {
-                FLOWER_POT_BLOCKS.put(cleanJavaIdentifier, buildBedrockState(entry.getValue()));
+                flowerPotBlocks.put(cleanJavaIdentifier, buildBedrockState(entry.getValue()));
             }
 
-            JAVA_TO_BEDROCK_BLOCK_MAP.put(javaRuntimeId, bedrockRuntimeId);
-
-
+            javaToBedrockBlockMap.put(javaRuntimeId, bedrockRuntimeId);
         }
 
         if (commandBlockRuntimeId == -1) {
@@ -305,9 +313,11 @@ public abstract class BlockTranslator {
         // Loop around again to find all item frame runtime IDs
         for (Object2IntMap.Entry<NbtMap> entry : blockStateOrderedMap.object2IntEntrySet()) {
             if (entry.getKey().getString("name").equals("minecraft:frame")) {
-                ITEM_FRAMES.put(entry.getKey(), entry.getIntValue());
+                itemFrames.put(entry.getKey(), entry.getIntValue());
             }
         }
+
+        this.emptyChunkProvider = new EmptyChunkProvider(bedrockAirId);
     }
 
     public static void init() {
@@ -316,7 +326,8 @@ public abstract class BlockTranslator {
 
     private NbtMap buildBedrockState(JsonNode node) {
         NbtMapBuilder tagBuilder = NbtMap.builder();
-        tagBuilder.putString("name", node.get("bedrock_identifier").textValue())
+        String bedrockIdentifier = node.get("bedrock_identifier").textValue();
+        tagBuilder.putString("name", bedrockIdentifier)
                 .putInt("version", getBlockStateVersion());
 
         NbtMapBuilder statesBuilder = NbtMap.builder();
@@ -340,16 +351,24 @@ public abstract class BlockTranslator {
                 }
             }
         }
-        tagBuilder.put("states", statesBuilder.build());
+        tagBuilder.put("states", adjustBlockStateForVersion(bedrockIdentifier, statesBuilder).build());
         return tagBuilder.build();
     }
 
+    /**
+     * @return an adjusted state list, if necessary, that converts Geyser's new mapping to Bedrock's older version
+     * of the mapping.
+     */
+    protected NbtMapBuilder adjustBlockStateForVersion(String bedrockIdentifier, NbtMapBuilder statesBuilder) {
+        return statesBuilder;
+    }
+
     public int getBedrockBlockId(int state) {
-        return JAVA_TO_BEDROCK_BLOCK_MAP.get(state);
+        return javaToBedrockBlockMap.get(state);
     }
 
     public int getJavaBlockState(int bedrockId) {
-        return BEDROCK_TO_JAVA_BLOCK_MAP.get(bedrockId);
+        return bedrockToJavaBlockMap.get(bedrockId);
     }
 
     /**
@@ -361,11 +380,11 @@ public abstract class BlockTranslator {
     }
 
     public int getItemFrame(NbtMap tag) {
-        return ITEM_FRAMES.getOrDefault(tag, -1);
+        return itemFrames.getOrDefault(tag, -1);
     }
 
     public boolean isItemFrame(int bedrockBlockRuntimeId) {
-        return ITEM_FRAMES.values().contains(bedrockBlockRuntimeId);
+        return itemFrames.values().contains(bedrockBlockRuntimeId);
     }
 
     /**
@@ -374,7 +393,7 @@ public abstract class BlockTranslator {
      * @return Map of flower pot blocks.
      */
     public Map<String, NbtMap> getFlowerPotBlocks() {
-        return FLOWER_POT_BLOCKS;
+        return flowerPotBlocks;
     }
 
     public int getBedrockAirId() {
@@ -386,6 +405,14 @@ public abstract class BlockTranslator {
     }
 
     public abstract int getBlockStateVersion();
+
+    public byte[] getEmptyChunkData() {
+        return emptyChunkProvider.getEmptyLevelChunkData();
+    }
+
+    public ChunkSection getEmptyChunkSection() {
+        return emptyChunkProvider.getEmptySection();
+    }
 
     /**
      * @param javaId the Java string identifier to search for

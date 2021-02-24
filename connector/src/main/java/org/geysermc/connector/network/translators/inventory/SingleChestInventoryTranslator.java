@@ -38,7 +38,7 @@ public class SingleChestInventoryTranslator extends ChestInventoryTranslator {
     public SingleChestInventoryTranslator(int size) {
         super(size, 27);
         int javaBlockState = BlockTranslator.getJavaBlockState("minecraft:chest[facing=north,type=single,waterlogged=false]");
-        this.holder = new BlockInventoryHolder(BlockTranslator.getBedrockBlockId(javaBlockState), ContainerType.CONTAINER);
+        this.holder = new BlockInventoryHolder(0, ContainerType.CONTAINER); //FIXME
     }
 
     @Override

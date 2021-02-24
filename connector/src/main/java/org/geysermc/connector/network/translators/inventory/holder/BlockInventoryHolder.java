@@ -36,7 +36,6 @@ import lombok.AllArgsConstructor;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 @AllArgsConstructor
 public class BlockInventoryHolder extends InventoryHolder {
@@ -84,7 +83,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
-        blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(realBlock));
+        blockPacket.setRuntimeId(session.getBlockTranslator().getBedrockBlockId(realBlock));
         session.sendUpstreamPacket(blockPacket);
     }
 }

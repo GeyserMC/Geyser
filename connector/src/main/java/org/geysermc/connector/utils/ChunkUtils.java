@@ -36,9 +36,7 @@ import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NBTOutputStream;
 import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
@@ -64,13 +62,11 @@ import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
 import org.geysermc.connector.network.translators.world.chunk.bitarray.BitArray;
 import org.geysermc.connector.network.translators.world.chunk.bitarray.BitArrayVersion;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import static org.geysermc.connector.network.translators.world.block.BlockTranslator.*;
+import static org.geysermc.connector.network.translators.world.block.BlockTranslator.JAVA_AIR_ID;
 
 @UtilityClass
 public class ChunkUtils {
@@ -79,26 +75,6 @@ public class ChunkUtils {
      * Not used if cache chunks is enabled
      */
     public static final Object2IntMap<Position> CACHED_BLOCK_ENTITIES = new Object2IntOpenHashMap<>();
-
-    private static final NbtMap EMPTY_TAG = NbtMap.builder().build();
-    public static final byte[] EMPTY_LEVEL_CHUNK_DATA;
-
-    public static final BlockStorage EMPTY_STORAGE = new BlockStorage();
-    public static final ChunkSection EMPTY_SECTION = new ChunkSection(new BlockStorage[]{ EMPTY_STORAGE });
-
-    static {
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            outputStream.write(new byte[258]); // Biomes + Border Size + Extra Data Size
-
-            try (NBTOutputStream stream = NbtUtils.createNetworkWriter(outputStream)) {
-                stream.writeTag(EMPTY_TAG);
-            }
-
-            EMPTY_LEVEL_CHUNK_DATA = outputStream.toByteArray();
-        } catch (IOException e) {
-            throw new AssertionError("Unable to generate empty level chunk data");
-        }
-    }
 
     private static int indexYZXtoXZY(int yzx) {
         return (yzx >> 8) | (yzx & 0x0F0) | ((yzx & 0x00F) << 8);
@@ -417,7 +393,7 @@ public class ChunkUtils {
                 data.setChunkX(chunkX + x);
                 data.setChunkZ(chunkZ + z);
                 data.setSubChunksLength(0);
-                data.setData(EMPTY_LEVEL_CHUNK_DATA);
+                data.setData(session.getBlockTranslator().getEmptyChunkData());
                 data.setCachingEnabled(false);
                 session.sendUpstreamPacket(data);
 

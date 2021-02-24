@@ -23,21 +23,36 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.world.block;
+package org.geysermc.connector.network.translators.world.chunk;
 
-public class BlockTranslator1_16_210 extends BlockTranslator {
-    public static final BlockTranslator1_16_210 INSTANCE = new BlockTranslator1_16_210();
+import com.nukkitx.nbt.NBTOutputStream;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtUtils;
+import lombok.Getter;
 
-    public BlockTranslator1_16_210() {
-        super("bedrock/blockpalette.1_16_210.nbt");
-    }
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
-    @Override
-    public int getBlockStateVersion() {
-        return 17879555;
-    }
+public class EmptyChunkProvider {
+    @Getter
+    private final byte[] emptyLevelChunkData;
+    @Getter
+    private final ChunkSection emptySection;
 
-    public static void init() {
-        // no-op
+    public EmptyChunkProvider(int airId) {
+        BlockStorage emptyStorage = new BlockStorage(airId);
+        emptySection = new ChunkSection(new BlockStorage[]{emptyStorage});
+
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            outputStream.write(new byte[258]); // Biomes + Border Size + Extra Data Size
+
+            try (NBTOutputStream stream = NbtUtils.createNetworkWriter(outputStream)) {
+                stream.writeTag(NbtMap.EMPTY);
+            }
+
+            emptyLevelChunkData = outputStream.toByteArray();
+        } catch (IOException e) {
+            throw new AssertionError("Unable to generate empty level chunk data");
+        }
     }
 }

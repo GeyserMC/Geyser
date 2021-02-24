@@ -42,7 +42,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
     public DoubleChestInventoryTranslator(int size) {
         super(size, 54);
         int javaBlockState = BlockTranslator.getJavaBlockState("minecraft:chest[facing=north,type=single,waterlogged=false]");
-        this.blockId = BlockTranslator.getBedrockBlockId(javaBlockState);
+        this.blockId = 0; //FIXME
     }
 
     @Override
@@ -111,7 +111,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
-        blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(realBlock));
+        blockPacket.setRuntimeId(session.getBlockTranslator().getBedrockBlockId(realBlock));
         session.sendUpstreamPacket(blockPacket);
 
         holderPos = holderPos.add(Vector3i.UNIT_X);
@@ -120,7 +120,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
-        blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(realBlock));
+        blockPacket.setRuntimeId(session.getBlockTranslator().getBedrockBlockId(realBlock));
         session.sendUpstreamPacket(blockPacket);
     }
 }
