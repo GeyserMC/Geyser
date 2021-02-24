@@ -30,14 +30,20 @@ import org.geysermc.connector.entity.*;
 import org.geysermc.connector.entity.living.*;
 import org.geysermc.connector.entity.living.animal.*;
 import org.geysermc.connector.entity.living.animal.horse.*;
-import org.geysermc.connector.entity.living.animal.tameable.*;
-import org.geysermc.connector.entity.living.merchant.*;
+import org.geysermc.connector.entity.living.animal.tameable.CatEntity;
+import org.geysermc.connector.entity.living.animal.tameable.ParrotEntity;
+import org.geysermc.connector.entity.living.animal.tameable.WolfEntity;
+import org.geysermc.connector.entity.living.merchant.AbstractMerchantEntity;
+import org.geysermc.connector.entity.living.merchant.VillagerEntity;
 import org.geysermc.connector.entity.living.monster.*;
 import org.geysermc.connector.entity.living.monster.raid.AbstractIllagerEntity;
 import org.geysermc.connector.entity.living.monster.raid.PillagerEntity;
 import org.geysermc.connector.entity.living.monster.raid.RaidParticipantEntity;
 import org.geysermc.connector.entity.living.monster.raid.SpellcasterIllagerEntity;
 import org.geysermc.connector.entity.player.PlayerEntity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 public enum EntityType {
@@ -112,7 +118,7 @@ public enum EntityType {
     TRIDENT(TridentEntity.class, 73, 0f, 0f, 0f, 0f, "minecraft:thrown_trident"),
     TURTLE(TurtleEntity.class, 74, 0.4f, 1.2f),
     CAT(CatEntity.class, 75, 0.35f, 0.3f),
-    SHULKER_BULLET(Entity.class, 76, 0.3125f),
+    SHULKER_BULLET(ThrowableEntity.class, 76, 0.3125f),
     FISHING_BOBBER(FishingHookEntity.class, 77, 0f, 0f, 0f, 0f, "minecraft:fishing_hook"),
     CHALKBOARD(Entity.class, 78, 0f),
     DRAGON_FIREBALL(ItemedFireballEntity.class, 79, 1.0f),
@@ -139,7 +145,7 @@ public enum EntityType {
     MINECART_SPAWNER(SpawnerMinecartEntity.class, 98, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:minecart"),
     MINECART_COMMAND_BLOCK(CommandBlockMinecartEntity.class, 100, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:command_block_minecart"),
     LINGERING_POTION(ThrowableEntity.class, 101, 0f),
-    LLAMA_SPIT(Entity.class, 102, 0.25f),
+    LLAMA_SPIT(ThrowableEntity.class, 102, 0.25f),
     EVOKER_FANGS(Entity.class, 103, 0.8f, 0.5f, 0.5f, 0f, "minecraft:evocation_fang"),
     EVOKER(SpellcasterIllagerEntity.class, 104, 1.95f, 0.6f, 0.6f, 0f, "minecraft:evocation_illager"),
     VEX(VexEntity.class, 105, 0.8f, 0.4f),
@@ -174,17 +180,33 @@ public enum EntityType {
      */
     ENDER_DRAGON_PART(EnderDragonPartEntity.class, 32, 0, 0, 0, 0, "minecraft:armor_stand");
 
+    /**
+     * A list of all Java identifiers for use with command suggestions
+     */
+    public static final String[] ALL_JAVA_IDENTIFIERS;
     private static final EntityType[] VALUES = values();
 
-    private Class<? extends Entity> entityClass;
+    static {
+        List<String> allJavaIdentifiers = new ArrayList<>();
+        for (EntityType type : values()) {
+            if (type == AGENT || type == BALLOON || type == CHALKBOARD || type == NPC || type == TRIPOD_CAMERA || type == ENDER_DRAGON_PART) {
+                continue;
+            }
+            allJavaIdentifiers.add("minecraft:" + type.name().toLowerCase());
+        }
+        ALL_JAVA_IDENTIFIERS = allJavaIdentifiers.toArray(new String[0]);
+    }
+
+    private final Class<? extends Entity> entityClass;
     private final int type;
     private final float height;
     private final float width;
     private final float length;
     private final float offset;
-    private String identifier;
+    private final String identifier;
 
     EntityType(Class<? extends Entity> entityClass, int type, float height) {
+        //noinspection SuspiciousNameCombination
         this(entityClass, type, height, height);
     }
 
@@ -198,8 +220,6 @@ public enum EntityType {
 
     EntityType(Class<? extends Entity> entityClass, int type, float height, float width, float length, float offset) {
         this(entityClass, type, height, width, length, offset, null);
-
-        this.identifier = "minecraft:" + name().toLowerCase();
     }
 
     EntityType(Class<? extends Entity> entityClass, int type, float height, float width, float length, float offset, String identifier) {
@@ -209,7 +229,7 @@ public enum EntityType {
         this.width = width;
         this.length = length;
         this.offset = offset + 0.00001f;
-        this.identifier = identifier;
+        this.identifier = identifier == null ? "minecraft:" + name().toLowerCase() : identifier;
     }
 
     public static EntityType getFromIdentifier(String identifier) {
