@@ -64,6 +64,11 @@ public class ItemRegistry {
     public static final Int2ObjectMap<ItemEntry> ITEM_ENTRIES = new Int2ObjectOpenHashMap<>();
 
     /**
+     * A list of all Java item names.
+     */
+    public static final String[] ITEM_NAMES;
+
+    /**
      * Bamboo item entry, used in PandaEntity.java
      */
     public static ItemEntry BAMBOO;
@@ -115,6 +120,8 @@ public class ItemRegistry {
 
         // Used to get the Bedrock namespaced ID (in instances where there are small differences)
         Int2ObjectMap<String> bedrockIdToIdentifier = new Int2ObjectOpenHashMap<>();
+
+        List<String> itemNames = new ArrayList<>();
 
         List<JsonNode> itemEntries;
         try {
@@ -207,6 +214,8 @@ public class ItemRegistry {
                 BUCKETS.add(entry.getValue().get("bedrock_id").intValue());
             }
 
+            itemNames.add(entry.getKey());
+
             itemIndex++;
         }
 
@@ -235,6 +244,8 @@ public class ItemRegistry {
             creativeItems.add(ItemData.fromNet(netId++, item.getId(), item.getDamage(), item.getCount(), item.getTag()));
         }
         CREATIVE_ITEMS = creativeItems.toArray(new ItemData[0]);
+
+        ITEM_NAMES = itemNames.toArray(new String[0]);
     }
 
     /**

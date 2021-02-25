@@ -37,6 +37,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.data.PlayerActionType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
@@ -64,7 +65,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
             return;
 
         // Send book update before any player action
-        if (packet.getAction() != PlayerActionPacket.Action.RESPAWN) {
+        if (packet.getAction() != PlayerActionType.RESPAWN) {
             session.getBookEditCache().checkForSend();
         }
 
@@ -205,10 +206,11 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.getEntityCache().updateBossBars();
                 break;
             case JUMP:
-                session.setJumping(true);
-                session.getConnector().getGeneralThreadPool().schedule(() -> {
-                    session.setJumping(false);
-                }, 1, TimeUnit.SECONDS);
+                if (!session.getConnector().getConfig().isCacheChunks()) {
+                    // Save the jumping status for determining teleport status
+                    session.setJumping(true);
+                    session.getConnector().getGeneralThreadPool().schedule(() -> session.setJumping(false), 1, TimeUnit.SECONDS);
+                }
                 break;
         }
     }

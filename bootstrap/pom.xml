@@ -22,7 +22,7 @@
         </repository>
         <repository>
             <id>sponge-repo</id>
-            <url>https://repo.spongepowered.org/maven</url>
+            <url>https://repo.spongepowered.org/repository/maven-public/</url>
         </repository>
         <repository>
             <id>bungeecord-repo</id>

@@ -30,6 +30,8 @@ import org.geysermc.connector.GeyserConnector;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 /**
@@ -70,10 +72,12 @@ public class ResourcePack {
 
                 pack.sha256 = FileUtils.calculateSHA256(file);
 
+                Stream<? extends ZipEntry> stream = null;
                 try {
                     ZipFile zip = new ZipFile(file);
 
-                    zip.stream().forEach((x) -> {
+                    stream = zip.stream();
+                    stream.forEach((x) -> {
                         if (x.getName().contains("manifest.json")) {
                             try {
                                 ResourcePackManifest manifest = FileUtils.loadJson(zip.getInputStream(x), ResourcePackManifest.class);
@@ -94,6 +98,10 @@ public class ResourcePack {
                 } catch (Exception e) {
                     GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.resource_pack.broken", file.getName()));
                     e.printStackTrace();
+                } finally {
+                    if (stream != null) {
+                        stream.close();
+                    }
                 }
             }
         }

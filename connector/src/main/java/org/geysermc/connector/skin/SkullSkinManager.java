@@ -27,65 +27,42 @@ package org.geysermc.connector.skin;
 
 import com.nukkitx.protocol.bedrock.data.skin.ImageData;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
-import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayerSkinPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
 import java.util.Collections;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 public class SkullSkinManager extends SkinManager {
 
-    public static PlayerListPacket.Entry buildSkullEntryManually(UUID uuid, String username, long geyserId,
-                                                                 String skinId, byte[] skinData) {
+    public static SerializedSkin buildSkullEntryManually(String skinId, byte[] skinData) {
         // Prevents https://cdn.discordapp.com/attachments/613194828359925800/779458146191147008/unknown.png
         skinId = skinId + "_skull";
-        SerializedSkin serializedSkin = SerializedSkin.of(
-                skinId, SkinProvider.SKULL_GEOMETRY.getGeometryName(), ImageData.of(skinData), Collections.emptyList(),
+        return SerializedSkin.of(
+                skinId, "", SkinProvider.SKULL_GEOMETRY.getGeometryName(), ImageData.of(skinData), Collections.emptyList(),
                 ImageData.of(SkinProvider.EMPTY_CAPE.getCapeData()), SkinProvider.SKULL_GEOMETRY.getGeometryData(),
                 "", true, false, false, SkinProvider.EMPTY_CAPE.getCapeId(), skinId
         );
-
-        PlayerListPacket.Entry entry = new PlayerListPacket.Entry(uuid);
-        entry.setName(username);
-        entry.setEntityId(geyserId);
-        entry.setSkin(serializedSkin);
-        entry.setXuid("");
-        entry.setPlatformChatId("");
-        entry.setTeacher(false);
-        entry.setTrustedSkin(true);
-        return entry;
     }
 
     public static void requestAndHandleSkin(PlayerEntity entity, GeyserSession session,
                                             Consumer<SkinProvider.Skin> skinConsumer) {
         GameProfileData data = GameProfileData.from(entity.getProfile());
 
-        SkinProvider.requestSkin(entity.getUuid(), data.getSkinUrl(), false)
+        SkinProvider.requestSkin(entity.getUuid(), data.getSkinUrl(), true)
                 .whenCompleteAsync((skin, throwable) -> {
                     try {
                         if (session.getUpstream().isInitialized()) {
-                            PlayerListPacket.Entry updatedEntry = buildSkullEntryManually(
-                                    entity.getUuid(),
-                                    entity.getUsername(),
-                                    entity.getGeyserId(),
-                                    skin.getTextureUrl(),
-                                    skin.getSkinData()
-                            );
-
-                            PlayerListPacket playerAddPacket = new PlayerListPacket();
-                            playerAddPacket.setAction(PlayerListPacket.Action.ADD);
-                            playerAddPacket.getEntries().add(updatedEntry);
-                            session.sendUpstreamPacket(playerAddPacket);
-
-                            // It's a skull. We don't want them in the player list.
-                            PlayerListPacket playerRemovePacket = new PlayerListPacket();
-                            playerRemovePacket.setAction(PlayerListPacket.Action.REMOVE);
-                            playerRemovePacket.getEntries().add(updatedEntry);
-                            session.sendUpstreamPacket(playerRemovePacket);
+                            PlayerSkinPacket packet = new PlayerSkinPacket();
+                            packet.setUuid(entity.getUuid());
+                            packet.setOldSkinName("");
+                            packet.setNewSkinName(skin.getTextureUrl());
+                            packet.setSkin(buildSkullEntryManually(skin.getTextureUrl(), skin.getSkinData()));
+                            packet.setTrustedSkin(true);
+                            session.sendUpstreamPacket(packet);
                         }
                     } catch (Exception e) {
                         GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
