@@ -31,6 +31,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.data.inventory.*;
+import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
@@ -135,6 +136,13 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
         if (merchantInventory.getVillager() != null) {
             merchantInventory.getVillager().despawnEntity(session);
         }
+    }
+
+    @Override
+    public ItemStackResponsePacket.Response translateAutoCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+        // We're not crafting here
+        // Called at least by consoles when pressing a trade option button
+        return translateRequest(session, inventory, request);
     }
 
     @Override

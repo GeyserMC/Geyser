@@ -39,10 +39,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.*;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
-import org.geysermc.connector.inventory.CartographyContainer;
-import org.geysermc.connector.inventory.GeyserItemStack;
-import org.geysermc.connector.inventory.Inventory;
-import org.geysermc.connector.inventory.PlayerInventory;
+import org.geysermc.connector.inventory.*;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.click.Click;
 import org.geysermc.connector.network.translators.inventory.click.ClickPlan;
@@ -101,7 +98,7 @@ public abstract class InventoryTranslator {
 
     public static final int PLAYER_INVENTORY_SIZE = 36;
     public static final int PLAYER_INVENTORY_OFFSET = 9;
-    private static final int MAX_ITEM_STACK_SIZE = 64;
+
     public final int size;
 
     public abstract void prepareInventory(GeyserSession session, Inventory inventory);
@@ -346,8 +343,7 @@ public abstract class InventoryTranslator {
                     }
                     break;
                 }
-                // The following three tend to be called for UI inventories
-                case CONSUME: {
+                case CONSUME: { // Tends to be called for UI inventories
                     if (inventory instanceof CartographyContainer) {
                         // TODO add this for more inventories? Only seems to glitch out the cartography table, though.
                         ConsumeStackRequestActionData consumeData = (ConsumeStackRequestActionData) action;
@@ -367,8 +363,9 @@ public abstract class InventoryTranslator {
                     }
                     break;
                 }
-                case CRAFT_NON_IMPLEMENTED_DEPRECATED:
-                case CRAFT_RESULTS_DEPRECATED:
+                case CRAFT_RECIPE_AUTO: // Called by villagers
+                case CRAFT_NON_IMPLEMENTED_DEPRECATED: // Tends to be called for UI inventories
+                case CRAFT_RESULTS_DEPRECATED: // Tends to be called for UI inventories
                 case CRAFT_RECIPE_OPTIONAL: { // Anvils and cartography tables will handle this
                     break;
                 }
@@ -391,7 +388,6 @@ public abstract class InventoryTranslator {
         for (StackRequestActionData action : request.getActions()) {
             switch (action.getType()) {
                 case CRAFT_RECIPE: {
-                    CraftRecipeStackRequestActionData craftAction = (CraftRecipeStackRequestActionData) action;
                     if (craftState != CraftState.START) {
                         return rejectRequest(request);
                     }
@@ -716,10 +712,19 @@ public abstract class InventoryTranslator {
         return new ItemStackResponsePacket.Response(ItemStackResponsePacket.ResponseStatus.OK, request.getRequestId(), containerEntries);
     }
 
+    /**
+     * Reject an incorrect ItemStackRequest.
+     */
     public static ItemStackResponsePacket.Response rejectRequest(ItemStackRequest request) {
         return rejectRequest(request, true);
     }
 
+    /**
+     * Reject an incorrect ItemStackRequest.
+     *
+     * @param throwError whether this request was truly erroneous (true), or known as an outcome and should not be treated
+     *                   as bad (false).
+     */
     public static ItemStackResponsePacket.Response rejectRequest(ItemStackRequest request, boolean throwError) {
         if (throwError) {
             // Currently for debugging, but might be worth it to keep in the future if something goes terribly wrong.
