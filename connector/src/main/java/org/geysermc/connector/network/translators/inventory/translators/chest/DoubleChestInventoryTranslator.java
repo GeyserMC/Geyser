@@ -31,6 +31,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
+import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.inventory.Container;
@@ -142,6 +143,11 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
     public void closeInventory(GeyserSession session, Inventory inventory) {
         if (((Container) inventory).isUsingRealBlock()) {
             // No need to reset a block since we didn't change any blocks
+            // But send a container close packet because we aren't destroying the original.
+            ContainerClosePacket packet = new ContainerClosePacket();
+            packet.setId((byte) inventory.getId());
+            packet.setUnknownBool0(true); //TODO needs to be changed in Protocol to "server-side" or something
+            session.sendUpstreamPacket(packet);
             return;
         }
 

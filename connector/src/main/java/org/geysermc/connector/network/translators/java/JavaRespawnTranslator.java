@@ -52,6 +52,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
         session.addInventoryTask(() -> {
             session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
             session.setOpenInventory(null);
+            session.setClosingInventory(false);
         });
 
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();

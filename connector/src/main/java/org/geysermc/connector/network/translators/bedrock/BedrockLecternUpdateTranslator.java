@@ -70,7 +70,7 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
                 // The same page means Bedrock is closing the window
                 ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(lecternContainer.getId());
                 session.sendDownstreamPacket(closeWindowPacket);
-                InventoryUtils.closeInventory(session, lecternContainer.getId());
+                InventoryUtils.closeInventory(session, lecternContainer.getId(), false);
             } else {
                 // Each "page" Bedrock gives to us actually represents two pages (think opening a book and seeing two pages)
                 // Each "page" on Java is just one page (think a spiral notebook folded back to only show one page)
