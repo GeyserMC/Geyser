@@ -112,6 +112,8 @@ public final class BedrockClientData {
     private String skinColor;
     @JsonProperty(value = "ThirdPartyNameOnly")
     private boolean thirdPartyNameOnly;
+    @JsonProperty(value = "PlayFabId")
+    private String playFabId;
 
     public void setJsonData(JsonNode data) {
         if (this.jsonData == null && data != null) {

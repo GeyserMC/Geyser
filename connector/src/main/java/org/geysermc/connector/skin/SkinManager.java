@@ -33,6 +33,7 @@ import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
@@ -80,7 +81,7 @@ public class SkinManager {
                                                                  String capeId, byte[] capeData,
                                                                  SkinProvider.SkinGeometry geometry) {
         SerializedSkin serializedSkin = SerializedSkin.of(
-                skinId, geometry.getGeometryName(), ImageData.of(skinData), Collections.emptyList(),
+                skinId, "", geometry.getGeometryName(), ImageData.of(skinData), Collections.emptyList(),
                 ImageData.of(capeData), geometry.getGeometryData(), "", true, false,
                 !capeId.equals(SkinProvider.EMPTY_CAPE.getCapeId()), capeId, skinId
         );
@@ -163,7 +164,7 @@ public class SkinManager {
                                 geometry = SkinProvider.SkinGeometry.getEars(data.isAlex());
 
                                 // Store the skin and geometry for the ears
-                                SkinProvider.storeEarSkin(entity.getUuid(), skin);
+                                SkinProvider.storeEarSkin(skin);
                                 SkinProvider.storeEarGeometry(entity.getUuid(), data.isAlex());
                             }
                         }
@@ -267,7 +268,10 @@ public class SkinManager {
 
                 return new GameProfileData(skinUrl, capeUrl, isAlex);
             } catch (Exception exception) {
-                GeyserConnector.getInstance().getLogger().debug("Something went wrong while processing skin for " + profile.getName() + ": " + exception.getMessage());
+                GeyserConnector.getInstance().getLogger().debug("Something went wrong while processing skin for " + profile.getName());
+                if (GeyserConnector.getInstance().getConfig().isDebugMode()) {
+                    exception.printStackTrace();
+                }
                 return loadBedrockOrOfflineSkin(profile);
             }
         }
@@ -282,7 +286,7 @@ public class SkinManager {
 
             String skinUrl = isAlex ? SkinProvider.EMPTY_SKIN_ALEX.getTextureUrl() : SkinProvider.EMPTY_SKIN.getTextureUrl();
             String capeUrl = SkinProvider.EMPTY_CAPE.getTextureUrl();
-            if ("steve".equals(skinUrl) || "alex".equals(skinUrl)) {
+            if (("steve".equals(skinUrl) || "alex".equals(skinUrl)) && GeyserConnector.getInstance().getAuthType() != AuthType.ONLINE) {
                 GeyserSession session = GeyserConnector.getInstance().getPlayerByUuid(profile.getId());
 
                 if (session != null) {

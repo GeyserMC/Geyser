@@ -93,6 +93,8 @@ import org.geysermc.cumulus.util.FormBuilder;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.util.BedrockData;
 
+import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -168,6 +170,9 @@ public class GeyserSession implements CommandSender {
     @Setter
     private boolean sprinting;
 
+    /**
+     * Not updated if cache chunks is enabled.
+     */
     @Setter
     private boolean jumping;
 
@@ -370,7 +375,8 @@ public class GeyserSession implements CommandSender {
         tmpPlayers.forEach(player -> this.emotes.addAll(player.getEmotes()));
 
         bedrockServerSession.addDisconnectHandler(disconnectReason -> {
-            connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.disconnect", bedrockServerSession.getAddress().getAddress(), disconnectReason));
+            InetAddress address = bedrockServerSession.getRealAddress().getAddress();
+            connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.disconnect", address, disconnectReason));
 
             disconnect(disconnectReason.name());
             connector.removePlayer(this);
@@ -544,8 +550,10 @@ public class GeyserSession implements CommandSender {
             downstream.getSession().setFlag(BuiltinFlags.ENABLE_CLIENT_PROXY_PROTOCOL, true);
             downstream.getSession().setFlag(BuiltinFlags.CLIENT_PROXIED_ADDRESS, upstream.getAddress());
         }
-        // Let Geyser handle sending the keep alive
-        downstream.getSession().setFlag(MinecraftConstants.AUTOMATIC_KEEP_ALIVE_MANAGEMENT, false);
+        if (connector.getConfig().isForwardPlayerPing()) {
+            // Let Geyser handle sending the keep alive
+            downstream.getSession().setFlag(MinecraftConstants.AUTOMATIC_KEEP_ALIVE_MANAGEMENT, false);
+        }
         downstream.getSession().addListener(new SessionAdapter() {
             @Override
             public void packetSending(PacketSendingEvent event) {
@@ -565,7 +573,7 @@ public class GeyserSession implements CommandSender {
                                 clientData.getLanguageCode(),
                                 clientData.getUiProfile().ordinal(),
                                 clientData.getCurrentInputMode().ordinal(),
-                                upstream.getSession().getAddress().getAddress().getHostAddress(),
+                                upstream.getAddress().getAddress().getHostAddress(),
                                 skinUploader.getId(),
                                 skinUploader.getVerifyCode()
                         ).toString());
@@ -826,7 +834,14 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setItemEntries(ItemRegistry.ITEMS);
         startGamePacket.setVanillaVersion("*");
-        startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT);
+        startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT); // can be removed once 1.16.200 support is dropped
+
+        SyncedPlayerMovementSettings settings = new SyncedPlayerMovementSettings();
+        settings.setMovementMode(AuthoritativeMovementMode.CLIENT);
+        settings.setRewindHistorySize(0);
+        settings.setServerAuthoritativeBlockBreaking(false);
+        startGamePacket.setPlayerMovementSettings(settings);
+
         upstream.sendPacket(startGamePacket);
     }
 

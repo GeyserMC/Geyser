@@ -38,7 +38,7 @@ import java.io.InputStream;
  */
 public class EntityIdentifierRegistry {
 
-    public static NbtMap ENTITY_IDENTIFIERS;
+    public static final NbtMap ENTITY_IDENTIFIERS;
 
     private EntityIdentifierRegistry() {
     }

@@ -185,7 +185,7 @@ public class BlockTranslator {
 
             JAVA_ID_BLOCK_MAP.put(javaId, javaRuntimeId);
 
-            BlockStateValues.storeBlockStateValues(entry, javaRuntimeId);
+            BlockStateValues.storeBlockStateValues(entry.getKey(), javaRuntimeId, entry.getValue());
 
             String cleanJavaIdentifier = entry.getKey().split("\\[")[0];
 
@@ -385,5 +385,12 @@ public class BlockTranslator {
             return JAVA_ID_BLOCK_MAP.inverse().get(javaId).split("\\[")[0];
         }
         return itemIdentifier;
+    }
+
+    /**
+     * @return a list of all Java block identifiers. For use with command suggestions.
+     */
+    public static String[] getAllBlockIdentifiers() {
+        return JAVA_ID_TO_JAVA_IDENTIFIER_MAP.values().toArray(new String[0]);
     }
 }

@@ -101,7 +101,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             }
         }
 
-        if (geyserConfig.getBedrock().isCloneRemotePort()){
+        if (geyserConfig.getBedrock().isCloneRemotePort()) {
             geyserConfig.getBedrock().setPort(geyserConfig.getRemote().getPort());
         }
 
@@ -162,5 +162,10 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     @Override
     public BootstrapDumpInfo getDumpInfo() {
         return new GeyserSpongeDumpInfo();
+    }
+
+    @Override
+    public String getMinecraftServerVersion() {
+        return Sponge.getPlatform().getMinecraftVersion().getName();
     }
 }

@@ -29,6 +29,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.network.raknet.RakNetConstants;
+import com.nukkitx.network.util.EventLoops;
 import com.nukkitx.protocol.bedrock.BedrockServer;
 import lombok.Getter;
 import lombok.Setter;
@@ -57,10 +58,7 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.connector.skin.FloodgateSkinUploader;
-import org.geysermc.connector.utils.DimensionUtils;
-import org.geysermc.connector.utils.LanguageUtils;
-import org.geysermc.connector.utils.LocaleUtils;
-import org.geysermc.connector.utils.ResourcePack;
+import org.geysermc.connector.utils.*;
 import org.geysermc.floodgate.crypto.AesCipher;
 import org.geysermc.floodgate.crypto.AesKeyProducer;
 import org.geysermc.floodgate.crypto.Base64Topping;
@@ -86,7 +84,8 @@ public class GeyserConnector {
             .enable(JsonParser.Feature.IGNORE_UNDEFINED)
             .enable(JsonParser.Feature.ALLOW_COMMENTS)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
+            .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES)
+            .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
 
     public static final String NAME = "Geyser";
     public static final String GIT_VERSION = "DEV"; // A fallback for running in IDEs
@@ -211,6 +210,7 @@ public class GeyserConnector {
             }
         }
 
+        CooldownUtils.setShowCooldown(config.isShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
         SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS = config.isAllowCustomSkulls();
 
@@ -218,7 +218,13 @@ public class GeyserConnector {
         RakNetConstants.MAXIMUM_MTU_SIZE = (short) config.getMtu();
         logger.debug("Setting MTU to " + config.getMtu());
 
-        bedrockServer = new BedrockServer(new InetSocketAddress(config.getBedrock().getAddress(), config.getBedrock().getPort()));
+        boolean enableProxyProtocol = config.getBedrock().isEnableProxyProtocol();
+        bedrockServer = new BedrockServer(
+                new InetSocketAddress(config.getBedrock().getAddress(), config.getBedrock().getPort()),
+                1,
+                EventLoops.commonGroup(),
+                enableProxyProtocol
+        );
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));
         bedrockServer.bind().whenComplete((avoid, throwable) -> {
             if (throwable == null) {
@@ -265,6 +271,20 @@ public class GeyserConnector {
                 }
                 return valueMap;
             }));
+
+            String minecraftVersion = bootstrap.getMinecraftServerVersion();
+            if (minecraftVersion != null) {
+                Map<String, Map<String, Integer>> versionMap = new HashMap<>();
+                Map<String, Integer> platformMap = new HashMap<>();
+                platformMap.put(platformType.getPlatformName(), 1);
+                versionMap.put(minecraftVersion, platformMap);
+
+                metrics.addCustomChart(new Metrics.DrilldownPie("minecraftServerVersion", () -> {
+                    // By the end, we should return, for example:
+                    // 1.16.5 => (Spigot, 1)
+                    return versionMap;
+                }));
+            }
         }
 
         boolean isGui = false;

@@ -39,6 +39,9 @@ public class JavaKeepAliveTranslator extends PacketTranslator<ServerKeepAlivePac
 
     @Override
     public void translate(ServerKeepAlivePacket packet, GeyserSession session) {
+        if (!session.getConnector().getConfig().isForwardPlayerPing()) {
+            return;
+        }
         NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
         latencyPacket.setFromServer(true);
         latencyPacket.setTimestamp(packet.getPingId() * 1000);
