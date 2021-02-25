@@ -91,7 +91,7 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
                 ClientClickWindowButtonPacket packet = new ClientClickWindowButtonPacket(inventory.getId(), 3);
                 session.sendDownstreamPacket(packet);
                 session.setDroppingLecternBook(false);
-                InventoryUtils.closeInventory(session, inventory.getId());
+                InventoryUtils.closeInventory(session, inventory.getId(), false);
             } else if (lecternContainer.getBlockEntityTag() == null) {
                 // If the method returns true, this is already handled for us
                 GeyserItemStack geyserItemStack = inventory.getItem(0);
@@ -123,7 +123,7 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
                         // Close the window - we will reopen it once the client has this data synced
                         ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(lecternContainer.getId());
                         session.sendDownstreamPacket(closeWindowPacket);
-                        InventoryUtils.closeInventory(session, inventory.getId());
+                        InventoryUtils.closeInventory(session, inventory.getId(), false);
                     }
                 }
             }

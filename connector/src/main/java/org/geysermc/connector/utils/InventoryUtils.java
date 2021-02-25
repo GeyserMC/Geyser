@@ -39,11 +39,10 @@ import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerHotbarPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.ChatColor;
-import org.geysermc.connector.inventory.GeyserItemStack;
-import org.geysermc.connector.inventory.Inventory;
-import org.geysermc.connector.inventory.PlayerInventory;
+import org.geysermc.connector.inventory.*;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.translators.LecternInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.translators.chest.DoubleChestInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
@@ -56,21 +55,30 @@ public class InventoryUtils {
     public static final ItemStack REFRESH_ITEM = new ItemStack(1, 127, new CompoundTag(""));
 
     public static void openInventory(GeyserSession session, Inventory inventory) {
+        session.setOpenInventory(inventory);
+        if (session.isClosingInventory()) {
+            //Wait for close confirmation from client before opening the new inventory.
+            //Handled in BedrockContainerCloseTranslator
+            inventory.setPending(true);
+            return;
+        }
+        displayInventory(session, inventory);
+    }
+
+    public static void displayInventory(GeyserSession session, Inventory inventory) {
         InventoryTranslator translator = session.getInventoryTranslator();
         if (translator != null) {
-            session.setOpenInventory(inventory);
             translator.prepareInventory(session, inventory);
-            //Ensure at least half a second passes between closing and opening a new window
-            //The client will not open the new window if it is still closing the old one
-            long delay = 700 - (System.currentTimeMillis() - session.getLastWindowCloseTime());
-            if (translator instanceof DoubleChestInventoryTranslator) {
-                delay = Math.max(delay, 200);
-            }
-            if (delay > 0) {
+            if (translator instanceof DoubleChestInventoryTranslator && !((Container) inventory).isUsingRealBlock()) {
                 GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> {
-                    translator.openInventory(session, inventory);
-                    translator.updateInventory(session, inventory);
-                }, delay, TimeUnit.MILLISECONDS);
+                    session.addInventoryTask(() -> {
+                        Inventory openInv = session.getOpenInventory();
+                        if (openInv != null && openInv.getId() == inventory.getId()) {
+                            translator.openInventory(session, inventory);
+                            translator.updateInventory(session, inventory);
+                        }
+                    });
+                }, 200, TimeUnit.MILLISECONDS);
             } else {
                 translator.openInventory(session, inventory);
                 translator.updateInventory(session, inventory);
@@ -78,7 +86,7 @@ public class InventoryUtils {
         }
     }
 
-    public static void closeInventory(GeyserSession session, int windowId) {
+    public static void closeInventory(GeyserSession session, int windowId, boolean confirm) {
         session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY, session);
         updateCursor(session);
 
@@ -86,7 +94,9 @@ public class InventoryUtils {
         if (inventory != null) {
             InventoryTranslator translator = session.getInventoryTranslator();
             translator.closeInventory(session, inventory);
-            session.setLastWindowCloseTime(System.currentTimeMillis());
+            if (confirm && !inventory.isPending() && !(translator instanceof LecternInventoryTranslator)) {
+                session.setClosingInventory(true);
+            }
         }
         session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
         session.setOpenInventory(null);

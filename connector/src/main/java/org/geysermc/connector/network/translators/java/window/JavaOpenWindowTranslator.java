@@ -51,7 +51,7 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
             //No translator exists for this window type. Close all windows and return.
             if (newTranslator == null) {
                 if (openInventory != null) {
-                    InventoryUtils.closeInventory(session, openInventory.getId());
+                    InventoryUtils.closeInventory(session, openInventory.getId(), true);
                 }
                 ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(packet.getWindowId());
                 session.sendDownstreamPacket(closeWindowPacket);
@@ -63,7 +63,7 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
 
             Inventory newInventory = newTranslator.createInventory(name, packet.getWindowId(), packet.getType(), session.getPlayerInventory());
             if (openInventory != null) {
-                InventoryUtils.closeInventory(session, openInventory.getId());
+                InventoryUtils.closeInventory(session, openInventory.getId(), true);
             }
 
             session.setInventoryTranslator(newTranslator);

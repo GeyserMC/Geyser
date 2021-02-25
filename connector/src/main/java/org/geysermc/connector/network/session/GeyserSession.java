@@ -136,6 +136,8 @@ public class GeyserSession implements CommandSender {
     private final PlayerInventory playerInventory;
     @Setter
     private Inventory openInventory;
+    @Setter
+    private boolean closingInventory;
 
     @Setter
     private InventoryTranslator inventoryTranslator = InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR;

@@ -61,6 +61,10 @@ public class Inventory {
     @Getter
     protected short transactionId = 0;
 
+    @Getter
+    @Setter
+    private boolean pending = false;
+
     protected Inventory(int id, int size) {
         this("Inventory", id, size);
     }

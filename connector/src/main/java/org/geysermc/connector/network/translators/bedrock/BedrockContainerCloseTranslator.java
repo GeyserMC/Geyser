@@ -31,6 +31,7 @@ import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 
 @Translator(packet = ContainerClosePacket.class)
@@ -42,19 +43,21 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
             session.setLastWindowCloseTime(0);
             byte windowId = packet.getId();
 
-            if (windowId == -1 && session.getOpenInventory() != null) {
-                windowId = (byte) session.getOpenInventory().getId();
-            }
-
-            Inventory openInventory = session.getOpenInventory();
-            if (openInventory != null && windowId == openInventory.getId()) {
-                ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(windowId);
-                session.sendDownstreamPacket(closeWindowPacket);
-                InventoryUtils.closeInventory(session, windowId);
-            }
-
             //Client wants close confirmation
             session.sendUpstreamPacket(packet);
+            session.setClosingInventory(false);
+
+            Inventory openInventory = session.getOpenInventory();
+            if (openInventory != null) {
+                if (windowId == openInventory.getId()) {
+                    ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(windowId);
+                    session.sendDownstreamPacket(closeWindowPacket);
+                    InventoryUtils.closeInventory(session, windowId, false);
+                } else if (openInventory.isPending()) {
+                    InventoryUtils.displayInventory(session, openInventory);
+                    openInventory.setPending(false);
+                }
+            }
         });
     }
 }
