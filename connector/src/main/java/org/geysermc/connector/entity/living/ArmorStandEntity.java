@@ -56,9 +56,17 @@ public class ArmorStandEntity extends LivingEntity {
      */
     private boolean primaryEntity = true;
     /**
-     * Whether the last position update included the offset.
+     * Whether the entity's position must be updated to included the offset.
+     *
+     * This should be true when the Java server marks the armor stand as invisible, but we shrink the entity
+     * to allow the nametag to appear. Basically:
+     * - Is visible: this is irrelevant (false)
+     * - Has armor, no name: false
+     * - Has armor, has name: false, with a second entity
+     * - No armor, no name: false
+     * - No armor, yes name: true
      */
-    private boolean lastPositionIncludedOffset = false;
+    private boolean positionRequiresOffset = false;
     private GeyserSession session;
 
     public ArmorStandEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
@@ -90,13 +98,11 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
-        // Fake the height to be above where it is so the nametag appears in the right location for invisible non-marker armour stands
-        lastPositionIncludedOffset = false;
         if (secondEntity != null) {
-            secondEntity.moveAbsolute(session, position.add(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d), rotation, isOnGround, teleported);
-        } else if (!isMarker && isInvisible && passengers.isEmpty() && !metadata.getFlags().getFlag(EntityFlag.INVISIBLE)) { // Means it's not visible
-            position = position.add(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d);
-            lastPositionIncludedOffset = true;
+            secondEntity.moveAbsolute(session, applyOffsetToPosition(position), rotation, isOnGround, teleported);
+        } else if (positionRequiresOffset) {
+            // Fake the height to be above where it is so the nametag appears in the right location for invisible non-marker armour stands
+            position = applyOffsetToPosition(position);
         }
 
         super.moveAbsolute(session, position, Vector3f.from(rotation.getX(), rotation.getX(), rotation.getX()), isOnGround, teleported);
@@ -122,24 +128,29 @@ public class ArmorStandEntity extends LivingEntity {
             if ((xd & 0x01) == 0x01) {
                 isSmall = true;
 
-                if (metadata.getFloat(EntityData.SCALE) != 0.55f && metadata.getFloat(EntityData.SCALE) != 0.0f) {
+                float scale = metadata.getFloat(EntityData.SCALE);
+                if (scale != 0.55f && scale != 0.0f) {
                     metadata.put(EntityData.SCALE, 0.55f);
                 }
 
-                if (metadata.get(EntityData.BOUNDING_BOX_WIDTH) != null && metadata.get(EntityData.BOUNDING_BOX_WIDTH).equals(0.5f)) {
+                if (metadata.getFloat(EntityData.BOUNDING_BOX_WIDTH) == 0.5f) {
                     metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.25f);
                     metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.9875f);
                 }
-            } else if (metadata.get(EntityData.BOUNDING_BOX_WIDTH) != null && metadata.get(EntityData.BOUNDING_BOX_WIDTH).equals(0.25f)) {
+            } else if (metadata.getFloat(EntityData.BOUNDING_BOX_WIDTH) == 0.25f) {
                 metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
                 metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
             }
 
             // setMarker
-            if ((xd & 0x10) == 0x10 && (metadata.get(EntityData.BOUNDING_BOX_WIDTH) == null || !metadata.get(EntityData.BOUNDING_BOX_WIDTH).equals(0.0f))) {
+            boolean oldIsMarker = isMarker;
+            isMarker = (xd & 0x10) == 0x10;
+            if (isMarker) {
                 metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.0f);
                 metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.0f);
-                isMarker = true;
+            }
+            if (oldIsMarker != isMarker) {
+                updateSecondEntityStatus();
             }
         }
         if (secondEntity != null) {
@@ -195,29 +206,36 @@ public class ArmorStandEntity extends LivingEntity {
      * Determine if we need to load or unload the second entity.
      */
     private void updateSecondEntityStatus() {
+        // A secondary entity always has to have the offset applied, so it remains invisible and the nametag shows.
         if (!primaryEntity) return;
         if (!isInvisible || isMarker) {
             // It is either impossible to show armor, or the armor stand isn't invisible. We good.
+            updateOffsetRequirement(false);
+
             if (secondEntity != null) {
                 secondEntity.despawnEntity(session);
                 secondEntity = null;
-                // Update the position of this armor stand
-                updatePosition();
             }
             return;
         }
         boolean isNametagEmpty = metadata.getString(EntityData.NAMETAG).isEmpty();
         if ((!helmet.equals(ItemData.AIR) || !chestplate.equals(ItemData.AIR) || !leggings.equals(ItemData.AIR) || !boots.equals(ItemData.AIR)
                 || !hand.equals(ItemData.AIR) || !offHand.equals(ItemData.AIR)) && !isNametagEmpty) {
-            if (secondEntity != null) return; // No need to recreate
+            // If the second entity exists, no need to recreate it.
+            // We can't stuff this check above or else it'll fall into another else case and delete the second entity
+            if (secondEntity != null) return;
+
             // Create the second entity. It doesn't need to worry about the items, but it does need to worry about
             // the metadata as it will hold the name tag.
             secondEntity = new ArmorStandEntity(0, session.getEntityCache().getNextEntityId().incrementAndGet(),
                     EntityType.ARMOR_STAND, position, motion, rotation);
             secondEntity.primaryEntity = false;
+            if (!this.positionRequiresOffset) {
+                // Ensure the offset is applied for the 0 scale
+                secondEntity.position = secondEntity.applyOffsetToPosition(secondEntity.position);
+            }
             // Copy metadata
             secondEntity.isSmall = isSmall;
-            secondEntity.lastPositionIncludedOffset = this.lastPositionIncludedOffset;
             secondEntity.getMetadata().putAll(metadata);
             // Copy the flags so they aren't the same object in memory
             secondEntity.getMetadata().putFlags(metadata.getFlags().copy());
@@ -229,31 +247,34 @@ public class ArmorStandEntity extends LivingEntity {
             secondEntity.getMetadata().put(EntityData.BOUNDING_BOX_WIDTH, 0.0f);
             secondEntity.getMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, 0.0f);
             secondEntity.spawnEntity(session);
-            // Reset scale of the proper armor stand
-            metadata.put(EntityData.SCALE, isSmall ? 0.55f : 1f);
-            // Set the proper armor stand to invisible to show armor
-            metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
 
-            // Update the position of the armor stands
-            updatePosition();
-            secondEntity.updatePositionWithOffset();
+            // Reset scale of the proper armor stand
+            this.metadata.put(EntityData.SCALE, isSmall ? 0.55f : 1f);
+            // Set the proper armor stand to invisible to show armor
+            this.metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
+            // Update the position of the armor stand
+            updateOffsetRequirement(false);
         } else if (isNametagEmpty) {
             // We can just make an invisible entity
             // Reset scale of the proper armor stand
             metadata.put(EntityData.SCALE, isSmall ? 0.55f : 1f);
             // Set the proper armor stand to invisible to show armor
             metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
+            // Update offset
+            updateOffsetRequirement(false);
+
             if (secondEntity != null) {
                 secondEntity.despawnEntity(session);
                 secondEntity = null;
-                // Update the position of this armor stand
-                updatePosition();
             }
         } else {
+            // Nametag is not empty and there is no armor
             // We don't need to make a new entity
-            updatePositionWithOffset();
             metadata.getFlags().setFlag(EntityFlag.INVISIBLE, false);
             metadata.put(EntityData.SCALE, 0.0f);
+            // As the above is applied, we need an offset
+            updateOffsetRequirement(true);
+
             if (secondEntity != null) {
                 secondEntity.despawnEntity(session);
                 secondEntity = null;
@@ -263,33 +284,41 @@ public class ArmorStandEntity extends LivingEntity {
     }
 
     /**
-     * Updates position without calling movement code.
+     * @return the selected position with the position offset applied.
      */
-    private void updatePosition() {
-        if (lastPositionIncludedOffset) {
-            this.position = position.sub(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d);
-            lastPositionIncludedOffset = false;
-        }
-        MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
-        moveEntityPacket.setRuntimeEntityId(geyserId);
-        moveEntityPacket.setPosition(position);
-        moveEntityPacket.setRotation(Vector3f.from(rotation.getX(), rotation.getX(), rotation.getX()));
-        moveEntityPacket.setOnGround(onGround);
-        moveEntityPacket.setTeleported(false);
-        session.sendUpstreamPacket(moveEntityPacket);
+    private Vector3f applyOffsetToPosition(Vector3f position) {
+        return position.add(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d);
     }
 
     /**
-     * Updates position without calling movement code and includes the offset.
+     * @return the selected position with the position offset removed.
      */
-    private void updatePositionWithOffset() {
-        if (!lastPositionIncludedOffset) {
-            this.position = this.position.add(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d);
-            lastPositionIncludedOffset = true;
+    private Vector3f removeOffsetFromPosition(Vector3f position) {
+        return position.sub(0d, entityType.getHeight() * (isSmall ? 0.55d : 1d), 0d);
+    }
+
+    /**
+     * Set the offset to a new value; if it changed, update the position, too.
+     */
+    private void updateOffsetRequirement(boolean newValue) {
+        if (newValue != positionRequiresOffset) {
+            this.positionRequiresOffset = newValue;
+            if (positionRequiresOffset) {
+                this.position = applyOffsetToPosition(position);
+            } else {
+                this.position = removeOffsetFromPosition(position);
+            }
+            updatePosition();
         }
+    }
+
+    /**
+     * Updates position without calling movement code.
+     */
+    private void updatePosition() {
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
-        moveEntityPacket.setPosition(this.position);
+        moveEntityPacket.setPosition(position);
         moveEntityPacket.setRotation(Vector3f.from(rotation.getX(), rotation.getX(), rotation.getX()));
         moveEntityPacket.setOnGround(onGround);
         moveEntityPacket.setTeleported(false);
