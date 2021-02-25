@@ -36,6 +36,6 @@ public class JavaCloseWindowTranslator extends PacketTranslator<ServerCloseWindo
 
     @Override
     public void translate(ServerCloseWindowPacket packet, GeyserSession session) {
-        session.addInventoryTask(() -> InventoryUtils.closeInventory(session, packet.getWindowId(), true));
+        session.addInventoryTask(() -> InventoryUtils.closeInventory(session, packet.getWindowId(), (session.getOpenInventory() != null && session.getOpenInventory().getId() == packet.getWindowId())));
     }
 }

@@ -39,7 +39,10 @@ import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerHotbarPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.ChatColor;
-import org.geysermc.connector.inventory.*;
+import org.geysermc.connector.inventory.Container;
+import org.geysermc.connector.inventory.GeyserItemStack;
+import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.translators.LecternInventoryTranslator;
@@ -70,19 +73,21 @@ public class InventoryUtils {
         if (translator != null) {
             translator.prepareInventory(session, inventory);
             if (translator instanceof DoubleChestInventoryTranslator && !((Container) inventory).isUsingRealBlock()) {
-                GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> {
+                GeyserConnector.getInstance().getGeneralThreadPool().schedule(() ->
                     session.addInventoryTask(() -> {
                         Inventory openInv = session.getOpenInventory();
                         if (openInv != null && openInv.getId() == inventory.getId()) {
                             translator.openInventory(session, inventory);
                             translator.updateInventory(session, inventory);
                         }
-                    });
-                }, 200, TimeUnit.MILLISECONDS);
+                }), 200, TimeUnit.MILLISECONDS);
             } else {
                 translator.openInventory(session, inventory);
                 translator.updateInventory(session, inventory);
             }
+        } else {
+            // Precaution - as of 1.16 every inventory should be translated so this shouldn't happen
+            session.setOpenInventory(null);
         }
     }
 
