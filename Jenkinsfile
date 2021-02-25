@@ -92,8 +92,9 @@ pipeline {
         success {
             script {
                 if (env.BRANCH_NAME == 'master') {
-                    build propagate: false, wait: false, job: 'GeyserMC/Geyser-Fabric/java-1.16'
-                    build propagate: false, wait: false, job: 'GeyserMC/GeyserAndroid/master'
+                    build propagate: false, wait: false, job: 'GeyserMC/Geyser-Fabric/java-1.16', parameters: [booleanParam(name: 'SKIP_DISCORD', value: true)]
+                    build propagate: false, wait: false, job: 'GeyserMC/GeyserAndroid/master', parameters: [booleanParam(name: 'SKIP_DISCORD', value: true)]
+                    build propagate: false, wait: false, job: 'GeyserMC/GeyserConnect/master', parameters: [booleanParam(name: 'SKIP_DISCORD', value: true)]
                 }
             }
         }

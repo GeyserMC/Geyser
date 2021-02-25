@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.introspect.AnnotatedField;
 import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
 import lombok.Getter;
 import net.minecrell.terminalconsole.TerminalConsoleAppender;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Logger;
@@ -167,11 +168,6 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         this.onEnable();
     }
 
-    public void onEnable(boolean useGui) {
-        this.useGui = useGui;
-        this.onEnable();
-    }
-
     @Override
     public void onEnable() {
         Logger logger = (Logger) LogManager.getRootLogger();
@@ -212,6 +208,9 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             }
         }
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+
+        // Allow libraries like Protocol to have their debug information passthrough
+        logger.get().setLevel(geyserConfig.isDebugMode() ? Level.DEBUG : Level.INFO);
 
         connector = GeyserConnector.start(PlatformType.STANDALONE, this);
         geyserCommandManager = new GeyserCommandManager(connector);

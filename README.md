@@ -18,7 +18,7 @@ The ultimate goal of this project is to allow Minecraft: Bedrock Edition users t
 
 Special thanks to the DragonProxy project for being a trailblazer in protocol translation and for all the team members who have now joined us here!
 
-### Currently supporting Minecraft Bedrock v1.16.100 - v1.16.201 and Minecraft Java v1.16.4.
+### Currently supporting Minecraft Bedrock v1.16.100 - v1.16.201 and Minecraft Java v1.16.4 - v1.16.5.
 
 ## Setting Up
 Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set up Geyser.
@@ -47,6 +47,7 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
   - Horse Inventory
   - Loom
   - Smithing Table
+  - Grindstone
 
 ## What can't be fixed
 The following things can't be fixed because of Bedrock limitations. They might be fixable in the future, but not as of now.
@@ -54,6 +55,7 @@ The following things can't be fixed because of Bedrock limitations. They might b
 - Custom heads in inventories
 - Clickable links in chat
 - Glowing effect
+- Custom armor stand poses
 
 ## Compiling
 1. Clone the repo to your computer

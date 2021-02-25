@@ -101,7 +101,7 @@ public class LocaleUtils {
                 ASSET_MAP.put(entry.getKey(), asset);
             }
         } catch (Exception e) {
-            GeyserConnector.getInstance().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.locale.fail.asset_cache", (!e.getMessage().isEmpty() ? e.getMessage() : e.getStackTrace())));
+            GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.locale.fail.asset_cache", (!e.getMessage().isEmpty() ? e.getMessage() : e.getStackTrace())));
         }
     }
 
@@ -147,6 +147,12 @@ public class LocaleUtils {
                         }
                     }
                 } catch (IOException ignored) { }
+
+                if (clientJarInfo == null) {
+                    // Likely failed to download
+                    GeyserConnector.getInstance().getLogger().debug("Skipping en_US hash check as client jar is null.");
+                    return;
+                }
                 targetHash = clientJarInfo.getSha1();
             } else {
                 curHash = byteArrayToHexString(FileUtils.calculateSHA1(localeFile));
@@ -168,9 +174,13 @@ public class LocaleUtils {
             return;
         }
 
-        // Get the hash and download the locale
-        String hash = ASSET_MAP.get("minecraft/lang/" + locale + ".json").getHash();
-        WebUtils.downloadFile("https://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash, localeFile.toString());
+        try {
+            // Get the hash and download the locale
+            String hash = ASSET_MAP.get("minecraft/lang/" + locale + ".json").getHash();
+            WebUtils.downloadFile("https://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash, localeFile.toString());
+        } catch (Exception e) {
+            GeyserConnector.getInstance().getLogger().error("Unable to download locale file hash", e);
+        }
     }
 
     /**
@@ -236,23 +246,22 @@ public class LocaleUtils {
             WebUtils.downloadFile(clientJarInfo.getUrl(), tmpFilePath.toString());
 
             // Load in the JAR as a zip and extract the file
-            ZipFile localeJar = new ZipFile(tmpFilePath.toString());
-            InputStream fileStream = localeJar.getInputStream(localeJar.getEntry("assets/minecraft/lang/en_us.json"));
-            FileOutputStream outStream = new FileOutputStream(localeFile);
+            try (ZipFile localeJar = new ZipFile(tmpFilePath.toString())) {
+                try (InputStream fileStream = localeJar.getInputStream(localeJar.getEntry("assets/minecraft/lang/en_us.json"))) {
+                    try (FileOutputStream outStream = new FileOutputStream(localeFile)) {
 
-            // Write the file to the locale dir
-            byte[] buf = new byte[fileStream.available()];
-            int length;
-            while ((length = fileStream.read(buf)) != -1) {
-                outStream.write(buf, 0, length);
+                        // Write the file to the locale dir
+                        byte[] buf = new byte[fileStream.available()];
+                        int length;
+                        while ((length = fileStream.read(buf)) != -1) {
+                            outStream.write(buf, 0, length);
+                        }
+
+                        // Flush all changes to disk and cleanup
+                        outStream.flush();
+                    }
+                }
             }
-
-            // Flush all changes to disk and cleanup
-            outStream.flush();
-            outStream.close();
-
-            fileStream.close();
-            localeJar.close();
 
             // Store the latest jar hash
             FileUtils.writeFile(GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("locales/en_us.hash").toString(), clientJarInfo.getSha1().toCharArray());
@@ -260,7 +269,7 @@ public class LocaleUtils {
             // Delete the nolonger needed client/server jar
             Files.delete(tmpFilePath);
         } catch (Exception e) {
-            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.locale.fail.en_us"), e);
+            GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.locale.fail.en_us"), e);
         }
     }
 

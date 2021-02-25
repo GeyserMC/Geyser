@@ -69,6 +69,18 @@ public enum Enchantment {
     QUICK_CHARGE,
     SOUL_SPEED;
 
+    /**
+     * A list of all enchantment Java identifiers for use with command suggestions.
+     */
+    public static final String[] ALL_JAVA_IDENTIFIERS;
+
+    static {
+        ALL_JAVA_IDENTIFIERS = new String[values().length];
+        for (int i = 0; i < ALL_JAVA_IDENTIFIERS.length; i++) {
+            ALL_JAVA_IDENTIFIERS[i] = values()[i].javaIdentifier;
+        }
+    }
+
     private final String javaIdentifier;
 
     Enchantment() {

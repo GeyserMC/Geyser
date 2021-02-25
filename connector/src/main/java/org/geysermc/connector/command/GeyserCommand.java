@@ -28,7 +28,9 @@ package org.geysermc.connector.command;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.geysermc.connector.network.session.GeyserSession;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,7 +49,7 @@ public abstract class GeyserCommand {
     @Setter
     private List<String> aliases = new ArrayList<>();
 
-    public abstract void execute(CommandSender sender, String[] args);
+    public abstract void execute(@Nullable GeyserSession session, CommandSender sender, String[] args);
 
     /**
      * If false, hides the command from being shown on the Geyser Standalone GUI.
@@ -74,5 +76,14 @@ public abstract class GeyserCommand {
      */
     public boolean hasSubCommands() {
         return !getSubCommands().isEmpty();
+    }
+
+    /**
+     * Used to send a deny message to Java players if this command can only be used by Bedrock players.
+     *
+     * @return true if this command can only be used by Bedrock players.
+     */
+    public boolean isBedrockOnly() {
+        return false;
     }
 }

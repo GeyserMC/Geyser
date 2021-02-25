@@ -55,7 +55,7 @@ public class LoopbackUtil {
 
                 if (!result.contains("minecraftuwp")) {
                     Files.write(Paths.get(System.getenv("temp") + "/loopback_minecraft.bat"), loopbackCommand.getBytes(), new OpenOption[0]);
-                    process = Runtime.getRuntime().exec(startScript);
+                    Runtime.getRuntime().exec(startScript);
 
                     geyserLogger.info(ChatColor.AQUA + LanguageUtils.getLocaleStringLog("geyser.bootstrap.loopback.added"));
                 }

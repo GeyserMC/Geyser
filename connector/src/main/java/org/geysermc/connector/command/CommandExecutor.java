@@ -23,35 +23,34 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.command.defaults;
+package org.geysermc.connector.command;
 
+import lombok.AllArgsConstructor;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.command.CommandSender;
-import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.SettingsUtils;
 
-public class SettingsCommand extends GeyserCommand {
+/**
+ * Represents helper functions for listening to {@code /geyser} commands.
+ */
+@AllArgsConstructor
+public class CommandExecutor {
 
-    public SettingsCommand(GeyserConnector connector, String name, String description, String permission) {
-        super(name, description, permission);
+    protected final GeyserConnector connector;
+
+    public GeyserCommand getCommand(String label) {
+        return connector.getCommandManager().getCommands().get(label);
     }
 
-    @Override
-    public void execute(GeyserSession session, CommandSender sender, String[] args) {
-        if (session == null) return;
+    public GeyserSession getGeyserSession(CommandSender sender) {
+        if (sender.isConsole()) {
+            return null;
+        }
 
-        SettingsUtils.buildForm(session);
-        session.sendForm(session.getSettingsForm(), SettingsUtils.SETTINGS_FORM_ID);
-    }
-
-    @Override
-    public boolean isExecutableOnConsole() {
-        return false;
-    }
-
-    @Override
-    public boolean isBedrockOnly() {
-        return true;
+        for (GeyserSession session : connector.getPlayers()) {
+            if (sender.getName().equals(session.getPlayerEntity().getUsername())) {
+                return session;
+            }
+        }
+        return null;
     }
 }
