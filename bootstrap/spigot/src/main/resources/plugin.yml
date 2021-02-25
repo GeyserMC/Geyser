@@ -3,7 +3,7 @@ name: ${outputName}-Spigot
 author: ${project.organization.name}
 website: ${project.organization.url}
 version: ${project.version}
-softdepend: ["ViaVersion"]
+softdepend: ["ViaVersion", "floodgate"]
 api-version: 1.13
 commands:
   geyser:
