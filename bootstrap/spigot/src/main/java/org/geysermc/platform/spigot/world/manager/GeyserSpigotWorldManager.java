@@ -182,7 +182,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     @Override
     public NbtMap getLecternDataAt(GeyserSession session, int x, int y, int z, boolean isChunkLoad) {
         // Run as a task to prevent async issues
-        Bukkit.getScheduler().runTask(this.plugin, () -> {
+        Runnable lecternInfoGet = () -> {
             Player bukkitPlayer;
             if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
                 return;
@@ -220,7 +220,13 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             lecternTag.putCompound("book", bookTag.build());
             NbtMap blockEntityTag = lecternTag.build();
             BlockEntityUtils.updateBlockEntity(session, blockEntityTag, Vector3i.from(x, y, z));
-        });
+        };
+        if (isChunkLoad) {
+            // Delay to ensure the chunk is sent first, and then the lectern data
+            Bukkit.getScheduler().runTaskLater(this.plugin, lecternInfoGet, 5);
+        } else {
+            Bukkit.getScheduler().runTask(this.plugin, lecternInfoGet);
+        }
         return LecternInventoryTranslator.getBaseLecternTag(x, y, z, 0).build(); // Will be updated later
     }
 
