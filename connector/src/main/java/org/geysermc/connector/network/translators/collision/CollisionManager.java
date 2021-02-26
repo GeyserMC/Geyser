@@ -177,24 +177,24 @@ public class CollisionManager {
         session.sendUpstreamPacket(movePlayerPacket);
     }
 
-    public List<Vector3i> getPlayerCollidableBlocks() {
+    public List<Vector3i> getCollidableBlocks(BoundingBox box) {
         List<Vector3i> blocks = new ArrayList<>();
 
-        Vector3d position = Vector3d.from(playerBoundingBox.getMiddleX(),
-                playerBoundingBox.getMiddleY() - (playerBoundingBox.getSizeY() / 2),
-                playerBoundingBox.getMiddleZ());
+        Vector3d position = Vector3d.from(box.getMiddleX(),
+                box.getMiddleY() - (box.getSizeY() / 2),
+                box.getMiddleZ());
 
-        // Loop through all blocks that could collide with the player
-        int minCollisionX = (int) Math.floor(position.getX() - ((playerBoundingBox.getSizeX() / 2) + COLLISION_TOLERANCE));
-        int maxCollisionX = (int) Math.floor(position.getX() + (playerBoundingBox.getSizeX() / 2) + COLLISION_TOLERANCE);
+        // Loop through all blocks that could collide
+        int minCollisionX = (int) Math.floor(position.getX() - ((box.getSizeX() / 2) + COLLISION_TOLERANCE));
+        int maxCollisionX = (int) Math.floor(position.getX() + (box.getSizeX() / 2) + COLLISION_TOLERANCE);
 
         // Y extends 0.5 blocks down because of fence hitboxes
         int minCollisionY = (int) Math.floor(position.getY() - 0.5);
 
-        int maxCollisionY = (int) Math.floor(position.getY() + playerBoundingBox.getSizeY());
+        int maxCollisionY = (int) Math.floor(position.getY() + box.getSizeY());
 
-        int minCollisionZ = (int) Math.floor(position.getZ() - ((playerBoundingBox.getSizeZ() / 2) + COLLISION_TOLERANCE));
-        int maxCollisionZ = (int) Math.floor(position.getZ() + (playerBoundingBox.getSizeZ() / 2) + COLLISION_TOLERANCE);
+        int minCollisionZ = (int) Math.floor(position.getZ() - ((box.getSizeZ() / 2) + COLLISION_TOLERANCE));
+        int maxCollisionZ = (int) Math.floor(position.getZ() + (box.getSizeZ() / 2) + COLLISION_TOLERANCE);
 
         for (int y = minCollisionY; y < maxCollisionY + 1; y++) {
             for (int x = minCollisionX; x < maxCollisionX + 1; x++) {
@@ -205,6 +205,10 @@ public class CollisionManager {
         }
 
         return blocks;
+    }
+
+    public List<Vector3i> getPlayerCollidableBlocks() {
+        return getCollidableBlocks(playerBoundingBox);
     }
 
     /**

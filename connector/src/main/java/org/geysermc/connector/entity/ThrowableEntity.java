@@ -29,20 +29,21 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.nukkitx.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
 /**
  * Used as a class for any object-like entity that moves as a projectile
  */
 public class ThrowableEntity extends Entity implements Tickable {
 
-    private Vector3f lastPosition;
+    protected Vector3f lastJavaPosition;
 
     public ThrowableEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
-        this.lastPosition = position;
+        this.lastJavaPosition = position;
     }
 
     /**
@@ -52,22 +53,65 @@ public class ThrowableEntity extends Entity implements Tickable {
      */
     @Override
     public void tick(GeyserSession session) {
-        super.moveRelative(session, motion.getX(), motion.getY(), motion.getZ(), rotation, onGround);
+        moveAbsoluteImmediate(session, position.add(motion), rotation, onGround, false);
         float drag = getDrag(session);
-        float gravity = getGravity();
+        float gravity = getGravity(session);
         motion = motion.mul(drag).down(gravity);
     }
 
     protected void moveAbsoluteImmediate(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(session, position, rotation, isOnGround, teleported);
+        MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
+        moveEntityDeltaPacket.setRuntimeEntityId(geyserId);
+
+        if (isOnGround) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
+        }
+        setOnGround(isOnGround);
+
+        if (teleported) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
+        }
+
+        if (this.position.getX() != position.getX()) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
+            moveEntityDeltaPacket.setX(position.getX());
+        }
+        if (this.position.getY() != position.getY()) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
+            moveEntityDeltaPacket.setY(position.getY());
+        }
+        if (this.position.getZ() != position.getZ()) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
+            moveEntityDeltaPacket.setZ(position.getZ());
+        }
+        setPosition(position);
+
+        if (this.rotation.getX() != rotation.getX()) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+            moveEntityDeltaPacket.setYaw(rotation.getX());
+        }
+        if (this.rotation.getY() != rotation.getY()) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
+            moveEntityDeltaPacket.setPitch(rotation.getY());
+        }
+        if (this.rotation.getZ() != rotation.getZ()) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
+            moveEntityDeltaPacket.setHeadYaw(rotation.getZ());
+        }
+        setRotation(rotation);
+
+        if (!moveEntityDeltaPacket.getFlags().isEmpty()) {
+            session.sendUpstreamPacket(moveEntityDeltaPacket);
+        }
     }
 
     /**
      * Get the gravity of this entity type. Used for applying gravity while the entity is in motion.
      *
+     * @param session the session of the Bedrock client.
      * @return the amount of gravity to apply to this entity while in motion.
      */
-    protected float getGravity() {
+    protected float getGravity(GeyserSession session) {
         if (metadata.getFlags().getFlag(EntityFlag.HAS_GRAVITY)) {
             switch (entityType) {
                 case THROWN_POTION:
@@ -76,11 +120,14 @@ public class ThrowableEntity extends Entity implements Tickable {
                 case THROWN_EXP_BOTTLE:
                     return 0.07f;
                 case FIREBALL:
+                case SHULKER_BULLET:
                     return 0;
                 case SNOWBALL:
                 case THROWN_EGG:
                 case THROWN_ENDERPEARL:
                     return 0.03f;
+                case LLAMA_SPIT:
+                    return 0.06f;
             }
         }
         return 0;
@@ -101,11 +148,14 @@ public class ThrowableEntity extends Entity implements Tickable {
                 case SNOWBALL:
                 case THROWN_EGG:
                 case THROWN_ENDERPEARL:
+                case LLAMA_SPIT:
                     return 0.99f;
                 case FIREBALL:
                 case SMALL_FIREBALL:
                 case DRAGON_FIREBALL:
                     return 0.95f;
+                case SHULKER_BULLET:
+                    return 1;
             }
         }
         return 1;
@@ -117,8 +167,10 @@ public class ThrowableEntity extends Entity implements Tickable {
      */
     protected boolean isInWater(GeyserSession session) {
         if (session.getConnector().getConfig().isCacheChunks()) {
-            int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
-            return block == BlockTranslator.BEDROCK_WATER_ID;
+            if (0 <= position.getFloorY() && position.getFloorY() <= 255) {
+                int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
+                return BlockStateValues.getWaterLevel(block) != -1;
+            }
         }
         return false;
     }
@@ -136,14 +188,13 @@ public class ThrowableEntity extends Entity implements Tickable {
 
     @Override
     public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
-        position = lastPosition;
-        super.moveRelative(session, relX, relY, relZ, rotation, isOnGround);
-        lastPosition = position;
+        moveAbsoluteImmediate(session, lastJavaPosition.add(relX, relY, relZ), rotation, isOnGround, false);
+        lastJavaPosition = position;
     }
 
     @Override
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(session, position, rotation, isOnGround, teleported);
-        lastPosition = position;
+        moveAbsoluteImmediate(session, position, rotation, isOnGround, teleported);
+        lastJavaPosition = position;
     }
 }
