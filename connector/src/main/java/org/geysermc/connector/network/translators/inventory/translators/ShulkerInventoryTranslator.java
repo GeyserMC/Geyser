@@ -25,14 +25,45 @@
 
 package org.geysermc.connector.network.translators.inventory.translators;
 
+import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
+import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
+import org.geysermc.connector.network.translators.inventory.holder.BlockInventoryHolder;
 import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
+import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 
 public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator {
     public ShulkerInventoryTranslator() {
-        super(27, "minecraft:shulker_box[facing=north]", ContainerType.CONTAINER, ContainerInventoryUpdater.INSTANCE);
+        super(27, new BlockInventoryHolder("minecraft:shulker_box[facing=north]", ContainerType.CONTAINER) {
+            private final BlockEntityTranslator shulkerBoxTranslator = BlockEntityTranslator.BLOCK_ENTITY_TRANSLATORS.get("ShulkerBox");
+
+            @Override
+            protected boolean isValidBlock(String[] javaBlockString) {
+                return javaBlockString[0].contains("shulker_box");
+            }
+
+            @Override
+            protected void setCustomName(GeyserSession session, Vector3i position, Inventory inventory, int javaBlockState) {
+                NbtMapBuilder tag = NbtMap.builder()
+                        .putInt("x", position.getX())
+                        .putInt("y", position.getY())
+                        .putInt("z", position.getZ())
+                        .putString("CustomName", inventory.getTitle());
+                // Don't reset facing property
+                shulkerBoxTranslator.translateTag(tag, null, javaBlockState);
+
+                BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
+                dataPacket.setData(tag.build());
+                dataPacket.setBlockPosition(position);
+                session.sendUpstreamPacket(dataPacket);
+            }
+        }, ContainerInventoryUpdater.INSTANCE);
     }
 
     @Override

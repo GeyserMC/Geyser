@@ -53,6 +53,17 @@ public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTran
         this.updater = updater;
     }
 
+    /**
+     * @param size the amount of slots that the inventory adds alongside the base inventory slots
+     * @param holder the custom block holder
+     * @param updater updater
+     */
+    public AbstractBlockInventoryTranslator(int size, InventoryHolder holder, InventoryUpdater updater) {
+        super(size);
+        this.holder = holder;
+        this.updater = updater;
+    }
+
     @Override
     public void prepareInventory(GeyserSession session, Inventory inventory) {
         holder.prepareInventory(this, session, inventory);

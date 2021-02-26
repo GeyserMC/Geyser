@@ -82,7 +82,7 @@ public class BlockInventoryHolder extends InventoryHolder {
                 // We can safely use this block
                 inventory.setHolderPosition(session.getLastInteractionBlockPosition());
                 ((Container) inventory).setUsingRealBlock(true, javaBlockString[0]);
-                setCustomName(session, session.getLastInteractionBlockPosition(), inventory);
+                setCustomName(session, session.getLastInteractionBlockPosition(), inventory, javaBlockId);
                 return;
             }
         }
@@ -98,7 +98,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         session.sendUpstreamPacket(blockPacket);
         inventory.setHolderPosition(position);
 
-        setCustomName(session, position, inventory);
+        setCustomName(session, position, inventory, defaultJavaBlockState);
     }
 
     /**
@@ -108,7 +108,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         return this.validBlocks.contains(javaBlockString[0]);
     }
 
-    protected void setCustomName(GeyserSession session, Vector3i position, Inventory inventory) {
+    protected void setCustomName(GeyserSession session, Vector3i position, Inventory inventory, int javaBlockState) {
         NbtMap tag = NbtMap.builder()
                 .putInt("x", position.getX())
                 .putInt("y", position.getY())
