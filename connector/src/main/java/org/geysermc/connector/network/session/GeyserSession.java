@@ -69,11 +69,11 @@ import lombok.Setter;
 import org.geysermc.common.window.CustomFormWindow;
 import org.geysermc.common.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.common.ChatColor;
-import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
+import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
@@ -136,6 +136,10 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private WorldBorder worldBorder;
+    /**
+     * Whether simulated fog has been sent to the client or not.
+     */
+    private boolean isInWorldBorderWarningArea = false;
 
     /**
      * Stores session collision
@@ -751,7 +755,20 @@ public class GeyserSession implements CommandSender {
                 setTitlePacket.setFadeInTime(1);
                 setTitlePacket.setFadeOutTime(1);
                 sendUpstreamPacket(setTitlePacket);
+                // Set the mood
+                if (!isInWorldBorderWarningArea) {
+                    isInWorldBorderWarningArea = true;
+                    WorldBorder.sendFog(this, "minecraft:fog_crimson_forest");
+                }
+            } else if (isInWorldBorderWarningArea) {
+                // Clear fog as we are outside the world border now
+                WorldBorder.removeFog(this);
+                isInWorldBorderWarningArea = false;
             }
+        } else if (isInWorldBorderWarningArea) {
+            // Clear fog
+            WorldBorder.removeFog(this);
+            isInWorldBorderWarningArea = false;
         }
 
         for (Tickable entity : entityCache.getTickableEntities()) {

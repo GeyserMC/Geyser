@@ -30,11 +30,13 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayerFogPacket;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 
+import java.util.Collections;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class WorldBorder {
@@ -250,11 +252,27 @@ public class WorldBorder {
                 particlePosition = position.add(randomNumber, 0, 0);
             }
             LevelEventPacket effectPacket = new LevelEventPacket();
-            effectPacket.setPosition(particlePosition);
+            effectPacket.setPosition(particlePosition.sub(0, random.nextDouble(3), 0));
             effectPacket.setType(WORLD_BORDER_PARTICLE);
             effectPacket.setData(data);
             session.getUpstream().sendPacket(effectPacket);
         }
+    }
+
+    /**
+     * Send the following fog IDs to the client
+     */
+    public static void sendFog(GeyserSession session, String... fogNameSpaces) {
+        PlayerFogPacket packet = new PlayerFogPacket();
+        Collections.addAll(packet.getFogStack(), fogNameSpaces);
+        session.sendUpstreamPacket(packet);
+    }
+
+    /**
+     * Clear any additional fog sent to the client
+     */
+    public static void removeFog(GeyserSession session) {
+        session.sendUpstreamPacket(new PlayerFogPacket());
     }
 
 }
