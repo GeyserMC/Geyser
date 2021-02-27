@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.skin;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -38,6 +39,7 @@ import org.geysermc.floodgate.util.WebsocketEventType;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
+import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -138,18 +140,21 @@ public final class FloodgateSkinUploader {
                             String error = node.get("error").asText();
                             logger.info("Got disconnected from the skin uploader: " + error);
                         }
-                        // it can't be something else then info or error, so we won't handle anything other than that.
-                        // try to reconnect (which will make a new id and verify token) after a few seconds
-                        reconnectLater(connector);
+                    } catch (JsonProcessingException ignored) {
+                        // ignore invalid json
                     } catch (Exception e) {
                         logger.error("Error while handling onClose", e);
                     }
                 }
+                // try to reconnect (which will make a new id and verify token) after a few seconds
+                reconnectLater(connector);
             }
 
             @Override
             public void onError(Exception ex) {
-                logger.error("Got an error", ex);
+                if (!(ex instanceof ConnectException)) {
+                    logger.error("Got an error", ex);
+                }
             }
         };
     }
@@ -180,17 +185,10 @@ public final class FloodgateSkinUploader {
     }
 
     private void reconnectLater(GeyserConnector connector) {
-        //todo doesn't work
         long additionalTime = ThreadLocalRandom.current().nextInt(7);
-        connector.getGeneralThreadPool().schedule(() -> {
-            try {
-                if (!client.connectBlocking()) {
-                    reconnectLater(connector);
-                }
-            } catch (InterruptedException ignored) {
-                reconnectLater(connector);
-            }
-        }, 8 + additionalTime, TimeUnit.SECONDS);
+        // we don't have to check the result. onClose will handle that for us
+        connector.getGeneralThreadPool()
+                .schedule(client::reconnect, 8 + additionalTime, TimeUnit.SECONDS);
     }
 
     public FloodgateSkinUploader start() {
