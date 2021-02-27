@@ -33,6 +33,7 @@ import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
@@ -42,6 +43,8 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 import org.geysermc.connector.utils.BlockEntityUtils;
 import org.geysermc.connector.utils.InventoryUtils;
+
+import java.util.Collections;
 
 public class LecternInventoryTranslator extends BaseInventoryTranslator {
     private final InventoryUpdater updater;
@@ -96,11 +99,12 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
                 // If the method returns true, this is already handled for us
                 GeyserItemStack geyserItemStack = inventory.getItem(0);
                 CompoundTag tag = geyserItemStack.getNbt();
+                // Position has to be the last interacted position... right?
+                Vector3i position = session.getLastInteractionBlockPosition();
+                // shouldRefresh means that we should boot out the client on our side because their lectern GUI isn't updated yet
+                boolean shouldRefresh = !session.getConnector().getWorldManager().shouldExpectLecternHandled() && !session.getLecternCache().contains(position);
+                NbtMap blockEntityTag;
                 if (tag != null) {
-                    // Position has to be the last interacted position... right?
-                    Vector3i position = session.getLastInteractionBlockPosition();
-                    // shouldRefresh means that we should boot out the client on our side because their lectern GUI isn't updated yet
-                    boolean shouldRefresh = !session.getConnector().getWorldManager().shouldExpectLecternHandled() && !session.getLecternCache().contains(position);
                     int pagesSize = ((ListTag) tag.get("pages")).size();
                     ItemData itemData = geyserItemStack.getItemData(session);
                     NbtMapBuilder lecternTag = getBaseLecternTag(position.getX(), position.getY(), position.getZ(), pagesSize);
@@ -111,20 +115,35 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
                             .putCompound("tag", itemData.getTag())
                             .build());
                     lecternTag.putInt("page", lecternContainer.getCurrentBedrockPage());
-                    NbtMap blockEntityTag = lecternTag.build();
-                    // Even with serverside access to lecterns, we don't easily know which lectern this is, so we need to rebuild
-                    // the block entity tag
-                    lecternContainer.setBlockEntityTag(blockEntityTag);
-                    lecternContainer.setPosition(position);
-                    if (shouldRefresh) {
-                        // Update the lectern because it's not updated client-side
-                        BlockEntityUtils.updateBlockEntity(session, blockEntityTag, position);
-                        session.getLecternCache().add(position);
-                        // Close the window - we will reopen it once the client has this data synced
-                        ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(lecternContainer.getId());
-                        session.sendDownstreamPacket(closeWindowPacket);
-                        InventoryUtils.closeInventory(session, inventory.getId(), false);
-                    }
+                    blockEntityTag = lecternTag.build();
+                } else {
+                    // There is *a* book here, but... no NBT.
+                    NbtMapBuilder lecternTag = getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 1);
+                    NbtMapBuilder bookTag = NbtMap.builder()
+                            .putByte("Count", (byte) 1)
+                            .putShort("Damage", (short) 0)
+                            .putString("Name", "minecraft:writable_book")
+                            .putCompound("tag", NbtMap.builder().putList("pages", NbtType.COMPOUND, Collections.singletonList(
+                                    NbtMap.builder()
+                                        .putString("photoname", "")
+                                        .putString("text", "")
+                                    .build()
+                            )).build());
+
+                    blockEntityTag = lecternTag.putCompound("book", bookTag.build()).build();
+                }
+                // Even with serverside access to lecterns, we don't easily know which lectern this is, so we need to rebuild
+                // the block entity tag
+                lecternContainer.setBlockEntityTag(blockEntityTag);
+                lecternContainer.setPosition(position);
+                if (shouldRefresh) {
+                    // Update the lectern because it's not updated client-side
+                    BlockEntityUtils.updateBlockEntity(session, blockEntityTag, position);
+                    session.getLecternCache().add(position);
+                    // Close the window - we will reopen it once the client has this data synced
+                    ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(lecternContainer.getId());
+                    session.sendDownstreamPacket(closeWindowPacket);
+                    InventoryUtils.closeInventory(session, inventory.getId(), false);
                 }
             }
         }

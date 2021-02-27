@@ -203,17 +203,27 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
                 return;
             }
             BookMeta bookMeta = (BookMeta) itemStack.getItemMeta();
-            NbtMapBuilder lecternTag = LecternInventoryTranslator.getBaseLecternTag(x, y, z, bookMeta.getPageCount());
+            // On the count: allow the book to show/open even there are no pages. We know there is a book here, after all, and this matches Java behavior
+            boolean hasBookPages = bookMeta.getPageCount() > 0;
+            NbtMapBuilder lecternTag = LecternInventoryTranslator.getBaseLecternTag(x, y, z, hasBookPages ? bookMeta.getPageCount() : 1);
             lecternTag.putInt("page", lectern.getPage() / 2);
             NbtMapBuilder bookTag = NbtMap.builder()
                     .putByte("Count", (byte) itemStack.getAmount())
                     .putShort("Damage", (short) 0)
                     .putString("Name", "minecraft:writable_book");
-            List<NbtMap> pages = new ArrayList<>();
-            for (String page : bookMeta.getPages()) {
+            List<NbtMap> pages = new ArrayList<>(bookMeta.getPageCount());
+            if (hasBookPages) {
+                for (String page : bookMeta.getPages()) {
+                    NbtMapBuilder pageBuilder = NbtMap.builder()
+                            .putString("photoname", "")
+                            .putString("text", page);
+                    pages.add(pageBuilder.build());
+                }
+            } else {
+                // Empty page
                 NbtMapBuilder pageBuilder = NbtMap.builder()
                         .putString("photoname", "")
-                        .putString("text", page);
+                        .putString("text", "");
                 pages.add(pageBuilder.build());
             }
             bookTag.putCompound("tag", NbtMap.builder().putList("pages", NbtType.COMPOUND, pages).build());

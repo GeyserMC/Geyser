@@ -401,7 +401,6 @@ public class ChunkUtils {
             boolean newLecternHasBook = BlockStateValues.getLecternBookStates().get(blockState);
             if (!session.getConnector().getWorldManager().shouldExpectLecternHandled() && lecternCachedHasBook != newLecternHasBook) {
                 // Refresh the block entirely - it either has a book or no longer has a book
-                session.getConnector().getLogger().warning("Refreshing lectern entirely");
                 NbtMap newLecternTag;
                 if (newLecternHasBook) {
                     newLecternTag = session.getConnector().getWorldManager().getLecternDataAt(session, position.getX(), position.getY(), position.getZ(), false);
