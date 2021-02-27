@@ -63,7 +63,8 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
 
             Inventory newInventory = newTranslator.createInventory(name, packet.getWindowId(), packet.getType(), session.getPlayerInventory());
             if (openInventory != null) {
-                InventoryUtils.closeInventory(session, openInventory.getId(), true);
+                // Sometimes the server can double-open an inventory with the same ID - don't confirm in that instance.
+                InventoryUtils.closeInventory(session, openInventory.getId(), openInventory.getId() != packet.getWindowId());
             }
 
             session.setInventoryTranslator(newTranslator);
