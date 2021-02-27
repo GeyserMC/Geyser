@@ -123,43 +123,38 @@ public class ArmorStandEntity extends LivingEntity {
                 isInvisible = (xd & 0x20) == 0x20;
                 updateSecondEntityStatus(false);
             }
-        } else if (entityMetadata.getId() == 2 || entityMetadata.getId() == 3) {
+        } else if (entityMetadata.getId() == 2) {
             updateSecondEntityStatus(false);
         } else if (entityMetadata.getId() == 14 && entityMetadata.getType() == MetadataType.BYTE) {
             byte xd = (byte) entityMetadata.getValue();
 
             // isSmall
             boolean newIsSmall = (xd & 0x01) == 0x01;
-            if ((newIsSmall != isSmall) && positionRequiresOffset) {
-                // Fix new inconsistency with offset
-                this.position = fixOffsetForSize(position, newIsSmall);
-                positionUpdateRequired = true;
-            }
-            isSmall = newIsSmall;
-            if (isSmall) {
-
-                float scale = metadata.getFloat(EntityData.SCALE);
-                if (scale != 0.55f && scale != 0.0f) {
-                    metadata.put(EntityData.SCALE, 0.55f);
+            if (newIsSmall != isSmall) {
+                if (positionRequiresOffset) {
+                    // Fix new inconsistency with offset
+                    this.position = fixOffsetForSize(position, newIsSmall);
+                    positionUpdateRequired = true;
                 }
 
-                if (metadata.getFloat(EntityData.BOUNDING_BOX_WIDTH) == 0.5f) {
-                    metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.25f);
-                    metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.9875f);
+                isSmall = newIsSmall;
+                if (!isMarker) {
+                    toggleSmallStatus();
                 }
-            } else if (metadata.getFloat(EntityData.BOUNDING_BOX_WIDTH) == 0.25f) {
-                metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
-                metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
             }
 
             // setMarker
             boolean oldIsMarker = isMarker;
             isMarker = (xd & 0x10) == 0x10;
-            if (isMarker) {
-                metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.0f);
-                metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.0f);
-            }
             if (oldIsMarker != isMarker) {
+                if (isMarker) {
+                    metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.0f);
+                    metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.0f);
+                    metadata.put(EntityData.SCALE, 0f);
+                } else {
+                    toggleSmallStatus();
+                }
+
                 updateSecondEntityStatus(false);
             }
         }
@@ -226,6 +221,7 @@ public class ArmorStandEntity extends LivingEntity {
         if (!primaryEntity) return;
         if (!isInvisible || isMarker) {
             // It is either impossible to show armor, or the armor stand isn't invisible. We good.
+            metadata.getFlags().setFlag(EntityFlag.INVISIBLE, false);
             updateOffsetRequirement(false);
             if (positionUpdateRequired) {
                 positionUpdateRequired = false;
@@ -304,6 +300,15 @@ public class ArmorStandEntity extends LivingEntity {
         if (sendMetadata) {
             this.updateBedrockMetadata(session);
         }
+    }
+
+    /**
+     * If this armor stand is not a marker, set its bounding box size and scale.
+     */
+    private void toggleSmallStatus() {
+        metadata.put(EntityData.BOUNDING_BOX_WIDTH, isSmall ? 0.25f : entityType.getWidth());
+        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, isSmall ? 0.9875f : entityType.getHeight());
+        metadata.put(EntityData.SCALE, isSmall ? 0.55f : 1f);
     }
 
     /**
