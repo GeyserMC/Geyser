@@ -12,6 +12,7 @@
 
     <properties>
         <netty.version>4.1.59.Final</netty.version>
+        <fastutil.version>8.5.2</fastutil.version>
     </properties>
 
     <dependencies>
@@ -54,61 +55,61 @@
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-int-maps</artifactId>
-            <version>8.5.2</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-float-maps</artifactId>
-            <version>8.5.2</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-long-long-maps</artifactId>
-            <version>8.5.2</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-object-long-maps</artifactId>
-            <version>8.5.2</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-byte-maps</artifactId>
-            <version>8.5.2</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-double-maps</artifactId>
-            <version>8.5.2</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-boolean-maps</artifactId>
-            <version>8.5.2</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-object-int-maps</artifactId>
-            <version>8.5.2</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-object-byte-maps</artifactId>
-            <version>8.5.2</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-object-object-maps</artifactId>
-            <version>8.5.2</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
