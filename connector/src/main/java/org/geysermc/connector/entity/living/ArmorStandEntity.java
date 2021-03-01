@@ -27,6 +27,7 @@ package org.geysermc.connector.entity.living;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Rotation;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -156,6 +157,41 @@ public class ArmorStandEntity extends LivingEntity {
                 }
 
                 updateSecondEntityStatus(false);
+            }
+
+            // The following values don't do anything on normal Bedrock.
+            // But if given a resource pack, then we can use these values to control armor stand visual properties
+            metadata.getFlags().setFlag(EntityFlag.ANGRY, (xd & 0x04) != 0x04); // Has arms
+            metadata.getFlags().setFlag(EntityFlag.ADMIRING, (xd & 0x08) == 0x08); // Has baseplate
+        } else {
+            EntityData dataLeech = null;
+            switch (entityMetadata.getId()) {
+                case 15: // Head
+                    dataLeech = EntityData.MARK_VARIANT;
+                    break;
+                case 16: // Body
+                    dataLeech = EntityData.VARIANT;
+                    break;
+                case 17: // Left arm
+                    dataLeech = EntityData.TRADE_TIER;
+                    break;
+                case 18: // Right arm
+                    dataLeech = EntityData.MAX_TRADE_TIER;
+                    break;
+                case 19: // Left leg
+                    dataLeech = EntityData.SKIN_ID;
+                    break;
+                case 20: // Right leg
+                    dataLeech = EntityData.LIMITED_LIFE;
+                    break;
+            }
+            if (dataLeech != null) {
+                // Indicate that rotation should be checked
+                metadata.getFlags().setFlag(EntityFlag.BRIBED, true);
+
+                Rotation rotation = (Rotation) entityMetadata.getValue();
+                int value = (getRotation(rotation.getPitch()) * 1000000) + (getRotation(rotation.getYaw()) * 1000) + getRotation(rotation.getRoll());
+                metadata.put(dataLeech, value);
             }
         }
         if (secondEntity != null) {
@@ -300,6 +336,14 @@ public class ArmorStandEntity extends LivingEntity {
         if (sendMetadata) {
             this.updateBedrockMetadata(session);
         }
+    }
+
+    private int getRotation(float rotation) {
+        rotation = rotation % 360f;
+        while (rotation < 0) {
+            rotation += 360f;
+        }
+        return (int) rotation;
     }
 
     /**
