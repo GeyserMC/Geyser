@@ -203,7 +203,7 @@ public class LoginEncryptionUtils {
      */
     public static void showMicrosoftCodeWindow(GeyserSession session, MsaAuthenticationService.MsCodeResponse response) {
         ModalFormWindow msaCodeWindow = new ModalFormWindow("%xbox.signin", "%xbox.signin.website\n%xbox.signin.url\n%xbox.signin.enterCode\n" +
-                response.user_code, "Done", "%menu.disconnect");
+                response.user_code, "%gui.done", "%menu.disconnect");
         session.sendForm(msaCodeWindow, LoginEncryptionUtils.AUTH_MSA_CODE_FORM_ID);
     }
 

@@ -27,9 +27,11 @@ package org.geysermc.connector.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.geysermc.connector.GeyserLogger;
+import org.geysermc.connector.network.CIDRMatcher;
 import org.geysermc.connector.utils.LanguageUtils;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 public interface GeyserConfiguration {
@@ -58,6 +60,8 @@ public interface GeyserConfiguration {
     boolean isLegacyPingPassthrough();
 
     int getPingPassthroughInterval();
+
+    boolean isForwardPlayerPing();
 
     int getMaxPlayers();
 
@@ -104,6 +108,15 @@ public interface GeyserConfiguration {
         String getMotd2();
 
         String getServerName();
+
+        boolean isEnableProxyProtocol();
+
+        List<String> getProxyProtocolWhitelistedIPs();
+
+        /**
+         * @return Unmodifiable list of {@link CIDRMatcher}s from {@link #getProxyProtocolWhitelistedIPs()}
+         */
+        List<CIDRMatcher> getWhitelistedIPsMatchers();
     }
 
     interface IRemoteConfiguration {
