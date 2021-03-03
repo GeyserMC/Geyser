@@ -103,16 +103,25 @@ public final class FloodgateSkinUploader {
                             break;
                         case SKIN_UPLOADED:
                             // if Geyser is the only subscriber we have send it to the server manually
+                            // otherwise it's handled by the Floodgate plugin subscribers
                             if (subscribersCount != 1) {
                                 break;
                             }
 
                             String xuid = node.get("xuid").asText();
-                            String value = node.get("value").asText();
-                            String signature = node.get("signature").asText();
-
                             GeyserSession session = connector.getPlayerByXuid(xuid);
+
                             if (session != null) {
+                                if (!node.get("success").asBoolean()) {
+                                    logger.info("Failed to upload skin for " + session.getName());
+                                    return;
+                                }
+
+                                JsonNode data = node.get("data");
+
+                                String value = data.get("value").asText();
+                                String signature = data.get("signature").asText();
+
                                 byte[] bytes = (value + '\0' + signature)
                                         .getBytes(StandardCharsets.UTF_8);
                                 PluginMessageUtils.sendMessage(session, getSkinChannel(), bytes);
