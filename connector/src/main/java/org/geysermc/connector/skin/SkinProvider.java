@@ -433,17 +433,11 @@ public class SkinProvider {
             // Very rarely, skins can be larger than Minecraft's default.
             // Bedrock will not render anything above a width of 128.
             if (image.getWidth() > 128) {
-                image = scale(image, 128, image.getHeight() / (image.getWidth() / 128));
+                // On Height: Scale by the amount we divided width by, or simply cut down to 128
+                image = scale(image, 128, image.getHeight() >= 256 ? (image.getHeight() / (image.getWidth() / 128)) : 128);
             }
 
-            // Remove alpha from skins to replicate how java displays
-            BufferedImage newImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
-            Graphics g = newImage.createGraphics();
-            g.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null);
-            g.dispose();
-
-            image.flush();
-            image = newImage;
+            // TODO remove alpha channel
         }
 
         byte[] data = bufferedImageToImageData(image);
