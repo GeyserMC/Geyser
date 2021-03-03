@@ -412,7 +412,6 @@ public class SkinProvider {
 
         // if the requested image is a cape
         if (provider != null) {
-            // Scale capes based on size
             if (image.getWidth() > 64) {
                 // Prevent weirdly-scaled capes from being cut off
                 BufferedImage newImage = new BufferedImage(128, 64, BufferedImage.TYPE_INT_ARGB);
@@ -422,7 +421,6 @@ public class SkinProvider {
                 image.flush();
                 image = scale(newImage, 64, 32);
             }
-
         } else {
             // Very rarely, skins can be larger than Minecraft's default.
             // Bedrock will not render anything above a width of 128.
