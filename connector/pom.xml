@@ -12,6 +12,8 @@
 
     <properties>
         <netty.version>4.1.59.Final</netty.version>
+        <fastutil.version>8.5.2</fastutil.version>
+        <adventure.version>4.5.0</adventure.version>
     </properties>
 
     <dependencies>
@@ -30,13 +32,9 @@
         <dependency>
             <groupId>com.github.CloudburstMC.Protocol</groupId>
             <artifactId>bedrock-v422</artifactId>
-            <version>294e7e5</version>
+            <version>42da92f</version>
             <scope>compile</scope>
             <exclusions>
-                <exclusion>
-                    <groupId>net.sf.trove4j</groupId>
-                    <artifactId>trove</artifactId>
-                </exclusion>
                 <exclusion>
                     <groupId>com.nukkitx.network</groupId>
                     <artifactId>raknet</artifactId>
@@ -44,9 +42,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.github.CloudburstMC.Network</groupId>
+            <groupId>com.nukkitx.network</groupId>
             <artifactId>raknet</artifactId>
-            <version>a94d2dd</version>
+            <version>1.6.26-20210217.205834-2</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -58,61 +56,61 @@
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-int-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-float-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-long-long-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-object-long-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-byte-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-double-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-boolean-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-object-int-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-object-byte-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-object-object-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -214,25 +212,25 @@
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-api</artifactId>
-            <version>4.5.0</version>
+            <version>${adventure.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-gson</artifactId>
-            <version>4.5.0</version>
+            <version>${adventure.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-legacy</artifactId>
-            <version>4.5.0</version>
+            <version>${adventure.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-gson-legacy-impl</artifactId>
-            <version>4.5.0</version>
+            <version>${adventure.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
