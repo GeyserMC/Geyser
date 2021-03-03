@@ -33,10 +33,11 @@ import com.github.steveice10.mc.protocol.packet.login.client.LoginPluginResponse
 import com.github.steveice10.mc.protocol.packet.login.server.LoginPluginRequestPacket;
 
 @Translator(packet = LoginPluginRequestPacket.class)
-public class JavaLoginPluginMessageTranslator extends PacketTranslator<LoginPluginRequestPacket> {
+public class JavaLoginPluginRequestTranslator extends PacketTranslator<LoginPluginRequestPacket> {
     @Override
     public void translate(LoginPluginRequestPacket packet, GeyserSession session) {
         // A vanilla client doesn't know any PluginMessage in the Login state, so we don't know any either.
+        // Note: Fabric Networking API v1 will not let the client log in without sending this
         session.sendDownstreamPacket(
                 new LoginPluginResponsePacket(packet.getMessageId(), null)
         );
