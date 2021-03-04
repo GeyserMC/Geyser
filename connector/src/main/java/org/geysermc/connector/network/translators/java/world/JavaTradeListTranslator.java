@@ -77,7 +77,8 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
         updateTradePacket.setPlayerUniqueEntityId(session.getPlayerEntity().getGeyserId());
         updateTradePacket.setTraderUniqueEntityId(villager.getGeyserId());
         NbtMapBuilder builder = NbtMap.builder();
-        List<NbtMap> tags = new ArrayList<>();
+        boolean addExtraTrade = packet.isRegularVillager() && packet.getVillagerLevel() < 5;
+        List<NbtMap> tags = new ArrayList<>(addExtraTrade ? packet.getTrades().length + 1 : packet.getTrades().length);
         for (int i = 0; i < packet.getTrades().length; i++) {
             VillagerTrade trade = packet.getTrades()[i];
             NbtMapBuilder recipe = NbtMap.builder();
@@ -101,7 +102,7 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
         }
 
         //Hidden trade to fix visual experience bug
-        if (packet.isRegularVillager() && packet.getVillagerLevel() < 5) {
+        if (addExtraTrade) {
             tags.add(NbtMap.builder()
                     .putInt("maxUses", 0)
                     .putInt("traderExp", 0)
@@ -117,7 +118,7 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
         }
 
         builder.putList("Recipes", NbtType.COMPOUND, tags);
-        List<NbtMap> expTags = new ArrayList<>();
+        List<NbtMap> expTags = new ArrayList<>(5);
         expTags.add(NbtMap.builder().putInt("0", 0).build());
         expTags.add(NbtMap.builder().putInt("1", 10).build());
         expTags.add(NbtMap.builder().putInt("2", 70).build());

@@ -40,7 +40,6 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
     @Override
     public void translate(ContainerClosePacket packet, GeyserSession session) {
         session.addInventoryTask(() -> {
-            session.setLastWindowCloseTime(0);
             byte windowId = packet.getId();
 
             //Client wants close confirmation

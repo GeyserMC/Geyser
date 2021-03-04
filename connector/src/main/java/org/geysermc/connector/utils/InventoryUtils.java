@@ -79,6 +79,9 @@ public class InventoryUtils {
                         if (openInv != null && openInv.getId() == inventory.getId()) {
                             translator.openInventory(session, inventory);
                             translator.updateInventory(session, inventory);
+                        } else if (openInv != null && openInv.isPending()) {
+                            // Presumably, this inventory is no longer relevant, and the client doesn't care about it
+                            displayInventory(session, openInv);
                         }
                 }), 200, TimeUnit.MILLISECONDS);
             } else {

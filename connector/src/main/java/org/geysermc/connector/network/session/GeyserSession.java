@@ -251,12 +251,6 @@ public class GeyserSession implements CommandSender {
     private Entity ridingVehicleEntity;
 
     @Setter
-    private long lastWindowCloseTime = 0;
-
-    @Setter
-    private long lastInteractedVillagerEid;
-
-    @Setter
     private Int2ObjectMap<Recipe> craftingRecipes;
     private final Set<String> unlockedRecipes;
     private final AtomicInteger lastRecipeNetId;

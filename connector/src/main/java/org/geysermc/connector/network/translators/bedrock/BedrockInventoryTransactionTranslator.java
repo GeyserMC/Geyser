@@ -327,10 +327,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamPacket(interactAtPacket);
 
                         EntitySoundInteractionHandler.handleEntityInteraction(session, vector, entity);
-
-                        if (entity instanceof AbstractMerchantEntity) {
-                            session.setLastInteractedVillagerEid(packet.getRuntimeEntityId());
-                        }
                         break;
                     case 1: //Attack
                         if (entity.getEntityType() == EntityType.ENDER_DRAGON) {
