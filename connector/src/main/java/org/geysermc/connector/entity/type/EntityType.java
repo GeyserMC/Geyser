@@ -58,7 +58,7 @@ public enum EntityType {
     SQUID(SquidEntity.class, 17, 0.8f),
     RABBIT(RabbitEntity.class, 18, 0.5f, 0.4f),
     BAT(BatEntity.class, 19, 0.9f, 0.5f),
-    IRON_GOLEM(GolemEntity.class, 20, 2.7f, 1.4f),
+    IRON_GOLEM(IronGolemEntity.class, 20, 2.7f, 1.4f),
     SNOW_GOLEM(SnowGolemEntity.class, 21, 1.9f, 0.7f),
     OCELOT(OcelotEntity.class, 22, 0.35f, 0.3f),
     HORSE(HorseEntity.class, 23, 1.6f, 1.3965f),
@@ -150,7 +150,7 @@ public enum EntityType {
     EVOKER(SpellcasterIllagerEntity.class, 104, 1.95f, 0.6f, 0.6f, 0f, "minecraft:evocation_illager"),
     VEX(VexEntity.class, 105, 0.8f, 0.4f),
     ICE_BOMB(Entity.class, 106, 0f),
-    BALLOON(Entity.class, 107, 0f), //TODO
+    BALLOON(Entity.class, 107, 0f),
     PUFFERFISH(PufferFishEntity.class, 108, 0.7f, 0.7f),
     SALMON(AbstractFishEntity.class, 109, 0.5f, 0.7f),
     DROWNED(ZombieEntity.class, 110, 1.95f, 0.6f),
