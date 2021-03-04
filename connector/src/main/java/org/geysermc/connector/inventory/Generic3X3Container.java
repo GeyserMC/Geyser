@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.inventory;
 
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import lombok.Getter;
 
 public class Generic3X3Container extends Container {
@@ -34,8 +35,8 @@ public class Generic3X3Container extends Container {
     @Getter
     private boolean isDropper = false;
 
-    public Generic3X3Container(String title, int id, int size, PlayerInventory playerInventory) {
-        super(title, id, size, playerInventory);
+    public Generic3X3Container(String title, int id, int size, WindowType windowType, PlayerInventory playerInventory) {
+        super(title, id, size, windowType, playerInventory);
     }
 
     @Override

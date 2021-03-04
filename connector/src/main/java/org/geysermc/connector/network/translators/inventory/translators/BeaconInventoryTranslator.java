@@ -127,6 +127,6 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
 
     @Override
     public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
-        return new BeaconContainer(name, windowId, this.size, playerInventory);
+        return new BeaconContainer(name, windowId, this.size, windowType, playerInventory);
     }
 }

@@ -26,6 +26,7 @@
 package org.geysermc.connector.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.entity.Entity;
@@ -36,7 +37,7 @@ public class MerchantContainer extends Container {
     private Entity villager;
     private VillagerTrade[] villagerTrades;
 
-    public MerchantContainer(String title, int id, int size, PlayerInventory playerInventory) {
-        super(title, id, size, playerInventory);
+    public MerchantContainer(String title, int id, int size, WindowType windowType, PlayerInventory playerInventory) {
+        super(title, id, size, windowType, playerInventory);
     }
 }

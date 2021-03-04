@@ -132,6 +132,6 @@ public class JavaOpenHorseWindowTranslator extends PacketTranslator<ServerOpenHo
         session.sendUpstreamPacket(updateEquipPacket);
 
         session.setInventoryTranslator(inventoryTranslator);
-        InventoryUtils.openInventory(session, new Container(entity.getMetadata().getString(EntityData.NAMETAG), packet.getWindowId(), packet.getNumberOfSlots(), session.getPlayerInventory()));
+        InventoryUtils.openInventory(session, new Container(entity.getMetadata().getString(EntityData.NAMETAG), packet.getWindowId(), packet.getNumberOfSlots(), null, session.getPlayerInventory()));
     }
 }

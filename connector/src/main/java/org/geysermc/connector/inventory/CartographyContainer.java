@@ -25,8 +25,10 @@
 
 package org.geysermc.connector.inventory;
 
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+
 public class CartographyContainer extends Container {
-    public CartographyContainer(String title, int id, int size, PlayerInventory playerInventory) {
-        super(title, id, size, playerInventory);
+    public CartographyContainer(String title, int id, int size, WindowType windowType, PlayerInventory playerInventory) {
+        super(title, id, size, windowType, playerInventory);
     }
 }

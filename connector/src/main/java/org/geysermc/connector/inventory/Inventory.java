@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.inventory;
 
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.Getter;
 import lombok.NonNull;
@@ -40,6 +41,12 @@ public class Inventory {
 
     @Getter
     protected final int size;
+
+    /**
+     * Used for smooth transitions between two windows of the same type.
+     */
+    @Getter
+    protected final WindowType windowType;
 
     @Getter
     @Setter
@@ -65,14 +72,15 @@ public class Inventory {
     @Setter
     private boolean pending = false;
 
-    protected Inventory(int id, int size) {
-        this("Inventory", id, size);
+    protected Inventory(int id, int size, WindowType windowType) {
+        this("Inventory", id, size, windowType);
     }
 
-    protected Inventory(String title, int id, int size) {
+    protected Inventory(String title, int id, int size, WindowType windowType) {
         this.title = title;
         this.id = id;
         this.size = size;
+        this.windowType = windowType;
         this.items = new GeyserItemStack[size];
         Arrays.fill(items, GeyserItemStack.EMPTY);
     }

@@ -133,6 +133,6 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
 
     @Override
     public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
-        return new StonecutterContainer(name, windowId, this.size, playerInventory);
+        return new StonecutterContainer(name, windowId, this.size, windowType, playerInventory);
     }
 }

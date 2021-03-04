@@ -164,7 +164,7 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
 
     @Override
     public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
-        return new EnchantingContainer(name, windowId, this.size, playerInventory);
+        return new EnchantingContainer(name, windowId, this.size, windowType, playerInventory);
     }
 
     /**

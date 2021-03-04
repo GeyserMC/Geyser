@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.inventory;
 
+import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import lombok.Getter;
@@ -38,7 +39,7 @@ public class LecternContainer extends Container {
     @Getter @Setter
     private Vector3i position;
 
-    public LecternContainer(String title, int id, int size, PlayerInventory playerInventory) {
-        super(title, id, size, playerInventory);
+    public LecternContainer(String title, int id, int size, WindowType windowType, PlayerInventory playerInventory) {
+        super(title, id, size, windowType, playerInventory);
     }
 }

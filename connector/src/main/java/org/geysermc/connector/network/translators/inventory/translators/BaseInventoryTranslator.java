@@ -96,6 +96,6 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator {
 
     @Override
     public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
-        return new Container(name, windowId, this.size, playerInventory);
+        return new Container(name, windowId, this.size, windowType, playerInventory);
     }
 }

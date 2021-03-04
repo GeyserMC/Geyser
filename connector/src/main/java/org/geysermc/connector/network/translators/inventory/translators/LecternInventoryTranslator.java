@@ -151,7 +151,7 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
-        return new LecternContainer(name, windowId, this.size, playerInventory);
+        return new LecternContainer(name, windowId, this.size, windowType, playerInventory);
     }
 
     public static NbtMapBuilder getBaseLecternTag(int x, int y, int z, int totalPages) {
