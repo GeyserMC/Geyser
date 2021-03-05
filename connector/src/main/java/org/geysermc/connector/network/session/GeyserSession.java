@@ -395,6 +395,12 @@ public class GeyserSession implements CommandSender {
         // Set the hardcoded shield ID to the ID we just defined in StartGamePacket
         upstream.getSession().getHardcodedBlockingId().set(ItemRegistry.SHIELD.getBedrockId());
 
+        if (ItemRegistry.FURNACE_MINECART_DATA != null) {
+            ItemComponentPacket componentPacket = new ItemComponentPacket();
+            componentPacket.getItems().add(ItemRegistry.FURNACE_MINECART_DATA);
+            upstream.sendPacket(componentPacket);
+        }
+
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();

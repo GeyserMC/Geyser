@@ -26,8 +26,9 @@
 package org.geysermc.connector.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
-import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
+import com.nukkitx.protocol.bedrock.data.ExperimentData;
+import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.AuthType;
@@ -35,6 +36,7 @@ import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.AdvancementsCache;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.utils.*;
 
 import java.io.FileInputStream;
@@ -124,6 +126,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 for (ResourcePack pack : ResourcePack.PACKS.values()) {
                     ResourcePackManifest.Header header = pack.getManifest().getHeader();
                     stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.getUuid().toString(), header.getVersionString(), ""));
+                }
+
+                if (ItemRegistry.FURNACE_MINECART_DATA != null) {
+                    // Allow custom items to work
+                    stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
                 }
 
                 session.sendUpstreamPacket(stackPacket);
