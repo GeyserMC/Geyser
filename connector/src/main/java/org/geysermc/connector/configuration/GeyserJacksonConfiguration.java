@@ -115,8 +115,8 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("allow-custom-skulls")
     private boolean allowCustomSkulls = true;
 
-    @JsonProperty("add-furnace-minecart")
-    private boolean addFurnaceMinecart = true;
+    @JsonProperty("add-non-bedrock-items")
+    private boolean addNonBedrockItems = true;
 
     @JsonProperty("above-bedrock-nether-building")
     private boolean aboveBedrockNetherBuilding = false;

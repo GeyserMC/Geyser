@@ -158,7 +158,7 @@ public class ItemRegistry {
 
         int itemIndex = 0;
         int javaFurnaceMinecartId = 0;
-        boolean usingFurnaceMinecart = GeyserConnector.getInstance().getConfig().isAddFurnaceMinecart();
+        boolean usingFurnaceMinecart = GeyserConnector.getInstance().getConfig().isAddNonBedrockItems();
         Iterator<Map.Entry<String, JsonNode>> iterator = items.fields();
         while (iterator.hasNext()) {
             Map.Entry<String, JsonNode> entry = iterator.next();

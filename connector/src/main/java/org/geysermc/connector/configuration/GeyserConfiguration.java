@@ -81,7 +81,7 @@ public interface GeyserConfiguration {
 
     Path getFloodgateKeyPath();
 
-    boolean isAddFurnaceMinecart();
+    boolean isAddNonBedrockItems();
 
     boolean isAboveBedrockNetherBuilding();
 
