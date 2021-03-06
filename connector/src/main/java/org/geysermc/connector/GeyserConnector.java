@@ -190,6 +190,7 @@ public class GeyserConnector {
         authType = AuthType.getByName(config.getRemote().getAuthType());
 
         CooldownUtils.setShowCooldown(config.isShowCooldown());
+        CooldownUtils.setActionbarCooldown(config.isActionbarCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
         SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS = config.isAllowCustomSkulls();
 

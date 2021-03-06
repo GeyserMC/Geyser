@@ -96,6 +96,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @JsonProperty("show-cooldown")
     private boolean showCooldown = true;
+    
+    @JsonProperty("actionbar-cooldown")
+    private boolean actionbarCooldown = false;
 
     @JsonProperty("show-coordinates")
     private boolean showCoordinates = true;
