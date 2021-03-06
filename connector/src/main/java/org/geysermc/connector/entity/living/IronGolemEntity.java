@@ -76,6 +76,5 @@ public class IronGolemEntity extends GolemEntity {
         updateAttributesPacket.setRuntimeEntityId(geyserId);
         updateAttributesPacket.setAttributes(attributes);
         session.sendUpstreamPacket(updateAttributesPacket);
-        System.out.println(updateAttributesPacket);
     }
 }
