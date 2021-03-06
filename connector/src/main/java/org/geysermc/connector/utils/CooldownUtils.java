@@ -72,10 +72,11 @@ public class CooldownUtils {
         if (session.isClosed()) return; // Don't run scheduled tasks if the client left
         if (lastHitTime != session.getLastHitTime()) return; // Means another cooldown has started so there's no need to continue this one
         SetTitlePacket titlePacket = new SetTitlePacket();
-        if (ACTIONBAR_COOLDOWN)
+        if (ACTIONBAR_COOLDOWN) {
         	titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
-        else
+        } else {
         	titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
+        }
         titlePacket.setText(getTitle(session));
         titlePacket.setFadeInTime(0);
         titlePacket.setFadeOutTime(5);
@@ -85,10 +86,11 @@ public class CooldownUtils {
             session.getConnector().getGeneralThreadPool().schedule(() -> computeCooldown(session, lastHitTime), 50, TimeUnit.MILLISECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
         } else {
             SetTitlePacket removeTitlePacket = new SetTitlePacket();
-            if (ACTIONBAR_COOLDOWN)
+            if (ACTIONBAR_COOLDOWN) {
             	titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
-            else
+            } else {
             	removeTitlePacket.setType(SetTitlePacket.Type.SUBTITLE);
+            }
             removeTitlePacket.setText(" ");
             session.sendUpstreamPacket(removeTitlePacket);
         }
