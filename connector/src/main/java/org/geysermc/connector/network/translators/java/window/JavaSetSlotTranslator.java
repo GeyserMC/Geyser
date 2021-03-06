@@ -80,8 +80,14 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
                 session.setCraftingGridFuture(session.getConnector().getGeneralThreadPool().schedule(() -> session.addInventoryTask(() -> updateCraftingGrid(session, packet, inventory, translator)), 150, TimeUnit.MILLISECONDS));
 
                 GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
-                inventory.setItem(packet.getSlot(), newItem, session);
-                translator.updateSlot(session, inventory, packet.getSlot());
+                if (packet.getWindowId() == 0 && !(translator instanceof PlayerInventoryTranslator)) {
+                    // In rare cases, the window ID can still be 0 but Java treats it as valid
+                    session.getPlayerInventory().setItem(packet.getSlot(), newItem, session);
+                    InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), packet.getSlot());
+                } else {
+                    inventory.setItem(packet.getSlot(), newItem, session);
+                    translator.updateSlot(session, inventory, packet.getSlot());
+                }
             }
         });
     }

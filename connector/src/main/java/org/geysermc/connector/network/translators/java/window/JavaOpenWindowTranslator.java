@@ -63,9 +63,12 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
 
             Inventory newInventory = newTranslator.createInventory(name, packet.getWindowId(), packet.getType(), session.getPlayerInventory());
             if (openInventory != null) {
-                // Sometimes the server can double-open an inventory with the same ID - don't confirm in that instance.
-                // If the window type is the same, don't confirm; in rare cases, inventories can do funny things where it keeps the same window type up but change the contents.
-                InventoryUtils.closeInventory(session, openInventory.getId(), (openInventory.getId() != packet.getWindowId() && openInventory.getWindowType() != packet.getType()));
+                // If the window type is the same, don't close.
+                // In rare cases, inventories can do funny things where it keeps the same window type up but change the contents.
+                if (openInventory.getWindowType() != packet.getType()) {
+                    // Sometimes the server can double-open an inventory with the same ID - don't confirm in that instance.
+                    InventoryUtils.closeInventory(session, openInventory.getId(), openInventory.getId() != packet.getWindowId());
+                }
             }
 
             session.setInventoryTranslator(newTranslator);

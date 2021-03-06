@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.inventory.translators.chest;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
@@ -152,8 +151,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         }
 
         Vector3i holderPos = inventory.getHolderPosition();
-        Position pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
-        int realBlock = session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ());
+        int realBlock = session.getConnector().getWorldManager().getBlockAt(session, holderPos);
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
@@ -161,8 +159,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         session.sendUpstreamPacket(blockPacket);
 
         holderPos = holderPos.add(Vector3i.UNIT_X);
-        pos = new Position(holderPos.getX(), holderPos.getY(), holderPos.getZ());
-        realBlock = session.getConnector().getWorldManager().getBlockAt(session, pos.getX(), pos.getY(), pos.getZ());
+        realBlock = session.getConnector().getWorldManager().getBlockAt(session, holderPos);
         blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
