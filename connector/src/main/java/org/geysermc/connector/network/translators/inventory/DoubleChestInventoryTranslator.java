@@ -37,23 +37,23 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
-    private final int blockId;
+    private final int javaBlockState;
 
     public DoubleChestInventoryTranslator(int size) {
         super(size, 54);
-        int javaBlockState = BlockTranslator.getJavaBlockState("minecraft:chest[facing=north,type=single,waterlogged=false]");
-        this.blockId = 0; //FIXME
+        this.javaBlockState = BlockTranslator.getJavaBlockState("minecraft:chest[facing=north,type=single,waterlogged=false]");
     }
 
     @Override
     public void prepareInventory(GeyserSession session, Inventory inventory) {
         Vector3i position = session.getPlayerEntity().getPosition().toInt().add(Vector3i.UP);
         Vector3i pairPosition = position.add(Vector3i.UNIT_X);
+        int bedrockBlockId = session.getBlockTranslator().getBedrockBlockId(javaBlockState);
 
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
-        blockPacket.setRuntimeId(blockId);
+        blockPacket.setRuntimeId(bedrockBlockId);
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
 
@@ -73,7 +73,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(pairPosition);
-        blockPacket.setRuntimeId(blockId);
+        blockPacket.setRuntimeId(bedrockBlockId);
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
 
