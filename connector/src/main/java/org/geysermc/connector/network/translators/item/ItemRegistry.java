@@ -28,9 +28,7 @@ package org.geysermc.connector.network.translators.item;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.nbt.*;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
@@ -279,12 +277,21 @@ public class ItemRegistry {
             componentBuilder.putCompound("minecraft:icon", NbtMap.builder().putString("texture", "minecart_furnace").build());
             componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", "item.minecartFurnace.name").build());
 
+            // Indicate that the arm animation should play on rails
+            List<NbtMap> useOnTag = Collections.singletonList(NbtMap.builder().putString("tags", "q.any_tag('rail')").build());
+            componentBuilder.putCompound("minecraft:entity_placer", NbtMap.builder()
+                    .putList("dispense_on", NbtType.COMPOUND, useOnTag)
+                    .putString("entity", "minecraft:minecart")
+                    .putList("use_on", NbtType.COMPOUND, useOnTag)
+            .build());
+
             NbtMapBuilder itemProperties = NbtMap.builder();
+            // We always want to allow offhand usage when we can - matches Java Edition
             itemProperties.putBoolean("allow_off_hand", true);
             itemProperties.putBoolean("hand_equipped", false);
             itemProperties.putInt("max_stack_size", 1);
             itemProperties.putString("creative_group", "itemGroup.name.minecart");
-            itemProperties.putInt("creative_category", 4);
+            itemProperties.putInt("creative_category", 4); // 4 - "Items"
 
             componentBuilder.putCompound("item_properties", itemProperties.build());
             builder.putCompound("components", componentBuilder.build());
