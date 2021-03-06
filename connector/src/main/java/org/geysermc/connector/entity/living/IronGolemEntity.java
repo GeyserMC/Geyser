@@ -39,6 +39,8 @@ public class IronGolemEntity extends GolemEntity {
         super(entityId, geyserId, entityType, position, motion, rotation);
         // Indicate that we should show cracks through a resource pack
         metadata.getFlags().setFlag(EntityFlag.BRIBED, true);
+        // Required, or else the overlay is black
+        metadata.put(EntityData.COLOR_2, (byte) 0);
     }
 
     @Override
