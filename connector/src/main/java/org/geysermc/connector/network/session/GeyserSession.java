@@ -415,10 +415,10 @@ public class GeyserSession implements CommandSender {
 
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
         attributesPacket.setRuntimeEntityId(getPlayerEntity().getGeyserId());
-        List<AttributeData> attributes = new ArrayList<>();
         // Default move speed
         // Bedrock clients move very fast by default until they get an attribute packet correcting the speed
-        attributes.add(new AttributeData("minecraft:movement", 0.0f, 1024f, 0.1f, 0.1f));
+        List<AttributeData> attributes = Collections.singletonList(
+                new AttributeData("minecraft:movement", 0.0f, 1024f, 0.1f, 0.1f));
         attributesPacket.setAttributes(attributes);
         upstream.sendPacket(attributesPacket);
 
@@ -624,7 +624,7 @@ public class GeyserSession implements CommandSender {
 
                 // Let the user know there locale may take some time to download
                 // as it has to be extracted from a JAR
-                if (locale.toLowerCase().equals("en_us") && !LocaleUtils.LOCALE_MAPPINGS.containsKey("en_us")) {
+                if (locale.equalsIgnoreCase("en_us") && !LocaleUtils.LOCALE_MAPPINGS.containsKey("en_us")) {
                     // This should probably be left hardcoded as it will only show for en_us clients
                     sendMessage("Loading your locale (en_us); if this isn't already downloaded, this may take some time");
                 }
@@ -1026,7 +1026,7 @@ public class GeyserSession implements CommandSender {
         noClip = gameMode == GameMode.SPECTATOR;
         worldImmutable = gameMode == GameMode.ADVENTURE || gameMode == GameMode.SPECTATOR;
 
-        Set<AdventureSetting> flags = new HashSet<>();
+        Set<AdventureSetting> flags = adventureSettingsPacket.getSettings();
         if (canFly) {
             flags.add(AdventureSetting.MAY_FLY);
         }
@@ -1045,7 +1045,6 @@ public class GeyserSession implements CommandSender {
 
         flags.add(AdventureSetting.AUTO_JUMP);
 
-        adventureSettingsPacket.getSettings().addAll(flags);
         sendUpstreamPacket(adventureSettingsPacket);
     }
 
