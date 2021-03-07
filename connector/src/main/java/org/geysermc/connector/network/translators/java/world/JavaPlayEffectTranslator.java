@@ -43,7 +43,6 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.LocaleUtils;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 
 @Translator(packet = ServerPlayEffectPacket.class)
@@ -76,8 +75,7 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                 textPacket.setSourceName(null);
                 textPacket.setMessage("record.nowPlaying");
                 String recordString = "%item." + soundEvent.name().toLowerCase(Locale.ROOT) + ".desc";
-                List<String> params = Collections.singletonList(LocaleUtils.getLocaleString(recordString, session.getLocale()));
-                textPacket.setParameters(params);
+                textPacket.setParameters(Collections.singletonList(LocaleUtils.getLocaleString(recordString, session.getLocale())));
                 session.sendUpstreamPacket(textPacket);
             }
             return;

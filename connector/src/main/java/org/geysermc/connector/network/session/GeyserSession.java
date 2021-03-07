@@ -417,9 +417,8 @@ public class GeyserSession implements CommandSender {
         attributesPacket.setRuntimeEntityId(getPlayerEntity().getGeyserId());
         // Default move speed
         // Bedrock clients move very fast by default until they get an attribute packet correcting the speed
-        List<AttributeData> attributes = Collections.singletonList(
-                new AttributeData("minecraft:movement", 0.0f, 1024f, 0.1f, 0.1f));
-        attributesPacket.setAttributes(attributes);
+        attributesPacket.setAttributes(Collections.singletonList(
+                new AttributeData("minecraft:movement", 0.0f, 1024f, 0.1f, 0.1f)));
         upstream.sendPacket(attributesPacket);
 
         GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
