@@ -25,22 +25,25 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityAnimationPacket;
+import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
+import com.nukkitx.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityAnimationPacket;
-import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
+import org.geysermc.connector.utils.DimensionUtils;
 
 @Translator(packet = ServerEntityAnimationPacket.class)
 public class JavaEntityAnimationTranslator extends PacketTranslator<ServerEntityAnimationPacket> {
 
     @Override
     public void translate(ServerEntityAnimationPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
+        } else {
+            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         }
         if (entity == null)
             return;
@@ -55,7 +58,13 @@ public class JavaEntityAnimationTranslator extends PacketTranslator<ServerEntity
                 animatePacket.setAction(AnimatePacket.Action.CRITICAL_HIT);
                 break;
             case ENCHANTMENT_CRITICAL_HIT:
-                animatePacket.setAction(AnimatePacket.Action.MAGIC_CRITICAL_HIT);
+                animatePacket.setAction(AnimatePacket.Action.MAGIC_CRITICAL_HIT); // Unsure if this does anything
+                // Spawn custom particle
+                SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
+                stringPacket.setIdentifier("geysermc:enchanted_hit");
+                stringPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
+                stringPacket.setPosition(entity.getPosition());
+                session.sendUpstreamPacket(stringPacket);
                 break;
             case LEAVE_BED:
                 animatePacket.setAction(AnimatePacket.Action.WAKE_UP);
