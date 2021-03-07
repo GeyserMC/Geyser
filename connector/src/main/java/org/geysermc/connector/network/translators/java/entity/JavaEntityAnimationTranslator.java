@@ -63,7 +63,7 @@ public class JavaEntityAnimationTranslator extends PacketTranslator<ServerEntity
                 SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
                 stringPacket.setIdentifier("geysermc:enchanted_hit");
                 stringPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
-                stringPacket.setPosition(entity.getPosition());
+                stringPacket.setPosition(entity.getPosition().add(0, entity.getEntityType().getHeight(), 0));
                 session.sendUpstreamPacket(stringPacket);
                 break;
             case LEAVE_BED:
