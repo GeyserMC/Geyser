@@ -61,7 +61,7 @@ public class JavaOpenHorseWindowTranslator extends PacketTranslator<ServerOpenHo
         String[] acceptedHorseArmorIdentifiers = new String[] {"minecraft:horsearmorleather", "minecraft:horsearmoriron",
                 "minecraft:horsearmorgold", "minecraft:horsearmordiamond"};
         NbtMapBuilder armorBuilder = NbtMap.builder();
-        List<NbtMap> acceptedArmors = new ArrayList<>();
+        List<NbtMap> acceptedArmors = new ArrayList<>(4);
         for (String identifier : acceptedHorseArmorIdentifiers) {
             NbtMapBuilder acceptedItemBuilder = NbtMap.builder()
                     .putShort("Aux", Short.MAX_VALUE)

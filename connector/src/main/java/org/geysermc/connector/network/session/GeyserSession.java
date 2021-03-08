@@ -418,8 +418,6 @@ public class GeyserSession implements CommandSender {
         this.spawned = false;
         this.loggedIn = false;
 
-        connector.getPlayers().forEach(player -> this.emotes.addAll(player.getEmotes()));
-
         // Make a copy to prevent ConcurrentModificationException
         final List<GeyserSession> tmpPlayers = new ArrayList<>(connector.getPlayers());
         tmpPlayers.forEach(player -> this.emotes.addAll(player.getEmotes()));

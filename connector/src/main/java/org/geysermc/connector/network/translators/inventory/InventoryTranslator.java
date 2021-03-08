@@ -121,7 +121,8 @@ public abstract class InventoryTranslator {
      *
      * @return true if this transfer should be rejected
      */
-    public boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, int javaSourceSlot, int javaDestinationSlot) {
+    public boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, ContainerSlotType bedrockSourceContainer,
+                                         int javaSourceSlot, ContainerSlotType bedrockDestinationContainer, int javaDestinationSlot) {
         return false;
     }
 
@@ -201,8 +202,9 @@ public abstract class InventoryTranslator {
                     int sourceSlot = bedrockSlotToJava(transferAction.getSource());
                     int destSlot = bedrockSlotToJava(transferAction.getDestination());
 
-                    if (shouldRejectItemPlace(session, inventory, isCursor(transferAction.getSource()) ? -1 : sourceSlot,
-                            isCursor(transferAction.getDestination()) ? -1 : destSlot)) {
+                    if (shouldRejectItemPlace(session, inventory, transferAction.getSource().getContainer(),
+                            isCursor(transferAction.getSource()) ? -1 : sourceSlot,
+                            transferAction.getDestination().getContainer(), isCursor(transferAction.getDestination()) ? -1 : destSlot)) {
                         // This item would not be here in Java
                         return rejectRequest(request, false);
                     }
@@ -273,7 +275,7 @@ public abstract class InventoryTranslator {
                     }
                     break;
                 }
-                case SWAP: { //TODO
+                case SWAP: {
                     SwapStackRequestActionData swapAction = (SwapStackRequestActionData) action;
                     if (!(checkNetId(session, inventory, swapAction.getSource()) && checkNetId(session, inventory, swapAction.getDestination()))) {
                         session.getConnector().getLogger().error("DEBUG: About to reject SWAP request made by " + session.getName());
@@ -284,23 +286,31 @@ public abstract class InventoryTranslator {
                         return rejectRequest(request);
                     }
 
-                    if (isCursor(swapAction.getSource()) && isCursor(swapAction.getDestination())) { //???
+                    int sourceSlot = bedrockSlotToJava(swapAction.getSource());
+                    int destSlot = bedrockSlotToJava(swapAction.getDestination());
+                    boolean isSourceCursor = isCursor(swapAction.getSource());
+                    boolean isDestCursor = isCursor(swapAction.getDestination());
+
+                    if (shouldRejectItemPlace(session, inventory, swapAction.getSource().getContainer(),
+                            isSourceCursor ? -1 : sourceSlot,
+                            swapAction.getDestination().getContainer(), isDestCursor ? -1 : destSlot)) {
+                        // This item would not be here in Java
+                        return rejectRequest(request, false);
+                    }
+
+                    if (isSourceCursor && isDestCursor) { //???
                         return rejectRequest(request);
-                    } else if (isCursor(swapAction.getSource())) { //swap cursor
-                        int destSlot = bedrockSlotToJava(swapAction.getDestination());
+                    } else if (isSourceCursor) { //swap cursor
                         if (InventoryUtils.canStack(cursor, plan.getItem(destSlot))) { //TODO: cannot simply swap if cursor stacks with slot (temp slot)
                             return rejectRequest(request);
                         }
                         plan.add(Click.LEFT, destSlot);
-                    } else if (isCursor(swapAction.getDestination())) { //swap cursor
-                        int sourceSlot = bedrockSlotToJava(swapAction.getSource());
+                    } else if (isDestCursor) { //swap cursor
                         if (InventoryUtils.canStack(cursor, plan.getItem(sourceSlot))) { //TODO
                             return rejectRequest(request);
                         }
                         plan.add(Click.LEFT, sourceSlot);
                     } else {
-                        int sourceSlot = bedrockSlotToJava(swapAction.getSource());
-                        int destSlot = bedrockSlotToJava(swapAction.getDestination());
                         if (!cursor.isEmpty()) { //TODO: (temp slot)
                             return rejectRequest(request);
                         }

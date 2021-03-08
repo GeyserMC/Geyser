@@ -30,7 +30,9 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
-import com.nukkitx.protocol.bedrock.data.inventory.*;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
+import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.connector.entity.Entity;
@@ -128,6 +130,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     @Override
     public void openInventory(GeyserSession session, Inventory inventory) {
         //Handled in JavaTradeListTranslator
+        //TODO: send a blank inventory here in case the villager doesn't send a TradeList packet
     }
 
     @Override
