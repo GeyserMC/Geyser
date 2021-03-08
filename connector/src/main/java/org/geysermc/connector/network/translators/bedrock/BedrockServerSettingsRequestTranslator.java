@@ -41,6 +41,7 @@ public class BedrockServerSettingsRequestTranslator extends PacketTranslator<Ser
     public void translate(ServerSettingsRequestPacket packet, GeyserSession session) {
         SettingsUtils.buildForm(session);
 
+        // Fixes https://bugs.mojang.com/browse/MCPE-94012 because of the delay
         session.getConnector().getGeneralThreadPool().schedule(() -> {
             ServerSettingsResponsePacket serverSettingsResponsePacket = new ServerSettingsResponsePacket();
             serverSettingsResponsePacket.setFormData(session.getSettingsForm().getJSONData());
