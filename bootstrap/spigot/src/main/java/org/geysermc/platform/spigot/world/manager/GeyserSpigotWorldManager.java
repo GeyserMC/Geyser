@@ -187,11 +187,13 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
                 return;
             }
+
             Block block = bukkitPlayer.getWorld().getBlockAt(x, y, z);
             if (!(block.getState() instanceof Lectern)) {
                 session.getConnector().getLogger().error("Lectern expected at: " + Vector3i.from(x, y, z).toString() + " but was not! " + block.toString());
                 return;
             }
+
             Lectern lectern = (Lectern) block.getState();
             ItemStack itemStack = lectern.getInventory().getItem(0);
             if (itemStack == null || !(itemStack.getItemMeta() instanceof BookMeta)) {
@@ -202,6 +204,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
                 // We don't care; return
                 return;
             }
+
             BookMeta bookMeta = (BookMeta) itemStack.getItemMeta();
             // On the count: allow the book to show/open even there are no pages. We know there is a book here, after all, and this matches Java behavior
             boolean hasBookPages = bookMeta.getPageCount() > 0;
@@ -226,6 +229,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
                         .putString("text", "");
                 pages.add(pageBuilder.build());
             }
+            
             bookTag.putCompound("tag", NbtMap.builder().putList("pages", NbtType.COMPOUND, pages).build());
             lecternTag.putCompound("book", bookTag.build());
             NbtMap blockEntityTag = lecternTag.build();
