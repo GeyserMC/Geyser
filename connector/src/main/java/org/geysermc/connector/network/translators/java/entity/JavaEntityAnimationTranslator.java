@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityAnimationPacket;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import com.nukkitx.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.connector.entity.Entity;
@@ -61,9 +62,10 @@ public class JavaEntityAnimationTranslator extends PacketTranslator<ServerEntity
                 animatePacket.setAction(AnimatePacket.Action.MAGIC_CRITICAL_HIT); // Unsure if this does anything
                 // Spawn custom particle
                 SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
-                stringPacket.setIdentifier("geysermc:enchanted_hit");
+                stringPacket.setIdentifier("geyseropt:enchanted_hit_multiple");
                 stringPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
-                stringPacket.setPosition(entity.getPosition().add(0, entity.getEntityType().getHeight(), 0));
+                stringPacket.setPosition(Vector3f.ZERO);
+                stringPacket.setUniqueEntityId(entity.getGeyserId());
                 session.sendUpstreamPacket(stringPacket);
                 break;
             case LEAVE_BED:
