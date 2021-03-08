@@ -163,10 +163,11 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
 
         Int2ObjectMap<IntList> stonecutterRecipeMap = new Int2ObjectOpenHashMap<>();
         for (Int2ObjectMap.Entry<List<StoneCuttingRecipeData>> data : unsortedStonecutterData.int2ObjectEntrySet()) {
+            // Sort the list by each output item's Java identifier - this is how it's sorted on Java, and therefore
+            // We can get the correct order for button pressing
             data.getValue().sort(Comparator.comparing((stoneCuttingRecipeData ->
-                    // Sort the list by each output item's Java identifier - this is how it's sorted on Java, and therefore
-                    // We can get the correct order for button pressing
                     ItemRegistry.getItem(stoneCuttingRecipeData.getResult()).getJavaIdentifier())));
+
             // Now that it's sorted, let's translate these recipes
             for (StoneCuttingRecipeData stoneCuttingData : data.getValue()) {
                 // As of 1.16.4, all stonecutter recipes have one ingredient option
@@ -174,9 +175,11 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                 ItemData input = ItemTranslator.translateToBedrock(session, ingredient);
                 ItemData output = ItemTranslator.translateToBedrock(session, stoneCuttingData.getResult());
                 UUID uuid = UUID.randomUUID();
+
                 // We need to register stonecutting recipes so they show up on Bedrock
                 craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
                         Collections.singletonList(input), Collections.singletonList(output), uuid, "stonecutter", 0, netId++));
+
                 // Save the recipe list for reference when crafting
                 IntList outputs = stonecutterRecipeMap.get(ingredient.getId());
                 if (outputs == null) {

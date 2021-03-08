@@ -77,6 +77,7 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
         updateTradePacket.setUsingEconomyTrade(true);
         updateTradePacket.setPlayerUniqueEntityId(session.getPlayerEntity().getGeyserId());
         updateTradePacket.setTraderUniqueEntityId(villager.getGeyserId());
+
         NbtMapBuilder builder = NbtMap.builder();
         boolean addExtraTrade = packet.isRegularVillager() && packet.getVillagerLevel() < 5;
         List<NbtMap> tags = new ArrayList<>(addExtraTrade ? packet.getTrades().length + 1 : packet.getTrades().length);
@@ -119,6 +120,7 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
         }
 
         builder.putList("Recipes", NbtType.COMPOUND, tags);
+
         List<NbtMap> expTags = new ArrayList<>(5);
         expTags.add(NbtMap.builder().putInt("0", 0).build());
         expTags.add(NbtMap.builder().putInt("1", 10).build());
@@ -126,6 +128,7 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
         expTags.add(NbtMap.builder().putInt("3", 150).build());
         expTags.add(NbtMap.builder().putInt("4", 250).build());
         builder.putList("TierExpRequirements", NbtType.COMPOUND, expTags);
+
         updateTradePacket.setOffers(builder.build());
         session.sendUpstreamPacket(updateTradePacket);
     }
@@ -133,6 +136,7 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
     private NbtMap getItemTag(GeyserSession session, ItemStack stack, int specialPrice) {
         ItemData itemData = ItemTranslator.translateToBedrock(session, stack);
         ItemEntry itemEntry = ItemRegistry.getItem(stack);
+
         NbtMapBuilder builder = NbtMap.builder();
         builder.putByte("Count", (byte) (Math.max(itemData.getCount() + specialPrice, 1)));
         builder.putShort("Damage", itemData.getDamage());
@@ -141,12 +145,14 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
             NbtMap tag = itemData.getTag().toBuilder().build();
             builder.put("tag", tag);
         }
+
         NbtMap blockTag = BlockTranslator.getBedrockBlockNbt(itemEntry.getJavaIdentifier());
         if (blockTag != null) {
             // This fixes certain blocks being unable to stack after grabbing one
             builder.putCompound("Block", blockTag);
             builder.putShort("Damage", (short) 0);
         }
+
         return builder.build();
     }
 }

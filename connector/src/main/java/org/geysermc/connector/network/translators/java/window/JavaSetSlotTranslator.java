@@ -155,9 +155,8 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
                             }
                         }
 
-                        if (Arrays.equals(ingredients, mirroredIngredients)) {
-                            continue;
-                        } else if (!testShapedRecipe(mirroredIngredients, inventory, gridDimensions, firstRow, height, firstCol, width)) {
+                        if (Arrays.equals(ingredients, mirroredIngredients) ||
+                                !testShapedRecipe(mirroredIngredients, inventory, gridDimensions, firstRow, height, firstCol, width)) {
                             continue;
                         }
                     }

@@ -48,7 +48,6 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.CommandBlockMinecartEntity;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
-import org.geysermc.connector.entity.living.merchant.AbstractMerchantEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -87,10 +86,10 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                     if (worldAction.getSource().getType() == InventorySource.Type.WORLD_INTERACTION
                             && worldAction.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
                         session.addInventoryTask(() -> {
-                            if (session.getPlayerInventory().getHeldItemSlot() != containerAction.getSlot())
+                            if (session.getPlayerInventory().getHeldItemSlot() != containerAction.getSlot() ||
+                                    session.getPlayerInventory().getItemInHand().isEmpty()) {
                                 return;
-                            if (session.getPlayerInventory().getItemInHand().isEmpty())
-                                return;
+                            }
 
                             boolean dropAll = worldAction.getToItem().getCount() > 1;
                             ClientPlayerActionPacket dropAllPacket = new ClientPlayerActionPacket(

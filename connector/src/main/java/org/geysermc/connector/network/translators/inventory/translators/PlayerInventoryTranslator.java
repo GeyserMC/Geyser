@@ -107,7 +107,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
 
             if (session.getGameMode() == GameMode.CREATIVE) {
                 slotPacket.setItem(UNUSUABLE_CRAFTING_SPACE_BLOCK);
-            }else{
+            } else {
                 slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(i).getItemStack()));
             }
 

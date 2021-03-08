@@ -205,7 +205,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         if (isPre1_12) {
             // Register events needed to send all recipes to the client
-            Bukkit.getServer().getPluginManager().registerEvents(new GeyserSpigot1_11CraftingListener(this, connector), this);
+            Bukkit.getServer().getPluginManager().registerEvents(new GeyserSpigot1_11CraftingListener(connector), this);
         }
 
         this.getCommand("geyser").setExecutor(new GeyserSpigotCommandExecutor(connector));

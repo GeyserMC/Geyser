@@ -45,7 +45,6 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.item.RecipeRegistry;
-import org.geysermc.platform.spigot.GeyserSpigotPlugin;
 import us.myles.ViaVersion.api.Pair;
 import us.myles.ViaVersion.api.data.MappingData;
 import us.myles.ViaVersion.api.protocol.Protocol;
@@ -70,14 +69,12 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
      * The list of all protocols from the client's version to 1.13.
      */
     private final List<Pair<Integer, Protocol>> protocolList;
-    private final ProtocolVersion version;
 
-    public GeyserSpigot1_11CraftingListener(GeyserSpigotPlugin plugin, GeyserConnector connector) {
+    public GeyserSpigot1_11CraftingListener(GeyserConnector connector) {
         this.connector = connector;
         this.mappingData1_12to1_13 = ProtocolRegistry.getProtocol(Protocol1_13To1_12_2.class).getMappingData();
         this.protocolList = ProtocolRegistry.getProtocolPath(MinecraftConstants.PROTOCOL_VERSION,
                 ProtocolVersion.v1_13.getVersion());
-        this.version = plugin.getServerProtocolVersion();
     }
 
     @EventHandler
@@ -101,13 +98,16 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
 
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
+
         Iterator<Recipe> recipeIterator = Bukkit.getServer().recipeIterator();
         while (recipeIterator.hasNext()) {
             Recipe recipe = recipeIterator.next();
+
             Pair<ItemStack, ItemData> outputs = translateToBedrock(session, recipe.getResult());
             ItemStack javaOutput = outputs.getKey();
             ItemData output = outputs.getValue();
             if (output.getId() == 0) continue; // If items make air we don't want that
+
             boolean isNotAllAir = false; // Check for all-air recipes
             if (recipe instanceof ShapedRecipe) {
                 ShapedRecipe shapedRecipe = (ShapedRecipe) recipe;
@@ -119,8 +119,9 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
                     Pair<ItemStack, ItemData> result = translateToBedrock(session, shapedRecipe.getIngredientMap().get((char) ('a' + i)));
                     ingredients[i] = new Ingredient(new ItemStack[]{result.getKey()});
                     input[i] = result.getValue();
-                    isNotAllAir = isNotAllAir || input[i].getId() != 0;
+                    isNotAllAir |= input[i].getId() != 0;
                 }
+
                 if (!isNotAllAir) continue;
                 UUID uuid = UUID.randomUUID();
                 // Add recipe to our internal cache
@@ -128,6 +129,7 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
                         "", ingredients, javaOutput);
                 session.getCraftingRecipes().put(netId,
                         new com.github.steveice10.mc.protocol.data.game.recipe.Recipe(RecipeType.CRAFTING_SHAPED, uuid.toString(), data));
+
                 // Add recipe for Bedrock
                 craftingDataPacket.getCraftingData().add(CraftingData.fromShaped(uuid.toString(),
                         shapedRecipe.getShape()[0].length(), shapedRecipe.getShape().length, Arrays.asList(input),
@@ -136,18 +138,21 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
                 ShapelessRecipe shapelessRecipe = (ShapelessRecipe) recipe;
                 Ingredient[] ingredients = new Ingredient[shapelessRecipe.getIngredientList().size()];
                 ItemData[] input = new ItemData[shapelessRecipe.getIngredientList().size()];
+
                 for (int i = 0; i < input.length; i++) {
                     Pair<ItemStack, ItemData> result = translateToBedrock(session, shapelessRecipe.getIngredientList().get(i));
                     ingredients[i] = new Ingredient(new ItemStack[]{result.getKey()});
                     input[i] = result.getValue();
-                    isNotAllAir = isNotAllAir || input[i].getId() != 0;
+                    isNotAllAir |= input[i].getId() != 0;
                 }
+
                 if (!isNotAllAir) continue;
                 UUID uuid = UUID.randomUUID();
                 // Add recipe to our internal cache
                 ShapelessRecipeData data = new ShapelessRecipeData("", ingredients, javaOutput);
                 session.getCraftingRecipes().put(netId,
                         new com.github.steveice10.mc.protocol.data.game.recipe.Recipe(RecipeType.CRAFTING_SHAPELESS, uuid.toString(), data));
+
                 // Add recipe for Bedrock
                 craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
                         Arrays.asList(input), Collections.singletonList(output), uuid, "crafting_table", 0, netId++));
@@ -163,10 +168,13 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
             if (itemStack.getType().getId() == 0) {
                 return new Pair<>(null, ItemData.AIR);
             }
+
             int legacyId = (itemStack.getType().getId() << 4) | (itemStack.getData().getData() & 0xFFFF);
+
             if (itemStack.getType().getId() == 355 && itemStack.getData().getData() == (byte) 0) { // Handle bed color since the server will always be pre-1.12
                 legacyId = (itemStack.getType().getId() << 4) | ((byte) 14 & 0xFFFF);
             }
+
             // old version -> 1.13 -> 1.13.1 -> 1.14 -> 1.15 -> 1.16 and so on
             int itemId;
             if (mappingData1_12to1_13.getItemMappings().containsKey(legacyId)) {
@@ -189,6 +197,7 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
             ItemData finalData = ItemTranslator.translateToBedrock(session, mcItemStack);
             return new Pair<>(mcItemStack, finalData);
         }
+
         // Empty slot, most likely
         return new Pair<>(null, ItemData.AIR);
     }

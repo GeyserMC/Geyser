@@ -103,6 +103,7 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
                 Vector3i position = session.getLastInteractionBlockPosition();
                 // shouldRefresh means that we should boot out the client on our side because their lectern GUI isn't updated yet
                 boolean shouldRefresh = !session.getConnector().getWorldManager().shouldExpectLecternHandled() && !session.getLecternCache().contains(position);
+
                 NbtMap blockEntityTag;
                 if (tag != null) {
                     int pagesSize = ((ListTag) tag.get("pages")).size();
@@ -132,6 +133,7 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
 
                     blockEntityTag = lecternTag.putCompound("book", bookTag.build()).build();
                 }
+                
                 // Even with serverside access to lecterns, we don't easily know which lectern this is, so we need to rebuild
                 // the block entity tag
                 lecternContainer.setBlockEntityTag(blockEntityTag);

@@ -65,6 +65,7 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
             return rejectRequest(request);
         }
         CraftResultsDeprecatedStackRequestActionData craftData = (CraftResultsDeprecatedStackRequestActionData) data;
+
         StonecutterContainer container = (StonecutterContainer) inventory;
         // Get the ID of the item we are cutting
         int id = inventory.getItem(0).getJavaId();
@@ -73,6 +74,7 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
         if (results == null) {
             return rejectRequest(request);
         }
+
         ItemStack javaOutput = ItemTranslator.translateToJava(craftData.getResultItems()[0]);
         int button = results.indexOf(javaOutput.getId());
         // If we've already pressed the button with this item, no need to press it again!
@@ -86,6 +88,7 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
                 inventory.setItem(1, GeyserItemStack.from(javaOutput), session);
             }
         }
+
         return translateRequest(session, inventory, request);
     }
 

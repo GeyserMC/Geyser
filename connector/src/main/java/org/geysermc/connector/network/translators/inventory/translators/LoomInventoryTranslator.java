@@ -128,6 +128,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
             return rejectRequest(request);
         }
         CraftResultsDeprecatedStackRequestActionData craftData = (CraftResultsDeprecatedStackRequestActionData) data;
+
         // Get the patterns compound tag
         List<NbtMap> newBlockEntityTag = craftData.getResultItems()[0].getTag().getList("Patterns", NbtType.COMPOUND);
         // Get the pattern that the Bedrock client requests - the last pattern in the Patterns list
@@ -151,6 +152,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         }
         CompoundTag blockEntityTag = inputCopy.getNbt().get("BlockEntityTag");
         CompoundTag javaBannerPattern = BannerTranslator.getJavaBannerPattern(pattern);
+
         if (blockEntityTag != null) {
             ListTag patternsList = blockEntityTag.get("Patterns");
             if (patternsList != null) {
@@ -165,6 +167,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
             blockEntityTag.put(patternsList);
             inputCopy.getNbt().put(blockEntityTag);
         }
+
         // Set the new item as the output
         inventory.setItem(3, inputCopy, session);
 
