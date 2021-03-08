@@ -98,6 +98,12 @@ public class BlockTranslator {
 
     public static final int JAVA_RUNTIME_SPAWNER_ID;
 
+    /**
+     * Contains a map of Java blocks to their respective Bedrock block tag, if the Java identifier is different from Bedrock.
+     * Required to fix villager trades with these blocks.
+     */
+    private static final Map<String, NbtMap> JAVA_IDENTIFIER_TO_BEDROCK_TAG;
+
     private static final int BLOCK_STATE_VERSION = 17825808;
 
     static {
@@ -111,6 +117,8 @@ public class BlockTranslator {
         } catch (Exception e) {
             throw new AssertionError("Unable to get blocks from runtime block states", e);
         }
+
+        JAVA_IDENTIFIER_TO_BEDROCK_TAG = new Object2ObjectOpenHashMap<>(blocksTag.size());
 
         // New since 1.16.100 - find the block runtime ID by the order given to us in the block palette,
         // as we no longer send a block palette
@@ -188,15 +196,19 @@ public class BlockTranslator {
             BlockStateValues.storeBlockStateValues(entry.getKey(), javaRuntimeId, entry.getValue());
 
             String cleanJavaIdentifier = entry.getKey().split("\\[")[0];
+            String bedrockIdentifier = entry.getValue().get("bedrock_identifier").asText();
+
+            boolean javaIdentifierSameAsBedrock = cleanJavaIdentifier.equals(bedrockIdentifier);
 
             if (!JAVA_ID_TO_JAVA_IDENTIFIER_MAP.containsValue(cleanJavaIdentifier)) {
                 uniqueJavaId++;
                 JAVA_ID_TO_JAVA_IDENTIFIER_MAP.put(uniqueJavaId, cleanJavaIdentifier);
+                if (!javaIdentifierSameAsBedrock) {
+                    JAVA_IDENTIFIER_TO_BEDROCK_TAG.put(cleanJavaIdentifier, blockTag);
+                }
             }
 
-            String bedrockIdentifier = entry.getValue().get("bedrock_identifier").asText();
-
-            if (!cleanJavaIdentifier.equals(bedrockIdentifier)) {
+            if (!javaIdentifierSameAsBedrock) {
                 JAVA_TO_BEDROCK_IDENTIFIERS.put(cleanJavaIdentifier, bedrockIdentifier);
             }
 
@@ -392,5 +404,14 @@ public class BlockTranslator {
      */
     public static String[] getAllBlockIdentifiers() {
         return JAVA_ID_TO_JAVA_IDENTIFIER_MAP.values().toArray(new String[0]);
+    }
+
+    /**
+     * @param cleanJavaIdentifier the clean Java identifier of the block to look up
+     *
+     * @return the block tag of the block name mapped from Java to Bedrock.
+     */
+    public static NbtMap getBedrockBlockNbt(String cleanJavaIdentifier) {
+        return JAVA_IDENTIFIER_TO_BEDROCK_TAG.get(cleanJavaIdentifier);
     }
 }
