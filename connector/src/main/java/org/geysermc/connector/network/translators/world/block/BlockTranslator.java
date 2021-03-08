@@ -118,7 +118,7 @@ public class BlockTranslator {
             throw new AssertionError("Unable to get blocks from runtime block states", e);
         }
 
-        JAVA_IDENTIFIER_TO_BEDROCK_TAG = new Object2ObjectOpenHashMap<>(blocksTag.size());
+        JAVA_IDENTIFIER_TO_BEDROCK_TAG = new Object2ObjectOpenHashMap<>();
 
         // New since 1.16.100 - find the block runtime ID by the order given to us in the block palette,
         // as we no longer send a block palette
