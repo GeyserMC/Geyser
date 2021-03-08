@@ -28,6 +28,7 @@ package org.geysermc.connector.inventory;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 
 public class PlayerInventory extends Inventory {
@@ -55,10 +56,18 @@ public class PlayerInventory extends Inventory {
     }
 
     public GeyserItemStack getItemInHand() {
+        if (36 + heldItemSlot > this.size) {
+            GeyserConnector.getInstance().getLogger().debug("Held item slot was larger than expected!");
+            return GeyserItemStack.EMPTY;
+        }
         return items[36 + heldItemSlot];
     }
 
     public void setItemInHand(@NonNull GeyserItemStack item) {
+        if (36 + heldItemSlot > this.size) {
+            GeyserConnector.getInstance().getLogger().debug("Held item slot was larger than expected!");
+            return;
+        }
         items[36 + heldItemSlot] = item;
     }
 
