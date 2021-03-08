@@ -30,6 +30,7 @@ import com.nukkitx.math.vector.Vector3i;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.Arrays;
@@ -86,10 +87,18 @@ public class Inventory {
     }
 
     public GeyserItemStack getItem(int slot) {
+        if (slot > this.size) {
+            GeyserConnector.getInstance().getLogger().debug("Tried to get an item out of bounds! " + this.toString());
+            return GeyserItemStack.EMPTY;
+        }
         return items[slot];
     }
 
     public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
+        if (slot > this.size) {
+            session.getConnector().getLogger().debug("Tried to set an item out of bounds! " + this.toString());
+            return;
+        }
         GeyserItemStack oldItem = items[slot];
         updateItemNetId(oldItem, newItem, session);
         items[slot] = newItem;
