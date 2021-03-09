@@ -40,8 +40,7 @@ public class BlockInventoryTranslator extends BaseInventoryTranslator {
     public BlockInventoryTranslator(int size, String javaBlockIdentifier, ContainerType containerType, InventoryUpdater updater) {
         super(size);
         int javaBlockState = BlockTranslator.getJavaBlockState(javaBlockIdentifier);
-        int blockId = 0; //FIXME
-        this.holder = new BlockInventoryHolder(blockId, containerType);
+        this.holder = new BlockInventoryHolder(javaBlockState, containerType);
         this.updater = updater;
     }
 

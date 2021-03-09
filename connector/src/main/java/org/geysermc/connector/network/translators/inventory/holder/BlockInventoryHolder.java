@@ -39,7 +39,7 @@ import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 
 @AllArgsConstructor
 public class BlockInventoryHolder extends InventoryHolder {
-    private final int blockId;
+    private final int javaBlockState;
     private final ContainerType containerType;
 
     @Override
@@ -49,7 +49,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
-        blockPacket.setRuntimeId(blockId);
+        blockPacket.setRuntimeId(session.getBlockTranslator().getBedrockBlockId(javaBlockState));
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
         inventory.setHolderPosition(position);
