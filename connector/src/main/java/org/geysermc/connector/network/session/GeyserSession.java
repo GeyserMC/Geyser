@@ -88,6 +88,7 @@ import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.inventory.EnchantmentInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.skin.SkinManager;
 import org.geysermc.connector.utils.*;
 import org.geysermc.floodgate.util.BedrockData;
@@ -137,6 +138,12 @@ public class GeyserSession implements CommandSender {
      * Stores session collision
      */
     private final CollisionManager collisionManager;
+
+    /**
+     * Stores the block translations for this specific version.
+     */
+    @Setter
+    private BlockTranslator blockTranslator;
 
     private final Map<Vector3i, SkullPlayerEntity> skullCache = new ConcurrentHashMap<>();
     private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());

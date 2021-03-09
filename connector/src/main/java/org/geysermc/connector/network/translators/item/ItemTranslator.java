@@ -38,7 +38,6 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.reflections.Reflections;
@@ -160,8 +159,8 @@ public abstract class ItemTranslator {
             String[] canBreak = new String[0];
             ListTag canPlaceOn = nbt.get("CanPlaceOn");
             String[] canPlace = new String[0];
-            canBreak = getCanModify(canDestroy, canBreak);
-            canPlace = getCanModify(canPlaceOn, canPlace);
+            canBreak = getCanModify(session, canDestroy, canBreak);
+            canPlace = getCanModify(session, canPlaceOn, canPlace);
             itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), itemData.getTag(), canPlace, canBreak);
         }
 
@@ -171,11 +170,12 @@ public abstract class ItemTranslator {
     /**
      * Translates the Java NBT of canDestroy and canPlaceOn to its Bedrock counterparts.
      * In Java, this is treated as normal NBT, but in Bedrock, these arguments are extra parts of the item data itself.
+     *
      * @param canModifyJava the list of items in Java
      * @param canModifyBedrock the empty list of items in Bedrock
      * @return the new list of items in Bedrock
      */
-    private static String[] getCanModify(ListTag canModifyJava, String[] canModifyBedrock) {
+    private static String[] getCanModify(GeyserSession session, ListTag canModifyJava, String[] canModifyBedrock) {
         if (canModifyJava != null && canModifyJava.size() > 0) {
             canModifyBedrock = new String[canModifyJava.size()];
             for (int i = 0; i < canModifyBedrock.length; i++) {
@@ -185,7 +185,7 @@ public abstract class ItemTranslator {
                 if (!block.startsWith("minecraft:")) block = "minecraft:" + block;
                 // Get the Bedrock identifier of the item and replace it.
                 // This will unfortunately be limited - for example, beds and banners will be translated weirdly
-                canModifyBedrock[i] = BlockTranslator.getBedrockBlockIdentifier(block).replace("minecraft:", "");
+                canModifyBedrock[i] = session.getBlockTranslator().getBedrockBlockIdentifier(block).replace("minecraft:", "");
             }
         }
         return canModifyBedrock;

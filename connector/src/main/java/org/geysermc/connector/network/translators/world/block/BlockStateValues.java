@@ -26,10 +26,8 @@
 package org.geysermc.connector.network.translators.world.block;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.nukkitx.nbt.NbtMap;
 import it.unimi.dsi.fastutil.ints.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -41,7 +39,6 @@ public class BlockStateValues {
     private static final Int2ByteMap COMMAND_BLOCK_VALUES = new Int2ByteOpenHashMap();
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
-    private static final Map<String, NbtMap> FLOWER_POT_BLOCKS = new HashMap<>();
     private static final Int2IntMap NOTEBLOCK_PITCHES = new Int2IntOpenHashMap();
     private static final Int2BooleanMap IS_STICKY_PISTON = new Int2BooleanOpenHashMap();
     private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
@@ -194,15 +191,6 @@ public class BlockStateValues {
      */
     public static Int2ObjectMap<String> getFlowerPotValues() {
         return FLOWER_POT_VALUES;
-    }
-
-    /**
-     * Get the map of contained flower pot plants to Bedrock CompoundTag
-     *
-     * @return Map of flower pot blocks.
-     */
-    public static Map<String, NbtMap> getFlowerPotBlocks() {
-        return FLOWER_POT_BLOCKS;
     }
 
     /**
