@@ -17,10 +17,6 @@
             <url>https://hub.spigotmc.org/nexus/content/repositories/public/</url>
         </repository>
         <repository>
-            <id>bukkit-public</id>
-            <url>https://repo.md-5.net/content/repositories/public/</url>
-        </repository>
-        <repository>
             <id>sponge-repo</id>
             <url>https://repo.spongepowered.org/repository/maven-public/</url>
         </repository>
