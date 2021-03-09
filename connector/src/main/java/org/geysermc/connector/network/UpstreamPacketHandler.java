@@ -71,7 +71,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         session.getUpstream().getSession().setPacketCodec(packetCodec);
 
-        // Set the protocol translation base off
+        // Set the block translation based off of version
         session.setBlockTranslator(packetCodec.getProtocolVersion() >= Bedrock_v428.V428_CODEC.getProtocolVersion()
                 ? BlockTranslator1_16_210.INSTANCE : BlockTranslator1_16_100.INSTANCE);
 
