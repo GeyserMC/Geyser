@@ -44,7 +44,6 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -146,7 +145,7 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
             builder.put("tag", tag);
         }
 
-        NbtMap blockTag = BlockTranslator.getBedrockBlockNbt(itemEntry.getJavaIdentifier());
+        NbtMap blockTag = session.getBlockTranslator().getBedrockBlockNbt(itemEntry.getJavaIdentifier());
         if (blockTag != null) {
             // This fixes certain blocks being unable to stack after grabbing one
             builder.putCompound("Block", blockTag);

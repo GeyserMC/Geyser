@@ -82,8 +82,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
 
         Vector3i position = session.getPlayerEntity().getPosition().toInt().add(Vector3i.UP);
         Vector3i pairPosition = position.add(Vector3i.UNIT_X);
-
-        int bedrockBlockId = BlockTranslator.getBedrockBlockId(defaultJavaBlockState);
+        int bedrockBlockId = session.getBlockTranslator().getBedrockBlockId(defaultJavaBlockState);
 
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
@@ -155,7 +154,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
-        blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(realBlock));
+        blockPacket.setRuntimeId(session.getBlockTranslator().getBedrockBlockId(realBlock));
         session.sendUpstreamPacket(blockPacket);
 
         holderPos = holderPos.add(Vector3i.UNIT_X);
@@ -163,7 +162,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
-        blockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(realBlock));
+        blockPacket.setRuntimeId(session.getBlockTranslator().getBedrockBlockId(realBlock));
         session.sendUpstreamPacket(blockPacket);
     }
 }
