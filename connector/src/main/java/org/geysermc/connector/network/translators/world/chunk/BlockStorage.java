@@ -43,14 +43,14 @@ public class BlockStorage {
     private final IntList palette;
     private BitArray bitArray;
 
-    public BlockStorage(int emptyBlockId) {
-        this(emptyBlockId, BitArrayVersion.V2);
+    public BlockStorage(int airBlockId) {
+        this(airBlockId, BitArrayVersion.V2);
     }
 
-    public BlockStorage(int emptyBlockId, BitArrayVersion version) {
+    public BlockStorage(int airBlockId, BitArrayVersion version) {
         this.bitArray = version.createArray(SIZE);
         this.palette = new IntArrayList(16);
-        this.palette.add(emptyBlockId); // Air is at the start of every palette and controls what the default block is in second-layer non-air block spaces.
+        this.palette.add(airBlockId); // Air is at the start of every palette and controls what the default block is in second-layer non-air block spaces.
     }
 
     public BlockStorage(BitArray bitArray, IntList palette) {
