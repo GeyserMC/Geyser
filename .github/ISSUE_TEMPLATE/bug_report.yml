@@ -1,0 +1,64 @@
+name: Bug report
+about: Create a report to help us improve
+body:
+- type: markdown
+  attributes:
+    value: |
+      Thanks for taking the time to fill out this bug report for Geyser! Fill out the following form to your best ability to help us fix the problem.
+      Only use this if you're absolutely sure that you found a bug and can reproduce it. For anything else, use: [our Discord server](https://discord.gg/geysermc), [the FAQ](https://github.com/GeyserMC/Geyser/wiki/FAQ) or the [Common Issues](https://github.com/GeyserMC/Geyser/wiki/Common-Issues).
+- type: textarea
+  attributes:
+    label: Describe the bug
+    description: A clear and concise description of what the bug is.
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: To Reproduce
+    description: Steps to reproduce this behaviour
+    placeholder: |
+      1. Go to '...'
+      2. Click on '...'
+      3. Scroll down to '...'
+      4. See error
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Expected behaviour
+    description: A clear and concise description of what you expected to happen.
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Screenshots / Videos
+    description: If applicable, add screenshots to help explain your problem.
+- type: textarea
+  attributes:
+    label: Server Version and Plugins
+    description: |
+      If you just run Geyser-Spigot, you can leave this area blank as the next section covers this information.
+      If you're running a multi-server instance or using Geyser Standalone:
+      *  Give us the exact output from `/version` on all servers involved. Saying "latest" does not help us at all.
+      * Please list all plugins on all servers involved.
+      If this bug occurs on a server you do not control, please full this in to the best of your knowledge.
+- type: input
+  attributes:
+    label: Geyser Dump
+    description: If Geyser starts correctly, please also include the link to a dump by using `/geyser dump`. If you're using the Standalone GUI, the option can be found under `Commands` => `Dump`. This provides us information about your server that we can use to debug your issue.
+- type: input
+  attributes:
+    label: Geyser Version
+    description: What version of Geyser are you running?
+    placeholder: "For example: 1.2.0-SNAPSHOT (git-master-2d9baf1)"
+  validations:
+    required: true
+- type: input
+  attributes:
+    label: "Minecraft: Bedrock Edition Version"
+    description: "What version of Minecraft: Bedrock Edition are you using? Leave empty if the bug happens before you can connect with Minecraft: Bedrock Edition."
+    placeholder: "For example: 1.16.201"
+- type: textarea
+  attributes:
+    label: Additional Context
+    description: Add any other context about the problem here

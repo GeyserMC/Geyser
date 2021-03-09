@@ -156,7 +156,7 @@ public abstract class BlockTranslator {
 
             JAVA_ID_BLOCK_MAP.put(javaId, javaRuntimeId);
 
-            BlockStateValues.storeBlockStateValues(entry, javaRuntimeId);
+            BlockStateValues.storeBlockStateValues(entry.getKey(), javaRuntimeId, entry.getValue());
 
             String cleanJavaIdentifier = entry.getKey().split("\\[")[0];
 

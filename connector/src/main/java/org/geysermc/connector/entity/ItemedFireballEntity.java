@@ -32,19 +32,44 @@ import org.geysermc.connector.network.session.GeyserSession;
 public class ItemedFireballEntity extends ThrowableEntity {
     private final Vector3f acceleration;
 
+    /**
+     * The number of ticks to advance movement before sending to Bedrock
+     */
+    protected int futureTicks = 3;
+
     public ItemedFireballEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, Vector3f.ZERO, rotation);
-        acceleration = motion;
+
+        float magnitude = motion.length();
+        if (magnitude != 0) {
+            acceleration = motion.div(magnitude).mul(0.1f);
+        } else {
+            acceleration = Vector3f.ZERO;
+        }
+    }
+
+    private Vector3f tickMovement(GeyserSession session, Vector3f position) {
+        position = position.add(motion);
+        float drag = getDrag(session);
+        motion = motion.add(acceleration).mul(drag);
+        return position;
+    }
+
+    @Override
+    protected void moveAbsoluteImmediate(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+        // Advance the position by a few ticks before sending it to Bedrock
+        Vector3f lastMotion = motion;
+        Vector3f newPosition = position;
+        for (int i = 0; i < futureTicks; i++) {
+            newPosition = tickMovement(session, newPosition);
+        }
+        super.moveAbsoluteImmediate(session, newPosition, rotation, isOnGround, teleported);
+        this.position = position;
+        this.motion = lastMotion;
     }
 
     @Override
     public void tick(GeyserSession session) {
-        position = position.add(motion);
-        // TODO: While this reduces latency in position updating (needed for better fireball reflecting),
-        // TODO: movement is incredibly stiff.
-        // TODO: Only use this laggy movement for fireballs that be reflected
-        moveAbsoluteImmediate(session, position, rotation, false, true);
-        float drag = getDrag(session);
-        motion = motion.add(acceleration).mul(drag);
+        moveAbsoluteImmediate(session, tickMovement(session, position), rotation, false, false);
     }
 }
