@@ -106,11 +106,15 @@ public abstract class BlockTranslator {
 
     public static final int JAVA_RUNTIME_SPAWNER_ID;
 
+    /**
+     * Stores the raw blocks JSON until it is no longer needed.
+     */
+    public static JsonNode BLOCKS_JSON;
+
     static {
         InputStream stream = FileUtils.getResource("mappings/blocks.json");
-        JsonNode blocks;
         try {
-            blocks = GeyserConnector.JSON_MAPPER.readTree(stream);
+            BLOCKS_JSON = GeyserConnector.JSON_MAPPER.readTree(stream);
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java block mappings", e);
         }
@@ -121,7 +125,7 @@ public abstract class BlockTranslator {
         int furnaceLitRuntimeId = -1;
         int spawnerRuntimeId = -1;
         int uniqueJavaId = -1;
-        Iterator<Map.Entry<String, JsonNode>> blocksIterator = blocks.fields();
+        Iterator<Map.Entry<String, JsonNode>> blocksIterator = BLOCKS_JSON.fields();
         while (blocksIterator.hasNext()) {
             javaRuntimeId++;
             Map.Entry<String, JsonNode> entry = blocksIterator.next();
@@ -212,6 +216,7 @@ public abstract class BlockTranslator {
 
         BlockTranslator1_16_100.init();
         BlockTranslator1_16_210.init();
+        BLOCKS_JSON = null; // We no longer require this so let it garbage collect away
     }
 
     public BlockTranslator(String paletteFile) {
@@ -238,20 +243,11 @@ public abstract class BlockTranslator {
             blockStateOrderedMap.put(tag, i);
         }
 
-        // TODO don't duplicate
-        stream = FileUtils.getResource("mappings/blocks.json");
-        JsonNode blocks;
-        try {
-            blocks = GeyserConnector.JSON_MAPPER.readTree(stream);
-        } catch (Exception e) {
-            throw new AssertionError("Unable to load Java block mappings", e);
-        }
-
         int airRuntimeId = -1;
         int commandBlockRuntimeId = -1;
         int javaRuntimeId = -1;
         int waterRuntimeId = -1;
-        Iterator<Map.Entry<String, JsonNode>> blocksIterator = blocks.fields();
+        Iterator<Map.Entry<String, JsonNode>> blocksIterator = BLOCKS_JSON.fields();
         while (blocksIterator.hasNext()) {
             javaRuntimeId++;
             Map.Entry<String, JsonNode> entry = blocksIterator.next();
