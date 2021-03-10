@@ -46,7 +46,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-@BlockEntity(name = "Skull", regex = "skull")
+@BlockEntity(name = "Skull")
 public class SkullBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     public static boolean ALLOW_CUSTOM_SKULLS;
 

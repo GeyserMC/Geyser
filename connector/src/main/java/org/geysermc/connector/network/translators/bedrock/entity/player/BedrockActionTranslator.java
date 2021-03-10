@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.bedrock.entity.player;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
@@ -44,12 +43,12 @@ import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerActionPacket;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.BlockUtils;
 
@@ -144,12 +143,12 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                         LevelEventPacket startBreak = new LevelEventPacket();
                         startBreak.setType(LevelEventType.BLOCK_START_BREAK);
                         startBreak.setPosition(vector.toFloat());
-                        PlayerInventory inventory = session.getInventory();
-                        ItemStack item = inventory.getItemInHand();
+                        PlayerInventory inventory = session.getPlayerInventory();
+                        GeyserItemStack item = inventory.getItemInHand();
                         ItemEntry itemEntry = null;
                         CompoundTag nbtData = new CompoundTag("");
                         if (item != null) {
-                            itemEntry = ItemRegistry.getItem(item);
+                            itemEntry = item.getItemEntry();
                             nbtData = item.getNbt();
                         }
                         double breakTime = Math.ceil(BlockUtils.getBreakTime(blockHardness, blockState, itemEntry, nbtData, session) * 20);

@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.bedrock;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCloseWindowPacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.inventory.MerchantContainer;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -38,24 +39,29 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
 
     @Override
     public void translate(ContainerClosePacket packet, GeyserSession session) {
-        session.setLastWindowCloseTime(0);
-        byte windowId = packet.getId();
-        Inventory openInventory = session.getInventoryCache().getOpenInventory();
-        if (windowId == -1) { //player inventory or crafting table
-            if (openInventory != null) {
-                windowId = (byte) openInventory.getId();
-            } else {
-                windowId = 0;
+        session.addInventoryTask(() -> {
+            byte windowId = packet.getId();
+
+            //Client wants close confirmation
+            session.sendUpstreamPacket(packet);
+            session.setClosingInventory(false);
+
+            if (windowId == -1 && session.getOpenInventory() instanceof MerchantContainer) {
+                // 1.16.200 - window ID is always -1 sent from Bedrock
+                windowId = (byte) session.getOpenInventory().getId();
             }
-        }
 
-        if (windowId == 0 || (openInventory != null && openInventory.getId() == windowId)) {
-            ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(windowId);
-            session.getDownstream().getSession().send(closeWindowPacket);
-            InventoryUtils.closeInventory(session, windowId);
-        }
-
-        //Client wants close confirmation
-        session.sendUpstreamPacket(packet);
+            Inventory openInventory = session.getOpenInventory();
+            if (openInventory != null) {
+                if (windowId == openInventory.getId()) {
+                    ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(windowId);
+                    session.sendDownstreamPacket(closeWindowPacket);
+                    InventoryUtils.closeInventory(session, windowId, false);
+                } else if (openInventory.isPending()) {
+                    InventoryUtils.displayInventory(session, openInventory);
+                    openInventory.setPending(false);
+                }
+            }
+        });
     }
 }
