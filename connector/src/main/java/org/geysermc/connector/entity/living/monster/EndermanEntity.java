@@ -33,7 +33,6 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 public class EndermanEntity extends MonsterEntity {
 
@@ -45,7 +44,7 @@ public class EndermanEntity extends MonsterEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         // Held block
         if (entityMetadata.getId() == 15) {
-            metadata.put(EntityData.CARRIED_BLOCK, BlockTranslator.getBedrockBlockId((int) entityMetadata.getValue()));
+            metadata.put(EntityData.CARRIED_BLOCK, session.getBlockTranslator().getBedrockBlockId((int) entityMetadata.getValue()));
         }
         // "Is screaming" - controls sound
         if (entityMetadata.getId() == 16) {

@@ -90,7 +90,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 int size = 0;
                 for (int i = 0; i < sectionCount; i++) {
                     ChunkSection section = sections[i];
-                    size += (section != null ? section : ChunkUtils.EMPTY_SECTION).estimateNetworkSize();
+                    size += (section != null ? section : session.getBlockTranslator().getEmptyChunkSection()).estimateNetworkSize();
                 }
                 size += 256; // Biomes
                 size += 1; // Border blocks
@@ -103,7 +103,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 try {
                     for (int i = 0; i < sectionCount; i++) {
                         ChunkSection section = sections[i];
-                        (section != null ? section : ChunkUtils.EMPTY_SECTION).writeToNetwork(byteBuf);
+                        (section != null ? section : session.getBlockTranslator().getEmptyChunkSection()).writeToNetwork(byteBuf);
                     }
 
                     byteBuf.writeBytes(BiomeTranslator.toBedrockBiome(mergedColumn.getBiomeData())); // Biomes - 256 bytes

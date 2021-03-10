@@ -108,7 +108,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         // Bedrock sends block interact code for a Java entity so we send entity code back to Java
-                        if (BlockTranslator.isItemFrame(packet.getBlockRuntimeId()) &&
+                        if (session.getBlockTranslator().isItemFrame(packet.getBlockRuntimeId()) &&
                                 session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition())) != null) {
                             Vector3f vector = packet.getClickPosition();
                             ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition()),
@@ -192,7 +192,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         if (packet.getActions().isEmpty()) {
                             if (session.getOpPermissionLevel() >= 2 && session.getGameMode() == GameMode.CREATIVE) {
                                 // Otherwise insufficient permissions
-                                int blockState = BlockTranslator.getJavaBlockState(packet.getBlockRuntimeId());
+                                int blockState = session.getBlockTranslator().getJavaBlockState(packet.getBlockRuntimeId());
                                 String blockName = BlockTranslator.getJavaIdBlockMap().inverse().getOrDefault(blockState, "");
                                 // In the future this can be used for structure blocks too, however not all elements
                                 // are available in each GUI
@@ -253,7 +253,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         LevelEventPacket blockBreakPacket = new LevelEventPacket();
                         blockBreakPacket.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
                         blockBreakPacket.setPosition(packet.getBlockPosition().toFloat());
-                        blockBreakPacket.setData(BlockTranslator.getBedrockBlockId(blockState));
+                        blockBreakPacket.setData(session.getBlockTranslator().getBedrockBlockId(blockState));
                         session.sendUpstreamPacket(blockBreakPacket);
                         session.setBreakingBlock(BlockTranslator.JAVA_AIR_ID);
 
@@ -342,14 +342,14 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setBlockPosition(blockPos);
-        updateBlockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(javaBlockState));
+        updateBlockPacket.setRuntimeId(session.getBlockTranslator().getBedrockBlockId(javaBlockState));
         updateBlockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(updateBlockPacket);
 
         UpdateBlockPacket updateWaterPacket = new UpdateBlockPacket();
         updateWaterPacket.setDataLayer(1);
         updateWaterPacket.setBlockPosition(blockPos);
-        updateWaterPacket.setRuntimeId(BlockTranslator.isWaterlogged(javaBlockState) ? BlockTranslator.BEDROCK_WATER_ID : BlockTranslator.BEDROCK_AIR_ID);
+        updateWaterPacket.setRuntimeId(BlockTranslator.isWaterlogged(javaBlockState) ? session.getBlockTranslator().getBedrockWaterId() : session.getBlockTranslator().getBedrockAirId());
         updateWaterPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(updateWaterPacket);
 
