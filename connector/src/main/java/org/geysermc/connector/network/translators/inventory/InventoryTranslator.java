@@ -357,17 +357,28 @@ public abstract class InventoryTranslator {
                     if (inventory instanceof CartographyContainer) {
                         // TODO add this for more inventories? Only seems to glitch out the cartography table, though.
                         ConsumeStackRequestActionData consumeData = (ConsumeStackRequestActionData) action;
+
                         int sourceSlot = bedrockSlotToJava(consumeData.getSource());
-                        if (sourceSlot == 0 && inventory.getItem(1).isEmpty()) {
-                            // Java doesn't allow an item to be renamed; this is why CARTOGRAPHY_ADDITIONAL could remain empty for Bedrock
-                            // We check this during slot 0 since setting the inventory slots here messes up shouldRejectItemPlace
+                        if ((sourceSlot == 0 && inventory.getItem(1).isEmpty()) || (sourceSlot == 1 && inventory.getItem(0).isEmpty())) {
+                            // Java doesn't allow an item to be renamed; this is why one of the slots could remain empty for Bedrock
+                            // We check this now since setting the inventory slots here messes up shouldRejectItemPlace
                             return rejectRequest(request, false);
                         }
 
-                        GeyserItemStack item = inventory.getItem(sourceSlot);
-                        item.setAmount(item.getAmount() - consumeData.getCount());
-                        if (item.isEmpty()) {
-                            inventory.setItem(sourceSlot, GeyserItemStack.EMPTY, session);
+                        if (sourceSlot == 1) {
+                            // Decrease the item count, but only after both slots are checked.
+                            // Otherwise, the slot 1 check will fail
+                            GeyserItemStack item = inventory.getItem(sourceSlot);
+                            item.setAmount(item.getAmount() - consumeData.getCount());
+                            if (item.isEmpty()) {
+                                inventory.setItem(sourceSlot, GeyserItemStack.EMPTY, session);
+                            }
+
+                            GeyserItemStack itemZero = inventory.getItem(0);
+                            itemZero.setAmount(itemZero.getAmount() - consumeData.getCount());
+                            if (itemZero.isEmpty()) {
+                                inventory.setItem(0, GeyserItemStack.EMPTY, session);
+                            }
                         }
                         affectedSlots.add(sourceSlot);
                     }

@@ -46,13 +46,13 @@ public class CartographyInventoryTranslator extends AbstractBlockInventoryTransl
     public boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, ContainerSlotType bedrockSourceContainer,
                                          int javaSourceSlot, ContainerSlotType bedrockDestinationContainer, int javaDestinationSlot) {
         if (javaDestinationSlot == 0) {
-            // Bedrock Edition can use paper in slot 0
+            // Bedrock Edition can use paper or an empty map in slot 0
             GeyserItemStack itemStack = javaSourceSlot == -1 ? session.getPlayerInventory().getCursor() : inventory.getItem(javaSourceSlot);
-            return itemStack.getItemEntry().getJavaIdentifier().equals("minecraft:paper");
+            return itemStack.getItemEntry().getJavaIdentifier().equals("minecraft:paper") || itemStack.getItemEntry().getJavaIdentifier().equals("minecraft:map");
         } else if (javaDestinationSlot == 1) {
-            // Bedrock Edition can use a compass to create locator maps in the ADDITIONAL slot
+            // Bedrock Edition can use a compass to create locator maps, or use a filled map, in the ADDITIONAL slot
             GeyserItemStack itemStack = javaSourceSlot == -1 ? session.getPlayerInventory().getCursor() : inventory.getItem(javaSourceSlot);
-            return itemStack.getItemEntry().getJavaIdentifier().equals("minecraft:compass");
+            return itemStack.getItemEntry().getJavaIdentifier().equals("minecraft:compass") || itemStack.getItemEntry().getJavaIdentifier().equals("minecraft:filled_map");
         }
         return false;
     }
