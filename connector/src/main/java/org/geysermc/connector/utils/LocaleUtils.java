@@ -147,6 +147,12 @@ public class LocaleUtils {
                         }
                     }
                 } catch (IOException ignored) { }
+
+                if (clientJarInfo == null) {
+                    // Likely failed to download
+                    GeyserConnector.getInstance().getLogger().debug("Skipping en_US hash check as client jar is null.");
+                    return;
+                }
                 targetHash = clientJarInfo.getSha1();
             } else {
                 curHash = byteArrayToHexString(FileUtils.calculateSHA1(localeFile));
@@ -168,9 +174,13 @@ public class LocaleUtils {
             return;
         }
 
-        // Get the hash and download the locale
-        String hash = ASSET_MAP.get("minecraft/lang/" + locale + ".json").getHash();
-        WebUtils.downloadFile("https://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash, localeFile.toString());
+        try {
+            // Get the hash and download the locale
+            String hash = ASSET_MAP.get("minecraft/lang/" + locale + ".json").getHash();
+            WebUtils.downloadFile("https://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash, localeFile.toString());
+        } catch (Exception e) {
+            GeyserConnector.getInstance().getLogger().error("Unable to download locale file hash", e);
+        }
     }
 
     /**

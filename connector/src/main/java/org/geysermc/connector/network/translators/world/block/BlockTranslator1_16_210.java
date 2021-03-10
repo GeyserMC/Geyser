@@ -23,23 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity;
+package org.geysermc.connector.network.translators.world.block;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import org.geysermc.connector.entity.type.EntityType;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+public class BlockTranslator1_16_210 extends BlockTranslator {
+    public static final BlockTranslator1_16_210 INSTANCE = new BlockTranslator1_16_210();
 
-public class SpawnerMinecartEntity extends DefaultBlockMinecartEntity {
-
-    public SpawnerMinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public BlockTranslator1_16_210() {
+        super("bedrock/blockpalette.1_16_210.nbt");
     }
 
     @Override
-    public void updateDefaultBlockMetadata(GeyserSession session) {
-        metadata.put(EntityData.DISPLAY_ITEM, session.getBlockTranslator().getBedrockBlockId(BlockTranslator.JAVA_RUNTIME_SPAWNER_ID));
-        metadata.put(EntityData.DISPLAY_OFFSET, 6);
+    public int getBlockStateVersion() {
+        return 17879555;
+    }
+
+    public static void init() {
+        // no-op
     }
 }

@@ -23,22 +23,36 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java;
+package org.geysermc.connector.network.translators.world.chunk;
 
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
+import com.nukkitx.nbt.NBTOutputStream;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtUtils;
+import lombok.Getter;
 
-import com.github.steveice10.mc.protocol.packet.login.client.LoginPluginResponsePacket;
-import com.github.steveice10.mc.protocol.packet.login.server.LoginPluginRequestPacket;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
-@Translator(packet = LoginPluginRequestPacket.class)
-public class JavaLoginPluginMessageTranslator extends PacketTranslator<LoginPluginRequestPacket> {
-    @Override
-    public void translate(LoginPluginRequestPacket packet, GeyserSession session) {
-        // A vanilla client doesn't know any PluginMessage in the Login state, so we don't know any either.
-        session.sendDownstreamPacket(
-                new LoginPluginResponsePacket(packet.getMessageId(), null)
-        );
+public class EmptyChunkProvider {
+    @Getter
+    private final byte[] emptyLevelChunkData;
+    @Getter
+    private final ChunkSection emptySection;
+
+    public EmptyChunkProvider(int airId) {
+        BlockStorage emptyStorage = new BlockStorage(airId);
+        emptySection = new ChunkSection(new BlockStorage[]{emptyStorage});
+
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            outputStream.write(new byte[258]); // Biomes + Border Size + Extra Data Size
+
+            try (NBTOutputStream stream = NbtUtils.createNetworkWriter(outputStream)) {
+                stream.writeTag(NbtMap.EMPTY);
+            }
+
+            emptyLevelChunkData = outputStream.toByteArray();
+        } catch (IOException e) {
+            throw new AssertionError("Unable to generate empty level chunk data");
+        }
     }
 }

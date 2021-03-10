@@ -88,8 +88,7 @@ public class WebUtils {
     }
 
     public static String post(String reqURL, String postContent) throws IOException {
-        URL url = null;
-        url = new URL(reqURL);
+        URL url = new URL(reqURL);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "text/plain");

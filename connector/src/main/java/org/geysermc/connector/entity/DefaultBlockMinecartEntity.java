@@ -30,7 +30,6 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 /**
  * This class is used as a base for minecarts with a default block to display like furnaces and spawners
@@ -44,8 +43,13 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
     public DefaultBlockMinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
 
-        updateDefaultBlockMetadata();
         metadata.put(EntityData.CUSTOM_DISPLAY, (byte) 1);
+    }
+
+    @Override
+    public void spawnEntity(GeyserSession session) {
+        updateDefaultBlockMetadata(session);
+        super.spawnEntity(session);
     }
 
     @Override
@@ -56,7 +60,7 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
             customBlock = (int) entityMetadata.getValue();
 
             if (showCustomBlock) {
-                metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(customBlock));
+                metadata.put(EntityData.DISPLAY_ITEM, session.getBlockTranslator().getBedrockBlockId(customBlock));
             }
         }
 
@@ -73,16 +77,16 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
         if (entityMetadata.getId() == 12) {
             if ((boolean) entityMetadata.getValue()) {
                 showCustomBlock = true;
-                metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(customBlock));
+                metadata.put(EntityData.DISPLAY_ITEM, session.getBlockTranslator().getBedrockBlockId(customBlock));
                 metadata.put(EntityData.DISPLAY_OFFSET, customBlockOffset);
             } else {
                 showCustomBlock = false;
-                updateDefaultBlockMetadata();
+                updateDefaultBlockMetadata(session);
             }
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
     }
 
-    public void updateDefaultBlockMetadata() { }
+    public void updateDefaultBlockMetadata(GeyserSession session) { }
 }

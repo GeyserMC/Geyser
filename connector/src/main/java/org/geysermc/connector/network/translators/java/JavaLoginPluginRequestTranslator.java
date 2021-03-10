@@ -23,28 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.sound.block;
+package org.geysermc.connector.network.translators.java;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHandler;
-import org.geysermc.connector.network.translators.sound.SoundHandler;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-@SoundHandler(blocks = "grass_path", items = "shovel", ignoreSneakingWhileHolding = true)
-public class GrassPathInteractionHandler implements BlockSoundInteractionHandler {
+import com.github.steveice10.mc.protocol.packet.login.client.LoginPluginResponsePacket;
+import com.github.steveice10.mc.protocol.packet.login.server.LoginPluginRequestPacket;
 
+@Translator(packet = LoginPluginRequestPacket.class)
+public class JavaLoginPluginRequestTranslator extends PacketTranslator<LoginPluginRequestPacket> {
     @Override
-    public void handleInteraction(GeyserSession session, Vector3f position, String identifier) {
-        LevelSoundEventPacket levelSoundEventPacket = new LevelSoundEventPacket();
-        levelSoundEventPacket.setPosition(position);
-        levelSoundEventPacket.setBabySound(false);
-        levelSoundEventPacket.setRelativeVolumeDisabled(false);
-        levelSoundEventPacket.setIdentifier(":");
-        levelSoundEventPacket.setSound(SoundEvent.ITEM_USE_ON);
-        levelSoundEventPacket.setExtraData(session.getBlockTranslator().getBedrockBlockId(BlockTranslator.getJavaBlockState(identifier)));
-        session.sendUpstreamPacket(levelSoundEventPacket);
+    public void translate(LoginPluginRequestPacket packet, GeyserSession session) {
+        // A vanilla client doesn't know any PluginMessage in the Login state, so we don't know any either.
+        // Note: Fabric Networking API v1 will not let the client log in without sending this
+        session.sendDownstreamPacket(
+                new LoginPluginResponsePacket(packet.getMessageId(), null)
+        );
     }
 }

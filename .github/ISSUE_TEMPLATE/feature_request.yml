@@ -1,0 +1,21 @@
+name: Feature request
+about: Suggest an idea for this project
+labels: "Feature Request"
+body:
+- type: markdown
+  attributes:
+    value: |
+      Thanks for taking the time to fill out this feature request for Geyser! Fill out the following form to your best ability to help us understand your feature request and greately improve the change of it getting added.
+      For anything else than a feature request, use: [our Discord server](https://discord.gg/geysermc), [the FAQ](https://github.com/GeyserMC/Geyser/wiki/FAQ) or [the Common Issues](https://github.com/GeyserMC/Geyser/wiki/Common-Issues).
+- type: textarea
+  attributes:
+    label: What feature do you want to see added?
+    description: A clear and concise description of your feature request.
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Are there any alternatives?
+    description: List any alternatives you might have tried
+  validations:
+    required: true
