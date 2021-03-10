@@ -1,4 +1,4 @@
-Thank for for considering a contribution! Generally, Geyser welcomes PRs from everyone. There are some guidelines about what features should go where:
+Thank you for considering a contribution! Generally, Geyser welcomes PRs from everyone. There are some guidelines about what features should go where:
 
 
 *Pull requests that may not get accepted:* Niche features that apply to a specific group, for example integration with a specific plugin. For now, please create a separate plugin if possible. 
