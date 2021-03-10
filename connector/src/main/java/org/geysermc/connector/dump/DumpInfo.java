@@ -27,6 +27,8 @@ package org.geysermc.connector.dump;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
+import com.google.common.hash.Hashing;
+import com.google.common.io.Files;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
@@ -39,6 +41,7 @@ import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.floodgate.util.DeviceOS;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -55,8 +58,9 @@ public class DumpInfo {
     private final DumpInfo.VersionInfo versionInfo;
     private Properties gitInfo;
     private final GeyserConfiguration config;
-    private Object2IntMap<DeviceOS> userPlatforms;
-    private RamInfo ramInfo;
+    private String sha256Hash;
+    private final Object2IntMap<DeviceOS> userPlatforms;
+    private final RamInfo ramInfo;
     private final BootstrapDumpInfo bootstrapInfo;
 
     public DumpInfo() {
@@ -69,9 +73,22 @@ public class DumpInfo {
 
         this.config = GeyserConnector.getInstance().getConfig();
 
+        try {
+            // https://stackoverflow.com/questions/320542/how-to-get-the-path-of-a-running-jar-file
+            // https://stackoverflow.com/questions/304268/getting-a-files-md5-checksum-in-java
+            File file = new File(DumpInfo.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            //noinspection UnstableApiUsage
+            this.sha256Hash = Files.asByteSource(file).hash(Hashing.sha256()).toString();
+        } catch (Exception e) {
+            this.sha256Hash = "Unable to fetch hash: " + e.getMessage();
+            if (GeyserConnector.getInstance().getConfig().isDebugMode()) {
+                e.printStackTrace();
+            }
+        }
+
         this.ramInfo = new DumpInfo.RamInfo();
 
-        this.userPlatforms = new Object2IntOpenHashMap();
+        this.userPlatforms = new Object2IntOpenHashMap<>();
         for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
             DeviceOS device = session.getClientData().getDeviceOS();
             userPlatforms.put(device, userPlatforms.getOrDefault(device, 0) + 1);
