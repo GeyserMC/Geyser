@@ -372,27 +372,30 @@ public class ChunkUtils {
         }
         session.sendUpstreamPacket(waterPacket);
 
-        if (BlockStateValues.getLecternBookStates().containsKey(blockState)) {
-            boolean lecternCachedHasBook = session.getLecternCache().contains(position);
-            boolean newLecternHasBook = BlockStateValues.getLecternBookStates().get(blockState);
-            if (!session.getConnector().getWorldManager().shouldExpectLecternHandled() && lecternCachedHasBook != newLecternHasBook) {
-                // Refresh the block entirely - it either has a book or no longer has a book
-                NbtMap newLecternTag;
-                if (newLecternHasBook) {
-                    newLecternTag = session.getConnector().getWorldManager().getLecternDataAt(session, position.getX(), position.getY(), position.getZ(), false);
+        BlockStateValues.getLecternBookStates().compute(blockState, (key, newLecternHasBook) -> {
+            // Determine if this block is a lectern
+            if (newLecternHasBook != null) {
+                boolean lecternCachedHasBook = session.getLecternCache().contains(position);
+                if (!session.getConnector().getWorldManager().shouldExpectLecternHandled() && lecternCachedHasBook != newLecternHasBook) {
+                    // Refresh the block entirely - it either has a book or no longer has a book
+                    NbtMap newLecternTag;
+                    if (newLecternHasBook) {
+                        newLecternTag = session.getConnector().getWorldManager().getLecternDataAt(session, position.getX(), position.getY(), position.getZ(), false);
+                    } else {
+                        session.getLecternCache().remove(position);
+                        newLecternTag = LecternInventoryTranslator.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 0).build();
+                    }
+                    BlockEntityUtils.updateBlockEntity(session, newLecternTag, position);
                 } else {
-                    session.getLecternCache().remove(position);
-                    newLecternTag = LecternInventoryTranslator.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 0).build();
+                    // As of right now, no tag can be added asynchronously
+                    session.getConnector().getWorldManager().getLecternDataAt(session, position.getX(), position.getY(), position.getZ(), false);
                 }
-                BlockEntityUtils.updateBlockEntity(session, newLecternTag, position);
             } else {
-                // As of right now, no tag can be added asynchronously
-                session.getConnector().getWorldManager().getLecternDataAt(session, position.getX(), position.getY(), position.getZ(), false);
+                // Lectern has been destroyed, if it existed
+                session.getLecternCache().remove(position);
             }
-        } else {
-            // Lectern has been destroyed, if it existed
-            session.getLecternCache().remove(position);
-        }
+            return newLecternHasBook;
+        });
 
         // Since Java stores bed colors/skull information as part of the namespaced ID and Bedrock stores it as a tag
         // This is the only place I could find that interacts with the Java block state and block updates

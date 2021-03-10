@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import it.unimi.dsi.fastutil.ints.*;
 
 import java.util.Map;
+import java.util.function.BiFunction;
 
 /**
  * Used for block entities if the Java block state contains Bedrock block information.
@@ -199,7 +200,13 @@ public class BlockStateValues {
         return FLOWER_POT_VALUES;
     }
 
-    public static Int2BooleanMap getLecternBookStates() {
+    /**
+     * This returns a Map interface so IntelliJ doesn't complain about {@link Int2BooleanMap#compute(int, BiFunction)}
+     * not returning null.
+     *
+     * @return the lectern book state map pointing to book present state
+     */
+    public static Map<Integer, Boolean> getLecternBookStates() {
         return LECTERN_BOOK_STATES;
     }
 
