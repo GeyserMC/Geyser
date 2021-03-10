@@ -1,14 +1,14 @@
 Thank you for considering a contribution! Generally, Geyser welcomes PRs from everyone. There are some guidelines about what features should go where:
 
 
-*Pull requests that may not get accepted:* Niche features that apply to a specific group, for example integration with a specific plugin. For now, please create a separate plugin if possible. 
+*Pull requests that may not get accepted:* Niche features that apply to a specific group, for example, integration with a specific plugin. For now, please create a separate plugin if possible.
 
 *Pull requests for Floodgate:* Anything that opens up information within the game for developers to use.
 
-*Pull requests for Geyser:* Anything that fixes compatibility between Java or Bedrock, or improves the quality of play for Bedrock players. The exception is wherever direct server access is required; in this case it may be better for Floodgate.
+*Pull requests for Geyser:* Anything that fixes compatibility between Java or Bedrock or improves the quality of play for Bedrock players. The exception is wherever direct server access is required; in this case, it may be better for Floodgate.
 
 
-We have some general style guides that should be applied throughout the code:
+We have some general style guides that you should apply throughout the code:
 
 ```java
 public class LongClassName {
@@ -44,8 +44,8 @@ public class LongClassName {
 }
 ```
 
-Make sure to comment your code where possible.
+Make sure to add comments to your code where possible.
 
-The nature of our software requires a lot of arrays and maps to be stored - where possible, use Fastutil's specialized maps. For example, if you're storing block state translations, use an `Int2IntMap`.
+Our software's nature requires a lot of arrays and maps to be stored - where possible, use Fastutil's specialized maps. For example, if you're storing block state translations, use an `Int2IntMap`.
 
 We have a rundown of all the tools you need to develop over on our [wiki](https://github.com/GeyserMC/Geyser/wiki/Developer-Guide). If you have any questions, please feel free to reach out to our [Discord](https://discord.geysermc.org)!

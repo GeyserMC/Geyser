@@ -14,9 +14,9 @@ Geyser is an open collaboration project by [CubeCraft Games](https://cubecraft.n
 
 ## What is Geyser?
 Geyser is a proxy, bridging the gap between Minecraft: Bedrock Edition and Minecraft: Java Edition servers.
-The ultimate goal of this project is to allow Minecraft: Bedrock Edition users to join Minecraft: Java Edition servers as seamlessly as possible. **Please note, this project is still a work in progress and should not be used on production. Expect bugs!**
+This project's ultimate goal is to allow Minecraft: Bedrock Edition users to join Minecraft: Java Edition servers as seamlessly as possible. **Please note, this project is still a work in progress and should not be used on production. Expect bugs!**
 
-Special thanks to the DragonProxy project for being a trailblazer in protocol translation and for all the team members who have now joined us here!
+Special thanks to the DragonProxy project for being a trailblazer in protocol translation and for all the team members who have joined us here!
 
 ### Currently supporting Minecraft Bedrock v1.16.100 - v1.16.210 and Minecraft Java v1.16.4 - v1.16.5.
 
@@ -28,8 +28,8 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
 ## Links:
 - Website: https://geysermc.org
 - Docs: https://github.com/GeyserMC/Geyser/wiki
-- Download: http://ci.geysermc.org
-- Discord: http://discord.geysermc.org/
+- Download: https://ci.geysermc.org
+- Discord: https://discord.gg/geysermc
 - ~~Donate: https://patreon.com/GeyserMC~~ Currently disabled.
 - Test Server: `test.geysermc.org` port `25565` for Java and `19132` for Bedrock
 
@@ -50,7 +50,7 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
   - Grindstone
 
 ## What can't be fixed
-The following things can't be fixed because of Bedrock limitations. They might be fixable in the future, but not as of now.
+We can't fix the following things because of Bedrock's limitations. They might be fixable in the future, but not as of now.
 
 - Custom heads in inventories
 - Clickable links in chat
@@ -60,7 +60,7 @@ The following things can't be fixed because of Bedrock limitations. They might b
 ## Compiling
 1. Clone the repo to your computer
 2. [Install Maven](https://maven.apache.org/install.html)
-3. Navigate to the Geyser root directory and run `git submodule update --init --recursive`. This downloads all the needed submodules for Geyser and is a crucial step in this process.
+3. Navigate to the Geyser root directory and run `git submodule update --init --recursive`. This command downloads all the needed submodules for Geyser and is a crucial step in this process.
 4. Run `mvn clean install` and locate to the `target` folder.
 
 ## Contributing
