@@ -44,6 +44,7 @@ import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
+import org.geysermc.connector.network.translators.inventory.SlotType;
 import org.geysermc.connector.network.translators.inventory.updater.UIInventoryUpdater;
 import org.geysermc.connector.network.translators.item.translators.BannerTranslator;
 
@@ -144,7 +145,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         ClientClickWindowButtonPacket packet = new ClientClickWindowButtonPacket(inventory.getId(), index);
         session.sendDownstreamPacket(packet);
 
-        GeyserItemStack inputCopy = inventory.getItem(0).copy();
+        GeyserItemStack inputCopy = inventory.getItem(0).copy(1);
         inputCopy.setNetId(session.getNextItemNetId());
         // Add the pattern manually, for better item synchronization
         if (inputCopy.getNbt() == null) {
@@ -218,5 +219,13 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
                 return 50;
         }
         return super.javaSlotToBedrock(slot);
+    }
+
+    @Override
+    public SlotType getSlotType(int javaSlot) {
+        if (javaSlot == 3) {
+            return SlotType.OUTPUT;
+        }
+        return super.getSlotType(javaSlot);
     }
 }
