@@ -108,8 +108,8 @@ public abstract class InventoryTranslator {
     public abstract void updateInventory(GeyserSession session, Inventory inventory);
     public abstract void updateSlot(GeyserSession session, Inventory inventory, int slot);
     public abstract int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData);
-    public abstract int javaSlotToBedrock(int javaSlot); //TODO
-    public abstract BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot); //TODO
+    public abstract int javaSlotToBedrock(int javaSlot);
+    public abstract BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot);
     public abstract SlotType getSlotType(int javaSlot);
     public abstract Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory);
 
@@ -138,7 +138,7 @@ public abstract class InventoryTranslator {
      * If {@link #shouldHandleRequestFirst(StackRequestActionData, Inventory)} returns true, this will be called
      */
     public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
-        return null;
+        return rejectRequest(request);
     }
 
     public void translateRequests(GeyserSession session, Inventory inventory, List<ItemStackRequest> requests) {
@@ -151,15 +151,22 @@ public abstract class InventoryTranslator {
                 if (shouldHandleRequestFirst(firstAction, inventory)) {
                     // Some special request that shouldn't be processed normally
                     response = translateSpecialRequest(session, inventory, request);
-                } else if (firstAction.getType() == StackRequestActionType.CRAFT_RECIPE) {
-                    response = translateCraftingRequest(session, inventory, request);
-                } else if (firstAction.getType() == StackRequestActionType.CRAFT_RECIPE_AUTO) {
-                    response = translateAutoCraftingRequest(session, inventory, request);
-                } else if (firstAction.getType() == StackRequestActionType.CRAFT_CREATIVE) {
-                    // This is also used for pulling items out of creative
-                    response = translateCreativeRequest(session, inventory, request);
                 } else {
-                    response = translateRequest(session, inventory, request);
+                    switch (firstAction.getType()) {
+                        case CRAFT_RECIPE:
+                            response = translateCraftingRequest(session, inventory, request);
+                            break;
+                        case CRAFT_RECIPE_AUTO:
+                            response = translateAutoCraftingRequest(session, inventory, request);
+                            break;
+                        case CRAFT_CREATIVE:
+                            // This is also used for pulling items out of creative
+                            response = translateCreativeRequest(session, inventory, request);
+                            break;
+                        default:
+                            response = translateRequest(session, inventory, request);
+                            break;
+                    }
                 }
             } else {
                 response = rejectRequest(request);
@@ -693,8 +700,10 @@ public abstract class InventoryTranslator {
         return acceptRequest(request, makeContainerEntries(session, inventory, plan.getAffectedSlots()));
     }
 
+    /**
+     * Handled in {@link PlayerInventoryTranslator}
+     */
     public ItemStackResponsePacket.Response translateCreativeRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
-        // Handled in PlayerInventoryTranslator
         return rejectRequest(request);
     }
 

@@ -134,7 +134,6 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
             height += -firstRow + 1;
             width += -firstCol + 1;
 
-            //TODO
             recipes:
             for (Recipe recipe : session.getCraftingRecipes().values()) {
                 if (recipe.getType() == RecipeType.CRAFTING_SHAPED) {

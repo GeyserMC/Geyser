@@ -35,7 +35,7 @@ import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 
 import java.util.Arrays;
 
-public abstract class InventoryUpdater {
+public class InventoryUpdater {
     public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         ItemData[] bedrockItems = new ItemData[36];
         for (int i = 0; i < 36; i++) {
