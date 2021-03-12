@@ -44,13 +44,40 @@ import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.holder.BlockInventoryHolder;
 import org.geysermc.connector.network.translators.inventory.updater.UIInventoryUpdater;
+import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.Collections;
 
 public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator {
     public BeaconInventoryTranslator() {
-        super(1, "minecraft:beacon", ContainerType.BEACON, UIInventoryUpdater.INSTANCE);
+        super(1, new BlockInventoryHolder("minecraft:beacon", ContainerType.BEACON) {
+            @Override
+            public void prepareInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
+                if (!session.getConnector().getConfig().isCacheChunks()) {
+                    // Beacons cannot work without knowing their physical location
+                    return;
+                }
+                super.prepareInventory(translator, session, inventory);
+            }
+
+            @Override
+            protected boolean checkInteractionPosition(GeyserSession session) {
+                // Since we can't fall back to a virtual inventory, let's make opening one easier
+                return true;
+            }
+
+            @Override
+            public void openInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
+                if (!session.getConnector().getConfig().isCacheChunks() || !((BeaconContainer) inventory).isUsingRealBlock()) {
+                    InventoryUtils.closeInventory(session, inventory.getId(), false);
+                    return;
+                }
+                super.openInventory(translator, session, inventory);
+            }
+        }, UIInventoryUpdater.INSTANCE);
     }
 
     @Override

@@ -59,14 +59,14 @@ public class CartographyInventoryTranslator extends AbstractBlockInventoryTransl
 
     @Override
     public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
-        if (slotInfoData.getContainer() == ContainerSlotType.CARTOGRAPHY_INPUT) {
-            return 0;
-        }
-        if (slotInfoData.getContainer() == ContainerSlotType.CARTOGRAPHY_ADDITIONAL) {
-            return 1;
-        }
-        if (slotInfoData.getContainer() == ContainerSlotType.CARTOGRAPHY_RESULT || slotInfoData.getContainer() == ContainerSlotType.CREATIVE_OUTPUT) {
-            return 2;
+        switch (slotInfoData.getContainer()) {
+            case CARTOGRAPHY_INPUT:
+                return 0;
+            case CARTOGRAPHY_ADDITIONAL:
+                return 1;
+            case CARTOGRAPHY_RESULT:
+            case CREATIVE_OUTPUT:
+                return 2;
         }
         return super.bedrockSlotToJava(slotInfoData);
     }
