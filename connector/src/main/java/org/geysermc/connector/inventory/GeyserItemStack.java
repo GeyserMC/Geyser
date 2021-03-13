@@ -62,6 +62,10 @@ public class GeyserItemStack {
         this.netId = netId;
     }
 
+    public static GeyserItemStack from(ItemStack itemStack) {
+        return itemStack == null ? EMPTY : new GeyserItemStack(itemStack.getId(), itemStack.getAmount(), itemStack.getNbt());
+    }
+
     public int getJavaId() {
         return isEmpty() ? 0 : javaId;
     }
@@ -74,10 +78,6 @@ public class GeyserItemStack {
         return isEmpty() ? null : nbt;
     }
 
-    public void setNetId(int netId) {
-        this.netId = netId;
-    }
-
     public int getNetId() {
         return isEmpty() ? 0 : netId;
     }
@@ -88,10 +88,6 @@ public class GeyserItemStack {
 
     public void sub(int sub) {
         amount -= sub;
-    }
-
-    public static GeyserItemStack from(ItemStack itemStack) {
-        return itemStack == null ? EMPTY : new GeyserItemStack(itemStack.getId(), itemStack.getAmount(), itemStack.getNbt());
     }
 
     public ItemStack getItemStack() {

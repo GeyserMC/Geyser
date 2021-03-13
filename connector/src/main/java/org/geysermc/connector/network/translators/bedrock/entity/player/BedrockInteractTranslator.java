@@ -367,7 +367,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                     if (ridingEntity instanceof AbstractHorseEntity) {
                         if (ridingEntity.getMetadata().getFlags().getFlag(EntityFlag.TAMED)) {
                             // We should request to open the horse inventory instead
-                            ClientPlayerStatePacket openHorseWindowPacket = new ClientPlayerStatePacket((int)session.getPlayerEntity().getEntityId(), PlayerState.OPEN_HORSE_INVENTORY);
+                            ClientPlayerStatePacket openHorseWindowPacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getEntityId(), PlayerState.OPEN_HORSE_INVENTORY);
                             session.sendDownstreamPacket(openHorseWindowPacket);
                         }
                     } else {

@@ -64,5 +64,4 @@ public class HorseInventoryUpdater extends InventoryUpdater {
         session.sendUpstreamPacket(slotPacket);
         return true;
     }
-
 }

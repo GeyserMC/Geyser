@@ -65,6 +65,7 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
                 session.getConnector().getLogger().debug("Expected lectern but it wasn't open!");
                 return;
             }
+
             LecternContainer lecternContainer = (LecternContainer) session.getOpenInventory();
             if (lecternContainer.getCurrentBedrockPage() == packet.getPage()) {
                 // The same page means Bedrock is closing the window
@@ -76,6 +77,7 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
                 // Each "page" on Java is just one page (think a spiral notebook folded back to only show one page)
                 int newJavaPage = (packet.getPage() * 2);
                 int currentJavaPage = (lecternContainer.getCurrentBedrockPage() * 2);
+
                 // Send as many click button packets as we need to
                 // Java has the option to specify exact page numbers by adding 100 to the number, but buttonId variable
                 // is a byte when transmitted over the network and therefore this stops us at 128
