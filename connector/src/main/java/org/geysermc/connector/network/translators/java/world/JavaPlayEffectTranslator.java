@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.java.world;
 
-import com.github.steveice10.mc.protocol.data.game.world.effect.ParticleEffect;
 import com.github.steveice10.mc.protocol.data.game.world.effect.*;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerPlayEffectPacket;
 import com.nukkitx.math.vector.Vector3f;
@@ -38,7 +37,6 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.effect.Effect;
 import org.geysermc.connector.network.translators.effect.EffectRegistry;
 import org.geysermc.connector.utils.LocaleUtils;
@@ -205,7 +203,7 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     effectPacket.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
 
                     BreakBlockEffectData breakBlockEffectData = (BreakBlockEffectData) packet.getData();
-                    effectPacket.setData(BlockTranslator.getBedrockBlockId(breakBlockEffectData.getBlockState()));
+                    effectPacket.setData(session.getBlockTranslator().getBedrockBlockId(breakBlockEffectData.getBlockState()));
                     break;
                 }
                 case BREAK_SPLASH_POTION: {

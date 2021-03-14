@@ -31,7 +31,7 @@
         </dependency>
         <dependency>
             <groupId>com.github.CloudburstMC.Protocol</groupId>
-            <artifactId>bedrock-v422</artifactId>
+            <artifactId>bedrock-v428</artifactId>
             <version>42da92f</version>
             <scope>compile</scope>
             <exclusions>
