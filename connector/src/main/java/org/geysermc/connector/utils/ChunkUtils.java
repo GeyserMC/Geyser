@@ -91,7 +91,7 @@ public class ChunkUtils {
         BitSet waterloggedPaletteIds = new BitSet();
         BitSet pistonOrFlowerPaletteIds = new BitSet();
 
-        boolean worldManagerHasMoreBlockDataThanCache = session.getConnector().getWorldManager().hasMoreBlockDataThanChunkCache();
+        boolean worldManagerHasMoreBlockDataThanCache = session.getConnector().getWorldManager().hasOwnChunkCache();
 
         // If the received packet was a full chunk update, null sections in the chunk are guaranteed to also be null in the world manager
         boolean shouldCheckWorldManagerOnMissingSections = isNonFullChunk && worldManagerHasMoreBlockDataThanCache;
