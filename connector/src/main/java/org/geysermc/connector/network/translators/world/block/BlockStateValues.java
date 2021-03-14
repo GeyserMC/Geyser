@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import it.unimi.dsi.fastutil.ints.*;
 
 import java.util.Map;
+import java.util.function.BiFunction;
 
 /**
  * Used for block entities if the Java block state contains Bedrock block information.
@@ -39,6 +40,7 @@ public class BlockStateValues {
     private static final Int2ByteMap COMMAND_BLOCK_VALUES = new Int2ByteOpenHashMap();
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
+    private static final Int2BooleanMap LECTERN_BOOK_STATES = new Int2BooleanOpenHashMap();
     private static final Int2IntMap NOTEBLOCK_PITCHES = new Int2IntOpenHashMap();
     private static final Int2BooleanMap IS_STICKY_PISTON = new Int2BooleanOpenHashMap();
     private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
@@ -84,6 +86,11 @@ public class BlockStateValues {
 
         if (javaId.contains("potted_") || javaId.contains("flower_pot")) {
             FLOWER_POT_VALUES.put(javaBlockState, javaId.replace("potted_", ""));
+            return;
+        }
+
+        if (javaId.startsWith("minecraft:lectern")) {
+            LECTERN_BOOK_STATES.put(javaBlockState, javaId.contains("has_book=true"));
             return;
         }
 
@@ -191,6 +198,16 @@ public class BlockStateValues {
      */
     public static Int2ObjectMap<String> getFlowerPotValues() {
         return FLOWER_POT_VALUES;
+    }
+
+    /**
+     * This returns a Map interface so IntelliJ doesn't complain about {@link Int2BooleanMap#compute(int, BiFunction)}
+     * not returning null.
+     *
+     * @return the lectern book state map pointing to book present state
+     */
+    public static Map<Integer, Boolean> getLecternBookStates() {
+        return LECTERN_BOOK_STATES;
     }
 
     /**

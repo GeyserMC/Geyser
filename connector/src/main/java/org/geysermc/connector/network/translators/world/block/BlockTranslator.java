@@ -107,6 +107,12 @@ public abstract class BlockTranslator {
     public static final int JAVA_RUNTIME_SPAWNER_ID;
 
     /**
+     * Contains a map of Java blocks to their respective Bedrock block tag, if the Java identifier is different from Bedrock.
+     * Required to fix villager trades with these blocks.
+     */
+    private final Map<String, NbtMap> javaIdentifierToBedrockTag;
+
+    /**
      * Stores the raw blocks JSON until it is no longer needed.
      */
     public static JsonNode BLOCKS_JSON;
@@ -163,13 +169,12 @@ public abstract class BlockTranslator {
             BlockStateValues.storeBlockStateValues(entry.getKey(), javaRuntimeId, entry.getValue());
 
             String cleanJavaIdentifier = entry.getKey().split("\\[")[0];
+            String bedrockIdentifier = entry.getValue().get("bedrock_identifier").asText();
 
             if (!JAVA_ID_TO_JAVA_IDENTIFIER_MAP.containsValue(cleanJavaIdentifier)) {
                 uniqueJavaId++;
                 JAVA_ID_TO_JAVA_IDENTIFIER_MAP.put(uniqueJavaId, cleanJavaIdentifier);
             }
-
-            String bedrockIdentifier = entry.getValue().get("bedrock_identifier").asText();
 
             // Keeping this here since this is currently unchanged between versions
             if (!cleanJavaIdentifier.equals(bedrockIdentifier)) {
@@ -231,6 +236,8 @@ public abstract class BlockTranslator {
             throw new AssertionError("Unable to get blocks from runtime block states", e);
         }
 
+        javaIdentifierToBedrockTag = new Object2ObjectOpenHashMap<>();
+
         // New since 1.16.100 - find the block runtime ID by the order given to us in the block palette,
         // as we no longer send a block palette
         Object2IntMap<NbtMap> blockStateOrderedMap = new Object2IntOpenHashMap<>(blocksTag.size());
@@ -285,7 +292,11 @@ public abstract class BlockTranslator {
 
             // Get the tag needed for non-empty flower pots
             if (entry.getValue().get("pottable") != null) {
-                flowerPotBlocks.put(cleanJavaIdentifier, buildBedrockState(entry.getValue()));
+                flowerPotBlocks.put(cleanJavaIdentifier, blockTag);
+            }
+
+            if (!cleanJavaIdentifier.equals(entry.getValue().get("bedrock_identifier").asText())) {
+                javaIdentifierToBedrockTag.put(cleanJavaIdentifier, blockTag);
             }
 
             javaToBedrockBlockMap.put(javaRuntimeId, bedrockRuntimeId);
@@ -400,6 +411,10 @@ public abstract class BlockTranslator {
         return bedrockWaterId;
     }
 
+    /**
+     * @return the "block state version" generated in the Bedrock block palette that completes an NBT indication of a
+     * block state.
+     */
     public abstract int getBlockStateVersion();
 
     public byte[] getEmptyChunkData() {
@@ -446,5 +461,14 @@ public abstract class BlockTranslator {
      */
     public static String[] getAllBlockIdentifiers() {
         return JAVA_ID_TO_JAVA_IDENTIFIER_MAP.values().toArray(new String[0]);
+    }
+
+    /**
+     * @param cleanJavaIdentifier the clean Java identifier of the block to look up
+     *
+     * @return the block tag of the block name mapped from Java to Bedrock.
+     */
+    public NbtMap getBedrockBlockNbt(String cleanJavaIdentifier) {
+        return javaIdentifierToBedrockTag.get(cleanJavaIdentifier);
     }
 }

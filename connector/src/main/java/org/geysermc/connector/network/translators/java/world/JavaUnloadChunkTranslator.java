@@ -49,5 +49,14 @@ public class JavaUnloadChunkTranslator extends PacketTranslator<ServerUnloadChun
                 iterator.remove();
             }
         }
+
+        // Do the same thing with lecterns
+        iterator = session.getLecternCache().iterator();
+        while (iterator.hasNext()) {
+            Vector3i position = iterator.next();
+            if ((position.getX() >> 4) == packet.getX() && (position.getZ() >> 4) == packet.getZ()) {
+                iterator.remove();
+            }
+        }
     }
 }

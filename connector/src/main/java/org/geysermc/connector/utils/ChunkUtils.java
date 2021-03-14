@@ -51,6 +51,7 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.translators.LecternInventoryTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BedrockOnlyBlockEntity;
@@ -258,7 +259,6 @@ public class ChunkUtils {
             }
 
             String id = BlockEntityUtils.getBedrockBlockEntityId(tagName);
-            BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(id);
             Position pos = new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue());
 
             // Get Java blockstate ID from block entity position
@@ -268,6 +268,14 @@ public class ChunkUtils {
                 blockState = section.get(pos.getX() & 0xF, pos.getY() & 0xF, pos.getZ() & 0xF);
             }
 
+            if (tagName.equals("minecraft:lectern") && BlockStateValues.getLecternBookStates().get(blockState)) {
+                // If getLecternBookStates is false, let's just treat it like a normal block entity
+                bedrockBlockEntities[i] = session.getConnector().getWorldManager().getLecternDataAt(session, pos.getX(), pos.getY(), pos.getZ(), true);
+                i++;
+                continue;
+            }
+
+            BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(id);
             bedrockBlockEntities[i] = blockEntityTranslator.getBlockEntityTag(tagName, tag, blockState);
 
             // Check for custom skulls
@@ -363,6 +371,31 @@ public class ChunkUtils {
             waterPacket.setRuntimeId(session.getBlockTranslator().getBedrockAirId());
         }
         session.sendUpstreamPacket(waterPacket);
+
+        BlockStateValues.getLecternBookStates().compute(blockState, (key, newLecternHasBook) -> {
+            // Determine if this block is a lectern
+            if (newLecternHasBook != null) {
+                boolean lecternCachedHasBook = session.getLecternCache().contains(position);
+                if (!session.getConnector().getWorldManager().shouldExpectLecternHandled() && lecternCachedHasBook != newLecternHasBook) {
+                    // Refresh the block entirely - it either has a book or no longer has a book
+                    NbtMap newLecternTag;
+                    if (newLecternHasBook) {
+                        newLecternTag = session.getConnector().getWorldManager().getLecternDataAt(session, position.getX(), position.getY(), position.getZ(), false);
+                    } else {
+                        session.getLecternCache().remove(position);
+                        newLecternTag = LecternInventoryTranslator.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 0).build();
+                    }
+                    BlockEntityUtils.updateBlockEntity(session, newLecternTag, position);
+                } else {
+                    // As of right now, no tag can be added asynchronously
+                    session.getConnector().getWorldManager().getLecternDataAt(session, position.getX(), position.getY(), position.getZ(), false);
+                }
+            } else {
+                // Lectern has been destroyed, if it existed
+                session.getLecternCache().remove(position);
+            }
+            return newLecternHasBook;
+        });
 
         // Since Java stores bed colors/skull information as part of the namespaced ID and Bedrock stores it as a tag
         // This is the only place I could find that interacts with the Java block state and block updates

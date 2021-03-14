@@ -36,8 +36,8 @@ import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
-import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
@@ -58,12 +58,15 @@ import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -76,6 +79,7 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.entity.player.SkullPlayerEntity;
+import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.auth.AuthData;
@@ -86,7 +90,7 @@ import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.translators.collision.CollisionManager;
-import org.geysermc.connector.network.translators.inventory.EnchantmentInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.skin.SkinManager;
@@ -101,9 +105,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 public class GeyserSession implements CommandSender {
@@ -122,17 +125,38 @@ public class GeyserSession implements CommandSender {
     private boolean microsoftAccount;
 
     private final SessionPlayerEntity playerEntity;
-    private PlayerInventory inventory;
 
     private AdvancementsCache advancementsCache;
     private BookEditCache bookEditCache;
     private ChunkCache chunkCache;
     private EntityCache entityCache;
     private EntityEffectCache effectCache;
-    private InventoryCache inventoryCache;
     private WorldCache worldCache;
     private WindowCache windowCache;
     private final Int2ObjectMap<TeleportCache> teleportMap = new Int2ObjectOpenHashMap<>();
+
+    private final PlayerInventory playerInventory;
+    @Setter
+    private Inventory openInventory;
+    @Setter
+    private boolean closingInventory;
+
+    @Setter
+    private InventoryTranslator inventoryTranslator = InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR;
+
+    /**
+     * Use {@link #getNextItemNetId()} instead for consistency
+     */
+    @Getter(AccessLevel.NONE)
+    private final AtomicInteger itemNetId = new AtomicInteger(2);
+
+    @Getter(AccessLevel.NONE)
+    private final Object inventoryLock = new Object();
+    @Getter(AccessLevel.NONE)
+    private CompletableFuture<Void> inventoryFuture;
+
+    @Setter
+    private ScheduledFuture<?> craftingGridFuture;
 
     /**
      * Stores session collision
@@ -153,6 +177,16 @@ public class GeyserSession implements CommandSender {
      * Used for translating Bedrock block actions to Java entity actions.
      */
     private final Object2LongMap<Vector3i> itemFrameCache = new Object2LongOpenHashMap<>();
+
+    /**
+     * Stores a list of all lectern locations and their block entity tags.
+     * See {@link org.geysermc.connector.network.translators.world.WorldManager#getLecternDataAt(GeyserSession, int, int, int, boolean)}
+     * for more information.
+     */
+    private final Set<Vector3i> lecternCache = new ObjectOpenHashSet<>();
+
+    @Setter
+    private boolean droppingLecternBook;
 
     @Setter
     private Vector2i lastChunkPosition = null;
@@ -210,26 +244,30 @@ public class GeyserSession implements CommandSender {
      * Initialized as (0, 0, 0) so it is always not-null.
      */
     @Setter
-    private Vector3i lastInteractionPosition = Vector3i.ZERO;
+    private Vector3i lastInteractionBlockPosition = Vector3i.ZERO;
+
+    /**
+     * Stores the position of the player the last time they interacted.
+     * Used to verify that the player did not move since their last interaction. <br>
+     * Initialized as (0, 0, 0) so it is always not-null.
+     */
+    @Setter
+    private Vector3f lastInteractionPlayerPosition = Vector3f.ZERO;
 
     @Setter
     private Entity ridingVehicleEntity;
 
     @Setter
-    private int craftSlot = 0;
-
-    @Setter
-    private long lastWindowCloseTime = 0;
-
-    @Setter
-    private VillagerTrade[] villagerTrades;
-    @Setter
-    private long lastInteractedVillagerEid;
+    private Int2ObjectMap<Recipe> craftingRecipes;
+    private final Set<String> unlockedRecipes;
+    private final AtomicInteger lastRecipeNetId;
 
     /**
-     * Stores the enchantment information the client has received if they are in an enchantment table GUI
+     * Saves a list of all stonecutter recipes, for use in a stonecutter inventory.
+     * The key is the Java ID of the item; the values are all the possible outputs' Java IDs sorted by their string identifier
      */
-    private final EnchantmentInventoryTranslator.EnchantmentSlotData[] enchantmentSlotData = new EnchantmentInventoryTranslator.EnchantmentSlotData[3];
+    @Setter
+    private Int2ObjectMap<IntList> stonecutterRecipes;
 
     /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
@@ -368,19 +406,24 @@ public class GeyserSession implements CommandSender {
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
-        this.inventoryCache = new InventoryCache(this);
         this.worldCache = new WorldCache(this);
         this.windowCache = new WindowCache(this);
 
         this.collisionManager = new CollisionManager(this);
 
         this.playerEntity = new SessionPlayerEntity(this);
-        this.inventory = new PlayerInventory();
+        this.worldCache = new WorldCache(this);
+        this.windowCache = new WindowCache(this);
+
+        this.playerInventory = new PlayerInventory();
+        this.openInventory = null;
+        this.inventoryFuture = CompletableFuture.completedFuture(null);
+        this.craftingRecipes = new Int2ObjectOpenHashMap<>();
+        this.unlockedRecipes = new ObjectOpenHashSet<>();
+        this.lastRecipeNetId = new AtomicInteger(1);
 
         this.spawned = false;
         this.loggedIn = false;
-
-        this.inventoryCache.getInventories().put(0, inventory);
 
         // Make a copy to prevent ConcurrentModificationException
         final List<GeyserSession> tmpPlayers = new ArrayList<>(connector.getPlayers());
@@ -709,7 +752,6 @@ public class GeyserSession implements CommandSender {
         this.entityCache = null;
         this.effectCache = null;
         this.worldCache = null;
-        this.inventoryCache = null;
         this.windowCache = null;
 
         closed = true;
@@ -849,6 +891,7 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setMultiplayerCorrelationId("");
         startGamePacket.setItemEntries(ItemRegistry.ITEMS);
         startGamePacket.setVanillaVersion("*");
+        startGamePacket.setInventoriesServerAuthoritative(true);
         startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT); // can be removed once 1.16.200 support is dropped
 
         SyncedPlayerMovementSettings settings = new SyncedPlayerMovementSettings();
@@ -856,8 +899,48 @@ public class GeyserSession implements CommandSender {
         settings.setRewindHistorySize(0);
         settings.setServerAuthoritativeBlockBreaking(false);
         startGamePacket.setPlayerMovementSettings(settings);
-
+        
         upstream.sendPacket(startGamePacket);
+    }
+
+    /**
+     * Adds a new inventory task.
+     * Inventory tasks are executed one at a time, in order.
+     *
+     * @param task the task to run
+     */
+    public void addInventoryTask(Runnable task) {
+        synchronized (inventoryLock) {
+            inventoryFuture = inventoryFuture.thenRun(task).exceptionally(throwable -> {
+                GeyserConnector.getInstance().getLogger().error("Error processing inventory task", throwable.getCause());
+                return null;
+            });
+        }
+    }
+
+    /**
+     * Adds a new inventory task with a delay.
+     * The delay is achieved by scheduling with the Geyser general thread pool.
+     * Inventory tasks are executed one at a time, in order.
+     *
+     * @param task the delayed task to run
+     * @param delayMillis delay in milliseconds
+     */
+    public void addInventoryTask(Runnable task, long delayMillis) {
+        synchronized (inventoryLock) {
+            Executor delayedExecutor = command -> GeyserConnector.getInstance().getGeneralThreadPool().schedule(command, delayMillis, TimeUnit.MILLISECONDS);
+            inventoryFuture = inventoryFuture.thenRunAsync(task, delayedExecutor).exceptionally(throwable -> {
+                GeyserConnector.getInstance().getLogger().error("Error processing inventory task", throwable.getCause());
+                return null;
+            });
+        }
+    }
+
+    /**
+     * @return the next Bedrock item network ID to use for a new item
+     */
+    public int getNextItemNetId() {
+        return itemNetId.getAndIncrement();
     }
 
     public void addTeleport(TeleportCache teleportCache) {

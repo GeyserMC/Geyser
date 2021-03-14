@@ -29,7 +29,7 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.nbt.NbtMapBuilder;
 
-@BlockEntity(name = "JigsawBlock", regex = "jigsaw")
+@BlockEntity(name = "JigsawBlock")
 public class JigsawBlockBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
