@@ -41,12 +41,14 @@ import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
+import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.fabric.command.GeyserFabricCommandExecutor;
 import org.geysermc.platform.fabric.command.GeyserFabricCommandManager;
+import org.geysermc.platform.fabric.world.GeyserFabricWorldManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -73,6 +75,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     private GeyserFabricConfiguration geyserConfig;
     private GeyserFabricLogger geyserLogger;
     private IGeyserPingPassthrough geyserPingPassthrough;
+    private WorldManager geyserWorldManager;
 
     @Override
     public void onInitialize() {
@@ -147,6 +150,8 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
         this.geyserCommandManager = new GeyserFabricCommandManager(connector);
 
+        this.geyserWorldManager = new GeyserFabricWorldManager(server);
+
         // Start command building
         // Set just "geyser" as the help command
         LiteralArgumentBuilder<ServerCommandSource> builder = net.minecraft.server.command.CommandManager.literal("geyser")
@@ -190,6 +195,11 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     @Override
     public IGeyserPingPassthrough getGeyserPingPassthrough() {
         return geyserPingPassthrough;
+    }
+
+    @Override
+    public WorldManager getWorldManager() {
+        return geyserWorldManager;
     }
 
     @Override
