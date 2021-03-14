@@ -33,6 +33,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.packet.MobEquipmentPacket;
 import org.geysermc.connector.utils.CooldownUtils;
+import org.geysermc.connector.utils.InteractiveTagManager;
 
 @Translator(packet = MobEquipmentPacket.class)
 public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipmentPacket> {
@@ -55,5 +56,10 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
 
         // Java sends a cooldown indicator whenever you switch an item
         CooldownUtils.sendCooldown(session);
+
+        // Update the interactive tag, if an entity is present
+        if (session.getMouseoverEntity() != null) {
+            InteractiveTagManager.updateTag(session, session.getMouseoverEntity());
+        }
     }
 }

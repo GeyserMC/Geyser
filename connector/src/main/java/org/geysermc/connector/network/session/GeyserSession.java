@@ -257,6 +257,12 @@ public class GeyserSession implements CommandSender {
     @Setter
     private Entity ridingVehicleEntity;
 
+    /**
+     * The entity that the client is currently looking at.
+     */
+    @Setter
+    private Entity mouseoverEntity;
+
     @Setter
     private Int2ObjectMap<Recipe> craftingRecipes;
     private final Set<String> unlockedRecipes;
@@ -791,6 +797,11 @@ public class GeyserSession implements CommandSender {
         this.sneaking = sneaking;
         collisionManager.updatePlayerBoundingBox();
         collisionManager.updateScaffoldingFlags();
+
+        if (mouseoverEntity != null) {
+            // Horses, etc can change their property depending on if you're sneaking
+            InteractiveTagManager.updateTag(this, mouseoverEntity);
+        }
     }
 
     @Override

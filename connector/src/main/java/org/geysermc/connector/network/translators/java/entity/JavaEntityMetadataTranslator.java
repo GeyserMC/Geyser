@@ -32,6 +32,7 @@ import org.geysermc.connector.network.translators.Translator;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityMetadataPacket;
+import org.geysermc.connector.utils.InteractiveTagManager;
 import org.geysermc.connector.utils.LanguageUtils;
 
 @Translator(packet = ServerEntityMetadataPacket.class)
@@ -61,5 +62,10 @@ public class JavaEntityMetadataTranslator extends PacketTranslator<ServerEntityM
         }
 
         entity.updateBedrockMetadata(session);
+
+        // Update the interactive tag, if necessary
+        if (session.getMouseoverEntity() != null && session.getMouseoverEntity().getEntityId() == entity.getEntityId()) {
+            InteractiveTagManager.updateTag(session, entity);
+        }
     }
 }
