@@ -28,7 +28,11 @@ package org.geysermc.connector.network.translators.item;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.nukkitx.nbt.*;
+import com.google.common.collect.ImmutableSet;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
+import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
@@ -36,6 +40,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -55,8 +60,7 @@ public class ItemRegistry {
     /**
      * A list of all identifiers that only exist on Java. Used to prevent creative items from becoming these unintentionally.
      */
-    private static final List<String> JAVA_ONLY_ITEMS = Arrays.asList("minecraft:spectral_arrow", "minecraft:debug_stick",
-            "minecraft:knowledge_book");
+    private static final Set<String> JAVA_ONLY_ITEMS;
 
     public static final ItemData[] CREATIVE_ITEMS;
 
@@ -170,6 +174,8 @@ public class ItemRegistry {
             if (bedrockIdentifier == null) {
                 throw new RuntimeException("Missing Bedrock ID in mappings!: " + bedrockId);
             }
+            JsonNode stackSizeNode = entry.getValue().get("stack_size");
+            int stackSize = stackSizeNode == null ? 64 : stackSizeNode.intValue();
             if (entry.getValue().has("tool_type")) {
                 if (entry.getValue().has("tool_tier")) {
                     ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
@@ -177,19 +183,22 @@ public class ItemRegistry {
                             entry.getValue().get("bedrock_data").intValue(),
                             entry.getValue().get("tool_type").textValue(),
                             entry.getValue().get("tool_tier").textValue(),
-                            entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue()));
+                            entry.getValue().get("is_block").booleanValue(),
+                            stackSize));
                 } else {
                     ITEM_ENTRIES.put(itemIndex, new ToolItemEntry(
                             entry.getKey(), bedrockIdentifier, itemIndex, bedrockId,
                             entry.getValue().get("bedrock_data").intValue(),
                             entry.getValue().get("tool_type").textValue(),
-                            "", entry.getValue().get("is_block").booleanValue()));
+                            "", entry.getValue().get("is_block").booleanValue(),
+                            stackSize));
                 }
             } else {
                 ITEM_ENTRIES.put(itemIndex, new ItemEntry(
                         entry.getKey(), bedrockIdentifier, itemIndex, bedrockId,
                         entry.getValue().get("bedrock_data").intValue(),
-                        entry.getValue().get("is_block") != null && entry.getValue().get("is_block").booleanValue()));
+                        entry.getValue().get("is_block").booleanValue(),
+                        stackSize));
             }
             switch (entry.getKey()) {
                 case "minecraft:barrier":
@@ -240,7 +249,7 @@ public class ItemRegistry {
 
         // Add the loadstone compass since it doesn't exist on java but we need it for item conversion
         ITEM_ENTRIES.put(itemIndex, new ItemEntry("minecraft:lodestone_compass", "minecraft:lodestone_compass", itemIndex,
-                lodestoneCompassId, 0, false));
+                lodestoneCompassId, 0, false, 1));
 
         /* Load creative items */
         stream = FileUtils.getResource("bedrock/creative_items.json");
@@ -265,7 +274,7 @@ public class ItemRegistry {
 
             ITEMS.add(new StartGamePacket.ItemEntry("geysermc:furnace_minecart", (short) furnaceMinecartId, true));
             ITEM_ENTRIES.put(javaFurnaceMinecartId, new ItemEntry("minecraft:furnace_minecart", "geysermc:furnace_minecart", javaFurnaceMinecartId,
-                    furnaceMinecartId, 0, false));
+                    furnaceMinecartId, 0, false, 1));
             creativeItems.add(ItemData.fromNet(netId, furnaceMinecartId, (short) 0, 1, null));
 
             NbtMapBuilder builder = NbtMap.builder();
@@ -303,6 +312,14 @@ public class ItemRegistry {
         CREATIVE_ITEMS = creativeItems.toArray(new ItemData[0]);
 
         ITEM_NAMES = itemNames.toArray(new String[0]);
+
+        Set<String> javaOnlyItems = new ObjectOpenHashSet<>();
+        Collections.addAll(javaOnlyItems, "minecraft:spectral_arrow", "minecraft:debug_stick",
+                "minecraft:knowledge_book", "minecraft:tipped_arrow");
+        if (!usingFurnaceMinecart) {
+            javaOnlyItems.add("minecraft:furnace_minecart");
+        }
+        JAVA_ONLY_ITEMS = ImmutableSet.copyOf(javaOnlyItems);
     }
 
     /**

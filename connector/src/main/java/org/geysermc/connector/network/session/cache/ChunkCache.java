@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.MathUtils;
@@ -38,14 +37,15 @@ public class ChunkCache {
 
     private final boolean cache;
 
-    private final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectMap<Column> chunks;
 
     public ChunkCache(GeyserSession session) {
-        if (session.getConnector().getWorldManager().getClass() == GeyserBootstrap.DEFAULT_CHUNK_MANAGER.getClass()) {
-            this.cache = session.getConnector().getConfig().isCacheChunks();
-        } else {
+        if (session.getConnector().getWorldManager().hasOwnChunkCache()) {
             this.cache = false; // To prevent Spigot from initializing
+        } else {
+            this.cache = session.getConnector().getConfig().isCacheChunks();
         }
+        chunks = cache ? new Long2ObjectOpenHashMap<>() : null;
     }
 
     public Column addToCache(Column chunk) {

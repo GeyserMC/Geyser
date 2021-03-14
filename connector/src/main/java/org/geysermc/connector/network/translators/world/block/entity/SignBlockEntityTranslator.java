@@ -30,7 +30,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.utils.SignUtils;
 
-@BlockEntity(name = "Sign", regex = "sign")
+@BlockEntity(name = "Sign")
 public class SignBlockEntityTranslator extends BlockEntityTranslator {
     /**
      * Maps a color stored in a sign's Color tag to a Bedrock Edition formatting code.

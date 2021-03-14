@@ -53,11 +53,11 @@ public class GeyserSpigotBlockPlaceListener implements Listener {
                 placeBlockSoundPacket.setPosition(Vector3f.from(event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ()));
                 placeBlockSoundPacket.setBabySound(false);
                 if (worldManager.isLegacy()) {
-                    placeBlockSoundPacket.setExtraData(BlockTranslator.getBedrockBlockId(worldManager.getBlockAt(session,
+                    placeBlockSoundPacket.setExtraData(session.getBlockTranslator().getBedrockBlockId(worldManager.getBlockAt(session,
                             event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ())));
                 } else {
                     String javaBlockId = event.getBlockPlaced().getBlockData().getAsString();
-                    placeBlockSoundPacket.setExtraData(BlockTranslator.getBedrockBlockId(BlockTranslator.getJavaIdBlockMap().getOrDefault(javaBlockId, BlockTranslator.JAVA_AIR_ID)));
+                    placeBlockSoundPacket.setExtraData(session.getBlockTranslator().getBedrockBlockId(BlockTranslator.getJavaIdBlockMap().getOrDefault(javaBlockId, BlockTranslator.JAVA_AIR_ID)));
                 }
                 placeBlockSoundPacket.setIdentifier(":");
                 session.sendUpstreamPacket(placeBlockSoundPacket);

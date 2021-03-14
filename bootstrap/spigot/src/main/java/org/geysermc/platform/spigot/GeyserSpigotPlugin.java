@@ -43,6 +43,7 @@ import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandManager;
 import org.geysermc.platform.spigot.command.SpigotCommandSender;
+import org.geysermc.platform.spigot.world.GeyserSpigot1_11CraftingListener;
 import org.geysermc.platform.spigot.world.GeyserSpigotBlockPlaceListener;
 import org.geysermc.platform.spigot.world.manager.*;
 import us.myles.ViaVersion.api.Pair;
@@ -154,8 +155,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             geyserLogger.debug("Legacy version of Minecraft (1.15.2 or older) detected; not using 3D biomes.");
         }
 
+        boolean isPre1_12 = !isCompatible(Bukkit.getServer().getVersion(), "1.12.0");
         // Set if we need to use a different method for getting a player's locale
-        SpigotCommandSender.setUseLegacyLocaleMethod(!isCompatible(Bukkit.getServer().getVersion(), "1.12.0"));
+        SpigotCommandSender.setUseLegacyLocaleMethod(isPre1_12);
 
         if (connector.getConfig().isUseAdapters()) {
             try {
@@ -165,14 +167,14 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 if (isViaVersion && isViaVersionNeeded()) {
                     if (isLegacy) {
                         // Pre-1.13
-                        this.geyserWorldManager = new GeyserSpigot1_12NativeWorldManager();
+                        this.geyserWorldManager = new GeyserSpigot1_12NativeWorldManager(this);
                     } else {
                         // Post-1.13
                         this.geyserWorldManager = new GeyserSpigotLegacyNativeWorldManager(this, use3dBiomes);
                     }
                 } else {
                     // No ViaVersion
-                    this.geyserWorldManager = new GeyserSpigotNativeWorldManager(use3dBiomes);
+                    this.geyserWorldManager = new GeyserSpigotNativeWorldManager(this, use3dBiomes);
                 }
                 geyserLogger.debug("Using NMS adapter: " + this.geyserWorldManager.getClass() + ", " + nmsVersion);
             } catch (Exception e) {
@@ -188,19 +190,23 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             // No NMS adapter
             if (isLegacy && isViaVersion) {
                 // Use ViaVersion for converting pre-1.13 block states
-                this.geyserWorldManager = new GeyserSpigot1_12WorldManager();
+                this.geyserWorldManager = new GeyserSpigot1_12WorldManager(this);
             } else if (isLegacy) {
                 // Not sure how this happens - without ViaVersion, we don't know any block states, so just assume everything is air
-                this.geyserWorldManager = new GeyserSpigotFallbackWorldManager();
+                this.geyserWorldManager = new GeyserSpigotFallbackWorldManager(this);
             } else {
                 // Post-1.13
-                this.geyserWorldManager = new GeyserSpigotWorldManager(use3dBiomes);
+                this.geyserWorldManager = new GeyserSpigotWorldManager(this, use3dBiomes);
             }
             geyserLogger.debug("Using default world manager: " + this.geyserWorldManager.getClass());
         }
         GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(connector, this.geyserWorldManager);
-
         Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
+
+        if (isPre1_12) {
+            // Register events needed to send all recipes to the client
+            Bukkit.getServer().getPluginManager().registerEvents(new GeyserSpigot1_11CraftingListener(connector), this);
+        }
 
         this.getCommand("geyser").setExecutor(new GeyserSpigotCommandExecutor(connector));
     }

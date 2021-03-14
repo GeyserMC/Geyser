@@ -32,7 +32,6 @@ import lombok.AllArgsConstructor;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 
@@ -52,7 +51,7 @@ public class ChestInventoryUpdater extends InventoryUpdater {
         List<ItemData> bedrockItems = new ArrayList<>(paddedSize);
         for (int i = 0; i < paddedSize; i++) {
             if (i < translator.size) {
-                bedrockItems.add(ItemTranslator.translateToBedrock(session, inventory.getItem(i)));
+                bedrockItems.add(inventory.getItem(i).getItemData(session));
             } else {
                 bedrockItems.add(UNUSUABLE_SPACE_BLOCK);
             }
@@ -72,7 +71,7 @@ public class ChestInventoryUpdater extends InventoryUpdater {
         InventorySlotPacket slotPacket = new InventorySlotPacket();
         slotPacket.setContainerId(inventory.getId());
         slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
-        slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(javaSlot)));
+        slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
         session.sendUpstreamPacket(slotPacket);
         return true;
     }
