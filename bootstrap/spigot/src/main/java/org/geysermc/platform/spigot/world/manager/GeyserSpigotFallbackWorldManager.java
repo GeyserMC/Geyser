@@ -52,7 +52,7 @@ public class GeyserSpigotFallbackWorldManager extends GeyserSpigotWorldManager {
     }
 
     @Override
-    public boolean hasMoreBlockDataThanChunkCache() {
+    public boolean hasOwnChunkCache() {
         return false;
     }
 
