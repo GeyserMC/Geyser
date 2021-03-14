@@ -36,8 +36,6 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
 public class InteractiveTagManager {
