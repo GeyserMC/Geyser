@@ -13,7 +13,7 @@
     <properties>
         <netty.version>4.1.59.Final</netty.version>
         <fastutil.version>8.5.2</fastutil.version>
-        <adventure.version>4.5.0</adventure.version>
+        <adventure.version>4.7.0</adventure.version>
     </properties>
 
     <dependencies>
