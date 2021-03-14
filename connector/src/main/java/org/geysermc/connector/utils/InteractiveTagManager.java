@@ -64,7 +64,7 @@ public class InteractiveTagManager {
             EntityType.MULE, EntityType.OCELOT, EntityType.PARROT, EntityType.PIG, EntityType.POLAR_BEAR, EntityType.RABBIT,
             EntityType.SHEEP, EntityType.SNOW_GOLEM, EntityType.STRIDER, EntityType.WOLF, EntityType.ZOGLIN);
 
-    private static final List<EntityType> SADDLEABLE_WHEN_TAMED_MOB_TYPES = Arrays.asList(EntityType.DONKEY, EntityType.HORSE,
+    private static final Set<EntityType> SADDLEABLE_WHEN_TAMED_MOB_TYPES = ImmutableSet.of(EntityType.DONKEY, EntityType.HORSE,
             EntityType.ZOMBIE_HORSE, EntityType.MULE);
     /**
      * A list of all foods a wolf can eat on Java Edition.
