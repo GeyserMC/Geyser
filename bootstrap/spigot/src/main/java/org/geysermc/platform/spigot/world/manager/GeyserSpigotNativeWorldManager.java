@@ -27,6 +27,7 @@ package org.geysermc.platform.spigot.world.manager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
@@ -35,8 +36,8 @@ import org.geysermc.geyser.adapters.spigot.SpigotWorldAdapter;
 public class GeyserSpigotNativeWorldManager extends GeyserSpigotWorldManager {
     protected final SpigotWorldAdapter adapter;
 
-    public GeyserSpigotNativeWorldManager(boolean use3dBiomes) {
-        super(use3dBiomes);
+    public GeyserSpigotNativeWorldManager(Plugin plugin, boolean use3dBiomes) {
+        super(plugin, use3dBiomes);
         adapter = SpigotAdapters.getWorldAdapter();
     }
 

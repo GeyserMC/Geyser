@@ -36,9 +36,7 @@ import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NBTOutputStream;
 import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
@@ -53,6 +51,7 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.translators.LecternInventoryTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BedrockOnlyBlockEntity;
@@ -64,13 +63,11 @@ import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
 import org.geysermc.connector.network.translators.world.chunk.bitarray.BitArray;
 import org.geysermc.connector.network.translators.world.chunk.bitarray.BitArrayVersion;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import static org.geysermc.connector.network.translators.world.block.BlockTranslator.*;
+import static org.geysermc.connector.network.translators.world.block.BlockTranslator.JAVA_AIR_ID;
 
 @UtilityClass
 public class ChunkUtils {
@@ -79,26 +76,6 @@ public class ChunkUtils {
      * Not used if cache chunks is enabled
      */
     public static final Object2IntMap<Position> CACHED_BLOCK_ENTITIES = new Object2IntOpenHashMap<>();
-
-    private static final NbtMap EMPTY_TAG = NbtMap.builder().build();
-    public static final byte[] EMPTY_LEVEL_CHUNK_DATA;
-
-    public static final BlockStorage EMPTY_STORAGE = new BlockStorage();
-    public static final ChunkSection EMPTY_SECTION = new ChunkSection(new BlockStorage[]{ EMPTY_STORAGE });
-
-    static {
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            outputStream.write(new byte[258]); // Biomes + Border Size + Extra Data Size
-
-            try (NBTOutputStream stream = NbtUtils.createNetworkWriter(outputStream)) {
-                stream.writeTag(EMPTY_TAG);
-            }
-
-            EMPTY_LEVEL_CHUNK_DATA = outputStream.toByteArray();
-        } catch (IOException e) {
-            throw new AssertionError("Unable to generate empty level chunk data");
-        }
-    }
 
     private static int indexYZXtoXZY(int yzx) {
         return (yzx >> 8) | (yzx & 0x0F0) | ((yzx & 0x00F) << 8);
@@ -114,7 +91,7 @@ public class ChunkUtils {
         BitSet waterloggedPaletteIds = new BitSet();
         BitSet pistonOrFlowerPaletteIds = new BitSet();
 
-        boolean worldManagerHasMoreBlockDataThanCache = session.getConnector().getWorldManager().hasMoreBlockDataThanChunkCache();
+        boolean worldManagerHasMoreBlockDataThanCache = session.getConnector().getWorldManager().hasOwnChunkCache();
 
         // If the received packet was a full chunk update, null sections in the chunk are guaranteed to also be null in the world manager
         boolean shouldCheckWorldManagerOnMissingSections = isNonFullChunk && worldManagerHasMoreBlockDataThanCache;
@@ -161,20 +138,20 @@ public class ChunkUtils {
 
             if (javaPalette instanceof GlobalPalette) {
                 // As this is the global palette, simply iterate through the whole chunk section once
-                ChunkSection section = new ChunkSection();
+                ChunkSection section = new ChunkSection(session.getBlockTranslator().getBedrockAirId());
                 for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
                     int javaId = javaData.get(yzx);
-                    int bedrockId = BlockTranslator.getBedrockBlockId(javaId);
+                    int bedrockId = session.getBlockTranslator().getBedrockBlockId(javaId);
                     int xzy = indexYZXtoXZY(yzx);
                     section.getBlockStorageArray()[0].setFullBlock(xzy, bedrockId);
 
                     if (BlockTranslator.isWaterlogged(javaId)) {
-                        section.getBlockStorageArray()[1].setFullBlock(xzy, BEDROCK_WATER_ID);
+                        section.getBlockStorageArray()[1].setFullBlock(xzy, session.getBlockTranslator().getBedrockWaterId());
                     }
 
                     // Check if block is piston or flower to see if we'll need to create additional block entities, as they're only block entities in Bedrock
                     if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId)) {
-                        bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(
+                        bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(session,
                                 Vector3i.from((column.getX() << 4) + (yzx & 0xF), (sectionY << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
                                 javaId
                         ));
@@ -191,7 +168,7 @@ public class ChunkUtils {
             // Iterate through palette and convert state IDs to Bedrock, doing some additional checks as we go
             for (int i = 0; i < javaPalette.size(); i++) {
                 int javaId = javaPalette.idToState(i);
-                bedrockPalette.add(BlockTranslator.getBedrockBlockId(javaId));
+                bedrockPalette.add(session.getBlockTranslator().getBedrockBlockId(javaId));
 
                 if (BlockTranslator.isWaterlogged(javaId)) {
                     waterloggedPaletteIds.set(i);
@@ -210,7 +187,7 @@ public class ChunkUtils {
                 for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
                     int paletteId = javaData.get(yzx);
                     if (pistonOrFlowerPaletteIds.get(paletteId)) {
-                        bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(
+                        bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(session,
                                 Vector3i.from((column.getX() << 4) + (yzx & 0xF), (sectionY << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
                                 javaPalette.idToState(paletteId)
                         ));
@@ -247,8 +224,8 @@ public class ChunkUtils {
 
                 // V1 palette
                 IntList layer1Palette = new IntArrayList(2);
-                layer1Palette.add(BEDROCK_AIR_ID); // Air - see BlockStorage's constructor for more information
-                layer1Palette.add(BEDROCK_WATER_ID);
+                layer1Palette.add(session.getBlockTranslator().getBedrockAirId()); // Air - see BlockStorage's constructor for more information
+                layer1Palette.add(session.getBlockTranslator().getBedrockWaterId());
 
                 layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
             }
@@ -282,7 +259,6 @@ public class ChunkUtils {
             }
 
             String id = BlockEntityUtils.getBedrockBlockEntityId(tagName);
-            BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(id);
             Position pos = new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue());
 
             // Get Java blockstate ID from block entity position
@@ -292,6 +268,14 @@ public class ChunkUtils {
                 blockState = section.get(pos.getX() & 0xF, pos.getY() & 0xF, pos.getZ() & 0xF);
             }
 
+            if (tagName.equals("minecraft:lectern") && BlockStateValues.getLecternBookStates().get(blockState)) {
+                // If getLecternBookStates is false, let's just treat it like a normal block entity
+                bedrockBlockEntities[i] = session.getConnector().getWorldManager().getLecternDataAt(session, pos.getX(), pos.getY(), pos.getZ(), true);
+                i++;
+                continue;
+            }
+
+            BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(id);
             bedrockBlockEntities[i] = blockEntityTranslator.getBlockEntityTag(tagName, tag, blockState);
 
             // Check for custom skulls
@@ -368,7 +352,7 @@ public class ChunkUtils {
             skull.despawnEntity(session, position);
         }
 
-        int blockId = BlockTranslator.getBedrockBlockId(blockState);
+        int blockId = session.getBlockTranslator().getBedrockBlockId(blockState);
 
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
@@ -382,11 +366,36 @@ public class ChunkUtils {
         waterPacket.setDataLayer(1);
         waterPacket.setBlockPosition(position);
         if (BlockTranslator.isWaterlogged(blockState)) {
-            waterPacket.setRuntimeId(BEDROCK_WATER_ID);
+            waterPacket.setRuntimeId(session.getBlockTranslator().getBedrockWaterId());
         } else {
-            waterPacket.setRuntimeId(BEDROCK_AIR_ID);
+            waterPacket.setRuntimeId(session.getBlockTranslator().getBedrockAirId());
         }
         session.sendUpstreamPacket(waterPacket);
+
+        BlockStateValues.getLecternBookStates().compute(blockState, (key, newLecternHasBook) -> {
+            // Determine if this block is a lectern
+            if (newLecternHasBook != null) {
+                boolean lecternCachedHasBook = session.getLecternCache().contains(position);
+                if (!session.getConnector().getWorldManager().shouldExpectLecternHandled() && lecternCachedHasBook != newLecternHasBook) {
+                    // Refresh the block entirely - it either has a book or no longer has a book
+                    NbtMap newLecternTag;
+                    if (newLecternHasBook) {
+                        newLecternTag = session.getConnector().getWorldManager().getLecternDataAt(session, position.getX(), position.getY(), position.getZ(), false);
+                    } else {
+                        session.getLecternCache().remove(position);
+                        newLecternTag = LecternInventoryTranslator.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 0).build();
+                    }
+                    BlockEntityUtils.updateBlockEntity(session, newLecternTag, position);
+                } else {
+                    // As of right now, no tag can be added asynchronously
+                    session.getConnector().getWorldManager().getLecternDataAt(session, position.getX(), position.getY(), position.getZ(), false);
+                }
+            } else {
+                // Lectern has been destroyed, if it existed
+                session.getLecternCache().remove(position);
+            }
+            return newLecternHasBook;
+        });
 
         // Since Java stores bed colors/skull information as part of the namespaced ID and Bedrock stores it as a tag
         // This is the only place I could find that interacts with the Java block state and block updates
@@ -417,7 +426,7 @@ public class ChunkUtils {
                 data.setChunkX(chunkX + x);
                 data.setChunkZ(chunkZ + z);
                 data.setSubChunksLength(0);
-                data.setData(EMPTY_LEVEL_CHUNK_DATA);
+                data.setData(session.getBlockTranslator().getEmptyChunkData());
                 data.setCachingEnabled(false);
                 session.sendUpstreamPacket(data);
 

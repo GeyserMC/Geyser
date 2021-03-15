@@ -36,12 +36,14 @@ public class JavaPlayerChangeHeldItemTranslator extends PacketTranslator<ServerP
 
     @Override
     public void translate(ServerPlayerChangeHeldItemPacket packet, GeyserSession session) {
-        PlayerHotbarPacket hotbarPacket = new PlayerHotbarPacket();
-        hotbarPacket.setContainerId(0);
-        hotbarPacket.setSelectedHotbarSlot(packet.getSlot());
-        hotbarPacket.setSelectHotbarSlot(true);
-        session.sendUpstreamPacket(hotbarPacket);
+        session.addInventoryTask(() -> {
+            PlayerHotbarPacket hotbarPacket = new PlayerHotbarPacket();
+            hotbarPacket.setContainerId(0);
+            hotbarPacket.setSelectedHotbarSlot(packet.getSlot());
+            hotbarPacket.setSelectHotbarSlot(true);
+            session.sendUpstreamPacket(hotbarPacket);
 
-        session.getInventory().setHeldItemSlot(packet.getSlot());
+            session.getPlayerInventory().setHeldItemSlot(packet.getSlot());
+        });
     }
 }

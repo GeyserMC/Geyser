@@ -42,7 +42,7 @@ import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.inventory.PlayerInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.translators.PlayerInventoryTranslator;
 import org.geysermc.connector.utils.LocaleUtils;
 
 @Translator(packet = ServerNotifyClientPacket.class)
@@ -111,7 +111,7 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 session.sendAdventureSettings();
 
                 // Update the crafting grid to add/remove barriers for creative inventory
-                PlayerInventoryTranslator.updateCraftingGrid(session, session.getInventory());
+                PlayerInventoryTranslator.updateCraftingGrid(session, session.getPlayerInventory());
                 break;
             case ENTER_CREDITS:
                 switch ((EnterCreditsValue) packet.getValue()) {

@@ -34,7 +34,7 @@ import lombok.ToString;
 @ToString
 public class ItemEntry {
 
-    public static ItemEntry AIR = new ItemEntry("minecraft:air", "minecraft:air", 0, 0, 0, false);
+    public static ItemEntry AIR = new ItemEntry("minecraft:air", "minecraft:air", 0, 0, 0, false, 64);
 
     private final String javaIdentifier;
     private final String bedrockIdentifier;
@@ -43,6 +43,7 @@ public class ItemEntry {
     private final int bedrockData;
 
     private final boolean block;
+    private final int stackSize;
 
     @Override
     public boolean equals(Object obj) {

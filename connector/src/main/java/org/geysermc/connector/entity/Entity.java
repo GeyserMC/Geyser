@@ -50,6 +50,7 @@ import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.living.ArmorStandEntity;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.utils.AttributeUtils;
@@ -273,22 +274,19 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.SWIMMING, ((xd & 0x10) == 0x10) && metadata.getFlags().getFlag(EntityFlag.SPRINTING)); // Otherwise swimming is enabled on older servers
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
 
-                    if ((xd & 0x20) == 0x20) {
-                        // Armour stands are handled in their own class
-                        if (!this.is(ArmorStandEntity.class)) {
-                            metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
-                        }
-                    } else {
-                        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, false);
+                    // Armour stands are handled in their own class
+                    if (!this.is(ArmorStandEntity.class)) {
+                        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
                     }
 
                     // Shield code
                     if (session.getPlayerEntity().getEntityId() == entityId && metadata.getFlags().getFlag(EntityFlag.SNEAKING)) {
-                        if ((session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == ItemRegistry.SHIELD.getJavaId()) ||
-                                (session.getInventoryCache().getPlayerInventory().getItem(45) != null && session.getInventoryCache().getPlayerInventory().getItem(45).getId() == ItemRegistry.SHIELD.getJavaId())) {
+                        PlayerInventory playerInv = session.getPlayerInventory();
+                        if ((playerInv.getItemInHand().getJavaId() == ItemRegistry.SHIELD.getJavaId()) ||
+                                (playerInv.getOffhand().getJavaId() == ItemRegistry.SHIELD.getJavaId())) {
                             ClientPlayerUseItemPacket useItemPacket;
                             metadata.getFlags().setFlag(EntityFlag.BLOCKING, true);
-                            if (session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == ItemRegistry.SHIELD.getJavaId()) {
+                            if (playerInv.getItemInHand().getJavaId() == ItemRegistry.SHIELD.getJavaId()) {
                                 useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                             }
                             // Else we just assume it's the offhand, to simplify logic and to assure the packet gets sent
