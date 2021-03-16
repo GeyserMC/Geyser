@@ -34,7 +34,6 @@ import com.nukkitx.protocol.bedrock.data.structure.StructureRotation;
 public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        System.out.println(tag);
         if (tag.size() < 5) {
             return; // These values aren't here
         }
@@ -171,6 +170,5 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
         builder.putFloat("integrity", getOrDefault(tag.get("integrity"), 0f)); // Is 1.0f by default on Java but 100.0f on Bedrock
 
         // Java's "showair" is unrepresented
-        System.out.println(builder);
     }
 }
