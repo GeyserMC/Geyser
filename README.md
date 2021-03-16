@@ -37,7 +37,6 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
 - Near-perfect movement (to the point where anticheat on large servers is unlikely to ban you)
 - Resource pack conversion/CustomModelData
 - Some Entity Flags
-- Structure block UI
 
 ## What can't be fixed
 The following things can't be fixed because of Bedrock limitations. They might be fixable in the future, but not as of now.
@@ -46,6 +45,7 @@ The following things can't be fixed because of Bedrock limitations. They might b
 - Clickable links in chat
 - Glowing effect
 - Custom armor stand poses
+- The structure block is supported as best as possible, but loading is funky and mirroring behaves completely different between the two versions
 
 ## Compiling
 1. Clone the repo to your computer

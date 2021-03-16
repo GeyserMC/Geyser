@@ -32,6 +32,7 @@ import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -113,6 +114,11 @@ public class GeyserWorldManager extends WorldManager {
     @Override
     public boolean shouldExpectLecternHandled() {
         return false;
+    }
+
+    @Override
+    public void handleStructureDataRequest(GeyserSession session, StructureTemplateDataRequestPacket packet) {
+        // Do nothing since we don't have access to structure block data
     }
 
     @Override

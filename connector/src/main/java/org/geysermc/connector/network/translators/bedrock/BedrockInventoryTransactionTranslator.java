@@ -213,13 +213,18 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 // Otherwise insufficient permissions
                                 int blockState = session.getBlockTranslator().getJavaBlockState(packet.getBlockRuntimeId());
                                 String blockName = BlockTranslator.getJavaIdBlockMap().inverse().getOrDefault(blockState, "");
-                                // In the future this can be used for structure blocks too, however not all elements
-                                // are available in each GUI
                                 if (blockName.contains("jigsaw")) {
                                     ContainerOpenPacket openPacket = new ContainerOpenPacket();
                                     openPacket.setBlockPosition(packet.getBlockPosition());
                                     openPacket.setId((byte) 1);
                                     openPacket.setType(ContainerType.JIGSAW_EDITOR);
+                                    openPacket.setUniqueEntityId(-1);
+                                    session.sendUpstreamPacket(openPacket);
+                                } else if (blockName.contains("structure_block")) {
+                                    ContainerOpenPacket openPacket = new ContainerOpenPacket();
+                                    openPacket.setBlockPosition(packet.getBlockPosition());
+                                    openPacket.setId((byte) 1);
+                                    openPacket.setType(ContainerType.STRUCTURE_EDITOR);
                                     openPacket.setUniqueEntityId(-1);
                                     session.sendUpstreamPacket(openPacket);
                                 }
