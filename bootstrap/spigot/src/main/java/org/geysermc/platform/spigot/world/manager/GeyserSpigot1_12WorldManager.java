@@ -30,6 +30,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import us.myles.ViaVersion.api.Pair;
@@ -61,8 +62,8 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
      */
     private final List<Pair<Integer, Protocol>> protocolList;
 
-    public GeyserSpigot1_12WorldManager() {
-        super(false);
+    public GeyserSpigot1_12WorldManager(Plugin plugin) {
+        super(plugin, false);
         this.mappingData1_12to1_13 = ProtocolRegistry.getProtocol(Protocol1_13To1_12_2.class).getMappingData();
         this.protocolList = ProtocolRegistry.getProtocolPath(CLIENT_PROTOCOL_VERSION,
                 ProtocolVersion.v1_13.getVersion());

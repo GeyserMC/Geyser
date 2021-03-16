@@ -40,7 +40,7 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
     @Override
     public void translate(MobEquipmentPacket packet, GeyserSession session) {
         if (!session.isSpawned() || packet.getHotbarSlot() > 8 ||
-                packet.getContainerId() != ContainerId.INVENTORY || session.getInventory().getHeldItemSlot() == packet.getHotbarSlot()) {
+                packet.getContainerId() != ContainerId.INVENTORY || session.getPlayerInventory().getHeldItemSlot() == packet.getHotbarSlot()) {
             // For the last condition - Don't update the slot if the slot is the same - not Java Edition behavior and messes with plugins such as Grief Prevention
             return;
         }
@@ -48,7 +48,7 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
         // Send book update before switching hotbar slot
         session.getBookEditCache().checkForSend();
 
-        session.getInventory().setHeldItemSlot(packet.getHotbarSlot());
+        session.getPlayerInventory().setHeldItemSlot(packet.getHotbarSlot());
 
         ClientPlayerChangeHeldItemPacket changeHeldItemPacket = new ClientPlayerChangeHeldItemPacket(packet.getHotbarSlot());
         session.sendDownstreamPacket(changeHeldItemPacket);

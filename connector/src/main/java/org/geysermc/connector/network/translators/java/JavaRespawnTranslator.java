@@ -35,6 +35,7 @@ import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.utils.DimensionUtils;
 
 @Translator(packet = ServerRespawnPacket.class)
@@ -48,7 +49,11 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
         // Max health must be divisible by two in bedrock
         entity.getAttributes().put(AttributeType.HEALTH, AttributeType.HEALTH.getAttribute(maxHealth, (maxHealth % 2 == 1 ? maxHealth + 1 : maxHealth)));
 
-        session.getInventoryCache().setOpenInventory(null);
+        session.addInventoryTask(() -> {
+            session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
+            session.setOpenInventory(null);
+            session.setClosingInventory(false);
+        });
 
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         playerGameTypePacket.setGamemode(packet.getGamemode().ordinal());

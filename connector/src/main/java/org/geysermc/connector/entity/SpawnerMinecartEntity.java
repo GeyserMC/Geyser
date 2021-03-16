@@ -28,6 +28,7 @@ package org.geysermc.connector.entity;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 public class SpawnerMinecartEntity extends DefaultBlockMinecartEntity {
@@ -37,8 +38,8 @@ public class SpawnerMinecartEntity extends DefaultBlockMinecartEntity {
     }
 
     @Override
-    public void updateDefaultBlockMetadata() {
-        metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(BlockTranslator.JAVA_RUNTIME_SPAWNER_ID));
+    public void updateDefaultBlockMetadata(GeyserSession session) {
+        metadata.put(EntityData.DISPLAY_ITEM, session.getBlockTranslator().getBedrockBlockId(BlockTranslator.JAVA_RUNTIME_SPAWNER_ID));
         metadata.put(EntityData.DISPLAY_OFFSET, 6);
     }
 }

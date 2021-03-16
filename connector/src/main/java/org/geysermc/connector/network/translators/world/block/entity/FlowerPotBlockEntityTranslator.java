@@ -31,7 +31,6 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.BlockEntityUtils;
 
 public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, RequiresBlockState {
@@ -50,7 +49,7 @@ public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, R
      * @param position   Bedrock position of flower pot.
      * @return Bedrock tag of flower pot.
      */
-    public static NbtMap getTag(int blockState, Vector3i position) {
+    public static NbtMap getTag(GeyserSession session, int blockState, Vector3i position) {
         NbtMapBuilder tagBuilder = NbtMap.builder()
                 .putInt("x", position.getX())
                 .putInt("y", position.getY())
@@ -62,7 +61,7 @@ public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, R
         if (name != null) {
             // Get the Bedrock CompoundTag of the block.
             // This is where we need to store the *Java* name because Bedrock has six minecraft:sapling blocks with different block states.
-            NbtMap plant = BlockStateValues.getFlowerPotBlocks().get(name);
+            NbtMap plant = session.getBlockTranslator().getFlowerPotBlocks().get(name);
             if (plant != null) {
                 tagBuilder.put("PlantBlock", plant.toBuilder().build());
             }
@@ -77,15 +76,16 @@ public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, R
 
     @Override
     public void updateBlock(GeyserSession session, int blockState, Vector3i position) {
-        BlockEntityUtils.updateBlockEntity(session, getTag(blockState, position), position);
+        NbtMap tag = getTag(session, blockState, position);
+        BlockEntityUtils.updateBlockEntity(session, tag, position);
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
-        updateBlockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(blockState));
+        updateBlockPacket.setRuntimeId(session.getBlockTranslator().getBedrockBlockId(blockState));
         updateBlockPacket.setBlockPosition(position);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         session.sendUpstreamPacket(updateBlockPacket);
-        BlockEntityUtils.updateBlockEntity(session, getTag(blockState, position), position);
+        BlockEntityUtils.updateBlockEntity(session, tag, position);
     }
 }
