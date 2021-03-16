@@ -27,11 +27,14 @@ package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.protocol.bedrock.data.structure.StructureMirror;
+import com.nukkitx.protocol.bedrock.data.structure.StructureRotation;
 
 @BlockEntity(name = "StructureBlock")
 public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+        System.out.println(tag);
         if (tag.size() < 5) {
             return; // These values aren't here
         }
@@ -59,8 +62,21 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
         builder.putInt("data", bedrockData);
         builder.putString("dataField", ""); // ??? possibly related to Java's "metadata"
 
-        // Ignore mirror since it behaves different in Java and Bedrock
-        // But for reference: LEFT_RIGHT = 1, FRONT_BACK = 2, NONE = 0
+        // Mirror behaves different in Java and Bedrock - it requires modifying the position in space as well
+        String mirror = getOrDefault(tag.get("mirror"), "");
+        byte bedrockMirror;
+        switch (mirror) {
+            case "LEFT_RIGHT":
+                bedrockMirror = 1;
+                break;
+            case "FRONT_BACK":
+                bedrockMirror = 2;
+                break;
+            default: // Or NONE
+                bedrockMirror = 0;
+                break;
+        }
+        builder.putByte("mirror", bedrockMirror);
 
         builder.putByte("ignoreEntities", getOrDefault(tag.get("ignoreEntities"), (byte) 0));
         builder.putByte("isPowered", getOrDefault(tag.get("powered"), (byte) 0));
@@ -85,20 +101,76 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
         }
         builder.putByte("rotation", bedrockRotation);
 
-        // The following three are also offsets on Java
-        // Modify positions if mirrored
+        int xStructureSize = getOrDefault(tag.get("sizeX"), 0);
+        int zStructureSize = getOrDefault(tag.get("sizeZ"), 0);
+        int newXStructureSize = xStructureSize;
+        int newZStructureSize = zStructureSize;
+
+        // The "positions" are also offsets on Java
         int posX = getOrDefault(tag.get("posX"), 0);
+        int posZ = getOrDefault(tag.get("posZ"), 0);
+
+        // Modify positions if mirrored - Bedrock doesn't have this
+        if (bedrockMirror == (byte) StructureMirror.Z.ordinal()) {
+            posX = posX + xStructureSize;
+            newXStructureSize = xStructureSize * -1;
+        } else if (bedrockMirror == (byte) StructureMirror.X.ordinal()) {
+            posZ = posZ + zStructureSize;
+            newZStructureSize = zStructureSize * -1;
+        }
+
+        // Bedrock rotates with the same origin; Java does not
+        StructureRotation structureRotation = StructureRotation.values()[bedrockRotation];
+        switch (structureRotation) {
+            case ROTATE_90:
+                if (xStructureSize >= 0) {
+                    posX += 1;
+                }
+                if (zStructureSize < 0) {
+                    posZ += 1;
+                }
+                posX -= zStructureSize;
+                break;
+            case ROTATE_180:
+                if (xStructureSize >= 0) {
+                    posX += 1;
+                }
+                if (zStructureSize >= 0) {
+                    posZ += 1;
+                }
+                posX -= xStructureSize;
+                posZ -= zStructureSize;
+                break;
+            case ROTATE_270:
+                if (xStructureSize < 0) {
+                    posX += 1;
+                }
+                if (zStructureSize >= 0) {
+                    posZ += 1;
+                }
+                posZ -= xStructureSize;
+                break;
+            default:
+                if (xStructureSize < 0) {
+                    posX += 1;
+                }
+                if (zStructureSize < 0) {
+                    posZ += 1;
+                }
+                break;
+        }
+
+        builder.putInt("xStructureSize", newXStructureSize);
+        builder.putInt("yStructureSize", getOrDefault(tag.get("sizeY"), 0));
+        builder.putInt("zStructureSize", newZStructureSize);
+
         builder.putInt("xStructureOffset", posX);
         builder.putInt("yStructureOffset", getOrDefault(tag.get("posY"), 0));
-        int posZ = getOrDefault(tag.get("posZ"), 0);
         builder.putInt("zStructureOffset", posZ);
 
-        builder.putInt("xStructureSize", getOrDefault(tag.get("sizeX"), 0));
-        builder.putInt("yStructureSize", getOrDefault(tag.get("sizeY"), 0));
-        builder.putInt("zStructureSize", getOrDefault(tag.get("sizeZ"), 0));
-
-        builder.putFloat("integrity", 100f * getOrDefault(tag.get("integrity"), 0f)); // Is 1.0f by default on Java but 100.0f on Bedrock?
+        builder.putFloat("integrity", getOrDefault(tag.get("integrity"), 0f)); // Is 1.0f by default on Java but 100.0f on Bedrock
 
         // Java's "showair" is unrepresented
+        System.out.println(builder);
     }
 }

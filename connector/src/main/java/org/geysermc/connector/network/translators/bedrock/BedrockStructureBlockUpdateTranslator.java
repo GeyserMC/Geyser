@@ -98,7 +98,7 @@ public class BedrockStructureBlockUpdateTranslator extends PacketTranslator<Stru
                 new Position(settings.getOffset().getX(), settings.getOffset().getY(), settings.getOffset().getZ()),
                 new Position(settings.getSize().getX(), settings.getSize().getY(), settings.getSize().getZ()),
                 mirror, rotation, "",
-                (settings.getIntegrityValue() / 100f), settings.getIntegritySeed(), settings.isIgnoringEntities(),
+                settings.getIntegrityValue(), settings.getIntegritySeed(), settings.isIgnoringEntities(),
                 false,
                 data.isBoundingBoxVisible()
         );

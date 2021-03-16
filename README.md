@@ -45,7 +45,7 @@ The following things can't be fixed because of Bedrock limitations. They might b
 - Clickable links in chat
 - Glowing effect
 - Custom armor stand poses
-- The structure block is supported as best as possible, but loading is funky and mirroring behaves completely different between the two versions
+- The structure block is supported as best as possible, but loading is funky
 
 ## Compiling
 1. Clone the repo to your computer
