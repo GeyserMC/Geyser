@@ -30,9 +30,13 @@ import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
+import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
+import com.nukkitx.protocol.bedrock.data.structure.StructureTemplateResponseType;
 import com.nukkitx.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
+import com.nukkitx.protocol.bedrock.packet.StructureTemplateDataResponsePacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -44,6 +48,19 @@ import org.geysermc.connector.utils.GameRule;
 public class GeyserWorldManager extends WorldManager {
 
     private static final Object2ObjectMap<String, String> gameruleCache = new Object2ObjectOpenHashMap<>();
+    private static final NbtMap EMPTY_STRUCTURE_DATA;
+
+    static {
+        NbtMapBuilder builder = NbtMap.builder();
+        builder.putInt("format_version", 1);
+        builder.putCompound("structure", NbtMap.builder()
+                .putList("block_indices", NbtType.LIST, NbtList.EMPTY, NbtList.EMPTY)
+                .putList("entities", NbtType.COMPOUND)
+                .putCompound("palette", NbtMap.EMPTY)
+        .build());
+        builder.putList("structure_world_origin", NbtType.INT, 0, 0, 0);
+        EMPTY_STRUCTURE_DATA = builder.build();
+    }
 
     @Override
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
@@ -118,7 +135,22 @@ public class GeyserWorldManager extends WorldManager {
 
     @Override
     public void handleStructureDataRequest(GeyserSession session, StructureTemplateDataRequestPacket packet) {
-        // Do nothing since we don't have access to structure block data
+        // Always send a blank form
+        sendEmptyStructureData(session, packet);
+    }
+
+    /**
+     * Send an empty structure data that tricks Bedrock into thinking it loaded successfully
+     */
+    protected void sendEmptyStructureData(GeyserSession session, StructureTemplateDataRequestPacket packet) {
+        StructureTemplateDataResponsePacket responsePacket = new StructureTemplateDataResponsePacket();
+        responsePacket.setName(packet.getName());
+        responsePacket.setSave(true);
+        responsePacket.setTag(EMPTY_STRUCTURE_DATA.toBuilder()
+                .putList("size", NbtType.INT, packet.getSettings().getSize().getX(), packet.getSettings().getSize().getY(), packet.getSettings().getSize().getZ())
+                .build());
+        responsePacket.setType(StructureTemplateResponseType.QUERY);
+        session.sendUpstreamPacket(responsePacket);
     }
 
     @Override
