@@ -718,7 +718,7 @@ public class GeyserSession implements CommandSender {
                         playerEntity.setUuid(profile.getId());
 
                         // Check if they are not using a linked account
-                        if (connector.getDefaultAuthType() == AuthType.OFFLINE || playerEntity.getUuid().getMostSignificantBits() == 0) {
+                        if (remoteAuthType == AuthType.OFFLINE || playerEntity.getUuid().getMostSignificantBits() == 0) {
                             SkinManager.handleBedrockSkin(playerEntity, clientData);
                         }
                     }
