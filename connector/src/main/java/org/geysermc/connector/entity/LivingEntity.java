@@ -99,6 +99,13 @@ public class LivingEntity extends Entity {
                         // Bed has to be updated, or else player is floating in the air
                         ChunkUtils.updateBlock(session, bed, bedPosition);
                     }
+                    // Indicate that the player should enter the sleep cycle
+                    // Has to be a byte or it does not work
+                    // (Bed position is what actually triggers sleep - "pose" is only optional)
+                    metadata.put(EntityData.PLAYER_FLAGS, (byte) 2);
+                } else {
+                    // Player is no longer sleeping
+                    metadata.put(EntityData.PLAYER_FLAGS, (byte) 0);
                 }
                 break;
         }
