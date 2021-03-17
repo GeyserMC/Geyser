@@ -331,15 +331,12 @@ public class Entity {
             case 6: // Pose change
                 if (entityMetadata.getValue().equals(Pose.SLEEPING)) {
                     metadata.getFlags().setFlag(EntityFlag.SLEEPING, true);
-                    // Has to be a byte or it does not work
-                    metadata.put(EntityData.PLAYER_FLAGS, (byte) 2);
                     metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.2f);
                     metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.2f);
                 } else if (metadata.getFlags().getFlag(EntityFlag.SLEEPING)) {
                     metadata.getFlags().setFlag(EntityFlag.SLEEPING, false);
                     metadata.put(EntityData.BOUNDING_BOX_WIDTH, getEntityType().getWidth());
                     metadata.put(EntityData.BOUNDING_BOX_HEIGHT, getEntityType().getHeight());
-                    metadata.put(EntityData.PLAYER_FLAGS, (byte) 0);
                 }
                 break;
         }
