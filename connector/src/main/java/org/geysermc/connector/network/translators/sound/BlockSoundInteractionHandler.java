@@ -27,6 +27,7 @@ package org.geysermc.connector.network.translators.sound;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.nukkitx.math.vector.Vector3f;
+import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 
@@ -60,12 +61,12 @@ public interface BlockSoundInteractionHandler extends SoundInteractionHandler<St
                 }
                 if (!contains) continue;
             }
-            ItemStack itemInHand = session.getInventory().getItemInHand();
+            GeyserItemStack itemInHand = session.getPlayerInventory().getItemInHand();
             if (interactionEntry.getKey().items().length != 0) {
-                if (itemInHand == null || itemInHand.getId() == 0) {
+                if (itemInHand.isEmpty()) {
                     continue;
                 }
-                String handIdentifier = ItemRegistry.getItem(session.getInventory().getItemInHand()).getJavaIdentifier();
+                String handIdentifier = itemInHand.getItemEntry().getJavaIdentifier();
                 boolean contains = false;
                 for (String itemIdentifier : interactionEntry.getKey().items()) {
                     if (handIdentifier.contains(itemIdentifier)) {
@@ -76,7 +77,7 @@ public interface BlockSoundInteractionHandler extends SoundInteractionHandler<St
                 if (!contains) continue;
             }
             if (session.isSneaking() && !interactionEntry.getKey().ignoreSneakingWhileHolding()) {
-                if (session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() != 0) {
+                if (!itemInHand.isEmpty()) {
                     continue;
                 }
             }

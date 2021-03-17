@@ -29,10 +29,16 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
-@BlockEntity(name = "ShulkerBox", regex = "shulker_box")
+import javax.annotation.Nullable;
+
+@BlockEntity(name = "ShulkerBox")
 public class ShulkerBoxBlockEntityTranslator extends BlockEntityTranslator {
+    /**
+     * Also used in {@link org.geysermc.connector.network.translators.inventory.translators.ShulkerInventoryTranslator}
+     * where {@code tag} is passed as null.
+     */
     @Override
-    public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+    public void translateTag(NbtMapBuilder builder, @Nullable CompoundTag tag, int blockState) {
         byte direction = BlockStateValues.getShulkerBoxDirection(blockState);
         // Just in case...
         if (direction == -1) {

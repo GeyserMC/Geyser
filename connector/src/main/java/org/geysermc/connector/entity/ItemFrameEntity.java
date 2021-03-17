@@ -40,7 +40,6 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 import java.util.concurrent.TimeUnit;
 
@@ -50,14 +49,18 @@ import java.util.concurrent.TimeUnit;
 public class ItemFrameEntity extends Entity {
 
     /**
+     * Used to construct the block entity tag on spawning.
+     */
+    private final HangingDirection direction;
+    /**
      * Used for getting the Bedrock block position.
      * Blocks deal with integers whereas entities deal with floats.
      */
-    private final Vector3i bedrockPosition;
+    private Vector3i bedrockPosition;
     /**
      * Specific block 'state' we are emulating in Bedrock.
      */
-    private final int bedrockRuntimeId;
+    private int bedrockRuntimeId;
     /**
      * Rotation of item in frame.
      */
@@ -69,19 +72,21 @@ public class ItemFrameEntity extends Entity {
 
     public ItemFrameEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation, HangingDirection direction) {
         super(entityId, geyserId, entityType, position, motion, rotation);
-        NbtMapBuilder blockBuilder = NbtMap.builder()
-                .putString("name", "minecraft:frame")
-                .putInt("version", BlockTranslator.getBlockStateVersion());
-        blockBuilder.put("states", NbtMap.builder()
-                .putInt("facing_direction", direction.ordinal())
-                .putByte("item_frame_map_bit", (byte) 0)
-                .build());
-        bedrockRuntimeId = BlockTranslator.getItemFrame(blockBuilder.build());
-        bedrockPosition = Vector3i.from(position.getFloorX(), position.getFloorY(), position.getFloorZ());
+        this.direction = direction;
     }
 
     @Override
     public void spawnEntity(GeyserSession session) {
+        NbtMapBuilder blockBuilder = NbtMap.builder()
+                .putString("name", "minecraft:frame")
+                .putInt("version", session.getBlockTranslator().getBlockStateVersion());
+        blockBuilder.put("states", NbtMap.builder()
+                .putInt("facing_direction", direction.ordinal())
+                .putByte("item_frame_map_bit", (byte) 0)
+                .build());
+        bedrockRuntimeId = session.getBlockTranslator().getItemFrame(blockBuilder.build());
+        bedrockPosition = Vector3i.from(position.getFloorX(), position.getFloorY(), position.getFloorZ());
+
         session.getItemFrameCache().put(bedrockPosition, entityId);
         // Delay is required, or else loading in frames on chunk load is sketchy at best
         session.getConnector().getGeneralThreadPool().schedule(() -> {
@@ -136,7 +141,7 @@ public class ItemFrameEntity extends Entity {
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setBlockPosition(bedrockPosition);
-        updateBlockPacket.setRuntimeId(BlockTranslator.BEDROCK_AIR_ID);
+        updateBlockPacket.setRuntimeId(session.getBlockTranslator().getBedrockAirId());
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);

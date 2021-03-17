@@ -195,13 +195,14 @@ public class BannerTranslator extends ItemTranslator {
             blockEntityTag.put(OMINOUS_BANNER_PATTERN);
 
             itemStack.getNbt().put(blockEntityTag);
-        } else if (nbtTag.containsKey("Patterns", NbtType.COMPOUND)) {
+        } else if (nbtTag.containsKey("Patterns", NbtType.LIST)) {
             List<NbtMap> patterns = nbtTag.getList("Patterns", NbtType.COMPOUND);
 
             CompoundTag blockEntityTag = new CompoundTag("BlockEntityTag");
             blockEntityTag.put(convertBannerPattern(patterns));
 
             itemStack.getNbt().put(blockEntityTag);
+            itemStack.getNbt().remove("Patterns"); // Remove the old Bedrock patterns list
         }
 
         return itemStack;

@@ -132,10 +132,10 @@ public class BlockUtils {
         miningFatigueLevel = session.getEffectCache().getEffectLevel(Effect.SLOWER_DIG);
 
         boolean isInWater = session.getConnector().getConfig().isCacheChunks()
-                && BlockTranslator.getBedrockBlockId(session.getConnector().getWorldManager().getBlockAt(session, session.getPlayerEntity().getPosition().toInt())) == BlockTranslator.BEDROCK_WATER_ID;
+                && session.getBlockTranslator().getBedrockBlockId(session.getConnector().getWorldManager().getBlockAt(session, session.getPlayerEntity().getPosition().toInt())) == session.getBlockTranslator().getBedrockWaterId();
 
         boolean insideOfWaterWithoutAquaAffinity = isInWater &&
-                ItemUtils.getEnchantmentLevel(Optional.ofNullable(session.getInventory().getItem(5)).map(ItemStack::getNbt).orElse(null), "minecraft:aqua_affinity") < 1;
+                ItemUtils.getEnchantmentLevel(session.getPlayerInventory().getItem(5).getNbt(), "minecraft:aqua_affinity") < 1;
 
         boolean outOfWaterButNotOnGround = (!isInWater) && (!session.getPlayerEntity().isOnGround());
         boolean insideWaterNotOnGround = isInWater && !session.getPlayerEntity().isOnGround();
