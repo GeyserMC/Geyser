@@ -35,6 +35,7 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.utils.CooldownUtils;
+import org.geysermc.connector.utils.InteractiveTagManager;
 
 import java.util.concurrent.TimeUnit;
 
@@ -67,5 +68,10 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
 
         // Java sends a cooldown indicator whenever you switch an item
         CooldownUtils.sendCooldown(session);
+
+        // Update the interactive tag, if an entity is present
+        if (session.getMouseoverEntity() != null) {
+            InteractiveTagManager.updateTag(session, session.getMouseoverEntity());
+        }
     }
 }
