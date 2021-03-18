@@ -28,12 +28,6 @@ package org.geysermc.connector.entity;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -50,11 +44,9 @@ import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.living.ArmorStandEntity;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
-import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
-import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
+import org.geysermc.connector.utils.AttributeUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -277,29 +269,6 @@ public class Entity {
                     // Armour stands are handled in their own class
                     if (!this.is(ArmorStandEntity.class)) {
                         metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
-                    }
-
-                    // Shield code
-                    if (session.getPlayerEntity().getEntityId() == entityId && metadata.getFlags().getFlag(EntityFlag.SNEAKING)) {
-                        PlayerInventory playerInv = session.getPlayerInventory();
-                        if ((playerInv.getItemInHand().getJavaId() == ItemRegistry.SHIELD.getJavaId()) ||
-                                (playerInv.getOffhand().getJavaId() == ItemRegistry.SHIELD.getJavaId())) {
-                            ClientPlayerUseItemPacket useItemPacket;
-                            metadata.getFlags().setFlag(EntityFlag.BLOCKING, true);
-                            if (playerInv.getItemInHand().getJavaId() == ItemRegistry.SHIELD.getJavaId()) {
-                                useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
-                            }
-                            // Else we just assume it's the offhand, to simplify logic and to assure the packet gets sent
-                            else {
-                                useItemPacket = new ClientPlayerUseItemPacket(Hand.OFF_HAND);
-                            }
-                            session.sendDownstreamPacket(useItemPacket);
-                        }
-                    } else if (session.getPlayerEntity().getEntityId() == entityId && !metadata.getFlags().getFlag(EntityFlag.SNEAKING) && metadata.getFlags().getFlag(EntityFlag.BLOCKING)) {
-                        metadata.getFlags().setFlag(EntityFlag.BLOCKING, false);
-                        metadata.getFlags().setFlag(EntityFlag.IS_AVOIDING_BLOCK, true);
-                        ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0, 0, 0), BlockFace.DOWN);
-                        session.sendDownstreamPacket(releaseItemPacket);
                     }
                 }
                 break;
