@@ -124,10 +124,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.sendDownstreamPacket(stopSneakPacket);
 
                 // Stop shield, if necessary
-                playerInv = session.getPlayerInventory();
-                if (session.getPlayerEntity().getMetadata().getFlags().getFlag(EntityFlag.BLOCKING) &&
-                        (playerInv.getItemInHand().getJavaId() == ItemRegistry.SHIELD.getJavaId() ||
-                        playerInv.getOffhand().getJavaId() == ItemRegistry.SHIELD.getJavaId())) {
+                if (session.getPlayerEntity().getMetadata().getFlags().getFlag(EntityFlag.BLOCKING)) {
                     ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, BlockUtils.POSITION_ZERO, BlockFace.DOWN);
                     session.sendDownstreamPacket(releaseItemPacket);
                     session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.BLOCKING, false);
