@@ -26,17 +26,19 @@
 package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.entity.Effect;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3i;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ToolItemEntry;
-
-import java.util.Optional;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 public class BlockUtils {
+    /**
+     * A static constant of {@link Position} with all values being zero.
+     */
+    public static final Position POSITION_ZERO = new Position(0, 0, 0);
 
     private static boolean correctTool(String blockToolType, String itemToolType) {
         return (blockToolType.equals("sword") && itemToolType.equals("sword")) ||
