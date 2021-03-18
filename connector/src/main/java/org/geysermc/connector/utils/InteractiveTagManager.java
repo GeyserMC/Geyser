@@ -36,6 +36,7 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 
+import java.util.EnumSet;
 import java.util.Set;
 
 public class InteractiveTagManager {
@@ -56,14 +57,15 @@ public class InteractiveTagManager {
     /**
      * All entity types that can be leashed on Java Edition
      */
-    private static final Set<EntityType> LEASHABLE_MOB_TYPES = ImmutableSet.of(EntityType.BEE, EntityType.CAT, EntityType.CHICKEN,
+    private static final Set<EntityType> LEASHABLE_MOB_TYPES = EnumSet.of(EntityType.BEE, EntityType.CAT, EntityType.CHICKEN,
             EntityType.COW, EntityType.DOLPHIN, EntityType.DONKEY, EntityType.FOX, EntityType.HOGLIN, EntityType.HORSE, EntityType.SKELETON_HORSE,
             EntityType.ZOMBIE_HORSE, EntityType.IRON_GOLEM, EntityType.LLAMA, EntityType.TRADER_LLAMA, EntityType.MOOSHROOM,
             EntityType.MULE, EntityType.OCELOT, EntityType.PARROT, EntityType.PIG, EntityType.POLAR_BEAR, EntityType.RABBIT,
             EntityType.SHEEP, EntityType.SNOW_GOLEM, EntityType.STRIDER, EntityType.WOLF, EntityType.ZOGLIN);
 
-    private static final Set<EntityType> SADDLEABLE_WHEN_TAMED_MOB_TYPES = ImmutableSet.of(EntityType.DONKEY, EntityType.HORSE,
+    private static final Set<EntityType> SADDLEABLE_WHEN_TAMED_MOB_TYPES = EnumSet.of(EntityType.DONKEY, EntityType.HORSE,
             EntityType.ZOMBIE_HORSE, EntityType.MULE);
+
     /**
      * A list of all foods a wolf can eat on Java Edition.
      * Used to display interactive tag if needed.
@@ -90,7 +92,7 @@ public class InteractiveTagManager {
             // Unleash the entity
             interactiveTag = InteractiveTag.REMOVE_LEASH;
         } else if (javaIdentifierStripped.equals("saddle") && !entityMetadata.getFlags().getFlag(EntityFlag.SADDLED) &&
-                ((SADDLEABLE_WHEN_TAMED_MOB_TYPES.contains(interactEntity.getEntityType()) && entityMetadata.getFlags().getFlag(EntityFlag.TAMED)) ||
+                ((SADDLEABLE_WHEN_TAMED_MOB_TYPES.contains(interactEntity.getEntityType()) && entityMetadata.getFlags().getFlag(EntityFlag.TAMED) && !session.isSneaking()) ||
                         interactEntity.getEntityType() == EntityType.PIG || interactEntity.getEntityType() == EntityType.STRIDER)) {
             // Entity can be saddled and the conditions meet (entity can be saddled and, if needed, is tamed)
             interactiveTag = InteractiveTag.SADDLE;
@@ -99,7 +101,7 @@ public class InteractiveTagManager {
             // Holding a named name tag
             interactiveTag = InteractiveTag.NAME;
         } else if (javaIdentifierStripped.equals("lead") && LEASHABLE_MOB_TYPES.contains(interactEntity.getEntityType()) &&
-                entityMetadata.getLong(EntityData.LEASH_HOLDER_EID) == -1L) {
+                entityMetadata.getLong(EntityData.LEASH_HOLDER_EID, -1L) == -1L) {
             // Holding a leash and the mob is leashable for sure
             // (Plugins can change this behavior so that's something to look into in the far far future)
             interactiveTag = InteractiveTag.LEASH;
