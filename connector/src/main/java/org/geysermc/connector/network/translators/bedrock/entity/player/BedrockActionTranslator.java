@@ -34,6 +34,7 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.PlayerActionType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
@@ -112,6 +113,8 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                         useItemPacket = new ClientPlayerUseItemPacket(Hand.OFF_HAND);
                     }
                     session.sendDownstreamPacket(useItemPacket);
+                    session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.BLOCKING, true);
+                    session.getPlayerEntity().updateBedrockMetadata(session);
                 }
 
                 session.setSneaking(true);
@@ -122,10 +125,13 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
 
                 // Stop shield, if necessary
                 playerInv = session.getPlayerInventory();
-                if ((playerInv.getItemInHand().getJavaId() == ItemRegistry.SHIELD.getJavaId()) ||
-                        (playerInv.getOffhand().getJavaId() == ItemRegistry.SHIELD.getJavaId())) {
+                if (session.getPlayerEntity().getMetadata().getFlags().getFlag(EntityFlag.BLOCKING) &&
+                        (playerInv.getItemInHand().getJavaId() == ItemRegistry.SHIELD.getJavaId() ||
+                        playerInv.getOffhand().getJavaId() == ItemRegistry.SHIELD.getJavaId())) {
                     ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, BlockUtils.POSITION_ZERO, BlockFace.DOWN);
                     session.sendDownstreamPacket(releaseItemPacket);
+                    session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.BLOCKING, false);
+                    session.getPlayerEntity().updateBedrockMetadata(session);
                 }
 
                 session.setSneaking(false);
