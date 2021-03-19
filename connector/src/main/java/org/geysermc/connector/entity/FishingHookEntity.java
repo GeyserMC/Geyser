@@ -96,27 +96,25 @@ public class FishingHookEntity extends ThrowableEntity {
         boolean touchingWater = false;
         boolean collided = false;
         for (Vector3i blockPos : collidableBlocks) {
-            if (0 <= blockPos.getY() && blockPos.getY() <= 255) {
-                int blockID = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
-                BlockCollision blockCollision = CollisionTranslator.getCollision(blockID, blockPos.getX(), blockPos.getY(), blockPos.getZ());
-                if (blockCollision != null && blockCollision.checkIntersection(boundingBox)) {
-                    // TODO Push bounding box out of collision to improve movement
-                    collided = true;
-                }
+            int blockID = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
+            BlockCollision blockCollision = CollisionTranslator.getCollision(blockID, blockPos.getX(), blockPos.getY(), blockPos.getZ());
+            if (blockCollision != null && blockCollision.checkIntersection(boundingBox)) {
+                // TODO Push bounding box out of collision to improve movement
+                collided = true;
+            }
 
-                int waterLevel = BlockStateValues.getWaterLevel(blockID);
-                if (BlockTranslator.isWaterlogged(blockID)) {
-                    waterLevel = 0;
+            int waterLevel = BlockStateValues.getWaterLevel(blockID);
+            if (BlockTranslator.isWaterlogged(blockID)) {
+                waterLevel = 0;
+            }
+            if (waterLevel >= 0) {
+                double waterMaxY = blockPos.getY() + 1 - (waterLevel + 1) / 9.0;
+                // Falling water is a full block
+                if (waterLevel >= 8) {
+                    waterMaxY = blockPos.getY() + 1;
                 }
-                if (waterLevel >= 0) {
-                    double waterMaxY = blockPos.getY() + 1 - (waterLevel + 1) / 9.0;
-                    // Falling water is a full block
-                    if (waterLevel >= 8) {
-                        waterMaxY = blockPos.getY() + 1;
-                    }
-                    if (position.getY() <= waterMaxY) {
-                        touchingWater = true;
-                    }
+                if (position.getY() <= waterMaxY) {
+                    touchingWater = true;
                 }
             }
         }
@@ -177,10 +175,8 @@ public class FishingHookEntity extends ThrowableEntity {
      */
     protected boolean isInAir(GeyserSession session) {
         if (session.getConnector().getConfig().isCacheChunks()) {
-            if (0 <= position.getFloorY() && position.getFloorY() <= 255) {
-                int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
-                return block == BlockTranslator.JAVA_AIR_ID;
-            }
+            int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
+            return block == BlockTranslator.JAVA_AIR_ID;
         }
         return false;
     }
