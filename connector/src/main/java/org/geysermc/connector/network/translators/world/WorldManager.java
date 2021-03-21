@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.NbtMap;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.GameRule;
 
@@ -87,14 +88,14 @@ public abstract class WorldManager {
     public abstract void getBlocksInSection(GeyserSession session, int x, int y, int z, Chunk section);
 
     /**
-     * Checks whether or not this world manager has access to more block data than the chunk cache.
+     * Checks whether or not this world manager requires a separate chunk cache/has access to more block data than the chunk cache.
      * <p>
      * Some world managers (e.g. Spigot) can provide access to block data outside of the chunk cache, and even with chunk caching disabled. This
      * method provides a means to check if this manager has this capability.
      *
      * @return whether or not this world manager has access to more block data than the chunk cache
      */
-    public abstract boolean hasMoreBlockDataThanChunkCache();
+    public abstract boolean hasOwnChunkCache();
 
     /**
      * Gets the Java biome data for the specified chunk.
@@ -105,6 +106,32 @@ public abstract class WorldManager {
      * @return the biome data for the specified region with a length of 1024.
      */
     public abstract int[] getBiomeDataAt(GeyserSession session, int x, int z);
+
+    /**
+     * Sigh. <br>
+     *
+     * So, on Java Edition, the lectern is an inventory. Java opens it and gets the contents of the book there.
+     * On Bedrock, the lectern contents are part of the block entity tag. Therefore, Bedrock expects to have the contents
+     * of the lectern ready and present in the world. If the contents are not there, it takes at least two clicks for the
+     * lectern to update the tag and then present itself. <br>
+     *
+     * We solve this problem by querying all loaded lecterns, where possible, and sending their information in a block entity
+     * tag.
+     *
+     * @param session the session of the player
+     * @param x the x coordinate of the lectern
+     * @param y the y coordinate of the lectern
+     * @param z the z coordinate of the lectern
+     * @param isChunkLoad if this is called during a chunk load or not. Changes behavior in certain instances.
+     * @return the Bedrock lectern block entity tag. This may not be the exact block entity tag - for example, Spigot's
+     * block handled must be done on the server thread, so we send the tag manually there.
+     */
+    public abstract NbtMap getLecternDataAt(GeyserSession session, int x, int y, int z, boolean isChunkLoad);
+
+    /**
+     * @return whether we should expect lectern data to update, or if we have to fall back on a workaround.
+     */
+    public abstract boolean shouldExpectLecternHandled();
 
     /**
      * Updates a gamerule value on the Java server

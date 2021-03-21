@@ -28,23 +28,35 @@ package org.geysermc.platform.spigot.world.manager;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
+import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
+import org.bukkit.block.Lectern;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.plugin.Plugin;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.translators.LecternInventoryTranslator;
 import org.geysermc.connector.network.translators.world.GeyserWorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.utils.BlockEntityUtils;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.GameRule;
 import org.geysermc.connector.utils.LanguageUtils;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The base world manager to use when there is no supported NMS revision
@@ -72,8 +84,11 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
      */
     private final Int2IntMap biomeToIdMap = new Int2IntOpenHashMap(Biome.values().length);
 
-    public GeyserSpigotWorldManager(boolean use3dBiomes) {
+    private final Plugin plugin;
+
+    public GeyserSpigotWorldManager(Plugin plugin, boolean use3dBiomes) {
         this.use3dBiomes = use3dBiomes;
+        this.plugin = plugin;
 
         // Load the values into the biome-to-ID map
         InputStream biomeStream = FileUtils.getResource("biomes.json");
@@ -125,16 +140,13 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     }
 
     @Override
-    public boolean hasMoreBlockDataThanChunkCache() {
+    public boolean hasOwnChunkCache() {
         return true;
     }
 
     @Override
     @SuppressWarnings("deprecation")
     public int[] getBiomeDataAt(GeyserSession session, int x, int z) {
-        if (session.getPlayerEntity() == null) {
-            return new int[1024];
-        }
         int[] biomeData = new int[1024];
         World world = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld();
         int chunkX = x << 4;
@@ -165,6 +177,77 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             }
         }
         return biomeData;
+    }
+
+    @Override
+    public NbtMap getLecternDataAt(GeyserSession session, int x, int y, int z, boolean isChunkLoad) {
+        // Run as a task to prevent async issues
+        Runnable lecternInfoGet = () -> {
+            Player bukkitPlayer;
+            if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
+                return;
+            }
+
+            Block block = bukkitPlayer.getWorld().getBlockAt(x, y, z);
+            if (!(block.getState() instanceof Lectern)) {
+                session.getConnector().getLogger().error("Lectern expected at: " + Vector3i.from(x, y, z).toString() + " but was not! " + block.toString());
+                return;
+            }
+
+            Lectern lectern = (Lectern) block.getState();
+            ItemStack itemStack = lectern.getInventory().getItem(0);
+            if (itemStack == null || !(itemStack.getItemMeta() instanceof BookMeta)) {
+                if (!isChunkLoad) {
+                    // We need to update the lectern since it's not going to be updated otherwise
+                    BlockEntityUtils.updateBlockEntity(session, LecternInventoryTranslator.getBaseLecternTag(x, y, z, 0).build(), Vector3i.from(x, y, z));
+                }
+                // We don't care; return
+                return;
+            }
+
+            BookMeta bookMeta = (BookMeta) itemStack.getItemMeta();
+            // On the count: allow the book to show/open even there are no pages. We know there is a book here, after all, and this matches Java behavior
+            boolean hasBookPages = bookMeta.getPageCount() > 0;
+            NbtMapBuilder lecternTag = LecternInventoryTranslator.getBaseLecternTag(x, y, z, hasBookPages ? bookMeta.getPageCount() : 1);
+            lecternTag.putInt("page", lectern.getPage() / 2);
+            NbtMapBuilder bookTag = NbtMap.builder()
+                    .putByte("Count", (byte) itemStack.getAmount())
+                    .putShort("Damage", (short) 0)
+                    .putString("Name", "minecraft:writable_book");
+            List<NbtMap> pages = new ArrayList<>(bookMeta.getPageCount());
+            if (hasBookPages) {
+                for (String page : bookMeta.getPages()) {
+                    NbtMapBuilder pageBuilder = NbtMap.builder()
+                            .putString("photoname", "")
+                            .putString("text", page);
+                    pages.add(pageBuilder.build());
+                }
+            } else {
+                // Empty page
+                NbtMapBuilder pageBuilder = NbtMap.builder()
+                        .putString("photoname", "")
+                        .putString("text", "");
+                pages.add(pageBuilder.build());
+            }
+            
+            bookTag.putCompound("tag", NbtMap.builder().putList("pages", NbtType.COMPOUND, pages).build());
+            lecternTag.putCompound("book", bookTag.build());
+            NbtMap blockEntityTag = lecternTag.build();
+            BlockEntityUtils.updateBlockEntity(session, blockEntityTag, Vector3i.from(x, y, z));
+        };
+
+        if (isChunkLoad) {
+            // Delay to ensure the chunk is sent first, and then the lectern data
+            Bukkit.getScheduler().runTaskLater(this.plugin, lecternInfoGet, 5);
+        } else {
+            Bukkit.getScheduler().runTask(this.plugin, lecternInfoGet);
+        }
+        return LecternInventoryTranslator.getBaseLecternTag(x, y, z, 0).build(); // Will be updated later
+    }
+
+    @Override
+    public boolean shouldExpectLecternHandled() {
+        return true;
     }
 
     public Boolean getGameRuleBool(GeyserSession session, GameRule gameRule) {

@@ -37,7 +37,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.util.LinkedHashMap;
 
-@BlockEntity(name = "EndGateway", regex = "end_gateway")
+@BlockEntity(name = "EndGateway")
 public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {

@@ -34,20 +34,10 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
 - Test Server: `test.geysermc.org` port `25565` for Java and `19132` for Bedrock
 
 ## What's Left to be Added/Fixed
-- Lecterns
 - Near-perfect movement (to the point where anticheat on large servers is unlikely to ban you)
 - Resource pack conversion/CustomModelData
 - Some Entity Flags
-- The Following Inventories 
-  - Enchantment Table (as a proper GUI)
-  - Beacon
-  - Cartography Table
-  - Stonecutter
-  - Structure Block
-  - Horse Inventory
-  - Loom
-  - Smithing Table
-  - Grindstone
+- Structure block UI
 
 ## What can't be fixed
 The following things can't be fixed because of Bedrock limitations. They might be fixable in the future, but not as of now.
