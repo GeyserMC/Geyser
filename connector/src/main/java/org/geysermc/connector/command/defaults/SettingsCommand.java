@@ -33,30 +33,14 @@ import org.geysermc.connector.utils.SettingsUtils;
 
 public class SettingsCommand extends GeyserCommand {
 
-    private final GeyserConnector connector;
-
     public SettingsCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);
-
-        this.connector = connector;
     }
 
     @Override
-    public void execute(CommandSender sender, String[] args) {
-        // Make sure the sender is a Bedrock edition client
-        GeyserSession session = null;
-        if (sender instanceof GeyserSession) {
-            session = (GeyserSession) sender;
-        } else {
-            // Needed for Spigot - sender is not an instance of GeyserSession
-            for (GeyserSession otherSession : connector.getPlayers()) {
-                if (sender.getName().equals(otherSession.getPlayerEntity().getUsername())) {
-                    session = otherSession;
-                    break;
-                }
-            }
-        }
+    public void execute(GeyserSession session, CommandSender sender, String[] args) {
         if (session == null) return;
+
         SettingsUtils.buildForm(session);
         session.sendForm(session.getSettingsForm(), SettingsUtils.SETTINGS_FORM_ID);
     }
@@ -64,5 +48,10 @@ public class SettingsCommand extends GeyserCommand {
     @Override
     public boolean isExecutableOnConsole() {
         return false;
+    }
+
+    @Override
+    public boolean isBedrockOnly() {
+        return true;
     }
 }

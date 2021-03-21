@@ -84,7 +84,7 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
         placeBlockSoundPacket.setSound(SoundEvent.PLACE);
         placeBlockSoundPacket.setPosition(lastPlacePos.toFloat());
         placeBlockSoundPacket.setBabySound(false);
-        placeBlockSoundPacket.setExtraData(BlockTranslator.getBedrockBlockId(packet.getRecord().getBlock()));
+        placeBlockSoundPacket.setExtraData(session.getBlockTranslator().getBedrockBlockId(packet.getRecord().getBlock()));
         placeBlockSoundPacket.setIdentifier(":");
         session.sendUpstreamPacket(placeBlockSoundPacket);
         session.setLastBlockPlacePosition(null);
@@ -93,7 +93,7 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
     }
 
     private void checkInteract(GeyserSession session, ServerBlockChangePacket packet) {
-        Vector3i lastInteractPos = session.getLastInteractionPosition();
+        Vector3i lastInteractPos = session.getLastInteractionBlockPosition();
         if (lastInteractPos == null || !session.isInteracting()) {
             return;
         }

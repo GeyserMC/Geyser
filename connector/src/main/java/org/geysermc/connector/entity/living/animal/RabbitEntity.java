@@ -44,7 +44,7 @@ public class RabbitEntity extends AnimalEntity {
         if (entityMetadata.getId() == 15) {
             metadata.put(EntityData.SCALE, .55f);
             boolean isBaby = (boolean) entityMetadata.getValue();
-            if(isBaby) {
+            if (isBaby) {
                 metadata.put(EntityData.SCALE, .35f);
                 metadata.getFlags().setFlag(EntityFlag.BABY, true);
             }

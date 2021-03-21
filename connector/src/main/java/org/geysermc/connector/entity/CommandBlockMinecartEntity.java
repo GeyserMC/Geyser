@@ -31,7 +31,6 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import net.kyori.adventure.text.Component;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
@@ -60,8 +59,8 @@ public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
      * By default, the command block shown is purple on Bedrock, which does not match Java Edition's orange.
      */
     @Override
-    public void updateDefaultBlockMetadata() {
-        metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.BEDROCK_RUNTIME_COMMAND_BLOCK_ID);
+    public void updateDefaultBlockMetadata(GeyserSession session) {
+        metadata.put(EntityData.DISPLAY_ITEM, session.getBlockTranslator().getBedrockRuntimeCommandBlockId());
         metadata.put(EntityData.DISPLAY_OFFSET, 6);
     }
 }

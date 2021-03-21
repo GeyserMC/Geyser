@@ -30,6 +30,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import us.myles.ViaVersion.api.Pair;
@@ -61,8 +62,8 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
      */
     private final List<Pair<Integer, Protocol>> protocolList;
 
-    public GeyserSpigot1_12WorldManager() {
-        super(false);
+    public GeyserSpigot1_12WorldManager(Plugin plugin) {
+        super(plugin, false);
         this.mappingData1_12to1_13 = ProtocolRegistry.getProtocol(Protocol1_13To1_12_2.class).getMappingData();
         this.protocolList = ProtocolRegistry.getProtocolPath(CLIENT_PROTOCOL_VERSION,
                 ProtocolVersion.v1_13.getVersion());
@@ -73,6 +74,10 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
         Player player = Bukkit.getPlayer(session.getPlayerEntity().getUsername());
         if (player == null) {
+            return BlockTranslator.JAVA_AIR_ID;
+        }
+        if (!player.getWorld().isChunkLoaded(x >> 4, z >> 4)) {
+            // Prevent nasty async errors if a player is loading in
             return BlockTranslator.JAVA_AIR_ID;
         }
         // Get block entity storage

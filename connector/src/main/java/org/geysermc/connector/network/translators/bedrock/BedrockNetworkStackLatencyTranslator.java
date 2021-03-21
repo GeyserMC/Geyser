@@ -33,23 +33,25 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.floodgate.util.DeviceOS;
 
 /**
- * Used to send the keep alive packet back to the server
+ * Used to send the forwarded keep alive packet back to the server
  */
 @Translator(packet = NetworkStackLatencyPacket.class)
 public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<NetworkStackLatencyPacket> {
 
     @Override
     public void translate(NetworkStackLatencyPacket packet, GeyserSession session) {
-        long pingId;
-        // so apparently, as of 1.16.200
-        // PS4 divides the network stack latency timestamp FOR US!!!
-        // WTF
-        if (session.getClientData().getDeviceOS().equals(DeviceOS.NX)) {
-            // Ignore the weird DeviceOS, our order is wrong and will be fixed in Floodgate 2.0
-            pingId = packet.getTimestamp();
-        } else {
-            pingId = packet.getTimestamp() / 1000;
+        if (session.getConnector().getConfig().isForwardPlayerPing()) {
+            long pingId;
+            // so apparently, as of 1.16.200
+            // PS4 divides the network stack latency timestamp FOR US!!!
+            // WTF
+            if (session.getClientData().getDeviceOS().equals(DeviceOS.NX)) {
+                // Ignore the weird DeviceOS, our order is wrong and will be fixed in Floodgate 2.0
+                pingId = packet.getTimestamp();
+            } else {
+                pingId = packet.getTimestamp() / 1000;
+            }
+            session.sendDownstreamPacket(new ClientKeepAlivePacket(pingId));
         }
-        session.sendDownstreamPacket(new ClientKeepAlivePacket(pingId));
     }
 }

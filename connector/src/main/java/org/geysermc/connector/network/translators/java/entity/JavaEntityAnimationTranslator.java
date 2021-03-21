@@ -60,6 +60,9 @@ public class JavaEntityAnimationTranslator extends PacketTranslator<ServerEntity
             case LEAVE_BED:
                 animatePacket.setAction(AnimatePacket.Action.WAKE_UP);
                 break;
+            default:
+                // Unknown Animation
+                return;
         }
 
         session.sendUpstreamPacket(animatePacket);

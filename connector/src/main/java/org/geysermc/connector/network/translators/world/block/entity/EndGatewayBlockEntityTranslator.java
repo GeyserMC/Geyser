@@ -27,6 +27,8 @@ package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
+import com.github.steveice10.opennbt.tag.builtin.LongTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
@@ -35,11 +37,14 @@ import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.util.LinkedHashMap;
 
-@BlockEntity(name = "EndGateway", regex = "end_gateway")
+@BlockEntity(name = "EndGateway")
 public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        builder.put("Age", (int) ((long) tag.get("Age").getValue()));
+        Tag ageTag = tag.get("Age");
+        if (ageTag instanceof LongTag) {
+            builder.put("Age", (int) ((long) ageTag.getValue()));
+        }
         // Java sometimes does not provide this tag, but Bedrock crashes if it doesn't exist
         // Linked coordinates
         IntList tagsList = new IntArrayList();

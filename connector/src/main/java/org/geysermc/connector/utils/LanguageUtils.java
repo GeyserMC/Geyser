@@ -67,8 +67,8 @@ public class LanguageUtils {
         // Load the locale
         if (localeStream != null) {
             Properties localeProp = new Properties();
-            try {
-                localeProp.load(new InputStreamReader(localeStream, StandardCharsets.UTF_8));
+            try (InputStreamReader reader = new InputStreamReader(localeStream, StandardCharsets.UTF_8)) {
+                localeProp.load(reader);
             } catch (Exception e) {
                 throw new AssertionError(getLocaleStringLog("geyser.language.load_failed", locale), e);
             }
@@ -187,7 +187,11 @@ public class LanguageUtils {
         if (FileUtils.class.getResource("/languages/texts/" + locale + ".properties") == null) {
             result = false;
             if (GeyserConnector.getInstance() != null && GeyserConnector.getInstance().getLogger() != null) { // Could be too early for these to be initialized
-                GeyserConnector.getInstance().getLogger().warning(locale + " is not a valid Bedrock language."); // We can't translate this since we just loaded an invalid language
+                if (locale.equals("en_US")) {
+                    GeyserConnector.getInstance().getLogger().error("English locale not found in Geyser. Did you clone the submodules? (git submodule update --init)");
+                } else {
+                    GeyserConnector.getInstance().getLogger().warning(locale + " is not a valid Bedrock language."); // We can't translate this since we just loaded an invalid language
+                }
             }
         } else {
             if (!LOCALE_MAPPINGS.containsKey(locale)) {
