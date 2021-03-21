@@ -106,14 +106,14 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
             // to Java Edition clients but will appear to Bedrock clients
             int signWidth = 0;
             StringBuilder finalSignLine = new StringBuilder();
-            boolean previousCharacterWasSymbol = false; // Color changes do not count for maximum width
+            boolean previousCharacterWasFormatting = false; // Color changes do not count for maximum width
             for (char c : signLine.toCharArray()) {
                 if (c == '\u00a7') {
                     // Don't count this character
-                    previousCharacterWasSymbol = true;
+                    previousCharacterWasFormatting = true;
                 } else if (previousCharacterWasSymbol) {
                     // Don't count this character either
-                    previousCharacterWasSymbol = false;
+                    previousCharacterWasFormatting = false;
                 } else {
                     signWidth += SignUtils.getCharacterWidth(c);
                 }
