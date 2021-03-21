@@ -261,6 +261,28 @@ public class CollisionManager {
     }
 
     /**
+     * @return true if the block located at the player's floor position plus 1 would intersect with the player,
+     * were they not sneaking
+     */
+    public boolean isUnderSlab() {
+        if (!session.getConnector().getConfig().isCacheChunks()) {
+            // We can't reliably determine this
+            return false;
+        }
+        Vector3i position = session.getPlayerEntity().getPosition().toInt();
+        BlockCollision collision = CollisionTranslator.getCollisionAt(session, position.getX(), position.getY(), position.getZ());
+        if (collision != null) {
+            // Determine, if the player's bounding box *were* at full height, if it would intersect with the block
+            // at the current location.
+            playerBoundingBox.setSizeY(EntityType.PLAYER.getHeight());
+            boolean result = collision.checkIntersection(playerBoundingBox);
+            playerBoundingBox.setSizeY(session.getPlayerEntity().getMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT));
+            return result;
+        }
+        return false;
+    }
+
+    /**
      * @return if the player is currently in a water block
      */
     public boolean isPlayerInWater() {

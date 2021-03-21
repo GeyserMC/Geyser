@@ -79,9 +79,9 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.attribute.Attribute;
 import org.geysermc.connector.entity.attribute.AttributeType;
-import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.inventory.Inventory;
@@ -836,12 +836,18 @@ public class GeyserSession implements CommandSender {
         this.sneaking = sneaking;
 
         // Update pose and bounding box on our end
-        this.pose = sneaking ? Pose.SNEAKING : Pose.STANDING;
-        playerEntity.getMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, sneaking ? 1.5f : playerEntity.getEntityType().getHeight());
-        playerEntity.getMetadata().getFlags().setFlag(EntityFlag.SNEAKING, sneaking);
+        if (!sneaking && adjustSpeed()) {
+            // Update attributes since we're still "sneaking" under a 1.5-block-tall area
+            playerEntity.updateBedrockAttributes(this);
+            // the server *should* update our pose once it has returned to normal
+        } else {
+            this.pose = sneaking ? Pose.SNEAKING : Pose.STANDING;
+            playerEntity.getMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, sneaking ? 1.5f : playerEntity.getEntityType().getHeight());
+            playerEntity.getMetadata().getFlags().setFlag(EntityFlag.SNEAKING, sneaking);
 
-        collisionManager.updatePlayerBoundingBox();
-        collisionManager.updateScaffoldingFlags(false);
+            collisionManager.updatePlayerBoundingBox();
+            collisionManager.updateScaffoldingFlags(false);
+        }
 
         playerEntity.updateBedrockMetadata(this);
 
@@ -849,6 +855,13 @@ public class GeyserSession implements CommandSender {
             // Horses, etc can change their property depending on if you're sneaking
             InteractiveTagManager.updateTag(this, mouseoverEntity);
         }
+    }
+
+    public void setSwimming(boolean swimming) {
+        this.pose = swimming ? Pose.SWIMMING : Pose.STANDING;
+        playerEntity.getMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, swimming ? 0.6f : playerEntity.getEntityType().getHeight());
+        playerEntity.getMetadata().getFlags().setFlag(EntityFlag.SWIMMING, swimming);
+        playerEntity.updateBedrockMetadata(this);
     }
 
     /**
@@ -859,7 +872,8 @@ public class GeyserSession implements CommandSender {
     public boolean adjustSpeed() {
         Attribute currentPlayerSpeed = playerEntity.getAttributes().get(AttributeType.MOVEMENT_SPEED);
         if (currentPlayerSpeed != null) {
-            if (!swimmingInWater && playerEntity.getMetadata().getFlags().getFlag(EntityFlag.SWIMMING) && !collisionManager.isPlayerInWater()) {
+            if ((pose.equals(Pose.SNEAKING) && !sneaking && collisionManager.isUnderSlab()) ||
+                    (!swimmingInWater && playerEntity.getMetadata().getFlags().getFlag(EntityFlag.SWIMMING) && !collisionManager.isPlayerInWater())) {
                 // Either of those conditions means that Bedrock goes zoom when they shouldn't be
                 currentPlayerSpeed.setValue(originalSpeedAttribute / 3.32f);
                 return true;

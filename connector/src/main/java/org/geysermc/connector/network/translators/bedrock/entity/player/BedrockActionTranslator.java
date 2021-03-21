@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.bedrock.entity.player;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.*;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
@@ -34,7 +33,6 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.PlayerActionType;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
@@ -85,20 +83,14 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 ClientPlayerStatePacket startSwimPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);
                 session.sendDownstreamPacket(startSwimPacket);
 
-                session.setPose(Pose.SWIMMING);
-                session.getPlayerEntity().getMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, 0.6f);
-                session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.SWIMMING, true);
-                session.getPlayerEntity().updateBedrockMetadata(session);
+                session.setSwimming(true);
                 break;
             case STOP_SWIMMING:
                 // TODO make this better and only stop sprinting if the player is stopping in water - otherwise the sprint continues
                 ClientPlayerStatePacket stopSwimPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
                 session.sendDownstreamPacket(stopSwimPacket);
 
-                session.setPose(Pose.STANDING);
-                session.getPlayerEntity().getMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, session.getPlayerEntity().getEntityType().getHeight());
-                session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.SWIMMING, false);
-                session.getPlayerEntity().updateBedrockMetadata(session);
+                session.setSwimming(false);
                 break;
             case START_GLIDE:
                 // Otherwise gliding will not work in creative
