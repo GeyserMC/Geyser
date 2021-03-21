@@ -56,6 +56,7 @@ import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -833,8 +834,16 @@ public class GeyserSession implements CommandSender {
 
     public void setSneaking(boolean sneaking) {
         this.sneaking = sneaking;
+
+        // Update pose and bounding box on our end
+        this.pose = sneaking ? Pose.SNEAKING : Pose.STANDING;
+        playerEntity.getMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, sneaking ? 1.5f : playerEntity.getEntityType().getHeight());
+        playerEntity.getMetadata().getFlags().setFlag(EntityFlag.SNEAKING, sneaking);
+
         collisionManager.updatePlayerBoundingBox();
-        collisionManager.updateScaffoldingFlags();
+        collisionManager.updateScaffoldingFlags(false);
+
+        playerEntity.updateBedrockMetadata(this);
 
         if (mouseoverEntity != null) {
             // Horses, etc can change their property depending on if you're sneaking
@@ -843,22 +852,14 @@ public class GeyserSession implements CommandSender {
     }
 
     /**
-     * Will be overwritten for GeyserConnect.
-     */
-    protected void disableSrvResolving() {
-        this.downstream.getSession().setFlag(BuiltinFlags.ATTEMPT_SRV_RESOLVE, false);
-    }
-
-    /**
-     * Adjusts speed if the player should be sneaking, or if the player is crawling.
+     * Adjusts speed if the player is crawling.
      *
      * @return true if attributes should be updated.
      */
     public boolean adjustSpeed() {
         Attribute currentPlayerSpeed = playerEntity.getAttributes().get(AttributeType.MOVEMENT_SPEED);
         if (currentPlayerSpeed != null) {
-            if ((pose.equals(Pose.SNEAKING) && !sneaking && collisionManager.isUnderSlab()) ||
-                    (!swimmingInWater && playerEntity.getMetadata().getFlags().getFlag(EntityFlag.SWIMMING) && !collisionManager.isPlayerInWater())) {
+            if (!swimmingInWater && playerEntity.getMetadata().getFlags().getFlag(EntityFlag.SWIMMING) && !collisionManager.isPlayerInWater()) {
                 // Either of those conditions means that Bedrock goes zoom when they shouldn't be
                 currentPlayerSpeed.setValue(originalSpeedAttribute / 3.32f);
                 return true;
@@ -869,6 +870,13 @@ public class GeyserSession implements CommandSender {
             }
         }
         return false;
+    }
+
+    /**
+     * Will be overwritten for GeyserConnect.
+     */
+    protected void disableSrvResolving() {
+        this.downstream.getSession().setFlag(BuiltinFlags.ATTEMPT_SRV_RESOLVE, false);
     }
 
     @Override

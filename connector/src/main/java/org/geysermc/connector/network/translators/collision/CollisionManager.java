@@ -255,31 +255,9 @@ public class CollisionManager {
             }
         }
 
-        updateScaffoldingFlags();
+        updateScaffoldingFlags(true);
 
         return true;
-    }
-
-    /**
-     * @return true if the block located at the player's floor position plus 1 would intersect with the player,
-     * were they not sneaking
-     */
-    public boolean isUnderSlab() {
-        if (!session.getConnector().getConfig().isCacheChunks()) {
-            // We can't reliably determine this
-            return false;
-        }
-        Vector3i position = session.getPlayerEntity().getPosition().toInt();
-        BlockCollision collision = CollisionTranslator.getCollisionAt(session, position.getX(), position.getY(), position.getZ());
-        if (collision != null) {
-            // Determine, if the player's bounding box *were* at full height, if it would intersect with the block
-            // at the current location.
-            playerBoundingBox.setSizeY(EntityType.PLAYER.getHeight());
-            boolean result = collision.checkIntersection(playerBoundingBox);
-            playerBoundingBox.setSizeY(session.getPlayerEntity().getMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT));
-            return result;
-        }
-        return false;
     }
 
     /**
@@ -293,8 +271,10 @@ public class CollisionManager {
     /**
      * Updates scaffolding entity flags
      * Scaffolding needs to be checked per-move since it's a flag in Bedrock but Java does it client-side
+     *
+     * @param updateMetadata whether we should update metadata if something changed
      */
-    public void updateScaffoldingFlags() {
+    public void updateScaffoldingFlags(boolean updateMetadata) {
         EntityFlags flags = session.getPlayerEntity().getMetadata().getFlags();
         boolean flagsChanged;
         boolean isSneakingWithScaffolding = (touchingScaffolding || onScaffolding) && session.isSneaking();
@@ -308,7 +288,7 @@ public class CollisionManager {
         flagsChanged |= flags.getFlag(EntityFlag.IN_SCAFFOLDING) != touchingScaffolding;
         flags.setFlag(EntityFlag.IN_SCAFFOLDING, touchingScaffolding);
 
-        if (flagsChanged) {
+        if (flagsChanged && updateMetadata) {
             session.getPlayerEntity().updateBedrockMetadata(session);
         }
     }
