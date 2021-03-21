@@ -111,7 +111,7 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
                 if (c == '\u00a7') {
                     // Don't count this character
                     previousCharacterWasFormatting = true;
-                } else if (previousCharacterWasSymbol) {
+                } else if (previousCharacterWasFormatting) {
                     // Don't count this character either
                     previousCharacterWasFormatting = false;
                 } else {
