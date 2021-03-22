@@ -49,6 +49,7 @@ public final class Objective {
     private int type = 0; // 0 = integer, 1 = heart
 
     private Map<String, Score> scores = new ConcurrentHashMap<>();
+    // todo add a 'to add' map so that we don't have to use a concurrentHashMap
 
     private Objective(Scoreboard scoreboard) {
         this.id = scoreboard.getNextId().getAndIncrement();

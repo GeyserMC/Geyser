@@ -70,7 +70,7 @@ public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerSc
                 break;
         }
 
-        if (objective == null) {
+        if (objective == null || !objective.isActive()) {
             return;
         }
 

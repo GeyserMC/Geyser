@@ -124,10 +124,6 @@ public class EntityCache {
         playerEntities.put(entity.getUuid(), entity);
     }
 
-    public Collection<PlayerEntity> getPlayerEntities() {
-        return playerEntities.values();
-    }
-
     public PlayerEntity getPlayerEntity(UUID uuid) {
         return playerEntities.get(uuid);
     }

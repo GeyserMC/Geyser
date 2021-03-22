@@ -32,7 +32,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,10 +74,6 @@ public final class Team {
                 }
             }
         }
-    }
-
-    public String[] getEntities() {
-        return entities.toArray(new String[0]);
     }
 
     public Team addEntities(String... names) {
@@ -201,22 +196,6 @@ public final class Team {
                 return false;
         }
         return true;
-    }
-
-    /**
-     * Get the display name of an entity on this team in relation to another entity.
-     *
-     * @param username the username of the player on this team
-     * @param otherEntity the other entity, for determining visibility
-     * @return the final display name
-     */
-    public String getDisplayNameFor(String username, String otherEntity) {
-        String displayName = "";
-        if (isVisibleFor(otherEntity)) {
-            displayName = MessageTranslator.toChatColor(color) + username;
-            displayName = currentData.getDisplayName(displayName);
-        }
-        return displayName;
     }
 
     @Override
