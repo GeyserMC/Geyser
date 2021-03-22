@@ -26,17 +26,19 @@
 package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.entity.Effect;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3i;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ToolItemEntry;
-
-import java.util.Optional;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 public class BlockUtils {
+    /**
+     * A static constant of {@link Position} with all values being zero.
+     */
+    public static final Position POSITION_ZERO = new Position(0, 0, 0);
 
     private static boolean correctTool(String blockToolType, String itemToolType) {
         return (blockToolType.equals("sword") && itemToolType.equals("sword")) ||
@@ -132,10 +134,10 @@ public class BlockUtils {
         miningFatigueLevel = session.getEffectCache().getEffectLevel(Effect.SLOWER_DIG);
 
         boolean isInWater = session.getConnector().getConfig().isCacheChunks()
-                && BlockTranslator.getBedrockBlockId(session.getConnector().getWorldManager().getBlockAt(session, session.getPlayerEntity().getPosition().toInt())) == BlockTranslator.BEDROCK_WATER_ID;
+                && session.getBlockTranslator().getBedrockBlockId(session.getConnector().getWorldManager().getBlockAt(session, session.getPlayerEntity().getPosition().toInt())) == session.getBlockTranslator().getBedrockWaterId();
 
         boolean insideOfWaterWithoutAquaAffinity = isInWater &&
-                ItemUtils.getEnchantmentLevel(Optional.ofNullable(session.getInventory().getItem(5)).map(ItemStack::getNbt).orElse(null), "minecraft:aqua_affinity") < 1;
+                ItemUtils.getEnchantmentLevel(session.getPlayerInventory().getItem(5).getNbt(), "minecraft:aqua_affinity") < 1;
 
         boolean outOfWaterButNotOnGround = (!isInWater) && (!session.getPlayerEntity().isOnGround());
         boolean insideWaterNotOnGround = isInWater && !session.getPlayerEntity().isOnGround();

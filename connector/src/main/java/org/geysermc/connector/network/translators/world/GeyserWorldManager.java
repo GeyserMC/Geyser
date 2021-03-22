@@ -30,10 +30,14 @@ import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.ChunkCache;
+import org.geysermc.connector.network.translators.inventory.translators.LecternInventoryTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.GameRule;
 
 public class GeyserWorldManager extends WorldManager {
@@ -46,7 +50,7 @@ public class GeyserWorldManager extends WorldManager {
         if (chunkCache != null) { // Chunk cache can be null if the session is closed asynchronously
             return chunkCache.getBlockAt(x, y, z);
         }
-        return 0;
+        return BlockTranslator.JAVA_AIR_ID;
     }
 
     @Override
@@ -69,7 +73,7 @@ public class GeyserWorldManager extends WorldManager {
     }
 
     @Override
-    public boolean hasMoreBlockDataThanChunkCache() {
+    public boolean hasOwnChunkCache() {
         // This implementation can only fetch data from the session chunk cache
         return false;
     }
@@ -86,6 +90,29 @@ public class GeyserWorldManager extends WorldManager {
             }
         }
         return new int[1024];
+    }
+
+    @Override
+    public NbtMap getLecternDataAt(GeyserSession session, int x, int y, int z, boolean isChunkLoad) {
+        // Without direct server access, we can't get lectern information on-the-fly.
+        // I should have set this up so it's only called when there is a book in the block state. - Camotoy
+        NbtMapBuilder lecternTag = LecternInventoryTranslator.getBaseLecternTag(x, y, z, 1);
+        lecternTag.putCompound("book", NbtMap.builder()
+                .putByte("Count", (byte) 1)
+                .putShort("Damage", (short) 0)
+                .putString("Name", "minecraft:written_book")
+                .putCompound("tag", NbtMap.builder()
+                        .putString("photoname", "")
+                        .putString("text", "")
+                        .build())
+                .build());
+        lecternTag.putInt("page", -1); // I'm surprisingly glad this exists - it forces Bedrock to stop reading immediately. Usually.
+        return lecternTag.build();
+    }
+
+    @Override
+    public boolean shouldExpectLecternHandled() {
+        return false;
     }
 
     @Override
