@@ -195,7 +195,7 @@ public class GeyserConnector {
 
         defaultAuthType = AuthType.getByName(config.getRemote().getAuthType());
 
-        if (authType == AuthType.FLOODGATE) {
+        if (defaultAuthType == AuthType.FLOODGATE) {
             try {
                 Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
                 cipher = new AesCipher(new Base64Topping());

@@ -42,8 +42,8 @@ import java.nio.charset.StandardCharsets;
 public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMessagePacket> {
     @Override
     public void translate(ServerPluginMessagePacket packet, GeyserSession session) {
-        // The only plugin messages to listen for are Floodgate plugin messages
-        if (session.getConnector().getAuthType() != AuthType.FLOODGATE) {
+        // The only plugin messages it has to listen for are Floodgate plugin messages
+        if (session.getConnector().getDefaultAuthType() != AuthType.FLOODGATE) {
             return;
         }
 
