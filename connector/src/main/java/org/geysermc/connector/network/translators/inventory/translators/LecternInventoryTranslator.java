@@ -51,22 +51,19 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
 
     public LecternInventoryTranslator() {
         super(1);
-        this.updater = new LecternInventoryUpdater();
+        this.updater = new InventoryUpdater();
     }
 
     @Override
     public void prepareInventory(GeyserSession session, Inventory inventory) {
-
     }
 
     @Override
     public void openInventory(GeyserSession session, Inventory inventory) {
-
     }
 
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
-
     }
 
     @Override
@@ -81,7 +78,6 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public void updateInventory(GeyserSession session, Inventory inventory) {
-
     }
 
     @Override
@@ -170,9 +166,5 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
             builder.putByte("hasBook", (byte) 0);
         }
         return builder;
-    }
-
-    private static class LecternInventoryUpdater extends InventoryUpdater {
-
     }
 }

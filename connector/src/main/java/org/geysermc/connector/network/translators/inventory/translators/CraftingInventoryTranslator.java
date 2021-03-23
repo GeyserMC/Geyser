@@ -39,8 +39,9 @@ public class CraftingInventoryTranslator extends AbstractBlockInventoryTranslato
 
     @Override
     public SlotType getSlotType(int javaSlot) {
-        if (javaSlot == 0)
+        if (javaSlot == 0) {
             return SlotType.OUTPUT;
+        }
         return SlotType.NORMAL;
     }
 

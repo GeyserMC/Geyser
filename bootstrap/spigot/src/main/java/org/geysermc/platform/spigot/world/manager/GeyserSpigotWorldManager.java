@@ -140,7 +140,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     }
 
     @Override
-    public boolean hasMoreBlockDataThanChunkCache() {
+    public boolean hasOwnChunkCache() {
         return true;
     }
 
@@ -235,6 +235,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             NbtMap blockEntityTag = lecternTag.build();
             BlockEntityUtils.updateBlockEntity(session, blockEntityTag, Vector3i.from(x, y, z));
         };
+
         if (isChunkLoad) {
             // Delay to ensure the chunk is sent first, and then the lectern data
             Bukkit.getScheduler().runTaskLater(this.plugin, lecternInfoGet, 5);

@@ -74,7 +74,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         // Check to see if there is an existing block we can use that the player just selected.
         // First, verify that the player's position has not changed, so we don't try to select a block wildly out of range.
         // (This could be a virtual inventory that the player is opening)
-        if (session.getLastInteractionPlayerPosition().equals(session.getPlayerEntity().getPosition())) {
+        if (checkInteractionPosition(session)) {
             // Then, check to see if the interacted block is valid for this inventory by ensuring the block state identifier is valid
             int javaBlockId = session.getConnector().getWorldManager().getBlockAt(session, session.getLastInteractionBlockPosition());
             String[] javaBlockString = BlockTranslator.getJavaIdBlockMap().inverse().getOrDefault(javaBlockId, "minecraft:air").split("\\[");
@@ -99,6 +99,16 @@ public class BlockInventoryHolder extends InventoryHolder {
         inventory.setHolderPosition(position);
 
         setCustomName(session, position, inventory, defaultJavaBlockState);
+    }
+
+    /**
+     * Will be overwritten in the beacon inventory translator to remove the check, since virtual inventories can't exist.
+     *
+     * @return if the player's last interaction position and current position match. Used to ensure that we don't select
+     * a block to hold the inventory that's wildly out of range.
+     */
+    protected boolean checkInteractionPosition(GeyserSession session) {
+        return session.getLastInteractionPlayerPosition().equals(session.getPlayerEntity().getPosition());
     }
 
     /**

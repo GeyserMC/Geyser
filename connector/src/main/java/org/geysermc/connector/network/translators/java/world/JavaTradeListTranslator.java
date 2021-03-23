@@ -58,6 +58,7 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
             return;
         }
 
+        // Retrieve the fake villager involved in the trade, and update its metadata to match with the window information
         MerchantContainer merchantInventory = (MerchantContainer) openInventory;
         merchantInventory.setVillagerTrades(packet.getTrades());
         Entity villager = merchantInventory.getVillager();
@@ -66,6 +67,7 @@ public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPac
         villager.getMetadata().put(EntityData.TRADE_XP, packet.getExperience());
         villager.updateBedrockMetadata(session);
 
+        // Construct the packet that opens the trading window
         UpdateTradePacket updateTradePacket = new UpdateTradePacket();
         updateTradePacket.setTradeTier(packet.getVillagerLevel() - 1);
         updateTradePacket.setContainerId((short) packet.getWindowId());

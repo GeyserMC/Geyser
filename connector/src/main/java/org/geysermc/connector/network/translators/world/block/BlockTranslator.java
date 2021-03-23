@@ -112,8 +112,6 @@ public abstract class BlockTranslator {
      */
     private final Map<String, NbtMap> javaIdentifierToBedrockTag;
 
-    private static final int BLOCK_STATE_VERSION = 17825808;
-
     /**
      * Stores the raw blocks JSON until it is no longer needed.
      */
@@ -413,6 +411,10 @@ public abstract class BlockTranslator {
         return bedrockWaterId;
     }
 
+    /**
+     * @return the "block state version" generated in the Bedrock block palette that completes an NBT indication of a
+     * block state.
+     */
     public abstract int getBlockStateVersion();
 
     public byte[] getEmptyChunkData() {

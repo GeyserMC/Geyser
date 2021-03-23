@@ -91,6 +91,8 @@ public class BrewingInventoryTranslator extends AbstractBlockInventoryTranslator
                 return 3;
             case 3:
                 return 0;
+            case 4:
+                return 4;
         }
         return super.javaSlotToBedrock(slot);
     }
@@ -105,7 +107,7 @@ public class BrewingInventoryTranslator extends AbstractBlockInventoryTranslator
             case 3:
                 return new BedrockContainerSlot(ContainerSlotType.BREWING_INPUT, 0);
             case 4:
-                return new BedrockContainerSlot(ContainerSlotType.BREWING_INPUT, 0);
+                return new BedrockContainerSlot(ContainerSlotType.BREWING_FUEL, 4);
         }
         return super.javaSlotToBedrockContainer(slot);
     }

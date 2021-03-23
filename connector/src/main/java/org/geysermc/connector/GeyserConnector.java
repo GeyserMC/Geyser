@@ -40,7 +40,6 @@ import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
-import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
@@ -103,9 +102,8 @@ public class GeyserConnector {
 
     private static GeyserConnector instance;
 
-    private RemoteServer remoteServer;
     @Setter
-    private AuthType authType;
+    private AuthType defaultAuthType;
 
     private FloodgateCipher cipher;
     private FloodgateSkinUploader skinUploader;
@@ -175,7 +173,7 @@ public class GeyserConnector {
         String remoteAddress = config.getRemote().getAddress();
         int remotePort = config.getRemote().getPort();
         // Filters whether it is not an IP address or localhost, because otherwise it is not possible to find out an SRV entry.
-        if ((config.isLegacyPingPassthrough() || platformType == PlatformType.STANDALONE) && !remoteAddress.matches(IP_REGEX) && !remoteAddress.equalsIgnoreCase("localhost")) {
+        if (!remoteAddress.matches(IP_REGEX) && !remoteAddress.equalsIgnoreCase("localhost")) {
             try {
                 // Searches for a server address and a port from a SRV record of the specified host name
                 InitialDirContext ctx = new InitialDirContext();
@@ -195,8 +193,7 @@ public class GeyserConnector {
             }
         }
 
-        remoteServer = new RemoteServer(config.getRemote().getAddress(), remotePort);
-        authType = AuthType.getByName(config.getRemote().getAuthType());
+        defaultAuthType = AuthType.getByName(config.getRemote().getAuthType());
 
         if (authType == AuthType.FLOODGATE) {
             try {
@@ -355,8 +352,7 @@ public class GeyserConnector {
         generalThreadPool.shutdown();
         bedrockServer.close();
         players.clear();
-        remoteServer = null;
-        authType = null;
+        defaultAuthType = null;
         this.getCommandManager().getCommands().clear();
 
         bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.done"));
@@ -392,6 +388,7 @@ public class GeyserConnector {
      * @param xuid the Xbox user identifier
      * @return the player or <code>null</code> if there is no player online with this xuid
      */
+    @SuppressWarnings("unused") // API usage
     public GeyserSession getPlayerByXuid(String xuid) {
         for (GeyserSession session : players) {
             if (session.getAuthData() != null && session.getAuthData().getXboxUUID().equals(xuid)) {

@@ -41,17 +41,14 @@ public abstract class AbstractHorseInventoryTranslator extends BaseInventoryTran
 
     @Override
     public void prepareInventory(GeyserSession session, Inventory inventory) {
-
     }
 
     @Override
     public void openInventory(GeyserSession session, Inventory inventory) {
-
     }
 
     @Override
     public void closeInventory(GeyserSession session, Inventory inventory) {
-
     }
 
     @Override

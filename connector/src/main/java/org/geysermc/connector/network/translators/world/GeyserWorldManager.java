@@ -73,7 +73,7 @@ public class GeyserWorldManager extends WorldManager {
     }
 
     @Override
-    public boolean hasMoreBlockDataThanChunkCache() {
+    public boolean hasOwnChunkCache() {
         // This implementation can only fetch data from the session chunk cache
         return false;
     }
