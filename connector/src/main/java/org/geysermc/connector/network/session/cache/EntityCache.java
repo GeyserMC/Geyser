@@ -59,6 +59,7 @@ public class EntityCache {
 
     public EntityCache(GeyserSession session) {
         this.session = session;
+        cachedPlayerEntityLinks.defaultReturnValue(-1L);
     }
 
     public void spawnEntity(Entity entity) {
@@ -100,6 +101,9 @@ public class EntityCache {
         for (Entity entity : entities) {
             session.getEntityCache().removeEntity(entity, false);
         }
+
+        // As a precaution
+        cachedPlayerEntityLinks.clear();
     }
 
     public Entity getEntityByGeyserId(long geyserId) {
@@ -160,7 +164,7 @@ public class EntityCache {
     }
 
     public long getCachedPlayerEntityLink(long playerId) {
-        return cachedPlayerEntityLinks.getOrDefault(playerId, -1);
+        return cachedPlayerEntityLinks.remove(playerId);
     }
 
     public void addCachedPlayerEntityLink(long playerId, long linkedEntityId) {
