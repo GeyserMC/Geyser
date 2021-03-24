@@ -51,7 +51,6 @@ public final class Scoreboard {
     private final Map<String, Objective> objectives = new HashMap<>();
     private final Map<ScoreboardPosition, Objective> objectiveSlots = new HashMap<>();
     private final Map<String, Team> teams = new ConcurrentHashMap<>(); // updated on multiple threads
-    // todo add a 'to add' map so that we don't have to use a concurrentHashMap
 
     private int lastAddScoreCount = 0;
     private int lastRemoveScoreCount = 0;
@@ -90,7 +89,7 @@ public final class Scoreboard {
         }
 
         Objective storedObjective = objectiveSlots.get(displaySlot);
-        if (storedObjective != null) {
+        if (storedObjective != null && storedObjective != objective) {
             deactivateObjective(storedObjective);
         }
         objectiveSlots.put(displaySlot, objective);

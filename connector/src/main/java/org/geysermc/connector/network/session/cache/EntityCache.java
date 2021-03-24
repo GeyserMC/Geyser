@@ -128,18 +128,6 @@ public class EntityCache {
         return playerEntities.get(uuid);
     }
 
-    /**
-     * @return a {@link PlayerEntity} with the given username
-     */
-    public PlayerEntity getPlayerEntity(String username) {
-        for (PlayerEntity entity : playerEntities.values()) {
-            if (username.equals(entity.getUsername())) {
-                return entity;
-            }
-        }
-        return null;
-    }
-
     public PlayerEntity removePlayerEntity(UUID uuid) {
         return playerEntities.remove(uuid);
     }
