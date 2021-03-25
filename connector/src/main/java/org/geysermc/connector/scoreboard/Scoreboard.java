@@ -48,7 +48,7 @@ public final class Scoreboard {
     @Getter
     private final AtomicLong nextId = new AtomicLong(0);
 
-    private final Map<String, Objective> objectives = new ConcurrentHashMap<>(); // updated on multiple threads
+    private final Map<String, Objective> objectives = new HashMap<>();
     private final Map<ScoreboardPosition, Objective> objectiveSlots = new HashMap<>();
     private final Map<String, Team> teams = new ConcurrentHashMap<>(); // updated on multiple threads
 
@@ -68,7 +68,7 @@ public final class Scoreboard {
             if (objective.getUpdateType() != REMOVE) {
                 return null;
             }
-            deleteObjective(objective);
+            deleteObjective(objective, true);
         }
 
         objective = new Objective(this, objectiveId);
@@ -114,6 +114,10 @@ public final class Scoreboard {
 
     public Collection<Objective> getObjectives() {
         return objectives.values();
+    }
+
+    public Iterator<Map.Entry<String, Objective>> objectiveIterator() {
+        return objectives.entrySet().iterator();
     }
 
     public Team getTeam(String teamName) {
@@ -193,7 +197,7 @@ public final class Scoreboard {
 
         // prevents crashes in some cases
         for (Objective objective : removedObjectives) {
-            deleteObjective(objective);
+            deleteObjective(objective, true);
         }
 
         lastAddScoreCount = addScores.size();
@@ -333,8 +337,13 @@ public final class Scoreboard {
         session.sendUpstreamPacket(removeObjectivePacket);
     }
 
-    public void deleteObjective(Objective objective) {
-        objectives.remove(objective.getObjectiveName());
+    /**
+     * @param remove if we should remove the objective here, or if that has been done for us.
+     */
+    public void deleteObjective(Objective objective, boolean remove) {
+        if (remove) {
+            objectives.remove(objective.getObjectiveName());
+        }
 
         Objective storedSlot = objectiveSlots.get(objective.getDisplaySlot());
         if (storedSlot != null && storedSlot.getId() == objective.getId()) {

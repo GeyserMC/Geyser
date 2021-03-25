@@ -33,6 +33,9 @@ import org.geysermc.connector.scoreboard.Objective;
 import org.geysermc.connector.scoreboard.Scoreboard;
 import org.geysermc.connector.scoreboard.ScoreboardUpdater.ScoreboardSession;
 
+import java.util.Iterator;
+import java.util.Map;
+
 @Getter
 public class WorldCache {
     private final GeyserSession session;
@@ -50,8 +53,12 @@ public class WorldCache {
 
     public void removeScoreboard() {
         if (scoreboard != null) {
-            for (Objective objective : scoreboard.getObjectives()) {
-                scoreboard.deleteObjective(objective);
+            Iterator<Map.Entry<String, Objective>> objectives = scoreboard.objectiveIterator();
+            // An iterator prevents ConcurrentModificationException
+            while (objectives.hasNext()) {
+                Map.Entry<String, Objective> next = objectives.next();
+                objectives.remove();
+                scoreboard.deleteObjective(next.getValue(), false);
             }
             scoreboard = new Scoreboard(session);
         }
