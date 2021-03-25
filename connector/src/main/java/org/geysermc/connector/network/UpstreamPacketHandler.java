@@ -97,7 +97,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     public boolean handle(ResourcePackClientResponsePacket packet) {
         switch (packet.getStatus()) {
             case COMPLETED:
-                session.connect(connector.getRemoteServer());
+                session.connect();
                 connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.connect", session.getAuthData().getName()));
                 break;
 
@@ -186,7 +186,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     public boolean handle(SetLocalPlayerAsInitializedPacket packet) {
         LanguageUtils.loadGeyserLocale(session.getLocale());
 
-        if (!session.isLoggedIn() && !session.isLoggingIn() && session.getConnector().getAuthType() == AuthType.ONLINE) {
+        if (!session.isLoggedIn() && !session.isLoggingIn() && session.getRemoteAuthType() == AuthType.ONLINE) {
             // TODO it is safer to key authentication on something that won't change (UUID, not username)
             if (!couldLoginUserByName(session.getAuthData().getName())) {
                 LoginEncryptionUtils.showLoginWindow(session);
