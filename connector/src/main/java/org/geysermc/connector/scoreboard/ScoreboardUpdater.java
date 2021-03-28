@@ -72,7 +72,7 @@ public class ScoreboardUpdater implements Runnable {
         long currentTime = System.currentTimeMillis();
 
         // reset score-packets per second every second
-        if (currentTime - lastPacketsPerSecondUpdate > 1000) {
+        if (currentTime - lastPacketsPerSecondUpdate >= 1000) {
             lastPacketsPerSecondUpdate = currentTime;
             for (GeyserSession session : connector.getPlayers()) {
                 ScoreboardSession scoreboardSession = session.getWorldCache().getScoreboardSession();
@@ -81,7 +81,7 @@ public class ScoreboardUpdater implements Runnable {
             }
         }
 
-        if (currentTime - lastUpdate > FIRST_MILLIS_BETWEEN_UPDATES) {
+        if (currentTime - lastUpdate >= FIRST_MILLIS_BETWEEN_UPDATES) {
             lastUpdate = currentTime;
 
             for (GeyserSession session : connector.getPlayers()) {
@@ -99,6 +99,7 @@ public class ScoreboardUpdater implements Runnable {
 
                     if (currentTime - scoreboardSession.lastUpdate > scoreboardSession.millisBetweenUpdates) {
                         worldCache.getScoreboard().onUpdate();
+                        scoreboardSession.lastUpdate = currentTime;
 
                         if (DEBUG_ENABLED && (currentTime - scoreboardSession.lastLog > 60000)) { // one minute
                             int threshold = reachedSecondThreshold ?
@@ -117,7 +118,8 @@ public class ScoreboardUpdater implements Runnable {
             }
         }
 
-        connector.getGeneralThreadPool().schedule(this, getTimeTillNextAction(), TimeUnit.MILLISECONDS);
+        long timeTillNextAction = getTimeTillNextAction();
+        connector.getGeneralThreadPool().schedule(this, timeTillNextAction, TimeUnit.MILLISECONDS);
     }
 
     private long getTimeTillNextAction() {
