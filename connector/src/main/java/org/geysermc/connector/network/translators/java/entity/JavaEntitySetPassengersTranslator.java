@@ -47,9 +47,11 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
 
     @Override
     public void translate(ServerEntitySetPassengersPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
+        } else {
+            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         }
 
         if (entity == null) return;
@@ -66,7 +68,8 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                     session.confirmTeleport(passenger.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0).toDouble());
                 }
             }
-            // Passenger hasn't loaded in and entity link needs to be set later
+            // Passenger hasn't loaded in (likely since we're waiting for a skin response)
+            // and entity link needs to be set later
             if (passenger == null && passengerId != 0) {
                 session.getEntityCache().addCachedPlayerEntityLink(passengerId, packet.getEntityId());
             }
