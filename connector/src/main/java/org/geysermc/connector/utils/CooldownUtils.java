@@ -68,9 +68,9 @@ public class CooldownUtils {
         if (lastHitTime != session.getLastHitTime()) return; // Means another cooldown has started so there's no need to continue this one
         SetTitlePacket titlePacket = new SetTitlePacket();
         if (SHOW_COOLDOWN == "actionbar") {
-        	titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
+            titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
         } else {
-        	titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
+            titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
         }
         titlePacket.setText(getTitle(session));
         titlePacket.setFadeInTime(0);
@@ -82,9 +82,9 @@ public class CooldownUtils {
         } else {
             SetTitlePacket removeTitlePacket = new SetTitlePacket();
             if (SHOW_COOLDOWN == "actionbar") {
-            	titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
+                titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
             } else {
-            	removeTitlePacket.setType(SetTitlePacket.Type.SUBTITLE);
+                removeTitlePacket.setType(SetTitlePacket.Type.SUBTITLE);
             }
             removeTitlePacket.setText(" ");
             session.sendUpstreamPacket(removeTitlePacket);
