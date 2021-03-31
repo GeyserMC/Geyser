@@ -98,7 +98,6 @@ import org.geysermc.cumulus.util.FormBuilder;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.util.BedrockData;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -672,7 +671,16 @@ public class GeyserSession implements CommandSender {
                     return;
                 }
                 connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.connect", authData.getName(), protocol.getProfile().getName(), remoteAddress));
-                playerEntity.setUuid(protocol.getProfile().getId());
+                UUID uuid = protocol.getProfile().getId();
+                if (uuid == null) {
+                    // Set what our UUID *probably* is going to be
+                    if (remoteAuthType == AuthType.FLOODGATE) {
+                        uuid = new UUID(0, Long.parseLong(authData.getXboxUUID()));
+                    } else {
+                        uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + protocol.getProfile().getName()).getBytes(StandardCharsets.UTF_8));
+                    }
+                }
+                playerEntity.setUuid(uuid);
                 playerEntity.setUsername(protocol.getProfile().getName());
 
                 String locale = clientData.getLanguageCode();
