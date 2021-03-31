@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
@@ -43,23 +42,22 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.InventorySource;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.CommandBlockMinecartEntity;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
-import org.geysermc.connector.entity.living.merchant.AbstractMerchantEntity;
 import org.geysermc.connector.entity.type.EntityType;
-import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.sound.EntitySoundInteractionHandler;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.BlockUtils;
-import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.concurrent.TimeUnit;
 
@@ -82,15 +80,35 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
         switch (packet.getTransactionType()) {
             case NORMAL:
-                Inventory inventory = session.getInventoryCache().getOpenInventory();
-                if (inventory == null) inventory = session.getInventory();
-                InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType()).translateActions(session, inventory, packet.getActions());
+                if (packet.getActions().size() == 2) {
+                    InventoryActionData worldAction = packet.getActions().get(0);
+                    InventoryActionData containerAction = packet.getActions().get(1);
+                    if (worldAction.getSource().getType() == InventorySource.Type.WORLD_INTERACTION
+                            && worldAction.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
+                        session.addInventoryTask(() -> {
+                            if (session.getPlayerInventory().getHeldItemSlot() != containerAction.getSlot() ||
+                                    session.getPlayerInventory().getItemInHand().isEmpty()) {
+                                return;
+                            }
+
+                            boolean dropAll = worldAction.getToItem().getCount() > 1;
+                            ClientPlayerActionPacket dropAllPacket = new ClientPlayerActionPacket(
+                                    dropAll ? PlayerAction.DROP_ITEM_STACK : PlayerAction.DROP_ITEM,
+                                    BlockUtils.POSITION_ZERO,
+                                    BlockFace.DOWN
+                            );
+                            session.sendDownstreamPacket(dropAllPacket);
+
+                            if (dropAll) {
+                                session.getPlayerInventory().setItemInHand(GeyserItemStack.EMPTY);
+                            } else {
+                                session.getPlayerInventory().getItemInHand().sub(1);
+                            }
+                        });
+                    }
+                }
                 break;
             case INVENTORY_MISMATCH:
-                Inventory inv = session.getInventoryCache().getOpenInventory();
-                if (inv == null) inv = session.getInventory();
-                InventoryTranslator.INVENTORY_TRANSLATORS.get(inv.getWindowType()).updateInventory(session, inv);
-                InventoryUtils.updateCursor(session);
                 break;
             case ITEM_USE:
                 switch (packet.getActionType()) {
@@ -98,8 +116,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         // Check to make sure the client isn't spamming interaction
                         // Based on Nukkit 1.0, with changes to ensure holding down still works
                         boolean hasAlreadyClicked = System.currentTimeMillis() - session.getLastInteractionTime() < 110.0 &&
-                                packet.getBlockPosition().distanceSquared(session.getLastInteractionPosition()) < 0.00001;
-                        session.setLastInteractionPosition(packet.getBlockPosition());
+                                packet.getBlockPosition().distanceSquared(session.getLastInteractionBlockPosition()) < 0.00001;
+                        session.setLastInteractionBlockPosition(packet.getBlockPosition());
+                        session.setLastInteractionPlayerPosition(session.getPlayerEntity().getPosition());
                         if (hasAlreadyClicked) {
                             break;
                         } else {
@@ -108,7 +127,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         // Bedrock sends block interact code for a Java entity so we send entity code back to Java
-                        if (BlockTranslator.isItemFrame(packet.getBlockRuntimeId()) &&
+                        if (session.getBlockTranslator().isItemFrame(packet.getBlockRuntimeId()) &&
                                 session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition())) != null) {
                             Vector3f vector = packet.getClickPosition();
                             ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition()),
@@ -192,7 +211,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         if (packet.getActions().isEmpty()) {
                             if (session.getOpPermissionLevel() >= 2 && session.getGameMode() == GameMode.CREATIVE) {
                                 // Otherwise insufficient permissions
-                                int blockState = BlockTranslator.getJavaBlockState(packet.getBlockRuntimeId());
+                                int blockState = session.getBlockTranslator().getJavaBlockState(packet.getBlockRuntimeId());
                                 String blockName = BlockTranslator.getJavaIdBlockMap().inverse().getOrDefault(blockState, "");
                                 // In the future this can be used for structure blocks too, however not all elements
                                 // are available in each GUI
@@ -215,9 +234,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.setInteracting(true);
                         break;
                     case 1:
-                        ItemStack shieldSlot = session.getInventory().getItem(session.getInventory().getHeldItemSlot() + 36);
                         // Handled in Entity.java
-                        if (shieldSlot != null && shieldSlot.getId() == ItemRegistry.SHIELD.getJavaId()) {
+                        if (session.getPlayerInventory().getItemInHand().getJavaId() == ItemRegistry.SHIELD.getJavaId()) {
                             break;
                         }
 
@@ -253,7 +271,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         LevelEventPacket blockBreakPacket = new LevelEventPacket();
                         blockBreakPacket.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
                         blockBreakPacket.setPosition(packet.getBlockPosition().toFloat());
-                        blockBreakPacket.setData(BlockTranslator.getBedrockBlockId(blockState));
+                        blockBreakPacket.setData(session.getBlockTranslator().getBedrockBlockId(blockState));
                         session.sendUpstreamPacket(blockBreakPacket);
                         session.setBreakingBlock(BlockTranslator.JAVA_AIR_ID);
 
@@ -274,7 +292,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             case ITEM_RELEASE:
                 if (packet.getActionType() == 0) {
                     // Followed to the Minecraft Protocol specification outlined at wiki.vg
-                    ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0,0,0),
+                    ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, BlockUtils.POSITION_ZERO,
                             BlockFace.DOWN);
                     session.sendDownstreamPacket(releaseItemPacket);
                 }
@@ -308,10 +326,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamPacket(interactAtPacket);
 
                         EntitySoundInteractionHandler.handleEntityInteraction(session, vector, entity);
-
-                        if (entity instanceof AbstractMerchantEntity) {
-                            session.setLastInteractedVillagerEid(packet.getRuntimeEntityId());
-                        }
                         break;
                     case 1: //Attack
                         if (entity.getEntityType() == EntityType.ENDER_DRAGON) {
@@ -342,14 +356,14 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setBlockPosition(blockPos);
-        updateBlockPacket.setRuntimeId(BlockTranslator.getBedrockBlockId(javaBlockState));
+        updateBlockPacket.setRuntimeId(session.getBlockTranslator().getBedrockBlockId(javaBlockState));
         updateBlockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(updateBlockPacket);
 
         UpdateBlockPacket updateWaterPacket = new UpdateBlockPacket();
         updateWaterPacket.setDataLayer(1);
         updateWaterPacket.setBlockPosition(blockPos);
-        updateWaterPacket.setRuntimeId(BlockTranslator.isWaterlogged(javaBlockState) ? BlockTranslator.BEDROCK_WATER_ID : BlockTranslator.BEDROCK_AIR_ID);
+        updateWaterPacket.setRuntimeId(BlockTranslator.isWaterlogged(javaBlockState) ? session.getBlockTranslator().getBedrockWaterId() : session.getBlockTranslator().getBedrockAirId());
         updateWaterPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(updateWaterPacket);
 

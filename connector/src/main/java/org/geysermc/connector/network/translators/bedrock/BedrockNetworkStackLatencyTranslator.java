@@ -40,7 +40,7 @@ import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Used to send the keep alive packet back to the server
+ * Used to send the forwarded keep alive packet back to the server
  */
 @Translator(packet = NetworkStackLatencyPacket.class)
 public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<NetworkStackLatencyPacket> {
@@ -60,8 +60,10 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
 
         // negative timestamps are used as hack to fix the url image loading bug
         if (packet.getTimestamp() > 0) {
-            ClientKeepAlivePacket keepAlivePacket = new ClientKeepAlivePacket(pingId);
-            session.sendDownstreamPacket(keepAlivePacket);
+            if (session.getConnector().getConfig().isForwardPlayerPing()) {
+                ClientKeepAlivePacket keepAlivePacket = new ClientKeepAlivePacket(pingId);
+                session.sendDownstreamPacket(keepAlivePacket);
+            }
             return;
         }
 

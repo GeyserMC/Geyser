@@ -26,7 +26,6 @@
 package org.geysermc.connector.entity.living.merchant;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.VillagerData;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
@@ -101,11 +100,17 @@ public class VillagerEntity extends AbstractMerchantEntity {
     
     @Override
     public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
+        if (!metadata.getFlags().getFlag(EntityFlag.SLEEPING)) {
+            // No need to worry about extra processing to compensate for sleeping
+            super.moveRelative(session, relX, relY, relZ, rotation, isOnGround);
+            return;
+        }
+
         int z = 0;
         int bedId = 0;
         float bedPositionSubtractorW = 0;
         float bedPositionSubtractorN = 0;
-        Vector3i bedPosition = metadata.getPos(EntityData.BED_POSITION);
+        Vector3i bedPosition = metadata.getPos(EntityData.BED_POSITION, null);
         if (session.getConnector().getConfig().isCacheChunks() && bedPosition != null) {
             bedId = session.getConnector().getWorldManager().getBlockAt(session, bedPosition);
         }
@@ -117,39 +122,33 @@ public class VillagerEntity extends AbstractMerchantEntity {
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
         //Sets Villager position and rotation when sleeping
-        if (!metadata.getFlags().getFlag(EntityFlag.SLEEPING)) {
-            moveEntityPacket.setPosition(position);
-            moveEntityPacket.setRotation(getBedrockRotation());
-        } else {
-            //String Setup
-            Pattern r = Pattern.compile("facing=([a-z]+)");
-            Matcher m = r.matcher(bedRotationZ);
-            if (m.find()) {
-                switch (m.group(0)){
-                    case "facing=south":
-                        //bed is facing south
-                        z = 180;
-                        bedPositionSubtractorW = -.5f; 
-                        break;
-                    case "facing=east":
-                        //bed is facing east
-                        z = 90;
-                        bedPositionSubtractorW = -.5f;
-                        break;
-                    case "facing=west":
-                        //bed is facing west
-                        z = 270;
-                        bedPositionSubtractorW = .5f;
-                        break;
-                    case "facing=north":
-                        //rotation does not change because north is 0
-                        bedPositionSubtractorN = .5f;
-                        break;
-                }
+        Pattern r = Pattern.compile("facing=([a-z]+)");
+        Matcher m = r.matcher(bedRotationZ);
+        if (m.find()) {
+            switch (m.group(0)) {
+                case "facing=south":
+                    //bed is facing south
+                    z = 180;
+                    bedPositionSubtractorW = -.5f;
+                    break;
+                case "facing=east":
+                    //bed is facing east
+                    z = 90;
+                    bedPositionSubtractorW = -.5f;
+                    break;
+                case "facing=west":
+                    //bed is facing west
+                    z = 270;
+                    bedPositionSubtractorW = .5f;
+                    break;
+                case "facing=north":
+                    //rotation does not change because north is 0
+                    bedPositionSubtractorN = .5f;
+                    break;
             }
-            moveEntityPacket.setRotation(Vector3f.from(0, 0, z));
-            moveEntityPacket.setPosition(Vector3f.from(position.getX() + bedPositionSubtractorW, position.getY(), position.getZ() + bedPositionSubtractorN));
         }
+        moveEntityPacket.setRotation(Vector3f.from(0, 0, z));
+        moveEntityPacket.setPosition(Vector3f.from(position.getX() + bedPositionSubtractorW, position.getY(), position.getZ() + bedPositionSubtractorN));
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(false);
         session.sendUpstreamPacket(moveEntityPacket);

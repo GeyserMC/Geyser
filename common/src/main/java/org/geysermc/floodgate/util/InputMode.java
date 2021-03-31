@@ -29,7 +29,7 @@ package org.geysermc.floodgate.util;
 public enum InputMode {
     UNKNOWN,
     KEYBOARD_MOUSE,
-    TOUCH, // I guess Touch?
+    TOUCH,
     CONTROLLER,
     VR;
 

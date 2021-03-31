@@ -57,7 +57,7 @@ public final class LinkedPlayer implements Cloneable {
         return new LinkedPlayer(javaUsername, javaUniqueId, bedrockId);
     }
 
-    static LinkedPlayer fromString(String data) {
+    public static LinkedPlayer fromString(String data) {
         String[] split = data.split(";");
         if (split.length != 3) {
             return null;

@@ -27,10 +27,11 @@ package org.geysermc.platform.spigot.world.manager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.geysermc.adapters.spigot.SpigotAdapters;
-import org.geysermc.adapters.spigot.SpigotWorldAdapter;
+import org.bukkit.plugin.Plugin;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
+import org.geysermc.geyser.adapters.spigot.SpigotWorldAdapter;
 import us.myles.ViaVersion.api.Via;
 import us.myles.ViaVersion.protocols.protocol1_13to1_12_2.storage.BlockStorage;
 
@@ -40,7 +41,8 @@ import us.myles.ViaVersion.protocols.protocol1_13to1_12_2.storage.BlockStorage;
 public class GeyserSpigot1_12NativeWorldManager extends GeyserSpigot1_12WorldManager {
     private final SpigotWorldAdapter adapter;
 
-    public GeyserSpigot1_12NativeWorldManager() {
+    public GeyserSpigot1_12NativeWorldManager(Plugin plugin) {
+        super(plugin);
         this.adapter = SpigotAdapters.getWorldAdapter();
         // Unlike post-1.13, we can't build up a cache of block states, because block entities need some special conversion
     }

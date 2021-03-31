@@ -25,36 +25,39 @@
 
 package org.geysermc.connector.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.session.GeyserSession;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Arrays;
 
 public class Inventory {
 
     @Getter
-    protected int id;
-
-    @Getter
-    @Setter
-    protected boolean open;
-
-    @Getter
-    protected WindowType windowType;
+    protected final int id;
 
     @Getter
     protected final int size;
+
+    /**
+     * Used for smooth transitions between two windows of the same type.
+     */
+    @Getter
+    protected final WindowType windowType;
 
     @Getter
     @Setter
     protected String title;
 
-    @Setter
-    protected ItemStack[] items;
+    protected GeyserItemStack[] items;
 
+    /**
+     * The location of the inventory block. Will either be a fake block above the player's head, or the actual block location
+     */
     @Getter
     @Setter
     protected Vector3i holderPosition = Vector3i.ZERO;
@@ -64,27 +67,67 @@ public class Inventory {
     protected long holderId = -1;
 
     @Getter
-    protected AtomicInteger transactionId = new AtomicInteger(1);
+    protected short transactionId = 0;
 
-    public Inventory(int id, WindowType windowType, int size) {
-        this("Inventory", id, windowType, size);
+    @Getter
+    @Setter
+    private boolean pending = false;
+
+    protected Inventory(int id, int size, WindowType windowType) {
+        this("Inventory", id, size, windowType);
     }
 
-    public Inventory(String title, int id, WindowType windowType, int size) {
+    protected Inventory(String title, int id, int size, WindowType windowType) {
         this.title = title;
         this.id = id;
-        this.windowType = windowType;
         this.size = size;
-        this.items = new ItemStack[size];
+        this.windowType = windowType;
+        this.items = new GeyserItemStack[size];
+        Arrays.fill(items, GeyserItemStack.EMPTY);
     }
 
-    public ItemStack getItem(int slot) {
+    public GeyserItemStack getItem(int slot) {
+        if (slot > this.size) {
+            GeyserConnector.getInstance().getLogger().debug("Tried to get an item out of bounds! " + this.toString());
+            return GeyserItemStack.EMPTY;
+        }
         return items[slot];
     }
 
-    public void setItem(int slot, ItemStack item) {
-        if (item != null && (item.getId() == 0 || item.getAmount() < 1))
-            item = null;
-        items[slot] = item;
+    public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
+        if (slot > this.size) {
+            session.getConnector().getLogger().debug("Tried to set an item out of bounds! " + this.toString());
+            return;
+        }
+        GeyserItemStack oldItem = items[slot];
+        updateItemNetId(oldItem, newItem, session);
+        items[slot] = newItem;
+    }
+
+    protected static void updateItemNetId(GeyserItemStack oldItem, GeyserItemStack newItem, GeyserSession session) {
+        if (!newItem.isEmpty()) {
+            if (newItem.getItemData(session).equals(oldItem.getItemData(session), false, false, false)) {
+                newItem.setNetId(oldItem.getNetId());
+            } else {
+                newItem.setNetId(session.getNextItemNetId());
+            }
+        }
+    }
+
+    public short getNextTransactionId() {
+        return ++transactionId;
+    }
+
+    @Override
+    public String toString() {
+        return "Inventory{" +
+                "id=" + id +
+                ", size=" + size +
+                ", title='" + title + '\'' +
+                ", items=" + Arrays.toString(items) +
+                ", holderPosition=" + holderPosition +
+                ", holderId=" + holderId +
+                ", transactionId=" + transactionId +
+                '}';
     }
 }

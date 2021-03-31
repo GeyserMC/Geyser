@@ -22,7 +22,10 @@ pipeline {
 
         stage ('Deploy') {
             when {
-                branch "master"
+                anyOf {
+                    branch "master"
+                    branch "floodgate-2.0"
+                }
             }
 
             steps {
@@ -35,8 +38,8 @@ pipeline {
                 rtMavenResolver(
                         id: "maven-resolver",
                         serverId: "opencollab-artifactory",
-                        releaseRepo: "release",
-                        snapshotRepo: "snapshot"
+                        releaseRepo: "maven-deploy-release",
+                        snapshotRepo: "maven-deploy-snapshot"
                 )
                 rtMavenRun(
                         pom: 'pom.xml',

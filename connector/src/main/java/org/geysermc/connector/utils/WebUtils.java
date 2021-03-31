@@ -88,8 +88,7 @@ public class WebUtils {
     }
 
     public static String post(String reqURL, String postContent) throws IOException {
-        URL url = null;
-        url = new URL(reqURL);
+        URL url = new URL(reqURL);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "text/plain");
@@ -112,7 +111,7 @@ public class WebUtils {
      */
     private static String connectionToString(HttpURLConnection con) throws IOException {
         // Send the request (we dont use this but its required for getErrorStream() to work)
-        int code = con.getResponseCode();
+        con.getResponseCode();
 
         // Read the error message if there is one if not just read normally
         InputStream inputStream = con.getErrorStream();
@@ -120,17 +119,17 @@ public class WebUtils {
             inputStream = con.getInputStream();
         }
 
-        BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
-        String inputLine;
-        StringBuffer content = new StringBuffer();
+        StringBuilder content = new StringBuilder();
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(inputStream))) {
+            String inputLine;
 
-        while ((inputLine = in.readLine()) != null) {
-            content.append(inputLine);
-            content.append("\n");
+            while ((inputLine = in.readLine()) != null) {
+                content.append(inputLine);
+                content.append("\n");
+            }
+
+            con.disconnect();
         }
-
-        in.close();
-        con.disconnect();
 
         return content.toString();
     }

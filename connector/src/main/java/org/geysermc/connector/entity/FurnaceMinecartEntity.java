@@ -44,15 +44,15 @@ public class FurnaceMinecartEntity extends DefaultBlockMinecartEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 13 && !showCustomBlock) {
             hasFuel = (boolean) entityMetadata.getValue();
-            updateDefaultBlockMetadata();
+            updateDefaultBlockMetadata(session);
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
     }
 
     @Override
-    public void updateDefaultBlockMetadata() {
-        metadata.put(EntityData.DISPLAY_ITEM, BlockTranslator.getBedrockBlockId(hasFuel ? BlockTranslator.JAVA_RUNTIME_FURNACE_LIT_ID : BlockTranslator.JAVA_RUNTIME_FURNACE_ID));
+    public void updateDefaultBlockMetadata(GeyserSession session) {
+        metadata.put(EntityData.DISPLAY_ITEM, session.getBlockTranslator().getBedrockBlockId(hasFuel ? BlockTranslator.JAVA_RUNTIME_FURNACE_LIT_ID : BlockTranslator.JAVA_RUNTIME_FURNACE_ID));
         metadata.put(EntityData.DISPLAY_OFFSET, 6);
     }
 }

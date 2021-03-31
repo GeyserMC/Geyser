@@ -29,6 +29,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.network.raknet.RakNetConstants;
+import com.nukkitx.network.util.EventLoops;
 import com.nukkitx.protocol.bedrock.BedrockServer;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,7 +40,6 @@ import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
-import org.geysermc.connector.network.remote.RemoteServer;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
@@ -56,10 +56,8 @@ import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
-import org.geysermc.connector.utils.DimensionUtils;
-import org.geysermc.connector.utils.LanguageUtils;
-import org.geysermc.connector.utils.LocaleUtils;
-import org.geysermc.connector.utils.ResourcePack;
+import org.geysermc.connector.skin.FloodgateSkinUploader;
+import org.geysermc.connector.utils.*;
 import org.geysermc.floodgate.crypto.AesCipher;
 import org.geysermc.floodgate.crypto.AesKeyProducer;
 import org.geysermc.floodgate.crypto.Base64Topping;
@@ -85,7 +83,8 @@ public class GeyserConnector {
             .enable(JsonParser.Feature.IGNORE_UNDEFINED)
             .enable(JsonParser.Feature.ALLOW_COMMENTS)
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
+            .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES)
+            .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
 
     public static final String NAME = "Geyser";
     public static final String GIT_VERSION = "DEV"; // A fallback for running in IDEs
@@ -103,11 +102,11 @@ public class GeyserConnector {
 
     private static GeyserConnector instance;
 
-    private RemoteServer remoteServer;
     @Setter
-    private AuthType authType;
+    private AuthType defaultAuthType;
 
     private FloodgateCipher cipher;
+    private FloodgateSkinUploader skinUploader;
 
     private boolean shuttingDown = false;
 
@@ -174,7 +173,7 @@ public class GeyserConnector {
         String remoteAddress = config.getRemote().getAddress();
         int remotePort = config.getRemote().getPort();
         // Filters whether it is not an IP address or localhost, because otherwise it is not possible to find out an SRV entry.
-        if ((config.isLegacyPingPassthrough() || platformType == PlatformType.STANDALONE) && !remoteAddress.matches(IP_REGEX) && !remoteAddress.equalsIgnoreCase("localhost")) {
+        if (!remoteAddress.matches(IP_REGEX) && !remoteAddress.equalsIgnoreCase("localhost")) {
             try {
                 // Searches for a server address and a port from a SRV record of the specified host name
                 InitialDirContext ctx = new InitialDirContext();
@@ -194,20 +193,21 @@ public class GeyserConnector {
             }
         }
 
-        remoteServer = new RemoteServer(config.getRemote().getAddress(), remotePort);
-        authType = AuthType.getByName(config.getRemote().getAuthType());
+        defaultAuthType = AuthType.getByName(config.getRemote().getAuthType());
 
-        if (authType == AuthType.FLOODGATE) {
+        if (defaultAuthType == AuthType.FLOODGATE) {
             try {
                 Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
                 cipher = new AesCipher(new Base64Topping());
                 cipher.init(key);
                 logger.info(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
+                skinUploader = new FloodgateSkinUploader(this).start();
             } catch (Exception exception) {
                 logger.severe(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
             }
         }
 
+        CooldownUtils.setShowCooldown(config.isShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
         SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS = config.isAllowCustomSkulls();
 
@@ -215,7 +215,13 @@ public class GeyserConnector {
         RakNetConstants.MAXIMUM_MTU_SIZE = (short) config.getMtu();
         logger.debug("Setting MTU to " + config.getMtu());
 
-        bedrockServer = new BedrockServer(new InetSocketAddress(config.getBedrock().getAddress(), config.getBedrock().getPort()));
+        boolean enableProxyProtocol = config.getBedrock().isEnableProxyProtocol();
+        bedrockServer = new BedrockServer(
+                new InetSocketAddress(config.getBedrock().getAddress(), config.getBedrock().getPort()),
+                1,
+                EventLoops.commonGroup(),
+                enableProxyProtocol
+        );
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));
         bedrockServer.bind().whenComplete((avoid, throwable) -> {
             if (throwable == null) {
@@ -262,6 +268,20 @@ public class GeyserConnector {
                 }
                 return valueMap;
             }));
+
+            String minecraftVersion = bootstrap.getMinecraftServerVersion();
+            if (minecraftVersion != null) {
+                Map<String, Map<String, Integer>> versionMap = new HashMap<>();
+                Map<String, Integer> platformMap = new HashMap<>();
+                platformMap.put(platformType.getPlatformName(), 1);
+                versionMap.put(minecraftVersion, platformMap);
+
+                metrics.addCustomChart(new Metrics.DrilldownPie("minecraftServerVersion", () -> {
+                    // By the end, we should return, for example:
+                    // 1.16.5 => (Spigot, 1)
+                    return versionMap;
+                }));
+            }
         }
 
         boolean isGui = false;
@@ -332,8 +352,7 @@ public class GeyserConnector {
         generalThreadPool.shutdown();
         bedrockServer.close();
         players.clear();
-        remoteServer = null;
-        authType = null;
+        defaultAuthType = null;
         this.getCommandManager().getCommands().clear();
 
         bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.done"));
@@ -369,6 +388,7 @@ public class GeyserConnector {
      * @param xuid the Xbox user identifier
      * @return the player or <code>null</code> if there is no player online with this xuid
      */
+    @SuppressWarnings("unused") // API usage
     public GeyserSession getPlayerByXuid(String xuid) {
         for (GeyserSession session : players) {
             if (session.getAuthData() != null && session.getAuthData().getXboxUUID().equals(xuid)) {
