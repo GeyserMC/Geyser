@@ -29,7 +29,9 @@ package org.geysermc.floodgate.crypto;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Locale;
 
 public final class AesKeyProducer implements KeyProducer {
     public static int KEY_SIZE = 128;
@@ -38,7 +40,7 @@ public final class AesKeyProducer implements KeyProducer {
     public SecretKey produce() {
         try {
             KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-            keyGenerator.init(KEY_SIZE, SecureRandom.getInstanceStrong());
+            keyGenerator.init(KEY_SIZE, getSecureRandom());
             return keyGenerator.generateKey();
         } catch (Exception exception) {
             throw new RuntimeException(exception);
@@ -51,6 +53,16 @@ public final class AesKeyProducer implements KeyProducer {
             return new SecretKeySpec(keyFileData, "AES");
         } catch (Exception exception) {
             throw new RuntimeException(exception);
+        }
+    }
+
+    private SecureRandom getSecureRandom() throws NoSuchAlgorithmException {
+        // use Windows-PRNG for windows (default impl is SHA1PRNG)
+        // default impl for unix-like systems is NativePRNG.
+        if (System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("win")) {
+            return SecureRandom.getInstance("Windows-PRNG");
+        } else {
+            return new SecureRandom();
         }
     }
 }
