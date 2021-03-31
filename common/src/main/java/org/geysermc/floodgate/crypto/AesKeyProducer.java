@@ -59,7 +59,7 @@ public final class AesKeyProducer implements KeyProducer {
     private SecureRandom getSecureRandom() throws NoSuchAlgorithmException {
         // use Windows-PRNG for windows (default impl is SHA1PRNG)
         // default impl for unix-like systems is NativePRNG.
-        if (System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("win")) {
+        if (System.getProperty("os.name").startsWith("Windows")) {
             return SecureRandom.getInstance("Windows-PRNG");
         } else {
             return new SecureRandom();
