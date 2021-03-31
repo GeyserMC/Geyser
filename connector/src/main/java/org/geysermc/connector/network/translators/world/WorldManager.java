@@ -88,14 +88,14 @@ public abstract class WorldManager {
     public abstract void getBlocksInSection(GeyserSession session, int x, int y, int z, Chunk section);
 
     /**
-     * Checks whether or not this world manager has access to more block data than the chunk cache.
+     * Checks whether or not this world manager requires a separate chunk cache/has access to more block data than the chunk cache.
      * <p>
      * Some world managers (e.g. Spigot) can provide access to block data outside of the chunk cache, and even with chunk caching disabled. This
      * method provides a means to check if this manager has this capability.
      *
      * @return whether or not this world manager has access to more block data than the chunk cache
      */
-    public abstract boolean hasMoreBlockDataThanChunkCache();
+    public abstract boolean hasOwnChunkCache();
 
     /**
      * Gets the Java biome data for the specified chunk.
