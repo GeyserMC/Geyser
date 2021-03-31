@@ -83,7 +83,7 @@ public class CooldownUtils {
         } else {
             SetTitlePacket removeTitlePacket = new SetTitlePacket();
             if (SHOW_COOLDOWN == CooldownType.ACTIONBAR) {
-                titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
+                removeTitlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
             } else {
                 removeTitlePacket.setType(SetTitlePacket.Type.SUBTITLE);
             }
@@ -132,10 +132,6 @@ public class CooldownUtils {
 
         public static final CooldownType[] VALUES = values();
 
-        public static CooldownType getById(int id) {
-            return id < VALUES.length ? VALUES[id] : TITLE;
-        }
-
         /**
          * Convert the CooldownType string (from config) to the enum, TITLE on fail
          *
@@ -144,13 +140,12 @@ public class CooldownUtils {
          * @return The converted CooldownType
          */
         public static CooldownType getByName(String name) {
-            String upperCase = name.toUpperCase();
-            if (upperCase.equalsIgnoreCase("true")) {
-                return  CooldownType.TITLE;
+            if (name.equalsIgnoreCase("true")) { // Backwards config compatibility
+                return CooldownType.TITLE;
             }
 
             for (CooldownType type : VALUES) {
-                if (type.name().equals(upperCase)) {
+                if (type.name().equalsIgnoreCase(name)) {
                     return type;
                 }
             }
