@@ -35,15 +35,10 @@ import java.util.concurrent.TimeUnit;
  * Much of the work here is from the wonderful folks from ViaRewind: https://github.com/ViaVersion/ViaRewind
  */
 public class CooldownUtils {
-    private static boolean SHOW_COOLDOWN;
-    private static boolean ACTIONBAR_COOLDOWN;
+    private static String SHOW_COOLDOWN;
 
-    public static void setShowCooldown(boolean showCooldown) {
+    public static void setShowCooldown(String showCooldown) {
         SHOW_COOLDOWN = showCooldown;
-    }
-    
-    public static void setActionbarCooldown(boolean actionbarCooldown) {
-    	ACTIONBAR_COOLDOWN = actionbarCooldown;
     }
 
     /**
@@ -51,7 +46,7 @@ public class CooldownUtils {
      * @param session GeyserSession
      */
     public static void sendCooldown(GeyserSession session) {
-        if (!SHOW_COOLDOWN) return;
+        if (SHOW_COOLDOWN == "false") return;
         if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20) return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
         // Needs to be sent or no subtitle packet is recognized by the client
         SetTitlePacket titlePacket = new SetTitlePacket();
@@ -72,7 +67,7 @@ public class CooldownUtils {
         if (session.isClosed()) return; // Don't run scheduled tasks if the client left
         if (lastHitTime != session.getLastHitTime()) return; // Means another cooldown has started so there's no need to continue this one
         SetTitlePacket titlePacket = new SetTitlePacket();
-        if (ACTIONBAR_COOLDOWN) {
+        if (SHOW_COOLDOWN == "actionbar") {
         	titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
         } else {
         	titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
@@ -86,7 +81,7 @@ public class CooldownUtils {
             session.getConnector().getGeneralThreadPool().schedule(() -> computeCooldown(session, lastHitTime), 50, TimeUnit.MILLISECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
         } else {
             SetTitlePacket removeTitlePacket = new SetTitlePacket();
-            if (ACTIONBAR_COOLDOWN) {
+            if (SHOW_COOLDOWN == "actionbar") {
             	titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
             } else {
             	removeTitlePacket.setType(SetTitlePacket.Type.SUBTITLE);
