@@ -56,7 +56,7 @@ public class DumpInfo {
     private final DumpInfo.VersionInfo versionInfo;
     private Properties gitInfo;
     private final GeyserConfiguration config;
-    private final Object floodgate;
+    private final Floodgate floodgate;
     private final Object2IntMap<DeviceOs> userPlatforms;
     private final RamInfo ramInfo;
     private final BootstrapDumpInfo bootstrapInfo;
