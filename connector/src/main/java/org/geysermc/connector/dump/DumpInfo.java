@@ -54,10 +54,9 @@ public class DumpInfo {
     private static final long MEGABYTE = 1024L * 1024L;
 
     private final DumpInfo.VersionInfo versionInfo;
-    private Properties geyserGitInfo;
+    private Properties gitInfo;
     private final GeyserConfiguration config;
-    private final Properties floodgateGitInfo;
-    private final Object floodgateConfig;
+    private final Object floodgateInfo;
     private final Object2IntMap<DeviceOs> userPlatforms;
     private final RamInfo ramInfo;
     private final BootstrapDumpInfo bootstrapInfo;
@@ -66,15 +65,13 @@ public class DumpInfo {
         this.versionInfo = new VersionInfo();
 
         try {
-            this.geyserGitInfo = new Properties();
-            this.geyserGitInfo.load(FileUtils.getResource("git.properties"));
+            this.gitInfo = new Properties();
+            this.gitInfo.load(FileUtils.getResource("git.properties"));
         } catch (IOException ignored) {
         }
 
         this.config = GeyserConnector.getInstance().getConfig();
-        this.floodgateGitInfo = FloodgateGitPropertiesHolder.getGitProperties();
-        this.floodgateConfig = FloodgateConfigHolder.getConfig();
-        this.ramInfo = new DumpInfo.RamInfo();
+        this.floodgateInfo = new FloodgateInfo();
 
         this.userPlatforms = new Object2IntOpenHashMap<>();
         for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
@@ -82,6 +79,7 @@ public class DumpInfo {
             userPlatforms.put(device, userPlatforms.getOrDefault(device, 0) + 1);
         }
 
+        this.ramInfo = new RamInfo();
         this.bootstrapInfo = GeyserConnector.getInstance().getBootstrap().getDumpInfo();
     }
 
@@ -151,6 +149,17 @@ public class DumpInfo {
             this.bedrockProtocol = BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion();
             this.javaVersion = MinecraftConstants.GAME_VERSION;
             this.javaProtocol = MinecraftConstants.PROTOCOL_VERSION;
+        }
+    }
+
+    @Getter
+    public static class FloodgateInfo {
+        private final Properties floodgateGitInfo;
+        private final Object floodgateConfig;
+
+        FloodgateInfo() {
+            this.floodgateGitInfo = FloodgateGitPropertiesHolder.getGitProperties();
+            this.floodgateConfig = FloodgateConfigHolder.getConfig();
         }
     }
 
