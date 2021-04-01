@@ -73,7 +73,7 @@ public interface GeyserConfiguration {
 
     boolean isAllowThirdPartyEars();
 
-    boolean isShowCooldown();
+    String getShowCooldown();
 
     boolean isShowCoordinates();
 

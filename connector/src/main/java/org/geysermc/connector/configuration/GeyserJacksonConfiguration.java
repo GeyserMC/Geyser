@@ -95,7 +95,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private boolean allowThirdPartyCapes = true;
 
     @JsonProperty("show-cooldown")
-    private boolean showCooldown = true;
+    private String showCooldown = "title";
 
     @JsonProperty("show-coordinates")
     private boolean showCoordinates = true;

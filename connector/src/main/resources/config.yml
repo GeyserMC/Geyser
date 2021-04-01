@@ -112,7 +112,8 @@ allow-third-party-capes: true
 allow-third-party-ears: false
 
 # Allow a fake cooldown indicator to be sent. Bedrock players do not see a cooldown as they still use 1.8 combat
-show-cooldown: true
+# Can be title, actionbar or false
+show-cooldown: title
 
 # Controls if coordinates are shown to players.
 show-coordinates: true
