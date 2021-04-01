@@ -56,7 +56,7 @@ public class DumpInfo {
     private final DumpInfo.VersionInfo versionInfo;
     private Properties gitInfo;
     private final GeyserConfiguration config;
-    private final Object floodgateInfo;
+    private final Object floodgate;
     private final Object2IntMap<DeviceOs> userPlatforms;
     private final RamInfo ramInfo;
     private final BootstrapDumpInfo bootstrapInfo;
@@ -71,7 +71,7 @@ public class DumpInfo {
         }
 
         this.config = GeyserConnector.getInstance().getConfig();
-        this.floodgateInfo = new FloodgateInfo();
+        this.floodgate = new Floodgate();
 
         this.userPlatforms = new Object2IntOpenHashMap<>();
         for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
@@ -153,13 +153,13 @@ public class DumpInfo {
     }
 
     @Getter
-    public static class FloodgateInfo {
-        private final Properties floodgateGitInfo;
-        private final Object floodgateConfig;
+    public static class Floodgate {
+        private final Properties gitInfo;
+        private final Object config;
 
-        FloodgateInfo() {
-            this.floodgateGitInfo = FloodgateGitPropertiesHolder.getGitProperties();
-            this.floodgateConfig = FloodgateConfigHolder.getConfig();
+        Floodgate() {
+            this.gitInfo = FloodgateGitPropertiesHolder.getGitProperties();
+            this.config = FloodgateConfigHolder.getConfig();
         }
     }
 
