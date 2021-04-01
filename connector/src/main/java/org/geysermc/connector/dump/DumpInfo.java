@@ -39,6 +39,7 @@ import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.FloodgateConfigHolder;
+import org.geysermc.floodgate.util.FloodgateGitPropertiesHolder;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -53,8 +54,9 @@ public class DumpInfo {
     private static final long MEGABYTE = 1024L * 1024L;
 
     private final DumpInfo.VersionInfo versionInfo;
-    private Properties gitInfo;
+    private Properties geyserGitInfo;
     private final GeyserConfiguration config;
+    private final Properties floodgateGitInfo;
     private final Object floodgateConfig;
     private final Object2IntMap<DeviceOs> userPlatforms;
     private final RamInfo ramInfo;
@@ -64,12 +66,13 @@ public class DumpInfo {
         this.versionInfo = new VersionInfo();
 
         try {
-            this.gitInfo = new Properties();
-            this.gitInfo.load(FileUtils.getResource("git.properties"));
+            this.geyserGitInfo = new Properties();
+            this.geyserGitInfo.load(FileUtils.getResource("git.properties"));
         } catch (IOException ignored) {
         }
 
         this.config = GeyserConnector.getInstance().getConfig();
+        this.floodgateGitInfo = FloodgateGitPropertiesHolder.getGitProperties();
         this.floodgateConfig = FloodgateConfigHolder.getConfig();
         this.ramInfo = new DumpInfo.RamInfo();
 
