@@ -124,8 +124,12 @@ public abstract class ItemTranslator {
         }
 
         ItemEntry bedrockItem = ItemRegistry.getItem(stack);
+        if (bedrockItem == null) {
+            session.getConnector().getLogger().debug("No matching ItemEntry for " + stack);
+            return ItemData.AIR;
+        }
 
-        com.github.steveice10.opennbt.tag.builtin.CompoundTag nbt = stack.getNbt() != null ? stack.getNbt().clone() : null;
+        CompoundTag nbt = stack.getNbt() != null ? stack.getNbt().clone() : null;
 
         // This is a fallback for maps with no nbt
         if (nbt == null && bedrockItem.getJavaIdentifier().equals("minecraft:filled_map")) {

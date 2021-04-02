@@ -31,18 +31,19 @@ import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
 
 import java.util.Arrays;
 
 public class ContainerInventoryUpdater extends InventoryUpdater {
+    public static final ContainerInventoryUpdater INSTANCE = new ContainerInventoryUpdater();
+
     @Override
     public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         super.updateInventory(translator, session, inventory);
 
         ItemData[] bedrockItems = new ItemData[translator.size];
         for (int i = 0; i < bedrockItems.length; i++) {
-            bedrockItems[translator.javaSlotToBedrock(i)] = ItemTranslator.translateToBedrock(session, inventory.getItem(i));
+            bedrockItems[translator.javaSlotToBedrock(i)] = inventory.getItem(i).getItemData(session);
         }
 
         InventoryContentPacket contentPacket = new InventoryContentPacket();
@@ -59,7 +60,7 @@ public class ContainerInventoryUpdater extends InventoryUpdater {
         InventorySlotPacket slotPacket = new InventorySlotPacket();
         slotPacket.setContainerId(inventory.getId());
         slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
-        slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(javaSlot)));
+        slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
         session.sendUpstreamPacket(slotPacket);
         return true;
     }
