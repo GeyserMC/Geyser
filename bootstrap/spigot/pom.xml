@@ -10,6 +10,13 @@
     </parent>
     <artifactId>bootstrap-spigot</artifactId>
 
+    <repositories>
+        <repository>
+            <id>placeholderapi</id>
+            <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.geysermc</groupId>
@@ -33,6 +40,12 @@
             <groupId>org.geysermc.geyser.adapters</groupId>
             <artifactId>spigot-all</artifactId>
             <version>1.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>me.clip</groupId>
+            <artifactId>placeholderapi</artifactId>
+            <version>2.10.5</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
     <build>

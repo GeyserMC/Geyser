@@ -209,6 +209,10 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         }
 
         this.getCommand("geyser").setExecutor(new GeyserSpigotCommandExecutor(connector));
+
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new PlaceholderAPI(this).register();
+        }
     }
 
     @Override
