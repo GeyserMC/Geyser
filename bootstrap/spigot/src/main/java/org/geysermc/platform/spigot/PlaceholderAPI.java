@@ -25,10 +25,14 @@
 
 package org.geysermc.platform.spigot;
 
+import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.BedrockProtocol;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.List;
 
 public class PlaceholderAPI extends PlaceholderExpansion {
 
@@ -72,17 +76,35 @@ public class PlaceholderAPI extends PlaceholderExpansion {
         switch (identifier) {
             case "minecraft_version":
                 return GeyserConnector.MINECRAFT_VERSION;
+            case "bedrock_version":
+                return getBedrockVersion();
             case "version":
                 return GeyserConnector.VERSION;
             case "git_version":
                 return GeyserConnector.GIT_VERSION;
-            case "client_version":
-                return getPlayerPlatform(player);
             case "platform":
+                return getPlayerPlatform(player);
+            case "game_version":
                 return getPlayerGameVersion(player);
         }
 
         return null;
+    }
+
+    /**
+     * Get the supported bedrock version
+     * @return The supported bedrock version
+     */
+    public String getBedrockVersion() {
+        String bedrockVersions;
+        List<BedrockPacketCodec> supportedCodecs = BedrockProtocol.SUPPORTED_BEDROCK_CODECS;
+        if (supportedCodecs.size() > 1) {
+            bedrockVersions = supportedCodecs.get(0).getMinecraftVersion() + " - " + supportedCodecs.get(supportedCodecs.size() - 1).getMinecraftVersion();
+        } else {
+            bedrockVersions = BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion();
+        }
+
+        return bedrockVersions;
     }
 
     /**
