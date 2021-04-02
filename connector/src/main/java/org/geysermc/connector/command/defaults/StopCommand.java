@@ -30,6 +30,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.util.Collections;
 
@@ -47,6 +48,7 @@ public class StopCommand extends GeyserCommand {
     @Override
     public void execute(GeyserSession session, CommandSender sender, String[] args) {
         if (!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE) {
+            sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.getLocale()));
             return;
         }
 
