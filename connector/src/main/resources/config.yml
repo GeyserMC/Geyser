@@ -112,7 +112,8 @@ allow-third-party-capes: true
 allow-third-party-ears: false
 
 # Allow a fake cooldown indicator to be sent. Bedrock players do not see a cooldown as they still use 1.8 combat
-show-cooldown: true
+# Can be title, actionbar or false
+show-cooldown: title
 
 # Controls if coordinates are shown to players.
 show-coordinates: true
@@ -138,6 +139,12 @@ cache-images: 0
 
 # Allows custom skulls to be displayed. Keeping them enabled may cause a performance decrease on older/weaker devices.
 allow-custom-skulls: true
+
+# Whether to add (at this time, only) the furnace minecart as a separate item in the game, which normally does not exist in Bedrock Edition.
+# This should only need to be disabled if using a proxy that does not use the "transfer packet" style of server switching.
+# If this is disabled, furnace minecart items will be mapped to hopper minecart items.
+# This option requires a restart of Geyser in order to change its setting.
+add-non-bedrock-items: true
 
 # Bedrock prevents building and displaying blocks above Y127 in the Nether -
 # enabling this config option works around that by changing the Nether dimension ID
