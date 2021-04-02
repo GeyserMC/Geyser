@@ -12,7 +12,7 @@
     "repo": "https://github.com/GeyserMC/Geyser-Fabric"
   },
   "license": "MIT",
-  "icon": "assets/fabric/icon.png",
+  "icon": "assets/geyser-fabric/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [

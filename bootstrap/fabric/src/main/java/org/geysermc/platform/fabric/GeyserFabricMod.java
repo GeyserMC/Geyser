@@ -30,6 +30,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import org.apache.logging.log4j.LogManager;
@@ -55,10 +56,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
@@ -143,6 +141,19 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         if (geyserConfig.getBedrock().isCloneRemotePort()) {
             geyserConfig.getBedrock().setPort(geyserConfig.getRemote().getPort());
         }
+
+        Optional<ModContainer> floodgate = FabricLoader.getInstance().getModContainer("floodgate");
+        boolean floodgatePresent = floodgate.isPresent();
+        if (geyserConfig.getRemote().getAuthType().equals("floodgate") && !floodgatePresent) {
+            geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
+            return;
+        } else if (geyserConfig.isAutoconfiguredRemote() && floodgatePresent) {
+            // Floodgate installed means that the user wants Floodgate authentication
+            geyserLogger.debug("Auto-setting to Floodgate authentication.");
+            geyserConfig.getRemote().setAuthType("floodgate");
+        }
+
+        geyserConfig.loadFloodgate(this, floodgate.orElse(null));
 
         this.connector = GeyserConnector.start(PlatformType.FABRIC, this);
 
