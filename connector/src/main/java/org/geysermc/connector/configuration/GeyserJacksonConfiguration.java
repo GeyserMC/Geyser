@@ -85,6 +85,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("max-players")
     private int maxPlayers = 100;
 
+    @JsonProperty("restrict-dump-command")
+    private boolean isRestrictDumpCommand = false;
+
     @JsonProperty("debug-mode")
     private boolean debugMode = false;
 

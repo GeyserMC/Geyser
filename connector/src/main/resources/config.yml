@@ -97,6 +97,9 @@ forward-player-ping: false
 # Maximum amount of players that can connect. This is only visual at this time and does not actually limit player count.
 max-players: 100
 
+# Restrict the geyser dump command to only be allowed in the console, even if the player has the permission node.
+restrict-dump-command: false
+
 # If debug messages should be sent through console
 debug-mode: false
 
