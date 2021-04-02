@@ -78,7 +78,7 @@ public class PlaceholderAPI extends PlaceholderExpansion {
                 return GeyserConnector.GIT_VERSION;
             case "client_version":
                 return getPlayerPlatform(player);
-            case "game_version":
+            case "platform":
                 return getPlayerGameVersion(player);
         }
 
