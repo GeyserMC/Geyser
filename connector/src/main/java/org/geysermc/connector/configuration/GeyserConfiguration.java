@@ -65,8 +65,6 @@ public interface GeyserConfiguration {
 
     int getMaxPlayers();
 
-    boolean isRestrictDumpCommand();
-
     boolean isDebugMode();
 
     int getGeneralThreadPool();

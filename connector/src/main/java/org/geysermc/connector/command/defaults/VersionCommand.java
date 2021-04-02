@@ -27,6 +27,7 @@ package org.geysermc.connector.command.defaults;
 
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
@@ -45,8 +46,12 @@ import java.util.Properties;
 
 public class VersionCommand extends GeyserCommand {
 
+    private final GeyserConnector connector;
+
     public VersionCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);
+
+        this.connector = connector;
     }
 
     @Override
@@ -62,28 +67,31 @@ public class VersionCommand extends GeyserCommand {
         sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.version", sender.getLocale(), GeyserConnector.NAME, GeyserConnector.VERSION, GeyserConnector.MINECRAFT_VERSION, bedrockVersions));
 
         // Disable update checking in dev mode
+        // Disable update checking for players in Geyser Standalone
         //noinspection ConstantConditions - changes in production
         if (!GeyserConnector.VERSION.equals("DEV")) {
-            sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.checking", sender.getLocale()));
-            try {
-                Properties gitProp = new Properties();
-                gitProp.load(FileUtils.getResource("git.properties"));
+            if (!(!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE)) {
+                sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.checking", sender.getLocale()));
+                try {
+                    Properties gitProp = new Properties();
+                    gitProp.load(FileUtils.getResource("git.properties"));
 
-                String buildXML = WebUtils.getBody("https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/" + URLEncoder.encode(gitProp.getProperty("git.branch"), StandardCharsets.UTF_8.toString()) + "/lastSuccessfulBuild/api/xml?xpath=//buildNumber");
-                if (buildXML.startsWith("<buildNumber>")) {
-                    int latestBuildNum = Integer.parseInt(buildXML.replaceAll("<(\\\\)?(/)?buildNumber>", "").trim());
-                    int buildNum = Integer.parseInt(gitProp.getProperty("git.build.number"));
-                    if (latestBuildNum == buildNum) {
-                        sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.no_updates", sender.getLocale()));
+                    String buildXML = WebUtils.getBody("https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/" + URLEncoder.encode(gitProp.getProperty("git.branch"), StandardCharsets.UTF_8.toString()) + "/lastSuccessfulBuild/api/xml?xpath=//buildNumber");
+                    if (buildXML.startsWith("<buildNumber>")) {
+                        int latestBuildNum = Integer.parseInt(buildXML.replaceAll("<(\\\\)?(/)?buildNumber>", "").trim());
+                        int buildNum = Integer.parseInt(gitProp.getProperty("git.build.number"));
+                        if (latestBuildNum == buildNum) {
+                            sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.no_updates", sender.getLocale()));
+                        } else {
+                            sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.outdated", sender.getLocale(), (latestBuildNum - buildNum), "https://ci.geysermc.org/"));
+                        }
                     } else {
-                        sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.outdated", sender.getLocale(), (latestBuildNum - buildNum), "https://ci.geysermc.org/"));
+                        throw new AssertionError("buildNumber missing");
                     }
-                } else {
-                    throw new AssertionError("buildNumber missing");
+                } catch (IOException | AssertionError | NumberFormatException e) {
+                    GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.commands.version.failed"), e);
+                    sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.commands.version.failed", sender.getLocale()));
                 }
-            } catch (IOException | AssertionError | NumberFormatException e) {
-                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.commands.version.failed"), e);
-                sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.commands.version.failed", sender.getLocale()));
             }
         }
     }
