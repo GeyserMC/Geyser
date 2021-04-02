@@ -44,10 +44,12 @@ public class JavaChatTranslator extends PacketTranslator<ServerChatPacket> {
 
         // This attempts to find the XUID of the player so users can be muted/blocked
         String xuid = "";
-        GeyserSession playerSession = GeyserConnector.getInstance().getPlayerByUuid(packet.getSenderUuid());
+        if (packet.getSenderUuid().getMostSignificantBits() != 0l && packet.getSenderUuid().getLeastSignificantBits() != 0l) {
+            GeyserSession playerSession = GeyserConnector.getInstance().getPlayerByUuid(packet.getSenderUuid());
 
-        if (playerSession != null) {
-            xuid = playerSession.getAuthData().getXboxUUID();
+            if (playerSession != null) {
+                xuid = playerSession.getAuthData().getXboxUUID();
+            }
         }
 
         textPacket.setXuid(xuid);
