@@ -39,6 +39,7 @@ import org.geysermc.floodgate.util.WebsocketEventType;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
+import javax.net.ssl.SSLException;
 import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -161,9 +162,13 @@ public final class FloodgateSkinUploader {
 
             @Override
             public void onError(Exception ex) {
-                if (!(ex instanceof ConnectException)) {
-                    logger.error("Got an error", ex);
+                if (ex instanceof ConnectException || ex instanceof SSLException) {
+                    if (logger.isDebug()) {
+                        logger.error("[debug] Got an error", ex);
+                    }
+                    return;
                 }
+                logger.error("Got an error", ex);
             }
         };
     }
