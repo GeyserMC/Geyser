@@ -31,7 +31,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.Locale;
 
 public final class AesKeyProducer implements KeyProducer {
     public static int KEY_SIZE = 128;
@@ -58,11 +57,18 @@ public final class AesKeyProducer implements KeyProducer {
 
     private SecureRandom getSecureRandom() throws NoSuchAlgorithmException {
         // use Windows-PRNG for windows (default impl is SHA1PRNG)
-        // default impl for unix-like systems is NativePRNG.
         if (System.getProperty("os.name").startsWith("Windows")) {
             return SecureRandom.getInstance("Windows-PRNG");
         } else {
-            return new SecureRandom();
+            try {
+                // NativePRNG (which should be the default on unix-systems) can still block your
+                // system. Even though it isn't as bad as NativePRNGBlocking, we still try to
+                // prevent that if possible
+                return SecureRandom.getInstance("NativePRNGNonBlocking");
+            } catch (NoSuchAlgorithmException ignored) {
+                // at this point we just have to go with the default impl even if it blocks
+                return new SecureRandom();
+            }
         }
     }
 }
