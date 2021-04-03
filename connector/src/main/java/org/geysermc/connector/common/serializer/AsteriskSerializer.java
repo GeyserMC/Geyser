@@ -52,7 +52,7 @@ public class AsteriskSerializer extends StdSerializer<Object> implements Context
     public @interface Asterisk {
         String value() default "***";
         /**
-         * This value will be shown if {@link #showSensitive} is true, or if the IP is determined to not be a public IP
+         * If true, this value will be shown if {@link #showSensitive} is true, or if the IP is determined to not be a public IP
          * 
          * @return true if this should be analyzed and treated as an IP
          */
