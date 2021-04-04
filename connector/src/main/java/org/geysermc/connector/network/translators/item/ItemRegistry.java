@@ -264,8 +264,8 @@ public class ItemRegistry {
         int netId = 1;
         List<ItemData> creativeItems = new ArrayList<>();
         for (JsonNode itemNode : creativeItemEntries) {
-            ItemData item = getBedrockItemFromJson(itemNode);
-            creativeItems.add(ItemData.fromNet(netId++, item.getId(), item.getDamage(), item.getCount(), item.getTag()));
+            ItemData.Builder item = getBedrockItemFromJson(itemNode);
+            creativeItems.add(item.netId(netId++).build());
         }
 
         if (usingFurnaceMinecart) {
@@ -275,7 +275,10 @@ public class ItemRegistry {
             ITEMS.add(new StartGamePacket.ItemEntry("geysermc:furnace_minecart", (short) furnaceMinecartId, true));
             ITEM_ENTRIES.put(javaFurnaceMinecartId, new ItemEntry("minecraft:furnace_minecart", "geysermc:furnace_minecart", javaFurnaceMinecartId,
                     furnaceMinecartId, 0, false, 1));
-            creativeItems.add(ItemData.fromNet(netId, furnaceMinecartId, (short) 0, 1, null));
+            creativeItems.add(ItemData.builder()
+                    .netId(netId)
+                    .id(furnaceMinecartId)
+                    .count(1).build());
 
             NbtMapBuilder builder = NbtMap.builder();
             builder.putString("name", "geysermc:furnace_minecart")
@@ -376,11 +379,11 @@ public class ItemRegistry {
     }
 
     /**
-     * Gets a Bedrock {@link ItemData} from a {@link JsonNode}
+     * Gets a Bedrock {@link com.nukkitx.protocol.bedrock.data.inventory.ItemData.Builder} from a {@link JsonNode}
      * @param itemNode the JSON node that contains ProxyPass-compatible Bedrock item data
      * @return
      */
-    public static ItemData getBedrockItemFromJson(JsonNode itemNode) {
+    public static ItemData.Builder getBedrockItemFromJson(JsonNode itemNode) {
         int count = 1;
         short damage = 0;
         NbtMap tag = null;
@@ -399,6 +402,10 @@ public class ItemRegistry {
                 e.printStackTrace();
             }
         }
-        return ItemData.of(itemNode.get("id").asInt(), damage, count, tag);
+        return ItemData.builder()
+                .id(itemNode.get("id").asInt())
+                .damage(damage)
+                .count(count)
+                .tag(tag);
     }
 }
