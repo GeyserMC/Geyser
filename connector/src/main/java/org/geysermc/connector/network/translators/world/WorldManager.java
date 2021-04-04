@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.protocol.bedrock.packet.StructureTemplateDataRequestPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.GameRule;
 
@@ -132,6 +133,14 @@ public abstract class WorldManager {
      * @return whether we should expect lectern data to update, or if we have to fall back on a workaround.
      */
     public abstract boolean shouldExpectLecternHandled();
+
+    /**
+     * Handle Bedrock requesting data for a structure.
+     *
+     * @param session the session of the player requested structure information
+     * @param packet the packet the Bedrock client has sent
+     */
+    public abstract void handleStructureDataRequest(GeyserSession session, StructureTemplateDataRequestPacket packet);
 
     /**
      * Updates a gamerule value on the Java server
