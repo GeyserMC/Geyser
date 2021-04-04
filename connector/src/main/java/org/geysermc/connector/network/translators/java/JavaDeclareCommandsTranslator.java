@@ -30,8 +30,8 @@ import com.github.steveice10.mc.protocol.data.game.command.CommandParser;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareCommandsPacket;
 import com.nukkitx.protocol.bedrock.data.command.CommandData;
 import com.nukkitx.protocol.bedrock.data.command.CommandEnumData;
+import com.nukkitx.protocol.bedrock.data.command.CommandParam;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamData;
-import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import com.nukkitx.protocol.bedrock.packet.AvailableCommandsPacket;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -60,20 +60,22 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
     private static final String[] VALID_COLORS;
     private static final String[] VALID_SCOREBOARD_SLOTS;
 
-    private static final Hash.Strategy<CommandParamData[][]> PARAM_STRATEGY = new Hash.Strategy<CommandParamData[][]>() {
+    private static final Hash.Strategy<BedrockCommandInfo> PARAM_STRATEGY = new Hash.Strategy<BedrockCommandInfo>() {
         @Override
-        public int hashCode(CommandParamData[][] o) {
-            return Arrays.deepHashCode(o);
+        public int hashCode(BedrockCommandInfo o) {
+            int paramHash = Arrays.deepHashCode(o.getParamData());
+            return 31 * paramHash + o.getDescription().hashCode();
         }
 
         @Override
-        public boolean equals(CommandParamData[][] a, CommandParamData[][] b) {
+        public boolean equals(BedrockCommandInfo a, BedrockCommandInfo b) {
             if (a == b) return true;
             if (a == null || b == null) return false;
-            if (a.length != b.length) return false;
-            for (int i = 0; i < a.length; i++) {
-                CommandParamData[] a1 = a[i];
-                CommandParamData[] b1 = b[i];
+            if (!a.getDescription().equals(b.getDescription())) return false;
+            if (a.getParamData().length != b.getParamData().length) return false;
+            for (int i = 0; i < a.getParamData().length; i++) {
+                CommandParamData[] a1 = a.getParamData()[i];
+                CommandParamData[] b1 = b.getParamData()[i];
                 if (a1.length != b1.length) return false;
 
                 for (int j = 0; j < a1.length; j++) {
@@ -112,7 +114,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
         List<CommandData> commandData = new ArrayList<>();
         IntSet commandNodes = new IntOpenHashSet();
         Set<String> knownAliases = new HashSet<>();
-        Map<CommandParamData[][], Set<String>> commands = new Object2ObjectOpenCustomHashMap<>(PARAM_STRATEGY);
+        Map<BedrockCommandInfo, Set<String>> commands = new Object2ObjectOpenCustomHashMap<>(PARAM_STRATEGY);
         Int2ObjectMap<List<CommandNode>> commandArgs = new Int2ObjectOpenHashMap<>();
 
         // Get the first node, it should be a root node
@@ -136,7 +138,8 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             CommandParamData[][] params = getParams(nodes[nodeIndex], nodes);
 
             // Insert the alias name into the command list
-            commands.computeIfAbsent(params, index -> new HashSet<>()).add(node.getName().toLowerCase());
+            commands.computeIfAbsent(new BedrockCommandInfo(session.getConnector().getCommandManager().getDescription(node.getName().toLowerCase()), params),
+                    index -> new HashSet<>()).add(node.getName().toLowerCase());
         }
 
         // The command flags, not sure what these do apart from break things
@@ -144,14 +147,14 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
 
         // Loop through all the found commands
 
-        for (Map.Entry<CommandParamData[][], Set<String>> entry : commands.entrySet()) {
+        for (Map.Entry<BedrockCommandInfo, Set<String>> entry : commands.entrySet()) {
             String commandName = entry.getValue().iterator().next(); // We know this has a value
 
             // Create a basic alias
             CommandEnumData aliases = new CommandEnumData(commandName + "Aliases", entry.getValue().toArray(new String[0]), false);
 
             // Build the completed command and add it to the final list
-            CommandData data = new CommandData(commandName, session.getConnector().getCommandManager().getDescription(commandName), flags, (byte) 0, aliases, entry.getKey());
+            CommandData data = new CommandData(commandName, entry.getKey().getDescription(), flags, (byte) 0, aliases, entry.getKey().getParamData());
             commandData.add(data);
         }
 
@@ -200,47 +203,47 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
      */
     private static Object mapCommandType(CommandParser parser) {
         if (parser == null) {
-            return CommandParamType.STRING;
+            return CommandParam.STRING;
         }
 
         switch (parser) {
             case FLOAT:
             case ROTATION:
             case DOUBLE:
-                return CommandParamType.FLOAT;
+                return CommandParam.FLOAT;
 
             case INTEGER:
-                return CommandParamType.INT;
+                return CommandParam.INT;
 
             case ENTITY:
             case GAME_PROFILE:
-                return CommandParamType.TARGET;
+                return CommandParam.TARGET;
 
             case BLOCK_POS:
-                return CommandParamType.BLOCK_POSITION;
+                return CommandParam.BLOCK_POSITION;
 
             case COLUMN_POS:
             case VEC3:
-                return CommandParamType.POSITION;
+                return CommandParam.POSITION;
 
             case MESSAGE:
-                return CommandParamType.MESSAGE;
+                return CommandParam.MESSAGE;
 
             case NBT:
             case NBT_COMPOUND_TAG:
             case NBT_TAG:
             case NBT_PATH:
-                return CommandParamType.JSON;
+                return CommandParam.JSON;
 
             case RESOURCE_LOCATION:
             case FUNCTION:
-                return CommandParamType.FILE_PATH;
+                return CommandParam.FILE_PATH;
 
             case BOOL:
                 return ENUM_BOOLEAN;
 
             case OPERATION: // ">=", "==", etc
-                return CommandParamType.OPERATOR;
+                return CommandParam.OPERATOR;
 
             case BLOCK_STATE:
                 return BlockTranslator.getAllBlockIdentifiers();
@@ -261,7 +264,21 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                 return VALID_SCOREBOARD_SLOTS;
 
             default:
-                return CommandParamType.STRING;
+                return CommandParam.STRING;
+        }
+    }
+
+    /**
+     * Stores the command description and parameter data for best optimizing the Bedrock commands packet.
+     */
+    @Getter
+    private static class BedrockCommandInfo {
+        private final String description;
+        private final CommandParamData[][] paramData;
+
+        public BedrockCommandInfo(String description, CommandParamData[][] paramData) {
+            this.description = description;
+            this.paramData = paramData;
         }
     }
 
@@ -324,11 +341,11 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                     // Put the non-enum param into the list
                     Object mappedType = mapCommandType(paramNode.getParser());
                     CommandEnumData enumData = null;
-                    CommandParamType type = null;
+                    CommandParam type = null;
                     if (mappedType instanceof String[]) {
                         enumData = new CommandEnumData(paramNode.getParser().name().toLowerCase(), (String[]) mappedType, false);
                     } else {
-                        type = (CommandParamType) mappedType;
+                        type = (CommandParam) mappedType;
                     }
                     // IF enumData != null:
                     // In game, this will show up like <paramNode.getName(): enumData.getName()>
