@@ -36,9 +36,14 @@ import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionManager;
+import org.geysermc.connector.network.translators.collision.CollisionTranslator;
+import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 import org.geysermc.connector.network.translators.world.block.entity.PistonBlockEntity;
+import org.geysermc.connector.utils.Axis;
 
+import java.util.List;
 import java.util.Map;
 
 public class PistonCache {
@@ -48,8 +53,6 @@ public class PistonCache {
 
     @Getter
     private Vector3d playerDisplacement = Vector3d.ZERO;
-
-    private boolean capDisplacement = true;
 
     @Getter @Setter
     private Vector3f playerMotion = Vector3f.ZERO;
@@ -74,7 +77,6 @@ public class PistonCache {
     }
 
     public synchronized void tick() {
-        capDisplacement = true;
         resetPlayerMovement();
         pistons.values().forEach(PistonBlockEntity::updateMovement);
         sendPlayerMovement(true);
@@ -83,15 +85,65 @@ public class PistonCache {
         pistons.values().forEach(PistonBlockEntity::updateBlocks);
     }
 
-    public synchronized void correctPlayerPosition() {
-        capDisplacement = false;
-        resetPlayerMovement();
-        pistons.values().forEach(PistonBlockEntity::pushPlayer);
-        sendPlayerMotion();
-        // Clean up pistons that are done after we are finished using them for position corrections
-        if (playerDisplacement.equals(Vector3d.ZERO)) {
-            pistons.entrySet().removeIf((entry) -> entry.getValue().isDone());
+    public synchronized Vector3d correctPlayerMovement(Vector3d movement) {
+        double movementX = movement.getX();
+        double movementY = movement.getY();
+        double movementZ = movement.getZ();
+
+        BoundingBox playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox();
+        playerBoundingBox.setSizeX(playerBoundingBox.getSizeX() + CollisionManager.COLLISION_TOLERANCE * 2);
+        playerBoundingBox.setSizeZ(playerBoundingBox.getSizeZ() + CollisionManager.COLLISION_TOLERANCE * 2);
+
+        BoundingBox movementBoundingBox = playerBoundingBox.clone();
+        movementBoundingBox.extend(movement);
+        List<Vector3i> collidableBlocks = session.getCollisionManager().getCollidableBlocks(movementBoundingBox);
+
+        // TODO Check collisions with the world?
+        // TODO Step up
+        if (Math.abs(movementY) > CollisionManager.COLLISION_TOLERANCE) {
+            for (PistonBlockEntity piston : pistons.values()) {
+                movementY = piston.computeCollisionOffset(playerBoundingBox, Axis.Y, movementY);
+            }
+            //movementY = computeWorldCollisionOffset(playerBoundingBox, Axis.Y, movementY, collidableBlocks);
+            playerBoundingBox.translate(0, movementY, 0);
         }
+        boolean checkZFirst = Math.abs(movementZ) > Math.abs(movementX);
+        if (Math.abs(movementZ) > CollisionManager.COLLISION_TOLERANCE && checkZFirst) {
+            for (PistonBlockEntity piston : pistons.values()) {
+                movementZ = piston.computeCollisionOffset(playerBoundingBox, Axis.Z, movementZ);
+            }
+            //movementZ = computeWorldCollisionOffset(playerBoundingBox, Axis.Z, movementZ, collidableBlocks);
+            playerBoundingBox.translate(0, 0, movementZ);
+        }
+        if (Math.abs(movementX) > CollisionManager.COLLISION_TOLERANCE) {
+            for (PistonBlockEntity piston : pistons.values()) {
+                movementX = piston.computeCollisionOffset(playerBoundingBox, Axis.X, movementX);
+            }
+            //movementX = computeWorldCollisionOffset(playerBoundingBox, Axis.X, movementX, collidableBlocks);
+            playerBoundingBox.translate(movementX, 0, 0);
+        }
+        if (Math.abs(movementZ) > CollisionManager.COLLISION_TOLERANCE && !checkZFirst) {
+            for (PistonBlockEntity piston : pistons.values()) {
+                movementZ = piston.computeCollisionOffset(playerBoundingBox, Axis.Z, movementZ);
+            }
+            //movementZ = computeWorldCollisionOffset(playerBoundingBox, Axis.Z, movementZ, collidableBlocks);
+            playerBoundingBox.translate(0, 0, movementZ);
+        }
+
+        playerBoundingBox.setSizeX(playerBoundingBox.getSizeX() - CollisionManager.COLLISION_TOLERANCE * 2);
+        playerBoundingBox.setSizeZ(playerBoundingBox.getSizeZ() - CollisionManager.COLLISION_TOLERANCE * 2);
+
+        pistons.entrySet().removeIf((entry) -> entry.getValue().isDone());
+        return Vector3d.from(movementX, movementY, movementZ);
+    }
+
+    public double computeWorldCollisionOffset(BoundingBox boundingBox, Axis axis, double offset, List<Vector3i> collidableBlocks) {
+        for (Vector3i blockPos : collidableBlocks) {
+            int blockId = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
+            BlockCollision blockCollision = CollisionTranslator.getCollision(blockId, 0, 0, 0);
+            offset = blockCollision.computeCollisionOffset(blockPos.toDouble(), boundingBox, axis, offset);
+        }
+        return offset;
     }
 
     private void resetPlayerMovement() {
@@ -102,7 +154,7 @@ public class PistonCache {
 
     public void sendPlayerMovement(boolean sendToJava) {
         SessionPlayerEntity playerEntity = session.getPlayerEntity();
-        if (!playerDisplacement.equals(Vector3d.ZERO)) {
+        if (!playerDisplacement.equals(Vector3d.ZERO) || playerDisplacement.getY() > 0) {
             CollisionManager collisionManager = session.getCollisionManager();
             if (collisionManager.correctPlayerPosition()) {
                 Vector3d position = collisionManager.getPlayerBoundingBox().getBottomCenter();
@@ -123,7 +175,7 @@ public class PistonCache {
         }
     }
 
-    private void sendPlayerMotion() {
+    public void sendPlayerMotion() {
         if (!playerMotion.equals(Vector3f.ZERO)) {
             SessionPlayerEntity playerEntity = session.getPlayerEntity();
             playerEntity.setMotion(playerMotion);
@@ -140,19 +192,16 @@ public class PistonCache {
 
     /**
      * Set the player displacement and move the player's bounding box
-     * If capDisplacement is true, displacement is capped to a range of -0.51 to 0.51
+     * Displacement is capped to a range of -0.51 to 0.51
      *
      * @param displacement The new player displacement
      */
     public void setPlayerDisplacement(Vector3d displacement) {
         // Clamp to range -0.51 to 0.51
-        Vector3d adjustedDisplacement = displacement;
-        if (capDisplacement) {
-            adjustedDisplacement = displacement.max(-0.51d, -0.51d, -0.51d).min(0.51d, 0.51d, 0.51d);
-        }
-        Vector3d delta = adjustedDisplacement.sub(playerDisplacement);
+        displacement = displacement.max(-0.51d, -0.51d, -0.51d).min(0.51d, 0.51d, 0.51d);
+        Vector3d delta = displacement.sub(playerDisplacement);
         session.getCollisionManager().getPlayerBoundingBox().translate(delta.getX(), delta.getY(), delta.getZ());
-        playerDisplacement = adjustedDisplacement;
+        playerDisplacement = displacement;
     }
 
     public synchronized PistonBlockEntity getPistonAt(Vector3i position) {

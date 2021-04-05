@@ -43,6 +43,7 @@ import org.geysermc.connector.network.translators.collision.translators.BlockCol
 import org.geysermc.connector.network.translators.collision.translators.SolidCollision;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.utils.Axis;
 import org.geysermc.connector.utils.BlockEntityUtils;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.Direction;
@@ -351,10 +352,8 @@ public class PistonBlockEntity {
     }
 
     /**
-     * Push the player bounding box out of collision with any attached blocks.
+     * Push the player
      * If the player is pushed the displacement is added to playerDisplacement in PistonCache
-     * Displacement can be capped to -0.51 - 0.51 with capDisplacement in PistonCache
-     *
      * If the player contacts a slime block, playerMotion in PistonCache is updated
      */
     public synchronized void pushPlayer() {
@@ -380,7 +379,7 @@ public class PistonBlockEntity {
             headPos = headPos.add(direction.toDouble());
         }
         int pistonHeadId = BlockStateValues.getPistonHead(orientation);
-        resolveCollision(headPos, movementProgress, pistonHeadId, playerBoundingBox);
+        pushPlayerBlock(headPos, movementProgress, pistonHeadId, playerBoundingBox);
 
         // Resolve collision with any attached moving blocks, but skip slime blocks
         // This prevents players from being launched by slime blocks covered by other blocks
@@ -388,7 +387,7 @@ public class PistonBlockEntity {
             Vector3d blockPos = entry.getKey().toDouble();
             int blockId = entry.getIntValue();
             if (blockId != BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID) {
-                resolveCollision(blockPos, movementProgress, blockId, playerBoundingBox);
+                pushPlayerBlock(blockPos, movementProgress, blockId, playerBoundingBox);
             }
         }
         // Resolve collision with slime blocks
@@ -396,9 +395,10 @@ public class PistonBlockEntity {
             Vector3d blockPos = entry.getKey().toDouble();
             int blockId = entry.getIntValue();
             if (blockId == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID) {
-                resolveCollision(blockPos, movementProgress, blockId, playerBoundingBox);
+                pushPlayerBlock(blockPos, movementProgress, blockId, playerBoundingBox);
             }
         }
+
         // Undo shrink
         playerBoundingBox.setSizeX(playerBoundingBox.getSizeX() + shrink.getX());
         playerBoundingBox.setSizeY(playerBoundingBox.getSizeY() + shrink.getY());
@@ -519,7 +519,7 @@ public class PistonBlockEntity {
         return maxIntersection;
     }
 
-    private void resolveCollision(Vector3d startingPos, double movementProgress, int javaId, BoundingBox playerBoundingBox) {
+    private void pushPlayerBlock(Vector3d startingPos, double movementProgress, int javaId, BoundingBox playerBoundingBox) {
         PistonCache pistonCache = session.getPistonCache();
 
         Vector3d movement = getMovement().toDouble();
@@ -566,36 +566,82 @@ public class PistonBlockEntity {
     }
 
     /**
+     * Compute the max movement that won't collide with any moving blocks
+     *
+     * @param boundingBox The bounding box of the moving entity
+     * @param axis The axis of movement
+     * @param movement The movement in the axis
+     * @return The adjusted movement
+     */
+    public synchronized double computeCollisionOffset(BoundingBox boundingBox, Axis axis, double movement) {
+        Vector3i direction = orientation.getUnitVector();
+        double movementProgress = progress;
+        if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
+            movementProgress = 1f - progress;
+        }
+        Vector3d movementVector = getMovement().toDouble().mul(movementProgress);
+        // Adjust movement progress when correctMovement is called in between progress updates
+        //movementProgress += 0.5f * Math.round((System.currentTimeMillis() - lastProgressUpdate) / 50f);
+        //movementProgress = Math.min(movementProgress, 1f);
+        // Check collision with the piston head
+        Vector3d headPos = position.toDouble();
+        if (action == PistonValueType.PULLING) {
+            headPos = headPos.add(direction.toDouble());
+        }
+        headPos.add(movementVector);
+        int pistonHeadId = BlockStateValues.getPistonHead(orientation);
+        BlockCollision pistonHead = CollisionTranslator.getCollision(pistonHeadId, 0, 0, 0);
+        movement = pistonHead.computeCollisionOffset(headPos, boundingBox, axis, movement);
+
+        // Check collision with attached blocks
+        for (Object2IntMap.Entry<Vector3i> entry : attachedBlocks.object2IntEntrySet()) {
+            Vector3d blockPos = entry.getKey().toDouble().add(movementVector);
+            int blockId = entry.getIntValue();
+            BlockCollision blockCollision = CollisionTranslator.getCollision(blockId, 0, 0, 0);
+            if (blockCollision != null) {
+                movement = blockCollision.computeCollisionOffset(blockPos, boundingBox, axis, movement);
+            }
+        }
+
+        return movement;
+    }
+
+    /**
      * Create moving block entities for each attached block
      */
     private void createMovingBlocks() {
-        Vector3i movement = getMovement();
-        BoundingBox playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox().clone();
-        if (orientation == Direction.UP) {
-            // Extend the bounding box down, to catch collisions when the player is falling down
-            playerBoundingBox.extend(0, -256, 0);
-        }
-        attachedBlocks.forEach((blockPos, javaId) -> {
-            Vector3i newPos = blockPos.add(movement);
-            if (SOLID_BOUNDING_BOX.checkIntersection(newPos.toDouble(), playerBoundingBox)) {
-                BlockCollision blockCollision = CollisionTranslator.getCollision(javaId, 0, 0, 0);
-                // Don't place a movingBlock for slime blocks if it will collide with the player as it messes with motion
-                // Also don't place a movingBlock for other types of collision as it acts like a full block
-                if (javaId == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID || !(blockCollision instanceof SolidCollision)) {
-                    return;
-                }
+        boolean enableMovingBlocks = false;
+        // Currently as of 1.16.210.60 movingBlocks are always white
+        // https://bugs.mojang.com/browse/MCPE-66250
+        if (enableMovingBlocks) {
+            Vector3i movement = getMovement();
+            BoundingBox playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox().clone();
+            if (orientation == Direction.UP) {
+                // Extend the bounding box down, to catch collisions when the player is falling down
+                playerBoundingBox.extend(0, -256, 0);
             }
-            // Place a moving block at the new location of the block
-            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-            updateBlockPacket.setBlockPosition(newPos);
-            updateBlockPacket.setRuntimeId(session.getBlockTranslator().getBedrockRuntimeMovingBlockId());
-            updateBlockPacket.setDataLayer(0);
-            session.sendUpstreamPacket(updateBlockPacket);
-            // Update moving block with correct details
-            BlockEntityUtils.updateBlockEntity(session, buildMovingBlockTag(newPos, javaId, position), newPos);
-        });
+            attachedBlocks.forEach((blockPos, javaId) -> {
+                Vector3i newPos = blockPos.add(movement);
+                if (SOLID_BOUNDING_BOX.checkIntersection(newPos.toDouble(), playerBoundingBox)) {
+                    BlockCollision blockCollision = CollisionTranslator.getCollision(javaId, 0, 0, 0);
+                    // Don't place a movingBlock for slime blocks if it will collide with the player as it messes with motion
+                    // Also don't place a movingBlock for other types of collision as it acts like a full block
+                    if (javaId == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID || !(blockCollision instanceof SolidCollision)) {
+                        return;
+                    }
+                }
+                // Place a moving block at the new location of the block
+                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
+                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+                updateBlockPacket.setBlockPosition(newPos);
+                updateBlockPacket.setRuntimeId(session.getBlockTranslator().getBedrockRuntimeMovingBlockId());
+                updateBlockPacket.setDataLayer(0);
+                session.sendUpstreamPacket(updateBlockPacket);
+                // Update moving block with correct details
+                BlockEntityUtils.updateBlockEntity(session, buildMovingBlockTag(newPos, javaId, position), newPos);
+            });
+        }
     }
 
     /**

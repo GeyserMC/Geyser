@@ -27,6 +27,7 @@ package org.geysermc.connector.network.translators.collision;
 
 import com.nukkitx.math.vector.Vector3d;
 import lombok.*;
+import org.geysermc.connector.utils.Axis;
 
 @Data
 @AllArgsConstructor
@@ -85,6 +86,67 @@ public class BoundingBox implements Cloneable {
 
     public Vector3d getBottomCenter() {
         return Vector3d.from(middleX, middleY - sizeY / 2, middleZ);
+    }
+
+    private boolean checkOverlapInAxis(double offsetX, double offsetY, double offsetZ, BoundingBox otherBox, Axis axis) {
+        switch (axis) {
+            case X:
+                return Math.abs((middleX + offsetX) - otherBox.getMiddleX()) * 2 < (sizeX + otherBox.getSizeX());
+            case Y:
+                return Math.abs((middleY + offsetY) - otherBox.getMiddleY()) * 2 < (sizeY + otherBox.getSizeY());
+            case Z:
+                return Math.abs((middleZ + offsetZ) - otherBox.getMiddleZ()) * 2 < (sizeZ + otherBox.getSizeZ());
+        }
+        return false;
+    }
+
+    /**
+     * Find the maximum offset of another bounding box in an axis, so that it won't collide with this bounding box
+     *
+     * @param offsetX The offset of this bounding box in the X axis
+     * @param offsetY The offset of this bounding box in the Y axis
+     * @param offsetZ The offset of this bounding box in the Z axis
+     * @param otherBoundingBox The bounding box that is moving
+     * @param axis The axis of movement
+     * @param offset The current max offset
+     * @return The new max offset
+     */
+    public double getMaxOffset(double offsetX, double offsetY, double offsetZ, BoundingBox otherBoundingBox, Axis axis, double offset) {
+        // Make sure that the bounding box overlaps in the other axes
+        switch (axis) {
+            case X:
+                if (!checkOverlapInAxis(offsetX, offsetY, offsetZ, otherBoundingBox, Axis.Y) ||
+                        !checkOverlapInAxis(offsetX, offsetY, offsetZ, otherBoundingBox, Axis.Z)) {
+                    return offset;
+                }
+                break;
+            case Y:
+                if (!checkOverlapInAxis(offsetX, offsetY, offsetZ, otherBoundingBox, Axis.X) ||
+                        !checkOverlapInAxis(offsetX, offsetY, offsetZ, otherBoundingBox, Axis.Z)) {
+                    return offset;
+                }
+                break;
+            case Z:
+                if (!checkOverlapInAxis(offsetX, offsetY, offsetZ, otherBoundingBox, Axis.X) ||
+                        !checkOverlapInAxis(offsetX, offsetY, offsetZ, otherBoundingBox, Axis.Y)) {
+                    return offset;
+                }
+                break;
+        }
+        if (offset > 0) {
+            double min = axis.choose(this.getMin().add(Vector3d.from(offsetX, offsetY, offsetZ)));
+            double max = axis.choose(otherBoundingBox.getMax());
+            if ((min - max) >= -2.0 * CollisionManager.COLLISION_TOLERANCE) {
+                offset = Math.min(min - max, offset);
+            }
+        } else if (offset < 0) {
+            double min = axis.choose(otherBoundingBox.getMin());
+            double max = axis.choose(this.getMax().add(Vector3d.from(offsetX, offsetY, offsetZ)));
+            if ((min - max) >= -2.0 * CollisionManager.COLLISION_TOLERANCE) {
+                offset = Math.max(max - min, offset);
+            }
+        }
+        return offset;
     }
 
     @SneakyThrows(CloneNotSupportedException.class)

@@ -29,8 +29,9 @@ import com.nukkitx.math.vector.Vector3d;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
+import org.geysermc.connector.network.translators.collision.CollisionManager;
+import org.geysermc.connector.utils.Axis;
 
 @EqualsAndHashCode
 public class BlockCollision {
@@ -150,5 +151,12 @@ public class BlockCollision {
             }
         }
         return false;
+    }
+
+    public double computeCollisionOffset(Vector3d blockPos, BoundingBox boundingBox, Axis axis, double offset) {
+        for (BoundingBox b : boundingBoxes) {
+            offset = b.getMaxOffset(blockPos.getX(), blockPos.getY(), blockPos.getZ(), boundingBox, axis, offset);
+        }
+        return offset;
     }
 }

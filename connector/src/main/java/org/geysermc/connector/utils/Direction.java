@@ -74,8 +74,4 @@ public enum Direction {
         }
         return null;
     }
-
-    public enum Axis {
-        X, Y, Z
-    }
 }
