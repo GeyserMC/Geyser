@@ -81,6 +81,7 @@ public abstract class BlockTranslator {
     public static final Int2IntMap JAVA_RUNTIME_ID_TO_COLLISION_INDEX = new Int2IntOpenHashMap();
 
     private static final Int2ObjectMap<String> JAVA_RUNTIME_ID_TO_PICK_ITEM = new Int2ObjectOpenHashMap<>();
+    private static final Object2IntMap<String> PICK_ITEM_TO_JAVA_RUNTIME_ID = new Object2IntOpenHashMap<>();
 
     /**
      * Java numeric ID to java unique identifier, used for block names in the statistics screen
@@ -159,16 +160,20 @@ public abstract class BlockTranslator {
                 JAVA_RUNTIME_ID_TO_COLLISION_INDEX.put(javaRuntimeId, collisionIndexNode.intValue());
             }
 
+            String cleanJavaIdentifier = entry.getKey().split("\\[")[0];
+
             JsonNode pickItemNode = entry.getValue().get("pick_item");
             if (pickItemNode != null) {
                 JAVA_RUNTIME_ID_TO_PICK_ITEM.put(javaRuntimeId, pickItemNode.textValue());
+                PICK_ITEM_TO_JAVA_RUNTIME_ID.putIfAbsent(pickItemNode.textValue(), javaRuntimeId);
+            } else {
+                PICK_ITEM_TO_JAVA_RUNTIME_ID.putIfAbsent(cleanJavaIdentifier, javaRuntimeId);
             }
 
             JAVA_ID_BLOCK_MAP.put(javaId, javaRuntimeId);
 
             BlockStateValues.storeBlockStateValues(entry.getKey(), javaRuntimeId, entry.getValue());
 
-            String cleanJavaIdentifier = entry.getKey().split("\\[")[0];
             String bedrockIdentifier = entry.getValue().get("bedrock_identifier").asText();
 
             if (!JAVA_ID_TO_JAVA_IDENTIFIER_MAP.containsValue(cleanJavaIdentifier)) {
@@ -454,6 +459,10 @@ public abstract class BlockTranslator {
             return JAVA_ID_BLOCK_MAP.inverse().get(javaId).split("\\[")[0];
         }
         return itemIdentifier;
+    }
+
+    public static int getFromPickItem(String javaIdentifier) {
+        return PICK_ITEM_TO_JAVA_RUNTIME_ID.getOrDefault(javaIdentifier, -1);
     }
 
     /**

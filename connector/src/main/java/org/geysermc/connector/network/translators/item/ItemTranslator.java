@@ -156,6 +156,9 @@ public abstract class ItemTranslator {
         } else {
             builder = DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem);
         }
+        if (bedrockItem.isBlock()) {
+            builder.blockRuntimeId(bedrockItem.getBedrockBlockId());
+        }
 
         if (nbt != null) {
             // Translate the canDestroy and canPlaceOn Java NBT
@@ -210,7 +213,7 @@ public abstract class ItemTranslator {
         }
         ItemData.Builder builder = ItemData.builder()
                 .id(itemEntry.getBedrockId())
-                .damage((short) itemEntry.getBedrockData())
+                .damage(itemEntry.getBedrockData())
                 .count(itemStack.getAmount());
         if (itemStack.getNbt() != null) {
             builder.tag(this.translateNbtToBedrock(itemStack.getNbt()));
