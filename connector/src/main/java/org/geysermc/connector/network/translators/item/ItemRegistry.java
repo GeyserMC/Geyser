@@ -42,7 +42,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator1_16_210;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -178,10 +177,11 @@ public class ItemRegistry {
             }
             JsonNode stackSizeNode = entry.getValue().get("stack_size");
             int stackSize = stackSizeNode == null ? 64 : stackSizeNode.intValue();
+
             int bedrockBlockId = -1;
-            if (entry.getValue().get("is_block").booleanValue()) {
-                int javaBlockRuntimeId = BlockTranslator.getFromPickItem(entry.getKey());
-                bedrockBlockId = BlockTranslator1_16_210.INSTANCE.getBedrockBlockId(javaBlockRuntimeId);
+            JsonNode blockRuntimeIdNode = entry.getValue().get("blockRuntimeId");
+            if (blockRuntimeIdNode != null) {
+                bedrockBlockId = BlockTranslator1_16_210.INSTANCE.getBedrockBlockId(blockRuntimeIdNode.intValue());
             }
 
             ItemEntry itemEntry;
@@ -284,9 +284,8 @@ public class ItemRegistry {
         List<ItemData> creativeItems = new ArrayList<>();
         for (JsonNode itemNode : creativeItemEntries) {
             ItemData.Builder item = getBedrockItemFromJson(itemNode);
-            // please
             int bedrockRuntimeId = 0;
-            ItemEntry itemEntry = getItem(item.build());
+            ItemEntry itemEntry = getItem(item.build()); // please
             if (itemEntry.isBlock()) {
                 bedrockRuntimeId = itemEntry.getBedrockBlockId();
             }
