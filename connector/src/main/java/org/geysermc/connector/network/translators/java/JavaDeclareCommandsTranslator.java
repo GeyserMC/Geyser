@@ -30,8 +30,8 @@ import com.github.steveice10.mc.protocol.data.game.command.CommandParser;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareCommandsPacket;
 import com.nukkitx.protocol.bedrock.data.command.CommandData;
 import com.nukkitx.protocol.bedrock.data.command.CommandEnumData;
+import com.nukkitx.protocol.bedrock.data.command.CommandParam;
 import com.nukkitx.protocol.bedrock.data.command.CommandParamData;
-import com.nukkitx.protocol.bedrock.data.command.CommandParamType;
 import com.nukkitx.protocol.bedrock.packet.AvailableCommandsPacket;
 import it.unimi.dsi.fastutil.Hash;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -200,47 +200,47 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
      */
     private static Object mapCommandType(CommandParser parser) {
         if (parser == null) {
-            return CommandParamType.STRING;
+            return CommandParam.STRING;
         }
 
         switch (parser) {
             case FLOAT:
             case ROTATION:
             case DOUBLE:
-                return CommandParamType.FLOAT;
+                return CommandParam.FLOAT;
 
             case INTEGER:
-                return CommandParamType.INT;
+                return CommandParam.INT;
 
             case ENTITY:
             case GAME_PROFILE:
-                return CommandParamType.TARGET;
+                return CommandParam.TARGET;
 
             case BLOCK_POS:
-                return CommandParamType.BLOCK_POSITION;
+                return CommandParam.BLOCK_POSITION;
 
             case COLUMN_POS:
             case VEC3:
-                return CommandParamType.POSITION;
+                return CommandParam.POSITION;
 
             case MESSAGE:
-                return CommandParamType.MESSAGE;
+                return CommandParam.MESSAGE;
 
             case NBT:
             case NBT_COMPOUND_TAG:
             case NBT_TAG:
             case NBT_PATH:
-                return CommandParamType.JSON;
+                return CommandParam.JSON;
 
             case RESOURCE_LOCATION:
             case FUNCTION:
-                return CommandParamType.FILE_PATH;
+                return CommandParam.FILE_PATH;
 
             case BOOL:
                 return ENUM_BOOLEAN;
 
             case OPERATION: // ">=", "==", etc
-                return CommandParamType.OPERATOR;
+                return CommandParam.OPERATOR;
 
             case BLOCK_STATE:
                 return BlockTranslator.getAllBlockIdentifiers();
@@ -261,7 +261,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                 return VALID_SCOREBOARD_SLOTS;
 
             default:
-                return CommandParamType.STRING;
+                return CommandParam.STRING;
         }
     }
 
@@ -324,11 +324,11 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                     // Put the non-enum param into the list
                     Object mappedType = mapCommandType(paramNode.getParser());
                     CommandEnumData enumData = null;
-                    CommandParamType type = null;
+                    CommandParam type = null;
                     if (mappedType instanceof String[]) {
                         enumData = new CommandEnumData(paramNode.getParser().name().toLowerCase(), (String[]) mappedType, false);
                     } else {
-                        type = (CommandParamType) mappedType;
+                        type = (CommandParam) mappedType;
                     }
                     // IF enumData != null:
                     // In game, this will show up like <paramNode.getName(): enumData.getName()>
