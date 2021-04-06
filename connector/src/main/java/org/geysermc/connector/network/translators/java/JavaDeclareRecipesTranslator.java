@@ -69,7 +69,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     ShapelessRecipeData shapelessRecipeData = (ShapelessRecipeData) recipe.getData();
                     ItemData output = ItemTranslator.translateToBedrock(session, shapelessRecipeData.getResult());
                     // Strip NBT - tools won't appear in the recipe book otherwise
-                    output = ItemData.of(output.getId(), output.getDamage(), output.getCount());
+                    output = output.toBuilder().tag(null).build();
                     ItemData[][] inputCombinations = combinations(session, shapelessRecipeData.getIngredients());
                     for (ItemData[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
@@ -83,7 +83,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     ShapedRecipeData shapedRecipeData = (ShapedRecipeData) recipe.getData();
                     ItemData output = ItemTranslator.translateToBedrock(session, shapedRecipeData.getResult());
                     // See above
-                    output = ItemData.of(output.getId(), output.getDamage(), output.getCount());
+                    output = output.toBuilder().tag(null).build();
                     ItemData[][] inputCombinations = combinations(session, shapedRecipeData.getIngredients());
                     for (ItemData[] inputs : inputCombinations) {
                         UUID uuid = UUID.randomUUID();
@@ -230,7 +230,11 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     if (entry.getValue().size() < idCount) {
                         optionSet.addAll(entry.getValue());
                     } else {
-                        optionSet.add(ItemData.of(groupedItem.id, Short.MAX_VALUE, groupedItem.count, groupedItem.tag));
+                        optionSet.add(ItemData.builder()
+                                .id(groupedItem.id)
+                                .damage(Short.MAX_VALUE)
+                                .count(groupedItem.count)
+                                .tag(groupedItem.tag).build());
                     }
                 } else {
                     ItemData item = entry.getValue().get(0);
