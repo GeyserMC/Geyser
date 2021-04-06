@@ -49,13 +49,17 @@ public class PotionTranslator extends ItemTranslator {
     }
 
     @Override
-    public ItemData translateToBedrock(ItemStack itemStack, ItemEntry itemEntry) {
+    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemEntry itemEntry) {
         if (itemStack.getNbt() == null) return super.translateToBedrock(itemStack, itemEntry);
         Tag potionTag = itemStack.getNbt().get("Potion");
         if (potionTag instanceof StringTag) {
             Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
             if (potion != null) {
-                return ItemData.of(itemEntry.getBedrockId(), potion.getBedrockId(), itemStack.getAmount(), translateNbtToBedrock(itemStack.getNbt()));
+                return ItemData.builder()
+                        .id(itemEntry.getBedrockId())
+                        .damage(potion.getBedrockId())
+                        .count(itemStack.getAmount())
+                        .tag(translateNbtToBedrock(itemStack.getNbt()));
             }
             GeyserConnector.getInstance().getLogger().debug("Unknown Java potion: " + potionTag.getValue());
         }

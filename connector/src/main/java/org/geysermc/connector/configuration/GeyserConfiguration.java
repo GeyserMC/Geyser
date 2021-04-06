@@ -73,13 +73,15 @@ public interface GeyserConfiguration {
 
     boolean isAllowThirdPartyEars();
 
-    boolean isShowCooldown();
+    String getShowCooldown();
 
     boolean isShowCoordinates();
 
     String getDefaultLocale();
 
     Path getFloodgateKeyPath();
+
+    boolean isAddNonBedrockItems();
 
     boolean isAboveBedrockNetherBuilding();
 

@@ -455,6 +455,12 @@ public class GeyserSession implements CommandSender {
         // Set the hardcoded shield ID to the ID we just defined in StartGamePacket
         upstream.getSession().getHardcodedBlockingId().set(ItemRegistry.SHIELD.getBedrockId());
 
+        if (ItemRegistry.FURNACE_MINECART_DATA != null) {
+            ItemComponentPacket componentPacket = new ItemComponentPacket();
+            componentPacket.getItems().add(ItemRegistry.FURNACE_MINECART_DATA);
+            upstream.sendPacket(componentPacket);
+        }
+
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
@@ -475,11 +481,10 @@ public class GeyserSession implements CommandSender {
 
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
         attributesPacket.setRuntimeEntityId(getPlayerEntity().getGeyserId());
-        List<AttributeData> attributes = new ArrayList<>();
         // Default move speed
         // Bedrock clients move very fast by default until they get an attribute packet correcting the speed
-        attributes.add(new AttributeData("minecraft:movement", 0.0f, 1024f, 0.1f, 0.1f));
-        attributesPacket.setAttributes(attributes);
+        attributesPacket.setAttributes(Collections.singletonList(
+                new AttributeData("minecraft:movement", 0.0f, 1024f, 0.1f, 0.1f)));
         upstream.sendPacket(attributesPacket);
 
         GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
@@ -1145,7 +1150,7 @@ public class GeyserSession implements CommandSender {
         noClip = gameMode == GameMode.SPECTATOR;
         worldImmutable = gameMode == GameMode.ADVENTURE || gameMode == GameMode.SPECTATOR;
 
-        Set<AdventureSetting> flags = new HashSet<>();
+        Set<AdventureSetting> flags = adventureSettingsPacket.getSettings();
         if (canFly) {
             flags.add(AdventureSetting.MAY_FLY);
         }
@@ -1164,7 +1169,6 @@ public class GeyserSession implements CommandSender {
 
         flags.add(AdventureSetting.AUTO_JUMP);
 
-        adventureSettingsPacket.getSettings().addAll(flags);
         sendUpstreamPacket(adventureSettingsPacket);
     }
 
