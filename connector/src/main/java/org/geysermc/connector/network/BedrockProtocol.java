@@ -42,7 +42,7 @@ public class BedrockProtocol {
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
      */
-    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v428.V428_CODEC;
+    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v431.V431_CODEC;
     /**
      * A list of all supported Bedrock versions that can join Geyser
      */
@@ -55,8 +55,8 @@ public class BedrockProtocol {
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v422.V422_CODEC.toBuilder()
                 .minecraftVersion("1.16.200/1.16.201")
                 .build());
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v428.V428_CODEC);
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v431.V431_CODEC);
     }
 
     /**
