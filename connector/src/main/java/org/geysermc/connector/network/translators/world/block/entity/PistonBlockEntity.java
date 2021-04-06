@@ -574,7 +574,6 @@ public class PistonBlockEntity {
      * @return The adjusted movement
      */
     public synchronized double computeCollisionOffset(BoundingBox boundingBox, Axis axis, double movement) {
-        Vector3i direction = orientation.getUnitVector();
         double movementProgress = progress;
         if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
             movementProgress = 1f - progress;
@@ -583,9 +582,10 @@ public class PistonBlockEntity {
         // Check collision with the piston head
         Vector3d headPos = position.toDouble();
         if (action == PistonValueType.PULLING) {
-            headPos = headPos.add(direction.toDouble());
+            headPos = headPos.add(orientation.getUnitVector().toDouble());
         }
-        headPos.add(movementVector);
+        headPos = headPos.add(movementVector);
+
         int pistonHeadId = BlockStateValues.getPistonHead(orientation);
         BlockCollision pistonHead = CollisionTranslator.getCollision(pistonHeadId, 0, 0, 0);
         movement = pistonHead.computeCollisionOffset(headPos, boundingBox, axis, movement);

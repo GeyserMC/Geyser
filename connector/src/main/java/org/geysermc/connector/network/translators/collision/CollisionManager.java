@@ -150,29 +150,29 @@ public class CollisionManager {
 
             position = playerBoundingBox.getBottomCenter();
 
-            // Send corrected position to Bedrock when pushed by a piston
-            if (!movement.equals(adjustedMovement) && pistonCache.getPlayerMotion().equals(Vector3f.ZERO) && !pistonCache.isPlayerSlimeCollision()) {
+            // Send corrected position to Bedrock
+            if (movement.distanceSquared(adjustedMovement) > COLLISION_TOLERANCE) {
                 PlayerEntity playerEntity = session.getPlayerEntity();
                 onGround = adjustedMovement.getY() != movement.getY() && movement.getY() < 0;
 
                 playerEntity.setPosition(position.toFloat(), true);
                 playerEntity.setOnGround(onGround);
-
-                // Probably can be improved with Server Auth movement with rewind
-                MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
-                moveEntityDeltaPacket.setRuntimeEntityId(playerEntity.getGeyserId());
-                moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.FORCE_MOVE_LOCAL_ENTITY);
-                if (onGround) {
-                    moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
+                if (pistonCache.getPlayerMotion().equals(Vector3f.ZERO) && !pistonCache.isPlayerSlimeCollision()) {
+                    // Probably can be improved with Server Auth movement with rewind
+                    MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
+                    moveEntityDeltaPacket.setRuntimeEntityId(playerEntity.getGeyserId());
+                    moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.FORCE_MOVE_LOCAL_ENTITY);
+                    if (onGround) {
+                        moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
+                    }
+                    moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
+                    moveEntityDeltaPacket.setX(playerEntity.getPosition().getX());
+                    moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
+                    moveEntityDeltaPacket.setY(playerEntity.getPosition().getY());
+                    moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
+                    moveEntityDeltaPacket.setZ(playerEntity.getPosition().getZ());
+                    session.sendUpstreamPacket(moveEntityDeltaPacket);
                 }
-                moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
-                moveEntityDeltaPacket.setX(playerEntity.getPosition().getX());
-                moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
-                moveEntityDeltaPacket.setY(playerEntity.getPosition().getY());
-                moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
-                moveEntityDeltaPacket.setZ(playerEntity.getPosition().getZ());
-                session.sendUpstreamPacket(moveEntityDeltaPacket);
-                pistonCache.sendPlayerMotion();
             }
         } else {
             // When chunk caching is off, we have to rely on this
