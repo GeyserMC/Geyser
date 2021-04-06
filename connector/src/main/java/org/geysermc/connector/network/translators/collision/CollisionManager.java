@@ -151,7 +151,7 @@ public class CollisionManager {
             position = playerBoundingBox.getBottomCenter();
 
             // Send corrected position to Bedrock when pushed by a piston
-            if (!movement.equals(adjustedMovement) && pistonCache.getPlayerMotion().equals(Vector3f.ZERO)) {
+            if (!movement.equals(adjustedMovement) && pistonCache.getPlayerMotion().equals(Vector3f.ZERO) && !pistonCache.isPlayerSlimeCollision()) {
                 PlayerEntity playerEntity = session.getPlayerEntity();
                 onGround = adjustedMovement.getY() != movement.getY() && movement.getY() < 0;
 

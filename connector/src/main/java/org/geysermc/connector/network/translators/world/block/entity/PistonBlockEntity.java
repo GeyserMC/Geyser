@@ -580,9 +580,6 @@ public class PistonBlockEntity {
             movementProgress = 1f - progress;
         }
         Vector3d movementVector = getMovement().toDouble().mul(movementProgress);
-        // Adjust movement progress when correctMovement is called in between progress updates
-        //movementProgress += 0.5f * Math.round((System.currentTimeMillis() - lastProgressUpdate) / 50f);
-        //movementProgress = Math.min(movementProgress, 1f);
         // Check collision with the piston head
         Vector3d headPos = position.toDouble();
         if (action == PistonValueType.PULLING) {
@@ -599,7 +596,14 @@ public class PistonBlockEntity {
             int blockId = entry.getIntValue();
             BlockCollision blockCollision = CollisionTranslator.getCollision(blockId, 0, 0, 0);
             if (blockCollision != null) {
-                movement = blockCollision.computeCollisionOffset(blockPos, boundingBox, axis, movement);
+                double adjustedMovement = blockCollision.computeCollisionOffset(blockPos, boundingBox, axis, movement);
+                if (blockId == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID) {
+                    if (axis == orientation.getAxis() && adjustedMovement != movement) {
+                        // Collided with a slime block on the same axis as the piston
+                        session.getPistonCache().setPlayerSlimeCollision(true);
+                    }
+                }
+                movement = adjustedMovement;
             }
         }
 
