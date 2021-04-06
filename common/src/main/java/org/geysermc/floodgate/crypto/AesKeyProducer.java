@@ -29,6 +29,7 @@ package org.geysermc.floodgate.crypto;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
 public final class AesKeyProducer implements KeyProducer {
@@ -38,7 +39,7 @@ public final class AesKeyProducer implements KeyProducer {
     public SecretKey produce() {
         try {
             KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-            keyGenerator.init(KEY_SIZE, SecureRandom.getInstanceStrong());
+            keyGenerator.init(KEY_SIZE, getSecureRandom());
             return keyGenerator.generateKey();
         } catch (Exception exception) {
             throw new RuntimeException(exception);
@@ -51,6 +52,23 @@ public final class AesKeyProducer implements KeyProducer {
             return new SecretKeySpec(keyFileData, "AES");
         } catch (Exception exception) {
             throw new RuntimeException(exception);
+        }
+    }
+
+    private SecureRandom getSecureRandom() throws NoSuchAlgorithmException {
+        // use Windows-PRNG for windows (default impl is SHA1PRNG)
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            return SecureRandom.getInstance("Windows-PRNG");
+        } else {
+            try {
+                // NativePRNG (which should be the default on unix-systems) can still block your
+                // system. Even though it isn't as bad as NativePRNGBlocking, we still try to
+                // prevent that if possible
+                return SecureRandom.getInstance("NativePRNGNonBlocking");
+            } catch (NoSuchAlgorithmException ignored) {
+                // at this point we just have to go with the default impl even if it blocks
+                return new SecureRandom();
+            }
         }
     }
 }

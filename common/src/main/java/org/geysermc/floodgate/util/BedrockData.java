@@ -101,9 +101,8 @@ public final class BedrockData implements Cloneable {
         // The format is the same as the order of the fields in this class
         return version + '\0' + username + '\0' + xuid + '\0' + deviceOs + '\0' +
                 languageCode + '\0' + uiProfile + '\0' + inputMode + '\0' + ip + '\0' +
-                (fromProxy ? 1 : 0) + '\0' +
                 (linkedPlayer != null ? linkedPlayer.toString() : "null") + '\0' +
-                subscribeId + '\0' + verifyCode + '\0' + timestamp;
+                (fromProxy ? 1 : 0) + '\0' + subscribeId + '\0' + verifyCode + '\0' + timestamp;
     }
 
     @Override
