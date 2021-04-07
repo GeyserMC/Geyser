@@ -86,54 +86,103 @@ public class PistonCache {
     }
 
     public synchronized Vector3d correctPlayerMovement(Vector3d movement) {
+        BoundingBox playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox();
+
+        Vector3d adjustedMovement = movement;
+        if (!movement.equals(Vector3d.ZERO)) {
+            adjustedMovement = correctMovementForCollisions(movement, playerBoundingBox);
+        }
+
+        final double stepUp = 0.6;
+        boolean verticalCollision = adjustedMovement.getY() != movement.getY();
+        boolean horizontalCollision = adjustedMovement.getX() != movement.getX() || adjustedMovement.getZ() != movement.getZ();
+        boolean falling = movement.getY() < 0;
+        boolean onGround = session.getPlayerEntity().isOnGround() || (verticalCollision && falling);
+        if (onGround && horizontalCollision) {
+            Vector3d horizontalMovement = Vector3d.from(movement.getX(), 0, movement.getZ());
+            Vector3d stepUpMovement = correctMovementForCollisions(horizontalMovement.up(stepUp), playerBoundingBox);
+
+            BoundingBox stretchedBoundingBox = playerBoundingBox.clone();
+            stretchedBoundingBox.extend(horizontalMovement);
+            double maxStepUp = correctMovementForCollisions(Vector3d.from(0, stepUp, 0), stretchedBoundingBox).getY();
+            if (maxStepUp < stepUp) { // The player collides with a block above them
+                playerBoundingBox.translate(0, maxStepUp, 0);
+                Vector3d adjustedStepUpMovement = correctMovementForCollisions(horizontalMovement, playerBoundingBox);
+                playerBoundingBox.translate(0, -maxStepUp, 0);
+
+                if (squaredHorizontalLength(adjustedStepUpMovement) > squaredHorizontalLength(stepUpMovement)) {
+                    stepUpMovement = adjustedStepUpMovement.up(maxStepUp);
+                }
+            }
+
+            if (squaredHorizontalLength(stepUpMovement) > squaredHorizontalLength(adjustedMovement)) {
+                playerBoundingBox.translate(stepUpMovement.getX(), stepUpMovement.getY(), stepUpMovement.getZ());
+                // Apply the player's remaining vertical movement
+                double verticalMovement = correctMovementForCollisions(Vector3d.from(0, movement.getY() - stepUpMovement.getY(), 0), playerBoundingBox).getY();
+                playerBoundingBox.translate(-stepUpMovement.getX(), -stepUpMovement.getY(), -stepUpMovement.getZ());
+
+                stepUpMovement = stepUpMovement.up(verticalMovement);
+                adjustedMovement = stepUpMovement;
+            }
+        }
+
+        pistons.entrySet().removeIf((entry) -> entry.getValue().isDone());
+
+        return adjustedMovement;
+    }
+
+    private double squaredHorizontalLength(Vector3d vector) {
+        return vector.getX() * vector.getX() + vector.getZ() * vector.getZ();
+    }
+
+    private Vector3d correctMovementForCollisions(Vector3d movement, BoundingBox boundingBox) {
         double movementX = movement.getX();
         double movementY = movement.getY();
         double movementZ = movement.getZ();
 
-        BoundingBox playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox();
-        playerBoundingBox.setSizeX(playerBoundingBox.getSizeX() + CollisionManager.COLLISION_TOLERANCE * 2);
-        playerBoundingBox.setSizeZ(playerBoundingBox.getSizeZ() + CollisionManager.COLLISION_TOLERANCE * 2);
+        boundingBox.setSizeX(boundingBox.getSizeX() + CollisionManager.COLLISION_TOLERANCE * 2);
+        boundingBox.setSizeZ(boundingBox.getSizeZ() + CollisionManager.COLLISION_TOLERANCE * 2);
 
-        BoundingBox movementBoundingBox = playerBoundingBox.clone();
+        BoundingBox movementBoundingBox = boundingBox.clone();
         movementBoundingBox.extend(movement);
-        List<Vector3i> collidableBlocks = session.getCollisionManager().getCollidableBlocks(movementBoundingBox);
+        //List<Vector3i> collidableBlocks = session.getCollisionManager().getCollidableBlocks(movementBoundingBox);
 
         // TODO Check collisions with the world?
-        // TODO Step up
         if (Math.abs(movementY) > CollisionManager.COLLISION_TOLERANCE) {
             for (PistonBlockEntity piston : pistons.values()) {
-                movementY = piston.computeCollisionOffset(playerBoundingBox, Axis.Y, movementY);
+                movementY = piston.computeCollisionOffset(boundingBox, Axis.Y, movementY);
             }
-            //movementY = computeWorldCollisionOffset(playerBoundingBox, Axis.Y, movementY, collidableBlocks);
-            playerBoundingBox.translate(0, movementY, 0);
+            //movementY = computeWorldCollisionOffset(boundingBox, Axis.Y, movementY, collidableBlocks);
+            boundingBox.translate(0, movementY, 0);
         }
         boolean checkZFirst = Math.abs(movementZ) > Math.abs(movementX);
         if (Math.abs(movementZ) > CollisionManager.COLLISION_TOLERANCE && checkZFirst) {
             for (PistonBlockEntity piston : pistons.values()) {
-                movementZ = piston.computeCollisionOffset(playerBoundingBox, Axis.Z, movementZ);
+                movementZ = piston.computeCollisionOffset(boundingBox, Axis.Z, movementZ);
             }
-            //movementZ = computeWorldCollisionOffset(playerBoundingBox, Axis.Z, movementZ, collidableBlocks);
-            playerBoundingBox.translate(0, 0, movementZ);
+            //movementZ = computeWorldCollisionOffset(boundingBox, Axis.Z, movementZ, collidableBlocks);
+            boundingBox.translate(0, 0, movementZ);
         }
         if (Math.abs(movementX) > CollisionManager.COLLISION_TOLERANCE) {
             for (PistonBlockEntity piston : pistons.values()) {
-                movementX = piston.computeCollisionOffset(playerBoundingBox, Axis.X, movementX);
+                movementX = piston.computeCollisionOffset(boundingBox, Axis.X, movementX);
             }
-            //movementX = computeWorldCollisionOffset(playerBoundingBox, Axis.X, movementX, collidableBlocks);
-            playerBoundingBox.translate(movementX, 0, 0);
+            //movementX = computeWorldCollisionOffset(boundingBox, Axis.X, movementX, collidableBlocks);
+            boundingBox.translate(movementX, 0, 0);
         }
         if (Math.abs(movementZ) > CollisionManager.COLLISION_TOLERANCE && !checkZFirst) {
             for (PistonBlockEntity piston : pistons.values()) {
-                movementZ = piston.computeCollisionOffset(playerBoundingBox, Axis.Z, movementZ);
+                movementZ = piston.computeCollisionOffset(boundingBox, Axis.Z, movementZ);
             }
-            //movementZ = computeWorldCollisionOffset(playerBoundingBox, Axis.Z, movementZ, collidableBlocks);
-            playerBoundingBox.translate(0, 0, movementZ);
+            //movementZ = computeWorldCollisionOffset(boundingBox, Axis.Z, movementZ, collidableBlocks);
+            boundingBox.translate(0, 0, movementZ);
         }
 
-        playerBoundingBox.setSizeX(playerBoundingBox.getSizeX() - CollisionManager.COLLISION_TOLERANCE * 2);
-        playerBoundingBox.setSizeZ(playerBoundingBox.getSizeZ() - CollisionManager.COLLISION_TOLERANCE * 2);
+        boundingBox.translate(-movementX, -movementY, -movementZ);
 
-        pistons.entrySet().removeIf((entry) -> entry.getValue().isDone());
+        boundingBox.setSizeX(boundingBox.getSizeX() - CollisionManager.COLLISION_TOLERANCE * 2);
+        boundingBox.setSizeZ(boundingBox.getSizeZ() - CollisionManager.COLLISION_TOLERANCE * 2);
+
         return Vector3d.from(movementX, movementY, movementZ);
     }
 

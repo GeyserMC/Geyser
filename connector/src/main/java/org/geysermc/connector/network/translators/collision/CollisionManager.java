@@ -140,6 +140,7 @@ public class CollisionManager {
             System.out.printf("[%d] Original: %s + Movement: %s -> Position: %s%n", System.currentTimeMillis(), startingPos, movement, position);
             PistonCache pistonCache = session.getPistonCache();
             Vector3d adjustedMovement = pistonCache.correctPlayerMovement(movement);
+            playerBoundingBox.translate(adjustedMovement.getX(), adjustedMovement.getY(), adjustedMovement.getZ());
             System.out.println(adjustedMovement.sub(movement));
             // Correct player position
             if (!correctPlayerPosition()) {

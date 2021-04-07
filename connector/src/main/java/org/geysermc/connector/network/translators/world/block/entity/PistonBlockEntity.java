@@ -597,11 +597,8 @@ public class PistonBlockEntity {
             BlockCollision blockCollision = CollisionTranslator.getCollision(blockId, 0, 0, 0);
             if (blockCollision != null) {
                 double adjustedMovement = blockCollision.computeCollisionOffset(blockPos, boundingBox, axis, movement);
-                if (blockId == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID) {
-                    if (axis == orientation.getAxis() && adjustedMovement != movement) {
-                        // Collided with a slime block on the same axis as the piston
-                        session.getPistonCache().setPlayerSlimeCollision(true);
-                    }
+                if (blockId == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID && adjustedMovement != movement) {
+                    session.getPistonCache().setPlayerSlimeCollision(true);
                 }
                 movement = adjustedMovement;
             }
