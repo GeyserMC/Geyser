@@ -139,7 +139,7 @@ public class CollisionManager {
             Vector3d movement = position.sub(startingPos);
             System.out.printf("[%d] Original: %s + Movement: %s -> Position: %s%n", System.currentTimeMillis(), startingPos, movement, position);
             PistonCache pistonCache = session.getPistonCache();
-            Vector3d adjustedMovement = pistonCache.correctPlayerMovement(movement);
+            Vector3d adjustedMovement = pistonCache.correctPlayerMovement(movement, false);
             playerBoundingBox.translate(adjustedMovement.getX(), adjustedMovement.getY(), adjustedMovement.getZ());
             System.out.println(adjustedMovement.sub(movement));
             // Correct player position
@@ -152,7 +152,7 @@ public class CollisionManager {
             position = playerBoundingBox.getBottomCenter();
 
             // Send corrected position to Bedrock
-            if (movement.distanceSquared(adjustedMovement) > COLLISION_TOLERANCE) {
+            if (movement.distanceSquared(adjustedMovement) > 0.08) {
                 PlayerEntity playerEntity = session.getPlayerEntity();
                 onGround = adjustedMovement.getY() != movement.getY() && movement.getY() < 0;
 
