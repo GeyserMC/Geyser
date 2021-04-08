@@ -41,6 +41,8 @@ public class BedrockMoveEntityAbsoluteTranslator extends PacketTranslator<MoveEn
 
     @Override
     public void translate(MoveEntityAbsolutePacket packet, GeyserSession session) {
+        session.setLastVehicleMoveTimestamp(System.currentTimeMillis());
+
         float y = packet.getPosition().getY();
         if (session.getRidingVehicleEntity() instanceof BoatEntity) {
             // Remove some Y position to prevents boats from looking like they're floating in water
