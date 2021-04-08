@@ -276,6 +276,7 @@ public class RecipeRegistry {
                 .id(itemEntry.getBedrockId())
                 .damage(damage)
                 .count(count)
+                .blockRuntimeId(itemEntry.isBlock() ? itemEntry.getBedrockBlockId() : 0)
                 .tag(tag).build();
     }
 
