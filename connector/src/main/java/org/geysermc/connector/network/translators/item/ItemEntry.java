@@ -44,7 +44,7 @@ public class ItemEntry {
     private final int bedrockId;
     private final int bedrockData;
     /**
-     * The Bedrock block runtime ID to render this item with. The specific state *does* matter in how this item is rendered.
+     * The Bedrock block runtime ID to render this item with. The specific state *does* matter in how this item is rendered and used as a crafting ingredient.
      * Required since 1.16.220.
      */
     private final int bedrockBlockId;
