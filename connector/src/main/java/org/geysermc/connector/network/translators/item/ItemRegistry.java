@@ -241,7 +241,7 @@ public class ItemRegistry {
                 case "minecraft:wheat":
                     WHEAT = itemEntry;
                     break;
-                case "minecraft:white_banner": // As of 1.16.220, all banners share the same Bedrock ID
+                case "minecraft:white_banner": // As of 1.16.220, all banners share the same Bedrock ID and differ their colors through their damage value
                     BANNER = itemEntry;
                     break;
                 case "minecraft:writable_book":
