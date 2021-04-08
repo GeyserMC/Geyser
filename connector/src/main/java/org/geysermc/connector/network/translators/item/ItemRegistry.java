@@ -168,28 +168,24 @@ public class ItemRegistry {
 
         int netId = 1;
         List<ItemData> creativeItems = new ArrayList<>();
-        JsonNode damageNode;
-        JsonNode countNode;
-        JsonNode blockRuntimeIdNode;
-        JsonNode nbtNode;
         for (JsonNode itemNode : creativeItemEntries) {
             int count = 1;
             int damage = 0;
             int blockRuntimeId = 0;
             NbtMap tag = null;
-            damageNode = itemNode.get("damage");
+            JsonNode damageNode = itemNode.get("damage");
             if (damageNode != null) {
                 damage = damageNode.asInt();
             }
-            countNode = itemNode.get("count");
+            JsonNode countNode = itemNode.get("count");
             if (countNode != null) {
                 count = countNode.asInt();
             }
-            blockRuntimeIdNode = itemNode.get("blockRuntimeId");
+            JsonNode blockRuntimeIdNode = itemNode.get("blockRuntimeId");
             if (blockRuntimeIdNode != null) {
                 blockRuntimeId = blockRuntimeIdNode.asInt();
             }
-            nbtNode = itemNode.get("nbt_b64");
+            JsonNode nbtNode = itemNode.get("nbt_b64");
             if (nbtNode != null) {
                 byte[] bytes = Base64.getDecoder().decode(nbtNode.asText());
                 ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
@@ -264,7 +260,7 @@ public class ItemRegistry {
             int stackSize = stackSizeNode == null ? 64 : stackSizeNode.intValue();
 
             int bedrockBlockId = -1;
-            blockRuntimeIdNode = entry.getValue().get("blockRuntimeId");
+            JsonNode blockRuntimeIdNode = entry.getValue().get("blockRuntimeId");
             if (blockRuntimeIdNode != null) {
                 int blockIdOverride = bedrockBlockIdOverrides.getOrDefault(bedrockIdentifier, -1);
                 if (blockIdOverride != -1) {
