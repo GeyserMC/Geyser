@@ -40,6 +40,8 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator1_16_210;
@@ -150,6 +152,85 @@ public class ItemRegistry {
             }
         }
 
+        Object2IntMap<String> bedrockBlockIdOverrides = new Object2IntOpenHashMap<>();
+        Set<String> blacklistedIdentifiers = new ObjectOpenHashSet<>();
+
+        // Load creative items
+        // We load this before item mappings to get overridden block runtime ID mappings
+        stream = FileUtils.getResource("bedrock/creative_items.json");
+
+        JsonNode creativeItemEntries;
+        try {
+            creativeItemEntries = GeyserConnector.JSON_MAPPER.readTree(stream).get("items");
+        } catch (Exception e) {
+            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.creative"), e);
+        }
+
+        int netId = 1;
+        List<ItemData> creativeItems = new ArrayList<>();
+        for (JsonNode itemNode : creativeItemEntries) {
+            int count = 1;
+            int damage = 0;
+            int blockRuntimeId = 0;
+            NbtMap tag = null;
+            JsonNode damageNode = itemNode.get("damage");
+            if (damageNode != null) {
+                damage = damageNode.asInt();
+            }
+            JsonNode countNode = itemNode.get("count");
+            if (countNode != null) {
+                count = countNode.asInt();
+            }
+            JsonNode blockRuntimeIdNode = itemNode.get("blockRuntimeId");
+            if (blockRuntimeIdNode != null) {
+                blockRuntimeId = blockRuntimeIdNode.asInt();
+            }
+            JsonNode nbtNode = itemNode.get("nbt_b64");
+            if (nbtNode != null) {
+                byte[] bytes = Base64.getDecoder().decode(nbtNode.asText());
+                ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+                try {
+                    tag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            String identifier = itemNode.get("id").textValue();
+            int id = -1;
+            for (StartGamePacket.ItemEntry itemEntry : ITEMS) {
+                if (itemEntry.getIdentifier().equals(identifier)) {
+                    id = itemEntry.getId();
+                    break;
+                }
+            }
+            if (id == -1) {
+                throw new RuntimeException("Unable to find matching Bedrock item for " + identifier);
+            }
+
+            creativeItems.add(ItemData.builder()
+                    .id(id)
+                    .damage(damage)
+                    .count(count)
+                    .blockRuntimeId(blockRuntimeId)
+                    .tag(tag)
+                    .netId(netId++).build());
+
+            if (blockRuntimeId != 0) {
+                // Add override for item mapping, unless it already exists... then we know multiple states can exist
+                if (!blacklistedIdentifiers.contains(identifier)) {
+                    if (bedrockBlockIdOverrides.containsKey(identifier)) {
+                        bedrockBlockIdOverrides.remove(identifier);
+                        blacklistedIdentifiers.add(identifier);
+                    } else {
+                        // Unless there's multiple possibilities for this one state, let this be
+                        bedrockBlockIdOverrides.put(identifier, blockRuntimeId);
+                    }
+                }
+            }
+        }
+
+        // Load item mappings from Java Edition to Bedrock Edition
         stream = FileUtils.getResource("mappings/items.json");
 
         JsonNode items;
@@ -181,7 +262,13 @@ public class ItemRegistry {
             int bedrockBlockId = -1;
             JsonNode blockRuntimeIdNode = entry.getValue().get("blockRuntimeId");
             if (blockRuntimeIdNode != null) {
-                bedrockBlockId = BlockTranslator1_16_210.INSTANCE.getBedrockBlockId(blockRuntimeIdNode.intValue());
+                int blockIdOverride = bedrockBlockIdOverrides.getOrDefault(bedrockIdentifier, -1);
+                if (blockIdOverride != -1) {
+                    // Straight from BDS is our best chance of getting an item that doesn't run into issues
+                    bedrockBlockId = blockIdOverride;
+                } else {
+                    bedrockBlockId = BlockTranslator1_16_210.INSTANCE.getBedrockBlockId(blockRuntimeIdNode.intValue());
+                }
             }
 
             ItemEntry itemEntry;
@@ -262,38 +349,8 @@ public class ItemRegistry {
         ITEM_ENTRIES.put(itemIndex, new ItemEntry("minecraft:lodestone_compass", "minecraft:lodestone_compass", itemIndex,
                 lodestoneCompassId, 0, -1, 1));
 
-        /* Load creative items */
-        stream = FileUtils.getResource("bedrock/creative_items.json");
-
-        JsonNode creativeItemEntries;
-        try {
-            creativeItemEntries = GeyserConnector.JSON_MAPPER.readTree(stream).get("items");
-        } catch (Exception e) {
-            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.creative"), e);
-        }
-
-        Set<String> javaOnlyItems = new ObjectOpenHashSet<>();
-        Collections.addAll(javaOnlyItems, "minecraft:spectral_arrow", "minecraft:debug_stick",
-                "minecraft:knowledge_book", "minecraft:tipped_arrow");
-        if (!usingFurnaceMinecart) {
-            javaOnlyItems.add("minecraft:furnace_minecart");
-        }
-        JAVA_ONLY_ITEMS = ImmutableSet.copyOf(javaOnlyItems);
-
-        int netId = 1;
-        List<ItemData> creativeItems = new ArrayList<>();
-        for (JsonNode itemNode : creativeItemEntries) {
-            ItemData.Builder item = getBedrockItemFromJson(itemNode);
-            int bedrockRuntimeId = 0;
-            ItemEntry itemEntry = getItem(item.build()); // please
-            if (itemEntry.isBlock()) {
-                bedrockRuntimeId = itemEntry.getBedrockBlockId();
-            }
-            creativeItems.add(item.netId(netId++).blockRuntimeId(bedrockRuntimeId).build());
-        }
-
         if (usingFurnaceMinecart) {
-            // Add the furnace minecart as an item
+            // Add the furnace minecart as a custom item
             int furnaceMinecartId = ITEMS.size() + 1;
 
             ITEMS.add(new StartGamePacket.ItemEntry("geysermc:furnace_minecart", (short) furnaceMinecartId, true));
@@ -339,6 +396,14 @@ public class ItemRegistry {
         CREATIVE_ITEMS = creativeItems.toArray(new ItemData[0]);
 
         ITEM_NAMES = itemNames.toArray(new String[0]);
+
+        Set<String> javaOnlyItems = new ObjectOpenHashSet<>();
+        Collections.addAll(javaOnlyItems, "minecraft:spectral_arrow", "minecraft:debug_stick",
+                "minecraft:knowledge_book", "minecraft:tipped_arrow");
+        if (!usingFurnaceMinecart) {
+            javaOnlyItems.add("minecraft:furnace_minecart");
+        }
+        JAVA_ONLY_ITEMS = ImmutableSet.copyOf(javaOnlyItems);
     }
 
     /**
@@ -392,36 +457,5 @@ public class ItemRegistry {
             }
             return null;
         });
-    }
-
-    /**
-     * Gets a Bedrock {@link com.nukkitx.protocol.bedrock.data.inventory.ItemData.Builder} from a {@link JsonNode}
-     * @param itemNode the JSON node that contains ProxyPass-compatible Bedrock item data
-     * @return
-     */
-    public static ItemData.Builder getBedrockItemFromJson(JsonNode itemNode) {
-        int count = 1;
-        short damage = 0;
-        NbtMap tag = null;
-        if (itemNode.has("damage")) {
-            damage = itemNode.get("damage").numberValue().shortValue();
-        }
-        if (itemNode.has("count")) {
-            count = itemNode.get("count").asInt();
-        }
-        if (itemNode.has("nbt_b64")) {
-            byte[] bytes = Base64.getDecoder().decode(itemNode.get("nbt_b64").asText());
-            ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-            try {
-                tag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return ItemData.builder()
-                .id(itemNode.get("id").asInt())
-                .damage(damage)
-                .count(count)
-                .tag(tag);
     }
 }
