@@ -78,6 +78,16 @@ public class ScoreboardUpdater implements Runnable {
                 ScoreboardSession scoreboardSession = session.getWorldCache().getScoreboardSession();
                 scoreboardSession.packetsPerSecond = scoreboardSession.getPendingPacketsPerSecond().get();
                 scoreboardSession.pendingPacketsPerSecond.set(0);
+
+                scoreboardSession.justSwitchedToSelf =
+                        !scoreboardSession.justSwitchedToSelf &&
+                        scoreboardSession.packetsPerSecond < FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD;
+
+                if (scoreboardSession.justSwitchedToSelf) {
+                    // just making sure that all updates are pushed before giving up control
+                    session.getWorldCache().getScoreboard().onUpdate();
+                    scoreboardSession.justSwitchedToSelf = false;
+                }
             }
         }
 
@@ -91,24 +101,23 @@ public class ScoreboardUpdater implements Runnable {
                 int pps = scoreboardSession.getPacketsPerSecond();
                 if (pps >= FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
                     boolean reachedSecondThreshold = pps >= SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD;
-                    if (reachedSecondThreshold) {
-                        scoreboardSession.millisBetweenUpdates = SECOND_MILLIS_BETWEEN_UPDATES;
-                    } else {
-                        scoreboardSession.millisBetweenUpdates = FIRST_MILLIS_BETWEEN_UPDATES;
-                    }
 
-                    if (currentTime - scoreboardSession.lastUpdate > scoreboardSession.millisBetweenUpdates) {
+                    int millisBetweenUpdates = reachedSecondThreshold ?
+                            SECOND_MILLIS_BETWEEN_UPDATES :
+                            FIRST_MILLIS_BETWEEN_UPDATES;
+
+                    if (currentTime - scoreboardSession.lastUpdate >= millisBetweenUpdates) {
                         worldCache.getScoreboard().onUpdate();
                         scoreboardSession.lastUpdate = currentTime;
 
-                        if (DEBUG_ENABLED && (currentTime - scoreboardSession.lastLog > 60000)) { // one minute
+                        if (DEBUG_ENABLED && (currentTime - scoreboardSession.lastLog >= 60000)) { // one minute
                             int threshold = reachedSecondThreshold ?
                                     SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD :
                                     FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD;
 
                             GeyserConnector.getInstance().getLogger().info(
                                     LanguageUtils.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached.log", session.getName(), threshold, pps) +
-                                            LanguageUtils.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached", (scoreboardSession.millisBetweenUpdates / 1000.0))
+                                            LanguageUtils.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached", (millisBetweenUpdates / 1000.0))
                             );
 
                             scoreboardSession.lastLog = currentTime;
@@ -133,11 +142,11 @@ public class ScoreboardUpdater implements Runnable {
 
     @RequiredArgsConstructor
     @Getter
-    public static class ScoreboardSession {
+    public static final class ScoreboardSession {
         private final GeyserSession session;
         private final AtomicInteger pendingPacketsPerSecond = new AtomicInteger(0);
         private int packetsPerSecond;
-        private int millisBetweenUpdates = FIRST_MILLIS_BETWEEN_UPDATES;
+        private boolean justSwitchedToSelf;
         private long lastUpdate;
         private long lastLog;
     }

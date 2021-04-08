@@ -29,21 +29,17 @@ import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.scoreboard.Objective;
 import org.geysermc.connector.scoreboard.Scoreboard;
 import org.geysermc.connector.scoreboard.ScoreboardUpdater.ScoreboardSession;
-
-import java.util.Iterator;
-import java.util.Map;
 
 @Getter
 public class WorldCache {
     private final GeyserSession session;
     private final ScoreboardSession scoreboardSession;
+    private Scoreboard scoreboard;
     @Setter
     private Difficulty difficulty = Difficulty.EASY;
     private boolean showCoordinates = true;
-    private Scoreboard scoreboard;
 
     public WorldCache(GeyserSession session) {
         this.session = session;
@@ -53,13 +49,7 @@ public class WorldCache {
 
     public void removeScoreboard() {
         if (scoreboard != null) {
-            Iterator<Map.Entry<String, Objective>> objectives = scoreboard.objectiveIterator();
-            // An iterator prevents ConcurrentModificationException
-            while (objectives.hasNext()) {
-                Map.Entry<String, Objective> next = objectives.next();
-                objectives.remove();
-                scoreboard.deleteObjective(next.getValue(), false);
-            }
+            scoreboard.removeScoreboard();
             scoreboard = new Scoreboard(session);
         }
     }

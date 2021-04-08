@@ -60,6 +60,16 @@ public final class Scoreboard {
         this.logger = GeyserConnector.getInstance().getLogger();
     }
 
+    public void removeScoreboard() {
+        Iterator<Objective> iterator = objectives.values().iterator();
+        while (iterator.hasNext()) {
+            Objective objective = iterator.next();
+            iterator.remove();
+
+            deleteObjective(objective, false);
+        }
+    }
+
     public Objective registerNewObjective(String objectiveId) {
         Objective objective = objectives.get(objectiveId);
         if (objective != null) {
@@ -114,10 +124,6 @@ public final class Scoreboard {
 
     public Collection<Objective> getObjectives() {
         return objectives.values();
-    }
-
-    public Iterator<Map.Entry<String, Objective>> objectiveIterator() {
-        return objectives.entrySet().iterator();
     }
 
     public Team getTeam(String teamName) {
