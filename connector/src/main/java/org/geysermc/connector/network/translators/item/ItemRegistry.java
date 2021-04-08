@@ -38,8 +38,8 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntArraySet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -80,13 +80,21 @@ public class ItemRegistry {
      */
     public static ItemEntry BAMBOO;
     /**
+     * Banner item entry, used in LivingEntity.java
+     */
+    public static ItemEntry BANNER;
+    /**
      * Boat item entries, used in BedrockInventoryTransactionTranslator.java
      */
-    public static IntList BOATS = new IntArrayList();
+    public static final IntSet BOATS = new IntArraySet();
     /**
      * Bucket item entries (excluding the milk bucket), used in BedrockInventoryTransactionTranslator.java
      */
-    public static IntList BUCKETS = new IntArrayList();
+    public static final IntSet BUCKETS = new IntArraySet();
+    /**
+     * Crossbow item entry, used in PillagerEntity.java
+     */
+    public static ItemEntry CROSSBOW;
     /**
      * Empty item bucket, used in BedrockInventoryTransactionTranslator.java
      */
@@ -305,6 +313,9 @@ public class ItemRegistry {
                 case "minecraft:bamboo":
                     BAMBOO = itemEntry;
                     break;
+                case "minecraft:crossbow":
+                    CROSSBOW = itemEntry;
+                    break;
                 case "minecraft:egg":
                     EGG = itemEntry;
                     break;
@@ -319,6 +330,9 @@ public class ItemRegistry {
                     break;
                 case "minecraft:wheat":
                     WHEAT = itemEntry;
+                    break;
+                case "minecraft:white_banner": // As of 1.16.220, all banners share the same Bedrock ID and differ their colors through their damage value
+                    BANNER = itemEntry;
                     break;
                 case "minecraft:writable_book":
                     WRITABLE_BOOK = itemEntry;
