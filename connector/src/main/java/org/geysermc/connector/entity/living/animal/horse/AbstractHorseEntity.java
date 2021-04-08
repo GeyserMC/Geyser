@@ -32,6 +32,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -44,6 +45,8 @@ public class AbstractHorseEntity extends AnimalEntity {
 
         // Specifies the size of the entity's inventory. Required to place slots in the entity.
         metadata.put(EntityData.CONTAINER_BASE_SIZE, 2);
+        // Add dummy health attribute since LivingEntity updates the attribute for us
+        attributes.put(AttributeType.HEALTH, AttributeType.HEALTH.getAttribute(20, 20));
     }
 
     @Override
@@ -89,5 +92,10 @@ public class AbstractHorseEntity extends AnimalEntity {
         metadata.getFlags().setFlag(EntityFlag.WASD_CONTROLLED, true);
 
         super.updateBedrockMetadata(entityMetadata, session);
+
+        if (entityMetadata.getId() == 8) {
+            // Update the health attribute
+            updateBedrockAttributes(session);
+        }
     }
 }
