@@ -47,6 +47,8 @@ public class AbstractHorseEntity extends AnimalEntity {
         metadata.put(EntityData.CONTAINER_BASE_SIZE, 2);
         // Add dummy health attribute since LivingEntity updates the attribute for us
         attributes.put(AttributeType.HEALTH, AttributeType.HEALTH.getAttribute(20, 20));
+        // Add horse jump strength attribute to allow donkeys and mules to jump
+        attributes.put(AttributeType.HORSE_JUMP_STRENGTH, AttributeType.HORSE_JUMP_STRENGTH.getAttribute(0.5f, 2));
     }
 
     @Override
