@@ -123,6 +123,9 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 passenger.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 0);
                 passenger.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
                 passenger.getMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
+                if (session.getUpstream().getSession().getPacketCodec().getProtocolVersion() >= Bedrock_v428.V428_CODEC.getProtocolVersion()) {
+                    passenger.getMetadata().put(EntityData.RIDER_ROTATION_OFFSET, 0f);
+                }
 
                 this.updateOffset(passenger, entity, session, false, false, (packet.getPassengerIds().length > 1));
             } else {
