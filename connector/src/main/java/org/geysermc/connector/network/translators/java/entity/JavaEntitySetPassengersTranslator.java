@@ -31,6 +31,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
+import com.nukkitx.protocol.bedrock.v428.Bedrock_v428;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.living.ArmorStandEntity;
@@ -87,7 +88,13 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
             if (entity.getEntityType() == EntityType.BOAT) {
                 passenger.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 1);
                 passenger.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 90f);
-                passenger.getMetadata().put(EntityData.RIDER_MIN_ROTATION, !passengers.isEmpty() ? -90f : 0f);
+                // Can be removed once 1.16.200 to 1.16.201 support is dropped
+                if (session.getUpstream().getSession().getPacketCodec().getProtocolVersion() >= Bedrock_v428.V428_CODEC.getProtocolVersion()) {
+                    passenger.getMetadata().put(EntityData.RIDER_MIN_ROTATION, 1f);
+                    passenger.getMetadata().put(EntityData.RIDER_ROTATION_OFFSET, -90f);
+                } else {
+                    passenger.getMetadata().put(EntityData.RIDER_MIN_ROTATION, -90f);
+                }
             } else {
                 passenger.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 0);
                 passenger.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
@@ -116,6 +123,9 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 passenger.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 0);
                 passenger.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
                 passenger.getMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
+                if (session.getUpstream().getSession().getPacketCodec().getProtocolVersion() >= Bedrock_v428.V428_CODEC.getProtocolVersion()) {
+                    passenger.getMetadata().put(EntityData.RIDER_ROTATION_OFFSET, 0f);
+                }
 
                 this.updateOffset(passenger, entity, session, false, false, (packet.getPassengerIds().length > 1));
             } else {
