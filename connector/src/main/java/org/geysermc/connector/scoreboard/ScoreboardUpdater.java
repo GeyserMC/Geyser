@@ -76,17 +76,17 @@ public class ScoreboardUpdater implements Runnable {
             lastPacketsPerSecondUpdate = currentTime;
             for (GeyserSession session : connector.getPlayers()) {
                 ScoreboardSession scoreboardSession = session.getWorldCache().getScoreboardSession();
-                scoreboardSession.packetsPerSecond = scoreboardSession.getPendingPacketsPerSecond().get();
+
+                int oldPps = scoreboardSession.getPacketsPerSecond();
+                int newPps = scoreboardSession.getPendingPacketsPerSecond().get();
+
+                scoreboardSession.packetsPerSecond = newPps;
                 scoreboardSession.pendingPacketsPerSecond.set(0);
 
-                scoreboardSession.justSwitchedToSelf =
-                        !scoreboardSession.justSwitchedToSelf &&
-                        scoreboardSession.packetsPerSecond < FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD;
-
-                if (scoreboardSession.justSwitchedToSelf) {
-                    // just making sure that all updates are pushed before giving up control
+                // just making sure that all updates are pushed before giving up control
+                if (oldPps >= FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD &&
+                        newPps < FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
                     session.getWorldCache().getScoreboard().onUpdate();
-                    scoreboardSession.justSwitchedToSelf = false;
                 }
             }
         }
@@ -146,7 +146,6 @@ public class ScoreboardUpdater implements Runnable {
         private final GeyserSession session;
         private final AtomicInteger pendingPacketsPerSecond = new AtomicInteger(0);
         private int packetsPerSecond;
-        private boolean justSwitchedToSelf;
         private long lastUpdate;
         private long lastLog;
     }
