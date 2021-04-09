@@ -48,7 +48,7 @@ public final class Team {
     @Setter private NameTagVisibility nameTagVisibility;
     @Setter private TeamColor color;
 
-    private TeamData currentData;
+    private final TeamData currentData;
     private TeamData cachedData;
 
     private boolean updating;
