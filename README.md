@@ -40,7 +40,7 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
 - Structure block UI
 
 ## What can't be fixed
-We can't fix the following things because of Bedrock's limitations. They might be fixable in the future, but not as of now.
+The following things cannot be fixed without changes to Bedrock. As of now, they are not fixable in Geyser.
 
 - Custom heads in inventories
 - Clickable links in chat
