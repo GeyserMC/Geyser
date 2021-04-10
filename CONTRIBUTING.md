@@ -8,7 +8,7 @@ Thank you for considering a contribution! Generally, Geyser welcomes PRs from ev
 *Pull requests for Geyser:* Anything that fixes compatibility between Java or Bedrock or improves the quality of play for Bedrock players. The exception is wherever direct server access is required; in this case, it may be better for Floodgate.
 
 
-We have some general style guides that you should apply throughout the code:
+We have some general style guides that should be applied throughout the code:
 
 ```java
 public class LongClassName {
