@@ -5,7 +5,7 @@ contact_links:
     about: Check the common issues to see if you are not alone with that issue and see how you can fix them.
   - name: Frequently Asked Questions
     url: https://github.com/GeyserMC/Geyser/wiki/FAQ
-    about: Look at the FAQ page for answers for frequently asked questions.
+    about: Look at the FAQ page for answers to frequently asked questions.
   - name: Get help on the GeyserMC Discord server
     url: https://discord.gg/geysermc
     about: If your issue seems like it could possibly be an easy fix due to configuration, please hop on our Discord.
