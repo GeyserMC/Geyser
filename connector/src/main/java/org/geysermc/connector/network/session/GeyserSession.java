@@ -56,6 +56,7 @@ import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.packet.*;
+import com.nukkitx.protocol.bedrock.v431.Bedrock_v431;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -481,7 +482,12 @@ public class GeyserSession implements CommandSender {
         upstream.sendPacket(entityPacket);
 
         CreativeContentPacket creativePacket = new CreativeContentPacket();
-        creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
+        if (upstream.getSession().getPacketCodec().getProtocolVersion() < Bedrock_v431.V431_CODEC.getProtocolVersion()) {
+            creativePacket.setContents(ItemRegistry.getPre1_16_220CreativeContents());
+        } else {
+            // No additional work required
+            creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
+        }
         upstream.sendPacket(creativePacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
