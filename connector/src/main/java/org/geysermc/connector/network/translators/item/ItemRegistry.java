@@ -527,6 +527,37 @@ public class ItemRegistry {
         JAVA_ONLY_ITEMS = ImmutableSet.copyOf(javaOnlyItems);
     }
 
+    /* pre-1.16.220 support start */
+
+    private static ItemData[] LEGACY_CREATIVE_CONTENTS = null;
+
+    /**
+     * Built on the fly so extra memory isn't used if there are no <=1.16.210 clients joining.
+     *
+     * @return a list of creative items built for versions before 1.16.220.
+     */
+    public static ItemData[] getPre1_16_220CreativeContents() {
+        if (LEGACY_CREATIVE_CONTENTS != null) {
+            return LEGACY_CREATIVE_CONTENTS;
+        }
+
+        // Pre-1.16.220 relies on item damage values that the creative content packet drops
+        ItemData[] creativeContents = new ItemData[CREATIVE_ITEMS.length];
+        for (int i = 0; i < CREATIVE_ITEMS.length; i++) {
+            ItemData item = CREATIVE_ITEMS[i];
+            if (item.getBlockRuntimeId() != 0) {
+                creativeContents[i] = item.toBuilder().damage(getItem(item).getBedrockData()).build();
+            } else {
+                // No block runtime ID means that this item is backwards-compatible
+                creativeContents[i] = item;
+            }
+        }
+        LEGACY_CREATIVE_CONTENTS = creativeContents;
+        return creativeContents;
+    }
+
+    /* pre-1.16.220 support end */
+
     /**
      * Gets an {@link ItemEntry} from the given {@link ItemStack}.
      *

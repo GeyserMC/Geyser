@@ -55,7 +55,6 @@ import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.*;
 import com.nukkitx.protocol.bedrock.v431.Bedrock_v431;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -484,18 +483,7 @@ public class GeyserSession implements CommandSender {
 
         CreativeContentPacket creativePacket = new CreativeContentPacket();
         if (upstream.getSession().getPacketCodec().getProtocolVersion() < Bedrock_v431.V431_CODEC.getProtocolVersion()) {
-            // Pre-1.16.220 relies on item damage values that the creative content packet drops
-            ItemData[] creativeContents = new ItemData[ItemRegistry.CREATIVE_ITEMS.length];
-            for (int i = 0; i < ItemRegistry.CREATIVE_ITEMS.length; i++) {
-                ItemData item = ItemRegistry.CREATIVE_ITEMS[i];
-                if (item.getBlockRuntimeId() != 0) {
-                    creativeContents[i] = item.toBuilder().damage(ItemRegistry.getItem(item).getBedrockData()).build();
-                } else {
-                    // No block runtime ID means that this item is backwards-compatible
-                    creativeContents[i] = item;
-                }
-            }
-            creativePacket.setContents(creativeContents);
+            creativePacket.setContents(ItemRegistry.getPre1_16_220CreativeContents());
         } else {
             // No additional work required
             creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
