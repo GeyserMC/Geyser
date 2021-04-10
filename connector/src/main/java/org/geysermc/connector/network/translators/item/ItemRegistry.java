@@ -532,7 +532,7 @@ public class ItemRegistry {
     private static ItemData[] LEGACY_CREATIVE_CONTENTS = null;
 
     /**
-     * Built on the fly so extra memory isn't used if there are no <=1.16.210 clients joining.
+     * Built on the fly so extra memory isn't used if there are no 1.16.210-or-below clients joining.
      *
      * @return a list of creative items built for versions before 1.16.220.
      */
