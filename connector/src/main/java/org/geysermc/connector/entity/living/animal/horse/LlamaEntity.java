@@ -32,7 +32,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 public class LlamaEntity extends ChestedHorseEntity {
 
@@ -52,16 +52,12 @@ public class LlamaEntity extends ChestedHorseEntity {
         if (entityMetadata.getId() == 20) {
             // Bedrock treats llama decoration as armor
             MobArmorEquipmentPacket equipmentPacket = new MobArmorEquipmentPacket();
-            equipmentPacket.setRuntimeEntityId(getGeyserId());
+            equipmentPacket.setRuntimeEntityId(geyserId);
             // -1 means no armor
             if ((int) entityMetadata.getValue() != -1) {
-                // The damage value is the dye color that Java sends us
+                // The damage value is the dye color that Java sends us, for pre-1.16.220
                 // The item is always going to be a carpet
-                equipmentPacket.setChestplate(ItemData.builder()
-                        .id(BlockTranslator.CARPET)
-                        .damage((int) entityMetadata.getValue())
-                        .count(1)
-                        .build());
+                equipmentPacket.setChestplate(ItemRegistry.CARPETS.get((int) entityMetadata.getValue()));
             } else {
                 equipmentPacket.setChestplate(ItemData.AIR);
             }
