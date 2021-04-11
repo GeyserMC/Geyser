@@ -27,8 +27,8 @@ package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientSteerVehiclePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientVehicleMovePacket;
-import com.nukkitx.math.vector.Vector2f;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.PlayerInputPacket;
 import org.geysermc.connector.entity.BoatEntity;
 import org.geysermc.connector.entity.Entity;
@@ -56,13 +56,28 @@ public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPa
         // Bedrock only sends movement vehicle packets while moving
         // This allows horses to take damage while standing on magma
         Entity vehicle = session.getRidingVehicleEntity();
-        if (vehicle instanceof BoatEntity || (vehicle instanceof AbstractHorseEntity && !(vehicle instanceof LlamaEntity))) {
+        boolean sendMovement = false;
+        if (vehicle instanceof AbstractHorseEntity && !(vehicle instanceof LlamaEntity)) {
+            sendMovement = vehicle.isOnGround();
+        } else if (vehicle instanceof BoatEntity) {
+            if (vehicle.getPassengers().size() == 1) {
+                // The player is the only rider
+                sendMovement = true;
+            } else {
+                // Check if the player is the front rider
+                Vector3f seatPos = session.getPlayerEntity().getMetadata().getVector3f(EntityData.RIDER_SEAT_POSITION);
+                if (seatPos != null && seatPos.getX() > 0) {
+                    sendMovement = true;
+                }
+            }
+        }
+        if (sendMovement) {
             long timeSinceVehicleMove = System.currentTimeMillis() - session.getLastVehicleMoveTimestamp();
-            if (timeSinceVehicleMove >= 100 && vehicle.isOnGround()) {
-                Vector3f vehiclePosition = session.getRidingVehicleEntity().getPosition();
-                Vector3f vehicleRotation = session.getRidingVehicleEntity().getRotation();
+            if (timeSinceVehicleMove >= 100) {
+                Vector3f vehiclePosition = vehicle.getPosition();
+                Vector3f vehicleRotation = vehicle.getRotation();
 
-                if (session.getRidingVehicleEntity() instanceof BoatEntity) {
+                if (vehicle instanceof BoatEntity) {
                     // Remove some Y position to prevents boats flying up
                     vehiclePosition = vehiclePosition.down(EntityType.BOAT.getOffset());
                 }
