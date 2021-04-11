@@ -100,7 +100,7 @@ public enum TippedArrowPotion {
         return null;
     }
 
-    public static TippedArrowPotion getByBedrockId(short bedrockId) {
+    public static TippedArrowPotion getByBedrockId(int bedrockId) {
         for (TippedArrowPotion potion : TippedArrowPotion.values()) {
             if (potion.bedrockId == bedrockId) {
                 return potion;

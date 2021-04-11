@@ -91,7 +91,7 @@ public enum Potion {
         return null;
     }
 
-    public static Potion getByBedrockId(short bedrockId) {
+    public static Potion getByBedrockId(int bedrockId) {
         for (Potion potion : Potion.values()) {
             if (potion.bedrockId == bedrockId) {
                 return potion;

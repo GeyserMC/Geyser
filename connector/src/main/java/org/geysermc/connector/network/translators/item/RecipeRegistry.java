@@ -272,7 +272,12 @@ public class RecipeRegistry {
                 e.printStackTrace();
             }
         }
-        return ItemData.of(itemEntry.getBedrockId(), damage, count, tag);
+        return ItemData.builder()
+                .id(itemEntry.getBedrockId())
+                .damage(damage)
+                .count(count)
+                .blockRuntimeId(itemEntry.isBlock() ? itemEntry.getBedrockBlockId() : 0)
+                .tag(tag).build();
     }
 
     public static void init() {

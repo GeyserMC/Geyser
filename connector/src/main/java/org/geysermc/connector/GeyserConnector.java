@@ -57,6 +57,7 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.connector.utils.*;
+import org.jetbrains.annotations.Contract;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
@@ -186,7 +187,7 @@ public class GeyserConnector {
 
         defaultAuthType = AuthType.getByName(config.getRemote().getAuthType());
 
-        CooldownUtils.setShowCooldown(config.isShowCooldown());
+        CooldownUtils.setShowCooldown(config.getShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
         SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS = config.isAllowCustomSkulls();
 
@@ -351,9 +352,14 @@ public class GeyserConnector {
      * @param uuid the uuid
      * @return the player or <code>null</code> if there is no player online with this UUID
      */
+    @Contract("null -> null")
     public GeyserSession getPlayerByUuid(UUID uuid) {
+        if (uuid == null) {
+            return null;
+        }
+
         for (GeyserSession session : players) {
-            if (session.getPlayerEntity().getUuid().equals(uuid)) {
+            if (uuid.equals(session.getPlayerEntity().getUuid())) {
                 return session;
             }
         }

@@ -61,6 +61,9 @@ public abstract class BlockTranslator {
 
     private final Int2IntMap javaToBedrockBlockMap = new Int2IntOpenHashMap();
     private final Int2IntMap bedrockToJavaBlockMap = new Int2IntOpenHashMap();
+
+    private final NbtList<NbtMap> bedrockBlockStates;
+
     /**
      * Stores a list of differences in block identifiers.
      * Items will not be added to this list if the key and value is the same.
@@ -242,6 +245,7 @@ public abstract class BlockTranslator {
         try (NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)))) {
             NbtMap blockPalette = (NbtMap) nbtInputStream.readTag();
             blocksTag = (NbtList<NbtMap>) blockPalette.getList("blocks", NbtType.COMPOUND);
+            this.bedrockBlockStates = blocksTag;
         } catch (Exception e) {
             throw new AssertionError("Unable to get blocks from runtime block states", e);
         }
@@ -419,6 +423,10 @@ public abstract class BlockTranslator {
 
     public int getBedrockWaterId() {
         return bedrockWaterId;
+    }
+
+    public NbtList<NbtMap> getAllBedrockBlockStates() {
+        return this.bedrockBlockStates;
     }
 
     /**
