@@ -34,6 +34,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequ
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerEnchantOptionsPacket;
 import org.geysermc.connector.inventory.EnchantingContainer;
+import org.geysermc.connector.inventory.GeyserEnchantOption;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -77,8 +78,7 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
                         index = -1;
                     }
                 }
-                enchantingInventory.getGeyserEnchantOptions()[slotToUpdate].setJavaEnchantIndex(value);
-                enchantingInventory.getGeyserEnchantOptions()[slotToUpdate].setBedrockEnchantIndex(index);
+                enchantingInventory.getGeyserEnchantOptions()[slotToUpdate].setEnchantIndex(value, index);
                 break;
             case 7:
             case 8:
@@ -91,8 +91,9 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
             default:
                 return;
         }
-        if (shouldUpdate) {
-            enchantingInventory.getEnchantOptions()[slotToUpdate] = enchantingInventory.getGeyserEnchantOptions()[slotToUpdate].build(session);
+        GeyserEnchantOption enchantOption = enchantingInventory.getGeyserEnchantOptions()[slotToUpdate];
+        if (shouldUpdate && enchantOption.hasChanged()) {
+            enchantingInventory.getEnchantOptions()[slotToUpdate] = enchantOption.build(session);
             PlayerEnchantOptionsPacket packet = new PlayerEnchantOptionsPacket();
             packet.getOptions().addAll(Arrays.asList(enchantingInventory.getEnchantOptions()));
             session.sendUpstreamPacket(packet);
