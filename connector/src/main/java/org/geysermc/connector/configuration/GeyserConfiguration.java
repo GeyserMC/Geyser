@@ -111,6 +111,8 @@ public interface GeyserConfiguration {
 
         String getServerName();
 
+        int getCompressionLevel();
+
         boolean isEnableProxyProtocol();
 
         List<String> getProxyProtocolWhitelistedIPs();
