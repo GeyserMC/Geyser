@@ -59,8 +59,6 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
     @Override
     public void translate(PlayerActionPacket packet, GeyserSession session) {
         Entity entity = session.getPlayerEntity();
-        if (entity == null)
-            return;
 
         // Send book update before any player action
         if (packet.getAction() != PlayerActionType.RESPAWN) {
@@ -84,10 +82,14 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
             case START_SWIMMING:
                 ClientPlayerStatePacket startSwimPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);
                 session.sendDownstreamPacket(startSwimPacket);
+
+                session.setSwimming(true);
                 break;
             case STOP_SWIMMING:
                 ClientPlayerStatePacket stopSwimPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
                 session.sendDownstreamPacket(stopSwimPacket);
+
+                session.setSwimming(false);
                 break;
             case START_GLIDE:
                 // Otherwise gliding will not work in creative
@@ -114,7 +116,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                     }
                     session.sendDownstreamPacket(useItemPacket);
                     session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.BLOCKING, true);
-                    session.getPlayerEntity().updateBedrockMetadata(session);
+                    // metadata will be updated when sneaking
                 }
 
                 session.setSneaking(true);
@@ -128,7 +130,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                     ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, BlockUtils.POSITION_ZERO, BlockFace.DOWN);
                     session.sendDownstreamPacket(releaseItemPacket);
                     session.getPlayerEntity().getMetadata().getFlags().setFlag(EntityFlag.BLOCKING, false);
-                    session.getPlayerEntity().updateBedrockMetadata(session);
+                    // metadata will be updated when sneaking
                 }
 
                 session.setSneaking(false);
