@@ -380,7 +380,6 @@ public class GeyserSession implements CommandSender {
     /**
      * If the current player is flying
      */
-    @Setter
     private boolean flying = false;
 
     /**
@@ -862,11 +861,10 @@ public class GeyserSession implements CommandSender {
             playerEntity.updateBedrockAttributes(this);
             // the server *should* update our pose once it has returned to normal
         } else {
-            this.pose = sneaking ? Pose.SNEAKING : Pose.STANDING;
-            playerEntity.getMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, sneaking ? 1.5f : playerEntity.getEntityType().getHeight());
-            playerEntity.getMetadata().getFlags().setFlag(EntityFlag.SNEAKING, sneaking);
-
-            collisionManager.updatePlayerBoundingBox();
+            if (!flying) {
+                // The pose and bounding box should not be updated if the player is flying
+                setSneakingPose(sneaking);
+            }
             collisionManager.updateScaffoldingFlags(false);
         }
 
@@ -878,11 +876,29 @@ public class GeyserSession implements CommandSender {
         }
     }
 
+    private void setSneakingPose(boolean sneaking) {
+        this.pose = sneaking ? Pose.SNEAKING : Pose.STANDING;
+        playerEntity.getMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, sneaking ? 1.5f : playerEntity.getEntityType().getHeight());
+        playerEntity.getMetadata().getFlags().setFlag(EntityFlag.SNEAKING, sneaking);
+
+        collisionManager.updatePlayerBoundingBox();
+    }
+
     public void setSwimming(boolean swimming) {
         this.pose = swimming ? Pose.SWIMMING : Pose.STANDING;
         playerEntity.getMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, swimming ? 0.6f : playerEntity.getEntityType().getHeight());
         playerEntity.getMetadata().getFlags().setFlag(EntityFlag.SWIMMING, swimming);
         playerEntity.updateBedrockMetadata(this);
+    }
+
+    public void setFlying(boolean flying) {
+        this.flying = flying;
+
+        if (sneaking) {
+            // update bounding box as it is not reduced when flying
+            setSneakingPose(!flying);
+            playerEntity.updateBedrockMetadata(this);
+        }
     }
 
     /**
