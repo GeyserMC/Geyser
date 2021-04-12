@@ -165,6 +165,12 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
         for (Int2ObjectMap.Entry<List<StoneCuttingRecipeData>> data : unsortedStonecutterData.int2ObjectEntrySet()) {
             // Filter out all entries that have null for the result item (i.e., invalid recipes)
             data.setValue(data.getValue().stream().filter((stoneCuttingRecipeData) -> {
+                // validate ingredient items
+                for (ItemStack ingredientItem : stoneCuttingRecipeData.getIngredient().getOptions()) {
+                    if (ItemRegistry.getItem(ingredientItem) == null) return false;
+                    if (ItemRegistry.getItem(ingredientItem).getBedrockId() == 0) return false;
+                }
+                // validate result item
                 if (stoneCuttingRecipeData.getResult() == null) return false;
                 ItemEntry item = ItemRegistry.getItem(stoneCuttingRecipeData.getResult());
                 return item != null && item.getJavaIdentifier() != null;
