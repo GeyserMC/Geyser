@@ -65,7 +65,7 @@ public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPa
                 sendMovement = true;
             } else {
                 // Check if the player is the front rider
-                Vector3f seatPos = session.getPlayerEntity().getMetadata().getVector3f(EntityData.RIDER_SEAT_POSITION);
+                Vector3f seatPos = session.getPlayerEntity().getMetadata().getVector3f(EntityData.RIDER_SEAT_POSITION, null);
                 if (seatPos != null && seatPos.getX() > 0) {
                     sendMovement = true;
                 }

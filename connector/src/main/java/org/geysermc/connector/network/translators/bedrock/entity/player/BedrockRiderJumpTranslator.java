@@ -40,7 +40,7 @@ public class BedrockRiderJumpTranslator extends PacketTranslator<RiderJumpPacket
     public void translate(RiderJumpPacket packet, GeyserSession session) {
         Entity vehicle = session.getRidingVehicleEntity();
         if (vehicle instanceof AbstractHorseEntity) {
-            ClientPlayerStatePacket playerStatePacket = new ClientPlayerStatePacket((int)vehicle.getEntityId(),  PlayerState.START_HORSE_JUMP, packet.getJumpStrength());
+            ClientPlayerStatePacket playerStatePacket = new ClientPlayerStatePacket((int) vehicle.getEntityId(),  PlayerState.START_HORSE_JUMP, packet.getJumpStrength());
             session.sendDownstreamPacket(playerStatePacket);
         }
     }
