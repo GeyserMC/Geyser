@@ -225,7 +225,7 @@ public class GeyserSession implements CommandSender {
     private boolean sneaking;
 
     /**
-     * Stores the pose that the server believes the player currently has.
+     * Stores the Java pose that the server and/or Geyser believes the player currently has.
      */
     @Setter
     private Pose pose = Pose.STANDING;
