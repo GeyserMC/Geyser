@@ -163,6 +163,12 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
 
         Int2ObjectMap<IntList> stonecutterRecipeMap = new Int2ObjectOpenHashMap<>();
         for (Int2ObjectMap.Entry<List<StoneCuttingRecipeData>> data : unsortedStonecutterData.int2ObjectEntrySet()) {
+            // Filter out all entries that have null for the result item (i.e., invalid recipes)
+            data.setValue(data.getValue().stream().filter((stoneCuttingRecipeData) -> {
+                if (stoneCuttingRecipeData.getResult() == null) return false;
+                ItemEntry item = ItemRegistry.getItem(stoneCuttingRecipeData.getResult());
+                return item != null && item.getJavaIdentifier() != null;
+            }).collect(Collectors.toList()));
             // Sort the list by each output item's Java identifier - this is how it's sorted on Java, and therefore
             // We can get the correct order for button pressing
             data.getValue().sort(Comparator.comparing((stoneCuttingRecipeData ->
