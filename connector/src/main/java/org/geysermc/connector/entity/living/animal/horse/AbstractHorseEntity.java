@@ -90,7 +90,8 @@ public class AbstractHorseEntity extends AnimalEntity {
         }
 
         // Needed to control horses
-        metadata.getFlags().setFlag(EntityFlag.CAN_POWER_JUMP, entityType != EntityType.LLAMA);
+        boolean canPowerJump = entityType != EntityType.LLAMA && entityType != EntityType.TRADER_LLAMA;
+        metadata.getFlags().setFlag(EntityFlag.CAN_POWER_JUMP, canPowerJump);
         metadata.getFlags().setFlag(EntityFlag.WASD_CONTROLLED, true);
 
         super.updateBedrockMetadata(entityMetadata, session);
