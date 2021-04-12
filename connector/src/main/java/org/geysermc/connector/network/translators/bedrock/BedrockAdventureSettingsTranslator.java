@@ -39,6 +39,7 @@ public class BedrockAdventureSettingsTranslator extends PacketTranslator<Adventu
     @Override
     public void translate(AdventureSettingsPacket packet, GeyserSession session) {
         boolean isFlying = packet.getSettings().contains(AdventureSetting.FLYING);
+        session.setFlying(isFlying);
         ClientPlayerAbilitiesPacket abilitiesPacket = new ClientPlayerAbilitiesPacket(isFlying);
         session.sendDownstreamPacket(abilitiesPacket);
 
