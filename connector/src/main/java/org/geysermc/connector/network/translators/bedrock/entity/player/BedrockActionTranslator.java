@@ -86,7 +86,6 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.setSwimming(true);
                 break;
             case STOP_SWIMMING:
-                // TODO make this better and only stop sprinting if the player is stopping in water - otherwise the sprint continues
                 ClientPlayerStatePacket stopSwimPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
                 session.sendDownstreamPacket(stopSwimPacket);
 
