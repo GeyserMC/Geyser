@@ -164,7 +164,10 @@ public class InventoryUtils {
         display.putList("Lore", NbtType.STRING, Collections.singletonList(ChatColor.RESET + ChatColor.DARK_PURPLE + description));
 
         root.put("display", display.build());
-        return ItemData.of(ItemRegistry.ITEM_ENTRIES.get(ItemRegistry.BARRIER_INDEX).getBedrockId(), (short) 0, 1, root.build());
+        return ItemData.builder()
+                .id(ItemRegistry.ITEM_ENTRIES.get(ItemRegistry.BARRIER_INDEX).getBedrockId())
+                .count(1)
+                .tag(root.build()).build();
     }
 
     /**

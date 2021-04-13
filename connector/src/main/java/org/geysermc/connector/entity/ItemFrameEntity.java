@@ -107,7 +107,7 @@ public class ItemFrameEntity extends Entity {
             if (itemData.getTag() != null) {
                 builder.put("tag", itemData.getTag().toBuilder().build());
             }
-            builder.putShort("Damage", itemData.getDamage());
+            builder.putShort("Damage", (short) itemData.getDamage());
             builder.putString("Name", itemEntry.getBedrockIdentifier());
             NbtMapBuilder tag = getDefaultTag().toBuilder();
             tag.put("Item", builder.build());

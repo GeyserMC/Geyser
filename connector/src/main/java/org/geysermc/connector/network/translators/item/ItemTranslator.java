@@ -149,12 +149,15 @@ public abstract class ItemTranslator {
 
         translateDisplayProperties(session, nbt);
 
-        ItemData itemData;
+        ItemData.Builder builder;
         ItemTranslator itemStackTranslator = ITEM_STACK_TRANSLATORS.get(bedrockItem.getJavaId());
         if (itemStackTranslator != null) {
-            itemData = itemStackTranslator.translateToBedrock(itemStack, bedrockItem);
+            builder = itemStackTranslator.translateToBedrock(itemStack, bedrockItem);
         } else {
-            itemData = DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem);
+            builder = DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem);
+        }
+        if (bedrockItem.isBlock()) {
+            builder.blockRuntimeId(bedrockItem.getBedrockBlockId());
         }
 
         if (nbt != null) {
@@ -165,10 +168,11 @@ public abstract class ItemTranslator {
             String[] canPlace = new String[0];
             canBreak = getCanModify(session, canDestroy, canBreak);
             canPlace = getCanModify(session, canPlaceOn, canPlace);
-            itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), itemData.getTag(), canPlace, canBreak);
+            builder.canBreak(canBreak);
+            builder.canPlace(canPlace);
         }
 
-        return itemData;
+        return builder.build();
     }
 
     /**
@@ -202,14 +206,19 @@ public abstract class ItemTranslator {
         }
     };
 
-    public ItemData translateToBedrock(ItemStack itemStack, ItemEntry itemEntry) {
+    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemEntry itemEntry) {
         if (itemStack == null) {
-            return ItemData.AIR;
+            // Return, essentially, air
+            return ItemData.builder();
         }
-        if (itemStack.getNbt() == null) {
-            return ItemData.of(itemEntry.getBedrockId(), (short) itemEntry.getBedrockData(), itemStack.getAmount());
+        ItemData.Builder builder = ItemData.builder()
+                .id(itemEntry.getBedrockId())
+                .damage(itemEntry.getBedrockData())
+                .count(itemStack.getAmount());
+        if (itemStack.getNbt() != null) {
+            builder.tag(this.translateNbtToBedrock(itemStack.getNbt()));
         }
-        return ItemData.of(itemEntry.getBedrockId(), (short) itemEntry.getBedrockData(), itemStack.getAmount(), this.translateNbtToBedrock(itemStack.getNbt()));
+        return builder;
     }
 
     public ItemStack translateToJava(ItemData itemData, ItemEntry itemEntry) {

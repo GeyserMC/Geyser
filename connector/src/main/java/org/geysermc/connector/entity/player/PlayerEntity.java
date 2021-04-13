@@ -112,7 +112,7 @@ public class PlayerEntity extends LivingEntity {
         valid = true;
         session.sendUpstreamPacket(addPlayerPacket);
 
-        updateEquipment(session);
+        updateAllEquipment(session);
         updateBedrockAttributes(session);
     }
 
