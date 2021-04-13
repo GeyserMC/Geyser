@@ -93,9 +93,9 @@ public class ItemRegistry {
      */
     public static final IntSet BUCKETS = new IntArraySet();
     /**
-     * Carpet item entries, used in LlamaEntity.java
+     * Carpet item data, used in LlamaEntity.java
      */
-    public static final List<ItemEntry> CARPETS = new ArrayList<>(16);
+    public static final List<ItemData> CARPETS = new ArrayList<>(16);
     /**
      * Crossbow item entry, used in PillagerEntity.java
      */
@@ -458,7 +458,11 @@ public class ItemRegistry {
                 BUCKETS.add(entry.getValue().get("bedrock_id").intValue());
             } else if (entry.getKey().contains("_carpet")) {
                 // This should be the numerical order Java sends as an integer value for llamas
-                CARPETS.add(itemEntry);
+                CARPETS.add(ItemData.builder()
+                        .id(itemEntry.getBedrockId())
+                        .damage(itemEntry.getBedrockData())
+                        .count(1)
+                        .blockRuntimeId(itemEntry.getBedrockBlockId()).build());
             }
 
             itemNames.add(entry.getKey());
