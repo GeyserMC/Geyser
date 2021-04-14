@@ -139,6 +139,32 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         Vector3i blockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getBlockFace());
+
+                        if (true) {
+                            boolean isGodBridging = false;
+                            float yaw = session.getPlayerEntity().getRotation().getX();
+                            switch (packet.getBlockFace()) {
+                                case 2:
+                                    isGodBridging = yaw <= -135f || yaw > 135f;
+                                    break;
+                                case 3:
+                                    isGodBridging = yaw <= 45f && yaw > -45f;
+                                    break;
+                                case 4:
+                                    isGodBridging = yaw > 45f && yaw <= 135f;
+                                    break;
+                                case 5:
+                                    isGodBridging = yaw <= -45f && yaw > -135f;
+                                    break;
+                                default:
+                                    break;
+                            }
+                            if (isGodBridging) {
+                                restoreCorrectBlock(session, blockPos, packet);
+                                return;
+                            }
+                        }
+
                         /*
                         Checks to ensure that the range will be accepted by the server.
                         "Not in range" doesn't refer to how far a vanilla client goes (that's a whole other mess),
