@@ -68,7 +68,7 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
             }
         } else {
             // Null is only returned when no particle of this type is found
-            session.getConnector().getLogger().debug("Unhandled particle packet: " + packet.toString());
+            session.getConnector().getLogger().debug("Unhandled particle packet: " + packet);
         }
     }
 
@@ -84,7 +84,7 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                 int blockState = session.getBlockTranslator().getBedrockBlockId(((BlockParticleData) particle.getData()).getBlockState());
                 return (position) -> {
                     LevelEventPacket packet = new LevelEventPacket();
-                    packet.setType(LevelEventType.PARTICLE_DESTROY_BLOCK_NO_SOUND);
+                    packet.setType(LevelEventType.PARTICLE_CRACK_BLOCK);
                     packet.setPosition(position);
                     packet.setData(blockState);
                     return packet;
