@@ -68,17 +68,20 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
             case 6:
                 // Enchantment type
                 slotToUpdate = key - 4;
-                int index = value;
-                if (index != -1) {
-                    Enchantment enchantment = Enchantment.getByJavaIdentifier("minecraft:" + JavaEnchantment.values()[index].name().toLowerCase());
+                // "value" here is the Java enchant ordinal, so that does not need to be changed
+                // The Bedrock index might need changed, so let's look it up and see.
+                int bedrockIndex = value;
+                if (bedrockIndex != -1) {
+                    Enchantment enchantment = Enchantment.getByJavaIdentifier("minecraft:" + JavaEnchantment.values()[bedrockIndex].name().toLowerCase());
                     if (enchantment != null) {
                         // Convert the Java enchantment index to Bedrock's
-                        index = enchantment.ordinal();
+                        bedrockIndex = enchantment.ordinal();
                     } else {
-                        index = -1;
+                        // There is no Bedrock enchantment equivalent
+                        bedrockIndex = -1;
                     }
                 }
-                enchantingInventory.getGeyserEnchantOptions()[slotToUpdate].setEnchantIndex(value, index);
+                enchantingInventory.getGeyserEnchantOptions()[slotToUpdate].setEnchantIndex(value, bedrockIndex);
                 break;
             case 7:
             case 8:
