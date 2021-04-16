@@ -46,6 +46,7 @@ import java.util.List;
 
 @Translator(packet = ServerJoinGamePacket.class)
 public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacket> {
+    private static final List<SkinPart> SKIN_PART_VALUES = Arrays.asList(SkinPart.values());
 
     @Override
     public void translate(ServerJoinGamePacket packet, GeyserSession session) {
@@ -90,8 +91,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
 
         // We need to send our skin parts to the server otherwise java sees us with no hat, jacket etc
         String locale = session.getLocale();
-        List<SkinPart> skinParts = Arrays.asList(SkinPart.values());
-        ClientSettingsPacket clientSettingsPacket = new ClientSettingsPacket(locale, (byte) session.getRenderDistance(), ChatVisibility.FULL, true, skinParts, HandPreference.RIGHT_HAND);
+        ClientSettingsPacket clientSettingsPacket = new ClientSettingsPacket(locale, (byte) session.getRenderDistance(), ChatVisibility.FULL, true, SKIN_PART_VALUES, HandPreference.RIGHT_HAND);
         session.sendDownstreamPacket(clientSettingsPacket);
 
         session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:brand", PluginMessageUtils.getGeyserBrandData()));
