@@ -111,7 +111,7 @@ public class GeyserHealthProvider extends Thread {
                 }
 
                 if (route.equalsIgnoreCase("/health")) {
-                    printWriter.printf("HTTP/2 200 OK%n%n");
+                    respondOk(printWriter);
                 } else {
                     respondNotFound(printWriter);
                 }
@@ -120,12 +120,31 @@ public class GeyserHealthProvider extends Thread {
             }
         }
 
+        /**
+         * Responds to the HTTP request with a bad request header.
+         *
+         * @param writer The {@link PrintWriter} to print the response to.
+         */
         private void respondBadRequest(PrintWriter writer) {
             writer.printf("HTTP/2 400 Bad Request%n%n");
         }
 
+        /**
+         * Responds to the HTTP request with a not found header.
+         *
+         * @param writer The {@link PrintWriter} to print the response to.
+         */
         private void respondNotFound(PrintWriter writer) {
             writer.printf("HTTP/2 404 Not Found%n%n");
+        }
+
+        /**
+         * Responds to the HTTP request with an OK header.
+         *
+         * @param writer The {@link PrintWriter} to print the response to.
+         */
+        private void respondOk(PrintWriter writer) {
+            writer.printf("HTTP/2 200 OK%n%n");
         }
     }
 }
