@@ -112,32 +112,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             case ITEM_USE:
                 switch (packet.getActionType()) {
                     case 0:
-                        // Check to make sure the client isn't spamming interaction
-                        // Based on Nukkit 1.0, with changes to ensure holding down still works
-                        boolean hasAlreadyClicked = System.currentTimeMillis() - session.getLastInteractionTime() < 110.0 &&
-                                packet.getBlockPosition().distanceSquared(session.getLastInteractionBlockPosition()) < 0.00001;
-                        session.setLastInteractionBlockPosition(packet.getBlockPosition());
-                        session.setLastInteractionPlayerPosition(session.getPlayerEntity().getPosition());
-                        if (hasAlreadyClicked) {
-                            break;
-                        } else {
-                            // Only update the interaction time if it's valid - that way holding down still works.
-                            session.setLastInteractionTime(System.currentTimeMillis());
-                        }
-
-                        // Bedrock sends block interact code for a Java entity so we send entity code back to Java
-                        if (session.getBlockTranslator().isItemFrame(packet.getBlockRuntimeId()) &&
-                                session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition())) != null) {
-                            Vector3f vector = packet.getClickPosition();
-                            ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition()),
-                                    InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
-                            ClientPlayerInteractEntityPacket interactAtPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition()),
-                                    InteractAction.INTERACT_AT, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND, session.isSneaking());
-                            session.sendDownstreamPacket(interactPacket);
-                            session.sendDownstreamPacket(interactAtPacket);
-                            break;
-                        }
-
                         Vector3i blockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getBlockFace());
 
                         if (true) {
@@ -163,6 +137,32 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 restoreCorrectBlock(session, blockPos, packet);
                                 return;
                             }
+                        }
+
+                        // Check to make sure the client isn't spamming interaction
+                        // Based on Nukkit 1.0, with changes to ensure holding down still works
+                        boolean hasAlreadyClicked = System.currentTimeMillis() - session.getLastInteractionTime() < 110.0 &&
+                                packet.getBlockPosition().distanceSquared(session.getLastInteractionBlockPosition()) < 0.00001;
+                        session.setLastInteractionBlockPosition(packet.getBlockPosition());
+                        session.setLastInteractionPlayerPosition(session.getPlayerEntity().getPosition());
+                        if (hasAlreadyClicked) {
+                            break;
+                        } else {
+                            // Only update the interaction time if it's valid - that way holding down still works.
+                            session.setLastInteractionTime(System.currentTimeMillis());
+                        }
+
+                        // Bedrock sends block interact code for a Java entity so we send entity code back to Java
+                        if (session.getBlockTranslator().isItemFrame(packet.getBlockRuntimeId()) &&
+                                session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition())) != null) {
+                            Vector3f vector = packet.getClickPosition();
+                            ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition()),
+                                    InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
+                            ClientPlayerInteractEntityPacket interactAtPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition()),
+                                    InteractAction.INTERACT_AT, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND, session.isSneaking());
+                            session.sendDownstreamPacket(interactPacket);
+                            session.sendDownstreamPacket(interactAtPacket);
+                            break;
                         }
 
                         /*
