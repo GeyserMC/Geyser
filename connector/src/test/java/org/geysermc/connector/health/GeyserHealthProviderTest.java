@@ -80,13 +80,13 @@ public class GeyserHealthProviderTest {
         withSocket((pw, br) -> Assert.assertEquals("HTTP/2 200 OK", getResponse(pw, br, "GET /health HTTP/2")));
         withSocket((pw, br) -> Assert.assertEquals("HTTP/2 200 OK", getResponse(pw, br, "GET /health HTTP/1.2")));
         withSocket((pw, br) -> Assert.assertEquals("HTTP/2 200 OK", getResponse(pw, br, "GET /health HTTP/1")));
+        withSocket((pw, br) -> Assert.assertEquals("HTTP/2 200 OK", getResponse(pw, br, "GET /health?search=some_query HTTP/2")));
     }
 
     @Test
     public void testInvalidRoute() throws IOException {
         withSocket((pw, br) -> Assert.assertEquals("HTTP/2 404 Not Found", getResponse(pw, br, "GET /heal HTTP/2")));
-        withSocket((pw, br) -> Assert.assertEquals("HTTP/2 404 Not Found", getResponse(pw, br, "POST /health HTTP/2")));
-        withSocket((pw, br) -> Assert.assertEquals("HTTP/2 404 Not Found", getResponse(pw, br, "PATCH /heal HTTP/2")));
+        withSocket((pw, br) -> Assert.assertEquals("HTTP/2 404 Not Found", getResponse(pw, br, "GET /health/nested HTTP/2")));
     }
 
     @Test
@@ -97,9 +97,14 @@ public class GeyserHealthProviderTest {
         withSocket((pw, br) -> Assert.assertEquals("HTTP/2 400 Bad Request", getResponse(pw, br, "/health")));
     }
 
+    @Test
+    public void testBadMethod() throws IOException {
+        withSocket((pw, br) -> Assert.assertEquals("HTTP/2 405 Not Allowed", getResponse(pw, br, "POST /health HTTP/2")));
+        withSocket((pw, br) -> Assert.assertEquals("HTTP/2 405 Not Allowed", getResponse(pw, br, "PATCH /health HTTP/2")));
+    }
+
     @FunctionalInterface
     private interface SocketStreamsAcceptor {
         void acceptStreams(PrintWriter writer, BufferedReader reader) throws IOException;
     }
-
 }

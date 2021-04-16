@@ -78,11 +78,15 @@ public class GeyserHealthProvider extends Thread {
                     PrintWriter printWriter = new PrintWriter(outputStreamWriter)
             ) {
                 String request = bufferedReader.readLine();
-                if (request == null) return;
+                if (request == null) {
+                    return;
+                }
 
                 while (true) {
                     String ignore = bufferedReader.readLine();
-                    if (ignore == null || ignore.length() == 0) break;
+                    if (ignore == null || ignore.length() == 0) {
+                        break;
+                    }
                 }
 
                 int initialSplit = request.indexOf(' ');
@@ -123,6 +127,15 @@ public class GeyserHealthProvider extends Thread {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+
+        /**
+         * Responds to the HTTP request with a not allowed header.
+         *
+         * @param writer The {@link PrintWriter} to print the response to.
+         */
+        private void respondNotAllowed(PrintWriter writer) {
+            writer.printf("HTTP/2 405 Not Allowed%n%n");
         }
 
         /**
