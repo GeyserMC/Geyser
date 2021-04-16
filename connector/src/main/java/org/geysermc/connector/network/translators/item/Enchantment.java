@@ -136,7 +136,11 @@ public enum Enchantment {
         MENDING,
         VANISHING_CURSE;
 
-        public static final JavaEnchantment[] VALUES = JavaEnchantment.values();
+        private static final JavaEnchantment[] VALUES = JavaEnchantment.values();
+
+        public static JavaEnchantment of(int index) {
+            return VALUES[index];
+        }
 
         /**
          * A list of all enchantment Java identifiers for use with command suggestions.
