@@ -93,6 +93,11 @@ public class GeyserHealthProvider extends Thread {
 
                 String method = request.substring(0, initialSplit);
 
+                if (method.isEmpty()) {
+                    respondBadRequest(printWriter);
+                    return;
+                }
+
                 if (!method.equalsIgnoreCase("GET")) {
                     respondNotFound(printWriter);
                     return;
