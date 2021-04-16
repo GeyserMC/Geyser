@@ -74,9 +74,6 @@ public abstract class BlockTranslator {
     private final Object2IntMap<NbtMap> itemFrames = new Object2IntOpenHashMap<>();
     private final Map<String, NbtMap> flowerPotBlocks = new HashMap<>();
 
-    // Bedrock carpet ID, used in LlamaEntity.java for decoration
-    public static final int CARPET = 171;
-
     public static final Int2DoubleMap JAVA_RUNTIME_ID_TO_HARDNESS = new Int2DoubleOpenHashMap();
     public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND = new Int2BooleanOpenHashMap();
     public static final Int2ObjectMap<String> JAVA_RUNTIME_ID_TO_TOOL_TYPE = new Int2ObjectOpenHashMap<>();
