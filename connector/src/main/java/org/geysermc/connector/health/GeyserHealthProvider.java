@@ -103,7 +103,7 @@ public class GeyserHealthProvider extends Thread {
                 }
 
                 if (!method.equalsIgnoreCase("GET")) {
-                    respondNotFound(printWriter);
+                    respondNotAllowed(printWriter);
                     return;
                 }
 
