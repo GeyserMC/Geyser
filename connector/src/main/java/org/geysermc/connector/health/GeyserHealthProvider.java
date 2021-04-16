@@ -135,7 +135,7 @@ public class GeyserHealthProvider extends Thread {
          * @param writer The {@link PrintWriter} to print the response to.
          */
         private void respondNotAllowed(PrintWriter writer) {
-            writer.printf("HTTP/2 405 Not Allowed%n%n");
+            writer.printf("HTTP/1.2 405 Not Allowed%n%n");
         }
 
         /**
@@ -144,7 +144,7 @@ public class GeyserHealthProvider extends Thread {
          * @param writer The {@link PrintWriter} to print the response to.
          */
         private void respondBadRequest(PrintWriter writer) {
-            writer.printf("HTTP/2 400 Bad Request%n%n");
+            writer.printf("HTTP/1.2 400 Bad Request%n%n");
         }
 
         /**
@@ -153,7 +153,7 @@ public class GeyserHealthProvider extends Thread {
          * @param writer The {@link PrintWriter} to print the response to.
          */
         private void respondNotFound(PrintWriter writer) {
-            writer.printf("HTTP/2 404 Not Found%n%n");
+            writer.printf("HTTP/1.2 404 Not Found%n%n");
         }
 
         /**
@@ -162,7 +162,7 @@ public class GeyserHealthProvider extends Thread {
          * @param writer The {@link PrintWriter} to print the response to.
          */
         private void respondOk(PrintWriter writer) {
-            writer.printf("HTTP/2 200 OK%n%n");
+            writer.printf("HTTP/1.2 200 OK%n%n");
         }
     }
 }
