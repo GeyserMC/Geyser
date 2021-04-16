@@ -43,6 +43,8 @@ public interface GeyserConfiguration {
 
     IRemoteConfiguration getRemote();
 
+    IHealthConfiguration getHealth();
+
     Map<String, ? extends IUserAuthenticationInfo> getUserAuths();
 
     boolean isCommandSuggestions();
@@ -155,6 +157,12 @@ public interface GeyserConfiguration {
         boolean isEnabled();
 
         String getUniqueId();
+    }
+
+    interface IHealthConfiguration {
+        boolean isEnabled();
+
+        int getPort();
     }
 
     int getScoreboardPacketThreshold();

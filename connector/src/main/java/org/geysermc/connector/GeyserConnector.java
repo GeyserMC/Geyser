@@ -38,6 +38,7 @@ import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
+import org.geysermc.connector.health.GeyserHealthProvider;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -286,6 +287,13 @@ public class GeyserConnector {
 
         if (platformType == PlatformType.STANDALONE) {
             logger.warning(LanguageUtils.getLocaleStringLog("geyser.core.movement_warn"));
+        }
+
+        GeyserConfiguration.IHealthConfiguration healthConfiguration = config.getHealth();
+        if (healthConfiguration.isEnabled()) {
+            GeyserHealthProvider healthProvider = new GeyserHealthProvider(healthConfiguration, logger);
+            healthProvider.setDaemon(true);
+            healthProvider.start();
         }
     }
 

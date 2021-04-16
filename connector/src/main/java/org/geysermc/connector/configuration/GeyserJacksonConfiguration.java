@@ -53,6 +53,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     private BedrockConfiguration bedrock = new BedrockConfiguration();
     private RemoteConfiguration remote = new RemoteConfiguration();
+    private HealthConfiguration health = new HealthConfiguration();
 
     @JsonProperty("floodgate-key-file")
     private String floodgateKeyFile = "public-key.pem";
@@ -212,6 +213,14 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
         @JsonProperty("uuid")
         private String uniqueId = UUID.randomUUID().toString();
+    }
+
+    @Getter
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class HealthConfiguration implements IHealthConfiguration {
+        private boolean enabled = false;
+
+        private int port = 9001;
     }
 
     @JsonProperty("scoreboard-packet-threshold")
