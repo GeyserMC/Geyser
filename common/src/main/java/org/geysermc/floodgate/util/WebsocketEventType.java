@@ -30,7 +30,8 @@ public enum WebsocketEventType {
     SUBSCRIBERS_COUNT,
     ADDED_TO_QUEUE,
     SKIN_UPLOADED,
-    CREATOR_DISCONNECTED;
+    CREATOR_DISCONNECTED,
+    LOG_MESSAGE;
 
     public static final WebsocketEventType[] VALUES = values();
 

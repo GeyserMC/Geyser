@@ -128,6 +128,23 @@ public final class FloodgateSkinUploader {
                                 PluginMessageUtils.sendMessage(session, getSkinChannel(), bytes);
                             }
                             break;
+                        case LOG_MESSAGE:
+                            String logMessage = node.get("message").asText();
+                            switch (node.get("priority").asInt()) {
+                                case -1:
+                                    logger.debug("Got debug message from skin uploader: " + logMessage);
+                                    break;
+                                case 0:
+                                    logger.info("Got info message from skin uploader: " +logMessage);
+                                    break;
+                                case 1:
+                                    logger.error("Got error message from skin uploader: " + logMessage);
+                                    break;
+                                default:
+                                    logger.info(logMessage);
+                                    break;
+                            }
+                            break;
                     }
                 } catch (Exception e) {
                     logger.error("Error while receiving a message", e);
