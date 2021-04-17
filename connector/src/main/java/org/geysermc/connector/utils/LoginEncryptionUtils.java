@@ -60,6 +60,8 @@ import java.util.UUID;
 public class LoginEncryptionUtils {
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
+    private static boolean HAS_SENT_ENCRYPTION_MESSAGE = false;
+
     private static boolean validateChainData(JsonNode data) throws Exception {
         ECPublicKey lastKey = null;
         boolean validChain = false;
@@ -134,6 +136,10 @@ public class LoginEncryptionUtils {
 
             if (EncryptionUtils.canUseEncryption()) {
                 LoginEncryptionUtils.startEncryptionHandshake(session, identityPublicKey);
+            } else if (!HAS_SENT_ENCRYPTION_MESSAGE) {
+                session.getConnector().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.network.encryption.line_1"));
+                session.getConnector().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.network.encryption.line_2", "https://geysermc.org/supported_java"));
+                HAS_SENT_ENCRYPTION_MESSAGE = true;
             }
         } catch (Exception ex) {
             session.disconnect("disconnectionScreen.internalError.cantConnect");
