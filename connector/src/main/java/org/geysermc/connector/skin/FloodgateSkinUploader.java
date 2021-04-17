@@ -132,13 +132,13 @@ public final class FloodgateSkinUploader {
                             String logMessage = node.get("message").asText();
                             switch (node.get("priority").asInt()) {
                                 case -1:
-                                    logger.debug("Got debug message from skin uploader: " + logMessage);
+                                    logger.debug("Got a message from skin uploader: " + logMessage);
                                     break;
                                 case 0:
-                                    logger.info("Got info message from skin uploader: " +logMessage);
+                                    logger.info("Got a message from skin uploader: " +logMessage);
                                     break;
                                 case 1:
-                                    logger.error("Got error message from skin uploader: " + logMessage);
+                                    logger.error("Got a message from skin uploader: " + logMessage);
                                     break;
                                 default:
                                     logger.info(logMessage);
