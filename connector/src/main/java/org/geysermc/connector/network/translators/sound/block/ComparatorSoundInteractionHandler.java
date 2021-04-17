@@ -23,25 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.animal;
+package org.geysermc.connector.network.translators.sound.block;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.connector.entity.living.AgeableEntity;
-import org.geysermc.connector.entity.type.EntityType;
+import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHandler;
+import org.geysermc.connector.network.translators.sound.SoundHandler;
 
-public class AnimalEntity extends AgeableEntity {
+@SoundHandler(blocks = "comparator")
+public class ComparatorSoundInteractionHandler implements BlockSoundInteractionHandler {
 
-    public AnimalEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
-    }
-
-    /**
-     * @param javaIdentifierStripped the stripped Java identifier of the item that is potential breeding food. For example,
-     *                               <code>wheat</code>.
-     * @return true if this is a valid item to breed with for this animal.
-     */
-    public boolean canEat(String javaIdentifierStripped) {
-        // This is what it defaults to. OK.
-        return javaIdentifierStripped.equals("wheat");
+    @Override
+    public void handleInteraction(GeyserSession session, Vector3f position, String identifier) {
+        boolean powered = identifier.contains("mode=compare");
+        LevelEventPacket levelEventPacket = new LevelEventPacket();
+        levelEventPacket.setPosition(position);
+        levelEventPacket.setType(LevelEventType.SOUND_CLICK); //TODO: New ID?
+        levelEventPacket.setData(powered ? 500 : 550);
+        session.sendUpstreamPacket(levelEventPacket);
     }
 }

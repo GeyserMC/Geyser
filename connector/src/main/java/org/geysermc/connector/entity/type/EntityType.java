@@ -48,7 +48,7 @@ import java.util.List;
 @Getter
 public enum EntityType {
 
-    CHICKEN(AnimalEntity.class, 10, 0.7f, 0.4f),
+    CHICKEN(ChickenEntity.class, 10, 0.7f, 0.4f),
     COW(AnimalEntity.class, 11, 1.4f, 0.9f),
     PIG(PigEntity.class, 12, 0.9f),
     SHEEP(SheepEntity.class, 13, 1.3f, 0.9f),

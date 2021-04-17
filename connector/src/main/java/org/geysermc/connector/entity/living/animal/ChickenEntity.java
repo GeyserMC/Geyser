@@ -26,22 +26,16 @@
 package org.geysermc.connector.entity.living.animal;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.connector.entity.living.AgeableEntity;
 import org.geysermc.connector.entity.type.EntityType;
 
-public class AnimalEntity extends AgeableEntity {
+public class ChickenEntity extends AnimalEntity {
 
-    public AnimalEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public ChickenEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }
 
-    /**
-     * @param javaIdentifierStripped the stripped Java identifier of the item that is potential breeding food. For example,
-     *                               <code>wheat</code>.
-     * @return true if this is a valid item to breed with for this animal.
-     */
+    @Override
     public boolean canEat(String javaIdentifierStripped) {
-        // This is what it defaults to. OK.
-        return javaIdentifierStripped.equals("wheat");
+        return javaIdentifierStripped.contains("seeds");
     }
 }

@@ -23,25 +23,33 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.sound.block;
+package org.geysermc.connector.network.translators.sound.entity;
 
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHandler;
+import org.geysermc.connector.network.translators.sound.EntitySoundInteractionHandler;
 import org.geysermc.connector.network.translators.sound.SoundHandler;
 
-@SoundHandler(blocks = "comparator")
-public class ComparatorSoundInteractHandler implements BlockSoundInteractionHandler {
+@SoundHandler
+public class FeedBabySoundInteractionHandler implements EntitySoundInteractionHandler {
 
     @Override
-    public void handleInteraction(GeyserSession session, Vector3f position, String identifier) {
-        boolean powered = identifier.contains("mode=compare");
-        LevelEventPacket levelEventPacket = new LevelEventPacket();
-        levelEventPacket.setPosition(position);
-        levelEventPacket.setType(LevelEventType.SOUND_CLICK); //TODO: New ID?
-        levelEventPacket.setData(powered ? 500 : 550);
-        session.sendUpstreamPacket(levelEventPacket);
+    public void handleInteraction(GeyserSession session, Vector3f position, Entity entity) {
+        if (entity instanceof AnimalEntity) {
+            String handIdentifier = session.getPlayerInventory().getItemInHand().getItemEntry().getJavaIdentifier();
+            boolean isBaby = entity.getMetadata().getFlags().getFlag(EntityFlag.BABY);
+            if (isBaby && ((AnimalEntity) entity).canEat(handIdentifier.replace("minecraft:", ""))) {
+                // Play the "feed child" effect
+                EntityEventPacket feedEvent = new EntityEventPacket();
+                feedEvent.setRuntimeEntityId(entity.getGeyserId());
+                feedEvent.setType(EntityEventType.BABY_ANIMAL_FEED);
+                session.sendUpstreamPacket(feedEvent);
+            }
+        }
     }
 }

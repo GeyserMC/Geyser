@@ -46,4 +46,9 @@ public class TurtleEntity extends AnimalEntity {
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
+
+    @Override
+    public boolean canEat(String javaIdentifierStripped) {
+        return javaIdentifierStripped.equals("seagrass");
+    }
 }

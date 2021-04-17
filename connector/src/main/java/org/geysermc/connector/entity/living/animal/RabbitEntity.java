@@ -59,4 +59,9 @@ public class RabbitEntity extends AnimalEntity {
             metadata.put(EntityData.VARIANT, variant);
         }
     }
+
+    @Override
+    public boolean canEat(String javaIdentifierStripped) {
+        return javaIdentifierStripped.equals("dandelion") || javaIdentifierStripped.equals("carrot") || javaIdentifierStripped.equals("golden_carrot");
+    }
 }

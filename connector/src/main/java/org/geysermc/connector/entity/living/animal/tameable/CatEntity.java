@@ -83,4 +83,9 @@ public class CatEntity extends TameableEntity {
             }
         }
     }
+
+    @Override
+    public boolean canEat(String javaIdentifierStripped) {
+        return javaIdentifierStripped.equals("cod") || javaIdentifierStripped.equals("salmon");
+    }
 }
