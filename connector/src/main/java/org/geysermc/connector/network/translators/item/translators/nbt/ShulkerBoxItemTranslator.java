@@ -54,10 +54,10 @@ public class ShulkerBoxItemTranslator extends NbtItemStackTranslator {
             boxItemTag.put(new StringTag("Name", boxItemEntry.getBedrockIdentifier()));
             boxItemTag.put(new ShortTag("Damage", (short) boxItemEntry.getBedrockData()));
             boxItemTag.put(new ByteTag("Count", ((ByteTag) itemData.get("Count")).getValue()));
-            if (itemData.contains("tag")) {
-                // Only the display name is what we have interest in, so just translate that if relevant
-                CompoundTag displayTag = itemData.get("tag");
-                ItemTranslator.translateDisplayProperties(session, displayTag);
+            // Only the display name is what we have interest in, so just translate that if relevant
+            CompoundTag displayTag = itemData.get("tag");
+            displayTag = ItemTranslator.translateDisplayProperties(session, displayTag, boxItemEntry);
+            if (displayTag != null) {
                 boxItemTag.put(displayTag);
             }
 

@@ -408,6 +408,12 @@ public class ItemRegistry {
                             "", bedrockBlockId,
                             stackSize);
                 }
+            } else if (entry.getKey().equals("minecraft:spectral_arrow") || entry.getKey().equals("minecraft:knowledge_book")) {
+                itemEntry = new TranslatableItemEntry(
+                        entry.getKey(), bedrockIdentifier, itemIndex, bedrockId,
+                        entry.getValue().get("bedrock_data").intValue(),
+                        bedrockBlockId,
+                        stackSize);
             } else {
                 itemEntry = new ItemEntry(
                         entry.getKey(), bedrockIdentifier, itemIndex, bedrockId,
