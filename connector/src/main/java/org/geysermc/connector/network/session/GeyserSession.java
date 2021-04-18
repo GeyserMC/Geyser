@@ -693,26 +693,37 @@ public class GeyserSession implements CommandSender {
             @Override
             public void packetSending(PacketSendingEvent event) {
                 //todo move this somewhere else
-                if (event.getPacket() instanceof HandshakePacket && floodgate) {
-                    String encrypted = "";
-                    try {
-                        encrypted = EncryptionUtil.encryptBedrockData(publicKey, new BedrockData(
-                                clientData.getGameVersion(),
-                                authData.getName(),
-                                authData.getXboxUUID(),
-                                clientData.getDeviceOS().ordinal(),
-                                clientData.getLanguageCode(),
-                                clientData.getCurrentInputMode().ordinal(),
-                                upstream.getAddress().getAddress().getHostAddress()
-                        ));
-                    } catch (Exception e) {
-                        connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
+                if (event.getPacket() instanceof HandshakePacket) {
+                    String addressSuffix = "";
+                    if (floodgate) {
+                        String encrypted = "";
+                        try {
+                            encrypted = EncryptionUtil.encryptBedrockData(publicKey, new BedrockData(
+                                    clientData.getGameVersion(),
+                                    authData.getName(),
+                                    authData.getXboxUUID(),
+                                    clientData.getDeviceOS().ordinal(),
+                                    clientData.getLanguageCode(),
+                                    clientData.getCurrentInputMode().ordinal(),
+                                    upstream.getAddress().getAddress().getHostAddress()
+                            ));
+                        } catch (Exception e) {
+                            connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
+                        }
+
+                        addressSuffix = '\0' + BedrockData.FLOODGATE_IDENTIFIER + '\0' + encrypted;
                     }
 
                     HandshakePacket handshakePacket = event.getPacket();
+
+                    String address = handshakePacket.getHostname();
+                    if (connector.getConfig().getRemote().isForwardHost()) {
+                        address = clientData.getServerAddress().split(":")[0];
+                    }
+
                     event.setPacket(new HandshakePacket(
                             handshakePacket.getProtocolVersion(),
-                            handshakePacket.getHostname() + '\0' + BedrockData.FLOODGATE_IDENTIFIER + '\0' + encrypted,
+                            address + addressSuffix,
                             handshakePacket.getPort(),
                             handshakePacket.getIntent()
                     ));
