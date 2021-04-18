@@ -31,6 +31,8 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.living.animal.AnimalEntity;
+import org.geysermc.connector.entity.living.animal.OcelotEntity;
+import org.geysermc.connector.entity.living.animal.tameable.CatEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.sound.EntitySoundInteractionHandler;
 import org.geysermc.connector.network.translators.sound.SoundHandler;
@@ -40,7 +42,7 @@ public class FeedBabySoundInteractionHandler implements EntitySoundInteractionHa
 
     @Override
     public void handleInteraction(GeyserSession session, Vector3f position, Entity entity) {
-        if (entity instanceof AnimalEntity) {
+        if (entity instanceof AnimalEntity && !(entity instanceof CatEntity || entity instanceof OcelotEntity)) {
             String handIdentifier = session.getPlayerInventory().getItemInHand().getItemEntry().getJavaIdentifier();
             boolean isBaby = entity.getMetadata().getFlags().getFlag(EntityFlag.BABY);
             if (isBaby && ((AnimalEntity) entity).canEat(handIdentifier.replace("minecraft:", ""))) {
