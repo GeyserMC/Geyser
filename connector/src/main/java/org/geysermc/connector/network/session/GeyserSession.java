@@ -716,9 +716,11 @@ public class GeyserSession implements CommandSender {
 
                     HandshakePacket handshakePacket = event.getPacket();
 
-                    String address = handshakePacket.getHostname();
+                    String address;
                     if (connector.getConfig().getRemote().isForwardHost()) {
                         address = clientData.getServerAddress().split(":")[0];
+                    } else {
+                        address = handshakePacket.getHostname();
                     }
 
                     event.setPacket(new HandshakePacket(
