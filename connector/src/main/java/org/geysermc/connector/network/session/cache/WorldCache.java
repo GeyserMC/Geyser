@@ -28,6 +28,7 @@ package org.geysermc.connector.network.session.cache;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.scoreboard.Objective;
 import org.geysermc.connector.scoreboard.Scoreboard;
@@ -38,6 +39,17 @@ public class WorldCache {
     private final GeyserSession session;
     @Setter
     private Difficulty difficulty = Difficulty.EASY;
+
+    /**
+     * True if the client prefers being shown their coordinates, regardless if they're being shown or not.
+     * This will be true everytime the client joins the server because neither the client nor server store the preference permanently.
+     */
+    @Setter
+    private boolean prefersShowCoordinates = true;
+
+    /**
+     * True if the client is being shown their coordinates.
+     */
     private boolean showCoordinates = true;
 
     private Scoreboard scoreboard;
@@ -66,13 +78,17 @@ public class WorldCache {
     }
 
     /**
-     * Tell the client to hide or show the coordinates
+     * Tell the client to hide or show the coordinates.
      *
-     * @param value True to show, false to hide
+     * If {@link #isPrefersShowCoordinates()} is true, coordinates will be shown, unless either of the following conditions apply:
+     *
+     * <li> {@link GeyserSession#isReducedDebugInfo()} is enabled
+     * <li> {@link GeyserConfiguration#isShowCoordinates()} is disabled.
+     *
      */
-    public void setShowCoordinates(boolean value) {
-        boolean allowUserSetting = !session.isReducedDebugInfo() && session.getConnector().getConfig().isShowCoordinates();
-        showCoordinates = allowUserSetting && value;
-        session.sendGameRule("showcoordinates", allowUserSetting && value);
+    public void setShowCoordinates() {
+        boolean allowShowCoordinates = !session.isReducedDebugInfo() && session.getConnector().getConfig().isShowCoordinates();
+        showCoordinates = allowShowCoordinates && prefersShowCoordinates;
+        session.sendGameRule("showcoordinates", showCoordinates);
     }
 }

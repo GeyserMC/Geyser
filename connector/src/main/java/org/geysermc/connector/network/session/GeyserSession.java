@@ -493,9 +493,6 @@ public class GeyserSession implements CommandSender {
         this.remotePort = connector.getConfig().getRemote().getPort();
         this.remoteAuthType = connector.getDefaultAuthType();
 
-        // Update the ShowCoordinates data based on the config setting
-        getWorldCache().setShowCoordinates(connector.getConfig().isShowCoordinates());
-
         // Set the hardcoded shield ID to the ID we just defined in StartGamePacket
         upstream.getSession().getHardcodedBlockingId().set(ItemRegistry.SHIELD.getBedrockId());
 
@@ -1202,13 +1199,14 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Update the cached value for the reduced debug info gamerule.
-     * This also toggles the coordinates display
+     * If enabled, also hides the player's coordinates.
      *
      * @param value The new value for reducedDebugInfo
      */
     public void setReducedDebugInfo(boolean value) {
         reducedDebugInfo = value;
-        worldCache.setShowCoordinates(!value);
+        // Set the showCoordinates data. This is done because setShowCoordinates() uses this gamerule as a variable.
+        getWorldCache().setShowCoordinates();
     }
 
     /**
