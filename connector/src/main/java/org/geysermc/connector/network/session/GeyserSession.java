@@ -1205,8 +1205,8 @@ public class GeyserSession implements CommandSender {
      */
     public void setReducedDebugInfo(boolean value) {
         reducedDebugInfo = value;
-        // Set the showCoordinates data. This is done because setShowCoordinates() uses this gamerule as a variable.
-        getWorldCache().setShowCoordinates();
+        // Set the showCoordinates data. This is done because updateShowCoordinates() uses this gamerule as a variable.
+        getWorldCache().updateShowCoordinates();
     }
 
     /**

@@ -126,7 +126,7 @@ public class SettingsUtils {
             offset++; // Client settings title
 
             session.getWorldCache().setPrefersShowCoordinates(settingsResponse.getToggleResponses().get(offset));
-            session.getWorldCache().setShowCoordinates();
+            session.getWorldCache().updateShowCoordinates();
             offset++;
         }
 

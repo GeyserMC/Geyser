@@ -86,7 +86,7 @@ public class WorldCache {
      * <li> {@link GeyserConfiguration#isShowCoordinates()} is disabled.
      *
      */
-    public void setShowCoordinates() {
+    public void updateShowCoordinates() {
         boolean allowShowCoordinates = !session.isReducedDebugInfo() && session.getConnector().getConfig().isShowCoordinates();
         showCoordinates = allowShowCoordinates && prefersShowCoordinates;
         session.sendGameRule("showcoordinates", showCoordinates);
