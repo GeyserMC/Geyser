@@ -477,7 +477,6 @@ public class ItemRegistry {
         }
 
         itemNames.add("minecraft:furnace_minecart");
-        itemNames.add("minecraft:spectral_arrow");
 
         if (lodestoneCompassId == 0) {
             throw new RuntimeException("Lodestone compass not found in item palette!");

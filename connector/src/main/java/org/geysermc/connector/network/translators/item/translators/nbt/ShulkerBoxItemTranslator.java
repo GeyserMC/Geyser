@@ -28,10 +28,7 @@ package org.geysermc.connector.network.translators.item.translators.nbt;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
-import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
+import org.geysermc.connector.network.translators.item.*;
 
 @ItemRemapper
 public class ShulkerBoxItemTranslator extends NbtItemStackTranslator {
@@ -56,9 +53,11 @@ public class ShulkerBoxItemTranslator extends NbtItemStackTranslator {
             boxItemTag.put(new ByteTag("Count", ((ByteTag) itemData.get("Count")).getValue()));
             // Only the display name is what we have interest in, so just translate that if relevant
             CompoundTag displayTag = itemData.get("tag");
-            displayTag = ItemTranslator.translateDisplayProperties(session, displayTag, boxItemEntry);
+            if (displayTag == null && boxItemEntry instanceof TranslatableItemEntry) {
+                displayTag = new CompoundTag("tag");
+            }
             if (displayTag != null) {
-                boxItemTag.put(displayTag);
+                boxItemTag.put(ItemTranslator.translateDisplayProperties(session, displayTag, boxItemEntry, '7'));
             }
 
             itemsList.add(boxItemTag);

@@ -138,8 +138,6 @@ public abstract class ItemTranslator {
             nbt.put(new IntTag("map", 0));
         }
 
-        ItemStack itemStack = new ItemStack(stack.getId(), stack.getAmount(), nbt);
-
         if (nbt != null) {
             for (NbtItemStackTranslator translator : NBT_TRANSLATORS) {
                 if (translator.acceptItem(bedrockItem)) {
@@ -149,6 +147,8 @@ public abstract class ItemTranslator {
         }
 
         nbt = translateDisplayProperties(session, nbt, bedrockItem);
+
+        ItemStack itemStack = new ItemStack(stack.getId(), stack.getAmount(), nbt);
 
         ItemData.Builder builder;
         ItemTranslator itemStackTranslator = ITEM_STACK_TRANSLATORS.get(bedrockItem.getJavaId());
@@ -399,6 +399,14 @@ public abstract class ItemTranslator {
      * @return the new tag to use, should the current one be null
      */
     public static CompoundTag translateDisplayProperties(GeyserSession session, CompoundTag tag, ItemEntry itemEntry) {
+        return translateDisplayProperties(session, tag, itemEntry, 'f');
+    }
+
+    /**
+     * @param translationColor if this item is not available on Java, the color that the new name should be.
+     *                         Normally, this should just be white, but for shulker boxes this should be gray.
+     */
+    public static CompoundTag translateDisplayProperties(GeyserSession session, CompoundTag tag, ItemEntry itemEntry, char translationColor) {
         boolean hasCustomName = false;
         if (tag != null) {
             CompoundTag display = tag.get("display");
@@ -426,14 +434,13 @@ public abstract class ItemTranslator {
             CompoundTag display = tag.get("display");
             if (display == null) {
                 display = new CompoundTag("display");
+                // Add to the new root tag
+                tag.put(display);
             }
 
             String translationKey = ((TranslatableItemEntry) itemEntry).getTranslationString();
             // Reset formatting since Bedrock defaults to italics
-            display.put(new StringTag("Name", "§r§f" + LocaleUtils.getLocaleString(translationKey, session.getLocale())));
-
-            // Add to the new root tag
-            tag.put(display);
+            display.put(new StringTag("Name", "§r§" + translationColor + LocaleUtils.getLocaleString(translationKey, session.getLocale())));
         }
 
         return tag;
