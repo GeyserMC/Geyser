@@ -47,11 +47,6 @@ public class WorldCache {
     @Setter
     private boolean prefersShowCoordinates = true;
 
-    /**
-     * True if the client is being shown their coordinates.
-     */
-    private boolean showCoordinates = true;
-
     private Scoreboard scoreboard;
     private final ScoreboardUpdater scoreboardUpdater;
 
@@ -83,12 +78,11 @@ public class WorldCache {
      * If {@link #isPrefersShowCoordinates()} is true, coordinates will be shown, unless either of the following conditions apply:
      *
      * <li> {@link GeyserSession#isReducedDebugInfo()} is enabled
-     * <li> {@link GeyserConfiguration#isShowCoordinates()} is disabled.
+     * <li> {@link GeyserConfiguration#isShowCoordinates()} is disabled
      *
      */
     public void updateShowCoordinates() {
         boolean allowShowCoordinates = !session.isReducedDebugInfo() && session.getConnector().getConfig().isShowCoordinates();
-        showCoordinates = allowShowCoordinates && prefersShowCoordinates;
-        session.sendGameRule("showcoordinates", showCoordinates);
+        session.sendGameRule("showcoordinates", allowShowCoordinates && prefersShowCoordinates);
     }
 }
