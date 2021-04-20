@@ -147,6 +147,13 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         @JsonProperty("server-name")
         private String serverName = GeyserConnector.NAME;
 
+        @JsonProperty("compression-level")
+        private int compressionLevel = 6;
+
+        public int getCompressionLevel() {
+            return Math.max(-1, Math.min(compressionLevel, 9));
+        }
+
         @JsonProperty("enable-proxy-protocol")
         private boolean enableProxyProtocol = false;
 

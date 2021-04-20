@@ -356,6 +356,12 @@ public class GeyserSession implements CommandSender {
     private long lastMovementTimestamp = System.currentTimeMillis();
 
     /**
+     * Used to send a ClientVehicleMovePacket for every PlayerInputPacket after idling on a boat/horse for more than 100ms
+     */
+    @Setter
+    private long lastVehicleMoveTimestamp = System.currentTimeMillis();
+
+    /**
      * Controls whether the daylight cycle gamerule has been sent to the client, so the sun/moon remain motionless.
      */
     private boolean daylightCycle = true;

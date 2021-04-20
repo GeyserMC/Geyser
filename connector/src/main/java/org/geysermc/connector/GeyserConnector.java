@@ -160,12 +160,13 @@ public class GeyserConnector {
                 if (config.isDebugMode()) {
                     ex.printStackTrace();
                 }
+                config.getRemote().setAddress(InetAddress.getLoopbackAddress().getHostAddress());
             }
         }
         String remoteAddress = config.getRemote().getAddress();
-        int remotePort = config.getRemote().getPort();
         // Filters whether it is not an IP address or localhost, because otherwise it is not possible to find out an SRV entry.
         if (!remoteAddress.matches(IP_REGEX) && !remoteAddress.equalsIgnoreCase("localhost")) {
+            int remotePort;
             try {
                 // Searches for a server address and a port from a SRV record of the specified host name
                 InitialDirContext ctx = new InitialDirContext();
