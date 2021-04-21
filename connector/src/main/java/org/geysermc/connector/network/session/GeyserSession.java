@@ -694,7 +694,7 @@ public class GeyserSession implements CommandSender {
             public void packetSending(PacketSendingEvent event) {
                 //todo move this somewhere else
                 if (event.getPacket() instanceof HandshakePacket) {
-                    String addressSuffix = "";
+                    String addressSuffix;
                     if (floodgate) {
                         String encrypted = "";
                         try {
@@ -712,6 +712,8 @@ public class GeyserSession implements CommandSender {
                         }
 
                         addressSuffix = '\0' + BedrockData.FLOODGATE_IDENTIFIER + '\0' + encrypted;
+                    } else {
+                        addressSuffix = "";
                     }
 
                     HandshakePacket handshakePacket = event.getPacket();
