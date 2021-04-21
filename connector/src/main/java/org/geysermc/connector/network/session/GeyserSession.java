@@ -1022,7 +1022,6 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setLightningLevel(0);
         startGamePacket.setMultiplayerGame(true);
         startGamePacket.setBroadcastingToLan(true);
-        startGamePacket.getGamerules().add(new GameRuleData<>("showcoordinates", connector.getConfig().isShowCoordinates()));
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setCommandsEnabled(!connector.getConfig().isXboxAchievementsEnabled());
@@ -1214,13 +1213,14 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Update the cached value for the reduced debug info gamerule.
-     * This also toggles the coordinates display
+     * If enabled, also hides the player's coordinates.
      *
      * @param value The new value for reducedDebugInfo
      */
     public void setReducedDebugInfo(boolean value) {
-        worldCache.setShowCoordinates(!value);
         reducedDebugInfo = value;
+        // Set the showCoordinates data. This is done because updateShowCoordinates() uses this gamerule as a variable.
+        getWorldCache().updateShowCoordinates();
     }
 
     /**
