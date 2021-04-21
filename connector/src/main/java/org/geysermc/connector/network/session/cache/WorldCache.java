@@ -75,11 +75,10 @@ public class WorldCache {
     /**
      * Tell the client to hide or show the coordinates.
      *
-     * If {@link #isPrefersShowCoordinates()} is true, coordinates will be shown, unless either of the following conditions apply:
-     *
-     * <li> {@link GeyserSession#isReducedDebugInfo()} is enabled
-     * <li> {@link GeyserConfiguration#isShowCoordinates()} is disabled
-     *
+     * If {@link #prefersShowCoordinates} is true, coordinates will be shown, unless either of the following conditions apply: <br>
+     * <br>
+     * {@link GeyserSession#reducedDebugInfo} is enabled
+     * {@link GeyserConfiguration#isShowCoordinates()} is disabled
      */
     public void updateShowCoordinates() {
         boolean allowShowCoordinates = !session.isReducedDebugInfo() && session.getConnector().getConfig().isShowCoordinates();
