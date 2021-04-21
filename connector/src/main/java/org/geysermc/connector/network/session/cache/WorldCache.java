@@ -75,9 +75,10 @@ public class WorldCache {
     /**
      * Tell the client to hide or show the coordinates.
      *
-     * If prefersShowCoordinates is true, coordinates will be shown, unless:
-     * the reducedDebugInfo gamerule is enabled, or show-coordinates is disabled in the geyser config.
-     *
+     * If {@link #prefersShowCoordinates} is true, coordinates will be shown, unless either of the following conditions apply: <br>
+     * <br>
+     * {@link GeyserSession#reducedDebugInfo} is enabled
+     * {@link GeyserConfiguration#isShowCoordinates()} is disabled
      */
     public void updateShowCoordinates() {
         boolean allowShowCoordinates = !session.isReducedDebugInfo() && session.getConnector().getConfig().isShowCoordinates();
