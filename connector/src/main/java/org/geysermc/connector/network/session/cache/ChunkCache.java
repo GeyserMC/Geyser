@@ -34,6 +34,7 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.MathUtils;
 
 public class ChunkCache {
+    private static final int MINIMUM_WORLD_HEIGHT = 0;
 
     private final boolean cache;
 
@@ -86,6 +87,11 @@ public class ChunkCache {
             return;
         }
 
+        if (y < MINIMUM_WORLD_HEIGHT || (y >> 4) > column.getChunks().length - 1) {
+            // Y likely goes above or below the height limit of this world
+            return;
+        }
+
         Chunk chunk = column.getChunks()[y >> 4];
         if (chunk != null) {
             chunk.set(x & 0xF, y & 0xF, z & 0xF, block);
@@ -99,6 +105,11 @@ public class ChunkCache {
 
         Column column = this.getChunk(x >> 4, z >> 4);
         if (column == null) {
+            return BlockTranslator.JAVA_AIR_ID;
+        }
+
+        if (y < MINIMUM_WORLD_HEIGHT || (y >> 4) > column.getChunks().length - 1) {
+            // Y likely goes above or below the height limit of this world
             return BlockTranslator.JAVA_AIR_ID;
         }
 

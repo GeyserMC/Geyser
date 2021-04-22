@@ -52,7 +52,7 @@ public class TippedArrowTranslator extends ItemTranslator {
     }
 
     @Override
-    public ItemData translateToBedrock(ItemStack itemStack, ItemEntry itemEntry) {
+    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemEntry itemEntry) {
         if (!itemEntry.getJavaIdentifier().equals("minecraft:tipped_arrow") || itemStack.getNbt() == null) {
             // We're only concerned about minecraft:arrow when translating Bedrock -> Java
             return super.translateToBedrock(itemStack, itemEntry);
@@ -61,7 +61,11 @@ public class TippedArrowTranslator extends ItemTranslator {
         if (potionTag instanceof StringTag) {
             TippedArrowPotion tippedArrowPotion = TippedArrowPotion.getByJavaIdentifier(((StringTag) potionTag).getValue());
             if (tippedArrowPotion != null) {
-                return ItemData.of(itemEntry.getBedrockId(), tippedArrowPotion.getBedrockId(), itemStack.getAmount(), translateNbtToBedrock(itemStack.getNbt()));
+                return ItemData.builder()
+                        .id(itemEntry.getBedrockId())
+                        .damage(tippedArrowPotion.getBedrockId())
+                        .count(itemStack.getAmount())
+                        .tag(translateNbtToBedrock(itemStack.getNbt()));
             }
             GeyserConnector.getInstance().getLogger().debug("Unknown Java potion (tipped arrow): " + potionTag.getValue());
         }

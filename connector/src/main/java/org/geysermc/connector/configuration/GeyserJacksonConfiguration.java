@@ -95,7 +95,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private boolean allowThirdPartyCapes = true;
 
     @JsonProperty("show-cooldown")
-    private boolean showCooldown = true;
+    private String showCooldown = "title";
 
     @JsonProperty("show-coordinates")
     private boolean showCoordinates = true;
@@ -114,6 +114,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @JsonProperty("allow-custom-skulls")
     private boolean allowCustomSkulls = true;
+
+    @JsonProperty("add-non-bedrock-items")
+    private boolean addNonBedrockItems = true;
 
     @JsonProperty("above-bedrock-nether-building")
     private boolean aboveBedrockNetherBuilding = false;
@@ -143,6 +146,13 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
         @JsonProperty("server-name")
         private String serverName = GeyserConnector.NAME;
+
+        @JsonProperty("compression-level")
+        private int compressionLevel = 6;
+
+        public int getCompressionLevel() {
+            return Math.max(-1, Math.min(compressionLevel, 9));
+        }
 
         @JsonProperty("enable-proxy-protocol")
         private boolean enableProxyProtocol = false;
@@ -187,6 +197,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
         @JsonProperty("use-proxy-protocol")
         private boolean useProxyProtocol = false;
+
+        @JsonProperty("forward-hostname")
+        private boolean forwardHost = false;
     }
 
     @Getter

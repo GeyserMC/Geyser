@@ -57,8 +57,12 @@ public class SettingsUtils {
         CustomFormBuilder builder = new CustomFormBuilder(LanguageUtils.getPlayerLocaleString("geyser.settings.title.main", language));
         builder.setIcon(new FormImage(FormImage.FormImageType.PATH, "textures/ui/settings_glyph_color_2x.png"));
 
-        builder.addComponent(new LabelComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.title.client", language)));
-        builder.addComponent(new ToggleComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.option.coordinates", language), session.getWorldCache().isShowCoordinates()));
+        // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
+        if (!session.isReducedDebugInfo() && session.getConnector().getConfig().isShowCoordinates()) {
+            builder.addComponent(new LabelComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.title.client", language)));
+
+            builder.addComponent(new ToggleComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.option.coordinates", language), session.getWorldCache().isPrefersShowCoordinates()));
+        }
 
 
         if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
@@ -117,10 +121,14 @@ public class SettingsUtils {
         }
         int offset = 0;
 
-        offset++; // Client settings title
+        // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
+        if (!session.isReducedDebugInfo() && session.getConnector().getConfig().isShowCoordinates()) {
+            offset++; // Client settings title
 
-        session.getWorldCache().setShowCoordinates(settingsResponse.getToggleResponses().get(offset));
-        offset++;
+            session.getWorldCache().setPrefersShowCoordinates(settingsResponse.getToggleResponses().get(offset));
+            session.getWorldCache().updateShowCoordinates();
+            offset++;
+        }
 
         if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
             offset++; // Server settings title

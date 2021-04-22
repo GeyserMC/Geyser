@@ -59,11 +59,13 @@ public class PiglinEntity extends BasePiglinEntity {
     }
 
     @Override
-    public void updateEquipment(GeyserSession session) {
-        // Check if the Piglin is holding Gold and set the ADMIRING flag accordingly
-        metadata.getFlags().setFlag(EntityFlag.ADMIRING, offHand.getId() == ItemRegistry.GOLD.getBedrockId());
-        super.updateBedrockMetadata(session);
+    public void updateOffHand(GeyserSession session) {
+        // Check if the Piglin is holding Gold and set the ADMIRING flag accordingly so its pose updates
+        boolean changed = metadata.getFlags().setFlag(EntityFlag.ADMIRING, offHand.getId() == ItemRegistry.GOLD.getBedrockId());
+        if (changed) {
+            super.updateBedrockMetadata(session);
+        }
 
-        super.updateEquipment(session);
+        super.updateOffHand(session);
     }
 }

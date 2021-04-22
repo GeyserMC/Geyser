@@ -38,7 +38,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
@@ -94,7 +93,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             boolean dropAll = worldAction.getToItem().getCount() > 1;
                             ClientPlayerActionPacket dropAllPacket = new ClientPlayerActionPacket(
                                     dropAll ? PlayerAction.DROP_ITEM_STACK : PlayerAction.DROP_ITEM,
-                                    new Position(0, 0, 0),
+                                    BlockUtils.POSITION_ZERO,
                                     BlockFace.DOWN
                             );
                             session.sendDownstreamPacket(dropAllPacket);
@@ -150,13 +149,18 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         EntityFlags flags = session.getPlayerEntity().getMetadata().getFlags();
 
                         // Adjust position for current eye height
-                        if (flags.getFlag(EntityFlag.SNEAKING)) {
-                            playerPosition = playerPosition.sub(0, (EntityType.PLAYER.getOffset() - 1.27f), 0);
-                        } else if (flags.getFlag(EntityFlag.SWIMMING) || flags.getFlag(EntityFlag.GLIDING) || flags.getFlag(EntityFlag.DAMAGE_NEARBY_MOBS)) {
-                            // Swimming, gliding, or using the trident spin attack
-                            playerPosition = playerPosition.sub(0, (EntityType.PLAYER.getOffset() - 0.4f), 0);
-                        } else if (flags.getFlag(EntityFlag.SLEEPING)) {
-                            playerPosition = playerPosition.sub(0, (EntityType.PLAYER.getOffset() - 0.2f), 0);
+                        switch (session.getPose()) {
+                            case SNEAKING:
+                                playerPosition = playerPosition.sub(0, (EntityType.PLAYER.getOffset() - 1.27f), 0);
+                                break;
+                            case SWIMMING:
+                            case FALL_FLYING: // Elytra
+                            case SPIN_ATTACK: // Trident spin attack
+                                playerPosition = playerPosition.sub(0, (EntityType.PLAYER.getOffset() - 0.4f), 0);
+                                break;
+                            case SLEEPING:
+                                playerPosition = playerPosition.sub(0, (EntityType.PLAYER.getOffset() - 0.2f), 0);
+                                break;
                         } // else, we don't have to modify the position
 
                         float diffX = playerPosition.getX() - packet.getBlockPosition().getX();
@@ -292,7 +296,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             case ITEM_RELEASE:
                 if (packet.getActionType() == 0) {
                     // Followed to the Minecraft Protocol specification outlined at wiki.vg
-                    ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0,0,0),
+                    ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, BlockUtils.POSITION_ZERO,
                             BlockFace.DOWN);
                     session.sendDownstreamPacket(releaseItemPacket);
                 }
