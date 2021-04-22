@@ -28,9 +28,12 @@ package org.geysermc.connector.configuration;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.common.EmoteOffhandDeserializer;
+import org.geysermc.connector.common.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.common.serializer.AsteriskSerializer;
 import org.geysermc.connector.network.CIDRMatcher;
 
@@ -99,6 +102,10 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @JsonProperty("show-coordinates")
     private boolean showCoordinates = true;
+
+    @JsonDeserialize(using = EmoteOffhandDeserializer.class)
+    @JsonProperty("emote-offhand-workaround")
+    private EmoteOffhandWorkaroundOption emoteOffhandWorkaround = EmoteOffhandWorkaroundOption.DISABLED;
 
     @JsonProperty("allow-third-party-ears")
     private boolean allowThirdPartyEars = false;

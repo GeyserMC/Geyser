@@ -23,14 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.monster.raid;
+package org.geysermc.connector.common;
 
-import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.connector.entity.type.EntityType;
-
-public class SpellcasterIllagerEntity extends AbstractIllagerEntity {
-
-    public SpellcasterIllagerEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
-    }
+public enum EmoteOffhandWorkaroundOption {
+    NO_EMOTES,
+    EMOTES_AND_OFFHAND,
+    DISABLED
 }

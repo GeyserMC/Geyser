@@ -23,14 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.monster.raid;
+package org.geysermc.connector.common;
 
-import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.connector.entity.type.EntityType;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 
-public class SpellcasterIllagerEntity extends AbstractIllagerEntity {
+import java.io.IOException;
 
-    public SpellcasterIllagerEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+public class EmoteOffhandDeserializer extends JsonDeserializer<EmoteOffhandWorkaroundOption> {
+    @Override
+    public EmoteOffhandWorkaroundOption deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+        String value = p.getValueAsString();
+        switch (value) {
+            case "no-emotes":
+                return EmoteOffhandWorkaroundOption.NO_EMOTES;
+            case "emotes-and-offhand":
+                return EmoteOffhandWorkaroundOption.EMOTES_AND_OFFHAND;
+            default:
+                return EmoteOffhandWorkaroundOption.DISABLED;
+        }
     }
 }
