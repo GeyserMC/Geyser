@@ -86,6 +86,8 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         gamerulePacket.getGameRules().add(new GameRuleData<>("doimmediaterespawn", !packet.isEnableRespawnScreen()));
         session.sendUpstreamPacket(gamerulePacket);
 
+        session.setReducedDebugInfo(packet.isReducedDebugInfo());
+
         session.setRenderDistance(packet.getViewDistance());
 
         // We need to send our skin parts to the server otherwise java sees us with no hat, jacket etc

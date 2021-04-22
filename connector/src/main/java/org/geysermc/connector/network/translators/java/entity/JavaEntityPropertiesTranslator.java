@@ -67,7 +67,12 @@ public class JavaEntityPropertiesTranslator extends PacketTranslator<ServerEntit
                     entity.getAttributes().put(AttributeType.MOVEMENT_SPEED, AttributeType.MOVEMENT_SPEED.getAttribute((float) AttributeUtils.calculateValue(attribute)));
                     break;
                 case GENERIC_MOVEMENT_SPEED:
-                    entity.getAttributes().put(AttributeType.MOVEMENT_SPEED, AttributeType.MOVEMENT_SPEED.getAttribute((float) AttributeUtils.calculateValue(attribute)));
+                    float value = (float) AttributeUtils.calculateValue(attribute);
+                    entity.getAttributes().put(AttributeType.MOVEMENT_SPEED, AttributeType.MOVEMENT_SPEED.getAttribute(value));
+                    if (isSessionPlayer) {
+                        session.setOriginalSpeedAttribute(value);
+                        session.adjustSpeed();
+                    }
                     break;
                 case GENERIC_FOLLOW_RANGE:
                     entity.getAttributes().put(AttributeType.FOLLOW_RANGE, AttributeType.FOLLOW_RANGE.getAttribute((float) AttributeUtils.calculateValue(attribute)));

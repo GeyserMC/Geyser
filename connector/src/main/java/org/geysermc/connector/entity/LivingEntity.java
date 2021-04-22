@@ -99,6 +99,13 @@ public class LivingEntity extends Entity {
                         // Bed has to be updated, or else player is floating in the air
                         ChunkUtils.updateBlock(session, bed, bedPosition);
                     }
+                    // Indicate that the player should enter the sleep cycle
+                    // Has to be a byte or it does not work
+                    // (Bed position is what actually triggers sleep - "pose" is only optional)
+                    metadata.put(EntityData.PLAYER_FLAGS, (byte) 2);
+                } else {
+                    // Player is no longer sleeping
+                    metadata.put(EntityData.PLAYER_FLAGS, (byte) 0);
                 }
                 break;
         }
@@ -106,9 +113,28 @@ public class LivingEntity extends Entity {
         super.updateBedrockMetadata(entityMetadata, session);
     }
 
-    public void updateEquipment(GeyserSession session) {
-        if (!valid)
-            return;
+    public void updateAllEquipment(GeyserSession session) {
+        if (!valid) return;
+
+        updateArmor(session);
+        updateMainHand(session);
+        updateOffHand(session);
+    }
+
+    public void updateArmor(GeyserSession session) {
+        if (!valid) return;
+
+        ItemData helmet = this.helmet;
+        ItemData chestplate = this.chestplate;
+        // If an entity has a banner on them, it will be in the helmet slot in Java but the chestplate spot in Bedrock
+        // But don't overwrite the chestplate if it isn't empty
+        if (chestplate.getId() == ItemData.AIR.getId() && helmet.getId() == ItemRegistry.BANNER.getBedrockId()) {
+            chestplate = this.helmet;
+            helmet = ItemData.AIR;
+        } else if (chestplate.getId() == ItemRegistry.BANNER.getBedrockId()) {
+            // Prevent chestplate banners from showing erroneously
+            chestplate = ItemData.AIR;
+        }
 
         MobArmorEquipmentPacket armorEquipmentPacket = new MobArmorEquipmentPacket();
         armorEquipmentPacket.setRuntimeEntityId(geyserId);
@@ -117,12 +143,24 @@ public class LivingEntity extends Entity {
         armorEquipmentPacket.setLeggings(leggings);
         armorEquipmentPacket.setBoots(boots);
 
+        session.sendUpstreamPacket(armorEquipmentPacket);
+    }
+
+    public void updateMainHand(GeyserSession session) {
+        if (!valid) return;
+
         MobEquipmentPacket handPacket = new MobEquipmentPacket();
         handPacket.setRuntimeEntityId(geyserId);
         handPacket.setItem(hand);
         handPacket.setHotbarSlot(-1);
         handPacket.setInventorySlot(0);
         handPacket.setContainerId(ContainerId.INVENTORY);
+
+        session.sendUpstreamPacket(handPacket);
+    }
+
+    public void updateOffHand(GeyserSession session) {
+        if (!valid) return;
 
         MobEquipmentPacket offHandPacket = new MobEquipmentPacket();
         offHandPacket.setRuntimeEntityId(geyserId);
@@ -131,8 +169,6 @@ public class LivingEntity extends Entity {
         offHandPacket.setInventorySlot(0);
         offHandPacket.setContainerId(ContainerId.OFFHAND);
 
-        session.sendUpstreamPacket(armorEquipmentPacket);
-        session.sendUpstreamPacket(handPacket);
         session.sendUpstreamPacket(offHandPacket);
     }
 

@@ -23,15 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.remote;
+package org.geysermc.connector.network.translators.bedrock.entity.player;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerState;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerStatePacket;
+import com.nukkitx.protocol.bedrock.packet.RiderJumpPacket;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.living.animal.horse.AbstractHorseEntity;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-@Getter
-@AllArgsConstructor
-public class RemoteServer {
-
-    private String address;
-    private int port;
+@Translator(packet = RiderJumpPacket.class)
+public class BedrockRiderJumpTranslator extends PacketTranslator<RiderJumpPacket> {
+    @Override
+    public void translate(RiderJumpPacket packet, GeyserSession session) {
+        Entity vehicle = session.getRidingVehicleEntity();
+        if (vehicle instanceof AbstractHorseEntity) {
+            ClientPlayerStatePacket playerStatePacket = new ClientPlayerStatePacket((int) vehicle.getEntityId(),  PlayerState.START_HORSE_JUMP, packet.getJumpStrength());
+            session.sendDownstreamPacket(playerStatePacket);
+        }
+    }
 }

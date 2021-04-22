@@ -28,10 +28,14 @@ package org.geysermc.connector.entity.player;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.protocol.bedrock.data.PlayerPermission;
+import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
 /**
@@ -59,6 +63,33 @@ public class SkullPlayerEntity extends PlayerEntity {
         metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.001f);
         metadata.getOrCreateFlags().setFlag(EntityFlag.CAN_SHOW_NAME, false);
         metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true); // Until the skin is loaded
+    }
+
+    /**
+     * Overwritten so each entity doesn't check for a linked entity
+     */
+    @Override
+    public void spawnEntity(GeyserSession session) {
+        AddPlayerPacket addPlayerPacket = new AddPlayerPacket();
+        addPlayerPacket.setUuid(getUuid());
+        addPlayerPacket.setUsername(getUsername());
+        addPlayerPacket.setRuntimeEntityId(geyserId);
+        addPlayerPacket.setUniqueEntityId(geyserId);
+        addPlayerPacket.setPosition(position.clone().sub(0, EntityType.PLAYER.getOffset(), 0));
+        addPlayerPacket.setRotation(getBedrockRotation());
+        addPlayerPacket.setMotion(motion);
+        addPlayerPacket.setHand(hand);
+        addPlayerPacket.getAdventureSettings().setCommandPermission(CommandPermission.NORMAL);
+        addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
+        addPlayerPacket.setDeviceId("");
+        addPlayerPacket.setPlatformChatId("");
+        addPlayerPacket.getMetadata().putAll(metadata);
+
+        valid = true;
+        session.sendUpstreamPacket(addPlayerPacket);
+
+        updateAllEquipment(session);
+        updateBedrockAttributes(session);
     }
 
     public void despawnEntity(GeyserSession session, Vector3i position) {
