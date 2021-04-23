@@ -80,14 +80,16 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
             session.sendDownstreamPacket(teleportConfirmPacket);
 
-            ChunkUtils.updateChunkPosition(session, pos.toInt());
-
             if (session.getRenderDistance() > 47) {
                 // See DimensionUtils for an explanation
                 ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
                 chunkRadiusUpdatedPacket.setRadius(session.getRenderDistance());
                 session.sendUpstreamPacket(chunkRadiusUpdatedPacket);
+
+                session.setLastChunkPosition(null);
             }
+
+            ChunkUtils.updateChunkPosition(session, pos.toInt());
 
             session.getConnector().getLogger().debug(LanguageUtils.getLocaleStringLog("geyser.entity.player.spawn", packet.getX(), packet.getY(), packet.getZ()));
             return;

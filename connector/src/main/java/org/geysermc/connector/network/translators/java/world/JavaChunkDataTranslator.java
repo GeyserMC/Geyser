@@ -27,6 +27,7 @@ package org.geysermc.connector.network.translators.java.world;
 
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.nbt.NBTOutputStream;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
@@ -58,6 +59,13 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
     public void translate(ServerChunkDataPacket packet, GeyserSession session) {
         if (session.isSpawned()) {
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
+        } else if (session.getRenderDistance() > 47 && session.getClientRenderDistance() < 32) {
+            // Ensure the chunk gets loaded
+            // If the player is far away enough, it will load during a dimension switch, but
+            // it will also just discard the chunk
+            session.getPlayerEntity().moveAbsolute(session,
+                    Vector3f.from(packet.getColumn().getX() << 4, Short.MAX_VALUE, packet.getColumn().getZ() << 4),
+                    session.getPlayerEntity().getRotation(), false, true);
         }
 
         if (packet.getColumn().getBiomeData() == null && !cacheChunks) {
