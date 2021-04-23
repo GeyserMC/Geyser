@@ -28,8 +28,10 @@ package org.geysermc.connector.utils;
 import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.ChangeDimensionPacket;
+import com.nukkitx.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import com.nukkitx.protocol.bedrock.packet.MobEffectPacket;
 import com.nukkitx.protocol.bedrock.packet.StopSoundPacket;
 import org.geysermc.connector.GeyserConnector;
@@ -62,6 +64,20 @@ public class DimensionUtils {
         session.getItemFrameCache().clear();
         session.getLecternCache().clear();
         session.getSkullCache().clear();
+
+        if (session.getRenderDistance() > 47) {
+            // The server-sided view distance wasn't a thing until Minecraft Java 1.14
+            // So ViaVersion compensates by sending a "view distance" of 64
+            // That's fine, except when the actual view distance sent from the server is five chunks
+            // The client locks up when switching dimensions, expecting more chunks than it's getting
+            // To solve this, we cap at 32 unless we know that the render distance actually exceeds 32
+            // 47 is the Bedrock equivalent of 32
+            session.getConnector().getLogger().debug("Applying dimension switching workaround for Bedrock render distance of " + session.getRenderDistance());
+            ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
+            chunkRadiusUpdatedPacket.setRadius(47);
+            session.sendUpstreamPacket(chunkRadiusUpdatedPacket);
+            // Will be re-adjusted on spawn
+        }
 
         Vector3i pos = Vector3i.from(0, Short.MAX_VALUE, 0);
 
@@ -125,8 +141,9 @@ public class DimensionUtils {
             GeyserConnector.getInstance().getLogger().debug("Dimension tag was null or empty.");
             return OVERWORLD;
         }
-        if (dimensionTag.getValue().get("effects") != null) {
-            return ((StringTag) dimensionTag.getValue().get("effects")).getValue();
+        Tag effectsTag = dimensionTag.getValue().get("effects");
+        if (effectsTag instanceof StringTag) {
+            return ((StringTag) effectsTag).getValue();
         }
         GeyserConnector.getInstance().getLogger().debug("Effects portion of the tag was null or empty.");
         return OVERWORLD;

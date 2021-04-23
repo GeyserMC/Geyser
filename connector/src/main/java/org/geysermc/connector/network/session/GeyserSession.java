@@ -37,9 +37,13 @@ import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.entity.player.HandPreference;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
+import com.github.steveice10.mc.protocol.data.game.setting.ChatVisibility;
+import com.github.steveice10.mc.protocol.data.game.setting.SkinPart;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientSettingsPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
@@ -365,6 +369,14 @@ public class GeyserSession implements CommandSender {
      * Controls whether the daylight cycle gamerule has been sent to the client, so the sun/moon remain motionless.
      */
     private boolean daylightCycle = true;
+
+    /**
+     * Stores the client render distance.
+     *
+     * At this time, it is not used to change the amount of chunks rendered.
+     */
+    @Setter
+    private int clientRenderDistance;
 
     private boolean reducedDebugInfo = false;
 
@@ -1294,6 +1306,18 @@ public class GeyserSession implements CommandSender {
         flags.add(AdventureSetting.AUTO_JUMP);
 
         sendUpstreamPacket(adventureSettingsPacket);
+    }
+
+    // We need to send our skin parts to the server otherwise java sees us with no hat, jacket etc
+    private static final List<SkinPart> SKIN_PARTS = Arrays.asList(SkinPart.values());
+
+    /**
+     * Send a ClientSettingsPacket to the server to indicate client render distance, locale, skin parts, and hand preference.
+     */
+    public void sendJavaClientSettings() {
+        ClientSettingsPacket clientSettingsPacket = new ClientSettingsPacket(getLocale(), (byte) clientRenderDistance,
+                ChatVisibility.FULL, true, SKIN_PARTS, HandPreference.RIGHT_HAND);
+        sendDownstreamPacket(clientSettingsPacket);
     }
 
     /**

@@ -54,7 +54,7 @@ public class BedrockRespawnTranslator extends PacketTranslator<RespawnPacket> {
             if (session.isSpawned()) {
                 // Client might be stuck; resend spawn information
                 PlayerEntity entity = session.getPlayerEntity();
-                if (entity == null) return;
+
                 SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
                 entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
                 entityDataPacket.getMetadata().putAll(entity.getMetadata());

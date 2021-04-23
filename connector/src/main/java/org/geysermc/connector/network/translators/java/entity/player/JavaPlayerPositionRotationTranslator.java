@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.PositionElement
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
@@ -78,6 +79,15 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
 
             ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
             session.sendDownstreamPacket(teleportConfirmPacket);
+
+            if (session.getRenderDistance() > 47) {
+                // See DimensionUtils for an explanation
+                ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
+                chunkRadiusUpdatedPacket.setRadius(session.getRenderDistance());
+                session.sendUpstreamPacket(chunkRadiusUpdatedPacket);
+
+                session.setLastChunkPosition(null);
+            }
 
             ChunkUtils.updateChunkPosition(session, pos.toInt());
 
