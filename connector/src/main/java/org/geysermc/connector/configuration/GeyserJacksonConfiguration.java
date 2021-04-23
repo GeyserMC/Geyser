@@ -197,6 +197,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
         @JsonProperty("use-proxy-protocol")
         private boolean useProxyProtocol = false;
+
+        @JsonProperty("forward-hostname")
+        private boolean forwardHost = false;
     }
 
     @Getter

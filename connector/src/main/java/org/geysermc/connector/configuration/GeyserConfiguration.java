@@ -138,6 +138,8 @@ public interface GeyserConfiguration {
         boolean isPasswordAuthentication();
 
         boolean isUseProxyProtocol();
+
+        boolean isForwardHost();
     }
 
     interface IUserAuthenticationInfo {

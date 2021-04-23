@@ -693,26 +693,41 @@ public class GeyserSession implements CommandSender {
             @Override
             public void packetSending(PacketSendingEvent event) {
                 //todo move this somewhere else
-                if (event.getPacket() instanceof HandshakePacket && floodgate) {
-                    String encrypted = "";
-                    try {
-                        encrypted = EncryptionUtil.encryptBedrockData(publicKey, new BedrockData(
-                                clientData.getGameVersion(),
-                                authData.getName(),
-                                authData.getXboxUUID(),
-                                clientData.getDeviceOS().ordinal(),
-                                clientData.getLanguageCode(),
-                                clientData.getCurrentInputMode().ordinal(),
-                                upstream.getAddress().getAddress().getHostAddress()
-                        ));
-                    } catch (Exception e) {
-                        connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
+                if (event.getPacket() instanceof HandshakePacket) {
+                    String addressSuffix;
+                    if (floodgate) {
+                        String encrypted = "";
+                        try {
+                            encrypted = EncryptionUtil.encryptBedrockData(publicKey, new BedrockData(
+                                    clientData.getGameVersion(),
+                                    authData.getName(),
+                                    authData.getXboxUUID(),
+                                    clientData.getDeviceOS().ordinal(),
+                                    clientData.getLanguageCode(),
+                                    clientData.getCurrentInputMode().ordinal(),
+                                    upstream.getAddress().getAddress().getHostAddress()
+                            ));
+                        } catch (Exception e) {
+                            connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
+                        }
+
+                        addressSuffix = '\0' + BedrockData.FLOODGATE_IDENTIFIER + '\0' + encrypted;
+                    } else {
+                        addressSuffix = "";
                     }
 
                     HandshakePacket handshakePacket = event.getPacket();
+
+                    String address;
+                    if (connector.getConfig().getRemote().isForwardHost()) {
+                        address = clientData.getServerAddress().split(":")[0];
+                    } else {
+                        address = handshakePacket.getHostname();
+                    }
+
                     event.setPacket(new HandshakePacket(
                             handshakePacket.getProtocolVersion(),
-                            handshakePacket.getHostname() + '\0' + BedrockData.FLOODGATE_IDENTIFIER + '\0' + encrypted,
+                            address + addressSuffix,
                             handshakePacket.getPort(),
                             handshakePacket.getIntent()
                     ));
@@ -1007,7 +1022,6 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setLightningLevel(0);
         startGamePacket.setMultiplayerGame(true);
         startGamePacket.setBroadcastingToLan(true);
-        startGamePacket.getGamerules().add(new GameRuleData<>("showcoordinates", connector.getConfig().isShowCoordinates()));
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setCommandsEnabled(!connector.getConfig().isXboxAchievementsEnabled());
@@ -1199,13 +1213,14 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Update the cached value for the reduced debug info gamerule.
-     * This also toggles the coordinates display
+     * If enabled, also hides the player's coordinates.
      *
      * @param value The new value for reducedDebugInfo
      */
     public void setReducedDebugInfo(boolean value) {
-        worldCache.setShowCoordinates(!value);
         reducedDebugInfo = value;
+        // Set the showCoordinates data. This is done because updateShowCoordinates() uses this gamerule as a variable.
+        getWorldCache().updateShowCoordinates();
     }
 
     /**
