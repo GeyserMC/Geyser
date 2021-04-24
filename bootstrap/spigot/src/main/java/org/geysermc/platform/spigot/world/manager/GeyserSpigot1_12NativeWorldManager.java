@@ -54,7 +54,7 @@ public class GeyserSpigot1_12NativeWorldManager extends GeyserSpigot1_12WorldMan
             return BlockTranslator.JAVA_AIR_ID;
         }
         // Get block entity storage
-        BlockStorage storage = Via.getManager().getConnection(player.getUniqueId()).get(BlockStorage.class);
+        BlockStorage storage = Via.getManager().getConnectionManager().getConnectedClient(player.getUniqueId()).get(BlockStorage.class);
         int blockId = adapter.getBlockAt(player.getWorld(), x, y, z);
         return getLegacyBlock(storage, blockId, x, y, z);
     }
