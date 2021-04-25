@@ -38,11 +38,9 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.InventorySource;
+import com.nukkitx.protocol.bedrock.data.inventory.*;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.CommandBlockMinecartEntity;
 import org.geysermc.connector.entity.Entity;
@@ -76,6 +74,17 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     public void translate(InventoryTransactionPacket packet, GeyserSession session) {
         // Send book updates before opening inventories
         session.getBookEditCache().checkForSend();
+
+        if (packet.getTransactionType() != TransactionType.NORMAL && session.getPlayerEntity().getMetadata().getFlags().getFlag(EntityFlag.BLOCKING)) {
+            // Java Edition does not let you interact with anything while you're blocking
+            if (packet.getTransactionType() == TransactionType.ITEM_USE) {
+                // Prevent ghost blocks
+                Vector3i blockPos = packet.getActionType() != 2 ?
+                        BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getBlockFace()) : packet.getBlockPosition();
+                restoreCorrectBlock(session, blockPos, packet);
+            }
+            return;
+        }
 
         switch (packet.getTransactionType()) {
             case NORMAL:
