@@ -171,9 +171,9 @@ public enum EntityType {
     ITEM_FRAME(ItemFrameEntity.class, 0, 0, 0),
 
     /**
-     * Not an entity in Bedrock, so we replace it with a Pillager
+     * Not an entity in Bedrock, so we replace it with an evoker
      */
-    ILLUSIONER(AbstractIllagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:pillager"),
+    ILLUSIONER(SpellcasterIllagerEntity.class, 104, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:evocation_illager"),
 
     /**
      * Not an entity in Bedrock, but used for the Ender Dragon's multiple hitboxes
