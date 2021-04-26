@@ -36,12 +36,8 @@ import org.geysermc.connector.utils.BlockUtils;
 
 public class OffhandCommand extends GeyserCommand {
 
-    private final GeyserConnector connector;
-
     public OffhandCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);
-
-        this.connector = connector;
     }
 
     @Override
