@@ -42,8 +42,10 @@ import org.geysermc.connector.network.translators.collision.translators.BlockCol
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class CollisionManager {
 
@@ -71,8 +73,9 @@ public class CollisionManager {
     public static final double COLLISION_TOLERANCE = 0.00001;
     /**
      * Trims Y coordinates when jumping to prevent rounding issues being sent to the server.
+     * The locale used is necessary so other regions don't use <code>,</code> as their decimal separator.
      */
-    private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#####");
+    private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#####", new DecimalFormatSymbols(Locale.ENGLISH));
 
     public CollisionManager(GeyserSession session) {
         this.session = session;

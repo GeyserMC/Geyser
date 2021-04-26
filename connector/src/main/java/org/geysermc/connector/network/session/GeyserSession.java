@@ -356,6 +356,12 @@ public class GeyserSession implements CommandSender {
     private long lastMovementTimestamp = System.currentTimeMillis();
 
     /**
+     * Used to send a ClientVehicleMovePacket for every PlayerInputPacket after idling on a boat/horse for more than 100ms
+     */
+    @Setter
+    private long lastVehicleMoveTimestamp = System.currentTimeMillis();
+
+    /**
      * Controls whether the daylight cycle gamerule has been sent to the client, so the sun/moon remain motionless.
      */
     private boolean daylightCycle = true;
@@ -380,7 +386,6 @@ public class GeyserSession implements CommandSender {
     /**
      * If the current player is flying
      */
-    @Setter
     private boolean flying = false;
 
     /**
@@ -688,26 +693,41 @@ public class GeyserSession implements CommandSender {
             @Override
             public void packetSending(PacketSendingEvent event) {
                 //todo move this somewhere else
-                if (event.getPacket() instanceof HandshakePacket && floodgate) {
-                    String encrypted = "";
-                    try {
-                        encrypted = EncryptionUtil.encryptBedrockData(publicKey, new BedrockData(
-                                clientData.getGameVersion(),
-                                authData.getName(),
-                                authData.getXboxUUID(),
-                                clientData.getDeviceOS().ordinal(),
-                                clientData.getLanguageCode(),
-                                clientData.getCurrentInputMode().ordinal(),
-                                upstream.getAddress().getAddress().getHostAddress()
-                        ));
-                    } catch (Exception e) {
-                        connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
+                if (event.getPacket() instanceof HandshakePacket) {
+                    String addressSuffix;
+                    if (floodgate) {
+                        String encrypted = "";
+                        try {
+                            encrypted = EncryptionUtil.encryptBedrockData(publicKey, new BedrockData(
+                                    clientData.getGameVersion(),
+                                    authData.getName(),
+                                    authData.getXboxUUID(),
+                                    clientData.getDeviceOS().ordinal(),
+                                    clientData.getLanguageCode(),
+                                    clientData.getCurrentInputMode().ordinal(),
+                                    upstream.getAddress().getAddress().getHostAddress()
+                            ));
+                        } catch (Exception e) {
+                            connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
+                        }
+
+                        addressSuffix = '\0' + BedrockData.FLOODGATE_IDENTIFIER + '\0' + encrypted;
+                    } else {
+                        addressSuffix = "";
                     }
 
                     HandshakePacket handshakePacket = event.getPacket();
+
+                    String address;
+                    if (connector.getConfig().getRemote().isForwardHost()) {
+                        address = clientData.getServerAddress().split(":")[0];
+                    } else {
+                        address = handshakePacket.getHostname();
+                    }
+
                     event.setPacket(new HandshakePacket(
                             handshakePacket.getProtocolVersion(),
-                            handshakePacket.getHostname() + '\0' + BedrockData.FLOODGATE_IDENTIFIER + '\0' + encrypted,
+                            address + addressSuffix,
                             handshakePacket.getPort(),
                             handshakePacket.getIntent()
                     ));
@@ -862,11 +882,10 @@ public class GeyserSession implements CommandSender {
             playerEntity.updateBedrockAttributes(this);
             // the server *should* update our pose once it has returned to normal
         } else {
-            this.pose = sneaking ? Pose.SNEAKING : Pose.STANDING;
-            playerEntity.getMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, sneaking ? 1.5f : playerEntity.getEntityType().getHeight());
-            playerEntity.getMetadata().getFlags().setFlag(EntityFlag.SNEAKING, sneaking);
-
-            collisionManager.updatePlayerBoundingBox();
+            if (!flying) {
+                // The pose and bounding box should not be updated if the player is flying
+                setSneakingPose(sneaking);
+            }
             collisionManager.updateScaffoldingFlags(false);
         }
 
@@ -878,11 +897,29 @@ public class GeyserSession implements CommandSender {
         }
     }
 
+    private void setSneakingPose(boolean sneaking) {
+        this.pose = sneaking ? Pose.SNEAKING : Pose.STANDING;
+        playerEntity.getMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, sneaking ? 1.5f : playerEntity.getEntityType().getHeight());
+        playerEntity.getMetadata().getFlags().setFlag(EntityFlag.SNEAKING, sneaking);
+
+        collisionManager.updatePlayerBoundingBox();
+    }
+
     public void setSwimming(boolean swimming) {
         this.pose = swimming ? Pose.SWIMMING : Pose.STANDING;
         playerEntity.getMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, swimming ? 0.6f : playerEntity.getEntityType().getHeight());
         playerEntity.getMetadata().getFlags().setFlag(EntityFlag.SWIMMING, swimming);
         playerEntity.updateBedrockMetadata(this);
+    }
+
+    public void setFlying(boolean flying) {
+        this.flying = flying;
+
+        if (sneaking) {
+            // update bounding box as it is not reduced when flying
+            setSneakingPose(!flying);
+            playerEntity.updateBedrockMetadata(this);
+        }
     }
 
     /**
@@ -985,7 +1022,6 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setLightningLevel(0);
         startGamePacket.setMultiplayerGame(true);
         startGamePacket.setBroadcastingToLan(true);
-        startGamePacket.getGamerules().add(new GameRuleData<>("showcoordinates", connector.getConfig().isShowCoordinates()));
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setCommandsEnabled(!connector.getConfig().isXboxAchievementsEnabled());
@@ -1177,13 +1213,14 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Update the cached value for the reduced debug info gamerule.
-     * This also toggles the coordinates display
+     * If enabled, also hides the player's coordinates.
      *
      * @param value The new value for reducedDebugInfo
      */
     public void setReducedDebugInfo(boolean value) {
-        worldCache.setShowCoordinates(!value);
         reducedDebugInfo = value;
+        // Set the showCoordinates data. This is done because updateShowCoordinates() uses this gamerule as a variable.
+        getWorldCache().updateShowCoordinates();
     }
 
     /**
