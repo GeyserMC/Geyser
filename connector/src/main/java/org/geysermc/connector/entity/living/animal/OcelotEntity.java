@@ -44,4 +44,9 @@ public class OcelotEntity extends AnimalEntity {
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
+
+    @Override
+    public boolean canEat(String javaIdentifierStripped) {
+        return javaIdentifierStripped.equals("cod") || javaIdentifierStripped.equals("salmon");
+    }
 }

@@ -45,4 +45,9 @@ public class ParrotEntity extends TameableEntity {
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
+
+    @Override
+    public boolean canEat(String javaIdentifierStripped) {
+        return javaIdentifierStripped.contains("seeds") || javaIdentifierStripped.equals("cookie");
+    }
 }
