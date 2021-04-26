@@ -124,6 +124,13 @@ show-cooldown: title
 # Controls if coordinates are shown to players.
 show-coordinates: true
 
+# If set, when a Bedrock player performs any emote, it will swap the offhand and mainhand items, just like the Java Edition keybind
+# There are three options this can be set to:
+# disabled - the default/fallback, which doesn't apply this workaround
+# no-emotes - emotes will NOT be sent to other Bedrock clients and offhand will be swapped. This effectively disables all emotes from being seen.
+# emotes-and-offhand - emotes will be sent to Bedrock clients and offhand will be swapped
+emote-offhand-workaround: "disabled"
+
 # The default locale if we dont have the one the client requested. Uncomment to not use the default system language.
 # default-locale: en_us
 

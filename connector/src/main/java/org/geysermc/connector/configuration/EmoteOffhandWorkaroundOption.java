@@ -23,23 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.configuration;
 
-import com.nukkitx.protocol.bedrock.packet.EmoteListPacket;
-import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 
-@Translator(packet = EmoteListPacket.class)
-public class BedrockEmoteListTranslator extends PacketTranslator<EmoteListPacket> {
+import java.io.IOException;
 
-    @Override
-    public void translate(EmoteListPacket packet, GeyserSession session) {
-        if (session.getConnector().getConfig().getEmoteOffhandWorkaround() == EmoteOffhandWorkaroundOption.NO_EMOTES) {
-            return;
+public enum EmoteOffhandWorkaroundOption {
+    NO_EMOTES,
+    EMOTES_AND_OFFHAND,
+    DISABLED;
+
+    public static class Deserializer extends JsonDeserializer<EmoteOffhandWorkaroundOption> {
+        @Override
+        public EmoteOffhandWorkaroundOption deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            String value = p.getValueAsString();
+            switch (value) {
+                case "no-emotes":
+                    return NO_EMOTES;
+                case "emotes-and-offhand":
+                    return EMOTES_AND_OFFHAND;
+                default:
+                    return DISABLED;
+            }
         }
-
-        session.refreshEmotes(packet.getPieceIds());
     }
 }

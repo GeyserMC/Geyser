@@ -77,6 +77,8 @@ public interface GeyserConfiguration {
 
     boolean isShowCoordinates();
 
+    EmoteOffhandWorkaroundOption getEmoteOffhandWorkaround();
+
     String getDefaultLocale();
 
     Path getFloodgateKeyPath();
