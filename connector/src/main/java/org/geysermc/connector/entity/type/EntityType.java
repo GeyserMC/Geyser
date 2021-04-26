@@ -188,7 +188,7 @@ public enum EntityType {
 
     static {
         List<String> allJavaIdentifiers = new ArrayList<>();
-        for (EntityType type : values()) {
+        for (EntityType type : VALUES) {
             if (type == AGENT || type == BALLOON || type == CHALKBOARD || type == NPC || type == TRIPOD_CAMERA || type == ENDER_DRAGON_PART) {
                 continue;
             }

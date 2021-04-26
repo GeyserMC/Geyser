@@ -850,7 +850,7 @@ public class GeyserSession implements CommandSender {
     /**
      * Called every 50 milliseconds - one Minecraft tick.
      */
-    public void tick() {
+    protected void tick() {
         // Check to see if the player's position needs updating - a position update should be sent once every 3 seconds
         if (spawned && (System.currentTimeMillis() - lastMovementTimestamp) > 3000) {
             // Recalculate in case something else changed position
