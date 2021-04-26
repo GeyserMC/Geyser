@@ -46,6 +46,7 @@ public interface EntitySoundInteractionHandler extends SoundInteractionHandler<E
      * @param entity the entity interacted with
      */
     static void handleEntityInteraction(GeyserSession session, Vector3f position, Entity entity) {
+        // If we need to get the hand identifier, only get it once and save it to a variable
         String handIdentifier = null;
 
         for (Map.Entry<SoundHandler, SoundInteractionHandler<?>> interactionEntry : SoundHandlerRegistry.INTERACTION_HANDLERS.entrySet()) {

@@ -45,7 +45,9 @@ public interface BlockSoundInteractionHandler extends SoundInteractionHandler<St
      * @param identifier the identifier of the block
      */
     static void handleBlockInteraction(GeyserSession session, Vector3f position, String identifier) {
+        // If we need to get the hand identifier, only get it once and save it to a variable
         String handIdentifier = null;
+
         for (Map.Entry<SoundHandler, SoundInteractionHandler<?>> interactionEntry : SoundHandlerRegistry.INTERACTION_HANDLERS.entrySet()) {
             if (!(interactionEntry.getValue() instanceof BlockSoundInteractionHandler)) {
                 continue;
