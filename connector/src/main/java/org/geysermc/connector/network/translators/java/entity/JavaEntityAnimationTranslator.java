@@ -27,6 +27,7 @@ package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityAnimationPacket;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.packet.AnimateEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import com.nukkitx.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.connector.entity.Entity;
@@ -55,6 +56,18 @@ public class JavaEntityAnimationTranslator extends PacketTranslator<ServerEntity
             case SWING_ARM:
                 animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
                 break;
+            case EAT_FOOD: // ACTUALLY SWING OFF HAND
+                // Use the OptionalPack to trigger the animation
+                AnimateEntityPacket offHandPacket = new AnimateEntityPacket();
+                offHandPacket.setAnimation("animation.player.attack.rotations.offhand");
+                offHandPacket.setNextState("default");
+                offHandPacket.setBlendOutTime(0.0f);
+                offHandPacket.setStopExpression("query.any_animation_finished");
+                offHandPacket.setController("__runtime_controller");
+                offHandPacket.getRuntimeEntityIds().add(entity.getGeyserId());
+
+                session.sendUpstreamPacket(offHandPacket);
+                return;
             case CRITICAL_HIT:
                 animatePacket.setAction(AnimatePacket.Action.CRITICAL_HIT);
                 break;
