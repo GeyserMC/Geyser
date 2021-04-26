@@ -27,6 +27,9 @@ package org.geysermc.connector.network.translators.item;
 
 import lombok.Getter;
 
+/**
+ * Used when an item should have a custom name applied, if there already isn't one.
+ */
 public class TranslatableItemEntry extends ItemEntry {
     @Getter
     private final String translationString;
