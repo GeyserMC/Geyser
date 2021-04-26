@@ -44,19 +44,19 @@ public class SpellcasterIllagerEntity extends AbstractIllagerEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 16) {
-            byte spellType = (byte) entityMetadata.getValue();
+            int spellType = (int) (byte) entityMetadata.getValue();
             // Summon vex, attack, or wololo
-            metadata.getFlags().setFlag(EntityFlag.CASTING, spellType == (byte) 1 || spellType == (byte) 2 || spellType == (byte) 3);
+            metadata.getFlags().setFlag(EntityFlag.CASTING, spellType == 1 || spellType == 2 || spellType == 3);
             int rgbData = 0;
             // Set the spell color based on Java values
             switch (spellType) {
-                case (byte) 1:
+                case 1:
                     rgbData = SUMMON_VEX_PARTICLE_COLOR;
                     break;
-                case (byte) 2:
+                case 2:
                     rgbData = ATTACK_PARTICLE_COLOR;
                     break;
-                case (byte) 3:
+                case 3:
                     rgbData = WOLOLO_PARTICLE_COLOR;
                     break;
             }
