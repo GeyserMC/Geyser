@@ -36,10 +36,7 @@ import org.geysermc.connector.entity.living.animal.tameable.WolfEntity;
 import org.geysermc.connector.entity.living.merchant.AbstractMerchantEntity;
 import org.geysermc.connector.entity.living.merchant.VillagerEntity;
 import org.geysermc.connector.entity.living.monster.*;
-import org.geysermc.connector.entity.living.monster.raid.AbstractIllagerEntity;
-import org.geysermc.connector.entity.living.monster.raid.PillagerEntity;
-import org.geysermc.connector.entity.living.monster.raid.RaidParticipantEntity;
-import org.geysermc.connector.entity.living.monster.raid.SpellcasterIllagerEntity;
+import org.geysermc.connector.entity.living.monster.raid.*;
 import org.geysermc.connector.entity.player.PlayerEntity;
 
 import java.util.ArrayList;
@@ -97,7 +94,7 @@ public enum EntityType {
     SHULKER(ShulkerEntity.class, 54, 1f, 1f),
     ENDERMITE(MonsterEntity.class, 55, 0.3f, 0.4f),
     AGENT(Entity.class, 56, 0f),
-    VINDICATOR(AbstractIllagerEntity.class, 57, 1.8f, 0.6f, 0.6f, 1.62f),
+    VINDICATOR(VindicatorEntity.class, 57, 1.8f, 0.6f, 0.6f, 1.62f),
     PILLAGER(PillagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f),
     WANDERING_TRADER(AbstractMerchantEntity.class, 118, 1.8f, 0.6f, 0.6f, 1.62f),
     PHANTOM(FlyingEntity.class, 58, 0.5f, 0.9f, 0.9f, 0.6f),
