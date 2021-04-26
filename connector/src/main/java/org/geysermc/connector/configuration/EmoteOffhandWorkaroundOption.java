@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.common;
+package org.geysermc.connector.configuration;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -31,17 +31,23 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 
 import java.io.IOException;
 
-public class EmoteOffhandDeserializer extends JsonDeserializer<EmoteOffhandWorkaroundOption> {
-    @Override
-    public EmoteOffhandWorkaroundOption deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-        String value = p.getValueAsString();
-        switch (value) {
-            case "no-emotes":
-                return EmoteOffhandWorkaroundOption.NO_EMOTES;
-            case "emotes-and-offhand":
-                return EmoteOffhandWorkaroundOption.EMOTES_AND_OFFHAND;
-            default:
-                return EmoteOffhandWorkaroundOption.DISABLED;
+public enum EmoteOffhandWorkaroundOption {
+    NO_EMOTES,
+    EMOTES_AND_OFFHAND,
+    DISABLED;
+
+    public static class EmoteOffhandDeserializer extends JsonDeserializer<EmoteOffhandWorkaroundOption> {
+        @Override
+        public EmoteOffhandWorkaroundOption deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            String value = p.getValueAsString();
+            switch (value) {
+                case "no-emotes":
+                    return NO_EMOTES;
+                case "emotes-and-offhand":
+                    return EMOTES_AND_OFFHAND;
+                default:
+                    return DISABLED;
+            }
         }
     }
 }

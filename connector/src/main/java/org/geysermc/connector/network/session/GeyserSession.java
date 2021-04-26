@@ -79,7 +79,7 @@ import org.geysermc.common.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
-import org.geysermc.connector.common.EmoteOffhandWorkaroundOption;
+import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.attribute.Attribute;

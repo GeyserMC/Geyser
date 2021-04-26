@@ -27,7 +27,6 @@ package org.geysermc.connector.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.geysermc.connector.GeyserLogger;
-import org.geysermc.connector.common.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.network.CIDRMatcher;
 import org.geysermc.connector.utils.LanguageUtils;
 

@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.nukkitx.protocol.bedrock.packet.EmoteListPacket;
-import org.geysermc.connector.common.EmoteOffhandWorkaroundOption;
+import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
