@@ -58,7 +58,7 @@ public class DumpInfo {
     private final DumpInfo.VersionInfo versionInfo;
     private Properties gitInfo;
     private final GeyserConfiguration config;
-    private String sha256Hash;
+    private String md5Hash;
     private final Object2IntMap<DeviceOS> userPlatforms;
     private final RamInfo ramInfo;
     private final BootstrapDumpInfo bootstrapInfo;
@@ -77,10 +77,11 @@ public class DumpInfo {
             // https://stackoverflow.com/questions/320542/how-to-get-the-path-of-a-running-jar-file
             // https://stackoverflow.com/questions/304268/getting-a-files-md5-checksum-in-java
             File file = new File(DumpInfo.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            // Jenkins uses MD5 for its hash
             //noinspection UnstableApiUsage
-            this.sha256Hash = Files.asByteSource(file).hash(Hashing.sha256()).toString();
+            this.md5Hash = Files.asByteSource(file).hash(Hashing.md5()).toString();
         } catch (Exception e) {
-            this.sha256Hash = "Unable to fetch hash: " + e.getMessage();
+            this.md5Hash = "Unable to fetch hash: " + e.getMessage();
             if (GeyserConnector.getInstance().getConfig().isDebugMode()) {
                 e.printStackTrace();
             }
