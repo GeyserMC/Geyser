@@ -98,7 +98,7 @@ public class DumpInfo {
     }
 
     @Getter
-    public class VersionInfo {
+    public static class VersionInfo {
 
         private final String name;
         private final String version;

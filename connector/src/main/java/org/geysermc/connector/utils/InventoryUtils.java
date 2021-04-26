@@ -39,92 +39,101 @@ import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerHotbarPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.ChatColor;
+import org.geysermc.connector.inventory.Container;
+import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.DoubleChestInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.translators.LecternInventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.translators.chest.DoubleChestInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class InventoryUtils {
-    public static final ItemStack REFRESH_ITEM = new ItemStack(1, 127, new CompoundTag("")); //TODO: stop using this
+    public static final ItemStack REFRESH_ITEM = new ItemStack(1, 127, new CompoundTag(""));
 
     public static void openInventory(GeyserSession session, Inventory inventory) {
-        InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
+        session.setOpenInventory(inventory);
+        if (session.isClosingInventory()) {
+            //Wait for close confirmation from client before opening the new inventory.
+            //Handled in BedrockContainerCloseTranslator
+            inventory.setPending(true);
+            return;
+        }
+        displayInventory(session, inventory);
+    }
+
+    public static void displayInventory(GeyserSession session, Inventory inventory) {
+        InventoryTranslator translator = session.getInventoryTranslator();
         if (translator != null) {
-            session.getInventoryCache().setOpenInventory(inventory);
             translator.prepareInventory(session, inventory);
-            //Ensure at least half a second passes between closing and opening a new window
-            //The client will not open the new window if it is still closing the old one
-            long delay = 700 - (System.currentTimeMillis() - session.getLastWindowCloseTime());
-            //TODO: find better way to handle double chest delay
-            if (translator instanceof DoubleChestInventoryTranslator) {
-                delay = Math.max(delay, 200);
-            }
-            if (delay > 0) {
-                GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> {
-                    translator.openInventory(session, inventory);
-                    translator.updateInventory(session, inventory);
-                }, delay, TimeUnit.MILLISECONDS);
+            if (translator instanceof DoubleChestInventoryTranslator && !((Container) inventory).isUsingRealBlock()) {
+                GeyserConnector.getInstance().getGeneralThreadPool().schedule(() ->
+                    session.addInventoryTask(() -> {
+                        Inventory openInv = session.getOpenInventory();
+                        if (openInv != null && openInv.getId() == inventory.getId()) {
+                            translator.openInventory(session, inventory);
+                            translator.updateInventory(session, inventory);
+                        } else if (openInv != null && openInv.isPending()) {
+                            // Presumably, this inventory is no longer relevant, and the client doesn't care about it
+                            displayInventory(session, openInv);
+                        }
+                }), 200, TimeUnit.MILLISECONDS);
             } else {
                 translator.openInventory(session, inventory);
                 translator.updateInventory(session, inventory);
             }
-        }
-    }
-
-    public static void closeInventory(GeyserSession session, int windowId) {
-        if (windowId != 0) {
-            Inventory inventory = session.getInventoryCache().getInventories().get(windowId);
-            Inventory openInventory = session.getInventoryCache().getOpenInventory();
-            session.getInventoryCache().uncacheInventory(windowId);
-            if (inventory != null && openInventory != null && inventory.getId() == openInventory.getId()) {
-                InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
-                translator.closeInventory(session, inventory);
-                session.getInventoryCache().setOpenInventory(null);
-            } else {
-                return;
-            }
         } else {
-            Inventory inventory = session.getInventory();
-            inventory.setOpen(false);
-            InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
-            translator.updateInventory(session, inventory);
+            // Precaution - as of 1.16 every inventory should be translated so this shouldn't happen
+            session.setOpenInventory(null);
         }
-
-        session.setCraftSlot(0);
-        session.getInventory().setCursor(null);
-        updateCursor(session);
     }
 
-    public static void closeWindow(GeyserSession session, int windowId) {
-        //TODO: Investigate client crash when force closing window and opening a new one
-        //Instead, the window will eventually close by removing the fake blocks
-        session.setLastWindowCloseTime(System.currentTimeMillis());
+    public static void closeInventory(GeyserSession session, int windowId, boolean confirm) {
+        session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY, session);
+        updateCursor(session);
 
-        /*
-        //Spamming close window packets can bug the client
-        if (System.currentTimeMillis() - session.getLastWindowCloseTime() > 500) {
-            ContainerClosePacket closePacket = new ContainerClosePacket();
-            closePacket.setId((byte) windowId);
-            session.sendUpstreamPacket(closePacket);
-            session.setLastWindowCloseTime(System.currentTimeMillis());
+        Inventory inventory = getInventory(session, windowId);
+        if (inventory != null) {
+            InventoryTranslator translator = session.getInventoryTranslator();
+            translator.closeInventory(session, inventory);
+            if (confirm && !inventory.isPending() && !(translator instanceof LecternInventoryTranslator)) {
+                session.setClosingInventory(true);
+            }
         }
-        */
+        session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
+        session.setOpenInventory(null);
+    }
+
+    public static Inventory getInventory(GeyserSession session, int windowId) {
+        if (windowId == 0) {
+            return session.getPlayerInventory();
+        } else {
+            Inventory openInventory = session.getOpenInventory();
+            if (openInventory != null && windowId == openInventory.getId()) {
+                return openInventory;
+            }
+            return null;
+        }
     }
 
     public static void updateCursor(GeyserSession session) {
         InventorySlotPacket cursorPacket = new InventorySlotPacket();
         cursorPacket.setContainerId(ContainerId.UI);
         cursorPacket.setSlot(0);
-        cursorPacket.setItem(ItemTranslator.translateToBedrock(session, session.getInventory().getCursor()));
+        cursorPacket.setItem(session.getPlayerInventory().getCursor().getItemData(session));
         session.sendUpstreamPacket(cursorPacket);
+    }
+
+    public static boolean canStack(GeyserItemStack item1, GeyserItemStack item2) {
+        if (item1.isEmpty() || item2.isEmpty())
+            return false;
+        return item1.getJavaId() == item2.getJavaId() && Objects.equals(item1.getNbt(), item2.getNbt());
     }
 
     public static boolean canStack(ItemStack item1, ItemStack item2) {
@@ -155,7 +164,10 @@ public class InventoryUtils {
         display.putList("Lore", NbtType.STRING, Collections.singletonList(ChatColor.RESET + ChatColor.DARK_PURPLE + description));
 
         root.put("display", display.build());
-        return ItemData.of(ItemRegistry.ITEM_ENTRIES.get(ItemRegistry.BARRIER_INDEX).getBedrockId(), (short) 0, 1, root.build());
+        return ItemData.builder()
+                .id(ItemRegistry.ITEM_ENTRIES.get(ItemRegistry.BARRIER_INDEX).getBedrockId())
+                .count(1)
+                .tag(root.build()).build();
     }
 
     /**
@@ -171,10 +183,7 @@ public class InventoryUtils {
      */
     public static void findOrCreateItem(GeyserSession session, String itemName) {
         // Get the inventory to choose a slot to pick
-        Inventory inventory = session.getInventoryCache().getOpenInventory();
-        if (inventory == null) {
-            inventory = session.getInventory();
-        }
+        PlayerInventory inventory = session.getPlayerInventory();
 
         if (itemName.equals("minecraft:air")) {
             return;
@@ -182,12 +191,12 @@ public class InventoryUtils {
 
         // Check hotbar for item
         for (int i = 36; i < 45; i++) {
-            if (inventory.getItem(i) == null) {
+            GeyserItemStack geyserItem = inventory.getItem(i);
+            if (geyserItem.isEmpty()) {
                 continue;
             }
-            ItemEntry item = ItemRegistry.getItem(inventory.getItem(i));
             // If this isn't the item we're looking for
-            if (!item.getJavaIdentifier().equals(itemName)) {
+            if (!geyserItem.getItemEntry().getJavaIdentifier().equals(itemName)) {
                 continue;
             }
 
@@ -198,12 +207,12 @@ public class InventoryUtils {
 
         // Check inventory for item
         for (int i = 9; i < 36; i++) {
-            if (inventory.getItem(i) == null) {
+            GeyserItemStack geyserItem = inventory.getItem(i);
+            if (geyserItem.isEmpty()) {
                 continue;
             }
-            ItemEntry item = ItemRegistry.getItem(inventory.getItem(i));
             // If this isn't the item we're looking for
-            if (!item.getJavaIdentifier().equals(itemName)) {
+            if (!geyserItem.getItemEntry().getJavaIdentifier().equals(itemName)) {
                 continue;
             }
 
@@ -214,10 +223,10 @@ public class InventoryUtils {
 
         // If we still have not found the item, and we're in creative, ask for the item from the server.
         if (session.getGameMode() == GameMode.CREATIVE) {
-            int slot = session.getInventory().getHeldItemSlot() + 36;
-            if (session.getInventory().getItemInHand() != null) { // Otherwise we should just use the current slot
+            int slot = inventory.getHeldItemSlot() + 36;
+            if (!inventory.getItemInHand().isEmpty()) { // Otherwise we should just use the current slot
                 for (int i = 36; i < 45; i++) {
-                    if (inventory.getItem(i) == null) {
+                    if (inventory.getItem(i).isEmpty()) {
                         slot = i;
                         break;
                     }
@@ -228,7 +237,7 @@ public class InventoryUtils {
             if (entry != null) {
                 ClientCreativeInventoryActionPacket actionPacket = new ClientCreativeInventoryActionPacket(slot,
                         new ItemStack(entry.getJavaId()));
-                if ((slot - 36) != session.getInventory().getHeldItemSlot()) {
+                if ((slot - 36) != inventory.getHeldItemSlot()) {
                     setHotbarItem(session, slot);
                 }
                 session.sendDownstreamPacket(actionPacket);

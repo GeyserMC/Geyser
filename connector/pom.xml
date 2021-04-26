@@ -6,21 +6,21 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>geyser-parent</artifactId>
-        <version>1.2.0-SNAPSHOT</version>
+        <version>1.2.1-SNAPSHOT</version>
     </parent>
     <artifactId>connector</artifactId>
 
     <properties>
         <netty.version>4.1.59.Final</netty.version>
         <fastutil.version>8.5.2</fastutil.version>
-        <adventure.version>4.5.0</adventure.version>
+        <adventure.version>4.7.0</adventure.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>common</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
+            <version>1.2.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -31,8 +31,8 @@
         </dependency>
         <dependency>
             <groupId>com.github.CloudburstMC.Protocol</groupId>
-            <artifactId>bedrock-v428</artifactId>
-            <version>42da92f</version>
+            <artifactId>bedrock-v431</artifactId>
+            <version>f8ecf54</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -140,9 +140,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.github.steveice10</groupId>
+            <groupId>com.github.GeyserMC</groupId>
             <artifactId>PacketLib</artifactId>
-            <version>54f761c</version>
+            <version>b77a427</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion> <!-- Move this exclusion back to MCProtocolLib it gets the latest PacketLib -->

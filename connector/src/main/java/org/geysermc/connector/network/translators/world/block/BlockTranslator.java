@@ -52,6 +52,7 @@ public abstract class BlockTranslator {
      * The Java block runtime ID of air
      */
     public static final int JAVA_AIR_ID = 0;
+    public static final int JAVA_WATER_ID;
     /**
      * The Bedrock block runtime ID of air
      */
@@ -60,6 +61,9 @@ public abstract class BlockTranslator {
 
     private final Int2IntMap javaToBedrockBlockMap = new Int2IntOpenHashMap();
     private final Int2IntMap bedrockToJavaBlockMap = new Int2IntOpenHashMap();
+
+    private final NbtList<NbtMap> bedrockBlockStates;
+
     /**
      * Stores a list of differences in block identifiers.
      * Items will not be added to this list if the key and value is the same.
@@ -69,9 +73,6 @@ public abstract class BlockTranslator {
     private static final IntSet WATERLOGGED = new IntOpenHashSet();
     private final Object2IntMap<NbtMap> itemFrames = new Object2IntOpenHashMap<>();
     private final Map<String, NbtMap> flowerPotBlocks = new HashMap<>();
-
-    // Bedrock carpet ID, used in LlamaEntity.java for decoration
-    public static final int CARPET = 171;
 
     public static final Int2DoubleMap JAVA_RUNTIME_ID_TO_HARDNESS = new Int2DoubleOpenHashMap();
     public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND = new Int2BooleanOpenHashMap();
@@ -107,6 +108,12 @@ public abstract class BlockTranslator {
     public static final int JAVA_RUNTIME_SPAWNER_ID;
 
     /**
+     * Contains a map of Java blocks to their respective Bedrock block tag, if the Java identifier is different from Bedrock.
+     * Required to fix villager trades with these blocks.
+     */
+    private final Map<String, NbtMap> javaIdentifierToBedrockTag;
+
+    /**
      * Stores the raw blocks JSON until it is no longer needed.
      */
     public static JsonNode BLOCKS_JSON;
@@ -125,6 +132,7 @@ public abstract class BlockTranslator {
         int furnaceLitRuntimeId = -1;
         int spawnerRuntimeId = -1;
         int uniqueJavaId = -1;
+        int waterRuntimeId = -1;
         Iterator<Map.Entry<String, JsonNode>> blocksIterator = BLOCKS_JSON.fields();
         while (blocksIterator.hasNext()) {
             javaRuntimeId++;
@@ -163,13 +171,12 @@ public abstract class BlockTranslator {
             BlockStateValues.storeBlockStateValues(entry.getKey(), javaRuntimeId, entry.getValue());
 
             String cleanJavaIdentifier = entry.getKey().split("\\[")[0];
+            String bedrockIdentifier = entry.getValue().get("bedrock_identifier").asText();
 
             if (!JAVA_ID_TO_JAVA_IDENTIFIER_MAP.containsValue(cleanJavaIdentifier)) {
                 uniqueJavaId++;
                 JAVA_ID_TO_JAVA_IDENTIFIER_MAP.put(uniqueJavaId, cleanJavaIdentifier);
             }
-
-            String bedrockIdentifier = entry.getValue().get("bedrock_identifier").asText();
 
             // Keeping this here since this is currently unchanged between versions
             if (!cleanJavaIdentifier.equals(bedrockIdentifier)) {
@@ -191,6 +198,9 @@ public abstract class BlockTranslator {
 
             } else if (javaId.startsWith("minecraft:spawner")) {
                 spawnerRuntimeId = javaRuntimeId;
+
+            } else if ("minecraft:water[level=0]".equals(javaId)) {
+                waterRuntimeId = javaRuntimeId;
             }
         }
 
@@ -214,6 +224,11 @@ public abstract class BlockTranslator {
         }
         JAVA_RUNTIME_SPAWNER_ID = spawnerRuntimeId;
 
+        if (waterRuntimeId == -1) {
+            throw new AssertionError("Unable to find Java water in palette");
+        }
+        JAVA_WATER_ID = waterRuntimeId;
+
         BlockTranslator1_16_100.init();
         BlockTranslator1_16_210.init();
         BLOCKS_JSON = null; // We no longer require this so let it garbage collect away
@@ -227,9 +242,12 @@ public abstract class BlockTranslator {
         try (NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)))) {
             NbtMap blockPalette = (NbtMap) nbtInputStream.readTag();
             blocksTag = (NbtList<NbtMap>) blockPalette.getList("blocks", NbtType.COMPOUND);
+            this.bedrockBlockStates = blocksTag;
         } catch (Exception e) {
             throw new AssertionError("Unable to get blocks from runtime block states", e);
         }
+
+        javaIdentifierToBedrockTag = new Object2ObjectOpenHashMap<>();
 
         // New since 1.16.100 - find the block runtime ID by the order given to us in the block palette,
         // as we no longer send a block palette
@@ -285,7 +303,11 @@ public abstract class BlockTranslator {
 
             // Get the tag needed for non-empty flower pots
             if (entry.getValue().get("pottable") != null) {
-                flowerPotBlocks.put(cleanJavaIdentifier, buildBedrockState(entry.getValue()));
+                flowerPotBlocks.put(cleanJavaIdentifier, blockTag);
+            }
+
+            if (!cleanJavaIdentifier.equals(entry.getValue().get("bedrock_identifier").asText())) {
+                javaIdentifierToBedrockTag.put(cleanJavaIdentifier, blockTag);
             }
 
             javaToBedrockBlockMap.put(javaRuntimeId, bedrockRuntimeId);
@@ -400,6 +422,14 @@ public abstract class BlockTranslator {
         return bedrockWaterId;
     }
 
+    public NbtList<NbtMap> getAllBedrockBlockStates() {
+        return this.bedrockBlockStates;
+    }
+
+    /**
+     * @return the "block state version" generated in the Bedrock block palette that completes an NBT indication of a
+     * block state.
+     */
     public abstract int getBlockStateVersion();
 
     public byte[] getEmptyChunkData() {
@@ -446,5 +476,14 @@ public abstract class BlockTranslator {
      */
     public static String[] getAllBlockIdentifiers() {
         return JAVA_ID_TO_JAVA_IDENTIFIER_MAP.values().toArray(new String[0]);
+    }
+
+    /**
+     * @param cleanJavaIdentifier the clean Java identifier of the block to look up
+     *
+     * @return the block tag of the block name mapped from Java to Bedrock.
+     */
+    public NbtMap getBedrockBlockNbt(String cleanJavaIdentifier) {
+        return javaIdentifierToBedrockTag.get(cleanJavaIdentifier);
     }
 }

@@ -31,7 +31,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.item.translators.BannerTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
-@BlockEntity(name = "Banner", regex = "banner")
+@BlockEntity(name = "Banner")
 public class BannerBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
     public boolean isBlock(int blockState) {

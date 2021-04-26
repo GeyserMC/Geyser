@@ -30,7 +30,9 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -40,6 +42,13 @@ public class AbstractHorseEntity extends AnimalEntity {
 
     public AbstractHorseEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+
+        // Specifies the size of the entity's inventory. Required to place slots in the entity.
+        metadata.put(EntityData.CONTAINER_BASE_SIZE, 2);
+        // Add dummy health attribute since LivingEntity updates the attribute for us
+        attributes.put(AttributeType.HEALTH, AttributeType.HEALTH.getAttribute(20, 20));
+        // Add horse jump strength attribute to allow donkeys and mules to jump
+        attributes.put(AttributeType.HORSE_JUMP_STRENGTH, AttributeType.HORSE_JUMP_STRENGTH.getAttribute(0.5f, 2));
     }
 
     @Override
@@ -75,12 +84,21 @@ public class AbstractHorseEntity extends AnimalEntity {
                 entityEventPacket.setData(ItemRegistry.WHEAT.getBedrockId() << 16);
                 session.sendUpstreamPacket(entityEventPacket);
             }
+
+            // Set container type if tamed
+            metadata.put(EntityData.CONTAINER_TYPE, ((xd & 0x02) == 0x02) ? (byte) ContainerType.HORSE.getId() : (byte) 0);
         }
 
         // Needed to control horses
-        metadata.getFlags().setFlag(EntityFlag.CAN_POWER_JUMP, true);
+        boolean canPowerJump = entityType != EntityType.LLAMA && entityType != EntityType.TRADER_LLAMA;
+        metadata.getFlags().setFlag(EntityFlag.CAN_POWER_JUMP, canPowerJump);
         metadata.getFlags().setFlag(EntityFlag.WASD_CONTROLLED, true);
 
         super.updateBedrockMetadata(entityMetadata, session);
+
+        if (entityMetadata.getId() == 8) {
+            // Update the health attribute
+            updateBedrockAttributes(session);
+        }
     }
 }
