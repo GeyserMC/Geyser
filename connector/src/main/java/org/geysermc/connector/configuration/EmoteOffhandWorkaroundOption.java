@@ -36,7 +36,7 @@ public enum EmoteOffhandWorkaroundOption {
     EMOTES_AND_OFFHAND,
     DISABLED;
 
-    public static class EmoteOffhandDeserializer extends JsonDeserializer<EmoteOffhandWorkaroundOption> {
+    public static class Deserializer extends JsonDeserializer<EmoteOffhandWorkaroundOption> {
         @Override
         public EmoteOffhandWorkaroundOption deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
             String value = p.getValueAsString();
