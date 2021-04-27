@@ -77,6 +77,8 @@ public interface GeyserConfiguration {
 
     boolean isShowCoordinates();
 
+    EmoteOffhandWorkaroundOption getEmoteOffhandWorkaround();
+
     String getDefaultLocale();
 
     Path getFloodgateKeyPath();
@@ -138,6 +140,8 @@ public interface GeyserConfiguration {
         boolean isPasswordAuthentication();
 
         boolean isUseProxyProtocol();
+
+        boolean isForwardHost();
     }
 
     interface IUserAuthenticationInfo {

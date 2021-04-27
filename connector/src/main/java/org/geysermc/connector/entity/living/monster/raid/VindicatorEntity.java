@@ -23,25 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.animal;
+package org.geysermc.connector.entity.living.monster.raid;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.connector.entity.living.AgeableEntity;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.session.GeyserSession;
 
-public class AnimalEntity extends AgeableEntity {
+public class VindicatorEntity extends AbstractIllagerEntity {
 
-    public AnimalEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public VindicatorEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }
 
-    /**
-     * @param javaIdentifierStripped the stripped Java identifier of the item that is potential breeding food. For example,
-     *                               <code>wheat</code>.
-     * @return true if this is a valid item to breed with for this animal.
-     */
-    public boolean canEat(String javaIdentifierStripped) {
-        // This is what it defaults to. OK.
-        return javaIdentifierStripped.equals("wheat");
+    @Override
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        // Allow the axe to be shown if necessary
+        if (entityMetadata.getId() == 14) {
+            byte xd = (byte) entityMetadata.getValue();
+            metadata.getFlags().setFlag(EntityFlag.ANGRY, (xd & 4) == 4);
+        }
+        super.updateBedrockMetadata(entityMetadata, session);
     }
 }

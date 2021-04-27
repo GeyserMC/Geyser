@@ -47,4 +47,9 @@ public class HoglinEntity extends AnimalEntity {
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
+
+    @Override
+    public boolean canEat(String javaIdentifierStripped) {
+        return javaIdentifierStripped.equals("crimson_fungus");
+    }
 }
