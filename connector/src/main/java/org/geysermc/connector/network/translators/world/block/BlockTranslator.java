@@ -464,8 +464,26 @@ public abstract class BlockTranslator {
      * @return The Java identifier of the item
      */
     public static String getPickItem(int javaId) {
+        return getItem(javaId, true);
+    }
+
+    /**
+     * Get the item that represents this block. Differs from {@link #getPickItem(int)} as we should not allow air if
+     * a pick item is mapped to that.
+     *
+     * @param javaId The Java runtime id of the block
+     * @return The Java identifier of the item
+     */
+    public static String getItem(int javaId) {
+        return getItem(javaId, false);
+    }
+
+    /**
+     * @param acceptAir whether air is an acceptable identifier to receive from the pick item map
+     */
+    private static String getItem(int javaId, boolean acceptAir) {
         String itemIdentifier = JAVA_RUNTIME_ID_TO_PICK_ITEM.get(javaId);
-        if (itemIdentifier == null) {
+        if (itemIdentifier == null || (!acceptAir && itemIdentifier.equals("minecraft:air"))) {
             return JAVA_ID_BLOCK_MAP.inverse().get(javaId).split("\\[")[0];
         }
         return itemIdentifier;
