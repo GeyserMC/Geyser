@@ -23,25 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.animal;
+package org.geysermc.connector.configuration;
 
-import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.connector.entity.living.AgeableEntity;
-import org.geysermc.connector.entity.type.EntityType;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 
-public class AnimalEntity extends AgeableEntity {
+import java.io.IOException;
 
-    public AnimalEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
-    }
+public enum EmoteOffhandWorkaroundOption {
+    NO_EMOTES,
+    EMOTES_AND_OFFHAND,
+    DISABLED;
 
-    /**
-     * @param javaIdentifierStripped the stripped Java identifier of the item that is potential breeding food. For example,
-     *                               <code>wheat</code>.
-     * @return true if this is a valid item to breed with for this animal.
-     */
-    public boolean canEat(String javaIdentifierStripped) {
-        // This is what it defaults to. OK.
-        return javaIdentifierStripped.equals("wheat");
+    public static class Deserializer extends JsonDeserializer<EmoteOffhandWorkaroundOption> {
+        @Override
+        public EmoteOffhandWorkaroundOption deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            String value = p.getValueAsString();
+            switch (value) {
+                case "no-emotes":
+                    return NO_EMOTES;
+                case "emotes-and-offhand":
+                    return EMOTES_AND_OFFHAND;
+                default:
+                    return DISABLED;
+            }
+        }
     }
 }

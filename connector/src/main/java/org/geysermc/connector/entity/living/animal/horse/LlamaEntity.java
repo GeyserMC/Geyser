@@ -75,4 +75,9 @@ public class LlamaEntity extends ChestedHorseEntity {
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
+
+    @Override
+    public boolean canEat(String javaIdentifierStripped) {
+        return javaIdentifierStripped.equals("wheat") || javaIdentifierStripped.equals("hay_block");
+    }
 }

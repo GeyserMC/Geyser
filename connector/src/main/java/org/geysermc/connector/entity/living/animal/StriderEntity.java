@@ -85,4 +85,9 @@ public class StriderEntity extends AnimalEntity {
 
         super.updateBedrockMetadata(session);
     }
+
+    @Override
+    public boolean canEat(String javaIdentifierStripped) {
+        return javaIdentifierStripped.equals("warped_fungus");
+    }
 }
