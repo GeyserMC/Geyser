@@ -114,7 +114,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                     case 0:
                         Vector3i blockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getBlockFace());
 
-                        if (true) {
+                        if (session.getWorldCache().isDisableBedrockScaffolding()) {
                             boolean isGodBridging = false;
                             float yaw = session.getPlayerEntity().getRotation().getX();
                             switch (packet.getBlockFace()) {

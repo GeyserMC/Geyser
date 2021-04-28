@@ -47,11 +47,16 @@ public class WorldCache {
     @Setter
     private boolean prefersShowCoordinates = true;
 
+    @Setter
+    private volatile boolean disableBedrockScaffolding;
+
     private Scoreboard scoreboard;
     private final ScoreboardUpdater scoreboardUpdater;
 
     public WorldCache(GeyserSession session) {
         this.session = session;
+        this.disableBedrockScaffolding = session.getConnector().getConfig().isDisableBedrockScaffolding();
+
         this.scoreboard = new Scoreboard(session);
         scoreboardUpdater = new ScoreboardUpdater(this);
         scoreboardUpdater.start();

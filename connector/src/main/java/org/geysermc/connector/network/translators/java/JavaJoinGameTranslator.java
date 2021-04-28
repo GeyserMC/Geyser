@@ -41,6 +41,7 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.PluginMessageUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -97,6 +98,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         session.sendDownstreamPacket(clientSettingsPacket);
 
         session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:brand", PluginMessageUtils.getGeyserBrandData()));
+        session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:register", "geyser:settings".getBytes(StandardCharsets.UTF_8)));
 
         if (!newDimension.equals(session.getDimension())) {
             DimensionUtils.switchDimension(session, newDimension);
