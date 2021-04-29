@@ -135,11 +135,18 @@ public class LoginEncryptionUtils {
             session.setClientData(JSON_MAPPER.convertValue(JSON_MAPPER.readTree(clientJwt.getPayload().toBytes()), BedrockClientData.class));
 
             if (EncryptionUtils.canUseEncryption()) {
-                LoginEncryptionUtils.startEncryptionHandshake(session, identityPublicKey);
-            } else if (!HAS_SENT_ENCRYPTION_MESSAGE) {
-                session.getConnector().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.network.encryption.line_1"));
-                session.getConnector().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.network.encryption.line_2", "https://geysermc.org/supported_java"));
-                HAS_SENT_ENCRYPTION_MESSAGE = true;
+                try {
+                    LoginEncryptionUtils.startEncryptionHandshake(session, identityPublicKey);
+                } catch (Throwable e) {
+                    // An error can be thrown on older Java 8 versions about an invalid key
+                    if (connector.getConfig().isDebugMode()) {
+                        e.printStackTrace();
+                    }
+
+                    sendEncryptionFailedMessage(connector);
+                }
+            } else {
+                sendEncryptionFailedMessage(connector);
             }
         } catch (Exception ex) {
             session.disconnect("disconnectionScreen.internalError.cantConnect");
@@ -159,6 +166,14 @@ public class LoginEncryptionUtils {
         ServerToClientHandshakePacket packet = new ServerToClientHandshakePacket();
         packet.setJwt(EncryptionUtils.createHandshakeJwt(serverKeyPair, token).serialize());
         session.sendUpstreamPacketImmediately(packet);
+    }
+
+    private static void sendEncryptionFailedMessage(GeyserConnector connector) {
+        if (!HAS_SENT_ENCRYPTION_MESSAGE) {
+            connector.getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.network.encryption.line_1"));
+            connector.getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.network.encryption.line_2", "https://geysermc.org/supported_java"));
+            HAS_SENT_ENCRYPTION_MESSAGE = true;
+        }
     }
 
     private static final int AUTH_MSA_DETAILS_FORM_ID = 1334;
