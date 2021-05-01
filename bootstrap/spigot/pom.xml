@@ -31,9 +31,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>us.myles</groupId>
+            <groupId>com.viaversion</groupId>
             <artifactId>viaversion</artifactId>
-            <version>4.0.0-21w16a</version>
+            <version>4.0.0-21w17a</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

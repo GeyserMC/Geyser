@@ -26,15 +26,15 @@
 package org.geysermc.platform.spigot.world.manager;
 
 import com.github.steveice10.mc.protocol.MinecraftConstants;
+import com.viaversion.viaversion.api.Via;
+import com.viaversion.viaversion.api.data.MappingData;
+import com.viaversion.viaversion.api.protocol.ProtocolPathEntry;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.platform.spigot.GeyserSpigotPlugin;
-import us.myles.ViaVersion.api.Via;
-import us.myles.ViaVersion.api.data.MappingData;
-import us.myles.ViaVersion.api.protocol.ProtocolPathEntry;
-import us.myles.ViaVersion.api.protocol.ProtocolVersion;
 
 import java.util.List;
 
