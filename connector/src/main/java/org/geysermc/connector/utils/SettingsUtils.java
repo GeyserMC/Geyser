@@ -35,7 +35,6 @@ import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.response.CustomFormResponse;
 
 public class SettingsUtils {
-
     /**
      * Build a settings form for the given session and store it for later
      *
@@ -48,9 +47,13 @@ public class SettingsUtils {
         CustomForm.Builder builder = CustomForm.builder()
                 .translator(LanguageUtils::getPlayerLocaleString, language)
                 .title("geyser.settings.title.main")
-                .iconPath("textures/ui/settings_glyph_color_2x.png")
-                .label("geyser.settings.title.client")
-                .toggle("geyser.settings.option.coordinates");
+                .iconPath("textures/ui/settings_glyph_color_2x.png");
+
+        // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
+        if (!session.isReducedDebugInfo() && session.getConnector().getConfig().isShowCoordinates()) {
+            builder.label("geyser.settings.title.client")
+                    .toggle("geyser.settings.option.coordinates", session.getWorldCache().isPrefersShowCoordinates());
+        }
 
 
         if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
@@ -94,7 +97,13 @@ public class SettingsUtils {
                 return;
             }
 
-            session.getWorldCache().setShowCoordinates(response.next());
+        // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
+        if (!session.isReducedDebugInfo() && session.getConnector().getConfig().isShowCoordinates()) {
+            response.skip(); // Client settings title
+
+            session.getWorldCache().setPrefersShowCoordinates(response.next());
+            session.getWorldCache().updateShowCoordinates();
+        }
 
             if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
                 GameMode gameMode = GameMode.values()[(int) response.next()];

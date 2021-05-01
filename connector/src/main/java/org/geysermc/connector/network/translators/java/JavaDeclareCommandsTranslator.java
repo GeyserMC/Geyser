@@ -249,7 +249,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                 return ItemRegistry.ITEM_NAMES;
 
             case ITEM_ENCHANTMENT:
-                return Enchantment.ALL_JAVA_IDENTIFIERS; //TODO: inventory branch use Java enums
+                return Enchantment.JavaEnchantment.ALL_JAVA_IDENTIFIERS;
 
             case ENTITY_SUMMON:
                 return EntityType.ALL_JAVA_IDENTIFIERS;

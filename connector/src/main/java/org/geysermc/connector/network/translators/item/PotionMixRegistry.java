@@ -80,7 +80,7 @@ public class PotionMixRegistry {
         // Add all types of potions as inputs
         ItemEntry fillerIngredient = ingredients.get(0);
         for (ItemEntry input : inputs) {
-            for (Potion potion : Potion.values()) {
+            for (Potion potion : Potion.VALUES) {
                 potionMixes.add(new PotionMixData(
                         input.getBedrockId(), potion.getBedrockId(),
                         fillerIngredient.getBedrockId(), fillerIngredient.getBedrockData(),

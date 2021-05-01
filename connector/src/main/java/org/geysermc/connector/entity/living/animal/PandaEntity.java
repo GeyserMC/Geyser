@@ -79,6 +79,11 @@ public class PandaEntity extends AnimalEntity {
         super.updateBedrockMetadata(entityMetadata, session);
     }
 
+    @Override
+    public boolean canEat(String javaIdentifierStripped) {
+        return javaIdentifierStripped.equals("bamboo");
+    }
+
     /**
      * Update the panda's appearance, and take into consideration the recessive brown and weak traits that only show up
      * when both main and hidden genes match

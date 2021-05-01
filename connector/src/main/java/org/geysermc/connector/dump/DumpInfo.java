@@ -27,8 +27,12 @@ package org.geysermc.connector.dump;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
+import com.google.common.io.Files;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.serializer.AsteriskSerializer;
@@ -40,6 +44,7 @@ import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.FloodgateConfigHolder;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -56,6 +61,7 @@ public class DumpInfo {
     private Properties gitInfo;
     private final GeyserConfiguration config;
     private final Object floodgateConfig;
+    private final HashInfo hashInfo;
     private final Object2IntMap<DeviceOs> userPlatforms;
     private final RamInfo ramInfo;
     private final BootstrapDumpInfo bootstrapInfo;
@@ -71,6 +77,27 @@ public class DumpInfo {
 
         this.config = GeyserConnector.getInstance().getConfig();
         this.floodgateConfig = FloodgateConfigHolder.getConfig();
+
+        String md5Hash = "unknown";
+        String sha256Hash = "unknown";
+        try {
+            // https://stackoverflow.com/questions/320542/how-to-get-the-path-of-a-running-jar-file
+            // https://stackoverflow.com/questions/304268/getting-a-files-md5-checksum-in-java
+            File file = new File(DumpInfo.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            ByteSource byteSource = Files.asByteSource(file);
+            // Jenkins uses MD5 for its hash
+            //noinspection UnstableApiUsage
+            md5Hash = byteSource.hash(Hashing.md5()).toString();
+            //noinspection UnstableApiUsage
+            sha256Hash = byteSource.hash(Hashing.sha256()).toString();
+        } catch (Exception e) {
+            if (GeyserConnector.getInstance().getConfig().isDebugMode()) {
+                e.printStackTrace();
+            }
+        }
+
+        this.hashInfo = new HashInfo(md5Hash, sha256Hash);
+
         this.ramInfo = new DumpInfo.RamInfo();
 
         this.userPlatforms = new Object2IntOpenHashMap<>();
@@ -106,6 +133,13 @@ public class DumpInfo {
             this.network = new NetworkInfo();
             this.mcInfo = new MCInfo();
         }
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class HashInfo {
+        private final String md5Hash;
+        private final String sha256Hash;
     }
 
     @Getter

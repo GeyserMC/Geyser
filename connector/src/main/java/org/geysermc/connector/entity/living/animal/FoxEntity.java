@@ -52,4 +52,9 @@ public class FoxEntity extends AnimalEntity {
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
+
+    @Override
+    public boolean canEat(String javaIdentifierStripped) {
+        return javaIdentifierStripped.equals("sweet_berries");
+    }
 }

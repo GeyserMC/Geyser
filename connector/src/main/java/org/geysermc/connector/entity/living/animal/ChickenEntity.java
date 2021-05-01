@@ -23,25 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.sound.block;
+package org.geysermc.connector.entity.living.animal;
 
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHandler;
-import org.geysermc.connector.network.translators.sound.SoundHandler;
+import org.geysermc.connector.entity.type.EntityType;
 
-@SoundHandler(blocks = "comparator")
-public class ComparatorSoundInteractHandler implements BlockSoundInteractionHandler {
+public class ChickenEntity extends AnimalEntity {
+
+    public ChickenEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
+    }
 
     @Override
-    public void handleInteraction(GeyserSession session, Vector3f position, String identifier) {
-        boolean powered = identifier.contains("mode=compare");
-        LevelEventPacket levelEventPacket = new LevelEventPacket();
-        levelEventPacket.setPosition(position);
-        levelEventPacket.setType(LevelEventType.SOUND_CLICK); //TODO: New ID?
-        levelEventPacket.setData(powered ? 500 : 550);
-        session.sendUpstreamPacket(levelEventPacket);
+    public boolean canEat(String javaIdentifierStripped) {
+        return javaIdentifierStripped.contains("seeds");
     }
 }

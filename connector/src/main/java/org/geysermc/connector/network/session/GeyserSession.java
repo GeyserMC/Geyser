@@ -77,6 +77,7 @@ import lombok.Setter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
+import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.attribute.Attribute;
@@ -427,9 +428,7 @@ public class GeyserSession implements CommandSender {
     @Setter
     private boolean waitingForStatistics = false;
 
-    @Setter
-    private List<UUID> selectedEmotes = new ArrayList<>();
-    private final Set<UUID> emotes = new HashSet<>();
+    private final Set<UUID> emotes;
 
     /**
      * The thread that will run every 50 milliseconds - one Minecraft tick.
@@ -464,9 +463,14 @@ public class GeyserSession implements CommandSender {
         this.spawned = false;
         this.loggedIn = false;
 
-        // Make a copy to prevent ConcurrentModificationException
-        final List<GeyserSession> tmpPlayers = new ArrayList<>(connector.getPlayers());
-        tmpPlayers.forEach(player -> this.emotes.addAll(player.getEmotes()));
+        if (connector.getConfig().getEmoteOffhandWorkaround() != EmoteOffhandWorkaroundOption.NO_EMOTES) {
+            this.emotes = new HashSet<>();
+            // Make a copy to prevent ConcurrentModificationException
+            final List<GeyserSession> tmpPlayers = new ArrayList<>(connector.getPlayers());
+            tmpPlayers.forEach(player -> this.emotes.addAll(player.getEmotes()));
+        } else {
+            this.emotes = null;
+        }
 
         bedrockServerSession.addDisconnectHandler(disconnectReason -> {
             InetAddress address = bedrockServerSession.getRealAddress().getAddress();
@@ -668,37 +672,50 @@ public class GeyserSession implements CommandSender {
             @Override
             public void packetSending(PacketSendingEvent event) {
                 //todo move this somewhere else
-                if (event.getPacket() instanceof HandshakePacket && floodgate) {
-                    byte[] encryptedData;
+                if (event.getPacket() instanceof HandshakePacket) {
+                    String addressSuffix;
+                    if (floodgate) {
+                        byte[] encryptedData;
 
-                    try {
-                        FloodgateSkinUploader skinUploader = connector.getSkinUploader();
-                        FloodgateCipher cipher = connector.getCipher();
+                        try {
+                            FloodgateSkinUploader skinUploader = connector.getSkinUploader();
+                            FloodgateCipher cipher = connector.getCipher();
 
-                        encryptedData = cipher.encryptFromString(BedrockData.of(
-                                clientData.getGameVersion(),
-                                authData.getName(),
-                                authData.getXboxUUID(),
-                                clientData.getDeviceOs().ordinal(),
-                                clientData.getLanguageCode(),
-                                clientData.getUiProfile().ordinal(),
-                                clientData.getCurrentInputMode().ordinal(),
-                                upstream.getAddress().getAddress().getHostAddress(),
-                                skinUploader.getId(),
-                                skinUploader.getVerifyCode()
-                        ).toString());
-                    } catch (Exception e) {
-                        connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
-                        disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.floodgate.encryption_fail", getClientData().getLanguageCode()));
-                        return;
+                            encryptedData = cipher.encryptFromString(BedrockData.of(
+                                    clientData.getGameVersion(),
+                                    authData.getName(),
+                                    authData.getXboxUUID(),
+                                    clientData.getDeviceOs().ordinal(),
+                                    clientData.getLanguageCode(),
+                                    clientData.getUiProfile().ordinal(),
+                                    clientData.getCurrentInputMode().ordinal(),
+                                    upstream.getAddress().getAddress().getHostAddress(),
+                                    skinUploader.getId(),
+                                    skinUploader.getVerifyCode()
+                            ).toString());
+                        } catch (Exception e) {
+                            connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
+                            disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.floodgate.encryption_fail", getClientData().getLanguageCode()));
+                            return;
+                        }
+
+                        addressSuffix = '\0' + new String(encryptedData, StandardCharsets.UTF_8);
+                    } else {
+                        addressSuffix = "";
                     }
 
-                    String finalDataString = new String(encryptedData, StandardCharsets.UTF_8);
-
                     HandshakePacket handshakePacket = event.getPacket();
+
+                    String address;
+                    if (connector.getConfig().getRemote().isForwardHost()) {
+                        address = clientData.getServerAddress().split(":")[0];
+                    } else {
+                        address = handshakePacket.getHostname();
+                    }
+
                     event.setPacket(new HandshakePacket(
                             handshakePacket.getProtocolVersion(),
-                            handshakePacket.getHostname() + '\0' + finalDataString,
+                            address + addressSuffix,
                             handshakePacket.getPort(),
                             handshakePacket.getIntent()
                     ));
@@ -825,7 +842,7 @@ public class GeyserSession implements CommandSender {
     /**
      * Called every 50 milliseconds - one Minecraft tick.
      */
-    public void tick() {
+    protected void tick() {
         // Check to see if the player's position needs updating - a position update should be sent once every 3 seconds
         if (spawned && (System.currentTimeMillis() - lastMovementTimestamp) > 3000) {
             // Recalculate in case something else changed position
@@ -997,7 +1014,6 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setLightningLevel(0);
         startGamePacket.setMultiplayerGame(true);
         startGamePacket.setBroadcastingToLan(true);
-        startGamePacket.getGamerules().add(new GameRuleData<>("showcoordinates", connector.getConfig().isShowCoordinates()));
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setCommandsEnabled(!connector.getConfig().isXboxAchievementsEnabled());
@@ -1189,13 +1205,14 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Update the cached value for the reduced debug info gamerule.
-     * This also toggles the coordinates display
+     * If enabled, also hides the player's coordinates.
      *
      * @param value The new value for reducedDebugInfo
      */
     public void setReducedDebugInfo(boolean value) {
-        worldCache.setShowCoordinates(!value);
         reducedDebugInfo = value;
+        // Set the showCoordinates data. This is done because updateShowCoordinates() uses this gamerule as a variable.
+        getWorldCache().updateShowCoordinates();
     }
 
     /**
@@ -1281,7 +1298,6 @@ public class GeyserSession implements CommandSender {
     }
 
     public void refreshEmotes(List<UUID> emotes) {
-        this.selectedEmotes = emotes;
         this.emotes.addAll(emotes);
         for (GeyserSession player : connector.getPlayers()) {
             List<UUID> pieces = new ArrayList<>();

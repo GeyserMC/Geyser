@@ -47,6 +47,11 @@ public class PigEntity extends AnimalEntity {
     }
 
     @Override
+    public boolean canEat(String javaIdentifierStripped) {
+        return javaIdentifierStripped.equals("carrot") || javaIdentifierStripped.equals("potato") || javaIdentifierStripped.equals("beetroot");
+    }
+
+    @Override
     protected float getDefaultMaxHealth() {
         return 10f;
     }
