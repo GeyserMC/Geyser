@@ -38,11 +38,8 @@ public class AnimalEntity extends AgeableEntity {
     }
 
     /**
-     *
-     * @param session
      * @param javaIdentifierStripped the stripped Java identifier of the item that is potential breeding food. For example,
      *                               <code>wheat</code>.
-     * @param itemEntry
      * @return true if this is a valid item to breed with for this animal.
      */
     public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
