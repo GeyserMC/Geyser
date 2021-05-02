@@ -96,7 +96,7 @@ public class CollisionTranslator {
         if (blockID.contains("[")) {
             params = "[" + blockID.split("\\[")[1];
         }
-        int collisionIndex = BlockTranslator.JAVA_RUNTIME_ID_TO_COLLISION_INDEX.get(numericBlockID);
+        int collisionIndex = BlockTranslator.getBlockMapping(numericBlockID).getCollisionIndex();
 
         for (Class<?> type : collisionTypes) {
             CollisionRemapper annotation = annotationMap.get(type);

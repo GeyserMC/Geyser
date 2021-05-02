@@ -23,31 +23,53 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.animal;
+package org.geysermc.connector.registry.type;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
+import lombok.Builder;
+import lombok.Value;
 
-public class OcelotEntity extends AnimalEntity {
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-    public OcelotEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+@Builder
+@Value
+public class BlockMapping {
+    public static BlockMapping AIR;
+
+    String javaIdentifier;
+    /**
+     * The block ID shared between all different block states of this block.
+     * NOT the runtime ID!
+     */
+    int javaBlockId;
+
+    double hardness;
+    boolean canBreakWithHand;
+    @Nonnull String toolType;
+    /**
+     * The index of this collision in collision.json
+     */
+    int collisionIndex;
+    @Nullable String pickItem;
+
+    /**
+     * @return the identifier without the additional block states
+     */
+    public String getCleanJavaIdentifier() {
+        return javaIdentifier.split("\\[")[0];
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
-            metadata.getFlags().setFlag(EntityFlag.TRUSTING, (boolean) entityMetadata.getValue());
+    /**
+     * Get the item a Java client would receive when pressing
+     * the Pick Block key on a specific Java block state.
+     *
+     * @return The Java identifier of the item
+     */
+    public String getPickItem() {
+        if (pickItem != null) {
+            return pickItem;
         }
-        super.updateBedrockMetadata(entityMetadata, session);
-    }
 
-    @Override
-    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
-        return javaIdentifierStripped.equals("cod") || javaIdentifierStripped.equals("salmon");
+        return getCleanJavaIdentifier();
     }
 }
