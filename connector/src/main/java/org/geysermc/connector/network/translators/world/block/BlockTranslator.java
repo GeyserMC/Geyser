@@ -229,7 +229,6 @@ public abstract class BlockTranslator {
         }
         JAVA_WATER_ID = waterRuntimeId;
 
-        BlockTranslator1_16_100.init();
         BlockTranslator1_16_210.init();
         BLOCKS_JSON = null; // We no longer require this so let it garbage collect away
     }
@@ -274,7 +273,10 @@ public abstract class BlockTranslator {
             NbtMap blockTag = buildBedrockState(entry.getValue());
             int bedrockRuntimeId = blockStateOrderedMap.getOrDefault(blockTag, -1);
             if (bedrockRuntimeId == -1) {
-                throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Built compound tag: \n" + blockTag);
+                //TODO REMOVE THIS COMMENT BEFORE RELEASE!!!! :)
+                //throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Built compound tag: \n" + blockTag);
+                bedrockRuntimeId = 0;
+                GeyserConnector.getInstance().getLogger().warning("Unable to find " + javaId + " Bedrock runtime ID!");
             }
 
             switch (javaId) {

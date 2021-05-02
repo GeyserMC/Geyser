@@ -81,7 +81,7 @@ public class ChunkUtils {
         return (yzx >> 8) | (yzx & 0x0F0) | ((yzx & 0x00F) << 8);
     }
 
-    public static ChunkData translateToBedrock(GeyserSession session, Column column, boolean isNonFullChunk) {
+    public static ChunkData translateToBedrock(GeyserSession session, Column column) {
         Chunk[] javaSections = column.getChunks();
         ChunkSection[] sections = new ChunkSection[javaSections.length];
 
@@ -91,45 +91,11 @@ public class ChunkUtils {
         BitSet waterloggedPaletteIds = new BitSet();
         BitSet pistonOrFlowerPaletteIds = new BitSet();
 
-        boolean worldManagerHasMoreBlockDataThanCache = session.getConnector().getWorldManager().hasOwnChunkCache();
-
-        // If the received packet was a full chunk update, null sections in the chunk are guaranteed to also be null in the world manager
-        boolean shouldCheckWorldManagerOnMissingSections = isNonFullChunk && worldManagerHasMoreBlockDataThanCache;
-        Chunk temporarySection = null;
-
         for (int sectionY = 0; sectionY < javaSections.length; sectionY++) {
             Chunk javaSection = javaSections[sectionY];
 
-            // Section is null, the cache will not contain anything of use
-            if (javaSection == null) {
-                // The column parameter contains all data currently available from the cache. If the chunk is null and the world manager
-                // reports the ability to access more data than the cache, attempt to fetch from the world manager instead.
-                if (shouldCheckWorldManagerOnMissingSections) {
-                    // Ensure that temporary chunk is set
-                    if (temporarySection == null) {
-                        temporarySection = new Chunk();
-                    }
-
-                    // Read block data in section
-                    session.getConnector().getWorldManager().getBlocksInSection(session, column.getX(), sectionY, column.getZ(), temporarySection);
-
-                    if (temporarySection.isEmpty()) {
-                        // The world manager only contains air for the given section
-                        // We can leave temporarySection as-is to allow it to potentially be re-used for later sections
-                        continue;
-                    } else {
-                        javaSection = temporarySection;
-
-                        // Section contents have been modified, we can't re-use it
-                        temporarySection = null;
-                    }
-                } else {
-                    continue;
-                }
-            }
-
             // No need to encode an empty section...
-            if (javaSection.isEmpty()) {
+            if (javaSection == null || javaSection.isEmpty()) {
                 continue;
             }
 

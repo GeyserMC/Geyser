@@ -30,7 +30,6 @@ import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.data.ExperimentData;
 import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
-import com.nukkitx.protocol.bedrock.v428.Bedrock_v428;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
@@ -38,7 +37,6 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.AdvancementsCache;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator1_16_100;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator1_16_210;
 import org.geysermc.connector.utils.*;
 
@@ -74,8 +72,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         session.getUpstream().getSession().setPacketCodec(packetCodec);
 
         // Set the block translation based off of version
-        session.setBlockTranslator(packetCodec.getProtocolVersion() >= Bedrock_v428.V428_CODEC.getProtocolVersion()
-                ? BlockTranslator1_16_210.INSTANCE : BlockTranslator1_16_100.INSTANCE);
+        session.setBlockTranslator(BlockTranslator1_16_210.INSTANCE);
 
         LoginEncryptionUtils.encryptPlayerConnection(connector, session, loginPacket);
 
@@ -139,6 +136,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     // Allow custom items to work
                     stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
                 }
+
+                stackPacket.getExperiments().add(new ExperimentData("caves_and_cliffs", true));
 
                 session.sendUpstreamPacket(stackPacket);
                 break;

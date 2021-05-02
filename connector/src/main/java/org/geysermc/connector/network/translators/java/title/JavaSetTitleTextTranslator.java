@@ -23,27 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.entity;
+package org.geysermc.connector.network.translators.java.title;
 
-import org.geysermc.connector.entity.Entity;
+import com.github.steveice10.mc.protocol.packet.ingame.server.title.ServerSetTitleTextPacket;
+import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityDestroyPacket;
-
-@Translator(packet = ServerEntityDestroyPacket.class)
-public class JavaEntityDestroyTranslator extends PacketTranslator<ServerEntityDestroyPacket> {
+@Translator(packet = ServerSetTitleTextPacket.class)
+public class JavaSetTitleTextTranslator extends PacketTranslator<ServerSetTitleTextPacket> {
 
     @Override
-    public void translate(ServerEntityDestroyPacket packet, GeyserSession session) {
-        for (int entityId : packet.getEntityIds()) {
-            Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
-
-            if (entity != null) {
-                session.getEntityCache().removeEntity(entity, false);
-            }
+    public void translate(ServerSetTitleTextPacket packet, GeyserSession session) {
+        String text;
+        if (packet.getText() == null) { //TODO 1.17 can this happen?
+            text = " ";
+        } else {
+            text = MessageTranslator.convertMessage(packet.getText(), session.getLocale());
         }
+
+        SetTitlePacket titlePacket = new SetTitlePacket();
+        titlePacket.setType(SetTitlePacket.Type.TITLE);
+        titlePacket.setText(text);
+        session.sendUpstreamPacket(titlePacket);
     }
 }
-

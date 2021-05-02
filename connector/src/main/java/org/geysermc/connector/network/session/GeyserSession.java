@@ -807,7 +807,7 @@ public class GeyserSession implements CommandSender {
             @Override
             public void packetError(PacketErrorEvent event) {
                 connector.getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.network.downstream_error", event.getCause().getMessage()));
-                if (connector.getConfig().isDebugMode())
+                //if (connector.getConfig().isDebugMode()) //TODO don't leave this uncommented
                     event.getCause().printStackTrace();
                 event.setSuppress(true);
             }
@@ -1053,13 +1053,14 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setItemEntries(ItemRegistry.ITEMS);
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
-        startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.CLIENT); // can be removed once 1.16.200 support is dropped
 
         SyncedPlayerMovementSettings settings = new SyncedPlayerMovementSettings();
         settings.setMovementMode(AuthoritativeMovementMode.CLIENT);
         settings.setRewindHistorySize(0);
         settings.setServerAuthoritativeBlockBreaking(false);
         startGamePacket.setPlayerMovementSettings(settings);
+
+        startGamePacket.getExperiments().add(new ExperimentData("caves_and_cliffs", true));
         
         upstream.sendPacket(startGamePacket);
     }

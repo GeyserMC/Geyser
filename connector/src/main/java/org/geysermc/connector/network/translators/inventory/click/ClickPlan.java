@@ -27,7 +27,6 @@ package org.geysermc.connector.network.translators.inventory.click;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.window.WindowAction;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientConfirmTransactionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientWindowActionPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -43,7 +42,9 @@ import org.geysermc.connector.network.translators.inventory.translators.Crafting
 import org.geysermc.connector.network.translators.inventory.translators.PlayerInventoryTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
 
 public class ClickPlan {
     private final List<ClickAction> plan = new ArrayList<>();
@@ -116,22 +117,23 @@ public class ClickPlan {
                 clickedItemStack = getItem(action.slot).getItemStack();
             }
 
-            short actionId = inventory.getNextTransactionId();
+            Int2ObjectMap<ItemStack> affectedSlots = new Int2ObjectOpenHashMap<>();
+            for (Int2ObjectMap.Entry<GeyserItemStack> simulatedSlot : simulatedItems.int2ObjectEntrySet()) {
+                affectedSlots.put(simulatedSlot.getIntKey(), simulatedSlot.getValue().getItemStack());
+            }
+
             ClientWindowActionPacket clickPacket = new ClientWindowActionPacket(
                     inventory.getId(),
-                    actionId,
                     action.slot,
-                    clickedItemStack,
                     action.click.windowAction,
-                    action.click.actionParam
+                    action.click.actionParam,
+                    clickedItemStack,
+                    affectedSlots
             );
 
             simulateAction(action);
 
             session.sendDownstreamPacket(clickPacket);
-            if (clickedItemStack == InventoryUtils.REFRESH_ITEM || action.force) {
-                session.sendDownstreamPacket(new ClientConfirmTransactionPacket(inventory.getId(), actionId, true));
-            }
         }
 
         session.getPlayerInventory().setCursor(simulatedCursor, session);
