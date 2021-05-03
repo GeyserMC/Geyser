@@ -23,31 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.animal;
+package org.geysermc.connector.network.translators.java;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareTagsPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-public class OcelotEntity extends AnimalEntity {
-
-    public OcelotEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
-    }
+@Translator(packet = ServerDeclareTagsPacket.class)
+public class JavaDeclareTagsTranslator extends PacketTranslator<ServerDeclareTagsPacket> {
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
-            metadata.getFlags().setFlag(EntityFlag.TRUSTING, (boolean) entityMetadata.getValue());
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
-    }
-
-    @Override
-    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
-        return javaIdentifierStripped.equals("cod") || javaIdentifierStripped.equals("salmon");
+    public void translate(ServerDeclareTagsPacket packet, GeyserSession session) {
+        session.getTagCache().loadPacket(packet);
     }
 }

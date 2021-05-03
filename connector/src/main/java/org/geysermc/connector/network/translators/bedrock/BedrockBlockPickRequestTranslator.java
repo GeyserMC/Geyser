@@ -46,6 +46,6 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
             return;
         }
 
-        InventoryUtils.findOrCreateItem(session, BlockTranslator.getPickItem(blockToPick));
+        InventoryUtils.findOrCreateItem(session, BlockTranslator.getBlockMapping(blockToPick).getPickItem());
     }
 }
