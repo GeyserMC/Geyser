@@ -23,41 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.entity;
+package org.geysermc.connector.network.translators.bedrock.entity.player;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerState;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerStatePacket;
+import com.nukkitx.protocol.bedrock.packet.RiderJumpPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityVelocityPacket;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
-
-@Translator(packet = ServerEntityVelocityPacket.class)
-public class JavaEntityVelocityTranslator extends PacketTranslator<ServerEntityVelocityPacket> {
-
+@Translator(packet = RiderJumpPacket.class)
+public class BedrockRiderJumpTranslator extends PacketTranslator<RiderJumpPacket> {
     @Override
-    public void translate(ServerEntityVelocityPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
-            entity = session.getPlayerEntity();
+    public void translate(RiderJumpPacket packet, GeyserSession session) {
+        Entity vehicle = session.getRidingVehicleEntity();
+        if (vehicle instanceof AbstractHorseEntity) {
+            ClientPlayerStatePacket playerStatePacket = new ClientPlayerStatePacket((int) vehicle.getEntityId(),  PlayerState.START_HORSE_JUMP, packet.getJumpStrength());
+            session.sendDownstreamPacket(playerStatePacket);
         }
-        if (entity == null) return;
-
-        entity.setMotion(Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ()));
-
-        if (entity == session.getRidingVehicleEntity() && entity instanceof AbstractHorseEntity) {
-            // Horses for some reason teleport back when a SetEntityMotionPacket is sent while
-            // a player is riding on them. Java clients seem to ignore it anyways.
-            return;
-        }
-
-        SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
-        entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());
-        entityMotionPacket.setMotion(entity.getMotion());
-
-        session.sendUpstreamPacket(entityMotionPacket);
     }
 }

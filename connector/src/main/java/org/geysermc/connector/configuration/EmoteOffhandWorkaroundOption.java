@@ -23,31 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.animal;
+package org.geysermc.connector.configuration;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 
-public class OcelotEntity extends AnimalEntity {
+import java.io.IOException;
 
-    public OcelotEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
-    }
+public enum EmoteOffhandWorkaroundOption {
+    NO_EMOTES,
+    EMOTES_AND_OFFHAND,
+    DISABLED;
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
-            metadata.getFlags().setFlag(EntityFlag.TRUSTING, (boolean) entityMetadata.getValue());
+    public static class Deserializer extends JsonDeserializer<EmoteOffhandWorkaroundOption> {
+        @Override
+        public EmoteOffhandWorkaroundOption deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            String value = p.getValueAsString();
+            switch (value) {
+                case "no-emotes":
+                    return NO_EMOTES;
+                case "emotes-and-offhand":
+                    return EMOTES_AND_OFFHAND;
+                default:
+                    return DISABLED;
+            }
         }
-        super.updateBedrockMetadata(entityMetadata, session);
-    }
-
-    @Override
-    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
-        return javaIdentifierStripped.equals("cod") || javaIdentifierStripped.equals("salmon");
     }
 }

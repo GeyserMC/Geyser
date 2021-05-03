@@ -43,7 +43,7 @@ public class BootstrapDumpInfo {
 
     @Getter
     @AllArgsConstructor
-    public class PluginInfo {
+    public static class PluginInfo {
 
         public boolean enabled;
         public String name;
@@ -54,7 +54,7 @@ public class BootstrapDumpInfo {
 
     @Getter
     @AllArgsConstructor
-    public class ListenerInfo {
+    public static class ListenerInfo {
 
         public String ip;
         public int port;

@@ -23,23 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.network.translators.item;
 
-import com.nukkitx.protocol.bedrock.packet.EmoteListPacket;
-import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
+import lombok.Getter;
 
-@Translator(packet = EmoteListPacket.class)
-public class BedrockEmoteListTranslator extends PacketTranslator<EmoteListPacket> {
+/**
+ * Used when an item should have a custom name applied, if there already isn't one.
+ */
+public class TranslatableItemEntry extends ItemEntry {
+    @Getter
+    private final String translationString;
 
-    @Override
-    public void translate(EmoteListPacket packet, GeyserSession session) {
-        if (session.getConnector().getConfig().getEmoteOffhandWorkaround() == EmoteOffhandWorkaroundOption.NO_EMOTES) {
-            return;
-        }
-
-        session.refreshEmotes(packet.getPieceIds());
+    public TranslatableItemEntry(String javaIdentifier, String bedrockIdentifier, int javaId, int bedrockId, int bedrockData, int bedrockBlockId, int stackSize) {
+        super(javaIdentifier, bedrockIdentifier, javaId, bedrockId, bedrockData, bedrockBlockId, stackSize);
+        this.translationString = "item." + javaIdentifier.replace(":", ".");
     }
 }

@@ -33,6 +33,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ToolItemEntry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.registry.type.BlockMapping;
 
 public class BlockUtils {
     /**
@@ -108,11 +109,11 @@ public class BlockUtils {
         return 1.0 / speed;
     }
 
-    public static double getBreakTime(double blockHardness, int blockId, ItemEntry item, CompoundTag nbtData, GeyserSession session) {
-        boolean isWoolBlock = BlockTranslator.JAVA_RUNTIME_WOOL_IDS.contains(blockId);
-        boolean isCobweb = blockId == BlockTranslator.JAVA_RUNTIME_COBWEB_ID;
-        String blockToolType = BlockTranslator.JAVA_RUNTIME_ID_TO_TOOL_TYPE.getOrDefault(blockId, "");
-        boolean canHarvestWithHand = BlockTranslator.JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND.get(blockId);
+    public static double getBreakTime(GeyserSession session, BlockMapping blockMapping, ItemEntry item, CompoundTag nbtData, boolean isSessionPlayer) {
+        boolean isWoolBlock = session.getTagCache().isWool(blockMapping);
+        boolean isCobweb = blockMapping.getJavaBlockId() == BlockTranslator.JAVA_COBWEB_BLOCK_ID;
+        String blockToolType = blockMapping.getToolType();
+        boolean canHarvestWithHand = blockMapping.isCanBreakWithHand();
         String toolType = "";
         String toolTier = "";
         boolean correctTool = false;
@@ -126,22 +127,26 @@ public class BlockUtils {
         int hasteLevel = 0;
         int miningFatigueLevel = 0;
 
-        if (session == null) {
-            return calculateBreakTime(blockHardness, toolTier, canHarvestWithHand, correctTool, toolType, isWoolBlock, isCobweb, toolEfficiencyLevel, hasteLevel, miningFatigueLevel, false, false, false);
+        if (!isSessionPlayer) {
+            // Another entity is currently mining; we have all the information we know
+            return calculateBreakTime(blockMapping.getHardness(), toolTier, canHarvestWithHand, correctTool, toolType, isWoolBlock,
+                    isCobweb, toolEfficiencyLevel, hasteLevel, miningFatigueLevel, false,
+                    false, false);
         }
 
         hasteLevel = session.getEffectCache().getEffectLevel(Effect.FASTER_DIG);
         miningFatigueLevel = session.getEffectCache().getEffectLevel(Effect.SLOWER_DIG);
 
-        boolean isInWater = session.getConnector().getConfig().isCacheChunks()
-                && session.getBlockTranslator().getBedrockBlockId(session.getConnector().getWorldManager().getBlockAt(session, session.getPlayerEntity().getPosition().toInt())) == session.getBlockTranslator().getBedrockWaterId();
+        boolean isInWater = session.getCollisionManager().isPlayerInWater();
 
         boolean insideOfWaterWithoutAquaAffinity = isInWater &&
                 ItemUtils.getEnchantmentLevel(session.getPlayerInventory().getItem(5).getNbt(), "minecraft:aqua_affinity") < 1;
 
         boolean outOfWaterButNotOnGround = (!isInWater) && (!session.getPlayerEntity().isOnGround());
         boolean insideWaterNotOnGround = isInWater && !session.getPlayerEntity().isOnGround();
-        return calculateBreakTime(blockHardness, toolTier, canHarvestWithHand, correctTool, toolType, isWoolBlock, isCobweb, toolEfficiencyLevel, hasteLevel, miningFatigueLevel, insideOfWaterWithoutAquaAffinity, outOfWaterButNotOnGround, insideWaterNotOnGround);
+        return calculateBreakTime(blockMapping.getHardness(), toolTier, canHarvestWithHand, correctTool, toolType, isWoolBlock,
+                isCobweb, toolEfficiencyLevel, hasteLevel, miningFatigueLevel, insideOfWaterWithoutAquaAffinity,
+                outOfWaterButNotOnGround, insideWaterNotOnGround);
     }
 
     /**
