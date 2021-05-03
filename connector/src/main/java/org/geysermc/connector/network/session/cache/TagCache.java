@@ -32,6 +32,10 @@ import org.geysermc.connector.registry.type.BlockMapping;
 
 import java.util.Map;
 
+/**
+ * Manages information sent from the {@link ServerDeclareTagsPacket}. If that packet is not sent, all lists here
+ * will remain empty, matching Java Edition behavior.
+ */
 public class TagCache {
     /* Blocks */
     private IntList wool = IntList.of();
