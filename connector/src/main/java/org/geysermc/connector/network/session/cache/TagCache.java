@@ -27,6 +27,7 @@ package org.geysermc.connector.network.session.cache;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareTagsPacket;
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntLists;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.registry.type.BlockMapping;
 
@@ -38,10 +39,10 @@ import java.util.Map;
  */
 public class TagCache {
     /* Blocks */
-    private IntList wool = IntList.of();
+    private IntList wool = IntLists.emptyList();
     /* Items */
-    private IntList flowers = IntList.of();
-    private IntList piglinLoved = IntList.of();
+    private IntList flowers = IntLists.emptyList();
+    private IntList piglinLoved = IntLists.emptyList();
 
     public void loadPacket(ServerDeclareTagsPacket packet) {
         Map<String, int[]> blockTags = packet.getBlockTags();
@@ -53,10 +54,10 @@ public class TagCache {
     }
 
     public void clear() {
-        this.wool = IntList.of();
+        this.wool = IntLists.emptyList();
 
-        this.flowers = IntList.of();
-        this.piglinLoved = IntList.of();
+        this.flowers = IntLists.emptyList();
+        this.piglinLoved = IntLists.emptyList();
     }
 
     public boolean isFlower(ItemEntry itemEntry) {
