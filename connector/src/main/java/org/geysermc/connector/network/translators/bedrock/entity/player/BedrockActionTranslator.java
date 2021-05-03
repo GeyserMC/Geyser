@@ -166,19 +166,21 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                     // Start the block breaking animation
                     if (session.getGameMode() != GameMode.CREATIVE) {
                         int blockState = session.getConnector().getWorldManager().getBlockAt(session, vector);
-                        double blockHardness = BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(blockState);
                         LevelEventPacket startBreak = new LevelEventPacket();
                         startBreak.setType(LevelEventType.BLOCK_START_BREAK);
                         startBreak.setPosition(vector.toFloat());
                         PlayerInventory inventory = session.getPlayerInventory();
                         GeyserItemStack item = inventory.getItemInHand();
-                        ItemEntry itemEntry = null;
-                        CompoundTag nbtData = new CompoundTag("");
+                        ItemEntry itemEntry;
+                        CompoundTag nbtData;
                         if (item != null) {
                             itemEntry = item.getItemEntry();
                             nbtData = item.getNbt();
+                        } else {
+                            itemEntry = null;
+                            nbtData = new CompoundTag("");
                         }
-                        double breakTime = Math.ceil(BlockUtils.getBreakTime(blockHardness, blockState, itemEntry, nbtData, session) * 20);
+                        double breakTime = Math.ceil(BlockUtils.getBreakTime(session, BlockTranslator.getBlockMapping(blockState), itemEntry, nbtData, true) * 20);
                         startBreak.setData((int) (65535 / breakTime));
                         session.setBreakingBlock(blockState);
                         session.sendUpstreamPacket(startBreak);

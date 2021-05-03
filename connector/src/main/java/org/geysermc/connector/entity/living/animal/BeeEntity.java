@@ -26,7 +26,6 @@
 package org.geysermc.connector.entity.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.google.common.collect.ImmutableSet;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
@@ -34,16 +33,9 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-
-import java.util.Set;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 
 public class BeeEntity extends AnimalEntity {
-    /**
-     * A list of all flowers. Used for feeding bees.
-     */
-    private static final Set<String> FLOWERS = ImmutableSet.of("dandelion", "poppy", "blue_orchid", "allium", "azure_bluet",
-            "red_tulip", "pink_tulip", "white_tulip", "orange_tulip", "cornflower", "lily_of_the_valley", "wither_rose",
-            "sunflower", "lilac", "rose_bush", "peony");
 
     public BeeEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
@@ -74,7 +66,7 @@ public class BeeEntity extends AnimalEntity {
     }
 
     @Override
-    public boolean canEat(String javaIdentifierStripped) {
-        return FLOWERS.contains(javaIdentifierStripped);
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+        return session.getTagCache().isFlower(itemEntry);
     }
 }
