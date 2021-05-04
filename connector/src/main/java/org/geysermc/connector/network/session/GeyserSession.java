@@ -146,6 +146,7 @@ public class GeyserSession implements CommandSender {
     private ChunkCache chunkCache;
     private EntityCache entityCache;
     private EntityEffectCache effectCache;
+    private PreferencesCache preferencesCache;
     private WorldCache worldCache;
     private WindowCache windowCache;
     private final Int2ObjectMap<TeleportCache> teleportMap = new Int2ObjectOpenHashMap<>();
@@ -452,6 +453,7 @@ public class GeyserSession implements CommandSender {
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
+        this.preferencesCache = new PreferencesCache(this);
         this.worldCache = new WorldCache(this);
         this.windowCache = new WindowCache(this);
 
@@ -841,6 +843,7 @@ public class GeyserSession implements CommandSender {
         this.chunkCache = null;
         this.entityCache = null;
         this.effectCache = null;
+        this.preferencesCache = null;
         this.worldCache = null;
         this.windowCache = null;
 
@@ -1224,7 +1227,7 @@ public class GeyserSession implements CommandSender {
     public void setReducedDebugInfo(boolean value) {
         reducedDebugInfo = value;
         // Set the showCoordinates data. This is done because updateShowCoordinates() uses this gamerule as a variable.
-        getWorldCache().updateShowCoordinates();
+        getPreferencesCache().updateShowCoordinates();
     }
 
     /**

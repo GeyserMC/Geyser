@@ -57,11 +57,24 @@ public class SettingsUtils {
         CustomFormBuilder builder = new CustomFormBuilder(LanguageUtils.getPlayerLocaleString("geyser.settings.title.main", language));
         builder.setIcon(new FormImage(FormImage.FormImageType.PATH, "textures/ui/settings_glyph_color_2x.png"));
 
-        // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
-        if (!session.isReducedDebugInfo() && session.getConnector().getConfig().isShowCoordinates()) {
+        // Only show the client title if any of the client settings are available
+        if (session.getPreferencesCache().isAllowShowCoordinates() || !(CooldownUtils.getDefaultShowCooldown() == CooldownUtils.CooldownType.DISABLED)) {
             builder.addComponent(new LabelComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.title.client", language)));
 
-            builder.addComponent(new ToggleComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.option.coordinates", language), session.getWorldCache().isPrefersShowCoordinates()));
+            // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
+            if (session.getPreferencesCache().isAllowShowCoordinates()) {
+                builder.addComponent(new ToggleComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.option.coordinates", language), session.getPreferencesCache().isPrefersShowCoordinates()));
+            }
+
+            if (!(CooldownUtils.getDefaultShowCooldown() == CooldownUtils.CooldownType.DISABLED)) {
+                DropdownComponent cooldownDropdown = new DropdownComponent();
+                cooldownDropdown.setText("Attack Cooldown Animation");
+                cooldownDropdown.setOptions(new ArrayList<>());
+                cooldownDropdown.addOption("Under Crosshair", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.TITLE);
+                cooldownDropdown.addOption("Action Bar", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.ACTIONBAR);
+                cooldownDropdown.addOption("Hide Animation", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.DISABLED);
+                builder.addComponent(cooldownDropdown);
+            }
         }
 
 
@@ -121,13 +134,23 @@ public class SettingsUtils {
         }
         int offset = 0;
 
-        // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
-        if (!session.isReducedDebugInfo() && session.getConnector().getConfig().isShowCoordinates()) {
+        if (session.getPreferencesCache().isAllowShowCoordinates() || !(CooldownUtils.getDefaultShowCooldown() == CooldownUtils.CooldownType.DISABLED)) {
             offset++; // Client settings title
 
-            session.getWorldCache().setPrefersShowCoordinates(settingsResponse.getToggleResponses().get(offset));
-            session.getWorldCache().updateShowCoordinates();
-            offset++;
+            // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
+            if (session.getPreferencesCache().isAllowShowCoordinates()) {
+                session.getPreferencesCache().setPrefersShowCoordinates(settingsResponse.getToggleResponses().get(offset));
+                session.getPreferencesCache().updateShowCoordinates();
+                offset++;
+            }
+
+            if (!(CooldownUtils.getDefaultShowCooldown() == CooldownUtils.CooldownType.DISABLED)) {
+                CooldownUtils.CooldownType cooldownType = CooldownUtils.CooldownType.values()[settingsResponse.getDropdownResponses().get(offset).getElementID()];
+                if (cooldownType != null) {
+                    session.getPreferencesCache().setCooldownPreference(cooldownType);
+                }
+                offset++;
+            }
         }
 
         if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
