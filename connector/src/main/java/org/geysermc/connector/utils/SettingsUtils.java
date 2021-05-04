@@ -38,7 +38,7 @@ import org.geysermc.common.window.response.CustomFormResponse;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 
-import java.util.ArrayList;
+import java.util.Collections;
 
 public class SettingsUtils {
 
@@ -69,7 +69,7 @@ public class SettingsUtils {
             if (CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
                 DropdownComponent cooldownDropdown = new DropdownComponent();
                 cooldownDropdown.setText("Attack Cooldown Animation");
-                cooldownDropdown.setOptions(new ArrayList<>());
+                cooldownDropdown.setOptions(Collections.emptyList());
                 cooldownDropdown.addOption("Under Crosshair", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.TITLE);
                 cooldownDropdown.addOption("Action Bar", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.ACTIONBAR);
                 cooldownDropdown.addOption("Hide Animation", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.DISABLED);
@@ -83,7 +83,7 @@ public class SettingsUtils {
 
             DropdownComponent gamemodeDropdown = new DropdownComponent();
             gamemodeDropdown.setText("%createWorldScreen.gameMode.personal");
-            gamemodeDropdown.setOptions(new ArrayList<>());
+            gamemodeDropdown.setOptions(Collections.emptyList());
             for (GameMode gamemode : GameMode.values()) {
                 gamemodeDropdown.addOption(LocaleUtils.getLocaleString("selectWorld.gameMode." + gamemode.name().toLowerCase(), language), session.getGameMode() == gamemode);
             }
@@ -91,7 +91,7 @@ public class SettingsUtils {
 
             DropdownComponent difficultyDropdown = new DropdownComponent();
             difficultyDropdown.setText("%options.difficulty");
-            difficultyDropdown.setOptions(new ArrayList<>());
+            difficultyDropdown.setOptions(Collections.emptyList());
             for (Difficulty difficulty : Difficulty.values()) {
                 difficultyDropdown.addOption("%options.difficulty." + difficulty.name().toLowerCase(), session.getWorldCache().getDifficulty() == difficulty);
             }
