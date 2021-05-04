@@ -58,7 +58,7 @@ public class SettingsUtils {
         builder.setIcon(new FormImage(FormImage.FormImageType.PATH, "textures/ui/settings_glyph_color_2x.png"));
 
         // Only show the client title if any of the client settings are available
-        if (session.getPreferencesCache().isAllowShowCoordinates() || !(CooldownUtils.getDefaultShowCooldown() == CooldownUtils.CooldownType.DISABLED)) {
+        if (session.getPreferencesCache().isAllowShowCoordinates() || CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
             builder.addComponent(new LabelComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.title.client", language)));
 
             // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
@@ -66,7 +66,7 @@ public class SettingsUtils {
                 builder.addComponent(new ToggleComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.option.coordinates", language), session.getPreferencesCache().isPrefersShowCoordinates()));
             }
 
-            if (!(CooldownUtils.getDefaultShowCooldown() == CooldownUtils.CooldownType.DISABLED)) {
+            if (CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
                 DropdownComponent cooldownDropdown = new DropdownComponent();
                 cooldownDropdown.setText("Attack Cooldown Animation");
                 cooldownDropdown.setOptions(new ArrayList<>());
@@ -134,7 +134,7 @@ public class SettingsUtils {
         }
         int offset = 0;
 
-        if (session.getPreferencesCache().isAllowShowCoordinates() || !(CooldownUtils.getDefaultShowCooldown() == CooldownUtils.CooldownType.DISABLED)) {
+        if (session.getPreferencesCache().isAllowShowCoordinates() || CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
             offset++; // Client settings title
 
             // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
@@ -144,7 +144,7 @@ public class SettingsUtils {
                 offset++;
             }
 
-            if (!(CooldownUtils.getDefaultShowCooldown() == CooldownUtils.CooldownType.DISABLED)) {
+            if (CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
                 CooldownUtils.CooldownType cooldownType = CooldownUtils.CooldownType.values()[settingsResponse.getDropdownResponses().get(offset).getElementID()];
                 if (cooldownType != null) {
                     session.getPreferencesCache().setCooldownPreference(cooldownType);
