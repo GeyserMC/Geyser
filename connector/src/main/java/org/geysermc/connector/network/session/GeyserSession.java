@@ -146,7 +146,7 @@ public class GeyserSession implements CommandSender {
     private ChunkCache chunkCache;
     private EntityCache entityCache;
     private EntityEffectCache effectCache;
-    private PreferencesCache preferencesCache;
+    private final PreferencesCache preferencesCache;
     private final TagCache tagCache;
     private WorldCache worldCache;
     private WindowCache windowCache;
