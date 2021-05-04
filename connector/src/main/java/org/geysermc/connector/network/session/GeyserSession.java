@@ -147,6 +147,7 @@ public class GeyserSession implements CommandSender {
     private EntityCache entityCache;
     private EntityEffectCache effectCache;
     private PreferencesCache preferencesCache;
+    private final TagCache tagCache;
     private WorldCache worldCache;
     private WindowCache windowCache;
     private final Int2ObjectMap<TeleportCache> teleportMap = new Int2ObjectOpenHashMap<>();
@@ -454,6 +455,7 @@ public class GeyserSession implements CommandSender {
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
         this.preferencesCache = new PreferencesCache(this);
+        this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
         this.windowCache = new WindowCache(this);
 
@@ -843,7 +845,6 @@ public class GeyserSession implements CommandSender {
         this.chunkCache = null;
         this.entityCache = null;
         this.effectCache = null;
-        this.preferencesCache = null;
         this.worldCache = null;
         this.windowCache = null;
 
