@@ -321,7 +321,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             session.sendUpstreamPacket(openPacket);
                             break;
                         }
-                        Vector3f vector = packet.getClickPosition();
+                        Vector3f vector = packet.getClickPosition().sub(entity.getPosition());
                         ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
                                 InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
                         ClientPlayerInteractEntityPacket interactAtPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
@@ -329,7 +329,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamPacket(interactPacket);
                         session.sendDownstreamPacket(interactAtPacket);
 
-                        EntitySoundInteractionHandler.handleEntityInteraction(session, vector, entity);
+                        EntitySoundInteractionHandler.handleEntityInteraction(session, packet.getClickPosition(), entity);
                         break;
                     case 1: //Attack
                         if (entity.getEntityType() == EntityType.ENDER_DRAGON) {

@@ -79,6 +79,7 @@ import org.geysermc.common.window.FormWindow;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
+import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.attribute.Attribute;
@@ -145,6 +146,7 @@ public class GeyserSession implements CommandSender {
     private ChunkCache chunkCache;
     private EntityCache entityCache;
     private EntityEffectCache effectCache;
+    private final TagCache tagCache;
     private WorldCache worldCache;
     private WindowCache windowCache;
     private final Int2ObjectMap<TeleportCache> teleportMap = new Int2ObjectOpenHashMap<>();
@@ -433,9 +435,7 @@ public class GeyserSession implements CommandSender {
     @Setter
     private boolean waitingForStatistics = false;
 
-    @Setter
-    private List<UUID> selectedEmotes = new ArrayList<>();
-    private final Set<UUID> emotes = new HashSet<>();
+    private final Set<UUID> emotes;
 
     /**
      * The thread that will run every 50 milliseconds - one Minecraft tick.
@@ -453,6 +453,7 @@ public class GeyserSession implements CommandSender {
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
+        this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
         this.windowCache = new WindowCache(this);
 
@@ -471,9 +472,14 @@ public class GeyserSession implements CommandSender {
         this.spawned = false;
         this.loggedIn = false;
 
-        // Make a copy to prevent ConcurrentModificationException
-        final List<GeyserSession> tmpPlayers = new ArrayList<>(connector.getPlayers());
-        tmpPlayers.forEach(player -> this.emotes.addAll(player.getEmotes()));
+        if (connector.getConfig().getEmoteOffhandWorkaround() != EmoteOffhandWorkaroundOption.NO_EMOTES) {
+            this.emotes = new HashSet<>();
+            // Make a copy to prevent ConcurrentModificationException
+            final List<GeyserSession> tmpPlayers = new ArrayList<>(connector.getPlayers());
+            tmpPlayers.forEach(player -> this.emotes.addAll(player.getEmotes()));
+        } else {
+            this.emotes = null;
+        }
 
         bedrockServerSession.addDisconnectHandler(disconnectReason -> {
             InetAddress address = bedrockServerSession.getRealAddress().getAddress();
@@ -1306,7 +1312,6 @@ public class GeyserSession implements CommandSender {
     }
 
     public void refreshEmotes(List<UUID> emotes) {
-        this.selectedEmotes = emotes;
         this.emotes.addAll(emotes);
         for (GeyserSession player : connector.getPlayers()) {
             List<UUID> pieces = new ArrayList<>();

@@ -68,7 +68,7 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
         // We need to check if the identifier is the same, else a packet with the sound of what the
         // player has in their hand is played, despite if the block is being placed or not
         boolean contains = false;
-        String identifier = BlockTranslator.getItem(packet.getRecord().getBlock());
+        String identifier = BlockTranslator.getBlockMapping(packet.getRecord().getBlock()).getItemIdentifier();
         if (identifier.equals(session.getLastBlockPlacedId())) {
             contains = true;
         }

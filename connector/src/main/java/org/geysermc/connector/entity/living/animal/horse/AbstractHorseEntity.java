@@ -26,6 +26,7 @@
 package org.geysermc.connector.entity.living.animal.horse;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.google.common.collect.ImmutableSet;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
@@ -36,9 +37,18 @@ import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 
+import java.util.Set;
+
 public class AbstractHorseEntity extends AnimalEntity {
+    /**
+     * A list of all foods a horse/donkey can eat on Java Edition.
+     * Used to display interactive tag if needed.
+     */
+    private static final Set<String> DONKEY_AND_HORSE_FOODS = ImmutableSet.of("golden_apple", "enchanted_golden_apple",
+            "golden_carrot", "sugar", "apple", "wheat", "hay_block");
 
     public AbstractHorseEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
@@ -100,5 +110,10 @@ public class AbstractHorseEntity extends AnimalEntity {
             // Update the health attribute
             updateBedrockAttributes(session);
         }
+    }
+
+    @Override
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+        return DONKEY_AND_HORSE_FOODS.contains(javaIdentifierStripped);
     }
 }
