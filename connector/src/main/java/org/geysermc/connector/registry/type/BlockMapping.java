@@ -52,6 +52,9 @@ public class BlockMapping {
     int collisionIndex;
     @Nullable String pickItem;
 
+    String pistonBehavior;
+    boolean isBlockEntity;
+
     /**
      * @return the identifier without the additional block states
      */

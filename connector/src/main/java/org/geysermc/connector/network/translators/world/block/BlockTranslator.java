@@ -77,9 +77,6 @@ public abstract class BlockTranslator {
 
     private static final Int2ObjectMap<BlockMapping> JAVA_RUNTIME_ID_TO_BLOCK_MAPPING = new Int2ObjectOpenHashMap<>();
 
-    public static final Int2ObjectMap<String> JAVA_RUNTIME_ID_TO_PISTON_BEHAVIOR = new Int2ObjectOpenHashMap<>();
-    public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_HAS_BLOCK_ENTITY = new Int2BooleanOpenHashMap();
-
     /**
      * Java numeric ID to java unique identifier, used for block names in the statistics screen
      */
@@ -171,17 +168,19 @@ public abstract class BlockTranslator {
 
             if (javaId.contains("obsidian") || javaId.contains("respawn_anchor")) {
                 // Override obsidian, crying_obsidian, and respawn_anchor to block piston movement
-                JAVA_RUNTIME_ID_TO_PISTON_BEHAVIOR.put(javaRuntimeId, "block");
+                builder.pistonBehavior("block");
             } else {
                 JsonNode pistonBehaviorNode = entry.getValue().get("piston_behavior");
                 if (pistonBehaviorNode != null) {
-                    JAVA_RUNTIME_ID_TO_PISTON_BEHAVIOR.put(javaRuntimeId, pistonBehaviorNode.textValue());
+                    builder.pistonBehavior(pistonBehaviorNode.textValue());
+                } else {
+                    builder.pistonBehavior("normal");
                 }
             }
 
             JsonNode hasBlockEntityNode = entry.getValue().get("has_block_entity");
             if (hasBlockEntityNode != null) {
-                JAVA_RUNTIME_ID_TO_HAS_BLOCK_ENTITY.put(javaRuntimeId, hasBlockEntityNode.booleanValue());
+                builder.isBlockEntity(hasBlockEntityNode.booleanValue());
             }
 
             JsonNode pickItemNode = entry.getValue().get("pick_item");

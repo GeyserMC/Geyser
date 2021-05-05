@@ -43,6 +43,7 @@ import org.geysermc.connector.network.translators.collision.translators.BlockCol
 import org.geysermc.connector.network.translators.collision.translators.SolidCollision;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.registry.type.BlockMapping;
 import org.geysermc.connector.utils.Axis;
 import org.geysermc.connector.utils.BlockEntityUtils;
 import org.geysermc.connector.utils.ChunkUtils;
@@ -281,12 +282,12 @@ public class PistonBlockEntity {
         if (PistonBlockEntityTranslator.isBlock(javaId) && !isPistonHead(javaId)) {
             return !BlockStateValues.getPistonValues().get(javaId);
         }
+        BlockMapping block = BlockTranslator.getBlockMapping(javaId);
         // Bedrock, End portal frames, etc. can't be moved
-        if (BlockTranslator.JAVA_RUNTIME_ID_TO_HARDNESS.get(javaId) == -1.0d) {
+        if (block.getHardness() == -1.0d) {
             return false;
         }
-        String pistonBehavior = BlockTranslator.JAVA_RUNTIME_ID_TO_PISTON_BEHAVIOR.getOrDefault(javaId, "normal");
-        switch (pistonBehavior) {
+        switch (block.getPistonBehavior()) {
             case "block":
             case "destroy":
                 return false;
@@ -294,11 +295,11 @@ public class PistonBlockEntity {
                 return isPushing;
         }
         // Pistons can't move block entities
-        return !BlockTranslator.JAVA_RUNTIME_ID_TO_HAS_BLOCK_ENTITY.getOrDefault(javaId, false);
+        return !block.isBlockEntity();
     }
 
     private boolean cannotDestroyBlock(int javaId)  {
-        return !BlockTranslator.JAVA_RUNTIME_ID_TO_PISTON_BEHAVIOR.getOrDefault(javaId, "normal").equals("destroy");
+        return !BlockTranslator.getBlockMapping(javaId).getPistonBehavior().equals("destroy");
     }
 
     /**
