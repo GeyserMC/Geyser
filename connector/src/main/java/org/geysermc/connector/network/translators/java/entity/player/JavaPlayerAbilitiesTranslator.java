@@ -26,7 +26,6 @@
 package org.geysermc.connector.network.translators.java.entity.player;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerAbilitiesPacket;
-import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -36,10 +35,6 @@ public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayer
 
     @Override
     public void translate(ServerPlayerAbilitiesPacket packet, GeyserSession session) {
-        PlayerEntity entity = session.getPlayerEntity();
-        if (entity == null)
-            return;
-
         session.setCanFly(packet.isCanFly());
         session.setFlying(packet.isFlying());
         session.sendAdventureSettings();

@@ -23,31 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.animal;
+package org.geysermc.connector.network.translators.sound.block;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
+import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHandler;
+import org.geysermc.connector.network.translators.sound.SoundHandler;
 
-public class OcelotEntity extends AnimalEntity {
-
-    public OcelotEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
-    }
+@SoundHandler(blocks = "comparator")
+public class ComparatorSoundInteractionHandler implements BlockSoundInteractionHandler {
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
-            metadata.getFlags().setFlag(EntityFlag.TRUSTING, (boolean) entityMetadata.getValue());
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
-    }
-
-    @Override
-    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
-        return javaIdentifierStripped.equals("cod") || javaIdentifierStripped.equals("salmon");
+    public void handleInteraction(GeyserSession session, Vector3f position, String identifier) {
+        boolean powered = identifier.contains("mode=compare");
+        LevelEventPacket levelEventPacket = new LevelEventPacket();
+        levelEventPacket.setPosition(position);
+        levelEventPacket.setType(LevelEventType.SOUND_CLICK); //TODO: New ID?
+        levelEventPacket.setData(powered ? 500 : 550);
+        session.sendUpstreamPacket(levelEventPacket);
     }
 }

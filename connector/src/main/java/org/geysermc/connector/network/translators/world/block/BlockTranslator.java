@@ -38,6 +38,7 @@ import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
 import org.geysermc.connector.network.translators.world.chunk.EmptyChunkProvider;
+import org.geysermc.connector.registry.type.BlockMapping;
 import org.geysermc.connector.utils.FileUtils;
 
 import java.io.DataInputStream;
@@ -52,6 +53,7 @@ public abstract class BlockTranslator {
      * The Java block runtime ID of air
      */
     public static final int JAVA_AIR_ID = 0;
+    public static final int JAVA_WATER_ID;
     /**
      * The Bedrock block runtime ID of air
      */
@@ -73,19 +75,10 @@ public abstract class BlockTranslator {
     private final Object2IntMap<NbtMap> itemFrames = new Object2IntOpenHashMap<>();
     private final Map<String, NbtMap> flowerPotBlocks = new HashMap<>();
 
-    // Bedrock carpet ID, used in LlamaEntity.java for decoration
-    public static final int CARPET = 171;
+    private static final Int2ObjectMap<BlockMapping> JAVA_RUNTIME_ID_TO_BLOCK_MAPPING = new Int2ObjectOpenHashMap<>();
 
-    public static final Int2DoubleMap JAVA_RUNTIME_ID_TO_HARDNESS = new Int2DoubleOpenHashMap();
-    public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND = new Int2BooleanOpenHashMap();
-    public static final Int2ObjectMap<String> JAVA_RUNTIME_ID_TO_TOOL_TYPE = new Int2ObjectOpenHashMap<>();
     public static final Int2ObjectMap<String> JAVA_RUNTIME_ID_TO_PISTON_BEHAVIOR = new Int2ObjectOpenHashMap<>();
     public static final Int2BooleanMap JAVA_RUNTIME_ID_TO_HAS_BLOCK_ENTITY = new Int2BooleanOpenHashMap();
-
-    // The index of the collision data in collision.json
-    public static final Int2IntMap JAVA_RUNTIME_ID_TO_COLLISION_INDEX = new Int2IntOpenHashMap();
-
-    private static final Int2ObjectMap<String> JAVA_RUNTIME_ID_TO_PICK_ITEM = new Int2ObjectOpenHashMap<>();
 
     /**
      * Java numeric ID to java unique identifier, used for block names in the statistics screen
@@ -106,11 +99,7 @@ public abstract class BlockTranslator {
 
     private final EmptyChunkProvider emptyChunkProvider;
 
-    /**
-     * A list of all Java runtime wool IDs, for use with block breaking math and shears
-     */
-    public static final IntSet JAVA_RUNTIME_WOOL_IDS = new IntOpenHashSet();
-    public static final int JAVA_RUNTIME_COBWEB_ID;
+    public static final int JAVA_COBWEB_BLOCK_ID;
 
     public static final int JAVA_RUNTIME_FURNACE_ID;
     public static final int JAVA_RUNTIME_FURNACE_LIT_ID;
@@ -140,39 +129,44 @@ public abstract class BlockTranslator {
         }
 
         int javaRuntimeId = -1;
-        int cobwebRuntimeId = -1;
+        int cobwebBlockId = -1;
         int furnaceRuntimeId = -1;
         int furnaceLitRuntimeId = -1;
         int spawnerRuntimeId = -1;
         int honeyBlockRuntimeId = -1;
         int slimeBlockRuntimeId = -1;
         int uniqueJavaId = -1;
+        int waterRuntimeId = -1;
         Iterator<Map.Entry<String, JsonNode>> blocksIterator = BLOCKS_JSON.fields();
         while (blocksIterator.hasNext()) {
             javaRuntimeId++;
             Map.Entry<String, JsonNode> entry = blocksIterator.next();
             String javaId = entry.getKey();
 
+            BlockMapping.BlockMappingBuilder builder = BlockMapping.builder();
             // TODO fix this, (no block should have a null hardness)
             JsonNode hardnessNode = entry.getValue().get("block_hardness");
             if (hardnessNode != null) {
-                JAVA_RUNTIME_ID_TO_HARDNESS.put(javaRuntimeId, hardnessNode.doubleValue());
+                builder.hardness(hardnessNode.doubleValue());
             }
 
-            try {
-                JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND.put(javaRuntimeId, entry.getValue().get("can_break_with_hand").booleanValue());
-            } catch (Exception e) {
-                JAVA_RUNTIME_ID_TO_CAN_HARVEST_WITH_HAND.put(javaRuntimeId, false);
+            JsonNode canBreakWithHandNode = entry.getValue().get("can_break_with_hand");
+            if (canBreakWithHandNode != null) {
+                builder.canBreakWithHand(canBreakWithHandNode.booleanValue());
+            } else {
+                builder.canBreakWithHand(false);
             }
 
             JsonNode toolTypeNode = entry.getValue().get("tool_type");
             if (toolTypeNode != null) {
-                JAVA_RUNTIME_ID_TO_TOOL_TYPE.put(javaRuntimeId, toolTypeNode.textValue());
+                builder.toolType(toolTypeNode.textValue());
+            } else {
+                builder.toolType("");
             }
 
             JsonNode collisionIndexNode = entry.getValue().get("collision_index");
             if (hardnessNode != null) {
-                JAVA_RUNTIME_ID_TO_COLLISION_INDEX.put(javaRuntimeId, collisionIndexNode.intValue());
+                builder.collisionIndex(collisionIndexNode.intValue());
             }
 
             if (javaId.contains("obsidian") || javaId.contains("respawn_anchor")) {
@@ -192,7 +186,7 @@ public abstract class BlockTranslator {
 
             JsonNode pickItemNode = entry.getValue().get("pick_item");
             if (pickItemNode != null) {
-                JAVA_RUNTIME_ID_TO_PICK_ITEM.put(javaRuntimeId, pickItemNode.textValue());
+                builder.pickItem(pickItemNode.textValue());
             }
 
             JAVA_ID_BLOCK_MAP.put(javaId, javaRuntimeId);
@@ -212,11 +206,14 @@ public abstract class BlockTranslator {
                 JAVA_TO_BEDROCK_IDENTIFIERS.put(cleanJavaIdentifier, bedrockIdentifier);
             }
 
-            if (javaId.contains("wool")) {
-                JAVA_RUNTIME_WOOL_IDS.add(javaRuntimeId);
+            builder.javaBlockId(uniqueJavaId);
 
-            } else if (javaId.contains("cobweb")) {
-                cobwebRuntimeId = javaRuntimeId;
+            builder.javaIdentifier(javaId);
+
+            JAVA_RUNTIME_ID_TO_BLOCK_MAPPING.put(javaRuntimeId, builder.build());
+
+            if (javaId.contains("cobweb")) {
+                cobwebBlockId = uniqueJavaId;
 
             } else if (javaId.startsWith("minecraft:furnace[facing=north")) {
                 if (javaId.contains("lit=true")) {
@@ -227,19 +224,20 @@ public abstract class BlockTranslator {
 
             } else if (javaId.startsWith("minecraft:spawner")) {
                 spawnerRuntimeId = javaRuntimeId;
-            }
 
-            if (javaId.equals("minecraft:honey_block")) {
+            } else if ("minecraft:water[level=0]".equals(javaId)) {
+                waterRuntimeId = javaRuntimeId;
+            } else if (javaId.equals("minecraft:honey_block")) {
                 honeyBlockRuntimeId = javaRuntimeId;
             } else if (javaId.equals("minecraft:slime_block")) {
                 slimeBlockRuntimeId = javaRuntimeId;
             }
         }
 
-        if (cobwebRuntimeId == -1) {
+        if (cobwebBlockId == -1) {
             throw new AssertionError("Unable to find cobwebs in palette");
         }
-        JAVA_RUNTIME_COBWEB_ID = cobwebRuntimeId;
+        JAVA_COBWEB_BLOCK_ID = cobwebBlockId;
 
         if (furnaceRuntimeId == -1) {
             throw new AssertionError("Unable to find furnace in palette");
@@ -266,6 +264,13 @@ public abstract class BlockTranslator {
         }
         JAVA_RUNTIME_SLIME_BLOCK_ID = slimeBlockRuntimeId;
 
+        if (waterRuntimeId == -1) {
+            throw new AssertionError("Unable to find Java water in palette");
+        }
+        JAVA_WATER_ID = waterRuntimeId;
+
+        BlockMapping.AIR = JAVA_RUNTIME_ID_TO_BLOCK_MAPPING.get(JAVA_AIR_ID);
+
         BlockTranslator1_16_100.init();
         BlockTranslator1_16_210.init();
         BLOCKS_JSON = null; // We no longer require this so let it garbage collect away
@@ -279,7 +284,7 @@ public abstract class BlockTranslator {
         try (NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)))) {
             NbtMap blockPalette = (NbtMap) nbtInputStream.readTag();
             blocksTag = (NbtList<NbtMap>) blockPalette.getList("blocks", NbtType.COMPOUND);
-            bedrockBlockStates = blocksTag;
+            this.bedrockBlockStates = blocksTag;
         } catch (Exception e) {
             throw new AssertionError("Unable to get blocks from runtime block states", e);
         }
@@ -467,6 +472,10 @@ public abstract class BlockTranslator {
         return bedrockWaterId;
     }
 
+    public NbtList<NbtMap> getAllBedrockBlockStates() {
+        return this.bedrockBlockStates;
+    }
+
     public NbtMap getBedrockBlockState(int bedrockId) {
         return bedrockBlockStates.get(bedrockId);
     }
@@ -502,18 +511,11 @@ public abstract class BlockTranslator {
     }
 
     /**
-     * Get the item a Java client would receive when pressing
-     * the Pick Block key on a specific Java block state.
-     *
-     * @param javaId The Java runtime id of the block
-     * @return The Java identifier of the item
+     * @param javaRuntimeId the Java runtime ID of the block to search for.
+     * @return the corresponding block mapping for this runtime ID.
      */
-    public static String getPickItem(int javaId) {
-        String itemIdentifier = JAVA_RUNTIME_ID_TO_PICK_ITEM.get(javaId);
-        if (itemIdentifier == null) {
-            return JAVA_ID_BLOCK_MAP.inverse().get(javaId).split("\\[")[0];
-        }
-        return itemIdentifier;
+    public static BlockMapping getBlockMapping(int javaRuntimeId) {
+        return JAVA_RUNTIME_ID_TO_BLOCK_MAPPING.getOrDefault(javaRuntimeId, BlockMapping.AIR);
     }
 
     /**

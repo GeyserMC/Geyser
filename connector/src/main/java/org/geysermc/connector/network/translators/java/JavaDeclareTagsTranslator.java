@@ -23,25 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.sound.block;
+package org.geysermc.connector.network.translators.java;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareTagsPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHandler;
-import org.geysermc.connector.network.translators.sound.SoundHandler;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-@SoundHandler(blocks = "comparator")
-public class ComparatorSoundInteractHandler implements BlockSoundInteractionHandler {
+@Translator(packet = ServerDeclareTagsPacket.class)
+public class JavaDeclareTagsTranslator extends PacketTranslator<ServerDeclareTagsPacket> {
 
     @Override
-    public void handleInteraction(GeyserSession session, Vector3f position, String identifier) {
-        boolean powered = identifier.contains("mode=compare");
-        LevelEventPacket levelEventPacket = new LevelEventPacket();
-        levelEventPacket.setPosition(position);
-        levelEventPacket.setType(LevelEventType.SOUND_CLICK); //TODO: New ID?
-        levelEventPacket.setData(powered ? 500 : 550);
-        session.sendUpstreamPacket(levelEventPacket);
+    public void translate(ServerDeclareTagsPacket packet, GeyserSession session) {
+        session.getTagCache().loadPacket(packet);
     }
 }

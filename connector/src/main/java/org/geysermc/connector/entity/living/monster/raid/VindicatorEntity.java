@@ -23,31 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.animal;
+package org.geysermc.connector.entity.living.monster.raid;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
 
-public class OcelotEntity extends AnimalEntity {
+public class VindicatorEntity extends AbstractIllagerEntity {
 
-    public OcelotEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public VindicatorEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
-            metadata.getFlags().setFlag(EntityFlag.TRUSTING, (boolean) entityMetadata.getValue());
+        // Allow the axe to be shown if necessary
+        if (entityMetadata.getId() == 14) {
+            byte xd = (byte) entityMetadata.getValue();
+            metadata.getFlags().setFlag(EntityFlag.ANGRY, (xd & 4) == 4);
         }
         super.updateBedrockMetadata(entityMetadata, session);
-    }
-
-    @Override
-    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
-        return javaIdentifierStripped.equals("cod") || javaIdentifierStripped.equals("salmon");
     }
 }
