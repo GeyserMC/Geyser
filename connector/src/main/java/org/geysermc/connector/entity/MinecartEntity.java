@@ -79,4 +79,10 @@ public class MinecartEntity extends Entity {
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
         super.moveAbsolute(session, position.add(0d, this.entityType.getOffset(), 0d), rotation, isOnGround, teleported);
     }
+
+    @Override
+    public Vector3f getBedrockRotation() {
+        // Note: minecart rotation on rails does not care about the actual rotation value
+        return Vector3f.from(0, rotation.getX(), 0);
+    }
 }
