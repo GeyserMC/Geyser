@@ -238,7 +238,16 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.setInteracting(true);
                         break;
                     case 1:
-                        // Handled in Entity.java
+                        if (packet.getActions().size() == 1) {
+                            InventoryActionData actionData = packet.getActions().get(0);
+                            if (actionData.getSlot() == 6 && actionData.getToItem().getId() != 0) {
+                                // The player is trying to swap out an armor piece that already has an item in it
+                                // Java Edition does not allow this; let's revert it
+                                session.getInventoryTranslator().updateInventory(session, session.getPlayerInventory());
+                            }
+                        }
+
+                        // Handled when sneaking
                         if (session.getPlayerInventory().getItemInHand().getJavaId() == ItemRegistry.SHIELD.getJavaId()) {
                             break;
                         }
