@@ -126,16 +126,19 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         // Bedrock sends block interact code for a Java entity so we send entity code back to Java
-                        if (session.getBlockTranslator().isItemFrame(packet.getBlockRuntimeId()) &&
-                                session.getEntityCache().getEntityByJavaId(ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition())) != null) {
-                            Vector3f vector = packet.getClickPosition();
-                            ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition()),
-                                    InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
-                            ClientPlayerInteractEntityPacket interactAtPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition()),
-                                    InteractAction.INTERACT_AT, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND, session.isSneaking());
-                            session.sendDownstreamPacket(interactPacket);
-                            session.sendDownstreamPacket(interactAtPacket);
-                            break;
+                        if (session.getBlockTranslator().isItemFrame(packet.getBlockRuntimeId())) {
+                            Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
+                            if (itemFrameEntity != null) {
+                                int entityId = (int) itemFrameEntity.getEntityId();
+                                Vector3f vector = packet.getClickPosition();
+                                ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket(entityId,
+                                        InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
+                                ClientPlayerInteractEntityPacket interactAtPacket = new ClientPlayerInteractEntityPacket(entityId,
+                                        InteractAction.INTERACT_AT, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND, session.isSneaking());
+                                session.sendDownstreamPacket(interactPacket);
+                                session.sendDownstreamPacket(interactAtPacket);
+                                break;
+                            }
                         }
 
                         Vector3i blockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getBlockFace());
@@ -279,9 +282,10 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendUpstreamPacket(blockBreakPacket);
                         session.setBreakingBlock(BlockTranslator.JAVA_AIR_ID);
 
-                        long frameEntityId = ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition());
-                        if (frameEntityId != -1 && session.getEntityCache().getEntityByJavaId(frameEntityId) != null) {
-                            ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) frameEntityId, InteractAction.ATTACK, session.isSneaking());
+                        Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
+                        if (itemFrameEntity != null) {
+                            ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) itemFrameEntity.getEntityId(),
+                                    InteractAction.ATTACK, session.isSneaking());
                             session.sendDownstreamPacket(attackPacket);
                             break;
                         }
