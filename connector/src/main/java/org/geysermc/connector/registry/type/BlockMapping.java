@@ -60,6 +60,18 @@ public class BlockMapping {
     }
 
     /**
+     * @return the corresponding Java identifier for this item
+     */
+    public String getItemIdentifier() {
+        if (pickItem != null && !pickItem.equals("minecraft:air")) {
+            // Spawners can have air as their pick item which we are not interested in.
+            return pickItem;
+        }
+
+        return getCleanJavaIdentifier();
+    }
+
+    /**
      * Get the item a Java client would receive when pressing
      * the Pick Block key on a specific Java block state.
      *
