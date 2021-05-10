@@ -38,7 +38,7 @@ import org.geysermc.common.window.response.CustomFormResponse;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 
-import java.util.Collections;
+import java.util.ArrayList;
 
 public class SettingsUtils {
 
@@ -68,11 +68,11 @@ public class SettingsUtils {
 
             if (CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
                 DropdownComponent cooldownDropdown = new DropdownComponent();
-                cooldownDropdown.setText("Attack Cooldown Animation");
-                cooldownDropdown.setOptions(Collections.emptyList());
-                cooldownDropdown.addOption("Under Crosshair", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.TITLE);
-                cooldownDropdown.addOption("Action Bar", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.ACTIONBAR);
-                cooldownDropdown.addOption("Hide Animation", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.DISABLED);
+                cooldownDropdown.setText(LocaleUtils.getLocaleString("geyser.settings.option.cooldown_animation", language));
+                cooldownDropdown.setOptions(new ArrayList<>());
+                for (CooldownUtils.CooldownType animation : CooldownUtils.CooldownType.values()) {
+                    cooldownDropdown.addOption(LocaleUtils.getLocaleString("geyser.settings.option.cooldown_animation." + animation.name().toLowerCase(), language), session.getPreferencesCache().getCooldownPreference() == animation);
+                }
                 builder.addComponent(cooldownDropdown);
             }
         }
@@ -83,7 +83,7 @@ public class SettingsUtils {
 
             DropdownComponent gamemodeDropdown = new DropdownComponent();
             gamemodeDropdown.setText("%createWorldScreen.gameMode.personal");
-            gamemodeDropdown.setOptions(Collections.emptyList());
+            gamemodeDropdown.setOptions(new ArrayList<>());
             for (GameMode gamemode : GameMode.values()) {
                 gamemodeDropdown.addOption(LocaleUtils.getLocaleString("selectWorld.gameMode." + gamemode.name().toLowerCase(), language), session.getGameMode() == gamemode);
             }
@@ -91,7 +91,7 @@ public class SettingsUtils {
 
             DropdownComponent difficultyDropdown = new DropdownComponent();
             difficultyDropdown.setText("%options.difficulty");
-            difficultyDropdown.setOptions(Collections.emptyList());
+            difficultyDropdown.setOptions(new ArrayList<>());
             for (Difficulty difficulty : Difficulty.values()) {
                 difficultyDropdown.addOption("%options.difficulty." + difficulty.name().toLowerCase(), session.getWorldCache().getDifficulty() == difficulty);
             }
