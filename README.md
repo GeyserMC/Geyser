@@ -45,7 +45,8 @@ The following things cannot be fixed without changes to Bedrock. As of now, they
 - Custom heads in inventories
 - Clickable links in chat
 - Glowing effect
-- Custom armor stand poses
+
+Do note that some things require the [GeyserOptionalPack](https://github.com/GeyserMC/Geyser/wiki/GeyserOptionalPack) in order to function, such as custom armor stand poses.
 
 ## Compiling
 1. Clone the repo to your computer
