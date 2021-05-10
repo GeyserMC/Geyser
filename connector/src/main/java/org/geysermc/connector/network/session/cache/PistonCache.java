@@ -80,7 +80,7 @@ public class PistonCache {
     public synchronized void tick() {
         resetPlayerMovement();
         pistons.values().forEach(PistonBlockEntity::updateMovement);
-        sendPlayerMovement(true);
+        sendPlayerMovement();
         sendPlayerMotion();
         // Update blocks after movement, so that players don't get stuck inside blocks
         pistons.values().forEach(PistonBlockEntity::updateBlocks);
@@ -212,7 +212,7 @@ public class PistonCache {
         playerSlimeCollision = false;
     }
 
-    public void sendPlayerMovement(boolean sendToJava) {
+    private void sendPlayerMovement() {
         SessionPlayerEntity playerEntity = session.getPlayerEntity();
         if (!playerDisplacement.equals(Vector3d.ZERO) || playerDisplacement.getY() > 0) {
             CollisionManager collisionManager = session.getCollisionManager();
@@ -239,7 +239,7 @@ public class PistonCache {
         }
     }
 
-    public void sendPlayerMotion() {
+    private void sendPlayerMotion() {
         if (!playerMotion.equals(Vector3f.ZERO)) {
             SessionPlayerEntity playerEntity = session.getPlayerEntity();
             playerEntity.setMotion(playerMotion);
