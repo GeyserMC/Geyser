@@ -36,6 +36,9 @@ public class AbstractArrowEntity extends Entity {
     public AbstractArrowEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
 
+        // Set the correct texture if using the resource pack
+        metadata.getFlags().setFlag(EntityFlag.BRIBED, entityType == EntityType.SPECTRAL_ARROW);
+
         setMotion(motion);
     }
 

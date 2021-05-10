@@ -64,6 +64,8 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         }
         session.setWorldName(packet.getWorldName());
 
+        session.getTagCache().clear();
+
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
         bedrockPacket.setUniqueEntityId(session.getPlayerEntity().getGeyserId());
         bedrockPacket.setPlayerPermission(PlayerPermission.MEMBER);
