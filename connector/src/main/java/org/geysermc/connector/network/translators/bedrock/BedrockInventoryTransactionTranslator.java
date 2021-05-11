@@ -39,10 +39,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
-import com.nukkitx.protocol.bedrock.data.inventory.InventoryActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.InventorySource;
+import com.nukkitx.protocol.bedrock.data.inventory.*;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.CommandBlockMinecartEntity;
 import org.geysermc.connector.entity.Entity;
@@ -241,9 +238,10 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.setInteracting(true);
                         break;
                     case 1:
-                        if (packet.getActions().size() == 1) {
+                        if (packet.getActions().size() == 1 && packet.getLegacySlots().size() > 0) {
                             InventoryActionData actionData = packet.getActions().get(0);
-                            if (actionData.getSlot() == 6 && actionData.getToItem().getId() != 0) {
+                            LegacySetItemSlotData slotData = packet.getLegacySlots().get(0);
+                            if (slotData.getContainerId() == 6 && actionData.getToItem().getId() != 0) {
                                 // The player is trying to swap out an armor piece that already has an item in it
                                 // Java Edition does not allow this; let's revert it
                                 session.getInventoryTranslator().updateInventory(session, session.getPlayerInventory());
