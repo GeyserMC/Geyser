@@ -71,7 +71,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
     @Override
     public void translate(InventoryTransactionPacket packet, GeyserSession session) {
-        System.out.println(packet.toString());
         // Send book updates before opening inventories
         session.getBookEditCache().checkForSend();
 
