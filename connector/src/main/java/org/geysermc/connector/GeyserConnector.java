@@ -31,6 +31,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.network.raknet.RakNetConstants;
 import com.nukkitx.network.util.EventLoops;
 import com.nukkitx.protocol.bedrock.BedrockServer;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.kqueue.KQueue;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.PlatformType;
@@ -203,7 +205,17 @@ public class GeyserConnector {
                 EventLoops.commonGroup(),
                 enableProxyProtocol
         );
+
         logger.debug("EventLoop type: " + EventLoops.getChannelType());
+        if (EventLoops.getChannelType() == EventLoops.ChannelType.NIO) {
+            if (System.getProperties().contains("disableNativeEventLoop")) {
+                logger.debug("EventLoop type is NIO because native event loops are disabled.");
+            } else {
+                logger.debug("Reason for no Epoll: " + Epoll.unavailabilityCause().getMessage());
+                logger.debug("Reason for no KQueue: " + KQueue.unavailabilityCause().getMessage());
+            }
+        }
+
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));
         bedrockServer.bind().whenComplete((avoid, throwable) -> {
             if (throwable == null) {
