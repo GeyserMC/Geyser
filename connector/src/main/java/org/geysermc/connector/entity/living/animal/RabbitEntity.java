@@ -53,9 +53,12 @@ public class RabbitEntity extends AnimalEntity {
             int variant = (int) entityMetadata.getValue();
 
             // Change the killer bunny to display as white since it only exists on Java Edition
-            if (variant == 99) {
+            boolean isKillerBunny = variant == 99;
+            if (isKillerBunny) {
                 variant = 1;
             }
+            // Allow the resource pack to adjust to the killer bunny
+            metadata.getFlags().setFlag(EntityFlag.BRIBED, isKillerBunny);
 
             metadata.put(EntityData.VARIANT, variant);
         }

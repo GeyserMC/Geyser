@@ -28,10 +28,12 @@ package org.geysermc.connector.entity.attribute;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
 @AllArgsConstructor
+@ToString
 public class Attribute {
 
     private AttributeType type;
