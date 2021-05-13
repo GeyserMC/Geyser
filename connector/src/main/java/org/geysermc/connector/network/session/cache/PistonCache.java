@@ -228,13 +228,6 @@ public class PistonCache {
                 if (playerMotion.getX() == 0 && playerMotion.getZ() == 0) {
                     playerEntity.moveAbsolute(session, position.toFloat(), playerEntity.getRotation(), isOnGround, true);
                 }
-
-                if (sendToJava) {
-                    ClientPlayerPositionPacket playerPositionPacket = new ClientPlayerPositionPacket(isOnGround, position.getX(), position.getY(), position.getZ());
-                    session.sendDownstreamPacket(playerPositionPacket);
-
-                    session.setLastMovementTimestamp(System.currentTimeMillis());
-                }
             }
         }
     }
