@@ -68,11 +68,11 @@ public class SettingsUtils {
 
             if (CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
                 DropdownComponent cooldownDropdown = new DropdownComponent();
-                cooldownDropdown.setText(LocaleUtils.getLocaleString("geyser.settings.option.cooldown_animation", language));
+                cooldownDropdown.setText(LocaleUtils.getLocaleString("options.attackIndicator", language));
                 cooldownDropdown.setOptions(new ArrayList<>());
-                for (CooldownUtils.CooldownType animation : CooldownUtils.CooldownType.values()) {
-                    cooldownDropdown.addOption(LocaleUtils.getLocaleString("geyser.settings.option.cooldown_animation." + animation.name().toLowerCase(), language), session.getPreferencesCache().getCooldownPreference() == animation);
-                }
+                cooldownDropdown.addOption(LocaleUtils.getLocaleString("options.attack.crosshair", language), session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.TITLE);
+                cooldownDropdown.addOption(LocaleUtils.getLocaleString("options.attack.hotbar", language), session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.ACTIONBAR);
+                cooldownDropdown.addOption(LocaleUtils.getLocaleString("options.off", language), session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.DISABLED);
                 builder.addComponent(cooldownDropdown);
             }
         }
