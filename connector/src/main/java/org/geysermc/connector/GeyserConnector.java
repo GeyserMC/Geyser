@@ -203,6 +203,7 @@ public class GeyserConnector {
                 EventLoops.commonGroup(),
                 enableProxyProtocol
         );
+        logger.debug("EventLoop type: " + EventLoops.getChannelType());
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));
         bedrockServer.bind().whenComplete((avoid, throwable) -> {
             if (throwable == null) {
