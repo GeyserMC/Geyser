@@ -224,16 +224,17 @@ public class CollisionManager {
                 box.getMiddleZ());
 
         // Loop through all blocks that could collide
-        int minCollisionX = (int) Math.floor(position.getX() - ((box.getSizeX() / 2) + COLLISION_TOLERANCE));
-        int maxCollisionX = (int) Math.floor(position.getX() + (box.getSizeX() / 2) + COLLISION_TOLERANCE);
+        // Expand volume by 0.5 in each direction to include moving blocks
+        int minCollisionX = (int) Math.floor(position.getX() - ((box.getSizeX() / 2) + COLLISION_TOLERANCE + 0.5));
+        int maxCollisionX = (int) Math.floor(position.getX() + (box.getSizeX() / 2) + COLLISION_TOLERANCE + 0.5);
 
         // Y extends 0.5 blocks down because of fence hitboxes
-        int minCollisionY = (int) Math.floor(position.getY() - 0.5);
+        int minCollisionY = (int) Math.floor(position.getY() - 0.5 - COLLISION_TOLERANCE);
 
-        int maxCollisionY = (int) Math.floor(position.getY() + box.getSizeY());
+        int maxCollisionY = (int) Math.floor(position.getY() + box.getSizeY() + 0.5);
 
-        int minCollisionZ = (int) Math.floor(position.getZ() - ((box.getSizeZ() / 2) + COLLISION_TOLERANCE));
-        int maxCollisionZ = (int) Math.floor(position.getZ() + (box.getSizeZ() / 2) + COLLISION_TOLERANCE);
+        int minCollisionZ = (int) Math.floor(position.getZ() - ((box.getSizeZ() / 2) + COLLISION_TOLERANCE + 0.5));
+        int maxCollisionZ = (int) Math.floor(position.getZ() + (box.getSizeZ() / 2) + COLLISION_TOLERANCE + 0.5);
 
         // Blocks are checked from top to bottom to prevent players from being pushed up
         // onto slabs that you can't stand on

@@ -50,7 +50,16 @@ import java.util.Map;
 public class PistonCache {
     private final GeyserSession session;
 
+    /**
+     * Maps the position of a piston to its block entity
+     */
     private final Map<Vector3i, PistonBlockEntity> pistons = Object2ObjectMaps.synchronize(new Object2ObjectOpenHashMap<>());
+
+    /**
+     * Maps the position of a moving block to the piston moving it
+     */
+    @Getter
+    private final Map<Vector3i, PistonBlockEntity> movingBlocksMap = Object2ObjectMaps.synchronize(new Object2ObjectOpenHashMap<>());
 
     @Getter
     private Vector3d playerDisplacement = Vector3d.ZERO;
@@ -84,6 +93,16 @@ public class PistonCache {
         sendPlayerMotion();
         // Update blocks after movement, so that players don't get stuck inside blocks
         pistons.values().forEach(PistonBlockEntity::updateBlocks);
+
+        pistons.entrySet().removeIf((entry) -> entry.getValue().isDone());
+        if (pistons.isEmpty() && !movingBlocksMap.isEmpty()) {
+            session.getConnector().getLogger().error("Moving block map de-synced");
+            for (Map.Entry<Vector3i, PistonBlockEntity> entry : movingBlocksMap.entrySet()) {
+                Vector3i position = entry.getKey();
+                PistonBlockEntity pistonBlockEntity = entry.getValue();
+                session.getConnector().getLogger().error("Moving Block at " + position + " was previously owned by piston at " + pistonBlockEntity.getPosition());
+            }
+        }
     }
 
     public synchronized Vector3d correctPlayerMovement(Vector3d movement, boolean checkWorld) {
@@ -126,9 +145,6 @@ public class PistonCache {
                 adjustedMovement = stepUpMovement;
             }
         }
-
-        pistons.entrySet().removeIf((entry) -> entry.getValue().isDone());
-
         return adjustedMovement;
     }
 
@@ -141,66 +157,49 @@ public class PistonCache {
         double movementY = movement.getY();
         double movementZ = movement.getZ();
 
-        boundingBox.setSizeX(boundingBox.getSizeX() + CollisionManager.COLLISION_TOLERANCE * 2);
-        boundingBox.setSizeZ(boundingBox.getSizeZ() + CollisionManager.COLLISION_TOLERANCE * 2);
-
         BoundingBox movementBoundingBox = boundingBox.clone();
         movementBoundingBox.extend(movement);
         List<Vector3i> collidableBlocks = session.getCollisionManager().getCollidableBlocks(movementBoundingBox);
 
         // TODO Improve movement with world collisions
         if (Math.abs(movementY) > CollisionManager.COLLISION_TOLERANCE) {
-            for (PistonBlockEntity piston : pistons.values()) {
-                movementY = piston.computeCollisionOffset(boundingBox, Axis.Y, movementY);
-            }
-            if (checkWorld) {
-                movementY = computeWorldCollisionOffset(boundingBox, Axis.Y, movementY, collidableBlocks);
-            }
+            movementY = computeFullCollisionOffset(boundingBox, Axis.Y, movementY, collidableBlocks, checkWorld);
             boundingBox.translate(0, movementY, 0);
         }
         boolean checkZFirst = Math.abs(movementZ) > Math.abs(movementX);
         if (Math.abs(movementZ) > CollisionManager.COLLISION_TOLERANCE && checkZFirst) {
-            for (PistonBlockEntity piston : pistons.values()) {
-                movementZ = piston.computeCollisionOffset(boundingBox, Axis.Z, movementZ);
-            }
-            if (checkWorld) {
-                movementZ = computeWorldCollisionOffset(boundingBox, Axis.Z, movementZ, collidableBlocks);
-            }
+            movementZ = computeFullCollisionOffset(boundingBox, Axis.Z, movementZ, collidableBlocks, checkWorld);
             boundingBox.translate(0, 0, movementZ);
         }
         if (Math.abs(movementX) > CollisionManager.COLLISION_TOLERANCE) {
-            for (PistonBlockEntity piston : pistons.values()) {
-                movementX = piston.computeCollisionOffset(boundingBox, Axis.X, movementX);
-            }
-            if (checkWorld) {
-                movementX = computeWorldCollisionOffset(boundingBox, Axis.X, movementX, collidableBlocks);
-            }
+            movementX = computeFullCollisionOffset(boundingBox, Axis.X, movementX, collidableBlocks, checkWorld);
             boundingBox.translate(movementX, 0, 0);
         }
         if (Math.abs(movementZ) > CollisionManager.COLLISION_TOLERANCE && !checkZFirst) {
-            for (PistonBlockEntity piston : pistons.values()) {
-                movementZ = piston.computeCollisionOffset(boundingBox, Axis.Z, movementZ);
-            }
-            if (checkWorld) {
-                movementZ = computeWorldCollisionOffset(boundingBox, Axis.Z, movementZ, collidableBlocks);
-            }
+            movementZ = computeFullCollisionOffset(boundingBox, Axis.Z, movementZ, collidableBlocks, checkWorld);
             boundingBox.translate(0, 0, movementZ);
         }
 
         boundingBox.translate(-movementX, -movementY, -movementZ);
-
-        boundingBox.setSizeX(boundingBox.getSizeX() - CollisionManager.COLLISION_TOLERANCE * 2);
-        boundingBox.setSizeZ(boundingBox.getSizeZ() - CollisionManager.COLLISION_TOLERANCE * 2);
-
         return Vector3d.from(movementX, movementY, movementZ);
     }
 
-    public double computeWorldCollisionOffset(BoundingBox boundingBox, Axis axis, double offset, List<Vector3i> collidableBlocks) {
+    public double computeFullCollisionOffset(BoundingBox boundingBox, Axis axis, double offset, List<Vector3i> collidableBlocks, boolean checkWorld) {
         for (Vector3i blockPos : collidableBlocks) {
-            int blockId = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
-            BlockCollision blockCollision = CollisionTranslator.getCollision(blockId, 0, 0, 0);
-            if (!(blockCollision instanceof ScaffoldingCollision)) {
-                offset = blockCollision.computeCollisionOffset(blockPos.toDouble(), boundingBox, axis, offset);
+            if (checkWorld) {
+                int blockId = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
+                BlockCollision blockCollision = CollisionTranslator.getCollision(blockId, 0, 0, 0);
+                if (!(blockCollision instanceof ScaffoldingCollision)) {
+                    offset = blockCollision.computeCollisionOffset(blockPos.toDouble(), boundingBox, axis, offset);
+                }
+            }
+            PistonBlockEntity piston = movingBlocksMap.get(blockPos);
+            if (piston != null) {
+                double adjustedOffset = piston.computeCollisionOffset(blockPos, boundingBox, axis, offset);
+                if (adjustedOffset != offset) {
+                    playerCollided = true;
+                    return adjustedOffset;
+                }
             }
         }
         return offset;
@@ -271,6 +270,7 @@ public class PistonCache {
 
     public void clear() {
         pistons.clear();
+        movingBlocksMap.clear();
     }
 
     private boolean isColliding() {
