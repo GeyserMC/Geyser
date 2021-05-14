@@ -206,13 +206,15 @@ public class GeyserConnector {
                 enableProxyProtocol
         );
 
-        logger.debug("EventLoop type: " + EventLoops.getChannelType());
-        if (EventLoops.getChannelType() == EventLoops.ChannelType.NIO) {
-            if (System.getProperties().contains("disableNativeEventLoop")) {
-                logger.debug("EventLoop type is NIO because native event loops are disabled.");
-            } else {
-                logger.debug("Reason for no Epoll: " + Epoll.unavailabilityCause().getMessage());
-                logger.debug("Reason for no KQueue: " + KQueue.unavailabilityCause().getMessage());
+        if (config.isDebugMode()) {
+            logger.debug("EventLoop type: " + EventLoops.getChannelType());
+            if (EventLoops.getChannelType() == EventLoops.ChannelType.NIO) {
+                if (System.getProperties().contains("disableNativeEventLoop")) {
+                    logger.debug("EventLoop type is NIO because native event loops are disabled.");
+                } else {
+                    logger.debug("Reason for no Epoll: " + Epoll.unavailabilityCause().toString());
+                    logger.debug("Reason for no KQueue: " + KQueue.unavailabilityCause().toString());
+                }
             }
         }
 
