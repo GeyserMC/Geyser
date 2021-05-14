@@ -818,7 +818,7 @@ public class GeyserSession implements CommandSender {
         boolean internalConnect = false;
         if (connector.getBootstrap().getSocketAddress() != null) {
             try {
-                downstream.connectInternal(connector.getBootstrap().getSocketAddress(), true);
+                downstream.connectInternal(connector.getBootstrap().getSocketAddress(), upstream.getAddress().getAddress().getHostAddress(), true);
                 internalConnect = true;
                 System.out.println("Internally connected!!");
             } catch (Exception e) {

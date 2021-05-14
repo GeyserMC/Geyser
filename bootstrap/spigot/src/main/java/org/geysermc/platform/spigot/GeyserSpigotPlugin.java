@@ -335,6 +335,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 Field childHandlerField = handler.getClass().getDeclaredField("childHandler");
                 childHandlerField.setAccessible(true);
                 childHandler = (ChannelInitializer<Channel>) childHandlerField.get(handler);
+                break;
             } catch (Exception ignored) {
             }
         }
