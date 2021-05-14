@@ -26,6 +26,10 @@
 package org.geysermc.platform.spigot;
 
 import com.github.steveice10.mc.protocol.MinecraftConstants;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.*;
+import io.netty.channel.local.LocalAddress;
+import io.netty.channel.local.LocalServerChannel;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.common.PlatformType;
@@ -55,6 +59,10 @@ import us.myles.ViaVersion.api.protocol.ProtocolVersion;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.net.SocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -74,6 +82,21 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
      * The Minecraft server version, formatted as <code>1.#.#</code>
      */
     private String minecraftVersion;
+
+    private SocketAddress serverSocketAddress;
+
+//    private ChannelInitializer<Channel> serverConnection;
+//    private Method initializeChannel = null;
+
+
+    @Override
+    public void onLoad() {
+        try {
+            this.serverSocketAddress = getChannelInitializer();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public void onEnable() {
@@ -256,6 +279,85 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     @Override
     public String getMinecraftServerVersion() {
         return this.minecraftVersion;
+    }
+
+    @Override
+    public SocketAddress getSocketAddress() {
+        return this.serverSocketAddress;
+    }
+
+    private SocketAddress getChannelInitializer() throws Exception {
+        String prefix = Bukkit.getServer().getClass().getPackage().getName().replace("org.bukkit.craftbukkit", "net.minecraft.server");
+        Class<?> serverClazz = Class.forName(prefix + ".MinecraftServer");
+        Method getServer = serverClazz.getDeclaredMethod("getServer");
+        Object server = getServer.invoke(null);
+        Object connection = null;
+        for (Method m : serverClazz.getDeclaredMethods()) {
+            if (m.getReturnType() != null) {
+                if (m.getReturnType().getSimpleName().equals("ServerConnection")) {
+                    if (m.getParameterTypes().length == 0) {
+                        connection = m.invoke(server);
+                    }
+                }
+            }
+        }
+        if (connection == null) {
+            throw new RuntimeException("Unable to find ServerConnection class!");
+        }
+
+        List<ChannelFuture> channelFutures = null;
+        ChannelFuture listeningChannel = null;
+        for (Field field : connection.getClass().getDeclaredFields()) {
+            if (field.getType() != List.class) {
+                continue;
+            }
+            field.setAccessible(true);
+            boolean rightList = ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0] == ChannelFuture.class;
+            if (!rightList) continue;
+
+            channelFutures = (List<ChannelFuture>) field.get(connection);
+            for (ChannelFuture o : channelFutures) {
+                listeningChannel = o;
+                break;
+            }
+        }
+        if (listeningChannel == null) {
+            throw new RuntimeException("Unable to find listening channel!");
+        }
+
+//        return listeningChannel.channel().localAddress();
+
+        List<String> names = listeningChannel.channel().pipeline().names();
+        ChannelInitializer<Channel> childHandler = null;
+        for (String name : names) {
+            ChannelHandler handler = listeningChannel.channel().pipeline().get(name);
+            try {
+                Field childHandlerField = handler.getClass().getDeclaredField("childHandler");
+                childHandlerField.setAccessible(true);
+                childHandler = (ChannelInitializer<Channel>) childHandlerField.get(handler);
+            } catch (Exception ignored) {
+            }
+        }
+        if (childHandler == null) {
+            throw new RuntimeException();
+        }
+
+        ChannelFuture channelFuture;
+        synchronized (channelFutures) {
+            channelFuture = (new ServerBootstrap().channel(LocalServerChannel.class).childHandler(childHandler)
+                .group(new DefaultEventLoopGroup()).localAddress(LocalAddress.ANY)).bind().syncUninterruptibly();
+            channelFutures.add(channelFuture);
+        }
+
+        return channelFuture.channel().localAddress();
+
+
+//
+//        Method initializeChannel = childHandler.getClass().getDeclaredMethod("initChannel", Channel.class);
+//        initializeChannel.setAccessible(true);
+//        this.initializeChannel = initializeChannel;
+//
+//        return childHandler;
     }
 
     public boolean isCompatible(String version, String whichVersion) {

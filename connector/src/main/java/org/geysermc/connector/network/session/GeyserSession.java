@@ -815,7 +815,19 @@ public class GeyserSession implements CommandSender {
         if (!daylightCycle) {
             setDaylightCycle(true);
         }
-        downstream.connect();
+        boolean internalConnect = false;
+        if (connector.getBootstrap().getSocketAddress() != null) {
+            try {
+                downstream.connectInternal(connector.getBootstrap().getSocketAddress(), true);
+                internalConnect = true;
+                System.out.println("Internally connected!!");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (!internalConnect) {
+            downstream.connect();
+        }
         connector.addPlayer(this);
     }
 
