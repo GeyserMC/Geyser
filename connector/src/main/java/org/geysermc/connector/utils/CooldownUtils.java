@@ -158,7 +158,7 @@ public class CooldownUtils {
                     return type;
                 }
             }
-            return TITLE;
+            return DISABLED;
         }
     }
 }
