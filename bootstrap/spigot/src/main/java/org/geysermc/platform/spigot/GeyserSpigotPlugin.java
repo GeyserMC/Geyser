@@ -62,6 +62,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -343,10 +344,40 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             throw new RuntimeException();
         }
 
+        Method initChannel = childHandler.getClass().getDeclaredMethod("initChannel", Channel.class);
+        initChannel.setAccessible(true);
+        Class<?> networkManagerClazz = Class.forName(prefix + ".NetworkManager");
+        Field socketAddressField = null;
+        for (Field f : networkManagerClazz.getDeclaredFields()) {
+            if (f.getType() == SocketAddress.class) {
+                socketAddressField = f;
+                break;
+            }
+        }
+        if (socketAddressField == null) {
+            throw new RuntimeException();
+        }
+
         ChannelFuture channelFuture;
         synchronized (channelFutures) {
-            channelFuture = (new ServerBootstrap().channel(LocalServerChannel.class).childHandler(childHandler)
-                .group(new DefaultEventLoopGroup()).localAddress(LocalAddress.ANY)).bind().syncUninterruptibly();
+            ChannelInitializer<Channel> finalChildHandler = childHandler;
+            Field finalSocketAddressField = socketAddressField;
+            channelFuture = (new ServerBootstrap().channel(LocalServerChannel.class).childHandler(new ChannelInitializer<Channel>() {
+                @Override
+                protected void initChannel(Channel ch) throws Exception {
+                    initChannel.invoke(finalChildHandler, ch);
+                    Object networkManager = ch.pipeline().get("packet_handler");
+                    ch.pipeline().addFirst("geyser-network-manager-trigger", new ChannelInboundHandlerAdapter() {
+                        @Override
+                        public void channelActive(ChannelHandlerContext ctx) throws Exception {
+                            super.channelActive(ctx);
+                            System.out.println(finalSocketAddressField.get(networkManager));
+                            finalSocketAddressField.set(networkManager, new InetSocketAddress(0));
+                            ch.pipeline().remove("geyser-network-manager-trigger");
+                        }
+                    });
+                }
+            }).group(new DefaultEventLoopGroup()).localAddress(LocalAddress.ANY)).bind().syncUninterruptibly();
             channelFutures.add(channelFuture);
         }
 
