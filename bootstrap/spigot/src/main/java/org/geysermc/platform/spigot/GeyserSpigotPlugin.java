@@ -26,9 +26,11 @@
 package org.geysermc.platform.spigot;
 
 import com.github.steveice10.mc.protocol.MinecraftConstants;
+import com.github.steveice10.packetlib.tcp.io.LocalChannelRemoteAddressWrapper;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.local.LocalAddress;
+import io.netty.channel.local.LocalChannel;
 import io.netty.channel.local.LocalServerChannel;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -326,8 +328,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             throw new RuntimeException("Unable to find listening channel!");
         }
 
-//        return listeningChannel.channel().localAddress();
-
         List<String> names = listeningChannel.channel().pipeline().names();
         ChannelInitializer<Channel> childHandler = null;
         for (String name : names) {
@@ -357,6 +357,8 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         if (socketAddressField == null) {
             throw new RuntimeException();
         }
+        Field channelField = networkManagerClazz.getField("channel");
+        channelField.setAccessible(true);
 
         ChannelFuture channelFuture;
         synchronized (channelFutures) {
@@ -365,15 +367,22 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             channelFuture = (new ServerBootstrap().channel(LocalServerChannel.class).childHandler(new ChannelInitializer<Channel>() {
                 @Override
                 protected void initChannel(Channel ch) throws Exception {
+                    System.out.println(ch.remoteAddress());
                     initChannel.invoke(finalChildHandler, ch);
                     Object networkManager = ch.pipeline().get("packet_handler");
-                    ch.pipeline().addFirst("geyser-network-manager-trigger", new ChannelInboundHandlerAdapter() {
+                    ch.pipeline().addFirst("geyser-init", new ChannelInboundHandlerAdapter() {
                         @Override
                         public void channelActive(ChannelHandlerContext ctx) throws Exception {
                             super.channelActive(ctx);
-                            System.out.println(finalSocketAddressField.get(networkManager));
-                            finalSocketAddressField.set(networkManager, new InetSocketAddress(0));
-                            ch.pipeline().remove("geyser-network-manager-trigger");
+                            // Ensure that, if the address was already set, it's reset
+                            SocketAddress address = new InetSocketAddress(0);
+                            finalSocketAddressField.set(networkManager, address);
+                            // Replace the LocalChannel with a wrapper that allows for flexibility of the remote address
+                            // (By default this is a LocalAddress; Minecraft largely expects an INetSocketAddress class)
+                            LocalChannelRemoteAddressWrapper wrapper = new LocalChannelRemoteAddressWrapper((LocalChannel) ch);
+                            wrapper.remoteAddress(new InetSocketAddress(0));
+                            channelField.set(networkManager, wrapper);
+                            ch.pipeline().remove("geyser-init");
                         }
                     });
                 }
@@ -382,14 +391,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         }
 
         return channelFuture.channel().localAddress();
-
-
-//
-//        Method initializeChannel = childHandler.getClass().getDeclaredMethod("initChannel", Channel.class);
-//        initializeChannel.setAccessible(true);
-//        this.initializeChannel = initializeChannel;
-//
-//        return childHandler;
     }
 
     public boolean isCompatible(String version, String whichVersion) {
