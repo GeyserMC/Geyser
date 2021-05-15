@@ -48,7 +48,7 @@ public class CooldownUtils {
     }
 
     /**
-     * Starts sending the fake cooldown to the Bedrock client. If the cooldown is not disabled, the sent type is {@link PreferencesCache#getCooldownPreference()}
+     * Starts sending the fake cooldown to the Bedrock client. If the cooldown is not disabled, the sent type is the cooldownPreference in {@link PreferencesCache}
      * @param session GeyserSession
      */
     public static void sendCooldown(GeyserSession session) {
