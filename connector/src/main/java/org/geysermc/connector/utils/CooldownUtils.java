@@ -42,6 +42,7 @@ public class CooldownUtils {
     public static void setDefaultShowCooldown(String showCooldown) {
         DEFAULT_SHOW_COOLDOWN = CooldownType.getByName(showCooldown);
     }
+
     public static CooldownType getDefaultShowCooldown() {
         return DEFAULT_SHOW_COOLDOWN;
     }

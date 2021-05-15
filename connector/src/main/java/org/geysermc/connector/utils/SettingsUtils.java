@@ -145,10 +145,8 @@ public class SettingsUtils {
             }
 
             if (CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
-                CooldownUtils.CooldownType cooldownType = CooldownUtils.CooldownType.values()[settingsResponse.getDropdownResponses().get(offset).getElementID()];
-                if (cooldownType != null) {
-                    session.getPreferencesCache().setCooldownPreference(cooldownType);
-                }
+                CooldownUtils.CooldownType cooldownType = CooldownUtils.CooldownType.VALUES[settingsResponse.getDropdownResponses().get(offset).getElementID()];
+                session.getPreferencesCache().setCooldownPreference(cooldownType);
                 offset++;
             }
         }
