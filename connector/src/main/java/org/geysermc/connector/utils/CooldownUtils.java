@@ -142,7 +142,7 @@ public class CooldownUtils {
         public static final CooldownType[] VALUES = values();
 
         /**
-         * Convert the CooldownType string (from config) to the enum, TITLE on fail
+         * Convert the CooldownType string (from config) to the enum, DISABLED on fail
          *
          * @param name CooldownType string
          *
