@@ -27,6 +27,10 @@ package org.geysermc.platform.spigot;
 
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.packetlib.tcp.io.LocalChannelRemoteAddressWrapper;
+import com.viaversion.viaversion.api.Via;
+import com.viaversion.viaversion.api.data.MappingData;
+import com.viaversion.viaversion.api.protocol.ProtocolPathEntry;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.local.LocalAddress;
@@ -52,12 +56,6 @@ import org.geysermc.platform.spigot.command.SpigotCommandSender;
 import org.geysermc.platform.spigot.world.GeyserSpigot1_11CraftingListener;
 import org.geysermc.platform.spigot.world.GeyserSpigotBlockPlaceListener;
 import org.geysermc.platform.spigot.world.manager.*;
-import us.myles.ViaVersion.api.Pair;
-import us.myles.ViaVersion.api.Via;
-import us.myles.ViaVersion.api.data.MappingData;
-import us.myles.ViaVersion.api.protocol.Protocol;
-import us.myles.ViaVersion.api.protocol.ProtocolRegistry;
-import us.myles.ViaVersion.api.protocol.ProtocolVersion;
 
 import java.io.File;
 import java.io.IOException;
@@ -163,12 +161,18 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         this.geyserCommandManager = new GeyserSpigotCommandManager(this, connector);
 
-        boolean isViaVersion = (Bukkit.getPluginManager().getPlugin("ViaVersion") != null);
+        boolean isViaVersion = Bukkit.getPluginManager().getPlugin("ViaVersion") != null;
         if (isViaVersion) {
-            if (!isCompatible(Via.getAPI().getVersion().replace("-SNAPSHOT", ""), "3.2.0")) {
+            try {
+                // Ensure that we have the latest 4.0.0 changes and not an older ViaVersion version
+                Class.forName("com.viaversion.viaversion.api.ViaManager");
+            } catch (ClassNotFoundException e) {
                 geyserLogger.warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.viaversion.too_old",
-                        "https://ci.viaversion.com/job/ViaVersion/"));
+                        "https://ci.viaversion.com/job/ViaVersion-DEV/"));
                 isViaVersion = false;
+                if (this.geyserConfig.isDebugMode()) {
+                    e.printStackTrace();
+                }
             }
         }
         // Used to determine if Block.getBlockData() is present.
@@ -441,14 +445,14 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
      */
     private boolean isViaVersionNeeded() {
         ProtocolVersion serverVersion = getServerProtocolVersion();
-        List<Pair<Integer, Protocol>> protocolList = ProtocolRegistry.getProtocolPath(MinecraftConstants.PROTOCOL_VERSION,
+        List<ProtocolPathEntry> protocolList = Via.getManager().getProtocolManager().getProtocolPath(MinecraftConstants.PROTOCOL_VERSION,
                 serverVersion.getVersion());
         if (protocolList == null) {
             // No translation needed!
             return false;
         }
         for (int i = protocolList.size() - 1; i >= 0; i--) {
-            MappingData mappingData = protocolList.get(i).getValue().getMappingData();
+            MappingData mappingData = protocolList.get(i).getProtocol().getMappingData();
             if (mappingData != null) {
                 return true;
             }

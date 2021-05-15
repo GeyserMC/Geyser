@@ -26,16 +26,15 @@
 package org.geysermc.platform.spigot.world.manager;
 
 import com.github.steveice10.mc.protocol.MinecraftConstants;
+import com.viaversion.viaversion.api.Via;
+import com.viaversion.viaversion.api.data.MappingData;
+import com.viaversion.viaversion.api.protocol.ProtocolPathEntry;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.platform.spigot.GeyserSpigotPlugin;
-import us.myles.ViaVersion.api.Pair;
-import us.myles.ViaVersion.api.data.MappingData;
-import us.myles.ViaVersion.api.protocol.Protocol;
-import us.myles.ViaVersion.api.protocol.ProtocolRegistry;
-import us.myles.ViaVersion.api.protocol.ProtocolVersion;
 
 import java.util.List;
 
@@ -51,13 +50,13 @@ public class GeyserSpigotLegacyNativeWorldManager extends GeyserSpigotNativeWorl
         IntList allBlockStates = adapter.getAllBlockStates();
         oldToNewBlockId = new Int2IntOpenHashMap(allBlockStates.size());
         ProtocolVersion serverVersion = plugin.getServerProtocolVersion();
-        List<Pair<Integer, Protocol>> protocolList = ProtocolRegistry.getProtocolPath(MinecraftConstants.PROTOCOL_VERSION,
+        List<ProtocolPathEntry> protocolList = Via.getManager().getProtocolManager().getProtocolPath(MinecraftConstants.PROTOCOL_VERSION,
                 serverVersion.getVersion());
         for (int oldBlockId : allBlockStates) {
             int newBlockId = oldBlockId;
             // protocolList should *not* be null; we checked for that before initializing this class
             for (int i = protocolList.size() - 1; i >= 0; i--) {
-                MappingData mappingData = protocolList.get(i).getValue().getMappingData();
+                MappingData mappingData = protocolList.get(i).getProtocol().getMappingData();
                 if (mappingData != null) {
                     newBlockId = mappingData.getNewBlockStateId(newBlockId);
                 }
