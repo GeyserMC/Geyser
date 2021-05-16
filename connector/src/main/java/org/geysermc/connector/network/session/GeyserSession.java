@@ -145,6 +145,7 @@ public class GeyserSession implements CommandSender {
     private EntityCache entityCache;
     private EntityEffectCache effectCache;
     private final PistonCache pistonCache;
+    private final PreferencesCache preferencesCache;
     private final TagCache tagCache;
     private WorldCache worldCache;
     private WindowCache windowCache;
@@ -453,6 +454,7 @@ public class GeyserSession implements CommandSender {
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
         this.pistonCache = new PistonCache(this);
+        this.preferencesCache = new PreferencesCache(this);
         this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
         this.windowCache = new WindowCache(this);
@@ -1227,7 +1229,7 @@ public class GeyserSession implements CommandSender {
     public void setReducedDebugInfo(boolean value) {
         reducedDebugInfo = value;
         // Set the showCoordinates data. This is done because updateShowCoordinates() uses this gamerule as a variable.
-        getWorldCache().updateShowCoordinates();
+        preferencesCache.updateShowCoordinates();
     }
 
     /**

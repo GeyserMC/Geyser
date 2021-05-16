@@ -28,6 +28,7 @@ package org.geysermc.connector.utils;
 import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
 import lombok.Getter;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.PreferencesCache;
 
 import java.util.concurrent.TimeUnit;
 
@@ -36,18 +37,25 @@ import java.util.concurrent.TimeUnit;
  * Much of the work here is from the wonderful folks from ViaRewind: https://github.com/ViaVersion/ViaRewind
  */
 public class CooldownUtils {
-    private static CooldownType SHOW_COOLDOWN;
+    private static CooldownType DEFAULT_SHOW_COOLDOWN;
 
-    public static void setShowCooldown(String showCooldown) {
-        SHOW_COOLDOWN = CooldownType.getByName(showCooldown);
+    public static void setDefaultShowCooldown(String showCooldown) {
+        DEFAULT_SHOW_COOLDOWN = CooldownType.getByName(showCooldown);
+    }
+
+    public static CooldownType getDefaultShowCooldown() {
+        return DEFAULT_SHOW_COOLDOWN;
     }
 
     /**
-     * Starts sending the fake cooldown to the Bedrock client.
+     * Starts sending the fake cooldown to the Bedrock client. If the cooldown is not disabled, the sent type is the cooldownPreference in {@link PreferencesCache}
      * @param session GeyserSession
      */
     public static void sendCooldown(GeyserSession session) {
-        if (SHOW_COOLDOWN == CooldownType.DISABLED) return;
+        if (DEFAULT_SHOW_COOLDOWN == CooldownType.DISABLED) return;
+        CooldownType sessionPreference = session.getPreferencesCache().getCooldownPreference();
+        if (sessionPreference == CooldownType.DISABLED) return;
+
         if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20) return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
         // Needs to be sent or no subtitle packet is recognized by the client
         SetTitlePacket titlePacket = new SetTitlePacket();
@@ -56,19 +64,20 @@ public class CooldownUtils {
         session.sendUpstreamPacket(titlePacket);
         session.setLastHitTime(System.currentTimeMillis());
         long lastHitTime = session.getLastHitTime(); // Used later to prevent multiple scheduled cooldown threads
-        computeCooldown(session, lastHitTime);
+        computeCooldown(session, sessionPreference, lastHitTime);
     }
 
     /**
      * Keeps updating the cooldown until the bar is complete.
      * @param session GeyserSession
+     * @param sessionPreference The type of cooldown the client prefers
      * @param lastHitTime The time of the last hit. Used to gauge how long the cooldown is taking.
      */
-    private static void computeCooldown(GeyserSession session, long lastHitTime) {
+    private static void computeCooldown(GeyserSession session, CooldownType sessionPreference, long lastHitTime) {
         if (session.isClosed()) return; // Don't run scheduled tasks if the client left
         if (lastHitTime != session.getLastHitTime()) return; // Means another cooldown has started so there's no need to continue this one
         SetTitlePacket titlePacket = new SetTitlePacket();
-        if (SHOW_COOLDOWN == CooldownType.ACTIONBAR) {
+        if (sessionPreference == CooldownType.ACTIONBAR) {
             titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
         } else {
             titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
@@ -79,10 +88,10 @@ public class CooldownUtils {
         titlePacket.setStayTime(2);
         session.sendUpstreamPacket(titlePacket);
         if (hasCooldown(session)) {
-            session.getConnector().getGeneralThreadPool().schedule(() -> computeCooldown(session, lastHitTime), 50, TimeUnit.MILLISECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
+            session.getConnector().getGeneralThreadPool().schedule(() -> computeCooldown(session, sessionPreference, lastHitTime), 50, TimeUnit.MILLISECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
         } else {
             SetTitlePacket removeTitlePacket = new SetTitlePacket();
-            if (SHOW_COOLDOWN == CooldownType.ACTIONBAR) {
+            if (sessionPreference == CooldownType.ACTIONBAR) {
                 removeTitlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
             } else {
                 removeTitlePacket.setType(SetTitlePacket.Type.SUBTITLE);
@@ -133,7 +142,7 @@ public class CooldownUtils {
         public static final CooldownType[] VALUES = values();
 
         /**
-         * Convert the CooldownType string (from config) to the enum, TITLE on fail
+         * Convert the CooldownType string (from config) to the enum, DISABLED on fail
          *
          * @param name CooldownType string
          *
