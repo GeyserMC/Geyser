@@ -205,7 +205,7 @@ public class Entity {
      * @param headYaw The new head rotation of the entity.
      */
     public void updateHeadLookRotation(GeyserSession session, float headYaw) {
-        moveRelative(session, 0, 0, 0, Vector3f.from(headYaw, rotation.getY(), rotation.getZ()), onGround);
+        moveRelative(session, 0, 0, 0, Vector3f.from(rotation.getX(), rotation.getY(), headYaw), onGround);
     }
 
     /**
@@ -219,7 +219,7 @@ public class Entity {
      * @param isOnGround Whether the entity is currently on the ground.
      */
     public void updatePositionAndRotation(GeyserSession session, double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(session, moveX, moveY, moveZ, Vector3f.from(rotation.getX(), pitch, yaw), isOnGround);
+        moveRelative(session, moveX, moveY, moveZ, Vector3f.from(yaw, pitch, rotation.getZ()), isOnGround);
     }
 
     /**
