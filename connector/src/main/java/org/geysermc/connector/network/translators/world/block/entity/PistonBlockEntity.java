@@ -366,9 +366,6 @@ public class PistonBlockEntity {
         if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
             movementProgress = 1f - lastProgress;
         }
-        // Adjust movement progress when pushPlayer is called in between progress updates
-        movementProgress += 0.5f * Math.round((System.currentTimeMillis() - lastProgressUpdate) / 50f);
-        movementProgress = Math.min(movementProgress, 1f);
 
         BoundingBox playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox();
         // Shrink the collision in the other axes slightly, to avoid false positives when pressed up against the side of blocks
@@ -584,6 +581,13 @@ public class PistonBlockEntity {
             if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
                 movementProgress = 1f - progress;
             }
+            // Adjust movement progress to account for when collision is checked in between progress updates
+            if (action == PistonValueType.PUSHING) {
+                movementProgress += 0.5f * Math.ceil((System.currentTimeMillis() - lastProgressUpdate) / 50f);
+            } else {
+                movementProgress += 0.5f * Math.floor((System.currentTimeMillis() - lastProgressUpdate) / 50f);
+            }
+            movementProgress = Math.min(movementProgress, 1f);
             Vector3d offset = getMovement().toDouble().mul(movementProgress);
             Vector3d offsetBlockPos = blockPos.sub(getMovement()).toDouble().add(offset);
             BlockCollision blockCollision = CollisionTranslator.getCollision(blockId, 0, 0, 0);
