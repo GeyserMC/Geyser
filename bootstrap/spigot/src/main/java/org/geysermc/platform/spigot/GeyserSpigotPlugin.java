@@ -84,20 +84,14 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
      */
     private String minecraftVersion;
 
+    /**
+     * The local channel we can use to inject ourselves into the server without creating a TCP connection.
+     */
+    private ChannelFuture localChannel;
+    /**
+     * The LocalAddress to use to connect to the server without connecting over TCP.
+     */
     private SocketAddress serverSocketAddress;
-
-//    private ChannelInitializer<Channel> serverConnection;
-//    private Method initializeChannel = null;
-
-
-    @Override
-    public void onLoad() {
-        try {
-            this.serverSocketAddress = getChannelInitializer();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     @Override
     public void onEnable() {
@@ -150,6 +144,15 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         // Turn "(MC: 1.16.4)" into 1.16.4.
         this.minecraftVersion = Bukkit.getServer().getVersion().split("\\(MC: ")[1].split("\\)")[0];
+
+        // Attempt to create a local injection point for connecting to the server.
+        // We want to do this late in the server startup process to allow plugins such as ViaVersion and ProtocolLib
+        // To do their job injecting, then connect into *that*
+        try {
+            this.serverSocketAddress = initializeLocalChannel();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         this.connector = GeyserConnector.start(PlatformType.SPIGOT, this);
 
@@ -246,6 +249,14 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         if (connector != null) {
             connector.shutdown();
         }
+        if (localChannel != null) {
+            try {
+                localChannel.channel().close().sync();
+                localChannel = null;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -293,12 +304,14 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         return this.serverSocketAddress;
     }
 
-    private SocketAddress getChannelInitializer() throws Exception {
+    @SuppressWarnings("unchecked")
+    private SocketAddress initializeLocalChannel() throws Exception {
         String prefix = Bukkit.getServer().getClass().getPackage().getName().replace("org.bukkit.craftbukkit", "net.minecraft.server");
         Class<?> serverClazz = Class.forName(prefix + ".MinecraftServer");
         Method getServer = serverClazz.getDeclaredMethod("getServer");
         Object server = getServer.invoke(null);
         Object connection = null;
+        // Find the class that manages network IO
         for (Method m : serverClazz.getDeclaredMethods()) {
             if (m.getReturnType() != null) {
                 if (m.getReturnType().getSimpleName().equals("ServerConnection")) {
@@ -312,7 +325,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             throw new RuntimeException("Unable to find ServerConnection class!");
         }
 
-        List<ChannelFuture> channelFutures = null;
+        // Find the channel that Minecraft uses to listen to connections
         ChannelFuture listeningChannel = null;
         for (Field field : connection.getClass().getDeclaredFields()) {
             if (field.getType() != List.class) {
@@ -322,7 +335,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             boolean rightList = ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0] == ChannelFuture.class;
             if (!rightList) continue;
 
-            channelFutures = (List<ChannelFuture>) field.get(connection);
+            List<ChannelFuture> channelFutures = (List<ChannelFuture>) field.get(connection);
             for (ChannelFuture o : channelFutures) {
                 listeningChannel = o;
                 break;
@@ -348,6 +361,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             throw new RuntimeException();
         }
 
+        // This method is what initializes the connection in Java Edition, after Netty is all set.
         Method initChannel = childHandler.getClass().getDeclaredMethod("initChannel", Channel.class);
         initChannel.setAccessible(true);
         Class<?> networkManagerClazz = Class.forName(prefix + ".NetworkManager");
@@ -364,35 +378,56 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         Field channelField = networkManagerClazz.getField("channel");
         channelField.setAccessible(true);
 
-        ChannelFuture channelFuture;
-        synchronized (channelFutures) {
-            ChannelInitializer<Channel> finalChildHandler = childHandler;
-            Field finalSocketAddressField = socketAddressField;
-            channelFuture = (new ServerBootstrap().channel(LocalServerChannel.class).childHandler(new ChannelInitializer<Channel>() {
-                @Override
-                protected void initChannel(Channel ch) throws Exception {
-                    System.out.println(ch.remoteAddress());
-                    initChannel.invoke(finalChildHandler, ch);
-                    Object networkManager = ch.pipeline().get("packet_handler");
-                    ch.pipeline().addFirst("geyser-init", new ChannelInboundHandlerAdapter() {
-                        @Override
-                        public void channelActive(ChannelHandlerContext ctx) throws Exception {
-                            super.channelActive(ctx);
-                            // Ensure that, if the address was already set, it's reset
-                            SocketAddress address = new InetSocketAddress(0);
-                            finalSocketAddressField.set(networkManager, address);
-                            // Replace the LocalChannel with a wrapper that allows for flexibility of the remote address
-                            // (By default this is a LocalAddress; Minecraft largely expects an INetSocketAddress class)
-                            LocalChannelRemoteAddressWrapper wrapper = new LocalChannelRemoteAddressWrapper((LocalChannel) ch);
-                            wrapper.remoteAddress(new InetSocketAddress(0));
-                            channelField.set(networkManager, wrapper);
-                            ch.pipeline().remove("geyser-init");
-                        }
-                    });
-                }
-            }).group(new DefaultEventLoopGroup()).localAddress(LocalAddress.ANY)).bind().syncUninterruptibly();
-            channelFutures.add(channelFuture);
-        }
+        ChannelInitializer<Channel> finalChildHandler = childHandler;
+        Field finalSocketAddressField = socketAddressField;
+        ChannelFuture channelFuture = (new ServerBootstrap().channel(LocalServerChannel.class).childHandler(new ChannelInitializer<Channel>() {
+            @Override
+            protected void initChannel(Channel ch) throws Exception {
+                // Replace the LocalChannel with a wrapper that allows for flexibility of the remote address
+                // (By default this is a LocalAddress; Minecraft largely expects an INetSocketAddress class)
+                LocalChannelRemoteAddressWrapper wrapper = new LocalChannelRemoteAddressWrapper((LocalChannel) ch);
+                wrapper.remoteAddress(new InetSocketAddress(0));
+                initChannel.invoke(finalChildHandler, wrapper);
+
+                Object networkManager = ch.pipeline().get("packet_handler");
+
+                ch.pipeline().addFirst("geyser-init", new ChannelInboundHandlerAdapter() {
+                    @Override
+                    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+                        super.channelActive(ctx);
+                        // Ensure that, if the address was already set, it's reset
+                        // The thing is that the pipeline gives the original channel out and not the wrapper
+                        // Right now it just seems easier to work around that manually rather than create more wrappers
+                        SocketAddress address = new InetSocketAddress(0);
+                        finalSocketAddressField.set(networkManager, address);
+                        channelField.set(networkManager, wrapper);
+                        ch.pipeline().remove("geyser-init");
+                    }
+                });
+
+//                ch.pipeline().addFirst("geyser-ip-init", new ByteToMessageDecoder() {
+//                    boolean finished = false;
+//
+//                    @Override
+//                    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
+//                        byte[] bytes = new byte[in.readInt()];
+//                        in.readBytes(bytes);
+//                        System.out.println(new String(bytes, StandardCharsets.UTF_8));
+//                        wrapper.remoteAddress(new InetSocketAddress(new String(bytes, StandardCharsets.UTF_8), 0));
+//                        finished = true;
+//                    }
+//
+//                    @Override
+//                    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+//                        super.channelActive(ctx);
+//                        if (finished) {
+//                            ch.pipeline().remove("geyser-ip-init");
+//                        }
+//                    }
+//                });
+            }
+        }).group(new DefaultEventLoopGroup()).localAddress(LocalAddress.ANY)).bind().syncUninterruptibly();
+        this.localChannel = channelFuture;
 
         return channelFuture.channel().localAddress();
     }
