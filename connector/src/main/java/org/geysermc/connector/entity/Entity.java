@@ -150,7 +150,7 @@ public class Entity {
     }
 
     public void moveRelative(GeyserSession session, double relX, double relY, double relZ, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(session, relX, relY, relZ, Vector3f.from(yaw, pitch, this.rotation.getZ()), isOnGround);
+        moveRelative(session, relX, relY, relZ, Vector3f.from(yaw, pitch, yaw), isOnGround);
     }
 
     public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
@@ -169,7 +169,7 @@ public class Entity {
     }
 
     public void moveAbsolute(GeyserSession session, Vector3f position, float yaw, float pitch, boolean isOnGround, boolean teleported) {
-        moveAbsolute(session, position, Vector3f.from(yaw, pitch, this.rotation.getZ()), isOnGround, teleported);
+        moveAbsolute(session, position, Vector3f.from(yaw, pitch, yaw), isOnGround, teleported);
     }
 
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
@@ -219,7 +219,7 @@ public class Entity {
      * @param isOnGround Whether the entity is currently on the ground.
      */
     public void updatePositionAndRotation(GeyserSession session, double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(session, moveX, moveY, moveZ, Vector3f.from(yaw, pitch, rotation.getZ()), isOnGround);
+        moveRelative(session, moveX, moveY, moveZ, Vector3f.from(yaw, pitch, yaw), isOnGround);
     }
 
     /**
@@ -345,13 +345,30 @@ public class Entity {
         session.sendUpstreamPacket(entityDataPacket);
     }
 
+    public void setRotation(float yaw, float pitch) {
+        // see rotation field for documentation
+        rotation = Vector3f.from(yaw, pitch, yaw);
+    }
+
+    public float getYaw() {
+        return rotation.getX();
+    }
+
+    public float getPitch() {
+        return rotation.getY();
+    }
+
+    public float getHeadYaw() {
+        return rotation.getZ();
+    }
+
     /**
-     * x = Pitch, y = HeadYaw, z = Yaw
+     * x = Pitch, y = Yaw, z = HeadYaw
      *
      * @return the bedrock rotation
      */
     public Vector3f getBedrockRotation() {
-        return Vector3f.from(rotation.getY(), rotation.getZ(), rotation.getX());
+        return Vector3f.from(getPitch(), getYaw(), getHeadYaw());
     }
 
     @SuppressWarnings("unchecked")

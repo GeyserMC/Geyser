@@ -54,7 +54,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
         if (!session.isSpawned()) {
             Vector3f pos = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
             entity.setPosition(pos);
-            entity.setRotation(Vector3f.from(packet.getYaw(), packet.getPitch(), packet.getYaw()));
+            entity.setRotation(packet.getYaw(), packet.getPitch());
 
             RespawnPacket respawnPacket = new RespawnPacket();
             respawnPacket.setRuntimeEntityId(0); // Bedrock server behavior
@@ -70,7 +70,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
             movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
             movePlayerPacket.setPosition(entity.getPosition());
-            movePlayerPacket.setRotation(Vector3f.from(packet.getPitch(), packet.getYaw(), 0));
+            movePlayerPacket.setRotation(entity.getBedrockRotation());
             movePlayerPacket.setMode(MovePlayerPacket.Mode.RESPAWN);
 
             session.sendUpstreamPacket(movePlayerPacket);
@@ -110,10 +110,8 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
         double newZ = packet.getZ() +
                 (packet.getRelative().contains(PositionElement.Z) ? entity.getPosition().getZ() : 0);
 
-        float newPitch = packet.getPitch() +
-                (packet.getRelative().contains(PositionElement.PITCH) ? entity.getBedrockRotation().getX() : 0);
-        float newYaw = packet.getYaw() +
-                (packet.getRelative().contains(PositionElement.YAW) ? entity.getBedrockRotation().getY() : 0);
+        float newPitch = packet.getPitch() + (packet.getRelative().contains(PositionElement.PITCH) ? entity.getPitch() : 0);
+        float newYaw = packet.getYaw() + (packet.getRelative().contains(PositionElement.YAW) ? entity.getHeadYaw() : 0);
 
         session.getConnector().getLogger().debug("Teleport from " + entity.getPosition().getX() + " " + (entity.getPosition().getY() - EntityType.PLAYER.getOffset()) + " " + entity.getPosition().getZ());
 

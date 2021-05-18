@@ -81,7 +81,7 @@ public class ArmorStandEntity extends LivingEntity {
     @Override
     public void spawnEntity(GeyserSession session) {
         this.session = session;
-        this.rotation = Vector3f.from(rotation.getX(), rotation.getX(), rotation.getX());
+        this.rotation = Vector3f.from(getYaw(), getYaw(), getYaw());
         super.spawnEntity(session);
     }
 
@@ -433,7 +433,7 @@ public class ArmorStandEntity extends LivingEntity {
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
         moveEntityPacket.setPosition(position);
-        moveEntityPacket.setRotation(Vector3f.from(rotation.getX(), rotation.getX(), rotation.getX()));
+        moveEntityPacket.setRotation(Vector3f.from(getYaw(), getYaw(), getYaw()));
         moveEntityPacket.setOnGround(onGround);
         moveEntityPacket.setTeleported(false);
         session.sendUpstreamPacket(moveEntityPacket);

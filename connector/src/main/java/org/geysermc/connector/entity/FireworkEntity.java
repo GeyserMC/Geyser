@@ -137,8 +137,8 @@ public class FireworkEntity extends Entity {
         } else if (entityMetadata.getId() == 8 && !entityMetadata.getValue().equals(OptionalInt.empty()) && ((OptionalInt) entityMetadata.getValue()).getAsInt() == session.getPlayerEntity().getEntityId()) {
             //Checks if the firework has an entity ID (used when a player is gliding) and checks to make sure the player that is gliding is the one getting sent the packet or else every player near the gliding player will boost too.
             PlayerEntity entity = session.getPlayerEntity();
-            float yaw = entity.getRotation().getX();
-            float pitch = entity.getRotation().getY();
+            float yaw = entity.getYaw();
+            float pitch = entity.getPitch();
             //Uses math from NukkitX
             entity.setMotion(Vector3f.from(
                     -Math.sin(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * 2,

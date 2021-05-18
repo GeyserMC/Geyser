@@ -86,15 +86,15 @@ public class ThrowableEntity extends Entity implements Tickable {
         }
         setPosition(position);
 
-        if (this.rotation.getX() != rotation.getX()) {
+        if (this.getYaw() != rotation.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
             moveEntityDeltaPacket.setYaw(rotation.getX());
         }
-        if (this.rotation.getY() != rotation.getY()) {
+        if (this.getPitch() != rotation.getY()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
             moveEntityDeltaPacket.setPitch(rotation.getY());
         }
-        if (this.rotation.getZ() != rotation.getZ()) {
+        if (this.getHeadYaw() != rotation.getZ()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
             moveEntityDeltaPacket.setHeadYaw(rotation.getZ());
         }

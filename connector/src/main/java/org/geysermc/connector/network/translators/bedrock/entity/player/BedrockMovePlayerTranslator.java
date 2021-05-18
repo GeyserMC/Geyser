@@ -65,8 +65,10 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         session.getBookEditCache().checkForSend();
 
         if (session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityType.PLAYER.getOffset(), 0))) {
-            // head yaw, pitch, head yaw
-            Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
+            // head yaw
+            float yaw = packet.getRotation().getY();
+            float pitch = packet.getRotation().getX();
+            Vector3f rotation = Vector3f.from(yaw, pitch, yaw);
 
             boolean positionChanged = !entity.getPosition().equals(packet.getPosition());
             boolean rotationChanged = !entity.getRotation().equals(rotation);
@@ -75,8 +77,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             // This isn't needed, but it makes the packets closer to vanilla
             // It also means you can't "lag back" while only looking, in theory
             if (!positionChanged && rotationChanged) {
-                ClientPlayerRotationPacket playerRotationPacket = new ClientPlayerRotationPacket(
-                        packet.isOnGround(), packet.getRotation().getY(), packet.getRotation().getX());
+                ClientPlayerRotationPacket playerRotationPacket = new ClientPlayerRotationPacket(packet.isOnGround(), yaw, pitch);
 
                 entity.setRotation(rotation);
                 entity.setOnGround(packet.isOnGround());
@@ -89,8 +90,11 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                         Packet movePacket;
                         if (rotationChanged) {
                             // Send rotation updates as well
-                            movePacket = new ClientPlayerPositionRotationPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ(),
-                                    packet.getRotation().getY(), packet.getRotation().getX());
+                            movePacket = new ClientPlayerPositionRotationPacket(
+                                    packet.isOnGround(),
+                                    position.getX(), position.getY(), position.getZ(),
+                                    yaw, pitch
+                            );
                             entity.setRotation(rotation);
                         } else {
                             // Rotation did not change; don't send an update with rotation
