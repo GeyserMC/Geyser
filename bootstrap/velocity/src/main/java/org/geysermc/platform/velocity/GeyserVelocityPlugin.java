@@ -37,7 +37,7 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.local.LocalAddress;
 import io.netty.channel.local.LocalChannel;
 import io.netty.channel.local.LocalServerChannel;
@@ -212,11 +212,18 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         Field cm = proxyServer.getClass().getDeclaredField("cm");
         cm.setAccessible(true);
         Object connectionManager = cm.get(proxyServer);
+        Class<?> connectionManagerClass = connectionManager.getClass();
 
-        Supplier<ChannelInitializer<Channel>> serverChannelInitializerHolder = (Supplier<ChannelInitializer<Channel>>) connectionManager.getClass()
+        Supplier<ChannelInitializer<Channel>> serverChannelInitializerHolder = (Supplier<ChannelInitializer<Channel>>) connectionManagerClass
                 .getMethod("getServerChannelInitializer")
                 .invoke(connectionManager);
         ChannelInitializer<Channel> channelInitializer = serverChannelInitializerHolder.get();
+
+        EventLoopGroup bossGroup = (EventLoopGroup) connectionManagerClass.getMethod("getBossGroup").invoke(connectionManager);
+
+        Field workerGroupField = connectionManagerClass.getDeclaredField("workerGroup");
+        workerGroupField.setAccessible(true);
+        EventLoopGroup workerGroup = (EventLoopGroup) workerGroupField.get(connectionManager);
 
         // This method is what initializes the connection in Java Edition, after Netty is all set.
         Method initChannel = channelInitializer.getClass().getDeclaredMethod("initChannel", Channel.class);
@@ -231,7 +238,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
                 wrapper.remoteAddress(new InetSocketAddress(0));
                 initChannel.invoke(channelInitializer, wrapper);
             }
-        }).group(new EpollEventLoopGroup()).localAddress(LocalAddress.ANY)).bind().syncUninterruptibly(); // Cannot be DefaultEventLoopGroup
+        }).group(bossGroup, workerGroup).localAddress(LocalAddress.ANY)).bind().syncUninterruptibly(); // Cannot be DefaultEventLoopGroup
         this.localChannel = channelFuture;
 
         return channelFuture.channel().localAddress();
