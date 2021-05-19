@@ -66,10 +66,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2LongMap;
-import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -81,6 +78,7 @@ import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.attribute.Attribute;
 import org.geysermc.connector.entity.attribute.AttributeType;
@@ -146,6 +144,8 @@ public class GeyserSession implements CommandSender {
     private ChunkCache chunkCache;
     private EntityCache entityCache;
     private EntityEffectCache effectCache;
+    private final PreferencesCache preferencesCache;
+    private final TagCache tagCache;
     private WorldCache worldCache;
     private WindowCache windowCache;
     private final Int2ObjectMap<TeleportCache> teleportMap = new Int2ObjectOpenHashMap<>();
@@ -188,10 +188,10 @@ public class GeyserSession implements CommandSender {
     private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
 
     /**
-     * A map of Vector3i positions to Java entity IDs.
+     * A map of Vector3i positions to Java entities.
      * Used for translating Bedrock block actions to Java entity actions.
      */
-    private final Object2LongMap<Vector3i> itemFrameCache = new Object2LongOpenHashMap<>();
+    private final Map<Vector3i, ItemFrameEntity> itemFrameCache = new Object2ObjectOpenHashMap<>();
 
     /**
      * Stores a list of all lectern locations and their block entity tags.
@@ -452,6 +452,8 @@ public class GeyserSession implements CommandSender {
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
+        this.preferencesCache = new PreferencesCache(this);
+        this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
         this.windowCache = new WindowCache(this);
 
@@ -1225,7 +1227,7 @@ public class GeyserSession implements CommandSender {
     public void setReducedDebugInfo(boolean value) {
         reducedDebugInfo = value;
         // Set the showCoordinates data. This is done because updateShowCoordinates() uses this gamerule as a variable.
-        getWorldCache().updateShowCoordinates();
+        preferencesCache.updateShowCoordinates();
     }
 
     /**

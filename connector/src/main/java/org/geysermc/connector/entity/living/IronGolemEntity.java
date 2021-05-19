@@ -23,49 +23,58 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.monster;
+package org.geysermc.connector.entity.living;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.utils.AttributeUtils;
 
-public class PiglinEntity extends BasePiglinEntity {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
-    public PiglinEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+public class IronGolemEntity extends GolemEntity {
+
+    public IronGolemEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+        // Indicate that we should show cracks through a resource pack
+        metadata.getFlags().setFlag(EntityFlag.BRIBED, true);
+        // Required, or else the overlay is black
+        metadata.put(EntityData.COLOR_2, (byte) 0);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
-            boolean isBaby = (boolean) entityMetadata.getValue();
-            if (isBaby) {
-                metadata.put(EntityData.SCALE, .55f);
-                metadata.getFlags().setFlag(EntityFlag.BABY, true);
-            }
-        }
-        if (entityMetadata.getId() == 17) {
-            metadata.getFlags().setFlag(EntityFlag.CHARGING, (boolean) entityMetadata.getValue());
-        }
-        if (entityMetadata.getId() == 18) {
-            metadata.getFlags().setFlag(EntityFlag.DANCING, (boolean) entityMetadata.getValue());
-        }
-
         super.updateBedrockMetadata(entityMetadata, session);
+        if (entityMetadata.getId() == 8) {
+            // Required so the resource pack sees the entity health
+            attributes.put(AttributeType.HEALTH, AttributeType.HEALTH.getAttribute(metadata.getFloat(EntityData.HEALTH), 100f));
+            updateBedrockAttributes(session);
+        }
     }
 
     @Override
-    public void updateOffHand(GeyserSession session) {
-        // Check if the Piglin is holding Gold and set the ADMIRING flag accordingly so its pose updates
-        boolean changed = metadata.getFlags().setFlag(EntityFlag.ADMIRING, session.getTagCache().shouldPiglinAdmire(ItemRegistry.getItem(this.offHand)));
-        if (changed) {
-            super.updateBedrockMetadata(session);
+    public void updateBedrockAttributes(GeyserSession session) {
+        if (!valid) return;
+
+        List<AttributeData> attributes = new ArrayList<>();
+        for (Map.Entry<AttributeType, org.geysermc.connector.entity.attribute.Attribute> entry : this.attributes.entrySet()) {
+            if (!entry.getValue().getType().isBedrockAttribute())
+                continue;
+
+            attributes.add(AttributeUtils.getBedrockAttribute(entry.getValue()));
         }
 
-        super.updateOffHand(session);
+        UpdateAttributesPacket updateAttributesPacket = new UpdateAttributesPacket();
+        updateAttributesPacket.setRuntimeEntityId(geyserId);
+        updateAttributesPacket.setAttributes(attributes);
+        session.sendUpstreamPacket(updateAttributesPacket);
     }
 }

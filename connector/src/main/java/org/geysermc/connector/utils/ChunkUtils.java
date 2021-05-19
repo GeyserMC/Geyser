@@ -47,7 +47,6 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Data;
 import lombok.experimental.UtilityClass;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -295,21 +294,13 @@ public class ChunkUtils {
      */
     public static void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         // Checks for item frames so they aren't tripped up and removed
-        long frameEntityId = ItemFrameEntity.getItemFrameEntityId(session, position);
-        if (frameEntityId != -1) {
-            // TODO: Very occasionally the item frame doesn't sync up when destroyed
-            Entity entity = session.getEntityCache().getEntityByJavaId(frameEntityId);
-            if (blockState == JAVA_AIR_ID && entity != null) { // Item frame is still present and no block overrides that; refresh it
-                ((ItemFrameEntity) entity).updateBlock(session);
+        ItemFrameEntity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, position);
+        if (itemFrameEntity != null) {
+            if (blockState == JAVA_AIR_ID) { // Item frame is still present and no block overrides that; refresh it
+                itemFrameEntity.updateBlock(session);
                 return;
             }
-
-            // Otherwise the item frame is gone
-            if (entity != null) {
-                session.getEntityCache().removeEntity(entity, false);
-            } else {
-                ItemFrameEntity.removePosition(session, position);
-            }
+            // Otherwise, let's still store our reference to the item frame, but let the new block take precedence for now
         }
 
         SkullPlayerEntity skull = session.getSkullCache().get(position);

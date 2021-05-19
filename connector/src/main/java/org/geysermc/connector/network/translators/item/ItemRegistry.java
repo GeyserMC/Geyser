@@ -109,10 +109,6 @@ public class ItemRegistry {
      */
     public static ItemEntry EGG;
     /**
-     * Gold item entry, used in PiglinEntity.java
-     */
-    public static ItemEntry GOLD;
-    /**
      * Shield item entry, used in Entity.java and LivingEntity.java
      */
     public static ItemEntry SHIELD;
@@ -294,7 +290,7 @@ public class ItemRegistry {
                         // However, in order for some visuals and crafting to work, we need to send the first matching block state
                         // as indexed by Bedrock's block palette
                         // There are exceptions! But, ideally, the block ID override should take care of those.
-                        String javaBlockIdentifier = BlockTranslator.getJavaIdBlockMap().inverse().get(blockRuntimeIdNode.intValue()).split("\\[")[0];
+                        String javaBlockIdentifier = BlockTranslator.getBlockMapping(blockRuntimeIdNode.intValue()).getCleanJavaIdentifier();
                         NbtMapBuilder requiredBlockStatesBuilder = NbtMap.builder();
                         String correctBedrockIdentifier = blockTranslator.getAllBedrockBlockStates().get(aValidBedrockBlockId).getString("name");
                         boolean firstPass = true;
@@ -436,9 +432,6 @@ public class ItemRegistry {
                     break;
                 case "minecraft:egg":
                     EGG = itemEntry;
-                    break;
-                case "minecraft:gold_ingot":
-                    GOLD = itemEntry;
                     break;
                 case "minecraft:shield":
                     SHIELD = itemEntry;

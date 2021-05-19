@@ -171,6 +171,60 @@ public class InventoryUtils {
     }
 
     /**
+     * See {@link #findOrCreateItem(GeyserSession, String)}. This is for finding a specified {@link ItemStack}.
+     *
+     * @param session the Bedrock client's session
+     * @param itemStack the item to try to find a match for. NBT will also be accounted for.
+     */
+    public static void findOrCreateItem(GeyserSession session, ItemStack itemStack) {
+        PlayerInventory inventory = session.getPlayerInventory();
+
+        if (itemStack == null || itemStack.getId() == 0) {
+            return;
+        }
+
+        // Check hotbar for item
+        for (int i = 36; i < 45; i++) {
+            GeyserItemStack geyserItem = inventory.getItem(i);
+            if (geyserItem.isEmpty()) {
+                continue;
+            }
+            // If this is the item we're looking for
+            if (geyserItem.getJavaId() == itemStack.getId() && Objects.equals(geyserItem.getNbt(), itemStack.getNbt())) {
+                setHotbarItem(session, i);
+                // Don't check inventory if item was in hotbar
+                return;
+            }
+        }
+
+        // Check inventory for item
+        for (int i = 9; i < 36; i++) {
+            GeyserItemStack geyserItem = inventory.getItem(i);
+            if (geyserItem.isEmpty()) {
+                continue;
+            }
+            // If this is the item we're looking for
+            if (geyserItem.getJavaId() == itemStack.getId() && Objects.equals(geyserItem.getNbt(), itemStack.getNbt())) {
+                ClientMoveItemToHotbarPacket packetToSend = new ClientMoveItemToHotbarPacket(i); // https://wiki.vg/Protocol#Pick_Item
+                session.sendDownstreamPacket(packetToSend);
+                return;
+            }
+        }
+
+        // If we still have not found the item, and we're in creative, ask for the item from the server.
+        if (session.getGameMode() == GameMode.CREATIVE) {
+            int slot = findEmptyHotbarSlot(inventory);
+
+            ClientCreativeInventoryActionPacket actionPacket = new ClientCreativeInventoryActionPacket(slot,
+                    itemStack);
+            if ((slot - 36) != inventory.getHeldItemSlot()) {
+                setHotbarItem(session, slot);
+            }
+            session.sendDownstreamPacket(actionPacket);
+        }
+    }
+
+    /**
      * Attempt to find the specified item name in the session's inventory.
      * If it is found and in the hotbar, set the user's held item to that slot.
      * If it is found in another part of the inventory, move it.
@@ -223,15 +277,7 @@ public class InventoryUtils {
 
         // If we still have not found the item, and we're in creative, ask for the item from the server.
         if (session.getGameMode() == GameMode.CREATIVE) {
-            int slot = inventory.getHeldItemSlot() + 36;
-            if (!inventory.getItemInHand().isEmpty()) { // Otherwise we should just use the current slot
-                for (int i = 36; i < 45; i++) {
-                    if (inventory.getItem(i).isEmpty()) {
-                        slot = i;
-                        break;
-                    }
-                }
-            }
+            int slot = findEmptyHotbarSlot(inventory);
 
             ItemEntry entry = ItemRegistry.getItemEntry(itemName);
             if (entry != null) {
@@ -245,6 +291,22 @@ public class InventoryUtils {
                 session.getConnector().getLogger().debug("Cannot find item for block " + itemName);
             }
         }
+    }
+
+    /**
+     * @return the first empty slot found in this inventory, or else the player's currently held slot.
+     */
+    private static int findEmptyHotbarSlot(PlayerInventory inventory) {
+        int slot = inventory.getHeldItemSlot() + 36;
+        if (!inventory.getItemInHand().isEmpty()) { // Otherwise we should just use the current slot
+            for (int i = 36; i < 45; i++) {
+                if (inventory.getItem(i).isEmpty()) {
+                    slot = i;
+                    break;
+                }
+            }
+        }
+        return slot;
     }
 
     /**
