@@ -143,8 +143,6 @@ public abstract class BlockTranslator {
                 builder.canBreakWithHand(false);
             }
 
-            builder.toolType(""); //TODO
-
             JsonNode collisionIndexNode = entry.getValue().get("collision_index");
             if (hardnessNode != null) {
                 builder.collisionIndex(collisionIndexNode.intValue());
