@@ -18,7 +18,7 @@ The ultimate goal of this project is to allow Minecraft: Bedrock Edition users t
 
 Special thanks to the DragonProxy project for being a trailblazer in protocol translation and for all the team members who have joined us here!
 
-### Currently supporting Minecraft Bedrock v1.16.100 - v1.16.220 and Minecraft Java v1.16.4 - v1.16.5.
+### Currently supporting Minecraft Bedrock v1.16.220.52 and Minecraft Java 21w20a.
 
 ## Setting Up
 Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set up Geyser.
@@ -38,6 +38,8 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
 - Resource pack conversion/CustomModelData
 - Some Entity Flags
 - Structure block UI
+
+Extended height features can be "supported", but require additional work.
 
 ## What can't be fixed
 The following things cannot be fixed without changes to Bedrock. As of now, they are not fixable in Geyser.

@@ -40,9 +40,9 @@ public class TurtleEntity extends AnimalEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 17) {
+        if (entityMetadata.getId() == 18) {
             metadata.getFlags().setFlag(EntityFlag.IS_PREGNANT, (boolean) entityMetadata.getValue());
-        } else if (entityMetadata.getId() == 18) {
+        } else if (entityMetadata.getId() == 19) {
             metadata.getFlags().setFlag(EntityFlag.LAYING_EGG, (boolean) entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);

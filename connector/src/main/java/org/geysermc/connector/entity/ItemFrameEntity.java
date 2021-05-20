@@ -105,7 +105,7 @@ public class ItemFrameEntity extends Entity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 7 && entityMetadata.getValue() != null) {
+        if (entityMetadata.getId() == 8 && entityMetadata.getValue() != null) {
             this.heldItem = (ItemStack) entityMetadata.getValue();
             ItemData itemData = ItemTranslator.translateToBedrock(session, heldItem);
             ItemEntry itemEntry = ItemRegistry.getItem((ItemStack) entityMetadata.getValue());
@@ -124,11 +124,11 @@ public class ItemFrameEntity extends Entity {
             cachedTag = tag.build();
             updateBlock(session);
         }
-        else if (entityMetadata.getId() == 7 && entityMetadata.getValue() == null && cachedTag != null) {
+        else if (entityMetadata.getId() == 8 && entityMetadata.getValue() == null && cachedTag != null) {
             cachedTag = getDefaultTag();
             updateBlock(session);
         }
-        else if (entityMetadata.getId() == 8) {
+        else if (entityMetadata.getId() == 9) {
             rotation = ((int) entityMetadata.getValue()) * 45;
             if (cachedTag == null) {
                 updateBlock(session);

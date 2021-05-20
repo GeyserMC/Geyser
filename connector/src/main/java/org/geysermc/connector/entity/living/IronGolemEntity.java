@@ -53,7 +53,7 @@ public class IronGolemEntity extends GolemEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         super.updateBedrockMetadata(entityMetadata, session);
-        if (entityMetadata.getId() == 8) {
+        if (entityMetadata.getId() == 9) {
             // Required so the resource pack sees the entity health
             attributes.put(AttributeType.HEALTH, AttributeType.HEALTH.getAttribute(metadata.getFloat(EntityData.HEALTH), 100f));
             updateBedrockAttributes(session);

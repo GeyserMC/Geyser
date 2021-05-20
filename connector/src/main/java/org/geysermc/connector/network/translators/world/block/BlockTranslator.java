@@ -143,12 +143,7 @@ public abstract class BlockTranslator {
                 builder.canBreakWithHand(false);
             }
 
-            JsonNode toolTypeNode = entry.getValue().get("tool_type");
-            if (toolTypeNode != null) {
-                builder.toolType(toolTypeNode.textValue());
-            } else {
-                builder.toolType("");
-            }
+            builder.toolType(""); //TODO
 
             JsonNode collisionIndexNode = entry.getValue().get("collision_index");
             if (hardnessNode != null) {
@@ -225,7 +220,7 @@ public abstract class BlockTranslator {
             throw new AssertionError("Unable to find Java water in palette");
         }
         JAVA_WATER_ID = waterRuntimeId;
-        
+
         BlockMapping.AIR = JAVA_RUNTIME_ID_TO_BLOCK_MAPPING.get(JAVA_AIR_ID);
 
         BlockTranslator1_16_210.init();

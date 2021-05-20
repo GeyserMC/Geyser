@@ -42,14 +42,14 @@ public class RabbitEntity extends AnimalEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         super.updateBedrockMetadata(entityMetadata, session);
-        if (entityMetadata.getId() == 15) {
+        if (entityMetadata.getId() == 16) {
             metadata.put(EntityData.SCALE, .55f);
             boolean isBaby = (boolean) entityMetadata.getValue();
             if (isBaby) {
                 metadata.put(EntityData.SCALE, .35f);
                 metadata.getFlags().setFlag(EntityFlag.BABY, true);
             }
-        } else if (entityMetadata.getId() == 16) {
+        } else if (entityMetadata.getId() == 17) {
             int variant = (int) entityMetadata.getValue();
 
             // Change the killer bunny to display as white since it only exists on Java Edition

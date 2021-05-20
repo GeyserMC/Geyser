@@ -67,7 +67,7 @@ public class FishingHookEntity extends ThrowableEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 7) { // Hooked entity
+        if (entityMetadata.getId() == 8) { // Hooked entity
             int hookedEntityId = (int) entityMetadata.getValue() - 1;
             Entity entity = session.getEntityCache().getEntityByJavaId(hookedEntityId);
             if (entity == null && session.getPlayerEntity().getEntityId() == hookedEntityId) {

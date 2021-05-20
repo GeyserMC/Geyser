@@ -43,7 +43,7 @@ public class BeeEntity extends AnimalEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 17) {
             byte xd = (byte) entityMetadata.getValue();
             // Bee is performing sting attack; trigger animation
             if ((xd & 0x02) == 0x02) {
@@ -58,7 +58,7 @@ public class BeeEntity extends AnimalEntity {
             // If the bee has nectar or not
             metadata.getFlags().setFlag(EntityFlag.POWERED, (xd & 0x08) == 0x08);
         }
-        if (entityMetadata.getId() == 17) {
+        if (entityMetadata.getId() == 18) {
             // Converting "anger time" to a boolean
             metadata.getFlags().setFlag(EntityFlag.ANGRY, (int) entityMetadata.getValue() > 0);
         }

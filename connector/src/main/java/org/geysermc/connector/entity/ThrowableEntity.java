@@ -167,10 +167,8 @@ public class ThrowableEntity extends Entity implements Tickable {
      */
     protected boolean isInWater(GeyserSession session) {
         if (session.getConnector().getConfig().isCacheChunks()) {
-            if (0 <= position.getFloorY() && position.getFloorY() <= 255) {
-                int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
-                return BlockStateValues.getWaterLevel(block) != -1;
-            }
+            int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
+            return BlockStateValues.getWaterLevel(block) != -1;
         }
         return false;
     }

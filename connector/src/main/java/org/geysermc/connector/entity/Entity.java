@@ -329,6 +329,10 @@ public class Entity {
                 metadata.put(EntityData.BOUNDING_BOX_WIDTH, width);
                 metadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
                 break;
+            case 7:
+                //TODO check
+                metadata.put(EntityData.FREEZING_EFFECT_STRENGTH, entityMetadata.getValue());
+                break;
         }
     }
 

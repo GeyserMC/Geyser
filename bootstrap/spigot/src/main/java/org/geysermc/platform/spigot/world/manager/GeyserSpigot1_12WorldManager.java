@@ -25,9 +25,7 @@
 
 package org.geysermc.platform.spigot.world.manager;
 
-import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -63,7 +61,7 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
     private final List<Pair<Integer, Protocol>> protocolList;
 
     public GeyserSpigot1_12WorldManager(Plugin plugin) {
-        super(plugin, false);
+        super(plugin);
         this.mappingData1_12to1_13 = ProtocolRegistry.getProtocol(Protocol1_13To1_12_2.class).getMappingData();
         this.protocolList = ProtocolRegistry.getProtocolPath(CLIENT_PROTOCOL_VERSION,
                 ProtocolVersion.v1_13.getVersion());
@@ -115,28 +113,6 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
             }
         }
         return blockId;
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public void getBlocksInSection(GeyserSession session, int x, int y, int z, Chunk chunk) {
-        Player player = Bukkit.getPlayer(session.getPlayerEntity().getUsername());
-        if (player == null) {
-            return;
-        }
-        World world = player.getWorld();
-        // Get block entity storage
-        BlockStorage storage = Via.getManager().getConnection(player.getUniqueId()).get(BlockStorage.class);
-        for (int blockY = 0; blockY < 16; blockY++) { // Cache-friendly iteration order
-            for (int blockZ = 0; blockZ < 16; blockZ++) {
-                for (int blockX = 0; blockX < 16; blockX++) {
-                    Block block = world.getBlockAt((x << 4) + blockX, (y << 4) + blockY, (z << 4) + blockZ);
-                    // Black magic that gets the old block state ID
-                    int blockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
-                    chunk.set(blockX, blockY, blockZ, getLegacyBlock(storage, blockId, (x << 4) + blockX, (y << 4) + blockY, (z << 4) + blockZ));
-                }
-            }
-        }
     }
 
     @Override

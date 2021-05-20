@@ -68,7 +68,7 @@ public class LivingEntity extends Entity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         switch (entityMetadata.getId()) {
-            case 7: // blocking
+            case 8: // blocking
                 byte xd = (byte) entityMetadata.getValue();
 
                 //blocking gets triggered when using a bow, but if we set USING_ITEM for all items, it may look like
@@ -81,16 +81,16 @@ public class LivingEntity extends Entity {
                 // Riptide spin attack
                 metadata.getFlags().setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, (xd & 0x04) == 0x04);
                 break;
-            case 8:
+            case 9:
                 metadata.put(EntityData.HEALTH, entityMetadata.getValue());
                 break;
-            case 9:
+            case 10:
                 metadata.put(EntityData.EFFECT_COLOR, entityMetadata.getValue());
                 break;
-            case 10:
+            case 11:
                 metadata.put(EntityData.EFFECT_AMBIENT, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
                 break;
-            case 13: // Bed Position
+            case 14: // Bed Position
                 Position bedPosition = (Position) entityMetadata.getValue();
                 if (bedPosition != null) {
                     metadata.put(EntityData.BED_POSITION, Vector3i.from(bedPosition.getX(), bedPosition.getY(), bedPosition.getZ()));

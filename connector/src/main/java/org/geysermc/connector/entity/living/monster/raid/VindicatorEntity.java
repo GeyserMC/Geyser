@@ -40,7 +40,7 @@ public class VindicatorEntity extends AbstractIllagerEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         // Allow the axe to be shown if necessary
-        if (entityMetadata.getId() == 14) {
+        if (entityMetadata.getId() == 15) {
             byte xd = (byte) entityMetadata.getValue();
             metadata.getFlags().setFlag(EntityFlag.ANGRY, (xd & 4) == 4);
         }

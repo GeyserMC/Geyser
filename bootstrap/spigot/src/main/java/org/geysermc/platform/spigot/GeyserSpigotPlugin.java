@@ -150,11 +150,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         if (isLegacy)
             geyserLogger.debug("Legacy version of Minecraft (1.12.2 or older) detected; falling back to ViaVersion for block state retrieval.");
 
-        boolean use3dBiomes = isCompatible(Bukkit.getServer().getVersion(), "1.16.0");
-        if (!use3dBiomes) {
-            geyserLogger.debug("Legacy version of Minecraft (1.15.2 or older) detected; not using 3D biomes.");
-        }
-
         boolean isPre1_12 = !isCompatible(Bukkit.getServer().getVersion(), "1.12.0");
         // Set if we need to use a different method for getting a player's locale
         SpigotCommandSender.setUseLegacyLocaleMethod(isPre1_12);
@@ -170,11 +165,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                         this.geyserWorldManager = new GeyserSpigot1_12NativeWorldManager(this);
                     } else {
                         // Post-1.13
-                        this.geyserWorldManager = new GeyserSpigotLegacyNativeWorldManager(this, use3dBiomes);
+                        this.geyserWorldManager = new GeyserSpigotLegacyNativeWorldManager(this);
                     }
                 } else {
                     // No ViaVersion
-                    this.geyserWorldManager = new GeyserSpigotNativeWorldManager(this, use3dBiomes);
+                    this.geyserWorldManager = new GeyserSpigotNativeWorldManager(this);
                 }
                 geyserLogger.debug("Using NMS adapter: " + this.geyserWorldManager.getClass() + ", " + nmsVersion);
             } catch (Exception e) {
@@ -196,7 +191,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 this.geyserWorldManager = new GeyserSpigotFallbackWorldManager(this);
             } else {
                 // Post-1.13
-                this.geyserWorldManager = new GeyserSpigotWorldManager(this, use3dBiomes);
+                this.geyserWorldManager = new GeyserSpigotWorldManager(this);
             }
             geyserLogger.debug("Using default world manager: " + this.geyserWorldManager.getClass());
         }

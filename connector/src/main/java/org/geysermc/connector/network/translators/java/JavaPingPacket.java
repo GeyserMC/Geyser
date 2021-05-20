@@ -23,27 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.living.animal.horse;
+package org.geysermc.connector.network.translators.java;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import org.geysermc.connector.entity.type.EntityType;
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPongPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPingPacket;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-public class HorseEntity extends AbstractHorseEntity {
-
-    public HorseEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
-    }
+// Why does this packet exist? Whatever, we better implement it
+@Translator(packet = ServerPingPacket.class)
+public class JavaPingPacket extends PacketTranslator<ServerPingPacket> {
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 19) {
-            metadata.put(EntityData.VARIANT, entityMetadata.getValue());
-            metadata.put(EntityData.MARK_VARIANT, (((int) entityMetadata.getValue()) >> 8) % 5);
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
+    public void translate(ServerPingPacket packet, GeyserSession session) {
+        session.sendDownstreamPacket(new ClientPongPacket(packet.getId()));
     }
-
 }

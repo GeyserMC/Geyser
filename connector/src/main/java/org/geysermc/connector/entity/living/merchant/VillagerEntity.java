@@ -85,7 +85,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 17) {
+        if (entityMetadata.getId() == 18) {
             VillagerData villagerData = (VillagerData) entityMetadata.getValue();
             // Profession
             metadata.put(EntityData.VARIANT, VILLAGER_VARIANTS.get(villagerData.getProfession()));
