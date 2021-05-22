@@ -25,12 +25,6 @@
 
 package org.geysermc.platform.bungeecord;
 
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.*;
-import io.netty.channel.local.LocalAddress;
-import io.netty.channel.local.LocalServerChannel;
-import io.netty.util.AttributeKey;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.geysermc.common.PlatformType;
@@ -49,7 +43,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.file.Path;
@@ -60,13 +53,11 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     private GeyserBungeeCommandManager geyserCommandManager;
     private GeyserBungeeConfiguration geyserConfig;
+    private GeyserBungeeInjector geyserInjector;
     private GeyserBungeeLogger geyserLogger;
     private IGeyserPingPassthrough geyserBungeePingPassthrough;
 
     private GeyserConnector connector;
-
-    private SocketAddress serverSocketAddress;
-    private ChannelFuture localChannel;
 
     @Override
     public void onEnable() {
@@ -119,11 +110,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
         this.connector = GeyserConnector.start(PlatformType.BUNGEECORD, this);
 
-        try {
-            this.serverSocketAddress = initializeLocalChannel();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        this.geyserInjector = new GeyserBungeeInjector(getProxy());
+        this.geyserInjector.initializeLocalChannel(this);
 
         this.geyserCommandManager = new GeyserBungeeCommandManager(connector);
 
@@ -138,58 +126,12 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @Override
     public void onDisable() {
-        connector.shutdown();
-        if (this.localChannel != null) {
-            try {
-                localChannel.channel().close().sync();
-                localChannel = null;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        if (connector != null) {
+            connector.shutdown();
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private SocketAddress initializeLocalChannel() throws Exception {
-        Class<?> pipelineUtils = Class.forName("net.md_5.bungee.netty.PipelineUtils");
-        ChannelInitializer<Channel> channelInitializer = (ChannelInitializer<Channel>) pipelineUtils.getField("SERVER_CHILD").get(null);
-
-        Class<? extends ProxyServer> proxyClass = getProxy().getClass();
-        // Using the specified EventLoop is required, or else an error will be thrown
-        EventLoopGroup bossGroup;
-        EventLoopGroup workerGroup;
-        try {
-            EventLoopGroup eventLoops = (EventLoopGroup) proxyClass.getField("eventLoops").get(getProxy());
-            // Netty redirects ServerBootstrap#group(EventLoopGroup) to #group(EventLoopGroup, EventLoopGroup) and uses the same event loop for both.
-            bossGroup = eventLoops;
-            workerGroup = eventLoops;
-            geyserLogger.debug("BungeeCord event loop style detected.");
-        } catch (NoSuchFieldException e) {
-            // Waterfall uses two separate event loops
-            // https://github.com/PaperMC/Waterfall/blob/fea7ec356dba6c6ac28819ff11be604af6eb484e/BungeeCord-Patches/0022-Use-a-worker-and-a-boss-event-loop-group.patch
-            bossGroup = (EventLoopGroup) proxyClass.getField("bossEventLoopGroup").get(getProxy());
-            workerGroup = (EventLoopGroup) proxyClass.getField("workerEventLoopGroup").get(getProxy());
-            geyserLogger.debug("Waterfall event loop style detected.");
+        if (geyserInjector != null) {
+            geyserInjector.shutdown();
         }
-
-        // Is currently just AttributeKey.valueOf("ListerInfo") but we might as well copy the value itself.
-        AttributeKey<ListenerInfo> listener = (AttributeKey<ListenerInfo>) pipelineUtils.getField("LISTENER").get(null);
-        //TODO define our own ListenerInfo?
-        ListenerInfo listenerInfo = getProxy().getConfig().getListeners().stream().findFirst().orElseThrow(IllegalStateException::new);
-
-        // This method is what initializes the connection in Java Edition, after Netty is all set.
-        Method initChannel = channelInitializer.getClass().getDeclaredMethod("initChannel", Channel.class);
-        initChannel.setAccessible(true);
-
-        ChannelFuture channelFuture = (new ServerBootstrap().channel(LocalServerChannel.class).childHandler(new ChannelInitializer<Channel>() {
-            @Override
-            protected void initChannel(Channel ch) throws Exception {
-                initChannel.invoke(channelInitializer, ch);
-            }
-        }).childAttr(listener, listenerInfo).group(bossGroup, workerGroup).localAddress(LocalAddress.ANY)).bind().syncUninterruptibly();
-        this.localChannel = channelFuture;
-
-        return channelFuture.channel().localAddress();
     }
 
     @Override
@@ -225,6 +167,6 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     @Nullable
     @Override
     public SocketAddress getSocketAddress() {
-        return serverSocketAddress;
+        return this.geyserInjector.getServerSocketAddress();
     }
 }
