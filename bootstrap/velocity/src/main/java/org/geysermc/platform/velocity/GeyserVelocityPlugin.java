@@ -124,7 +124,15 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         this.connector = GeyserConnector.start(PlatformType.VELOCITY, this);
 
         this.geyserInjector = new GeyserVelocityInjector(proxyServer);
-        this.geyserInjector.initializeLocalChannel(this);
+        try {
+            // We should listen for this if possible and then inject, so if the server channel initializer changes
+            // we can pick up on it.
+            Class.forName("com.velocitypowered.api.event.proxy.ListenerBoundEvent");
+            GeyserVelocityListenerBoundHandler.register(this, this.geyserInjector, proxyServer);
+        } catch (ClassNotFoundException e) {
+            geyserLogger.debug("Loading injection now as we are running an older version of Velocity.");
+            this.geyserInjector.initializeLocalChannel(this);
+        }
 
         this.geyserCommandManager = new GeyserVelocityCommandManager(connector);
         this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(connector));

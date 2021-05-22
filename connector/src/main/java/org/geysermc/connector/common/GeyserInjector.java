@@ -51,6 +51,11 @@ public abstract class GeyserInjector {
      * @param bootstrap the bootstrap of the Geyser instance.
      */
     public void initializeLocalChannel(GeyserBootstrap bootstrap) {
+        if (!bootstrap.getGeyserConfig().isUseDirectConnection()) {
+            bootstrap.getGeyserLogger().debug("Disabling direct injection!");
+            return;
+        }
+
         if (this.localChannel != null) {
             bootstrap.getGeyserLogger().warning("Attempted to inject twice!");
             return;
@@ -58,8 +63,11 @@ public abstract class GeyserInjector {
 
         try {
             initializeLocalChannel0(bootstrap);
+            bootstrap.getGeyserLogger().debug("Local injection succeeded!");
         } catch (Exception e) {
             e.printStackTrace();
+            // If the injector partially worked, undo it
+            shutdown();
         }
     }
 

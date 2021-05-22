@@ -33,7 +33,7 @@
         <dependency>
             <groupId>com.viaversion</groupId>
             <artifactId>viaversion</artifactId>
-            <version>4.0.0-21w17a</version>
+            <version>4.0.0-21w20a-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

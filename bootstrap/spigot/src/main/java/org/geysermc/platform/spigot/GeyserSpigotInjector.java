@@ -26,6 +26,7 @@
 package org.geysermc.platform.spigot;
 
 import com.github.steveice10.packetlib.io.local.LocalServerChannelWrapper;
+import com.viaversion.viaversion.bukkit.handlers.BukkitChannelInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.local.LocalAddress;
@@ -56,19 +57,6 @@ public class GeyserSpigotInjector extends GeyserInjector {
     @Override
     @SuppressWarnings("unchecked")
     protected void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception {
-        boolean paperInitializerExists = false;
-        try {
-            // Are we in an environment where the Paper initializer exists?
-            Class.forName("io.papermc.paper.network.ChannelInitializeListener");
-            paperInitializerExists = true;
-        } catch (ClassNotFoundException ignored) {
-            // No. No we are not.
-        }
-        if (isViaVersion && !paperInitializerExists) {
-            // ViaVersion uses a ChannelInitializer that expects SocketChannel which we don't have.
-            throw new RuntimeException("Not initializing injection because of ViaVersion!");
-        }
-
         String prefix = Bukkit.getServer().getClass().getPackage().getName().replace("org.bukkit.craftbukkit", "net.minecraft.server");
         Class<?> serverClazz = Class.forName(prefix + ".MinecraftServer");
         Method getServer = serverClazz.getDeclaredMethod("getServer");
@@ -117,12 +105,14 @@ public class GeyserSpigotInjector extends GeyserInjector {
                 childHandlerField.setAccessible(true);
                 childHandler = (ChannelInitializer<Channel>) childHandlerField.get(handler);
                 // ViaVersion non-Paper-injector workaround so we aren't double-injecting
-                // Complains for some reason still - likely casting from <Channel> to <SocketChannel>
-//                if (isViaVersion && childHandler.getClass().isAssignableFrom(BukkitChannelInitializer.class)) {
-//                    childHandler = ((BukkitChannelInitializer) childHandler).getOriginal();
-//                }
+                if (isViaVersion && childHandler instanceof BukkitChannelInitializer) {
+                    childHandler = ((BukkitChannelInitializer) childHandler).getOriginal();
+                }
                 break;
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                if (bootstrap.getGeyserConfig().isDebugMode()) {
+                    e.printStackTrace();
+                }
             }
         }
         if (childHandler == null) {
