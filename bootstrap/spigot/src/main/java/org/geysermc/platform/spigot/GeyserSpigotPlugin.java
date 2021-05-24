@@ -55,7 +55,6 @@ import us.myles.ViaVersion.api.protocol.ProtocolVersion;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
@@ -81,12 +80,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         try {
             if (!getDataFolder().exists()) {
                 getDataFolder().mkdir();
-                File bukkitConfig = new File("plugins/Geyser-Bukkit/config.yml");
-                if (bukkitConfig.exists()) { // Copy over old configs
-                    getLogger().log(Level.INFO, LanguageUtils.getLocaleStringLog("geyser.bootstrap.config.copy_bukkit_config"));
-                    Files.copy(bukkitConfig.toPath(), new File(getDataFolder().toString() + "/config.yml").toPath());
-                    getLogger().log(Level.INFO, LanguageUtils.getLocaleStringLog("geyser.bootstrap.config.copied_bukkit_config"));
-                }
             }
             File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserSpigotConfiguration.class);
