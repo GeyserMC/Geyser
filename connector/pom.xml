@@ -305,6 +305,7 @@
                                 </replacement>
                                 <replacement>
                                     <token>String GIT_VERSION = ".*"</token>
+                                    <!--suppress UnresolvedMavenProperty -->
                                     <value>String GIT_VERSION = "git-${git.branch}-${git.commit.id.abbrev}"</value>
                                 </replacement>
                             </replacements>

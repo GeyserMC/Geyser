@@ -83,11 +83,36 @@ public class BlockUtils {
         }
     }
 
-    //http://minecraft.gamepedia.com/Breaking
-    private static double calculateBreakTime(double blockHardness, String toolTier, boolean canHarvestWithHand, boolean correctTool,
+    private static boolean canToolTierBreakBlock(GeyserSession session, BlockMapping blockMapping, String toolTier) {
+        if (toolTier.equals("netherite") || toolTier.equals("diamond")) {
+            // As of 1.17, these tiers can mine everything that is mineable
+            return true;
+        }
+
+        switch (toolTier) {
+            // Use intentional fall-throughs to check each tier with this block
+            default:
+                if (session.getTagCache().requiresStoneTool(blockMapping)) {
+                    return false;
+                }
+            case "stone":
+                if (session.getTagCache().requiresIronTool(blockMapping)) {
+                    return false;
+                }
+            case "iron":
+                if (session.getTagCache().requiresDiamondTool(blockMapping)) {
+                    return false;
+                }
+        }
+
+        return true;
+    }
+
+    // https://minecraft.gamepedia.com/Breaking
+    private static double calculateBreakTime(double blockHardness, String toolTier, boolean canHarvestWithHand, boolean correctTool, boolean canTierMineBlock,
                                              String toolType, boolean isShearsEffective, int toolEfficiencyLevel, int hasteLevel, int miningFatigueLevel,
                                              boolean insideOfWaterWithoutAquaAffinity, boolean outOfWaterButNotOnGround, boolean insideWaterAndNotOnGround) {
-        double baseTime = ((correctTool || canHarvestWithHand) ? 1.5 : 5.0) * blockHardness;
+        double baseTime = (((correctTool && canTierMineBlock) || canHarvestWithHand) ? 1.5 : 5.0) * blockHardness;
         double speed = 1.0 / baseTime;
 
         if (correctTool) {
@@ -125,11 +150,13 @@ public class BlockUtils {
         String toolType = "";
         String toolTier = "";
         boolean correctTool = false;
+        boolean toolCanBreak = false;
         if (item instanceof ToolItemEntry) {
             ToolItemEntry toolItem = (ToolItemEntry) item;
             toolType = toolItem.getToolType();
             toolTier = toolItem.getToolTier();
             correctTool = correctTool(session, blockMapping, toolType);
+            toolCanBreak = canToolTierBreakBlock(session, blockMapping, toolTier);
         }
         int toolEfficiencyLevel = ItemUtils.getEnchantmentLevel(nbtData, "minecraft:efficiency");
         int hasteLevel = 0;
@@ -137,12 +164,12 @@ public class BlockUtils {
 
         if (!isSessionPlayer) {
             // Another entity is currently mining; we have all the information we know
-            return calculateBreakTime(blockMapping.getHardness(), toolTier, canHarvestWithHand, correctTool, toolType, isShearsEffective,
+            return calculateBreakTime(blockMapping.getHardness(), toolTier, canHarvestWithHand, correctTool, toolCanBreak, toolType, isShearsEffective,
                     toolEfficiencyLevel, hasteLevel, miningFatigueLevel, false,
                     false, false);
         }
 
-        hasteLevel = session.getEffectCache().getEffectLevel(Effect.FASTER_DIG);
+        hasteLevel = Math.max(session.getEffectCache().getEffectLevel(Effect.FASTER_DIG), session.getEffectCache().getEffectLevel(Effect.CONDUIT_POWER));
         miningFatigueLevel = session.getEffectCache().getEffectLevel(Effect.SLOWER_DIG);
 
         boolean isInWater = session.getCollisionManager().isPlayerInWater();
@@ -152,7 +179,7 @@ public class BlockUtils {
 
         boolean outOfWaterButNotOnGround = (!isInWater) && (!session.getPlayerEntity().isOnGround());
         boolean insideWaterNotOnGround = isInWater && !session.getPlayerEntity().isOnGround();
-        return calculateBreakTime(blockMapping.getHardness(), toolTier, canHarvestWithHand, correctTool, toolType, isShearsEffective,
+        return calculateBreakTime(blockMapping.getHardness(), toolTier, canHarvestWithHand, correctTool, toolCanBreak, toolType, isShearsEffective,
                 toolEfficiencyLevel, hasteLevel, miningFatigueLevel, insideOfWaterWithoutAquaAffinity,
                 outOfWaterButNotOnGround, insideWaterNotOnGround);
     }

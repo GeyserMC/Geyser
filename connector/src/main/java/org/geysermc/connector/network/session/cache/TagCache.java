@@ -47,6 +47,10 @@ public class TagCache {
     private IntList pickaxeEffective;
     private IntList shovelEffective;
 
+    private IntList requiresStoneTool;
+    private IntList requiresIronTool;
+    private IntList requiresDiamondTool;
+
     /* Items */
     private IntList flowers;
     private IntList foxFood;
@@ -67,6 +71,10 @@ public class TagCache {
         this.pickaxeEffective = IntList.of(blockTags.get("minecraft:mineable/pickaxe"));
         this.shovelEffective = IntList.of(blockTags.get("minecraft:mineable/shovel"));
 
+        this.requiresStoneTool = IntList.of(blockTags.get("minecraft:needs_stone_tool"));
+        this.requiresIronTool = IntList.of(blockTags.get("minecraft:needs_iron_tool"));
+        this.requiresDiamondTool = IntList.of(blockTags.get("minecraft:needs_diamond_tool"));
+
         Map<String, int[]> itemTags = packet.getTags().get("minecraft:item");
         this.flowers = IntList.of(itemTags.get("minecraft:flowers"));
         this.foxFood = IntList.of(itemTags.get("minecraft:fox_food"));
@@ -81,6 +89,10 @@ public class TagCache {
         this.hoeEffective = IntLists.emptyList();
         this.pickaxeEffective = IntLists.emptyList();
         this.shovelEffective = IntLists.emptyList();
+
+        this.requiresStoneTool = IntLists.emptyList();
+        this.requiresIronTool = IntLists.emptyList();
+        this.requiresDiamondTool = IntLists.emptyList();
 
         this.flowers = IntLists.emptyList();
         this.foxFood = IntLists.emptyList();
@@ -118,5 +130,17 @@ public class TagCache {
     public boolean isShearsEffective(BlockMapping blockMapping) {
         int javaBlockId = blockMapping.getJavaBlockId();
         return leaves.contains(javaBlockId) || wool.contains(javaBlockId);
+    }
+
+    public boolean requiresStoneTool(BlockMapping blockMapping) {
+        return requiresStoneTool.contains(blockMapping.getJavaBlockId());
+    }
+
+    public boolean requiresIronTool(BlockMapping blockMapping) {
+        return requiresIronTool.contains(blockMapping.getJavaBlockId());
+    }
+
+    public boolean requiresDiamondTool(BlockMapping blockMapping) {
+        return requiresDiamondTool.contains(blockMapping.getJavaBlockId());
     }
 }
