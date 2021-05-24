@@ -95,6 +95,23 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             ex.printStackTrace();
         }
 
+        try {
+            // Required for the Cloudburst Network dependency to initialize.
+            Class.forName("io.netty.channel.kqueue.KQueue");
+        } catch (ClassNotFoundException e) {
+            // While we could support these older versions, the downside is not having KQueue working at all
+            // And since there are alternative ways to get Geyser working for these aging platforms, it's not worth it.
+            getLogger().severe("*********************************************");
+            getLogger().severe("");
+            getLogger().severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.unsupported_server.header"));
+            getLogger().severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.unsupported_server.message", "1.12.2"));
+            getLogger().severe("");
+            getLogger().severe("*********************************************");
+
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+
         // By default this should be localhost but may need to be changed in some circumstances
         if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
             geyserConfig.setAutoconfiguredRemote(true);
