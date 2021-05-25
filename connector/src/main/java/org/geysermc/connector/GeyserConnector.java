@@ -62,6 +62,7 @@ import org.geysermc.floodgate.crypto.AesCipher;
 import org.geysermc.floodgate.crypto.AesKeyProducer;
 import org.geysermc.floodgate.crypto.Base64Topping;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
+import org.geysermc.floodgate.time.TimeSyncer;
 import org.jetbrains.annotations.Contract;
 
 import javax.naming.directory.Attribute;
@@ -79,7 +80,6 @@ import java.util.concurrent.TimeUnit;
 
 @Getter
 public class GeyserConnector {
-
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper()
             .enable(JsonParser.Feature.IGNORE_UNDEFINED)
             .enable(JsonParser.Feature.ALLOW_COMMENTS)
@@ -106,6 +106,7 @@ public class GeyserConnector {
     @Setter
     private AuthType defaultAuthType;
 
+    private TimeSyncer timeSyncer;
     private FloodgateCipher cipher;
     private FloodgateSkinUploader skinUploader;
 
@@ -198,6 +199,7 @@ public class GeyserConnector {
         defaultAuthType = AuthType.getByName(config.getRemote().getAuthType());
 
         if (defaultAuthType == AuthType.FLOODGATE) {
+            timeSyncer = new TimeSyncer(Constants.NTP_SERVER);
             try {
                 Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
                 cipher = new AesCipher(new Base64Topping());
@@ -353,6 +355,7 @@ public class GeyserConnector {
 
         generalThreadPool.shutdown();
         bedrockServer.close();
+        timeSyncer.shutdown();
         players.clear();
         defaultAuthType = null;
         this.getCommandManager().getCommands().clear();
@@ -429,6 +432,10 @@ public class GeyserConnector {
 
     public WorldManager getWorldManager() {
         return bootstrap.getWorldManager();
+    }
+
+    public TimeSyncer getTimeSyncer() {
+        return timeSyncer;
     }
 
     /**

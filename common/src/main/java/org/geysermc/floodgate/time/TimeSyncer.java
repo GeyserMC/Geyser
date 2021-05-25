@@ -23,22 +23,37 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.utils;
+package org.geysermc.floodgate.time;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-public final class Constants {
-    public static final URI SKIN_UPLOAD_URI;
-    public static final String NTP_SERVER = "time.cloudflare.com";
+public final class TimeSyncer {
+    private final ExecutorService executorService;
+    private long timeOffset = Long.MIN_VALUE; // value when it failed to get the offset
 
-    static {
-        URI skinUploadUri = null;
-        try {
-            skinUploadUri = new URI("wss://api.geysermc.org/ws");
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-        SKIN_UPLOAD_URI = skinUploadUri;
+    public TimeSyncer(String timeServer) {
+        ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
+        service.scheduleWithFixedDelay(() -> {
+            // 5 tries to get the time offset
+            for (int i = 0; i < 5; i++) {
+                long offset = SntpClientUtils.requestTimeOffset(timeServer, 3000);
+                if (offset != Long.MIN_VALUE) {
+                    timeOffset = offset;
+                    return;
+                }
+            }
+        }, 0, 30, TimeUnit.MINUTES);
+        executorService = service;
+    }
+
+    public void shutdown() {
+        executorService.shutdown();
+    }
+
+    public long getTimeOffset() {
+        return timeOffset;
     }
 }

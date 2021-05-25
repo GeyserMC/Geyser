@@ -28,6 +28,7 @@ package org.geysermc.floodgate.util;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.geysermc.floodgate.time.TimeSyncer;
 
 /**
  * This class contains the raw data send by Geyser to Floodgate or from Floodgate to Floodgate. This
@@ -56,20 +57,28 @@ public final class BedrockData implements Cloneable {
     private final long timestamp;
     private final int dataLength;
 
-    public static BedrockData of(String version, String username, String xuid, int deviceOs,
-                                 String languageCode, int uiProfile, int inputMode, String ip,
-                                 LinkedPlayer linkedPlayer, boolean fromProxy, int subscribeId,
-                                 String verifyCode) {
+    public static BedrockData of(
+            String version, String username, String xuid, int deviceOs,
+            String languageCode, int uiProfile, int inputMode, String ip,
+            LinkedPlayer linkedPlayer, boolean fromProxy, int subscribeId,
+            String verifyCode, TimeSyncer timeSyncer) {
+
+        long realMillis = System.currentTimeMillis();
+        if (timeSyncer.getTimeOffset() != Long.MIN_VALUE) {
+            realMillis += timeSyncer.getTimeOffset();
+        }
+
         return new BedrockData(version, username, xuid, deviceOs, languageCode, inputMode,
                 uiProfile, ip, linkedPlayer, fromProxy, subscribeId, verifyCode,
-                System.currentTimeMillis(), EXPECTED_LENGTH);
+                realMillis, EXPECTED_LENGTH);
     }
 
-    public static BedrockData of(String version, String username, String xuid, int deviceOs,
-                                 String languageCode, int uiProfile, int inputMode, String ip,
-                                 int subscribeId, String verifyCode) {
+    public static BedrockData of(
+            String version, String username, String xuid, int deviceOs,
+            String languageCode, int uiProfile, int inputMode, String ip,
+            int subscribeId, String verifyCode, TimeSyncer timeSyncer) {
         return of(version, username, xuid, deviceOs, languageCode, uiProfile, inputMode, ip, null,
-                false, subscribeId, verifyCode);
+                false, subscribeId, verifyCode, timeSyncer);
     }
 
     public static BedrockData fromString(String data) {
