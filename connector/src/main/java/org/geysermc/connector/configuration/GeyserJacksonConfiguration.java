@@ -37,6 +37,7 @@ import lombok.Setter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.serializer.AsteriskSerializer;
 import org.geysermc.connector.network.CIDRMatcher;
+import org.geysermc.connector.utils.LanguageUtils;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -263,8 +264,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
             try {
                 return Integer.parseInt(value);
             } catch (NumberFormatException e) {
-                //TODO translate?
-                System.err.println("Invalid number found for Geyser remote port in config!");
+                System.err.println(LanguageUtils.getLocaleStringLog("geyser.bootstrap.config.invalid_port"));
                 return 25565;
             }
         }
