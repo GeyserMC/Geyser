@@ -59,7 +59,7 @@ public class AreaEffectCloudEntity extends Entity {
             metadata.put(EntityData.EFFECT_COLOR, entityMetadata.getValue());
         } else if (entityMetadata.getId() == 10) {
             Particle particle = (Particle) entityMetadata.getValue();
-            int particleId = EffectRegistry.getParticleId(particle.getType());
+            int particleId = EffectRegistry.getParticleId(session, particle.getType());
             if (particleId != -1) {
                 metadata.put(EntityData.AREA_EFFECT_CLOUD_PARTICLE_ID, particleId);
             }
