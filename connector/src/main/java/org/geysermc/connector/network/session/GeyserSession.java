@@ -46,10 +46,9 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTelepo
 import com.github.steveice10.mc.protocol.packet.login.client.LoginPluginResponsePacket;
 import com.github.steveice10.mc.protocol.packet.login.server.LoginSuccessPacket;
 import com.github.steveice10.packetlib.BuiltinFlags;
-import com.github.steveice10.packetlib.Client;
 import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
-import com.github.steveice10.packetlib.tcp.TcpSessionFactory;
+import com.github.steveice10.packetlib.tcp.TcpClientSession;
 import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.*;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
@@ -115,7 +114,7 @@ public class GeyserSession implements CommandSender {
 
     private final GeyserConnector connector;
     private final UpstreamSession upstream;
-    private Client downstream;
+    private TcpClientSession downstream;
     @Setter
     private AuthData authData;
     @Setter
@@ -141,6 +140,7 @@ public class GeyserSession implements CommandSender {
     private ChunkCache chunkCache;
     private EntityCache entityCache;
     private EntityEffectCache effectCache;
+    private final PreferencesCache preferencesCache;
     private final TagCache tagCache;
     private WorldCache worldCache;
     private FormCache formCache;
@@ -445,6 +445,7 @@ public class GeyserSession implements CommandSender {
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
+        this.preferencesCache = new PreferencesCache(this);
         this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
         this.formCache = new FormCache(this);
@@ -578,7 +579,7 @@ public class GeyserSession implements CommandSender {
                     authenticationService.setPassword(password);
                     authenticationService.login();
 
-                    protocol = new MinecraftProtocol(authenticationService);
+                    protocol = new MinecraftProtocol(authenticationService.getSelectedProfile(), authenticationService.getAccessToken());
                 } else {
                     protocol = new MinecraftProtocol(username);
                 }
@@ -636,7 +637,7 @@ public class GeyserSession implements CommandSender {
         }
         try {
             msaAuthenticationService.login();
-            protocol = new MinecraftProtocol(msaAuthenticationService);
+            protocol = new MinecraftProtocol(msaAuthenticationService.getSelectedProfile(), msaAuthenticationService.getAccessToken());
 
             connectDownstream();
         } catch (RequestException e) {
@@ -658,17 +659,17 @@ public class GeyserSession implements CommandSender {
         // Start ticking
         tickThread = connector.getGeneralThreadPool().scheduleAtFixedRate(this::tick, 50, 50, TimeUnit.MILLISECONDS);
 
-        downstream = new Client(this.remoteAddress, this.remotePort, protocol, new TcpSessionFactory());
+        downstream = new TcpClientSession(this.remoteAddress, this.remotePort, protocol);
         disableSrvResolving();
         if (connector.getConfig().getRemote().isUseProxyProtocol()) {
-            downstream.getSession().setFlag(BuiltinFlags.ENABLE_CLIENT_PROXY_PROTOCOL, true);
-            downstream.getSession().setFlag(BuiltinFlags.CLIENT_PROXIED_ADDRESS, upstream.getAddress());
+            downstream.setFlag(BuiltinFlags.ENABLE_CLIENT_PROXY_PROTOCOL, true);
+            downstream.setFlag(BuiltinFlags.CLIENT_PROXIED_ADDRESS, upstream.getAddress());
         }
         if (connector.getConfig().isForwardPlayerPing()) {
             // Let Geyser handle sending the keep alive
-            downstream.getSession().setFlag(MinecraftConstants.AUTOMATIC_KEEP_ALIVE_MANAGEMENT, false);
+            downstream.setFlag(MinecraftConstants.AUTOMATIC_KEEP_ALIVE_MANAGEMENT, false);
         }
-        downstream.getSession().addListener(new SessionAdapter() {
+        downstream.addListener(new SessionAdapter() {
             @Override
             public void packetSending(PacketSendingEvent event) {
                 //todo move this somewhere else
@@ -805,15 +806,15 @@ public class GeyserSession implements CommandSender {
         if (!daylightCycle) {
             setDaylightCycle(true);
         }
-        downstream.getSession().connect();
+        downstream.connect();
         connector.addPlayer(this);
     }
 
     public void disconnect(String reason) {
         if (!closed) {
             loggedIn = false;
-            if (downstream != null && downstream.getSession() != null) {
-                downstream.getSession().disconnect(reason);
+            if (downstream != null) {
+                downstream.disconnect(reason);
             }
             if (upstream != null && !upstream.isClosed()) {
                 connector.getPlayers().remove(this);
@@ -941,7 +942,7 @@ public class GeyserSession implements CommandSender {
      * Will be overwritten for GeyserConnect.
      */
     protected void disableSrvResolving() {
-        this.downstream.getSession().setFlag(BuiltinFlags.ATTEMPT_SRV_RESOLVE, false);
+        this.downstream.setFlag(BuiltinFlags.ATTEMPT_SRV_RESOLVE, false);
     }
 
     @Override
@@ -1197,8 +1198,8 @@ public class GeyserSession implements CommandSender {
      * @param packet the java edition packet from MCProtocolLib
      */
     public void sendDownstreamPacket(Packet packet) {
-        if (downstream != null && downstream.getSession() != null && (protocol.getSubProtocol().equals(SubProtocol.GAME) || packet.getClass() == LoginPluginResponsePacket.class)) {
-            downstream.getSession().send(packet);
+        if (downstream != null && (protocol.getSubProtocol().equals(SubProtocol.GAME) || packet.getClass() == LoginPluginResponsePacket.class)) {
+            downstream.send(packet);
         } else {
             connector.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
         }
@@ -1213,7 +1214,7 @@ public class GeyserSession implements CommandSender {
     public void setReducedDebugInfo(boolean value) {
         reducedDebugInfo = value;
         // Set the showCoordinates data. This is done because updateShowCoordinates() uses this gamerule as a variable.
-        getWorldCache().updateShowCoordinates();
+        preferencesCache.updateShowCoordinates();
     }
 
     /**

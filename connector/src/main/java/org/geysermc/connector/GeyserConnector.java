@@ -31,6 +31,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.network.raknet.RakNetConstants;
 import com.nukkitx.network.util.EventLoops;
 import com.nukkitx.protocol.bedrock.BedrockServer;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.kqueue.KQueue;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.PlatformType;
@@ -211,7 +213,7 @@ public class GeyserConnector {
             }
         }
 
-        CooldownUtils.setShowCooldown(config.getShowCooldown());
+        CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
         SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS = config.isAllowCustomSkulls();
 
@@ -226,6 +228,19 @@ public class GeyserConnector {
                 EventLoops.commonGroup(),
                 enableProxyProtocol
         );
+
+        if (config.isDebugMode()) {
+            logger.debug("EventLoop type: " + EventLoops.getChannelType());
+            if (EventLoops.getChannelType() == EventLoops.ChannelType.NIO) {
+                if (System.getProperties().contains("disableNativeEventLoop")) {
+                    logger.debug("EventLoop type is NIO because native event loops are disabled.");
+                } else {
+                    logger.debug("Reason for no Epoll: " + Epoll.unavailabilityCause().toString());
+                    logger.debug("Reason for no KQueue: " + KQueue.unavailabilityCause().toString());
+                }
+            }
+        }
+
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));
         bedrockServer.bind().whenComplete((avoid, throwable) -> {
             if (throwable == null) {

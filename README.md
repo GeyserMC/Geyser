@@ -40,13 +40,7 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
 - Structure block UI
 
 ## What can't be fixed
-The following things cannot be fixed without changes to Bedrock. As of now, they are not fixable in Geyser.
-
-- Custom heads in inventories
-- Clickable links in chat
-- Glowing effect
-
-Do note that some things require the [GeyserOptionalPack](https://github.com/GeyserMC/Geyser/wiki/GeyserOptionalPack) in order to function, such as custom armor stand poses.
+There are a few things Geyser is unable to support due to various differences between Minecraft Bedrock and Java. For a list of these limitations, see the [Current Limitations](https://github.com/GeyserMC/Geyser/wiki/Current-Limitations) page.
 
 ## Compiling
 1. Clone the repo to your computer

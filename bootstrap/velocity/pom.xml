@@ -103,6 +103,7 @@
                             <exclude>io.netty:netty-resolver:*</exclude>
                             <exclude>io.netty:netty-transport:*</exclude>
                             <exclude>io.netty:netty-codec:*</exclude>
+                            <exclude>io.netty:netty-codec-haproxy:*</exclude>
                             <exclude>org.slf4j:*</exclude>
                             <exclude>org.ow2.asm:*</exclude>
                             <!-- Exclude all Kyori dependencies except the legacy NBT serializer -->
