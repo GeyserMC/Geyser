@@ -695,6 +695,14 @@ public class GeyserSession implements CommandSender {
                                     skinUploader.getVerifyCode(),
                                     connector.getTimeSyncer()
                             ).toString());
+
+                            if (!connector.getTimeSyncer().hasUsefulOffset()) {
+                                connector.getLogger().warning(
+                                        "We couldn't make sure that your system clock is accurate. " +
+                                        "This can cause issues with logging in."
+                                );
+                            }
+
                         } catch (Exception e) {
                             connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
                             disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.floodgate.encryption_fail", getClientData().getLanguageCode()));

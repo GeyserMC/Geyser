@@ -62,15 +62,9 @@ public final class BedrockData implements Cloneable {
             String languageCode, int uiProfile, int inputMode, String ip,
             LinkedPlayer linkedPlayer, boolean fromProxy, int subscribeId,
             String verifyCode, TimeSyncer timeSyncer) {
-
-        long realMillis = System.currentTimeMillis();
-        if (timeSyncer.getTimeOffset() != Long.MIN_VALUE) {
-            realMillis += timeSyncer.getTimeOffset();
-        }
-
         return new BedrockData(version, username, xuid, deviceOs, languageCode, inputMode,
                 uiProfile, ip, linkedPlayer, fromProxy, subscribeId, verifyCode,
-                realMillis, EXPECTED_LENGTH);
+                timeSyncer.getRealMillis(), EXPECTED_LENGTH);
     }
 
     public static BedrockData of(

@@ -37,7 +37,7 @@ public final class TimeSyncer {
     public TimeSyncer(String timeServer) {
         ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
         service.scheduleWithFixedDelay(() -> {
-            // 5 tries to get the time offset
+            // 5 tries to get the time offset, since UDP doesn't guaranty a response
             for (int i = 0; i < 5; i++) {
                 long offset = SntpClientUtils.requestTimeOffset(timeServer, 3000);
                 if (offset != Long.MIN_VALUE) {
@@ -55,5 +55,16 @@ public final class TimeSyncer {
 
     public long getTimeOffset() {
         return timeOffset;
+    }
+
+    public long getRealMillis() {
+        if (hasUsefulOffset()) {
+            return System.currentTimeMillis() + getTimeOffset();
+        }
+        return System.currentTimeMillis();
+    }
+
+    public boolean hasUsefulOffset() {
+        return timeOffset != Long.MIN_VALUE;
     }
 }
