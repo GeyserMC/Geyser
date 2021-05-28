@@ -48,8 +48,10 @@ public class ZombieVillagerEntity extends ZombieEntity {
         }
         if (entityMetadata.getId() == 19) {
             VillagerData villagerData = (VillagerData) entityMetadata.getValue();
-            // Region - only one used on Bedrock
+            metadata.put(EntityData.VARIANT, VillagerEntity.VILLAGER_PROFESSIONS.get(villagerData.getProfession())); // Actually works properly with the OptionalPack
             metadata.put(EntityData.MARK_VARIANT, VillagerEntity.VILLAGER_REGIONS.get(villagerData.getType()));
+            // Used with the OptionalPack
+            metadata.put(EntityData.TRADE_TIER, villagerData.getLevel() - 1);
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
