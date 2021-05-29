@@ -49,7 +49,14 @@ public class CatEntity extends TameableEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         super.updateBedrockMetadata(entityMetadata, session);
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 15) {
+            metadata.put(EntityData.SCALE, .8f);
+            boolean isBaby = (boolean) entityMetadata.getValue();
+            if (isBaby) {
+                metadata.put(EntityData.SCALE, .4f);
+                metadata.getFlags().setFlag(EntityFlag.BABY, true);
+            }
+        } else if (entityMetadata.getId() == 16) {
             // Update collar color if tamed
             if (metadata.getFlags().getFlag(EntityFlag.TAMED)) {
                 metadata.put(EntityData.COLOR, collarColor);
@@ -75,6 +82,9 @@ public class CatEntity extends TameableEntity {
                     variantColor = (int) entityMetadata.getValue();
             }
             metadata.put(EntityData.VARIANT, variantColor);
+        }
+        if (entityMetadata.getId() == 19) {
+            metadata.getFlags().setFlag(EntityFlag.RESTING, (boolean) entityMetadata.getValue());
         }
         if (entityMetadata.getId() == 21) {
             collarColor = (byte) (int) entityMetadata.getValue();
