@@ -102,6 +102,7 @@ public class PistonCache {
 
     private void resetPlayerMovement() {
         playerDisplacement = Vector3d.ZERO;
+        playerMotion = Vector3f.ZERO;
         playerCollided = false;
         playerSlimeCollision = false;
     }
@@ -119,7 +120,7 @@ public class PistonCache {
 
                 boolean isOnGround = playerDisplacement.getY() > 0 || playerEntity.isOnGround();
 
-                if (playerMotion.getX() == 0 && playerMotion.getZ() == 0) {
+                if (playerMotion.equals(Vector3f.ZERO)) {
                     playerEntity.moveAbsolute(session, position.toFloat(), playerEntity.getRotation(), isOnGround, true);
                 }
             }
@@ -134,10 +135,6 @@ public class PistonCache {
             setEntityMotionPacket.setRuntimeEntityId(playerEntity.getGeyserId());
             setEntityMotionPacket.setMotion(playerMotion);
             session.sendUpstreamPacket(setEntityMotionPacket);
-
-            if (!isColliding()) {
-                playerMotion = Vector3f.ZERO;
-            }
         }
     }
 
@@ -174,9 +171,5 @@ public class PistonCache {
     public void clear() {
         pistons.clear();
         movingBlocksMap.clear();
-    }
-
-    private boolean isColliding() {
-        return !playerDisplacement.equals(Vector3d.ZERO) || playerCollided;
     }
 }

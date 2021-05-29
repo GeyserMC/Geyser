@@ -156,6 +156,10 @@ public class CollisionManager {
                 recalculatePosition();
                 return null;
             }
+            // The server can't complain about our movement if we never send it
+            if (pistonCache.isPlayerCollided()) {
+                return null;
+            }
 
             position = playerBoundingBox.getBottomCenter();
 
