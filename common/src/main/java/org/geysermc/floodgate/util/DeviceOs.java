@@ -23,7 +23,51 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window.response;
+package org.geysermc.floodgate.util;
 
-public interface FormResponse {
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+
+/**
+ * The Operation Systems where Bedrock players can connect with
+ */
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public enum DeviceOs {
+    UNKNOWN("Unknown"),
+    GOOGLE("Android"),
+    IOS("iOS"),
+    OSX("macOS"),
+    AMAZON("Amazon"),
+    GEARVR("Gear VR"),
+    HOLOLENS("Hololens"),
+    UWP("Windows 10"),
+    WIN32("Windows x86"),
+    DEDICATED("Dedicated"),
+    TVOS("Apple TV"),
+    PS4("PS4"),
+    NX("Switch"),
+    XBOX("Xbox One"),
+    WINDOWS_PHONE("Windows Phone");
+
+    private static final DeviceOs[] VALUES = values();
+
+    private final String displayName;
+
+    /**
+     * Get the DeviceOs instance from the identifier.
+     *
+     * @param id the DeviceOs identifier
+     * @return The DeviceOs or {@link #UNKNOWN} if the DeviceOs wasn't found
+     */
+    public static DeviceOs getById(int id) {
+        return id < VALUES.length ? VALUES[id] : VALUES[0];
+    }
+
+    /**
+     * @return friendly display name of platform.
+     */
+    @Override
+    public String toString() {
+        return displayName;
+    }
 }

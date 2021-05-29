@@ -23,43 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window.component;
+package org.geysermc.connector.utils;
 
-import lombok.Getter;
-import lombok.Setter;
+import java.net.URI;
+import java.net.URISyntaxException;
 
-public class SliderComponent extends FormComponent {
+public final class Constants {
+    public static final URI SKIN_UPLOAD_URI;
 
-    @Getter
-    @Setter
-    private String text;
-
-    @Getter
-    @Setter
-    private float min;
-
-    @Getter
-    @Setter
-    private float max;
-
-    @Getter
-    @Setter
-    private int step;
-
-    @Getter
-    @Setter
-    private float defaultValue;
-
-    public SliderComponent(String text, float min, float max, int step, float defaultValue) {
-        super("slider");
-
-        this.text = text;
-        this.min = Math.max(min, 0f);
-        this.max = max > this.min ? max : this.min;
-        if (step != -1f && step > 0)
-            this.step = step;
-
-        if (defaultValue != -1f)
-            this.defaultValue = defaultValue;
+    static {
+        URI skinUploadUri = null;
+        try {
+            skinUploadUri = new URI("wss://api.geysermc.org/ws");
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        SKIN_UPLOAD_URI = skinUploadUri;
     }
 }

@@ -23,16 +23,9 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window.response;
+package org.geysermc.floodgate.crypto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.geysermc.common.window.response.FormResponse;
-
-@Getter
-@AllArgsConstructor
-public class ModalFormResponse implements FormResponse {
-
-    private int clickedButtonId;
-    private String clickedButtonText;
+public interface Topping {
+    byte[] encode(byte[] data);
+    byte[] decode(byte[] data);
 }
