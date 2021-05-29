@@ -49,7 +49,6 @@ public class CatEntity extends TameableEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         super.updateBedrockMetadata(entityMetadata, session);
-
         if (entityMetadata.getId() == 15) {
             metadata.put(EntityData.SCALE, .8f);
             boolean isBaby = (boolean) entityMetadata.getValue();
