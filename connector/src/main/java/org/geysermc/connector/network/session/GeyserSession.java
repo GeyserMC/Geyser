@@ -581,7 +581,14 @@ public class GeyserSession implements CommandSender {
 
                     protocol = new MinecraftProtocol(authenticationService.getSelectedProfile(), authenticationService.getAccessToken());
                 } else {
-                    protocol = new MinecraftProtocol(username);
+                    // always replace spaces when using Floodgate,
+                    // as usernames with spaces cause issues with Bungeecord's login cycle
+                    String validUsername = username;
+                    if (remoteAuthType == AuthType.FLOODGATE) {
+                        validUsername = username.replace(' ', '_');
+                    }
+
+                    protocol = new MinecraftProtocol(validUsername);
                 }
 
                 connectDownstream();
