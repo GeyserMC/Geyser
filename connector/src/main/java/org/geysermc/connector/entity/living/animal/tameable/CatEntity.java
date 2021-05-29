@@ -50,6 +50,7 @@ public class CatEntity extends TameableEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         super.updateBedrockMetadata(entityMetadata, session);
         if (entityMetadata.getId() == 16) {
+            metadata.put(EntityData.SCALE, .8f);
             // Update collar color if tamed
             if (metadata.getFlags().getFlag(EntityFlag.TAMED)) {
                 metadata.put(EntityData.COLOR, collarColor);
