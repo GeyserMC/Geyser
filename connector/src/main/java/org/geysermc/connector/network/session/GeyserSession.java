@@ -140,6 +140,7 @@ public class GeyserSession implements CommandSender {
     private ChunkCache chunkCache;
     private EntityCache entityCache;
     private EntityEffectCache effectCache;
+    private final PreferencesCache preferencesCache;
     private final TagCache tagCache;
     private WorldCache worldCache;
     private FormCache formCache;
@@ -444,6 +445,7 @@ public class GeyserSession implements CommandSender {
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
+        this.preferencesCache = new PreferencesCache(this);
         this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
         this.formCache = new FormCache(this);
@@ -690,8 +692,17 @@ public class GeyserSession implements CommandSender {
                                     clientData.getCurrentInputMode().ordinal(),
                                     upstream.getAddress().getAddress().getHostAddress(),
                                     skinUploader.getId(),
-                                    skinUploader.getVerifyCode()
+                                    skinUploader.getVerifyCode(),
+                                    connector.getTimeSyncer()
                             ).toString());
+
+                            if (!connector.getTimeSyncer().hasUsefulOffset()) {
+                                connector.getLogger().warning(
+                                        "We couldn't make sure that your system clock is accurate. " +
+                                        "This can cause issues with logging in."
+                                );
+                            }
+
                         } catch (Exception e) {
                             connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
                             disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.floodgate.encryption_fail", getClientData().getLanguageCode()));
@@ -1223,7 +1234,7 @@ public class GeyserSession implements CommandSender {
     public void setReducedDebugInfo(boolean value) {
         reducedDebugInfo = value;
         // Set the showCoordinates data. This is done because updateShowCoordinates() uses this gamerule as a variable.
-        getWorldCache().updateShowCoordinates();
+        preferencesCache.updateShowCoordinates();
     }
 
     /**
