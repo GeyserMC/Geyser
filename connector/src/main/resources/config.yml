@@ -33,13 +33,12 @@ bedrock:
   # should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
   # Keeping this list empty means there is no IP address whitelist.
   # Both IP addresses and subnets are supported.
-  #proxy-protocol-whitelisted-ips: [ "127.0.0.1", "172.18.0.0/16" ]
+  # proxy-protocol-whitelisted-ips: [ "127.0.0.1", "172.18.0.0/16" ]
 remote:
   # The IP address of the remote (Java Edition) server
   # If it is "auto", for standalone version the remote address will be set to 127.0.0.1,
   # for plugin versions, Geyser will attempt to find the best address to connect to.
-  # By keeping it as auto, the address, port, and Floodgate support will be automatically configured.
-  # In standalone, keeping this as auto sets the remote address to 127.0.0.1 therefore Floodgate will not be Automatically configurated.
+  # By keeping it as auto, the address, port, and Floodgate support will be automatically configured on plugin versions.
   address: auto
   # The port of the remote (Java Edition) server
   # For plugin versions, if address has been set to "auto", the port will also follow the server's listening port.
