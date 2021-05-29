@@ -83,6 +83,9 @@ public class CatEntity extends TameableEntity {
             }
             metadata.put(EntityData.VARIANT, variantColor);
         }
+        if (entityMetadata.getId() == 19) {
+            metadata.getFlags().setFlag(EntityFlag.RESTING, (boolean) entityMetadata.getValue());
+        }
         if (entityMetadata.getId() == 21) {
             collarColor = (byte) (int) entityMetadata.getValue();
             // Needed or else wild cats are a red color
