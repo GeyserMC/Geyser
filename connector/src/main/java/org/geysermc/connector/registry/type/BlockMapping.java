@@ -52,7 +52,7 @@ public class BlockMapping {
     int collisionIndex;
     @Nullable String pickItem;
 
-    String pistonBehavior;
+    @Nonnull String pistonBehavior;
     boolean isBlockEntity;
 
     /**

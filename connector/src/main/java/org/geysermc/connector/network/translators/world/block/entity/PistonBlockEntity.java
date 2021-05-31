@@ -217,7 +217,6 @@ public class PistonBlockEntity {
             if (blockId == BlockTranslator.JAVA_AIR_ID) {
                 continue;
             }
-            blocksChecked.add(blockPos);
             if (canMoveBlock(blockId, action == PistonValueType.PUSHING)) {
                 attachedBlocks.put(blockPos, blockId);
                 if (isBlockSticky(blockId)) {
@@ -357,14 +356,14 @@ public class PistonBlockEntity {
 
     /**
      * Push the player
-     * If the player is pushed the displacement is added to playerDisplacement in PistonCache
+     * If the player is pushed, the displacement is added to playerDisplacement in PistonCache
      * If the player contacts a slime block, playerMotion in PistonCache is updated
      */
     public synchronized void pushPlayer() {
         Vector3i direction = orientation.getUnitVector();
-        double movementProgress = lastProgress;
+        double blockMovement = lastProgress;
         if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
-            movementProgress = 1f - lastProgress;
+            blockMovement = 1f - lastProgress;
         }
 
         BoundingBox playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox();
@@ -380,7 +379,7 @@ public class PistonBlockEntity {
             headPos = headPos.add(direction.toDouble());
         }
         int pistonHeadId = BlockStateValues.getPistonHead(orientation);
-        pushPlayerBlock(headPos, movementProgress, pistonHeadId, playerBoundingBox);
+        pushPlayerBlock(pistonHeadId, headPos, blockMovement, playerBoundingBox);
 
         // Resolve collision with any attached moving blocks, but skip slime blocks
         // This prevents players from being launched by slime blocks covered by other blocks
@@ -388,7 +387,7 @@ public class PistonBlockEntity {
             Vector3d blockPos = entry.getKey().toDouble();
             int blockId = entry.getIntValue();
             if (blockId != BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID) {
-                pushPlayerBlock(blockPos, movementProgress, blockId, playerBoundingBox);
+                pushPlayerBlock(blockId, blockPos, blockMovement, playerBoundingBox);
             }
         }
         // Resolve collision with slime blocks
@@ -396,7 +395,7 @@ public class PistonBlockEntity {
             Vector3d blockPos = entry.getKey().toDouble();
             int blockId = entry.getIntValue();
             if (blockId == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID) {
-                pushPlayerBlock(blockPos, movementProgress, blockId, playerBoundingBox);
+                pushPlayerBlock(blockId, blockPos, blockMovement, playerBoundingBox);
             }
         }
 
@@ -474,57 +473,27 @@ public class PistonBlockEntity {
         session.getPistonCache().setPlayerMotion(Vector3f.from(motionX, motionY, motionZ));
     }
 
-    /**
-     * Get the distance required to move boundingBoxA to one of boundingBoxB's sides
-     *
-     * @param boundingBoxA The bounding box to move
-     * @param boundingBoxB The stationary bounding box
-     * @param side The side of boundingBoxB to move boundingBoxA to
-     * @return The distance needed to move boundingBoxA
-     */
-    private double getIntersectionSize(BoundingBox boundingBoxA, BoundingBox boundingBoxB, Direction side) {
-        if (!boundingBoxA.checkIntersection(Vector3d.ZERO, boundingBoxB)) {
-            return 0;
-        }
-        switch (side) {
-            case DOWN:
-                return boundingBoxA.getMax().getY() - boundingBoxB.getMin().getY();
-            case UP:
-                return boundingBoxB.getMax().getY() - boundingBoxA.getMin().getY();
-            case NORTH:
-                return boundingBoxA.getMax().getZ() - boundingBoxB.getMin().getZ();
-            case SOUTH:
-                return boundingBoxB.getMax().getZ() - boundingBoxA.getMin().getZ();
-            case WEST:
-                return boundingBoxA.getMax().getX() - boundingBoxB.getMin().getX();
-            case EAST:
-                return boundingBoxB.getMax().getX() - boundingBoxA.getMin().getX();
-        }
-        return 0;
-    }
-
-    private double getBlockIntersection(Vector3d blockPos, BlockCollision blockCollision, BoundingBox boundingBox, Vector3d extend, Direction direction) {
+    private double getBlockIntersection(BlockCollision blockCollision, Vector3d blockPos, Vector3d extend, BoundingBox boundingBox, Direction direction) {
         Direction oppositeDirection = direction.reversed();
         double maxIntersection = 0;
         for (BoundingBox b : blockCollision.getBoundingBoxes()) {
             b = b.clone();
             b.extend(extend);
             b.translate(blockPos.getX(), blockPos.getY(), blockPos.getZ());
-
-            double intersection = getIntersectionSize(boundingBox, b, direction);
-            double oppositeIntersection = getIntersectionSize(boundingBox, b, oppositeDirection);
-            if (intersection < oppositeIntersection) {
-                maxIntersection = Math.max(getIntersectionSize(boundingBox, b, direction), maxIntersection);
+            if (b.checkIntersection(Vector3d.ZERO, boundingBox)) {
+                double intersection = boundingBox.getIntersectionSize(b, direction);
+                double oppositeIntersection = boundingBox.getIntersectionSize(b, oppositeDirection);
+                if (intersection < oppositeIntersection) {
+                    maxIntersection = Math.max(intersection, maxIntersection);
+                }
             }
         }
         return maxIntersection;
     }
 
-    private void pushPlayerBlock(Vector3d startingPos, double movementProgress, int javaId, BoundingBox playerBoundingBox) {
+    private void pushPlayerBlock(int javaId, Vector3d startingPos, double blockMovement, BoundingBox playerBoundingBox) {
         PistonCache pistonCache = session.getPistonCache();
-
         Vector3d movement = getMovement().toDouble();
-
         // Check if the player collides with the movingBlock block entity
         Vector3d finalBlockPos = startingPos.add(movement);
         if (SOLID_BOUNDING_BOX.checkIntersection(finalBlockPos, playerBoundingBox)) {
@@ -535,28 +504,25 @@ public class PistonBlockEntity {
             }
         }
 
-        Vector3d blockPos = startingPos.add(movement.mul(movementProgress));
+        Vector3d blockPos = startingPos.add(movement.mul(blockMovement));
         if (javaId == BlockTranslator.JAVA_RUNTIME_HONEY_BLOCK_ID && isPlayerAttached(blockPos, playerBoundingBox)) {
             pistonCache.setPlayerCollided(true);
 
             double delta = Math.abs(progress - lastProgress);
-            Vector3d totalDisplacement = pistonCache.getPlayerDisplacement().add(movement.mul(delta));
-            pistonCache.setPlayerDisplacement(totalDisplacement);
+            pistonCache.displacePlayer(movement.mul(delta));
         } else {
             // Move the player out of collision
             BlockCollision blockCollision = CollisionTranslator.getCollision(javaId, 0, 0, 0);
             if (blockCollision != null) {
-                Vector3d extend = movement.mul(Math.min(1 - movementProgress, 0.5));
+                Vector3d extend = movement.mul(Math.min(1 - blockMovement, 0.5));
                 Direction movementDirection = orientation;
                 if (action == PistonValueType.PULLING) {
                     movementDirection = orientation.reversed();
                 }
 
-                double intersection = getBlockIntersection(blockPos, blockCollision, playerBoundingBox, extend, movementDirection);
+                double intersection = getBlockIntersection(blockCollision, blockPos, extend, playerBoundingBox, movementDirection);
                 if (intersection > 0) {
-                    Vector3d displacement = movement.mul(intersection + 0.01d);
-                    Vector3d totalDisplacement = pistonCache.getPlayerDisplacement().add(displacement);
-                    pistonCache.setPlayerDisplacement(totalDisplacement);
+                    pistonCache.displacePlayer(movement.mul(intersection + 0.01d));
 
                     if (javaId == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID) {
                         applySlimeBlockMotion(blockPos, Vector3d.from(playerBoundingBox.getMiddleX(), playerBoundingBox.getMiddleY(), playerBoundingBox.getMiddleZ()));
@@ -567,8 +533,9 @@ public class PistonBlockEntity {
     }
 
     /**
-     * Compute the max movement that won't collide with any moving blocks
+     * Compute the maximum movement of a bounding box that won't collide with the moving block attached to this piston
      *
+     * @param blockPos The position of the moving block
      * @param boundingBox The bounding box of the moving entity
      * @param axis The axis of movement
      * @param movement The movement in the axis
@@ -582,10 +549,11 @@ public class PistonBlockEntity {
                 movementProgress = 1f - progress;
             }
             // Adjust movement progress to account for when collision is checked in between progress updates
+            double tickDelta = (System.currentTimeMillis() - lastProgressUpdate) / 50f;
             if (action == PistonValueType.PUSHING) {
-                movementProgress += 0.5f * Math.ceil((System.currentTimeMillis() - lastProgressUpdate) / 50f);
+                movementProgress += 0.5f * Math.ceil(tickDelta);
             } else {
-                movementProgress += 0.5f * Math.floor((System.currentTimeMillis() - lastProgressUpdate) / 50f);
+                movementProgress += 0.5f * Math.floor(tickDelta);
             }
             movementProgress = Math.min(movementProgress, 1f);
             Vector3d offset = getMovement().toDouble().mul(movementProgress);

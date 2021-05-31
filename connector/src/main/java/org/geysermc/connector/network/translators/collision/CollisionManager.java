@@ -149,7 +149,6 @@ public class CollisionManager {
             PistonCache pistonCache = session.getPistonCache();
             Vector3d adjustedMovement = correctPlayerMovement(movement, false);
             playerBoundingBox.translate(adjustedMovement.getX(), adjustedMovement.getY(), adjustedMovement.getZ());
-            System.out.println(adjustedMovement.sub(movement));
             // Correct player position
             if (!correctPlayerPosition()) {
                 // Cancel the movement if it needs to be cancelled

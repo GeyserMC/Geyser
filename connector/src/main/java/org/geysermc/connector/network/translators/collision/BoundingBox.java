@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.collision;
 import com.nukkitx.math.vector.Vector3d;
 import lombok.*;
 import org.geysermc.connector.utils.Axis;
+import org.geysermc.connector.utils.Direction;
 
 @Data
 @AllArgsConstructor
@@ -134,19 +135,44 @@ public class BoundingBox implements Cloneable {
                 break;
         }
         if (offset > 0) {
-            double min = axis.choose(this.getMin().add(Vector3d.from(offsetX, offsetY, offsetZ)));
+            double min = axis.choose(getMin().add(Vector3d.from(offsetX, offsetY, offsetZ)));
             double max = axis.choose(otherBoundingBox.getMax());
             if ((min - max) >= -2.0 * CollisionManager.COLLISION_TOLERANCE) {
                 offset = Math.min(min - max, offset);
             }
         } else if (offset < 0) {
             double min = axis.choose(otherBoundingBox.getMin());
-            double max = axis.choose(this.getMax().add(Vector3d.from(offsetX, offsetY, offsetZ)));
+            double max = axis.choose(getMax().add(Vector3d.from(offsetX, offsetY, offsetZ)));
             if ((min - max) >= -2.0 * CollisionManager.COLLISION_TOLERANCE) {
                 offset = Math.max(max - min, offset);
             }
         }
         return offset;
+    }
+
+    /**
+     * Get the distance required to move this bounding box to one of otherBoundingBox's sides
+     *
+     * @param otherBoundingBox The stationary bounding box
+     * @param side The side of otherBoundingBox to snap this bounding box to
+     * @return The distance to move in the direction of {@code side}
+     */
+    public double getIntersectionSize(BoundingBox otherBoundingBox, Direction side) {
+        switch (side) {
+            case DOWN:
+                return getMax().getY() - otherBoundingBox.getMin().getY();
+            case UP:
+                return otherBoundingBox.getMax().getY() - getMin().getY();
+            case NORTH:
+                return getMax().getZ() - otherBoundingBox.getMin().getZ();
+            case SOUTH:
+                return otherBoundingBox.getMax().getZ() - getMin().getZ();
+            case WEST:
+                return getMax().getX() - otherBoundingBox.getMin().getX();
+            case EAST:
+                return otherBoundingBox.getMax().getX() - getMin().getX();
+        }
+        return 0;
     }
 
     @SneakyThrows(CloneNotSupportedException.class)

@@ -64,7 +64,6 @@ public class PistonCache {
 
     /**
      * Stores whether a player has/will collide with any moving blocks.
-     * This is used to prevent motion from being reset while inside a moving block.
      */
     @Getter @Setter
     private boolean playerCollided = false;
@@ -112,17 +111,15 @@ public class PistonCache {
         if (!playerDisplacement.equals(Vector3d.ZERO) || playerDisplacement.getY() > 0) {
             CollisionManager collisionManager = session.getCollisionManager();
             BoundingBox playerBoundingBox = collisionManager.getPlayerBoundingBox();
+
             playerBoundingBox.translate(-playerDisplacement.getX(), -playerDisplacement.getY(), -playerDisplacement.getZ());
             playerDisplacement = collisionManager.correctPlayerMovement(playerDisplacement, true);
             playerBoundingBox.translate(playerDisplacement.getX(), playerDisplacement.getY(), playerDisplacement.getZ());
-            if (collisionManager.correctPlayerPosition()) {
+
+            if (collisionManager.correctPlayerPosition() && playerMotion.equals(Vector3f.ZERO)) {
                 Vector3d position = collisionManager.getPlayerBoundingBox().getBottomCenter();
-
                 boolean isOnGround = playerDisplacement.getY() > 0 || playerEntity.isOnGround();
-
-                if (playerMotion.equals(Vector3f.ZERO)) {
-                    playerEntity.moveAbsolute(session, position.toFloat(), playerEntity.getRotation(), isOnGround, true);
-                }
+                playerEntity.moveAbsolute(session, position.toFloat(), playerEntity.getRotation(), isOnGround, true);
             }
         }
     }
@@ -131,6 +128,7 @@ public class PistonCache {
         if (!playerMotion.equals(Vector3f.ZERO)) {
             SessionPlayerEntity playerEntity = session.getPlayerEntity();
             playerEntity.setMotion(playerMotion);
+
             SetEntityMotionPacket setEntityMotionPacket = new SetEntityMotionPacket();
             setEntityMotionPacket.setRuntimeEntityId(playerEntity.getGeyserId());
             setEntityMotionPacket.setMotion(playerMotion);
@@ -139,17 +137,20 @@ public class PistonCache {
     }
 
     /**
-     * Set the player displacement and move the player's bounding box
-     * Displacement is capped to a range of -0.51 to 0.51
+     * Add to the player's displacement and move the player's bounding box
+     * The total displacement is capped to a range of -0.51 to 0.51
      *
      * @param displacement The new player displacement
      */
-    public void setPlayerDisplacement(Vector3d displacement) {
+    public void displacePlayer(Vector3d displacement) {
+        Vector3d totalDisplacement = playerDisplacement.add(displacement);
         // Clamp to range -0.51 to 0.51
-        displacement = displacement.max(-0.51d, -0.51d, -0.51d).min(0.51d, 0.51d, 0.51d);
-        Vector3d delta = displacement.sub(playerDisplacement);
+        totalDisplacement = totalDisplacement.max(-0.51d, -0.51d, -0.51d).min(0.51d, 0.51d, 0.51d);
+
+        Vector3d delta = totalDisplacement.sub(playerDisplacement);
         session.getCollisionManager().getPlayerBoundingBox().translate(delta.getX(), delta.getY(), delta.getZ());
-        playerDisplacement = displacement;
+
+        playerDisplacement = totalDisplacement;
     }
 
     public synchronized double computeCollisionOffset(Vector3i blockPos, BoundingBox boundingBox, Axis axis, double offset) {
