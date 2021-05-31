@@ -802,9 +802,11 @@ public class GeyserSession implements CommandSender {
                             SkinManager.handleBedrockSkin(playerEntity, clientData);
                         }
 
-                        // We'll send the skin upload a bit after the handshake packet (aka this packet),
-                        // because otherwise the global server returns the data too fast.
-                        getAuthData().upload(connector);
+                        if (remoteAuthType == AuthType.FLOODGATE) {
+                            // We'll send the skin upload a bit after the handshake packet (aka this packet),
+                            // because otherwise the global server returns the data too fast.
+                            getAuthData().upload(connector);
+                        }
                     }
 
                     PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
