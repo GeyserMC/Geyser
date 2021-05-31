@@ -31,6 +31,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 
 public class FoxEntity extends AnimalEntity {
 
@@ -51,5 +52,10 @@ public class FoxEntity extends AnimalEntity {
             metadata.getFlags().setFlag(EntityFlag.SLEEPING, (xd & 0x20) == 0x20);
         }
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+        return javaIdentifierStripped.equals("sweet_berries");
     }
 }

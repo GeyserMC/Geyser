@@ -69,9 +69,9 @@ public enum FireworkColor {
     private static final FireworkColor[] VALUES = values();
 
     @Getter
-    private byte bedrockID;
+    private final byte bedrockID;
     @Getter
-    private int javaID;
+    private final int javaID;
 
     FireworkColor(byte bedrockID, int javaID) {
         this.bedrockID = bedrockID;

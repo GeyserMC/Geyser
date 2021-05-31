@@ -33,6 +33,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 public class PandaEntity extends AnimalEntity {
@@ -77,6 +78,11 @@ public class PandaEntity extends AnimalEntity {
             metadata.getFlags().setFlag(EntityFlag.LAYING_DOWN, (xd & 0x10) == 0x10);
         }
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+        return javaIdentifierStripped.equals("bamboo");
     }
 
     /**

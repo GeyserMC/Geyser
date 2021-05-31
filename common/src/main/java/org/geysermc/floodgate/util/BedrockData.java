@@ -28,6 +28,7 @@ package org.geysermc.floodgate.util;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.geysermc.floodgate.time.TimeSyncer;
 
 /**
  * This class contains the raw data send by Geyser to Floodgate or from Floodgate to Floodgate. This
@@ -56,20 +57,22 @@ public final class BedrockData implements Cloneable {
     private final long timestamp;
     private final int dataLength;
 
-    public static BedrockData of(String version, String username, String xuid, int deviceOs,
-                                 String languageCode, int uiProfile, int inputMode, String ip,
-                                 LinkedPlayer linkedPlayer, boolean fromProxy, int subscribeId,
-                                 String verifyCode) {
+    public static BedrockData of(
+            String version, String username, String xuid, int deviceOs,
+            String languageCode, int uiProfile, int inputMode, String ip,
+            LinkedPlayer linkedPlayer, boolean fromProxy, int subscribeId,
+            String verifyCode, TimeSyncer timeSyncer) {
         return new BedrockData(version, username, xuid, deviceOs, languageCode, inputMode,
                 uiProfile, ip, linkedPlayer, fromProxy, subscribeId, verifyCode,
-                System.currentTimeMillis(), EXPECTED_LENGTH);
+                timeSyncer.getRealMillis(), EXPECTED_LENGTH);
     }
 
-    public static BedrockData of(String version, String username, String xuid, int deviceOs,
-                                 String languageCode, int uiProfile, int inputMode, String ip,
-                                 int subscribeId, String verifyCode) {
+    public static BedrockData of(
+            String version, String username, String xuid, int deviceOs,
+            String languageCode, int uiProfile, int inputMode, String ip,
+            int subscribeId, String verifyCode, TimeSyncer timeSyncer) {
         return of(version, username, xuid, deviceOs, languageCode, uiProfile, inputMode, ip, null,
-                false, subscribeId, verifyCode);
+                false, subscribeId, verifyCode, timeSyncer);
     }
 
     public static BedrockData fromString(String data) {
@@ -101,9 +104,8 @@ public final class BedrockData implements Cloneable {
         // The format is the same as the order of the fields in this class
         return version + '\0' + username + '\0' + xuid + '\0' + deviceOs + '\0' +
                 languageCode + '\0' + uiProfile + '\0' + inputMode + '\0' + ip + '\0' +
-                (fromProxy ? 1 : 0) + '\0' +
                 (linkedPlayer != null ? linkedPlayer.toString() : "null") + '\0' +
-                subscribeId + '\0' + verifyCode + '\0' + timestamp;
+                (fromProxy ? 1 : 0) + '\0' + subscribeId + '\0' + verifyCode + '\0' + timestamp;
     }
 
     @Override

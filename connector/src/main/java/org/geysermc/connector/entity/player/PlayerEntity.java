@@ -82,6 +82,9 @@ public class PlayerEntity extends LivingEntity {
         profile = gameProfile;
         uuid = gameProfile.getId();
         username = gameProfile.getName();
+
+        // For the OptionalPack, set all bits as invisible by default as this matches Java Edition behavior
+        metadata.put(EntityData.MARK_VARIANT, 0xff);
     }
 
     @Override
@@ -112,7 +115,7 @@ public class PlayerEntity extends LivingEntity {
         valid = true;
         session.sendUpstreamPacket(addPlayerPacket);
 
-        updateEquipment(session);
+        updateAllEquipment(session);
         updateBedrockAttributes(session);
     }
 
@@ -278,6 +281,14 @@ public class PlayerEntity extends LivingEntity {
             attributes.add(new AttributeData("minecraft:absorption", 0.0f, 1024f, (float) entityMetadata.getValue(), 0.0f));
             attributesPacket.setAttributes(attributes);
             session.sendUpstreamPacket(attributesPacket);
+        }
+
+        if (entityMetadata.getId() == 16) {
+            // OptionalPack usage for toggling skin bits
+            // In Java Edition, a bit being set means that part should be enabled
+            // However, to ensure that the pack still works on other servers, we invert the bit so all values by default
+            // are true (0).
+            metadata.put(EntityData.MARK_VARIANT, ~((byte) entityMetadata.getValue()) & 0xff);
         }
 
         // Parrot occupying shoulder

@@ -30,12 +30,14 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -47,9 +49,11 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
 
     @Override
     public void translate(ServerEntityStatusPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
+        } else {
+            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         }
         if (entity == null)
             return;
@@ -195,6 +199,19 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 equipmentBreakPacket.setExtraData(-1);
                 equipmentBreakPacket.setIdentifier("");
                 session.sendUpstreamPacket(equipmentBreakPacket);
+                return;
+            case PLAYER_SWAP_SAME_ITEM: // Not just used for players
+                if (entity instanceof LivingEntity) {
+                    LivingEntity livingEntity = (LivingEntity) entity;
+                    ItemData newMainHand = livingEntity.getOffHand();
+                    livingEntity.setOffHand(livingEntity.getHand());
+                    livingEntity.setHand(newMainHand);
+
+                    livingEntity.updateMainHand(session);
+                    livingEntity.updateOffHand(session);
+                } else {
+                    session.getConnector().getLogger().debug("Got status message to swap hands for a non-living entity.");
+                }
                 return;
         }
 

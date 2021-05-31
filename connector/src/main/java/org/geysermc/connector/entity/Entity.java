@@ -263,7 +263,7 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.ON_FIRE, ((xd & 0x01) == 0x01) && !metadata.getFlags().getFlag(EntityFlag.FIRE_IMMUNE)); // Otherwise immune entities sometimes flicker onfire
                     metadata.getFlags().setFlag(EntityFlag.SNEAKING, (xd & 0x02) == 0x02);
                     metadata.getFlags().setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
-                    metadata.getFlags().setFlag(EntityFlag.SWIMMING, ((xd & 0x10) == 0x10) && metadata.getFlags().getFlag(EntityFlag.SPRINTING)); // Otherwise swimming is enabled on older servers
+                    // Swimming is ignored here and instead we rely on the pose
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
 
                     // Armour stands are handled in their own class
@@ -297,16 +297,37 @@ public class Entity {
             case 5: // no gravity
                 metadata.getFlags().setFlag(EntityFlag.HAS_GRAVITY, !(boolean) entityMetadata.getValue());
                 break;
-            case 6: // Pose change
-                if (entityMetadata.getValue().equals(Pose.SLEEPING)) {
-                    metadata.getFlags().setFlag(EntityFlag.SLEEPING, true);
-                    metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.2f);
-                    metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.2f);
-                } else if (metadata.getFlags().getFlag(EntityFlag.SLEEPING)) {
-                    metadata.getFlags().setFlag(EntityFlag.SLEEPING, false);
-                    metadata.put(EntityData.BOUNDING_BOX_WIDTH, getEntityType().getWidth());
-                    metadata.put(EntityData.BOUNDING_BOX_HEIGHT, getEntityType().getHeight());
+            case 6: // Pose change - typically used for bounding box and not animation
+                Pose pose = (Pose) entityMetadata.getValue();
+
+                metadata.getFlags().setFlag(EntityFlag.SLEEPING, pose.equals(Pose.SLEEPING));
+                // Triggered when crawling
+                metadata.getFlags().setFlag(EntityFlag.SWIMMING, pose.equals(Pose.SWIMMING));
+                float width = entityType.getWidth();
+                float height = entityType.getHeight();
+                switch (pose) {
+                    case SLEEPING:
+                        if (this instanceof LivingEntity) {
+                            width = 0.2f;
+                            height = 0.2f;
+                        }
+                        break;
+                    case SNEAKING:
+                        if (entityType == EntityType.PLAYER) {
+                            height = 1.5f;
+                        }
+                        break;
+                    case FALL_FLYING:
+                    case SPIN_ATTACK:
+                    case SWIMMING:
+                        if (entityType == EntityType.PLAYER) {
+                            // Seems like this is only cared about for players; nothing else
+                            height = 0.6f;
+                        }
+                        break;
                 }
+                metadata.put(EntityData.BOUNDING_BOX_WIDTH, width);
+                metadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
                 break;
         }
     }

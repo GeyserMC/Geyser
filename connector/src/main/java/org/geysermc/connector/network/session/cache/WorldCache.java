@@ -38,7 +38,6 @@ public class WorldCache {
     private final GeyserSession session;
     @Setter
     private Difficulty difficulty = Difficulty.EASY;
-    private boolean showCoordinates = true;
 
     private Scoreboard scoreboard;
     private final ScoreboardUpdater scoreboardUpdater;
@@ -63,15 +62,5 @@ public class WorldCache {
         int pendingPps = scoreboardUpdater.incrementAndGetPacketsPerSecond();
         int pps = scoreboardUpdater.getPacketsPerSecond();
         return Math.max(pps, pendingPps);
-    }
-
-    /**
-     * Tell the client to hide or show the coordinates
-     *
-     * @param value True to show, false to hide
-     */
-    public void setShowCoordinates(boolean value) {
-        showCoordinates = value;
-        session.sendGameRule("showcoordinates", value);
     }
 }

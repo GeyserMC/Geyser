@@ -153,30 +153,30 @@ public class BannerTranslator extends ItemTranslator {
     }
 
     @Override
-    public ItemData translateToBedrock(ItemStack itemStack, ItemEntry itemEntry) {
+    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemEntry itemEntry) {
         if (itemStack.getNbt() == null) {
             return super.translateToBedrock(itemStack, itemEntry);
         }
 
-        ItemData itemData = super.translateToBedrock(itemStack, itemEntry);
+        ItemData.Builder builder = super.translateToBedrock(itemStack, itemEntry);
 
         CompoundTag blockEntityTag = itemStack.getNbt().get("BlockEntityTag");
         if (blockEntityTag != null && blockEntityTag.contains("Patterns")) {
             ListTag patterns = blockEntityTag.get("Patterns");
 
-            NbtMapBuilder builder = itemData.getTag().toBuilder();
+            NbtMapBuilder nbtBuilder = builder.build().getTag().toBuilder(); //TODO fix ugly hack
             if (patterns.equals(OMINOUS_BANNER_PATTERN)) {
                 // Remove the current patterns and set the ominous banner type
-                builder.remove("Patterns");
-                builder.putInt("Type", 1);
+                nbtBuilder.remove("Patterns");
+                nbtBuilder.putInt("Type", 1);
             } else {
-                builder.put("Patterns", convertBannerPattern(patterns));
+                nbtBuilder.put("Patterns", convertBannerPattern(patterns));
             }
 
-            itemData = ItemData.of(itemData.getId(), itemData.getDamage(), itemData.getCount(), builder.build());
+            builder.tag(nbtBuilder.build());
         }
 
-        return itemData;
+        return builder;
     }
 
     @Override

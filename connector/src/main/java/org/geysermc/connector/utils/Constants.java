@@ -30,6 +30,7 @@ import java.net.URISyntaxException;
 
 public final class Constants {
     public static final URI SKIN_UPLOAD_URI;
+    public static final String NTP_SERVER = "time.cloudflare.com";
 
     static {
         URI skinUploadUri = null;

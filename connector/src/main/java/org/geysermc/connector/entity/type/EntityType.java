@@ -36,10 +36,7 @@ import org.geysermc.connector.entity.living.animal.tameable.WolfEntity;
 import org.geysermc.connector.entity.living.merchant.AbstractMerchantEntity;
 import org.geysermc.connector.entity.living.merchant.VillagerEntity;
 import org.geysermc.connector.entity.living.monster.*;
-import org.geysermc.connector.entity.living.monster.raid.AbstractIllagerEntity;
-import org.geysermc.connector.entity.living.monster.raid.PillagerEntity;
-import org.geysermc.connector.entity.living.monster.raid.RaidParticipantEntity;
-import org.geysermc.connector.entity.living.monster.raid.SpellcasterIllagerEntity;
+import org.geysermc.connector.entity.living.monster.raid.*;
 import org.geysermc.connector.entity.player.PlayerEntity;
 
 import java.util.ArrayList;
@@ -48,7 +45,7 @@ import java.util.List;
 @Getter
 public enum EntityType {
 
-    CHICKEN(AnimalEntity.class, 10, 0.7f, 0.4f),
+    CHICKEN(ChickenEntity.class, 10, 0.7f, 0.4f),
     COW(AnimalEntity.class, 11, 1.4f, 0.9f),
     PIG(PigEntity.class, 12, 0.9f),
     SHEEP(SheepEntity.class, 13, 1.3f, 0.9f),
@@ -58,7 +55,7 @@ public enum EntityType {
     SQUID(SquidEntity.class, 17, 0.8f),
     RABBIT(RabbitEntity.class, 18, 0.5f, 0.4f),
     BAT(BatEntity.class, 19, 0.9f, 0.5f),
-    IRON_GOLEM(GolemEntity.class, 20, 2.7f, 1.4f),
+    IRON_GOLEM(IronGolemEntity.class, 20, 2.7f, 1.4f),
     SNOW_GOLEM(SnowGolemEntity.class, 21, 1.9f, 0.7f),
     OCELOT(OcelotEntity.class, 22, 0.35f, 0.3f),
     HORSE(HorseEntity.class, 23, 1.6f, 1.3965f),
@@ -97,7 +94,7 @@ public enum EntityType {
     SHULKER(ShulkerEntity.class, 54, 1f, 1f),
     ENDERMITE(MonsterEntity.class, 55, 0.3f, 0.4f),
     AGENT(Entity.class, 56, 0f),
-    VINDICATOR(AbstractIllagerEntity.class, 57, 1.8f, 0.6f, 0.6f, 1.62f),
+    VINDICATOR(VindicatorEntity.class, 57, 1.8f, 0.6f, 0.6f, 1.62f),
     PILLAGER(PillagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f),
     WANDERING_TRADER(AbstractMerchantEntity.class, 118, 1.8f, 0.6f, 0.6f, 1.62f),
     PHANTOM(FlyingEntity.class, 58, 0.5f, 0.9f, 0.9f, 0.6f),
@@ -150,7 +147,7 @@ public enum EntityType {
     EVOKER(SpellcasterIllagerEntity.class, 104, 1.95f, 0.6f, 0.6f, 0f, "minecraft:evocation_illager"),
     VEX(VexEntity.class, 105, 0.8f, 0.4f),
     ICE_BOMB(Entity.class, 106, 0f),
-    BALLOON(Entity.class, 107, 0f), //TODO
+    BALLOON(Entity.class, 107, 0f),
     PUFFERFISH(PufferFishEntity.class, 108, 0.7f, 0.7f),
     SALMON(AbstractFishEntity.class, 109, 0.5f, 0.7f),
     DROWNED(ZombieEntity.class, 110, 1.95f, 0.6f),
@@ -171,9 +168,9 @@ public enum EntityType {
     ITEM_FRAME(ItemFrameEntity.class, 0, 0, 0),
 
     /**
-     * Not an entity in Bedrock, so we replace it with a Pillager
+     * Not an entity in Bedrock, so we replace it with an evoker
      */
-    ILLUSIONER(AbstractIllagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:pillager"),
+    ILLUSIONER(SpellcasterIllagerEntity.class, 104, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:evocation_illager"),
 
     /**
      * Not an entity in Bedrock, but used for the Ender Dragon's multiple hitboxes
@@ -188,7 +185,7 @@ public enum EntityType {
 
     static {
         List<String> allJavaIdentifiers = new ArrayList<>();
-        for (EntityType type : values()) {
+        for (EntityType type : VALUES) {
             if (type == AGENT || type == BALLOON || type == CHALKBOARD || type == NPC || type == TRIPOD_CAMERA || type == ENDER_DRAGON_PART) {
                 continue;
             }

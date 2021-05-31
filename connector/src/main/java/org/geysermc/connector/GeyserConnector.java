@@ -31,6 +31,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nukkitx.network.raknet.RakNetConstants;
 import com.nukkitx.network.util.EventLoops;
 import com.nukkitx.protocol.bedrock.BedrockServer;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.kqueue.KQueue;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.PlatformType;
@@ -62,6 +64,8 @@ import org.geysermc.floodgate.crypto.AesCipher;
 import org.geysermc.floodgate.crypto.AesKeyProducer;
 import org.geysermc.floodgate.crypto.Base64Topping;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
+import org.geysermc.floodgate.time.TimeSyncer;
+import org.jetbrains.annotations.Contract;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
@@ -78,7 +82,6 @@ import java.util.concurrent.TimeUnit;
 
 @Getter
 public class GeyserConnector {
-
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper()
             .enable(JsonParser.Feature.IGNORE_UNDEFINED)
             .enable(JsonParser.Feature.ALLOW_COMMENTS)
@@ -105,6 +108,7 @@ public class GeyserConnector {
     @Setter
     private AuthType defaultAuthType;
 
+    private TimeSyncer timeSyncer;
     private FloodgateCipher cipher;
     private FloodgateSkinUploader skinUploader;
 
@@ -168,12 +172,13 @@ public class GeyserConnector {
                 if (config.isDebugMode()) {
                     ex.printStackTrace();
                 }
+                config.getRemote().setAddress(InetAddress.getLoopbackAddress().getHostAddress());
             }
         }
         String remoteAddress = config.getRemote().getAddress();
-        int remotePort = config.getRemote().getPort();
         // Filters whether it is not an IP address or localhost, because otherwise it is not possible to find out an SRV entry.
         if (!remoteAddress.matches(IP_REGEX) && !remoteAddress.equalsIgnoreCase("localhost")) {
+            int remotePort;
             try {
                 // Searches for a server address and a port from a SRV record of the specified host name
                 InitialDirContext ctx = new InitialDirContext();
@@ -196,6 +201,7 @@ public class GeyserConnector {
         defaultAuthType = AuthType.getByName(config.getRemote().getAuthType());
 
         if (defaultAuthType == AuthType.FLOODGATE) {
+            timeSyncer = new TimeSyncer(Constants.NTP_SERVER);
             try {
                 Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
                 cipher = new AesCipher(new Base64Topping());
@@ -207,7 +213,7 @@ public class GeyserConnector {
             }
         }
 
-        CooldownUtils.setShowCooldown(config.isShowCooldown());
+        CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
         SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS = config.isAllowCustomSkulls();
 
@@ -222,6 +228,19 @@ public class GeyserConnector {
                 EventLoops.commonGroup(),
                 enableProxyProtocol
         );
+
+        if (config.isDebugMode()) {
+            logger.debug("EventLoop type: " + EventLoops.getChannelType());
+            if (EventLoops.getChannelType() == EventLoops.ChannelType.NIO) {
+                if (System.getProperties().contains("disableNativeEventLoop")) {
+                    logger.debug("EventLoop type is NIO because native event loops are disabled.");
+                } else {
+                    logger.debug("Reason for no Epoll: " + Epoll.unavailabilityCause().toString());
+                    logger.debug("Reason for no KQueue: " + KQueue.unavailabilityCause().toString());
+                }
+            }
+        }
+
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));
         bedrockServer.bind().whenComplete((avoid, throwable) -> {
             if (throwable == null) {
@@ -351,6 +370,7 @@ public class GeyserConnector {
 
         generalThreadPool.shutdown();
         bedrockServer.close();
+        timeSyncer.shutdown();
         players.clear();
         defaultAuthType = null;
         this.getCommandManager().getCommands().clear();
@@ -372,9 +392,14 @@ public class GeyserConnector {
      * @param uuid the uuid
      * @return the player or <code>null</code> if there is no player online with this UUID
      */
+    @Contract("null -> null")
     public GeyserSession getPlayerByUuid(UUID uuid) {
+        if (uuid == null) {
+            return null;
+        }
+
         for (GeyserSession session : players) {
-            if (session.getPlayerEntity().getUuid().equals(uuid)) {
+            if (uuid.equals(session.getPlayerEntity().getUuid())) {
                 return session;
             }
         }
@@ -422,6 +447,10 @@ public class GeyserConnector {
 
     public WorldManager getWorldManager() {
         return bootstrap.getWorldManager();
+    }
+
+    public TimeSyncer getTimeSyncer() {
+        return timeSyncer;
     }
 
     /**

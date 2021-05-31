@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.living.GolemEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -39,6 +40,8 @@ public class ShulkerEntity extends GolemEntity {
 
     public ShulkerEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+        // Indicate that invisibility should be fixed through the resource pack
+        metadata.getFlags().setFlag(EntityFlag.BRIBED, true);
     }
 
     @Override

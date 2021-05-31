@@ -34,8 +34,9 @@ import org.geysermc.cumulus.CustomForm;
 import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.response.CustomFormResponse;
 
-public class SettingsUtils {
+import java.util.ArrayList;
 
+public class SettingsUtils {
     /**
      * Build a settings form for the given session and store it for later
      *
@@ -48,10 +49,25 @@ public class SettingsUtils {
         CustomForm.Builder builder = CustomForm.builder()
                 .translator(LanguageUtils::getPlayerLocaleString, language)
                 .title("geyser.settings.title.main")
-                .iconPath("textures/ui/settings_glyph_color_2x.png")
-                .label("geyser.settings.title.client")
-                .toggle("geyser.settings.option.coordinates");
+                .iconPath("textures/ui/settings_glyph_color_2x.png");
 
+        // Only show the client title if any of the client settings are available
+        if (session.getPreferencesCache().isAllowShowCoordinates() || CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
+            builder.label("geyser.settings.title.client");
+
+            // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
+            if (session.getPreferencesCache().isAllowShowCoordinates()) {
+                builder.toggle("geyser.settings.option.coordinates", session.getPreferencesCache().isPrefersShowCoordinates());
+            }
+
+            if (CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
+                DropdownComponent.Builder cooldownDropdown = DropdownComponent.builder("options.attackIndicator");
+                cooldownDropdown.option("options.attack.crosshair", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.TITLE);
+                cooldownDropdown.option("options.attack.hotbar", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.ACTIONBAR);
+                cooldownDropdown.option("options.off", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.DISABLED);
+                builder.dropdown(cooldownDropdown);
+            }
+        }
 
         if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
             builder.label("geyser.settings.title.server");
@@ -94,7 +110,22 @@ public class SettingsUtils {
                 return;
             }
 
-            session.getWorldCache().setShowCoordinates(response.next());
+            if (session.getPreferencesCache().isAllowShowCoordinates() || CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
+                response.skip(); // Client settings title
+
+                // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
+                if (session.getPreferencesCache().isAllowShowCoordinates()) {
+                    session.getPreferencesCache().setPrefersShowCoordinates(response.next());
+                    session.getPreferencesCache().updateShowCoordinates();
+                    response.skip();
+                }
+
+                if (CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
+                    CooldownUtils.CooldownType cooldownType = CooldownUtils.CooldownType.VALUES[(int) response.next()];
+                    session.getPreferencesCache().setCooldownPreference(cooldownType);
+                    response.skip();
+                }
+            }
 
             if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
                 GameMode gameMode = GameMode.values()[(int) response.next()];

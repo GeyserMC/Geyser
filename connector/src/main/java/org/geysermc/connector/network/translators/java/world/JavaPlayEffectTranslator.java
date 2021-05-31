@@ -39,10 +39,10 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.effect.Effect;
 import org.geysermc.connector.network.translators.effect.EffectRegistry;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.LocaleUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 import java.util.Locale;
 
 @Translator(packet = ServerPlayEffectPacket.class)
@@ -74,10 +74,8 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                 textPacket.setPlatformChatId("");
                 textPacket.setSourceName(null);
                 textPacket.setMessage("record.nowPlaying");
-                List<String> params = new ArrayList<>();
                 String recordString = "%item." + soundEvent.name().toLowerCase(Locale.ROOT) + ".desc";
-                params.add(LocaleUtils.getLocaleString(recordString, session.getLocale()));
-                textPacket.setParameters(params);
+                textPacket.setParameters(Collections.singletonList(LocaleUtils.getLocaleString(recordString, session.getLocale())));
                 session.sendUpstreamPacket(textPacket);
             }
             return;

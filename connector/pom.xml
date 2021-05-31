@@ -42,8 +42,8 @@
         </dependency>
         <dependency>
             <groupId>com.github.CloudburstMC.Protocol</groupId>
-            <artifactId>bedrock-v428</artifactId>
-            <version>42da92f</version>
+            <artifactId>bedrock-v431</artifactId>
+            <version>9947665</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -133,7 +133,7 @@
         <dependency>
             <groupId>com.github.steveice10</groupId>
             <artifactId>mcprotocollib</artifactId>
-            <version>26201a4</version>
+            <version>8c204eb</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -153,7 +153,7 @@
         <dependency>
             <groupId>com.github.GeyserMC</groupId>
             <artifactId>PacketLib</artifactId>
-            <version>b77a427</version>
+            <version>6e5dea9</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion> <!-- Move this exclusion back to MCProtocolLib it gets the latest PacketLib -->

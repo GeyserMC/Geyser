@@ -27,6 +27,7 @@ package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerAbilitiesPacket;
 import com.nukkitx.protocol.bedrock.data.AdventureSetting;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -37,8 +38,14 @@ public class BedrockAdventureSettingsTranslator extends PacketTranslator<Adventu
 
     @Override
     public void translate(AdventureSettingsPacket packet, GeyserSession session) {
-        ClientPlayerAbilitiesPacket abilitiesPacket =
-                new ClientPlayerAbilitiesPacket(packet.getSettings().contains(AdventureSetting.FLYING));
+        boolean isFlying = packet.getSettings().contains(AdventureSetting.FLYING);
+        session.setFlying(isFlying);
+        ClientPlayerAbilitiesPacket abilitiesPacket = new ClientPlayerAbilitiesPacket(isFlying);
         session.sendDownstreamPacket(abilitiesPacket);
+
+        if (isFlying && session.getPlayerEntity().getMetadata().getFlags().getFlag(EntityFlag.SWIMMING)) {
+            // Bedrock can fly and swim at the same time? Make sure that can't happen
+            session.setSwimming(false);
+        }
     }
 }

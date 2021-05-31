@@ -42,7 +42,7 @@ public class AbstractSkeletonEntity extends MonsterEntity {
         if (entityMetadata.getId() == 14) {
             byte xd = (byte) entityMetadata.getValue();
             // A bit of a loophole so the hands get raised - set the target ID to its own ID
-            metadata.put(EntityData.TARGET_EID, (xd == 4) ? geyserId : 0);
+            metadata.put(EntityData.TARGET_EID, ((xd & 4) == 4) ? geyserId : 0);
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
