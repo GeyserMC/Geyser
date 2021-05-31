@@ -130,7 +130,7 @@ public enum EntityType {
     THROWN_ENDERPEARL(ThrowableEntity.class, 87, 0.25f, 0.25f, 0.25f, 0f, "minecraft:ender_pearl"),
     LEASH_KNOT(LeashKnotEntity.class, 88, 0.5f, 0.375f),
     WITHER_SKULL(WitherSkullEntity.class, 89, 0.3125f),
-    BOAT(BoatEntity.class, 90, 0.7f, 1.6f, 1.6f, 0.35f),
+    BOAT(BoatEntity.class, 90, 0.6f, 1.6f, 1.6f, 0.35f),
     WITHER_SKULL_DANGEROUS(WitherSkullEntity.class, 91, 0f),
     LIGHTNING_BOLT(Entity.class, 93, 0f),
     SMALL_FIREBALL(ItemedFireballEntity.class, 94, 0.3125f),
