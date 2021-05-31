@@ -750,7 +750,17 @@ public class GeyserSession implements CommandSender {
                     disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.remote.invalid_account", clientData.getLanguageCode()));
                     return;
                 }
-                connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.connect", authData.getName(), protocol.getProfile().getName(), remoteAddress));
+
+                if (downstream.isInternallyConnecting()) {
+                    // Connected directly to the server
+                    connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.connect_internal",
+                            authData.getName(), protocol.getProfile().getName()));
+                } else {
+                    // Connected to an IP address
+                    connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.connect",
+                            authData.getName(), protocol.getProfile().getName(), remoteAddress));
+                }
+
                 UUID uuid = protocol.getProfile().getId();
                 if (uuid == null) {
                     // Set what our UUID *probably* is going to be
@@ -780,7 +790,11 @@ public class GeyserSession implements CommandSender {
             public void disconnected(DisconnectedEvent event) {
                 loggingIn = false;
                 loggedIn = false;
-                connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.disconnect", authData.getName(), remoteAddress, event.getReason()));
+                if (downstream != null && downstream.isInternallyConnecting()) {
+                    connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.disconnect_internal", authData.getName(), event.getReason()));
+                } else {
+                    connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.disconnect", authData.getName(), remoteAddress, event.getReason()));
+                }
                 if (event.getCause() != null) {
                     event.getCause().printStackTrace();
                 }
@@ -830,7 +844,6 @@ public class GeyserSession implements CommandSender {
             try {
                 downstream.connectInternal(connector.getBootstrap().getSocketAddress(), upstream.getAddress().getAddress().getHostAddress(), true);
                 internalConnect = true;
-                System.out.println("Internally connected!!");
             } catch (Exception e) {
                 e.printStackTrace();
             }
