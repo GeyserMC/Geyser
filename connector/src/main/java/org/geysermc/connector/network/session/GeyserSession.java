@@ -732,8 +732,6 @@ public class GeyserSession implements CommandSender {
                         address = handshakePacket.getHostname();
                     }
 
-                    System.out.println((address + addressSuffix).getBytes(StandardCharsets.UTF_8).length);
-
                     event.setPacket(new HandshakePacket(
                             handshakePacket.getProtocolVersion(),
                             address + addressSuffix,
