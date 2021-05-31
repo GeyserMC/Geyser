@@ -581,7 +581,16 @@ public class GeyserSession implements CommandSender {
 
                     protocol = new MinecraftProtocol(authenticationService.getSelectedProfile(), authenticationService.getAccessToken());
                 } else {
-                    protocol = new MinecraftProtocol(username);
+                    // always replace spaces when using Floodgate,
+                    // as usernames with spaces cause issues with Bungeecord's login cycle.
+                    // However, this doesn't affect the final username as Floodgate is still in charge of that.
+                    // So if you have (for example) replace spaces enabled on Floodgate the spaces will re-appear.
+                    String validUsername = username;
+                    if (remoteAuthType == AuthType.FLOODGATE) {
+                        validUsername = username.replace(' ', '_');
+                    }
+
+                    protocol = new MinecraftProtocol(validUsername);
                 }
 
                 connectDownstream();
@@ -793,9 +802,11 @@ public class GeyserSession implements CommandSender {
                             SkinManager.handleBedrockSkin(playerEntity, clientData);
                         }
 
-                        // We'll send the skin upload a bit after the handshake packet (aka this packet),
-                        // because otherwise the global server returns the data too fast.
-                        getAuthData().upload(connector);
+                        if (remoteAuthType == AuthType.FLOODGATE) {
+                            // We'll send the skin upload a bit after the handshake packet (aka this packet),
+                            // because otherwise the global server returns the data too fast.
+                            getAuthData().upload(connector);
+                        }
                     }
 
                     PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
