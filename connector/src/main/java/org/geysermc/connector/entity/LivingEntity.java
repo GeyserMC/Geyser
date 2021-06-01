@@ -94,11 +94,9 @@ public class LivingEntity extends Entity {
                 Position bedPosition = (Position) entityMetadata.getValue();
                 if (bedPosition != null) {
                     metadata.put(EntityData.BED_POSITION, Vector3i.from(bedPosition.getX(), bedPosition.getY(), bedPosition.getZ()));
-                    if (session.getConnector().getConfig().isCacheChunks()) {
-                        int bed = session.getConnector().getWorldManager().getBlockAt(session, bedPosition);
-                        // Bed has to be updated, or else player is floating in the air
-                        ChunkUtils.updateBlock(session, bed, bedPosition);
-                    }
+                    int bed = session.getConnector().getWorldManager().getBlockAt(session, bedPosition);
+                    // Bed has to be updated, or else player is floating in the air
+                    ChunkUtils.updateBlock(session, bed, bedPosition);
                     // Indicate that the player should enter the sleep cycle
                     // Has to be a byte or it does not work
                     // (Bed position is what actually triggers sleep - "pose" is only optional)

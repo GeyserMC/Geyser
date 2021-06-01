@@ -64,9 +64,7 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
                 passenger = session.getPlayerEntity();
                 session.setRidingVehicleEntity(entity);
                 // We need to confirm teleports before entering a vehicle, or else we will likely exit right out
-                if (session.getConnector().getConfig().isCacheChunks()) {
-                    session.confirmTeleport(passenger.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0).toDouble());
-                }
+                session.confirmTeleport(passenger.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0).toDouble());
             }
             // Passenger hasn't loaded in (likely since we're waiting for a skin response)
             // and entity link needs to be set later

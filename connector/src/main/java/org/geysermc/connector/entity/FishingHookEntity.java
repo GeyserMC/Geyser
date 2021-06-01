@@ -174,11 +174,8 @@ public class FishingHookEntity extends ThrowableEntity {
      * @return true if this entity is currently in air.
      */
     protected boolean isInAir(GeyserSession session) {
-        if (session.getConnector().getConfig().isCacheChunks()) {
-            int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
-            return block == BlockTranslator.JAVA_AIR_ID;
-        }
-        return false;
+        int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
+        return block == BlockTranslator.JAVA_AIR_ID;
     }
 
     @Override

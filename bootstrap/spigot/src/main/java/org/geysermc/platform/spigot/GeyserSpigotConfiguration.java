@@ -48,9 +48,4 @@ public final class GeyserSpigotConfiguration extends GeyserJacksonConfiguration 
 
         floodgateKeyPath = FloodgateKeyLoader.getKeyPath(this, floodgate, floodgateDataFolder, geyserDataFolder, plugin.getGeyserLogger());
     }
-
-    @Override
-    public boolean isCacheChunks() {
-        return true; // We override this as with Bukkit, we have direct access to the server implementation
-    }
 }

@@ -111,9 +111,6 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("default-locale")
     private String defaultLocale = null; // is null by default so system language takes priority
 
-    @JsonProperty("cache-chunks")
-    private boolean cacheChunks = false;
-
     @JsonProperty("cache-images")
     private int cacheImages = 0;
 

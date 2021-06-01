@@ -42,11 +42,7 @@ public class ChunkCache {
     private int minY;
 
     public ChunkCache(GeyserSession session) {
-        if (session.getConnector().getWorldManager().hasOwnChunkCache()) {
-            this.cache = false; // To prevent Spigot from initializing
-        } else {
-            this.cache = session.getConnector().getConfig().isCacheChunks();
-        }
+        this.cache = !session.getConnector().getWorldManager().hasOwnChunkCache(); // To prevent Spigot from initializing
         chunks = cache ? new Long2ObjectOpenHashMap<>() : null;
     }
 

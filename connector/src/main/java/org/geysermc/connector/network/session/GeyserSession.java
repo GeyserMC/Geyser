@@ -234,12 +234,6 @@ public class GeyserSession implements CommandSender {
     private boolean sprinting;
 
     /**
-     * Not updated if cache chunks is enabled.
-     */
-    @Setter
-    private boolean jumping;
-
-    /**
      * Whether the player is swimming in water.
      * Used to update speed when crawling.
      */

@@ -42,8 +42,6 @@ import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Data;
 import lombok.experimental.UtilityClass;
 import org.geysermc.connector.GeyserConnector;
@@ -55,7 +53,6 @@ import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BedrockOnlyBlockEntity;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
-import org.geysermc.connector.network.translators.world.block.entity.RequiresBlockState;
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.chunk.BlockStorage;
 import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
@@ -70,11 +67,6 @@ import static org.geysermc.connector.network.translators.world.block.BlockTransl
 
 @UtilityClass
 public class ChunkUtils {
-    /**
-     * Temporarily stores positions of BlockState values that are needed for certain block entities actively.
-     * Not used if cache chunks is enabled
-     */
-    public static final Object2IntMap<Position> CACHED_BLOCK_ENTITIES = new Object2IntOpenHashMap<>();
 
     private static int indexYZXtoXZY(int yzx) {
         return (yzx >> 8) | (yzx & 0x0F0) | ((yzx & 0x00F) << 8);
@@ -364,20 +356,12 @@ public class ChunkUtils {
             return newLecternHasBook;
         });
 
-        // Since Java stores bed colors/skull information as part of the namespaced ID and Bedrock stores it as a tag
-        // This is the only place I could find that interacts with the Java block state and block updates
-        // Iterates through all block entity translators and determines if the block state needs to be saved
-        for (RequiresBlockState requiresBlockState : BlockEntityTranslator.REQUIRES_BLOCK_STATE_LIST) {
-            if (requiresBlockState.isBlock(blockState)) {
+        // Iterates through all Bedrock-only block entity translators and determines if a manual block entity packet
+        // needs to be sent
+        for (BedrockOnlyBlockEntity bedrockOnlyBlockEntity : BlockEntityTranslator.BEDROCK_ONLY_BLOCK_ENTITIES) {
+            if (bedrockOnlyBlockEntity.isBlock(blockState)) {
                 // Flower pots are block entities only in Bedrock and are not updated anywhere else like note blocks
-                if (requiresBlockState instanceof BedrockOnlyBlockEntity) {
-                    ((BedrockOnlyBlockEntity) requiresBlockState).updateBlock(session, blockState, position);
-                    break;
-                }
-                if (!session.getConnector().getConfig().isCacheChunks()) {
-                    // Blocks aren't saved to a chunk cache; resort to this smaller cache
-                    CACHED_BLOCK_ENTITIES.put(new Position(position.getX(), position.getY(), position.getZ()), blockState);
-                }
+                bedrockOnlyBlockEntity.updateBlock(session, blockState, position);
                 break; //No block will be a part of two classes
             }
         }
@@ -412,7 +396,6 @@ public class ChunkUtils {
     @Data
     public static final class ChunkData {
         private final ChunkSection[] sections;
-
         private final NbtMap[] blockEntities;
     }
 }
