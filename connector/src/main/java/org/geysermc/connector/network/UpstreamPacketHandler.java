@@ -57,6 +57,12 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(LoginPacket loginPacket) {
+        if (connector.isShuttingDown()) {
+            // Don't allow new players in if we're no longer operating
+            session.disconnect(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.message"));
+            return true;
+        }
+
         BedrockPacketCodec packetCodec = BedrockProtocol.getBedrockCodec(loginPacket.getProtocolVersion());
         if (packetCodec == null) {
             if (loginPacket.getProtocolVersion() > BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {

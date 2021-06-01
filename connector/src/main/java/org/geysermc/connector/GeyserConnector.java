@@ -34,7 +34,6 @@ import com.nukkitx.protocol.bedrock.BedrockServer;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.kqueue.KQueue;
 import lombok.Getter;
-import lombok.Setter;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
@@ -68,10 +67,8 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @Getter
 public class GeyserConnector {
@@ -99,10 +96,9 @@ public class GeyserConnector {
 
     private static GeyserConnector instance;
 
-    @Setter
-    private AuthType defaultAuthType;
+    private final AuthType defaultAuthType;
 
-    private boolean shuttingDown = false;
+    private volatile boolean shuttingDown = false;
 
     private final ScheduledExecutorService generalThreadPool;
 
@@ -110,7 +106,7 @@ public class GeyserConnector {
     private final PlatformType platformType;
     private final GeyserBootstrap bootstrap;
 
-    private Metrics metrics;
+    private final Metrics metrics;
 
     private GeyserConnector(PlatformType platformType, GeyserBootstrap bootstrap) {
         long startupTime = System.currentTimeMillis();
@@ -278,6 +274,8 @@ public class GeyserConnector {
                     return versionMap;
                 }));
             }
+        } else {
+            metrics = null;
         }
 
         boolean isGui = false;
@@ -318,37 +316,12 @@ public class GeyserConnector {
                 playerSession.disconnect(LanguageUtils.getPlayerLocaleString("geyser.core.shutdown.kick.message", playerSession.getLocale()));
             }
 
-            CompletableFuture<Void> future = CompletableFuture.runAsync(new Runnable() {
-                @Override
-                public void run() {
-                    // Simulate a long-running Job
-                    try {
-                        while (true) {
-                            if (players.size() == 0) {
-                                return;
-                            }
-
-                            TimeUnit.MILLISECONDS.sleep(100);
-                        }
-                    } catch (InterruptedException e) {
-                        throw new IllegalStateException(e);
-                    }
-                }
-            });
-
-            // Block and wait for the future to complete
-            try {
-                future.get();
-                bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.done"));
-            } catch (Exception e) {
-                // Quietly fail
-            }
+            bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.done"));
         }
 
         generalThreadPool.shutdown();
         bedrockServer.close();
         players.clear();
-        defaultAuthType = null;
         this.getCommandManager().getCommands().clear();
 
         bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.done"));
