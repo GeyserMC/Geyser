@@ -55,6 +55,7 @@ Any contributions are appreciated. Please feel free to reach out to us on [Disco
 you're interested in helping out with Geyser.
 
 ## Libraries Used:
+- [Adventure Text Library](https://github.com/KyoriPowered/adventure)
 - [NukkitX Bedrock Protocol Library](https://github.com/NukkitX/Protocol)
 - [Steveice10's Java Protocol Library](https://github.com/Steveice10/MCProtocolLib)
 - [TerminalConsoleAppender](https://github.com/Minecrell/TerminalConsoleAppender)
