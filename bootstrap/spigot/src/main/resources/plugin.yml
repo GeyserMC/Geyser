@@ -22,7 +22,7 @@ permissions:
     description: Puts an items in your offhand.
   geyser.command.reload:
     description: Reloads the Geyser configurations. Kicks all players when used!
-  geyser.comamnd.shutdown:
+  geyser.command.shutdown:
     description: Shuts down Geyser.
   geyser.command.statistics:
     description: Shows the statistics of the player on the server.
