@@ -161,7 +161,8 @@ public enum EntityType {
     ZOGLIN(ZoglinEntity.class, 126, 1.4f, 1.3965f, 1.3965f, 0f, "minecraft:zoglin"),
     PIGLIN(PiglinEntity.class, 123, 1.95f, 0.6f, 0.6f, 0f, "minecraft:piglin"),
     PIGLIN_BRUTE(BasePiglinEntity.class, 127, 1.95f, 0.6f, 0.6f, 0f, "minecraft:piglin_brute"),
-    //TODO: GOAT AXOLOTL GLOW_SQUID GLOW_ITEM_FRAME MARKER
+    //TODO: AXOLOTL GLOW_SQUID GLOW_ITEM_FRAME MARKER
+    GOAT(GoatEntity.class, 0, 1.3f, 0.9f, 0.9f, 0f, "minecraft:goat"),
 
     /**
      * Item frames are handled differently since they are a block in Bedrock.
