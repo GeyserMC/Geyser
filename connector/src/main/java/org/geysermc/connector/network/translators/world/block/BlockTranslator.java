@@ -43,9 +43,7 @@ import org.geysermc.connector.utils.FileUtils;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.zip.GZIPInputStream;
 
 public abstract class BlockTranslator {
@@ -221,7 +219,7 @@ public abstract class BlockTranslator {
 
         BlockMapping.AIR = JAVA_RUNTIME_ID_TO_BLOCK_MAPPING.get(JAVA_AIR_ID);
 
-        BlockTranslator1_16_210.init();
+        BlockTranslator1_17_0.init();
         BLOCKS_JSON = null; // We no longer require this so let it garbage collect away
     }
 

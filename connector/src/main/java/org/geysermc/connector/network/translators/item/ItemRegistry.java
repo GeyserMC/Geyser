@@ -45,7 +45,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator1_16_210;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator1_17_0;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 
@@ -250,7 +250,7 @@ public class ItemRegistry {
             throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.runtime_java"), e);
         }
 
-        BlockTranslator blockTranslator = BlockTranslator1_16_210.INSTANCE;
+        BlockTranslator blockTranslator = BlockTranslator1_17_0.INSTANCE;
 
         int itemIndex = 0;
         int javaFurnaceMinecartId = 0;
@@ -536,37 +536,6 @@ public class ItemRegistry {
         }
         JAVA_ONLY_ITEMS = ImmutableSet.copyOf(javaOnlyItems);
     }
-
-    /* pre-1.16.220 support start */
-
-    private static ItemData[] LEGACY_CREATIVE_CONTENTS = null;
-
-    /**
-     * Built on the fly so extra memory isn't used if there are no 1.16.210-or-below clients joining.
-     *
-     * @return a list of creative items built for versions before 1.16.220.
-     */
-    public static ItemData[] getPre1_16_220CreativeContents() {
-        if (LEGACY_CREATIVE_CONTENTS != null) {
-            return LEGACY_CREATIVE_CONTENTS;
-        }
-
-        // Pre-1.16.220 relies on item damage values that the creative content packet drops
-        ItemData[] creativeContents = new ItemData[CREATIVE_ITEMS.length];
-        for (int i = 0; i < CREATIVE_ITEMS.length; i++) {
-            ItemData item = CREATIVE_ITEMS[i];
-            if (item.getBlockRuntimeId() != 0) {
-                creativeContents[i] = item.toBuilder().damage(getItem(item).getBedrockData()).build();
-            } else {
-                // No block runtime ID means that this item is backwards-compatible
-                creativeContents[i] = item;
-            }
-        }
-        LEGACY_CREATIVE_CONTENTS = creativeContents;
-        return creativeContents;
-    }
-
-    /* pre-1.16.220 support end */
 
     /**
      * Gets an {@link ItemEntry} from the given {@link ItemStack}.

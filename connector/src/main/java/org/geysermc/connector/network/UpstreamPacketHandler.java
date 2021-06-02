@@ -37,7 +37,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.AdvancementsCache;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator1_16_210;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator1_17_0;
 import org.geysermc.connector.utils.*;
 
 import java.io.FileInputStream;
@@ -72,7 +72,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         session.getUpstream().getSession().setPacketCodec(packetCodec);
 
         // Set the block translation based off of version
-        session.setBlockTranslator(BlockTranslator1_16_210.INSTANCE);
+        session.setBlockTranslator(BlockTranslator1_17_0.INSTANCE);
 
         LoginEncryptionUtils.encryptPlayerConnection(connector, session, loginPacket);
 
@@ -136,8 +136,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     // Allow custom items to work
                     stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
                 }
-
-                stackPacket.getExperiments().add(new ExperimentData("caves_and_cliffs", true));
 
                 session.sendUpstreamPacket(stackPacket);
                 break;

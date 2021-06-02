@@ -74,17 +74,7 @@ public class ChunkUtils {
 
     public static ChunkData translateToBedrock(GeyserSession session, Column column) {
         Chunk[] javaSections = column.getChunks();
-
-        //FIXME TEMPORARY UNTIL THE CAVES AND CLIFFS EXPERIMENTAL DATA IS REMOVED UNLESS IT'S NOT REMOVED THEN HMMMM
-        int sectionYOffset;
-        if (session.getDimension().equals(DimensionUtils.OVERWORLD)) {
-            sectionYOffset = 4;
-        } else {
-            sectionYOffset = 0;
-        }
-        //FIXME END
-
-        ChunkSection[] sections = new ChunkSection[javaSections.length + sectionYOffset];
+        ChunkSection[] sections = new ChunkSection[javaSections.length];
 
         // Temporarily stores compound tags of Bedrock-only block entities
         List<NbtMap> bedrockOnlyBlockEntities = new ArrayList<>();
@@ -197,7 +187,7 @@ public class ChunkUtils {
                 layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
             }
 
-            sections[sectionY + sectionYOffset] = new ChunkSection(layers);
+            sections[sectionY] = new ChunkSection(layers);
         }
 
         CompoundTag[] blockEntities = column.getTileEntities();

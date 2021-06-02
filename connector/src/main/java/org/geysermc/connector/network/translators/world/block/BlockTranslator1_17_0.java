@@ -25,11 +25,11 @@
 
 package org.geysermc.connector.network.translators.world.block;
 
-public class BlockTranslator1_16_210 extends BlockTranslator {
-    public static final BlockTranslator1_16_210 INSTANCE = new BlockTranslator1_16_210();
+public class BlockTranslator1_17_0 extends BlockTranslator {
+    public static final BlockTranslator1_17_0 INSTANCE = new BlockTranslator1_17_0();
 
-    public BlockTranslator1_16_210() {
-        super("bedrock/blockpalette.1_16_210.nbt");
+    public BlockTranslator1_17_0() {
+        super("bedrock/block_palette.1_17_0.nbt");
     }
 
     @Override

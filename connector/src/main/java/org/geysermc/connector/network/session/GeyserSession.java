@@ -512,12 +512,7 @@ public class GeyserSession implements CommandSender {
         upstream.sendPacket(entityPacket);
 
         CreativeContentPacket creativePacket = new CreativeContentPacket();
-        if (upstream.getSession().getPacketCodec().getProtocolVersion() < Bedrock_v431.V431_CODEC.getProtocolVersion()) {
-            creativePacket.setContents(ItemRegistry.getPre1_16_220CreativeContents());
-        } else {
-            // No additional work required
-            creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
-        }
+        creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
         upstream.sendPacket(creativePacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
@@ -1048,14 +1043,13 @@ public class GeyserSession implements CommandSender {
         startGamePacket.setItemEntries(ItemRegistry.ITEMS);
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
+        startGamePacket.setServerEngine(""); // Do we want to fill this in?
 
         SyncedPlayerMovementSettings settings = new SyncedPlayerMovementSettings();
         settings.setMovementMode(AuthoritativeMovementMode.CLIENT);
         settings.setRewindHistorySize(0);
         settings.setServerAuthoritativeBlockBreaking(false);
         startGamePacket.setPlayerMovementSettings(settings);
-
-        startGamePacket.getExperiments().add(new ExperimentData("caves_and_cliffs", true));
         
         upstream.sendPacket(startGamePacket);
     }
