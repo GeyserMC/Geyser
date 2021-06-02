@@ -10,6 +10,13 @@
     </parent>
     <artifactId>bootstrap-spigot</artifactId>
 
+    <repositories>
+        <repository>
+            <id>viaversion-repo</id>
+            <url>https://repo.viaversion.com</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.geysermc</groupId>
@@ -24,9 +31,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>us.myles</groupId>
+            <groupId>com.viaversion</groupId>
             <artifactId>viaversion</artifactId>
-            <version>3.2.0</version>
+            <version>4.0.0-1.17-pre3-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
