@@ -122,7 +122,7 @@
         <dependency>
             <groupId>com.github.GeyserMC</groupId>
             <artifactId>MCProtocolLib</artifactId>
-            <version>5f523d3</version>
+            <version>eb02688</version>
 <!--            <groupId>com.github.steveice10</groupId>-->
 <!--            <artifactId>mcprotocollib</artifactId>-->
 <!--            <version>1.17-pre5-SNAPSHOT</version>-->

@@ -290,6 +290,8 @@ public class ChunkUtils {
         if (itemFrameEntity != null) {
             if (blockState == JAVA_AIR_ID) { // Item frame is still present and no block overrides that; refresh it
                 itemFrameEntity.updateBlock(session);
+                // Still update the chunk cache with the new block
+                session.getChunkCache().updateBlock(position.getX(), position.getY(), position.getZ(), blockState);
                 return;
             }
             // Otherwise, let's still store our reference to the item frame, but let the new block take precedence for now

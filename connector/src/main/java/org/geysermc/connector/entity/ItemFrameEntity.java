@@ -84,7 +84,7 @@ public class ItemFrameEntity extends Entity {
     @Override
     public void spawnEntity(GeyserSession session) {
         NbtMapBuilder blockBuilder = NbtMap.builder()
-                .putString("name", "minecraft:frame")
+                .putString("name", this.entityType == EntityType.GLOW_ITEM_FRAME ? "minecraft:glow_frame" : "minecraft:frame")
                 .putInt("version", session.getBlockTranslator().getBlockStateVersion());
         blockBuilder.put("states", NbtMap.builder()
                 .putInt("facing_direction", direction.ordinal())
@@ -167,7 +167,7 @@ public class ItemFrameEntity extends Entity {
         builder.putInt("y", bedrockPosition.getY());
         builder.putInt("z", bedrockPosition.getZ());
         builder.putByte("isMovable", (byte) 1);
-        builder.putString("id", "ItemFrame");
+        builder.putString("id", this.entityType == EntityType.GLOW_ITEM_FRAME ? "GlowItemFrame" : "ItemFrame");
         return builder.build();
     }
 

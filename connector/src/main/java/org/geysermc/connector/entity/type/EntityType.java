@@ -161,7 +161,6 @@ public enum EntityType {
     ZOGLIN(ZoglinEntity.class, 126, 1.4f, 1.3965f, 1.3965f, 0f, "minecraft:zoglin"),
     PIGLIN(PiglinEntity.class, 123, 1.95f, 0.6f, 0.6f, 0f, "minecraft:piglin"),
     PIGLIN_BRUTE(BasePiglinEntity.class, 127, 1.95f, 0.6f, 0.6f, 0f, "minecraft:piglin_brute"),
-    //TODO: AXOLOTL GLOW_ITEM_FRAME
     AXOLOTL(AxolotlEntity.class, 0, 0.42f, 0.7f, 0.7f, 0f, "minecraft:axolotl"),
     GLOW_SQUID(GlowSquidEntity.class, 0, 0.8f, 0.8f, 0.8f, 0f, "minecraft:glow_squid"),
     GOAT(GoatEntity.class, 0, 1.3f, 0.9f, 0.9f, 0f, "minecraft:goat"),
@@ -171,6 +170,7 @@ public enum EntityType {
      * Item frames are handled differently since they are a block in Bedrock.
      */
     ITEM_FRAME(ItemFrameEntity.class, 0, 0, 0),
+    GLOW_ITEM_FRAME(ItemFrameEntity.class, 0, 0, 0),
 
     /**
      * Not an entity in Bedrock, so we replace it with an evoker
