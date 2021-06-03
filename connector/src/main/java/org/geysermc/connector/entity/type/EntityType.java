@@ -162,6 +162,7 @@ public enum EntityType {
     PIGLIN(PiglinEntity.class, 123, 1.95f, 0.6f, 0.6f, 0f, "minecraft:piglin"),
     PIGLIN_BRUTE(BasePiglinEntity.class, 127, 1.95f, 0.6f, 0.6f, 0f, "minecraft:piglin_brute"),
     //TODO: AXOLOTL GLOW_ITEM_FRAME
+    AXOLOTL(AxolotlEntity.class, 0, 0.42f, 0.7f, 0.7f, 0f, "minecraft:axolotl"),
     GLOW_SQUID(GlowSquidEntity.class, 0, 0.8f, 0.8f, 0.8f, 0f, "minecraft:glow_squid"),
     GOAT(GoatEntity.class, 0, 1.3f, 0.9f, 0.9f, 0f, "minecraft:goat"),
     MARKER(Entity.class, 0, 0, 0, 0, 0, "minecraft:marker"), // Only should be used for ALL_JAVA_IDENTIFIERS
