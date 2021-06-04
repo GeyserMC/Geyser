@@ -99,6 +99,9 @@ public class GeyserConnector {
 
     private static GeyserConnector instance;
 
+    /**
+     * This is used in GeyserConnect to stop the bedrock server binding to a port
+     */
     @Setter
     private static boolean shouldStartListener = true;
 
