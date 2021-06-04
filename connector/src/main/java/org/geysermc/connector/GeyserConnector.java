@@ -100,6 +100,9 @@ public class GeyserConnector {
     private static GeyserConnector instance;
 
     @Setter
+    private static boolean shouldStartListener;
+
+    @Setter
     private AuthType defaultAuthType;
 
     private boolean shuttingDown = false;
@@ -219,14 +222,17 @@ public class GeyserConnector {
         }
 
         bedrockServer.setHandler(new ConnectorServerEventHandler(this));
-        bedrockServer.bind().whenComplete((avoid, throwable) -> {
-            if (throwable == null) {
-                logger.info(LanguageUtils.getLocaleStringLog("geyser.core.start", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
-            } else {
-                logger.severe(LanguageUtils.getLocaleStringLog("geyser.core.fail", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
-                throwable.printStackTrace();
-            }
-        }).join();
+
+        if (shouldStartListener) {
+            bedrockServer.bind().whenComplete((avoid, throwable) -> {
+                if (throwable == null) {
+                    logger.info(LanguageUtils.getLocaleStringLog("geyser.core.start", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
+                } else {
+                    logger.severe(LanguageUtils.getLocaleStringLog("geyser.core.fail", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
+                    throwable.printStackTrace();
+                }
+            }).join();
+        }
 
         if (config.getMetrics().isEnabled()) {
             metrics = new Metrics(this, "GeyserMC", config.getMetrics().getUniqueId(), false, java.util.logging.Logger.getLogger(""));
