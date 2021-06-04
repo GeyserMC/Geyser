@@ -100,7 +100,7 @@ public class GeyserConnector {
     private static GeyserConnector instance;
 
     @Setter
-    private static boolean shouldStartListener;
+    private static boolean shouldStartListener = true;
 
     @Setter
     private AuthType defaultAuthType;
