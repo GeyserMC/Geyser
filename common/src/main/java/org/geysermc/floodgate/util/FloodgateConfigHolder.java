@@ -23,34 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window.component;
+package org.geysermc.floodgate.util;
 
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
-public class DropdownComponent extends FormComponent {
-
+public final class FloodgateConfigHolder {
     @Getter
     @Setter
-    private String text;
-
-    @Getter
-    @Setter
-    private List<String> options;
-
-    @Getter
-    @Setter
-    private int defaultOptionIndex;
-
-    public DropdownComponent() {
-        super("dropdown");
-    }
-
-    public void addOption(String option, boolean isDefault) {
-        options.add(option);
-        if (isDefault)
-            defaultOptionIndex = options.size() - 1;
-    }
+    private static Object config;
 }

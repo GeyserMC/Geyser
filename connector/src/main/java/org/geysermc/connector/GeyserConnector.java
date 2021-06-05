@@ -58,7 +58,14 @@ import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
+import org.geysermc.connector.skin.FloodgateSkinUploader;
 import org.geysermc.connector.utils.*;
+import org.geysermc.floodgate.crypto.AesCipher;
+import org.geysermc.floodgate.crypto.AesKeyProducer;
+import org.geysermc.floodgate.crypto.Base64Topping;
+import org.geysermc.floodgate.crypto.FloodgateCipher;
+import org.geysermc.floodgate.news.NewsItemAction;
+import org.geysermc.floodgate.time.TimeSyncer;
 import org.jetbrains.annotations.Contract;
 
 import javax.naming.directory.Attribute;
@@ -66,6 +73,7 @@ import javax.naming.directory.InitialDirContext;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.security.Key;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -75,7 +83,6 @@ import java.util.concurrent.TimeUnit;
 
 @Getter
 public class GeyserConnector {
-
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper()
             .enable(JsonParser.Feature.IGNORE_UNDEFINED)
             .enable(JsonParser.Feature.ALLOW_COMMENTS)
@@ -101,6 +108,11 @@ public class GeyserConnector {
 
     @Setter
     private AuthType defaultAuthType;
+
+    private final TimeSyncer timeSyncer;
+    private FloodgateCipher cipher;
+    private FloodgateSkinUploader skinUploader;
+    private final NewsHandler newsHandler;
 
     private boolean shuttingDown = false;
 
@@ -190,6 +202,36 @@ public class GeyserConnector {
 
         defaultAuthType = AuthType.getByName(config.getRemote().getAuthType());
 
+        TimeSyncer timeSyncer = null;
+        if (defaultAuthType == AuthType.FLOODGATE) {
+            timeSyncer = new TimeSyncer(Constants.NTP_SERVER);
+            try {
+                Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
+                cipher = new AesCipher(new Base64Topping());
+                cipher.init(key);
+                logger.info(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
+                skinUploader = new FloodgateSkinUploader(this).start();
+            } catch (Exception exception) {
+                logger.severe(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
+            }
+        }
+        this.timeSyncer = timeSyncer;
+
+        String branch = "unknown";
+        int buildNumber = -1;
+        try {
+            Properties gitProperties = new Properties();
+            gitProperties.load(FileUtils.getResource("git.properties"));
+            branch = gitProperties.getProperty("git.branch");
+            String build = gitProperties.getProperty("git.build.number");
+            if (build != null) {
+                buildNumber = Integer.parseInt(build);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to read git.properties", e);
+        }
+        newsHandler = new NewsHandler(branch, buildNumber);
+
         CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
         SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS = config.isAllowCustomSkulls();
@@ -241,7 +283,7 @@ public class GeyserConnector {
                 for (GeyserSession session : players) {
                     if (session == null) continue;
                     if (session.getClientData() == null) continue;
-                    String os = session.getClientData().getDeviceOS().toString();
+                    String os = session.getClientData().getDeviceOs().toString();
                     if (!valueMap.containsKey(os)) {
                         valueMap.put(os, 1);
                     } else {
@@ -303,6 +345,8 @@ public class GeyserConnector {
         if (platformType == PlatformType.STANDALONE) {
             logger.warning(LanguageUtils.getLocaleStringLog("geyser.core.movement_warn"));
         }
+
+        newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
     }
 
     public void shutdown() {
@@ -347,6 +391,8 @@ public class GeyserConnector {
 
         generalThreadPool.shutdown();
         bedrockServer.close();
+        timeSyncer.shutdown();
+        newsHandler.shutdown();
         players.clear();
         defaultAuthType = null;
         this.getCommandManager().getCommands().clear();
@@ -423,6 +469,10 @@ public class GeyserConnector {
 
     public WorldManager getWorldManager() {
         return bootstrap.getWorldManager();
+    }
+
+    public TimeSyncer getTimeSyncer() {
+        return timeSyncer;
     }
 
     /**

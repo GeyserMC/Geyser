@@ -23,47 +23,38 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window.component;
+package org.geysermc.floodgate.news.data;
 
-import lombok.Getter;
-import lombok.Setter;
+import com.google.gson.JsonObject;
 
-import java.util.ArrayList;
-import java.util.List;
+public final class BuildSpecificData implements ItemData {
+    private String branch;
 
-public class StepSliderComponent extends FormComponent {
+    private boolean allAffected;
+    private int affectedGreaterThan;
+    private int affectedLessThan;
 
-    @Getter
-    @Setter
-    private String text;
+    public static BuildSpecificData read(JsonObject data) {
+        BuildSpecificData updateData = new BuildSpecificData();
+        updateData.branch = data.get("branch").getAsString();
 
-    @Getter
-    private List<String> steps;
-
-    @Getter
-    @Setter
-    private int defaultStepIndex;
-
-    public StepSliderComponent(String text) {
-        this(text, new ArrayList<String>());
+        JsonObject affectedBuilds = data.getAsJsonObject("affected_builds");
+        if (affectedBuilds.has("all")) {
+            updateData.allAffected = affectedBuilds.get("all").getAsBoolean();
+        }
+        if (!updateData.allAffected) {
+            updateData.affectedGreaterThan = affectedBuilds.get("gt").getAsInt();
+            updateData.affectedLessThan = affectedBuilds.get("lt").getAsInt();
+        }
+        return updateData;
     }
 
-    public StepSliderComponent(String text, List<String> steps) {
-        this(text, steps, 0);
+    public boolean isAffected(String branch, int buildId) {
+        return this.branch.equals(branch) &&
+                (allAffected || buildId > affectedGreaterThan && buildId < affectedLessThan);
     }
 
-    public StepSliderComponent(String text, List<String> steps, int defaultStepIndex) {
-        super("step_slider");
-
-        this.text = text;
-        this.steps = steps;
-        this.defaultStepIndex = defaultStepIndex;
-    }
-
-    public void addStep(String step, boolean isDefault) {
-        steps.add(step);
-
-        if (isDefault)
-            defaultStepIndex = steps.size() - 1;
+    public String getBranch() {
+        return branch;
     }
 }

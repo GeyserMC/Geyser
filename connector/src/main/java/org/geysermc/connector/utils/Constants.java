@@ -23,20 +23,32 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window.component;
+package org.geysermc.connector.utils;
 
-import lombok.Getter;
-import lombok.Setter;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
-public class LabelComponent extends FormComponent {
+public final class Constants {
+    public static final URI GLOBAL_API_WS_URI;
+    public static final String NTP_SERVER = "time.cloudflare.com";
 
-    @Getter
-    @Setter
-    private String text;
+    public static final Set<String> NEWS_PROJECT_LIST = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList("geyser", "floodgate"))
+    );
 
-    public LabelComponent(String text) {
-        super("label");
+    public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v1/news";
 
-        this.text = text;
+    static {
+        URI wsUri = null;
+        try {
+            wsUri = new URI("wss://api.geysermc.org/ws");
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        GLOBAL_API_WS_URI = wsUri;
     }
 }
