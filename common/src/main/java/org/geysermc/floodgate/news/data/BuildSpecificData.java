@@ -23,32 +23,38 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.utils;
+package org.geysermc.floodgate.news.data;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import com.google.gson.JsonObject;
 
-public final class Constants {
-    public static final URI GLOBAL_API_WS_URI;
-    public static final String NTP_SERVER = "time.cloudflare.com";
+public final class BuildSpecificData implements ItemData {
+    private String branch;
 
-    public static final Set<String> NEWS_PROJECT_LIST = Collections.unmodifiableSet(
-            new HashSet<>(Arrays.asList("geyser", "floodgate"))
-    );
+    private boolean allAffected;
+    private int affectedGreaterThan;
+    private int affectedLessThan;
 
-    public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v1/news";
+    public static BuildSpecificData read(JsonObject data) {
+        BuildSpecificData updateData = new BuildSpecificData();
+        updateData.branch = data.get("branch").getAsString();
 
-    static {
-        URI wsUri = null;
-        try {
-            wsUri = new URI("wss://api.geysermc.org/ws");
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
+        JsonObject affectedBuilds = data.getAsJsonObject("affected_builds");
+        if (affectedBuilds.has("all")) {
+            updateData.allAffected = affectedBuilds.get("all").getAsBoolean();
         }
-        GLOBAL_API_WS_URI = wsUri;
+        if (!updateData.allAffected) {
+            updateData.affectedGreaterThan = affectedBuilds.get("gt").getAsInt();
+            updateData.affectedLessThan = affectedBuilds.get("lt").getAsInt();
+        }
+        return updateData;
+    }
+
+    public boolean isAffected(String branch, int buildId) {
+        return this.branch.equals(branch) &&
+                (allAffected || buildId > affectedGreaterThan && buildId < affectedLessThan);
+    }
+
+    public String getBranch() {
+        return branch;
     }
 }

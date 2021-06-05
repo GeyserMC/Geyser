@@ -23,32 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.utils;
+package org.geysermc.floodgate.news.data;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import com.google.gson.JsonObject;
 
-public final class Constants {
-    public static final URI GLOBAL_API_WS_URI;
-    public static final String NTP_SERVER = "time.cloudflare.com";
+public class CheckAfterData implements ItemData {
+    private long checkAfter;
 
-    public static final Set<String> NEWS_PROJECT_LIST = Collections.unmodifiableSet(
-            new HashSet<>(Arrays.asList("geyser", "floodgate"))
-    );
+    public static CheckAfterData read(JsonObject data) {
+        CheckAfterData checkAfterData = new CheckAfterData();
+        checkAfterData.checkAfter = data.get("check_after").getAsLong();
+        return checkAfterData;
+    }
 
-    public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v1/news";
-
-    static {
-        URI wsUri = null;
-        try {
-            wsUri = new URI("wss://api.geysermc.org/ws");
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-        GLOBAL_API_WS_URI = wsUri;
+    public long getCheckAfter() {
+        return checkAfter;
     }
 }

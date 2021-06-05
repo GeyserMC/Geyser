@@ -25,18 +25,16 @@
 
 package org.geysermc.floodgate.time;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 public final class TimeSyncer {
-    private final ExecutorService executorService;
+    private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
     private long timeOffset = Long.MIN_VALUE; // value when it failed to get the offset
 
     public TimeSyncer(String timeServer) {
-        ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
-        service.scheduleWithFixedDelay(() -> {
+        executorService.scheduleWithFixedDelay(() -> {
             // 5 tries to get the time offset, since UDP doesn't guaranty a response
             for (int i = 0; i < 5; i++) {
                 long offset = SntpClientUtils.requestTimeOffset(timeServer, 3000);
@@ -46,7 +44,6 @@ public final class TimeSyncer {
                 }
             }
         }, 0, 30, TimeUnit.MINUTES);
-        executorService = service;
     }
 
     public void shutdown() {

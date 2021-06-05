@@ -23,32 +23,37 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.utils;
+package org.geysermc.floodgate.news;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import com.google.gson.JsonObject;
+import org.geysermc.floodgate.news.data.BuildSpecificData;
+import org.geysermc.floodgate.news.data.CheckAfterData;
+import org.geysermc.floodgate.news.data.ItemData;
 
-public final class Constants {
-    public static final URI GLOBAL_API_WS_URI;
-    public static final String NTP_SERVER = "time.cloudflare.com";
+import java.util.function.Function;
 
-    public static final Set<String> NEWS_PROJECT_LIST = Collections.unmodifiableSet(
-            new HashSet<>(Arrays.asList("geyser", "floodgate"))
-    );
+public enum NewsType {
+    BUILD_SPECIFIC(BuildSpecificData::read),
+    CHECK_AFTER(CheckAfterData::read);
 
-    public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v1/news";
+    private static final NewsType[] VALUES = values();
 
-    static {
-        URI wsUri = null;
-        try {
-            wsUri = new URI("wss://api.geysermc.org/ws");
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
+    private final Function<JsonObject, ? extends ItemData> readFunction;
+
+    NewsType(Function<JsonObject, ? extends ItemData> readFunction) {
+        this.readFunction = readFunction;
+    }
+
+    public static NewsType getByName(String newsType) {
+        for (NewsType type : VALUES) {
+            if (type.name().equalsIgnoreCase(newsType)) {
+                return type;
+            }
         }
-        GLOBAL_API_WS_URI = wsUri;
+        return null;
+    }
+
+    public ItemData read(JsonObject data) {
+        return readFunction.apply(data);
     }
 }

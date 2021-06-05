@@ -64,6 +64,7 @@ import org.geysermc.floodgate.crypto.AesCipher;
 import org.geysermc.floodgate.crypto.AesKeyProducer;
 import org.geysermc.floodgate.crypto.Base64Topping;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
+import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.floodgate.time.TimeSyncer;
 import org.jetbrains.annotations.Contract;
 
@@ -111,6 +112,7 @@ public class GeyserConnector {
     private TimeSyncer timeSyncer;
     private FloodgateCipher cipher;
     private FloodgateSkinUploader skinUploader;
+    private final NewsHandler newsHandler;
 
     private boolean shuttingDown = false;
 
@@ -212,6 +214,21 @@ public class GeyserConnector {
                 logger.severe(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
             }
         }
+
+        String branch = "unknown";
+        int buildNumber = -1;
+        try {
+            Properties gitProperties = new Properties();
+            gitProperties.load(FileUtils.getResource("git.properties"));
+            branch = gitProperties.getProperty("git.branch");
+            String build = gitProperties.getProperty("git.build.number");
+            if (build != null) {
+                buildNumber = Integer.parseInt(build);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to read git.properties", e);
+        }
+        newsHandler = new NewsHandler(branch, buildNumber);
 
         CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
@@ -326,6 +343,8 @@ public class GeyserConnector {
         if (platformType == PlatformType.STANDALONE) {
             logger.warning(LanguageUtils.getLocaleStringLog("geyser.core.movement_warn"));
         }
+
+        newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
     }
 
     public void shutdown() {
@@ -371,6 +390,7 @@ public class GeyserConnector {
         generalThreadPool.shutdown();
         bedrockServer.close();
         timeSyncer.shutdown();
+        newsHandler.shutdown();
         players.clear();
         defaultAuthType = null;
         this.getCommandManager().getCommands().clear();

@@ -23,32 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.utils;
+package org.geysermc.floodgate.news;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+public enum NewsItemAction {
+    ON_SERVER_STARTED,
+    ON_OPERATOR_JOIN,
+    BROADCAST_TO_CONSOLE,
+    BROADCAST_TO_OPERATORS;
 
-public final class Constants {
-    public static final URI GLOBAL_API_WS_URI;
-    public static final String NTP_SERVER = "time.cloudflare.com";
+    private static final NewsItemAction[] VALUES = values();
 
-    public static final Set<String> NEWS_PROJECT_LIST = Collections.unmodifiableSet(
-            new HashSet<>(Arrays.asList("geyser", "floodgate"))
-    );
-
-    public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v1/news";
-
-    static {
-        URI wsUri = null;
-        try {
-            wsUri = new URI("wss://api.geysermc.org/ws");
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
+    public static NewsItemAction getByName(String actionName) {
+        for (NewsItemAction type : VALUES) {
+            if (type.name().equalsIgnoreCase(actionName)) {
+                return type;
+            }
         }
-        GLOBAL_API_WS_URI = wsUri;
+        return null;
     }
 }

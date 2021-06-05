@@ -63,7 +63,7 @@ public final class FloodgateSkinUploader {
 
     public FloodgateSkinUploader(GeyserConnector connector) {
         this.logger = connector.getLogger();
-        this.client = new WebSocketClient(Constants.SKIN_UPLOAD_URI) {
+        this.client = new WebSocketClient(Constants.GLOBAL_API_WS_URI) {
             @Override
             public void onOpen(ServerHandshake handshake) {
                 setConnectionLostTimeout(11);
@@ -99,7 +99,7 @@ public final class FloodgateSkinUploader {
                             id = node.get("id").asInt();
                             verifyCode = node.get("verify_code").asText();
                             break;
-                        case SUBSCRIBERS_COUNT:
+                        case SUBSCRIBER_COUNT:
                             subscribersCount = node.get("subscribers_count").asInt();
                             break;
                         case SKIN_UPLOADED:
@@ -145,6 +145,8 @@ public final class FloodgateSkinUploader {
                                     break;
                             }
                             break;
+                        case NEWS_ADDED:
+                            //todo
                     }
                 } catch (Exception e) {
                     logger.error("Error while receiving a message", e);

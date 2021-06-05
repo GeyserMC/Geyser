@@ -45,9 +45,8 @@ public class WebUtils {
      * @return Body contents or error message if the request fails
      */
     public static String getBody(String reqURL) {
-        URL url = null;
         try {
-            url = new URL(reqURL);
+            URL url = new URL(reqURL);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
             con.setRequestProperty("User-Agent", "Geyser-" + GeyserConnector.getInstance().getPlatformType().toString() + "/" + GeyserConnector.VERSION); // Otherwise Java 8 fails on checking updates
