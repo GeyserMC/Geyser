@@ -23,7 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window.response;
+package org.geysermc.floodgate.news;
 
-public interface FormResponse {
+public enum NewsItemAction {
+    ON_SERVER_STARTED,
+    ON_OPERATOR_JOIN,
+    BROADCAST_TO_CONSOLE,
+    BROADCAST_TO_OPERATORS;
+
+    private static final NewsItemAction[] VALUES = values();
+
+    public static NewsItemAction getByName(String actionName) {
+        for (NewsItemAction type : VALUES) {
+            if (type.name().equalsIgnoreCase(actionName)) {
+                return type;
+            }
+        }
+        return null;
+    }
 }

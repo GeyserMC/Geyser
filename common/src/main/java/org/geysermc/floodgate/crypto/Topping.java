@@ -23,24 +23,9 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window.response;
+package org.geysermc.floodgate.crypto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.geysermc.common.window.response.FormResponse;
-import org.geysermc.common.window.response.FormResponseData;
-
-import java.util.Map;
-
-@Getter
-@AllArgsConstructor
-public class CustomFormResponse implements FormResponse {
-
-    private Map<Integer, Object> responses;
-    private Map<Integer, FormResponseData> dropdownResponses;
-    private Map<Integer, String> inputResponses;
-    private Map<Integer, Float> sliderResponses;
-    private Map<Integer, FormResponseData> stepSliderResponses;
-    private Map<Integer, Boolean> toggleResponses;
-    private Map<Integer, String> labelResponses;
+public interface Topping {
+    byte[] encode(byte[] data);
+    byte[] decode(byte[] data);
 }

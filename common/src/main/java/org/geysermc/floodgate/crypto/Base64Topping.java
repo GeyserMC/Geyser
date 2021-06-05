@@ -23,40 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window.button;
+package org.geysermc.floodgate.crypto;
 
-import lombok.Getter;
-import lombok.Setter;
+import java.util.Base64;
 
-public class FormImage {
-
-    @Getter
-    @Setter
-    private String type;
-
-    @Getter
-    @Setter
-    private String data;
-
-    public FormImage(FormImageType type, String data) {
-        this.type = type.getName();
-        this.data = data;
+public final class Base64Topping implements Topping {
+    @Override
+    public byte[] encode(byte[] data) {
+        return Base64.getEncoder().encode(data);
     }
 
-    public enum FormImageType {
-        PATH("path"),
-        URL("url");
-
-        @Getter
-        private String name;
-
-        FormImageType(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String toString() {
-            return name;
-        }
+    @Override
+    public byte[] decode(byte[] data) {
+        return Base64.getDecoder().decode(data);
     }
 }

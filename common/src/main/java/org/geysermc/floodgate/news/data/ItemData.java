@@ -23,15 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window.response;
+package org.geysermc.floodgate.news.data;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@AllArgsConstructor
-@Getter
-public class FormResponseData {
-
-    private int elementID;
-    private String elementContent;
+public interface ItemData {
 }

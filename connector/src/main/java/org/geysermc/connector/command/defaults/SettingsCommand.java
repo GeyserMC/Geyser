@@ -32,17 +32,15 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.SettingsUtils;
 
 public class SettingsCommand extends GeyserCommand {
-
     public SettingsCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);
     }
 
     @Override
     public void execute(GeyserSession session, CommandSender sender, String[] args) {
-        if (session == null) return;
-
-        SettingsUtils.buildForm(session);
-        session.sendForm(session.getSettingsForm(), SettingsUtils.SETTINGS_FORM_ID);
+        if (session != null) {
+            session.sendForm(SettingsUtils.buildForm(session));
+        }
     }
 
     @Override

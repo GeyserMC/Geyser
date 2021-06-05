@@ -23,16 +23,37 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.common.window.component;
+package org.geysermc.floodgate.news;
 
-import lombok.Getter;
+import com.google.gson.JsonObject;
+import org.geysermc.floodgate.news.data.BuildSpecificData;
+import org.geysermc.floodgate.news.data.CheckAfterData;
+import org.geysermc.floodgate.news.data.ItemData;
 
-public abstract class FormComponent {
+import java.util.function.Function;
 
-    @Getter
-    private final String type;
+public enum NewsType {
+    BUILD_SPECIFIC(BuildSpecificData::read),
+    CHECK_AFTER(CheckAfterData::read);
 
-    public FormComponent(String type) {
-        this.type = type;
+    private static final NewsType[] VALUES = values();
+
+    private final Function<JsonObject, ? extends ItemData> readFunction;
+
+    NewsType(Function<JsonObject, ? extends ItemData> readFunction) {
+        this.readFunction = readFunction;
+    }
+
+    public static NewsType getByName(String newsType) {
+        for (NewsType type : VALUES) {
+            if (type.name().equalsIgnoreCase(newsType)) {
+                return type;
+            }
+        }
+        return null;
+    }
+
+    public ItemData read(JsonObject data) {
+        return readFunction.apply(data);
     }
 }
