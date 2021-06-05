@@ -530,7 +530,7 @@ public class ItemRegistry {
 
         Set<String> javaOnlyItems = new ObjectOpenHashSet<>();
         Collections.addAll(javaOnlyItems, "minecraft:spectral_arrow", "minecraft:debug_stick",
-                "minecraft:knowledge_book", "minecraft:tipped_arrow");
+                "minecraft:knowledge_book", "minecraft:tipped_arrow", "minecraft:trader_llama_spawn_egg");
         if (!usingFurnaceMinecart) {
             javaOnlyItems.add("minecraft:furnace_minecart");
         }
