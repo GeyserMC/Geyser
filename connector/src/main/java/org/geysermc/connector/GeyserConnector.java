@@ -109,7 +109,7 @@ public class GeyserConnector {
     @Setter
     private AuthType defaultAuthType;
 
-    private TimeSyncer timeSyncer;
+    private final TimeSyncer timeSyncer;
     private FloodgateCipher cipher;
     private FloodgateSkinUploader skinUploader;
     private final NewsHandler newsHandler;
@@ -202,6 +202,7 @@ public class GeyserConnector {
 
         defaultAuthType = AuthType.getByName(config.getRemote().getAuthType());
 
+        TimeSyncer timeSyncer = null;
         if (defaultAuthType == AuthType.FLOODGATE) {
             timeSyncer = new TimeSyncer(Constants.NTP_SERVER);
             try {
@@ -214,6 +215,7 @@ public class GeyserConnector {
                 logger.severe(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
             }
         }
+        this.timeSyncer = timeSyncer;
 
         String branch = "unknown";
         int buildNumber = -1;

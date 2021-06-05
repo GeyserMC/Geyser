@@ -140,10 +140,10 @@ public class GeyserSession implements CommandSender {
     private ChunkCache chunkCache;
     private EntityCache entityCache;
     private EntityEffectCache effectCache;
+    private final FormCache formCache;
     private final PreferencesCache preferencesCache;
     private final TagCache tagCache;
     private WorldCache worldCache;
-    private FormCache formCache;
     private final Int2ObjectMap<TeleportCache> teleportMap = new Int2ObjectOpenHashMap<>();
 
     private final PlayerInventory playerInventory;
@@ -445,12 +445,13 @@ public class GeyserSession implements CommandSender {
         this.chunkCache = new ChunkCache(this);
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
+        this.formCache = new FormCache(this);
         this.preferencesCache = new PreferencesCache(this);
         this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
-        this.formCache = new FormCache(this);
 
         this.collisionManager = new CollisionManager(this);
+
         this.playerEntity = new SessionPlayerEntity(this);
         collisionManager.updatePlayerBoundingBox(this.playerEntity.getPosition());
 
@@ -851,7 +852,6 @@ public class GeyserSession implements CommandSender {
         this.entityCache = null;
         this.effectCache = null;
         this.worldCache = null;
-        this.formCache = null;
 
         closed = true;
     }

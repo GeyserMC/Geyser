@@ -33,6 +33,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.cumulus.Form;
+import org.geysermc.cumulus.SimpleForm;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -58,13 +59,15 @@ public class FormCache {
         formRequestPacket.setFormData(form.getJsonData());
         session.sendUpstreamPacket(formRequestPacket);
 
-        // Hack to fix the url image loading bug
-        NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
-        latencyPacket.setFromServer(true);
-        latencyPacket.setTimestamp(-System.currentTimeMillis());
-        session.getConnector().getGeneralThreadPool().schedule(
-                () -> session.sendUpstreamPacket(latencyPacket),
-                500, TimeUnit.MILLISECONDS);
+        // Hack to fix the (url) image loading bug
+        if (form instanceof SimpleForm) {
+            NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
+            latencyPacket.setFromServer(true);
+            latencyPacket.setTimestamp(-System.currentTimeMillis());
+            session.getConnector().getGeneralThreadPool().schedule(
+                    () -> session.sendUpstreamPacket(latencyPacket),
+                    500, TimeUnit.MILLISECONDS);
+        }
 
         return windowId;
     }

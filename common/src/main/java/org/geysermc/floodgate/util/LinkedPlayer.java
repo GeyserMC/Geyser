@@ -48,7 +48,7 @@ public final class LinkedPlayer implements Cloneable {
      */
     private final UUID bedrockId;
     /**
-     * If the LinkedPlayer is send from a different platform. For example the LinkedPlayer is from
+     * If the LinkedPlayer is sent from a different platform. For example the LinkedPlayer is from
      * Bungee but the data has been sent to the Bukkit server.
      */
     private boolean fromDifferentPlatform = false;

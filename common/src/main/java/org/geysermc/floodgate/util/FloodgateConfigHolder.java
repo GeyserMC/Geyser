@@ -28,7 +28,7 @@ package org.geysermc.floodgate.util;
 import lombok.Getter;
 import lombok.Setter;
 
-public class FloodgateConfigHolder {
+public final class FloodgateConfigHolder {
     @Getter
     @Setter
     private static Object config;
