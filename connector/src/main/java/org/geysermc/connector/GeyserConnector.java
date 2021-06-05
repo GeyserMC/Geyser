@@ -106,7 +106,7 @@ public class GeyserConnector {
 
     private final ScheduledExecutorService generalThreadPool;
 
-    private BedrockServer bedrockServer;
+    private final BedrockServer bedrockServer;
     private final PlatformType platformType;
     private final GeyserBootstrap bootstrap;
 
