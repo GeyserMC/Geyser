@@ -27,6 +27,7 @@ package org.geysermc.connector.entity.player;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
@@ -332,6 +333,26 @@ public class PlayerEntity extends LivingEntity {
                 }
             }
         }
+    }
+
+    @Override
+    protected void setDimensions(Pose pose) {
+        float height;
+        switch (pose) {
+            case SNEAKING:
+                height = 1.5f;
+                break;
+            case FALL_FLYING:
+            case SPIN_ATTACK:
+            case SWIMMING:
+                height = 0.6f;
+                break;
+            default:
+                super.setDimensions(pose);
+                return;
+        }
+        metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
+        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
     }
 
     @Override

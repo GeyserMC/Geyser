@@ -26,6 +26,7 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
@@ -109,6 +110,16 @@ public class LivingEntity extends Entity {
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    protected void setDimensions(Pose pose) {
+        if (pose == Pose.SLEEPING) {
+            metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.2f);
+            metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.2f);
+        } else {
+            super.setDimensions(pose);
+        }
     }
 
     public void updateAllEquipment(GeyserSession session) {

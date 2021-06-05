@@ -303,31 +303,7 @@ public class Entity {
                 metadata.getFlags().setFlag(EntityFlag.SLEEPING, pose.equals(Pose.SLEEPING));
                 // Triggered when crawling
                 metadata.getFlags().setFlag(EntityFlag.SWIMMING, pose.equals(Pose.SWIMMING));
-                float width = entityType.getWidth();
-                float height = entityType.getHeight();
-                switch (pose) {
-                    case SLEEPING:
-                        if (this instanceof LivingEntity) {
-                            width = 0.2f;
-                            height = 0.2f;
-                        }
-                        break;
-                    case SNEAKING:
-                        if (entityType == EntityType.PLAYER) {
-                            height = 1.5f;
-                        }
-                        break;
-                    case FALL_FLYING:
-                    case SPIN_ATTACK:
-                    case SWIMMING:
-                        if (entityType == EntityType.PLAYER) {
-                            // Seems like this is only cared about for players; nothing else
-                            height = 0.6f;
-                        }
-                        break;
-                }
-                metadata.put(EntityData.BOUNDING_BOX_WIDTH, width);
-                metadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
+                setDimensions(pose);
                 break;
             case 7:
                 //TODO check
@@ -347,6 +323,15 @@ public class Entity {
         entityDataPacket.setRuntimeEntityId(geyserId);
         entityDataPacket.getMetadata().putAll(metadata);
         session.sendUpstreamPacket(entityDataPacket);
+    }
+
+    /**
+     * Set the height and width of the entity's bounding box
+     */
+    protected void setDimensions(Pose pose) {
+        // No flexibility options for basic entities
+        metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
+        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
     }
 
     /**

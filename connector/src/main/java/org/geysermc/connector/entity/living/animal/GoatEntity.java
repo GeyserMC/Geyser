@@ -26,11 +26,16 @@
 package org.geysermc.connector.entity.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
 public class GoatEntity extends AnimalEntity {
+    private static final float LONG_JUMPING_HEIGHT = 1.3f * 0.7f;
+    private static final float LONG_JUMPING_WIDTH = 0.9f * 0.7f;
+
     public GoatEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }
@@ -39,6 +44,15 @@ public class GoatEntity extends AnimalEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         super.updateBedrockMetadata(entityMetadata, session);
 
+    }
 
+    @Override
+    protected void setDimensions(Pose pose) {
+        if (pose == Pose.LONG_JUMPING) {
+            metadata.put(EntityData.BOUNDING_BOX_WIDTH, LONG_JUMPING_WIDTH);
+            metadata.put(EntityData.BOUNDING_BOX_HEIGHT, LONG_JUMPING_HEIGHT);
+        } else {
+            super.setDimensions(pose);
+        }
     }
 }
