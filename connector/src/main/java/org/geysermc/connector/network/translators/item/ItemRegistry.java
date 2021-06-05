@@ -456,7 +456,7 @@ public class ItemRegistry {
                 BOATS.add(entry.getValue().get("bedrock_id").intValue());
             } else if (entry.getKey().contains("bucket") && !entry.getKey().contains("milk")) {
                 BUCKETS.add(entry.getValue().get("bedrock_id").intValue());
-            } else if (entry.getKey().contains("_carpet")) {
+            } else if (entry.getKey().contains("_carpet") && !entry.getKey().contains("moss")) {
                 // This should be the numerical order Java sends as an integer value for llamas
                 CARPETS.add(ItemData.builder()
                         .id(itemEntry.getBedrockId())
