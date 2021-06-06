@@ -151,6 +151,13 @@ public abstract class BlockTranslator {
                 builder.pickItem(pickItemNode.textValue());
             }
 
+            boolean waterlogged = entry.getKey().contains("waterlogged=true")
+                    || javaId.contains("minecraft:bubble_column") || javaId.contains("minecraft:kelp") || javaId.contains("seagrass");
+
+            if (waterlogged) {
+                WATERLOGGED.add(javaRuntimeId);
+            }
+
             JAVA_ID_BLOCK_MAP.put(javaId, javaRuntimeId);
 
             BlockStateValues.storeBlockStateValues(entry.getKey(), javaRuntimeId, entry.getValue());
@@ -286,7 +293,6 @@ public abstract class BlockTranslator {
 
             if (waterlogged) {
                 bedrockToJavaBlockMap.putIfAbsent(bedrockRuntimeId | 1 << 31, javaRuntimeId);
-                WATERLOGGED.add(javaRuntimeId);
             } else {
                 bedrockToJavaBlockMap.putIfAbsent(bedrockRuntimeId, javaRuntimeId);
             }
