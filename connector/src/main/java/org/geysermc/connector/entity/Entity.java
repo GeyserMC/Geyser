@@ -307,9 +307,9 @@ public class Entity {
                 break;
             case 7: // Freezing ticks
                 // The value that Java edition gives us is in ticks, but Bedrock uses a float percentage of the strength 0.0 -> 1.0
-                // The Java client caps its freezing tick percentage at 140
-                int freezingTicks = Math.min((int) entityMetadata.getValue(), 140);
-                metadata.put(EntityData.FREEZING_EFFECT_STRENGTH, (freezingTicks / (float) 140));
+                // The Java client caps its TicksFrozen tag at 140
+                int freezingTicks = Math.max((int) entityMetadata.getValue(), 140);
+                metadata.put(EntityData.FREEZING_EFFECT_STRENGTH, (freezingTicks / 140F));
                 break;
         }
     }
