@@ -120,6 +120,13 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         this.geyserLogger = new GeyserSpigotLogger(getLogger(), geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
+        // Remove this in like a year
+        if (Bukkit.getPluginManager().getPlugin("floodgate-bukkit") != null) {
+            geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/"));
+            this.getPluginLoader().disablePlugin(this);
+            return;
+        }
+
         if (geyserConfig.getRemote().getAuthType().equals("floodgate") && Bukkit.getPluginManager().getPlugin("floodgate") == null) {
             geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             this.getPluginLoader().disablePlugin(this);
