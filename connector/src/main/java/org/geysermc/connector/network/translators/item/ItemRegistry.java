@@ -404,13 +404,16 @@ public class ItemRegistry {
                             "", bedrockBlockId,
                             stackSize);
                 }
-            } else if (entry.getKey().equals("minecraft:spectral_arrow") || entry.getKey().equals("minecraft:knowledge_book")) {
-                // These items don't exist on Java, so set up a container that indicates they should have custom names
+            } else if (entry.getKey().equals("minecraft:spectral_arrow") || entry.getKey().equals("minecraft:knowledge_book")
+            // To remove later... hopefully
+            || entry.getKey().contains("candle") || entry.getKey().equals("minecraft:bundle") || entry.getKey().equals("minecraft:sculk_sensor")) {
+                // These items don't exist on Bedrock, so set up a container that indicates they should have custom names
                 itemEntry = new TranslatableItemEntry(
                         entry.getKey(), bedrockIdentifier, itemIndex, bedrockId,
                         entry.getValue().get("bedrock_data").intValue(),
                         bedrockBlockId,
                         stackSize);
+                GeyserConnector.getInstance().getLogger().debug("Adding " + entry.getKey() + " as an item that needs to be translated.");
             } else {
                 itemEntry = new ItemEntry(
                         entry.getKey(), bedrockIdentifier, itemIndex, bedrockId,
@@ -530,7 +533,13 @@ public class ItemRegistry {
 
         Set<String> javaOnlyItems = new ObjectOpenHashSet<>();
         Collections.addAll(javaOnlyItems, "minecraft:spectral_arrow", "minecraft:debug_stick",
-                "minecraft:knowledge_book", "minecraft:tipped_arrow", "minecraft:trader_llama_spawn_egg");
+                "minecraft:knowledge_book", "minecraft:tipped_arrow", "minecraft:trader_llama_spawn_egg",
+                // To be removed in Bedrock 1.17.10... right??? RIGHT???
+                "minecraft:candle", "minecraft:white_candle", "minecraft:orange_candle", "minecraft:magenta_candle",
+                "minecraft:light_blue_candle", "minecraft:yellow_candle", "minecraft:lime_candle", "minecraft:pink_candle",
+                "minecraft:gray_candle", "minecraft:light_gray_candle", "minecraft:cyan_candle", "minecraft:purple_candle",
+                "minecraft:blue_candle", "minecraft:brown_candle", "minecraft:green_candle", "minecraft:red_candle", "minecraft:black_candle",
+                "minecraft:bundle", "minecraft:sculk_sensor");
         if (!usingFurnaceMinecart) {
             javaOnlyItems.add("minecraft:furnace_minecart");
         }
