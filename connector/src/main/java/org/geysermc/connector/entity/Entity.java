@@ -305,9 +305,11 @@ public class Entity {
                 metadata.getFlags().setFlag(EntityFlag.SWIMMING, pose.equals(Pose.SWIMMING));
                 setDimensions(pose);
                 break;
-            case 7:
-                //TODO check
-                metadata.put(EntityData.FREEZING_EFFECT_STRENGTH, entityMetadata.getValue());
+            case 7: // Freezing ticks
+                // The value that Java edition gives us is in ticks, but Bedrock uses a float percentage of the strength 0.0 -> 1.0
+                // The Java client caps its freezing tick percentage at 140
+                int freezingTicks = Math.min((int) entityMetadata.getValue(), 140);
+                metadata.put(EntityData.FREEZING_EFFECT_STRENGTH, (freezingTicks / (float) 140));
                 break;
         }
     }
