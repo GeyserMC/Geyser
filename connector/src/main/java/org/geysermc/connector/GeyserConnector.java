@@ -391,7 +391,9 @@ public class GeyserConnector {
 
         generalThreadPool.shutdown();
         bedrockServer.close();
-        timeSyncer.shutdown();
+        if (timeSyncer != null) {
+            timeSyncer.shutdown();
+        }
         newsHandler.shutdown();
         players.clear();
         defaultAuthType = null;
