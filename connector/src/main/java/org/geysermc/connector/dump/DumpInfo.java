@@ -43,6 +43,7 @@ import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.FloodgateConfigHolder;
+import org.geysermc.floodgate.util.FloodgateGitPropertiesHolder;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,9 +61,9 @@ public class DumpInfo {
     private final DumpInfo.VersionInfo versionInfo;
     private Properties gitInfo;
     private final GeyserConfiguration config;
-    private final Object floodgateConfig;
-    private final HashInfo hashInfo;
+    private final Floodgate floodgate;
     private final Object2IntMap<DeviceOs> userPlatforms;
+    private final HashInfo hashInfo;
     private final RamInfo ramInfo;
     private final BootstrapDumpInfo bootstrapInfo;
 
@@ -76,7 +77,7 @@ public class DumpInfo {
         }
 
         this.config = GeyserConnector.getInstance().getConfig();
-        this.floodgateConfig = FloodgateConfigHolder.getConfig();
+        this.floodgate = new Floodgate();
 
         String md5Hash = "unknown";
         String sha256Hash = "unknown";
@@ -95,7 +96,6 @@ public class DumpInfo {
                 e.printStackTrace();
             }
         }
-
         this.hashInfo = new HashInfo(md5Hash, sha256Hash);
 
         this.ramInfo = new DumpInfo.RamInfo();
@@ -133,13 +133,6 @@ public class DumpInfo {
             this.network = new NetworkInfo();
             this.mcInfo = new MCInfo();
         }
-    }
-
-    @AllArgsConstructor
-    @Getter
-    public static class HashInfo {
-        private final String md5Hash;
-        private final String sha256Hash;
     }
 
     @Getter
@@ -183,6 +176,24 @@ public class DumpInfo {
             this.javaVersion = MinecraftConstants.GAME_VERSION;
             this.javaProtocol = MinecraftConstants.PROTOCOL_VERSION;
         }
+    }
+
+    @Getter
+    public static class Floodgate {
+        private final Properties gitInfo;
+        private final Object config;
+
+        Floodgate() {
+            this.gitInfo = FloodgateGitPropertiesHolder.getGitProperties();
+            this.config = FloodgateConfigHolder.getConfig();
+        }
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class HashInfo {
+        private final String md5Hash;
+        private final String sha256Hash;
     }
 
     @Getter
