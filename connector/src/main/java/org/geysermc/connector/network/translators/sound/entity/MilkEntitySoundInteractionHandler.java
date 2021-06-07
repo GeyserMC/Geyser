@@ -27,27 +27,38 @@ package org.geysermc.connector.network.translators.sound.entity;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.living.animal.GoatEntity;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.sound.EntitySoundInteractionHandler;
 import org.geysermc.connector.network.translators.sound.SoundHandler;
 
-@SoundHandler(entities = "cow", items = "bucket")
-public class MilkCowSoundInteractionHandler implements EntitySoundInteractionHandler {
+@SoundHandler(entities = {"cow", "goat"}, items = "bucket")
+public class MilkEntitySoundInteractionHandler implements EntitySoundInteractionHandler {
 
     @Override
     public void handleInteraction(GeyserSession session, Vector3f position, Entity value) {
         if (!session.getPlayerInventory().getItemInHand().getItemEntry().getJavaIdentifier().equals("minecraft:bucket")) {
             return;
         }
+        if (value.getMetadata().getFlags().getFlag(EntityFlag.BABY)) {
+            return;
+        }
+
+        SoundEvent milkSound;
+        if (value instanceof GoatEntity && ((GoatEntity) value).isScreamer()) {
+            milkSound = SoundEvent.MILK_SCREAMER;
+        } else {
+            milkSound = SoundEvent.MILK;
+        }
         LevelSoundEventPacket levelSoundEventPacket = new LevelSoundEventPacket();
         levelSoundEventPacket.setPosition(position);
         levelSoundEventPacket.setBabySound(false);
         levelSoundEventPacket.setRelativeVolumeDisabled(false);
         levelSoundEventPacket.setIdentifier(":");
-        levelSoundEventPacket.setSound(SoundEvent.MILK);
+        levelSoundEventPacket.setSound(milkSound);
         levelSoundEventPacket.setExtraData(-1);
         session.sendUpstreamPacket(levelSoundEventPacket);
     }
