@@ -48,13 +48,6 @@ public class ShulkerEntity extends GolemEntity {
             BlockFace blockFace = (BlockFace) entityMetadata.getValue();
             metadata.put(EntityData.SHULKER_ATTACH_FACE, (byte) blockFace.ordinal());
         }
-        //TODO - this was removed on Java Edition, but does Bedrock Edition still need it??
-//        if (entityMetadata.getId() == 16) {
-//            Position position = (Position) entityMetadata.getValue();
-//            if (position != null) {
-//                metadata.put(EntityData.SHULKER_ATTACH_POS, Vector3i.from(position.getX(), position.getY(), position.getZ()));
-//            }
-//        }
 
         if (entityMetadata.getId() == 17) {
             int height = (byte) entityMetadata.getValue();
