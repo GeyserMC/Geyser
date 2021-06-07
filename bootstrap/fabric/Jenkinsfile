@@ -2,7 +2,7 @@ pipeline {
     agent any
     tools {
         gradle 'Gradle 6'
-        jdk 'Java 8'
+        jdk 'Java 16'
     }
 
     parameters{    
@@ -27,7 +27,10 @@ pipeline {
 
         stage ('Deploy') {
                     when {
-                        branch "java-1.16"
+                        anyOf {
+                            branch "java-1.16"
+                            branch "java-1.17"
+                        }
                     }
 
                     steps {

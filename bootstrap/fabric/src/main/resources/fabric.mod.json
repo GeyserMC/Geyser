@@ -23,8 +23,8 @@
     "geyser-fabric.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.10.1+build.209",
+    "fabricloader": ">=0.11.3",
     "fabric": "*",
-    "minecraft": ">=1.16.3"
+    "minecraft": "1.17.x"
   }
 }

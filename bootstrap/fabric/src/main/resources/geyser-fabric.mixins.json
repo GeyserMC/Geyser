@@ -1,7 +1,7 @@
 {
   "required": true,
   "package": "org.geysermc.platform.fabric.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_16",
   "client": [
     "client.IntegratedServerMixin"
   ],

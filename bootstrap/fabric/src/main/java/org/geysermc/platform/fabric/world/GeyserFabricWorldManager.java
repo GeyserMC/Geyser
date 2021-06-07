@@ -35,7 +35,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.WritableBookItem;
 import net.minecraft.item.WrittenBookItem;
-import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -89,7 +89,7 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
                         .putString("Name", "minecraft:writable_book");
                 List<NbtMap> pages = new ArrayList<>(hasBookPages ? pageCount : 1);
                 if (hasBookPages && WritableBookItem.isValid(book.getTag())) {
-                    ListTag listTag = book.getTag().getList("pages", 8);
+                    NbtList listTag = book.getTag().getList("pages", 8);
 
                     for (int i = 0; i < listTag.size(); i++) {
                         String page = listTag.getString(i);
