@@ -159,7 +159,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 Class.forName("com.viaversion.viaversion.api.ViaManager");
             } catch (ClassNotFoundException e) {
                 geyserLogger.warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.viaversion.too_old",
-                        "https://ci.viaversion.com/job/ViaVersion-DEV/"));
+                        "https://ci.viaversion.com/job/ViaVersion/"));
                 isViaVersion = false;
                 if (this.geyserConfig.isDebugMode()) {
                     e.printStackTrace();
