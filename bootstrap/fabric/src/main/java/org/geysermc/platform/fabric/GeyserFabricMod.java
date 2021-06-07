@@ -104,6 +104,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         } catch (IOException ex) {
             LogManager.getLogger("geyser-fabric").error(LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
+            return;
         }
 
         this.geyserLogger = new GeyserFabricLogger(geyserConfig.isDebugMode());
