@@ -16,7 +16,7 @@ pipeline {
     stages {
         stage ('Build') {
             steps {
-                sh 'gradle clean build --refresh-dependencies'
+                sh './gradlew clean build --refresh-dependencies'
             }
             post {
                 success {
