@@ -28,6 +28,7 @@ package org.geysermc.connector;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.nukkitx.network.raknet.RakNetConstants;
 import com.nukkitx.network.util.EventLoops;
 import com.nukkitx.protocol.bedrock.BedrockServer;
@@ -93,7 +94,7 @@ public class GeyserConnector {
     public static final String NAME = "Geyser";
     public static final String GIT_VERSION = "DEV"; // A fallback for running in IDEs
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
-    public static final String MINECRAFT_VERSION = "1.16.4 - 1.16.5";
+    public static final String MINECRAFT_VERSION = MinecraftConstants.GAME_VERSION; // Change if multiple version strings are supported
 
     /**
      * Oauth client ID for Microsoft authentication
