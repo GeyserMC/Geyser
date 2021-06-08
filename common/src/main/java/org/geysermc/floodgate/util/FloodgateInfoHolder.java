@@ -27,9 +27,13 @@ package org.geysermc.floodgate.util;
 
 import lombok.Getter;
 import lombok.Setter;
+
 import java.util.Properties;
 
-public class FloodgateGitPropertiesHolder {
+public final class FloodgateInfoHolder {
+    @Getter
+    @Setter
+    private static Object config;
     @Getter
     @Setter
     private static Properties gitProperties;

@@ -100,6 +100,10 @@ public final class NewsItem {
         return project;
     }
 
+    public boolean isGlobal() {
+        return "all".equals(getProject());
+    }
+
     public boolean isActive() {
         return active;
     }
