@@ -27,18 +27,14 @@ package org.geysermc.connector.utils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 public final class Constants {
     public static final URI GLOBAL_API_WS_URI;
     public static final String NTP_SERVER = "time.cloudflare.com";
 
-    public static final Set<String> NEWS_PROJECT_LIST = Collections.unmodifiableSet(
-            new HashSet<>(Arrays.asList("geyser", "floodgate"))
-    );
+    public static final Set<String> NEWS_PROJECT_LIST = Collections.singleton("geyser");
 
     public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v1/news";
 
