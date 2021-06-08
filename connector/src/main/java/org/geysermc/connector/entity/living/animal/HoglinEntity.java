@@ -41,7 +41,7 @@ public class HoglinEntity extends AnimalEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 17) {
             // Immune to zombification?
             // Apply shaking effect if not in the nether and zombification is possible
             metadata.getFlags().setFlag(EntityFlag.SHAKING, !((boolean) entityMetadata.getValue()) && !session.getDimension().equals(DimensionUtils.NETHER));

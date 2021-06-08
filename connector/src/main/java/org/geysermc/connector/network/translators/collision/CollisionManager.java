@@ -141,32 +141,22 @@ public class CollisionManager {
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY,
                 Double.parseDouble(Float.toString(bedrockPosition.getZ())));
 
-        if (session.getConnector().getConfig().isCacheChunks()) {
-            // With chunk caching, we can do some proper collision checks
-            updatePlayerBoundingBox(position);
+        updatePlayerBoundingBox(position);
 
-            // Correct player position
-            if (!correctPlayerPosition()) {
-                // Cancel the movement if it needs to be cancelled
-                recalculatePosition();
-                return null;
-            }
+        // Correct player position
+        if (!correctPlayerPosition()) {
+            // Cancel the movement if it needs to be cancelled
+            recalculatePosition();
+            return null;
+        }
 
-            position = Vector3d.from(playerBoundingBox.getMiddleX(),
-                    playerBoundingBox.getMiddleY() - (playerBoundingBox.getSizeY() / 2),
-                    playerBoundingBox.getMiddleZ());
+        position = Vector3d.from(playerBoundingBox.getMiddleX(),
+                playerBoundingBox.getMiddleY() - (playerBoundingBox.getSizeY() / 2),
+                playerBoundingBox.getMiddleZ());
 
-            if (!onGround) {
-                // Trim the position to prevent rounding errors that make Java think we are clipping into a block
-                position = Vector3d.from(position.getX(), Double.parseDouble(DECIMAL_FORMAT.format(position.getY())), position.getZ());
-            }
-        } else {
-            // When chunk caching is off, we have to rely on this
-            // It rounds the Y position up to the nearest 0.5
-            // This snaps players to snap to the top of stairs and slabs like on Java Edition
-            // However, it causes issues such as the player floating on carpets
-            if (onGround) javaY = Math.ceil(javaY * 2) / 2;
-            position = position.up(javaY - position.getY());
+        if (!onGround) {
+            // Trim the position to prevent rounding errors that make Java think we are clipping into a block
+            position = Vector3d.from(position.getX(), Double.parseDouble(DECIMAL_FORMAT.format(position.getY())), position.getZ());
         }
 
         return position;
@@ -268,10 +258,6 @@ public class CollisionManager {
      * were they not sneaking
      */
     public boolean isUnderSlab() {
-        if (!session.getConnector().getConfig().isCacheChunks()) {
-            // We can't reliably determine this
-            return false;
-        }
         Vector3i position = session.getPlayerEntity().getPosition().toInt();
         BlockCollision collision = CollisionTranslator.getCollisionAt(session, position.getX(), position.getY(), position.getZ());
         if (collision != null) {
@@ -289,8 +275,7 @@ public class CollisionManager {
      * @return if the player is currently in a water block
      */
     public boolean isPlayerInWater() {
-        return session.getConnector().getConfig().isCacheChunks()
-                && session.getConnector().getWorldManager().getBlockAt(session, session.getPlayerEntity().getPosition().toInt()) == BlockTranslator.JAVA_WATER_ID;
+        return session.getConnector().getWorldManager().getBlockAt(session, session.getPlayerEntity().getPosition().toInt()) == BlockTranslator.JAVA_WATER_ID;
     }
 
     /**

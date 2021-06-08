@@ -36,10 +36,10 @@ import org.geysermc.connector.network.translators.Translator;
  */
 @Translator(packet = ServerAdvancementTabPacket.class)
 public class JavaAdvancementsTabTranslator extends PacketTranslator<ServerAdvancementTabPacket> {
-
     @Override
     public void translate(ServerAdvancementTabPacket packet, GeyserSession session) {
-        session.getAdvancementsCache().setCurrentAdvancementCategoryId(packet.getTabId());
-        session.sendForm(session.getAdvancementsCache().buildListForm(), AdvancementsCache.ADVANCEMENTS_LIST_FORM_ID);
+        AdvancementsCache advancementsCache = session.getAdvancementsCache();
+        advancementsCache.setCurrentAdvancementCategoryId(packet.getTabId());
+        advancementsCache.buildAndShowListForm();
     }
 }

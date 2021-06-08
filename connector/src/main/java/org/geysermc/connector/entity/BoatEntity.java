@@ -99,24 +99,24 @@ public class BoatEntity extends Entity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         // Time since last hit
-        if (entityMetadata.getId() == 7) {
+        if (entityMetadata.getId() == 8) {
             metadata.put(EntityData.HURT_TIME, entityMetadata.getValue());
         }
 
         // Rocking direction
-        if (entityMetadata.getId() == 8) {
+        if (entityMetadata.getId() == 9) {
             metadata.put(EntityData.HURT_DIRECTION, entityMetadata.getValue());
         }
 
         // 'Health' in Bedrock, damage taken in Java
-        if (entityMetadata.getId() == 9) {
+        if (entityMetadata.getId() == 10) {
             // Not exactly health but it makes motion in Bedrock
             metadata.put(EntityData.HEALTH, 40 - ((int) (float) entityMetadata.getValue()));
         }
 
-        if (entityMetadata.getId() == 10) {
+        if (entityMetadata.getId() == 11) {
             metadata.put(EntityData.VARIANT, entityMetadata.getValue());
-        } else if (entityMetadata.getId() == 11) {
+        } else if (entityMetadata.getId() == 12) {
             isPaddlingLeft = (boolean) entityMetadata.getValue();
             if (isPaddlingLeft) {
                 // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
@@ -136,7 +136,7 @@ public class BoatEntity extends Entity {
                 metadata.put(EntityData.ROW_TIME_LEFT, 0.0f);
             }
         }
-        else if (entityMetadata.getId() == 12) {
+        else if (entityMetadata.getId() == 13) {
             isPaddlingRight = (boolean) entityMetadata.getValue();
             if (isPaddlingRight) {
                 paddleTimeRight = 0f;
@@ -151,7 +151,7 @@ public class BoatEntity extends Entity {
             } else {
                 metadata.put(EntityData.ROW_TIME_RIGHT, 0.0f);
             }
-        } else if (entityMetadata.getId() == 13) {
+        } else if (entityMetadata.getId() == 14) {
             // Possibly - I don't think this does anything?
             metadata.put(EntityData.BOAT_BUBBLE_TIME, entityMetadata.getValue());
         }

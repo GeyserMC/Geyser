@@ -29,26 +29,19 @@ import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientAdvancementTabPacket;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.common.window.SimpleFormWindow;
-import org.geysermc.common.window.button.FormButton;
-import org.geysermc.common.window.response.SimpleFormResponse;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.utils.GeyserAdvancement;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
+import org.geysermc.cumulus.SimpleForm;
+import org.geysermc.cumulus.response.SimpleFormResponse;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class AdvancementsCache {
-
-    // Different form IDs
-    public static final int ADVANCEMENTS_MENU_FORM_ID = 1341;
-    public static final int ADVANCEMENTS_LIST_FORM_ID = 1342;
-    public static final int ADVANCEMENT_INFO_FORM_ID = 1343;
-
     /**
      * Stores the player's advancement progress
      */
@@ -74,73 +67,128 @@ public class AdvancementsCache {
     }
 
     /**
-     * Build a form with all advancement categories
-     *
-     * @return The built advancement category menu
+     * Build and send a form with all advancement categories
      */
-    public SimpleFormWindow buildMenuForm() {
-        // Cache the language for cleaner access
-        String language = session.getClientData().getLanguageCode();
+    public void buildAndShowMenuForm() {
+        SimpleForm.Builder builder =
+                SimpleForm.builder()
+                        .translator(LocaleUtils::getLocaleString, session.getLocale())
+                        .title("gui.advancements");
 
-        // Created menu window for advancement categories
-        SimpleFormWindow window = new SimpleFormWindow(LocaleUtils.getLocaleString("gui.advancements", language), "");
+        boolean hasAdvancements = false;
         for (Map.Entry<String, GeyserAdvancement> advancement : storedAdvancements.entrySet()) {
             if (advancement.getValue().getParentId() == null) { // No parent means this is a root advancement
-                window.getButtons().add(new FormButton(MessageTranslator.convertMessage(advancement.getValue().getDisplayData().getTitle(), language)));
+                hasAdvancements = true;
+                builder.button(MessageTranslator.convertMessage(advancement.getValue().getDisplayData().getTitle(), session.getLocale()));
             }
         }
 
-        if (window.getButtons().isEmpty()) {
-            window.setContent(LocaleUtils.getLocaleString("advancements.empty", language));
+        if (!hasAdvancements) {
+            builder.content("advancements.empty");
         }
 
-        return window;
+        builder.responseHandler((form, responseData) -> {
+            SimpleFormResponse response = form.parseResponse(responseData);
+            if (!response.isCorrect()) {
+                return;
+            }
+
+            String id = "";
+
+            int advancementIndex = 0;
+            for (Map.Entry<String, GeyserAdvancement> advancement : storedAdvancements.entrySet()) {
+                if (advancement.getValue().getParentId() == null) { // Root advancement
+                    if (advancementIndex == response.getClickedButtonId()) {
+                        id = advancement.getKey();
+                        break;
+                    } else {
+                        advancementIndex++;
+                    }
+                }
+            }
+
+            if (!id.equals("")) {
+                if (id.equals(currentAdvancementCategoryId)) {
+                    // The server thinks we are already on this tab
+                    buildAndShowListForm();
+                } else {
+                    // Send a packet indicating that we intend to open this particular advancement window
+                    ClientAdvancementTabPacket packet = new ClientAdvancementTabPacket(id);
+                    session.sendDownstreamPacket(packet);
+                    // Wait for a response there
+                }
+            }
+        });
+
+        session.sendForm(builder);
     }
 
     /**
-     * Builds the list of advancements
-     *
-     * @return The built list form
+     * Build and send the list of advancements
      */
-    public SimpleFormWindow buildListForm() {
-        // Cache the language for easier access
-        String language = session.getLocale();
-        String id = currentAdvancementCategoryId;
+    public void buildAndShowListForm() {
         GeyserAdvancement categoryAdvancement = storedAdvancements.get(currentAdvancementCategoryId);
+        String language = session.getLocale();
 
-        // Create the window
-        SimpleFormWindow window = new SimpleFormWindow(MessageTranslator.convertMessage(categoryAdvancement.getDisplayData().getTitle(), language),
-                MessageTranslator.convertMessage(categoryAdvancement.getDisplayData().getDescription(), language));
+        SimpleForm.Builder builder =
+                SimpleForm.builder()
+                        .title(MessageTranslator.convertMessage(categoryAdvancement.getDisplayData().getTitle(), language))
+                        .content(MessageTranslator.convertMessage(categoryAdvancement.getDisplayData().getDescription(), language));
 
-        if (id != null) {
-            for (Map.Entry<String, GeyserAdvancement> advancementEntry : storedAdvancements.entrySet()) {
-                GeyserAdvancement advancement = advancementEntry.getValue();
+        if (currentAdvancementCategoryId != null) {
+            for (GeyserAdvancement advancement : storedAdvancements.values()) {
                 if (advancement != null) {
                     if (advancement.getParentId() != null && currentAdvancementCategoryId.equals(advancement.getRootId(this))) {
-                        boolean earned = isEarned(advancement);
-
-                        if (earned || !advancement.getDisplayData().isShowToast()) {
-                            window.getButtons().add(new FormButton("§6" + MessageTranslator.convertMessage(advancementEntry.getValue().getDisplayData().getTitle()) + "\n"));
-                        } else {
-                            window.getButtons().add(new FormButton(MessageTranslator.convertMessage(advancementEntry.getValue().getDisplayData().getTitle()) + "\n"));
-                        }
+                        boolean color = isEarned(advancement) || !advancement.getDisplayData().isShowToast();
+                        builder.button((color ? "§6" : "") + MessageTranslator.convertMessage(advancement.getDisplayData().getTitle()) + '\n');
                     }
                 }
             }
         }
 
-        window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("gui.back", language)));
+        builder.button(LanguageUtils.getPlayerLocaleString("gui.back", language));
 
-        return window;
+        builder.responseHandler((form, responseData) -> {
+            SimpleFormResponse response = form.parseResponse(responseData);
+            if (!response.isCorrect()) {
+                // Indicate that we have closed the current advancement tab
+                session.sendDownstreamPacket(new ClientAdvancementTabPacket());
+                return;
+            }
+
+            GeyserAdvancement advancement = null;
+            int advancementIndex = 0;
+            // Loop around to find the advancement that the client pressed
+            for (GeyserAdvancement advancementEntry : storedAdvancements.values()) {
+                if (advancementEntry.getParentId() != null &&
+                        currentAdvancementCategoryId.equals(advancementEntry.getRootId(this))) {
+                    if (advancementIndex == response.getClickedButtonId()) {
+                        advancement = advancementEntry;
+                        break;
+                    } else {
+                        advancementIndex++;
+                    }
+                }
+            }
+
+            if (advancement != null) {
+                buildAndShowInfoForm(advancement);
+            } else {
+                buildAndShowMenuForm();
+                // Indicate that we have closed the current advancement tab
+                session.sendDownstreamPacket(new ClientAdvancementTabPacket());
+            }
+        });
+
+        session.sendForm(builder);
     }
 
     /**
      * Builds the advancement display info based on the chosen category
      *
      * @param advancement The advancement used to create the info display
-     * @return The information for the chosen advancement
      */
-    public SimpleFormWindow buildInfoForm(GeyserAdvancement advancement) {
+    public void buildAndShowInfoForm(GeyserAdvancement advancement) {
         // Cache language for easier access
         String language = session.getLocale();
 
@@ -160,16 +208,24 @@ public class AdvancementsCache {
         Parent Advancement: Minecraft // If relevant
          */
 
-        String content = description + "\n\n§f" +
-                earnedString + "\n";
+        String content = description + "\n\n§f" + earnedString + "\n";
         if (!currentAdvancementCategoryId.equals(advancement.getParentId())) {
             // Only display the parent if it is not the category
             content += LanguageUtils.getPlayerLocaleString("geyser.advancements.parentid", language, MessageTranslator.convertMessage(storedAdvancements.get(advancement.getParentId()).getDisplayData().getTitle(), language));
         }
-        SimpleFormWindow window = new SimpleFormWindow(MessageTranslator.convertMessage(advancement.getDisplayData().getTitle()), content);
-        window.getButtons().add(new FormButton(LanguageUtils.getPlayerLocaleString("gui.back", language)));
 
-        return window;
+        session.sendForm(
+                SimpleForm.builder()
+                        .title(MessageTranslator.convertMessage(advancement.getDisplayData().getTitle()))
+                        .content(content)
+                        .button(LanguageUtils.getPlayerLocaleString("gui.back", language))
+                        .responseHandler((form, responseData) -> {
+                            SimpleFormResponse response = form.parseResponse(responseData);
+                            if (response.isCorrect()) {
+                                buildAndShowListForm();
+                            }
+                        })
+        );
     }
 
     /**
@@ -207,108 +263,6 @@ public class AdvancementsCache {
             earned = true;
         }
         return earned;
-    }
-
-    /**
-     * Handle the menu form response
-     *
-     * @param response The response string to parse
-     * @return True if the form was parsed correctly, false if not
-     */
-    public boolean handleMenuForm(String response) {
-        SimpleFormWindow menuForm = (SimpleFormWindow) session.getWindowCache().getWindows().get(ADVANCEMENTS_MENU_FORM_ID);
-        menuForm.setResponse(response);
-
-        SimpleFormResponse formResponse = (SimpleFormResponse) menuForm.getResponse();
-
-        String id = "";
-        if (formResponse != null && formResponse.getClickedButton() != null) {
-            int advancementIndex = 0;
-            for (Map.Entry<String, GeyserAdvancement> advancement : storedAdvancements.entrySet()) {
-                if (advancement.getValue().getParentId() == null) { // Root advancement
-                    if (advancementIndex == formResponse.getClickedButtonId()) {
-                        id = advancement.getKey();
-                        break;
-                    } else {
-                        advancementIndex++;
-                    }
-                }
-            }
-        }
-        if (!id.equals("")) {
-            if (id.equals(currentAdvancementCategoryId)) {
-                // The server thinks we are already on this tab
-                session.sendForm(buildListForm(), ADVANCEMENTS_LIST_FORM_ID);
-            } else {
-                // Send a packet indicating that we intend to open this particular advancement window
-                ClientAdvancementTabPacket packet = new ClientAdvancementTabPacket(id);
-                session.sendDownstreamPacket(packet);
-                // Wait for a response there
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Handle the list form response (Advancement category choice)
-     *
-     * @param response The response string to parse
-     * @return True if the form was parsed correctly, false if not
-     */
-    public boolean handleListForm(String response) {
-        SimpleFormWindow listForm = (SimpleFormWindow) session.getWindowCache().getWindows().get(ADVANCEMENTS_LIST_FORM_ID);
-        listForm.setResponse(response);
-
-        SimpleFormResponse formResponse = (SimpleFormResponse) listForm.getResponse();
-
-        if (!listForm.isClosed() && formResponse != null && formResponse.getClickedButton() != null) {
-            GeyserAdvancement advancement = null;
-            int advancementIndex = 0;
-            // Loop around to find the advancement that the client pressed
-            for (GeyserAdvancement advancementEntry : storedAdvancements.values()) {
-                if (advancementEntry.getParentId() != null &&
-                        currentAdvancementCategoryId.equals(advancementEntry.getRootId(this))) {
-                    if (advancementIndex == formResponse.getClickedButtonId()) {
-                        advancement = advancementEntry;
-                        break;
-                    } else {
-                        advancementIndex++;
-                    }
-                }
-            }
-            if (advancement != null) {
-                session.sendForm(buildInfoForm(advancement), ADVANCEMENT_INFO_FORM_ID);
-            } else {
-                session.sendForm(buildMenuForm(), ADVANCEMENTS_MENU_FORM_ID);
-                // Indicate that we have closed the current advancement tab
-                session.sendDownstreamPacket(new ClientAdvancementTabPacket());
-            }
-        } else {
-            // Indicate that we have closed the current advancement tab
-            session.sendDownstreamPacket(new ClientAdvancementTabPacket());
-        }
-
-        return true;
-    }
-
-    /**
-     * Handle the info form response
-     *
-     * @param response The response string to parse
-     * @return True if the form was parsed correctly, false if not
-     */
-    public boolean handleInfoForm(String response) {
-        SimpleFormWindow listForm = (SimpleFormWindow) session.getWindowCache().getWindows().get(ADVANCEMENT_INFO_FORM_ID);
-        listForm.setResponse(response);
-
-        SimpleFormResponse formResponse = (SimpleFormResponse) listForm.getResponse();
-
-        if (!listForm.isClosed() && formResponse != null && formResponse.getClickedButton() != null) {
-            session.sendForm(buildListForm(), ADVANCEMENTS_LIST_FORM_ID);
-        }
-
-        return true;
     }
 
     public String getColorFromAdvancementFrameType(GeyserAdvancement advancement) {

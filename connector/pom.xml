@@ -6,33 +6,59 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>geyser-parent</artifactId>
-        <version>1.2.1-SNAPSHOT</version>
+        <version>1.4.0-SNAPSHOT</version>
     </parent>
     <artifactId>connector</artifactId>
 
     <properties>
-        <netty.version>4.1.59.Final</netty.version>
+        <adventure.version>4.8.0</adventure.version>
         <fastutil.version>8.5.2</fastutil.version>
-        <adventure.version>4.7.0</adventure.version>
+        <jackson.version>2.10.2</jackson.version>
+        <netty.version>4.1.59.Final</netty.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>common</artifactId>
-            <version>1.2.1-SNAPSHOT</version>
+            <version>1.4.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- Jackson JSON and YAML serialization -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
-            <version>2.10.2</version>
+            <version>${jackson.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>1.5.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.github.CloudburstMC.Protocol</groupId>
-            <artifactId>bedrock-v431</artifactId>
-            <version>530a0e3</version>
+            <artifactId>bedrock-v440</artifactId>
+            <version>1656151</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -120,9 +146,15 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.steveice10</groupId>
-            <artifactId>mcprotocollib</artifactId>
-            <version>8c204eb</version>
+            <groupId>com.github.GeyserMC</groupId>
+            <artifactId>MCAuthLib</artifactId>
+            <version>0e48a094f2</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.GeyserMC</groupId>
+            <artifactId>MCProtocolLib</artifactId>
+            <version>e316986</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -203,12 +235,15 @@
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
             <version>0.9.11</version> <!-- This isn't the latest version to get round https://github.com/ronmamo/reflections/issues/273 -->
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.dom4j</groupId>
             <artifactId>dom4j</artifactId>
             <version>2.1.3</version>
+            <scope>compile</scope>
         </dependency>
+        <!-- Adventure text serialization -->
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-api</artifactId>
@@ -238,11 +273,6 @@
             <artifactId>junit</artifactId>
             <version>4.13.1</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.GeyserMC</groupId>
-            <artifactId>MCAuthLib</artifactId>
-            <version>0e48a094f2</version>
         </dependency>
     </dependencies>
 
@@ -305,6 +335,7 @@
                                 </replacement>
                                 <replacement>
                                     <token>String GIT_VERSION = ".*"</token>
+                                    <!--suppress UnresolvedMavenProperty -->
                                     <value>String GIT_VERSION = "git-${git.branch}-${git.commit.id.abbrev}"</value>
                                 </replacement>
                             </replacements>

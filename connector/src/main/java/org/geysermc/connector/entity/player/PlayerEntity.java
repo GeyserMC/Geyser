@@ -27,6 +27,7 @@ package org.geysermc.connector.entity.player;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
@@ -273,7 +274,7 @@ public class PlayerEntity extends LivingEntity {
         }
 
         // Extra hearts - is not metadata but an attribute on Bedrock
-        if (entityMetadata.getId() == 14) {
+        if (entityMetadata.getId() == 15) {
             UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
             attributesPacket.setRuntimeEntityId(geyserId);
             List<AttributeData> attributes = new ArrayList<>();
@@ -283,7 +284,7 @@ public class PlayerEntity extends LivingEntity {
             session.sendUpstreamPacket(attributesPacket);
         }
 
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 17) {
             // OptionalPack usage for toggling skin bits
             // In Java Edition, a bit being set means that part should be enabled
             // However, to ensure that the pack still works on other servers, we invert the bit so all values by default
@@ -292,10 +293,10 @@ public class PlayerEntity extends LivingEntity {
         }
 
         // Parrot occupying shoulder
-        if (entityMetadata.getId() == 18 || entityMetadata.getId() == 19) {
+        if (entityMetadata.getId() == 19 || entityMetadata.getId() == 20) {
             CompoundTag tag = (CompoundTag) entityMetadata.getValue();
             if (tag != null && !tag.isEmpty()) {
-                if ((entityMetadata.getId() == 18 && leftParrot != null) || (entityMetadata.getId() == 19 && rightParrot != null)) {
+                if ((entityMetadata.getId() == 19 && leftParrot != null) || (entityMetadata.getId() == 20 && rightParrot != null)) {
                     // No need to update a parrot's data when it already exists
                     return;
                 }
@@ -321,10 +322,10 @@ public class PlayerEntity extends LivingEntity {
                     rightParrot = parrot;
                 }
             } else {
-                Entity parrot = (entityMetadata.getId() == 18 ? leftParrot : rightParrot);
+                Entity parrot = (entityMetadata.getId() == 19 ? leftParrot : rightParrot);
                 if (parrot != null) {
                     parrot.despawnEntity(session);
-                    if (entityMetadata.getId() == 18) {
+                    if (entityMetadata.getId() == 19) {
                         leftParrot = null;
                     } else {
                         rightParrot = null;
@@ -332,6 +333,26 @@ public class PlayerEntity extends LivingEntity {
                 }
             }
         }
+    }
+
+    @Override
+    protected void setDimensions(Pose pose) {
+        float height;
+        switch (pose) {
+            case SNEAKING:
+                height = 1.5f;
+                break;
+            case FALL_FLYING:
+            case SPIN_ATTACK:
+            case SWIMMING:
+                height = 0.6f;
+                break;
+            default:
+                super.setDimensions(pose);
+                return;
+        }
+        metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
+        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
     }
 
     @Override

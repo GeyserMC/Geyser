@@ -84,7 +84,7 @@ public class ItemFrameEntity extends Entity {
     @Override
     public void spawnEntity(GeyserSession session) {
         NbtMapBuilder blockBuilder = NbtMap.builder()
-                .putString("name", "minecraft:frame")
+                .putString("name", this.entityType == EntityType.GLOW_ITEM_FRAME ? "minecraft:glow_frame" : "minecraft:frame")
                 .putInt("version", session.getBlockTranslator().getBlockStateVersion());
         blockBuilder.put("states", NbtMap.builder()
                 .putInt("facing_direction", direction.ordinal())
@@ -105,7 +105,7 @@ public class ItemFrameEntity extends Entity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 7 && entityMetadata.getValue() != null) {
+        if (entityMetadata.getId() == 8 && entityMetadata.getValue() != null) {
             this.heldItem = (ItemStack) entityMetadata.getValue();
             ItemData itemData = ItemTranslator.translateToBedrock(session, heldItem);
             ItemEntry itemEntry = ItemRegistry.getItem((ItemStack) entityMetadata.getValue());
@@ -124,11 +124,11 @@ public class ItemFrameEntity extends Entity {
             cachedTag = tag.build();
             updateBlock(session);
         }
-        else if (entityMetadata.getId() == 7 && entityMetadata.getValue() == null && cachedTag != null) {
+        else if (entityMetadata.getId() == 8 && entityMetadata.getValue() == null && cachedTag != null) {
             cachedTag = getDefaultTag();
             updateBlock(session);
         }
-        else if (entityMetadata.getId() == 8) {
+        else if (entityMetadata.getId() == 9) {
             rotation = ((int) entityMetadata.getValue()) * 45;
             if (cachedTag == null) {
                 updateBlock(session);
@@ -167,7 +167,7 @@ public class ItemFrameEntity extends Entity {
         builder.putInt("y", bedrockPosition.getY());
         builder.putInt("z", bedrockPosition.getZ());
         builder.putByte("isMovable", (byte) 1);
-        builder.putString("id", "ItemFrame");
+        builder.putString("id", this.entityType == EntityType.GLOW_ITEM_FRAME ? "GlowItemFrame" : "ItemFrame");
         return builder.build();
     }
 

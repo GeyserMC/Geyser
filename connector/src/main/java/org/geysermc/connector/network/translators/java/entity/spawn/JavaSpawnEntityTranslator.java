@@ -64,7 +64,7 @@ public class JavaSpawnEntityTranslator extends PacketTranslator<ServerSpawnEntit
             if (packet.getType() == EntityType.FALLING_BLOCK) {
                 entity = new FallingBlockEntity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
                         type, position, motion, rotation, ((FallingBlockData) packet.getData()).getId());
-            } else if (packet.getType() == EntityType.ITEM_FRAME) {
+            } else if (packet.getType() == EntityType.ITEM_FRAME || packet.getType() == EntityType.GLOW_ITEM_FRAME) {
                 // Item frames need the hanging direction
                 entity = new ItemFrameEntity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
                         type, position, motion, rotation, (HangingDirection) packet.getData());

@@ -45,15 +45,15 @@ public class CreeperEntity extends MonsterEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 15) {
+        if (entityMetadata.getId() == 16) {
             if (!ignitedByFlintAndSteel) {
                 metadata.getFlags().setFlag(EntityFlag.IGNITED, (int) entityMetadata.getValue() == 1);
             }
         }
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 17) {
             metadata.getFlags().setFlag(EntityFlag.POWERED, (boolean) entityMetadata.getValue());
         }
-        if (entityMetadata.getId() == 17) {
+        if (entityMetadata.getId() == 18) {
             ignitedByFlintAndSteel = (boolean) entityMetadata.getValue();
             metadata.getFlags().setFlag(EntityFlag.IGNITED, ignitedByFlintAndSteel);
         }

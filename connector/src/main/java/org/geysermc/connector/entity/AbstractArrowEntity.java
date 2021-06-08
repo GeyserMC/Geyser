@@ -44,7 +44,7 @@ public class AbstractArrowEntity extends Entity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 7) {
+        if (entityMetadata.getId() == 8) {
             byte data = (byte) entityMetadata.getValue();
 
             metadata.getFlags().setFlag(EntityFlag.CRITICAL, (data & 0x01) == 0x01);

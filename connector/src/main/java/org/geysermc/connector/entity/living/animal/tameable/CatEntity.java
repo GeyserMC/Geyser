@@ -49,20 +49,15 @@ public class CatEntity extends TameableEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         super.updateBedrockMetadata(entityMetadata, session);
-        if (entityMetadata.getId() == 15) {
-            metadata.put(EntityData.SCALE, .8f);
-            boolean isBaby = (boolean) entityMetadata.getValue();
-            if (isBaby) {
-                metadata.put(EntityData.SCALE, .4f);
-                metadata.getFlags().setFlag(EntityFlag.BABY, true);
-            }
-        } else if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 16) {
+            metadata.put(EntityData.SCALE, (boolean) entityMetadata.getValue() ? 0.8f : 0.4f);
+        } else if (entityMetadata.getId() == 17) {
             // Update collar color if tamed
             if (metadata.getFlags().getFlag(EntityFlag.TAMED)) {
                 metadata.put(EntityData.COLOR, collarColor);
             }
         }
-        if (entityMetadata.getId() == 18) {
+        if (entityMetadata.getId() == 19) {
             // Different colors in Java and Bedrock for some reason
             int variantColor;
             switch ((int) entityMetadata.getValue()) {
@@ -83,10 +78,10 @@ public class CatEntity extends TameableEntity {
             }
             metadata.put(EntityData.VARIANT, variantColor);
         }
-        if (entityMetadata.getId() == 19) {
+        if (entityMetadata.getId() == 20) {
             metadata.getFlags().setFlag(EntityFlag.RESTING, (boolean) entityMetadata.getValue());
         }
-        if (entityMetadata.getId() == 21) {
+        if (entityMetadata.getId() == 22) {
             collarColor = (byte) (int) entityMetadata.getValue();
             // Needed or else wild cats are a red color
             if (metadata.getFlags().getFlag(EntityFlag.TAMED)) {

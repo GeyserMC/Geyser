@@ -67,9 +67,6 @@ public class Inventory {
     protected long holderId = -1;
 
     @Getter
-    protected short transactionId = 0;
-
-    @Getter
     @Setter
     private boolean pending = false;
 
@@ -114,10 +111,6 @@ public class Inventory {
         }
     }
 
-    public short getNextTransactionId() {
-        return ++transactionId;
-    }
-
     @Override
     public String toString() {
         return "Inventory{" +
@@ -127,7 +120,6 @@ public class Inventory {
                 ", items=" + Arrays.toString(items) +
                 ", holderPosition=" + holderPosition +
                 ", holderId=" + holderId +
-                ", transactionId=" + transactionId +
                 '}';
     }
 }

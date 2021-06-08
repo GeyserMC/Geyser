@@ -39,7 +39,7 @@ public class MooshroomEntity extends AnimalEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 17) {
             metadata.put(EntityData.VARIANT, entityMetadata.getValue().equals("brown") ? 1 : 0);
         }
         super.updateBedrockMetadata(entityMetadata, session);
