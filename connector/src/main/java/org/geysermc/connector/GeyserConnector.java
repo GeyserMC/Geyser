@@ -236,7 +236,7 @@ public class GeyserConnector {
             if (build != null) {
                 buildNumber = Integer.parseInt(build);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             logger.error("Failed to read git.properties", e);
         }
         newsHandler = new NewsHandler(branch, buildNumber);
