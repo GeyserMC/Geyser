@@ -142,7 +142,11 @@ public class NewsHandler {
             return;
         }
 
-        if (!Constants.NEWS_PROJECT_LIST.contains(item.getProject())) {
+        if (!item.isActive()) {
+            return;
+        }
+
+        if (!item.isGlobal() && !Constants.NEWS_PROJECT_LIST.contains(item.getProject())) {
             return;
         }
 
