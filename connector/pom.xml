@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>geyser-parent</artifactId>
-        <version>1.3.0-SNAPSHOT</version>
+        <version>1.4.0-SNAPSHOT</version>
     </parent>
     <artifactId>connector</artifactId>
 
@@ -21,7 +21,7 @@
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>common</artifactId>
-            <version>1.3.0-SNAPSHOT</version>
+            <version>1.4.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <!-- Jackson JSON and YAML serialization -->
@@ -155,9 +155,6 @@
             <groupId>com.github.GeyserMC</groupId>
             <artifactId>MCProtocolLib</artifactId>
             <version>e316986</version>
-<!--            <groupId>com.github.steveice10</groupId>-->
-<!--            <artifactId>mcprotocollib</artifactId>-->
-<!--            <version>1.17-SNAPSHOT</version>-->
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
