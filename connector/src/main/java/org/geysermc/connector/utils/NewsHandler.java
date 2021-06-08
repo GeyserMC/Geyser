@@ -52,7 +52,7 @@ public class NewsHandler {
     private final String branch;
     private final int build;
 
-    private boolean geyserStarted;
+    private boolean firstCheck = true;
 
     public NewsHandler(String branch, int build) {
         this.branch = branch;
@@ -77,16 +77,13 @@ public class NewsHandler {
                         addNews(newsItem);
                     }
                 }
+                firstCheck = false;
             } catch (Exception e) {
                 if (logger.isDebug()) {
                     logger.error("Error while reading news item", e);
                 }
             }
         } catch (JsonSyntaxException ignored) {}
-    }
-
-    public void setGeyserStarted() {
-        geyserStarted = true;
     }
 
     public void handleNews(GeyserSession session, NewsItemAction action) {
@@ -98,7 +95,7 @@ public class NewsHandler {
     private void handleNewsItem(GeyserSession session, NewsItem news, NewsItemAction action) {
         switch (action) {
             case ON_SERVER_STARTED:
-                if (!geyserStarted) {
+                if (!firstCheck) {
                     return;
                 }
             case BROADCAST_TO_CONSOLE:
@@ -146,7 +143,7 @@ public class NewsHandler {
             return;
         }
 
-        if (!item.isGlobal() && !Constants.NEWS_PROJECT_LIST.contains(item.getProject())) {
+        if (!item.isGlobal() && !Constants.NEWS_PROJECT_NAME.equals(item.getProject())) {
             return;
         }
 
