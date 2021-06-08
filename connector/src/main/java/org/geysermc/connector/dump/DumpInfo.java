@@ -42,8 +42,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.floodgate.util.DeviceOs;
-import org.geysermc.floodgate.util.FloodgateConfigHolder;
-import org.geysermc.floodgate.util.FloodgateGitPropertiesHolder;
+import org.geysermc.floodgate.util.FloodgateInfoHolder;
 
 import java.io.File;
 import java.io.IOException;
@@ -184,8 +183,8 @@ public class DumpInfo {
         private final Object config;
 
         Floodgate() {
-            this.gitInfo = FloodgateGitPropertiesHolder.getGitProperties();
-            this.config = FloodgateConfigHolder.getConfig();
+            this.gitInfo = FloodgateInfoHolder.getGitProperties();
+            this.config = FloodgateInfoHolder.getConfig();
         }
     }
 
