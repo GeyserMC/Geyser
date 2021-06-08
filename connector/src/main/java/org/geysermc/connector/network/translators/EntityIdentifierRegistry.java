@@ -29,7 +29,6 @@ import com.nukkitx.nbt.NBTInputStream;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
 import org.geysermc.connector.utils.FileUtils;
-import org.geysermc.connector.utils.LanguageUtils;
 
 import java.io.InputStream;
 
@@ -54,7 +53,7 @@ public class EntityIdentifierRegistry {
         try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
             ENTITY_IDENTIFIERS = (NbtMap) nbtInputStream.readTag();
         } catch (Exception e) {
-            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.entity"), e);
+            throw new AssertionError("Unable to get entities from entity identifiers", e);
         }
     }
 }

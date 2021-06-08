@@ -32,6 +32,7 @@ import com.github.steveice10.mc.protocol.data.game.chunk.palette.GlobalPalette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.Palette;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.math.vector.Vector2i;
@@ -67,6 +68,14 @@ import static org.geysermc.connector.network.translators.world.block.BlockTransl
 
 @UtilityClass
 public class ChunkUtils {
+    /**
+     * The minimum height Bedrock Edition will accept.
+     */
+    private static final int MINIMUM_ACCEPTED_HEIGHT = 0;
+    /**
+     * The maximum height Bedrock Edition will accept.
+     */
+    private static final int MAXIMUM_ACCEPTED_HEIGHT = 256;
 
     private static int indexYZXtoXZY(int yzx) {
         return (yzx >> 8) | (yzx & 0x0F0) | ((yzx & 0x00F) << 8);
@@ -74,7 +83,9 @@ public class ChunkUtils {
 
     public static ChunkData translateToBedrock(GeyserSession session, Column column) {
         Chunk[] javaSections = column.getChunks();
-        ChunkSection[] sections = new ChunkSection[javaSections.length];
+        // Ensure that, if the player is using lower world heights, the position is not offset
+        int yOffset = session.getChunkCache().getChunkMinY();
+        ChunkSection[] sections = new ChunkSection[javaSections.length - yOffset];
 
         // Temporarily stores compound tags of Bedrock-only block entities
         List<NbtMap> bedrockOnlyBlockEntities = new ArrayList<>();
@@ -83,6 +94,11 @@ public class ChunkUtils {
         BitSet pistonOrFlowerPaletteIds = new BitSet();
 
         for (int sectionY = 0; sectionY < javaSections.length; sectionY++) {
+            if (yOffset < 0 && sectionY < -yOffset) {
+                // Ignore this chunk since it goes below the accepted height limit
+                continue;
+            }
+
             Chunk javaSection = javaSections[sectionY];
 
             // No need to encode an empty section...
@@ -114,7 +130,7 @@ public class ChunkUtils {
                         ));
                     }
                 }
-                sections[sectionY] = section;
+                sections[sectionY + yOffset] = section;
                 continue;
             }
 
@@ -187,7 +203,7 @@ public class ChunkUtils {
                 layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
             }
 
-            sections[sectionY] = new ChunkSection(layers);
+            sections[sectionY + yOffset] = new ChunkSection(layers);
         }
 
         CompoundTag[] blockEntities = column.getTileEntities();
@@ -220,7 +236,7 @@ public class ChunkUtils {
 
             // Get Java blockstate ID from block entity position
             int blockState = 0;
-            Chunk section = column.getChunks()[pos.getY() >> 4];
+            Chunk section = column.getChunks()[(pos.getY() >> 4) - yOffset];
             if (section != null) {
                 blockState = section.get(pos.getX() & 0xF, pos.getY() & 0xF, pos.getZ() & 0xF);
             }
@@ -383,6 +399,28 @@ public class ChunkUtils {
                 }
             }
         }
+    }
+
+    /**
+     * Process the minimum and maximum heights for this dimension
+     */
+    public static void applyDimensionHeight(GeyserSession session, CompoundTag dimensionTag) {
+        int minY = ((IntTag) dimensionTag.get("min_y")).getValue();
+        int maxY = ((IntTag) dimensionTag.get("height")).getValue();
+        // Logical height can be ignored probably - seems to be for artificial limits like the Nether.
+
+        if (minY % 16 != 0) {
+            throw new RuntimeException("Minimum Y must be a multiple of 16!");
+        }
+        if (maxY % 16 != 0) {
+            throw new RuntimeException("Maximum Y must be a multiple of 16!");
+        }
+
+        if (minY < MINIMUM_ACCEPTED_HEIGHT || maxY > MAXIMUM_ACCEPTED_HEIGHT) {
+            session.getConnector().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds"));
+        }
+
+        session.getChunkCache().setMinY(minY);
     }
 
     @Data

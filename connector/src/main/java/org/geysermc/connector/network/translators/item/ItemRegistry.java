@@ -148,7 +148,7 @@ public class ItemRegistry {
         try {
             itemEntries = GeyserConnector.JSON_MAPPER.readValue(stream, itemEntriesType);
         } catch (Exception e) {
-            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.runtime_bedrock"), e);
+            throw new AssertionError("Unable to load Bedrock runtime item IDs", e);
         }
 
         int lodestoneCompassId = 0;
@@ -172,7 +172,7 @@ public class ItemRegistry {
         try {
             creativeItemEntries = GeyserConnector.JSON_MAPPER.readTree(stream).get("items");
         } catch (Exception e) {
-            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.creative"), e);
+            throw new AssertionError("Unable to load creative items", e);
         }
 
         int netId = 1;
@@ -247,7 +247,7 @@ public class ItemRegistry {
         try {
             items = GeyserConnector.JSON_MAPPER.readTree(stream);
         } catch (Exception e) {
-            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.runtime_java"), e);
+            throw new AssertionError("Unable to load Java runtime item IDs", e);
         }
 
         BlockTranslator blockTranslator = BlockTranslator1_17_0.INSTANCE;

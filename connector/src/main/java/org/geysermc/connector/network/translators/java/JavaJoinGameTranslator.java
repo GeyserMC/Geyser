@@ -39,6 +39,7 @@ import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.PluginMessageUtils;
 
@@ -53,6 +54,9 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
     public void translate(ServerJoinGamePacket packet, GeyserSession session) {
         PlayerEntity entity = session.getPlayerEntity();
         entity.setEntityId(packet.getEntityId());
+
+        ChunkUtils.applyDimensionHeight(session, packet.getDimension());
+
         // If the player is already initialized and a join game packet is sent, they
         // are swapping servers
         String newDimension = DimensionUtils.getNewDimension(packet.getDimension());

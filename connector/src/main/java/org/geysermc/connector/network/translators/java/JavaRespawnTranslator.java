@@ -36,6 +36,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.DimensionUtils;
 
 @Translator(packet = ServerRespawnPacket.class)
@@ -77,6 +78,8 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
             session.sendUpstreamPacket(stopThunderPacket);
             session.setThunder(false);
         }
+
+        ChunkUtils.applyDimensionHeight(session, packet.getDimension());
 
         String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
         if (!session.getDimension().equals(newDimension) || !packet.getWorldName().equals(session.getWorldName())) {

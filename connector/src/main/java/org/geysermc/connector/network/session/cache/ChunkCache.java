@@ -89,7 +89,7 @@ public class ChunkCache {
             return;
         }
 
-        Chunk chunk = column.getChunks()[y >> 4];
+        Chunk chunk = column.getChunks()[(y >> 4) - getChunkMinY()];
         if (chunk != null) {
             chunk.set(x & 0xF, y & 0xF, z & 0xF, block);
         }
@@ -110,7 +110,7 @@ public class ChunkCache {
             return BlockTranslator.JAVA_AIR_ID;
         }
 
-        Chunk chunk = column.getChunks()[y >> 4];
+        Chunk chunk = column.getChunks()[(y >> 4) - getChunkMinY()];
         if (chunk != null) {
             return chunk.get(x & 0xF, y & 0xF, z & 0xF);
         }
@@ -125,5 +125,9 @@ public class ChunkCache {
 
         long chunkPosition = MathUtils.chunkPositionToLong(chunkX, chunkZ);
         chunks.remove(chunkPosition);
+    }
+
+    public int getChunkMinY() {
+        return minY >> 4;
     }
 }
