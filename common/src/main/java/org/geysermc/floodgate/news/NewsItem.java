@@ -100,6 +100,10 @@ public final class NewsItem {
         return project;
     }
 
+    public boolean isGlobal() {
+        return false;
+    }
+
     public boolean isActive() {
         return active;
     }
