@@ -229,7 +229,7 @@ public final class FloodgateSkinUploader {
         return this;
     }
 
-    public void stop() {
+    public void close() {
         client.close();
     }
 }

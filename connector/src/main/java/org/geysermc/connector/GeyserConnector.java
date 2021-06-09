@@ -440,6 +440,9 @@ public class GeyserConnector {
         if (timeSyncer != null) {
             timeSyncer.shutdown();
         }
+        if (skinUploader != null) {
+            skinUploader.close();
+        }
         newsHandler.shutdown();
         players.clear();
         defaultAuthType = null;
