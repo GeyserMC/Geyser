@@ -51,20 +51,25 @@ public class AsteriskSerializer extends StdSerializer<Object> implements Context
     @JsonSerialize(using = AsteriskSerializer.class)
     public @interface Asterisk {
         String value() default "***";
-        boolean sensitive() default false;
+        /**
+         * If true, this value will be shown if {@link #showSensitive} is true, or if the IP is determined to not be a public IP
+         * 
+         * @return true if this should be analyzed and treated as an IP
+         */
+        boolean isIp() default false;
     }
 
     String asterisk;
-    boolean sensitive;
+    boolean isIp;
 
     public AsteriskSerializer() {
         super(Object.class);
     }
 
-    public AsteriskSerializer(String asterisk, boolean sensitive) {
+    public AsteriskSerializer(String asterisk, boolean isIp) {
         super(Object.class);
         this.asterisk = asterisk;
-        this.sensitive = sensitive;
+        this.isIp = isIp;
     }
 
     @Override
@@ -72,16 +77,25 @@ public class AsteriskSerializer extends StdSerializer<Object> implements Context
         Optional<Asterisk> anno = Optional.ofNullable(property)
                 .map(prop -> prop.getAnnotation(Asterisk.class));
 
-        return new AsteriskSerializer(anno.map(Asterisk::value).orElse(null), anno.map(Asterisk::sensitive).orElse(null));
+        return new AsteriskSerializer(anno.map(Asterisk::value).orElse(null), anno.map(Asterisk::isIp).orElse(null));
     }
 
     @Override
     public void serialize(Object obj, JsonGenerator gen, SerializerProvider prov) throws IOException {
-        if (sensitive && showSensitive) {
+        if (isIp && (showSensitive || !isSensitiveIp((String) obj))) {
             gen.writeObject(obj);
             return;
         }
 
         gen.writeString(asterisk);
+    }
+
+    private boolean isSensitiveIp(String ip) {
+        if (ip.equalsIgnoreCase("localhost") || ip.equalsIgnoreCase("auto")) {
+            // `auto` should not be shown unless there is an obscure issue with setting the localhost address
+            return false;
+        }
+
+        return !ip.isEmpty() && !ip.equals("0.0.0.0") && !ip.equals("127.0.0.1");
     }
 }

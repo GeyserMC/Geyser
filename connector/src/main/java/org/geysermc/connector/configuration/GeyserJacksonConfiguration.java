@@ -134,7 +134,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @Getter
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class BedrockConfiguration implements IBedrockConfiguration {
-        @AsteriskSerializer.Asterisk(sensitive = true)
+        @AsteriskSerializer.Asterisk(isIp = true)
         private String address = "0.0.0.0";
 
         @Setter
@@ -184,7 +184,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class RemoteConfiguration implements IRemoteConfiguration {
         @Setter
-        @AsteriskSerializer.Asterisk(sensitive = true)
+        @AsteriskSerializer.Asterisk(isIp = true)
         private String address = "auto";
 
         @Setter
