@@ -44,17 +44,17 @@ public class TippedArrowEntity extends AbstractArrowEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         // Arrow potion effect color
-        if (entityMetadata.getId() == 9) {
+        if (entityMetadata.getId() == 10) {
             int potionColor = (int) entityMetadata.getValue();
             // -1 means no color
             if (potionColor == -1) {
-                metadata.remove(EntityData.CUSTOM_DISPLAY);
+                metadata.put(EntityData.CUSTOM_DISPLAY, 0);
             } else {
                 TippedArrowPotion potion = TippedArrowPotion.getByJavaColor(potionColor);
                 if (potion != null && potion.getJavaColor() != -1) {
                     metadata.put(EntityData.CUSTOM_DISPLAY, (byte) potion.getBedrockId());
                 } else {
-                    metadata.remove(EntityData.CUSTOM_DISPLAY);
+                    metadata.put(EntityData.CUSTOM_DISPLAY, 0);
                 }
             }
         }

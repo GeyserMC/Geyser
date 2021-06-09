@@ -29,7 +29,6 @@ import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.type.EntityType;
 
 public class SquidEntity extends WaterEntity {
-
     public SquidEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }

@@ -94,6 +94,7 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
             case LIVING_HURT:
             case LIVING_HURT_SWEET_BERRY_BUSH:
             case LIVING_HURT_THORNS:
+            case LIVING_FREEZE:
                 entityEventPacket.setType(EntityEventType.HURT);
                 break;
             case LIVING_DEATH:
@@ -213,8 +214,25 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                     session.getConnector().getLogger().debug("Got status message to swap hands for a non-living entity.");
                 }
                 return;
+            case GOAT_LOWERING_HEAD:
+                if (entity.getEntityType() == EntityType.GOAT) {
+                    entityEventPacket.setType(EntityEventType.ATTACK_START);
+                }
+                break;
+            case GOAT_STOP_LOWERING_HEAD:
+                if (entity.getEntityType() == EntityType.GOAT) {
+                    entityEventPacket.setType(EntityEventType.ATTACK_STOP);
+                }
+                break;
+            case MAKE_POOF_PARTICLES:
+                if (entity instanceof LivingEntity) {
+                    entityEventPacket.setType(EntityEventType.DEATH_SMOKE_CLOUD);
+                }
+                break;
         }
 
-        session.sendUpstreamPacket(entityEventPacket);
+        if (entityEventPacket.getType() != null) {
+            session.sendUpstreamPacket(entityEventPacket);
+        }
     }
 }

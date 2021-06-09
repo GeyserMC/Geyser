@@ -43,9 +43,7 @@ import org.geysermc.connector.utils.FileUtils;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.zip.GZIPInputStream;
 
 public abstract class BlockTranslator {
@@ -154,13 +152,6 @@ public abstract class BlockTranslator {
                 builder.canBreakWithHand(false);
             }
 
-            JsonNode toolTypeNode = entry.getValue().get("tool_type");
-            if (toolTypeNode != null) {
-                builder.toolType(toolTypeNode.textValue());
-            } else {
-                builder.toolType("");
-            }
-
             JsonNode collisionIndexNode = entry.getValue().get("collision_index");
             if (hardnessNode != null) {
                 builder.collisionIndex(collisionIndexNode.intValue());
@@ -186,6 +177,13 @@ public abstract class BlockTranslator {
             JsonNode pickItemNode = entry.getValue().get("pick_item");
             if (pickItemNode != null) {
                 builder.pickItem(pickItemNode.textValue());
+            }
+
+            boolean waterlogged = entry.getKey().contains("waterlogged=true")
+                    || javaId.contains("minecraft:bubble_column") || javaId.contains("minecraft:kelp") || javaId.contains("seagrass");
+
+            if (waterlogged) {
+                WATERLOGGED.add(javaRuntimeId);
             }
 
             JAVA_ID_BLOCK_MAP.put(javaId, javaRuntimeId);
@@ -270,8 +268,7 @@ public abstract class BlockTranslator {
 
         BlockMapping.AIR = JAVA_RUNTIME_ID_TO_BLOCK_MAPPING.get(JAVA_AIR_ID);
 
-        BlockTranslator1_16_100.init();
-        BlockTranslator1_16_210.init();
+        BlockTranslator1_17_0.init();
         BLOCKS_JSON = null; // We no longer require this so let it garbage collect away
     }
 
@@ -335,7 +332,6 @@ public abstract class BlockTranslator {
 
             if (waterlogged) {
                 bedrockToJavaBlockMap.putIfAbsent(bedrockRuntimeId | 1 << 31, javaRuntimeId);
-                WATERLOGGED.add(javaRuntimeId);
             } else {
                 bedrockToJavaBlockMap.putIfAbsent(bedrockRuntimeId, javaRuntimeId);
             }
@@ -372,7 +368,8 @@ public abstract class BlockTranslator {
         // Loop around again to find all item frame runtime IDs
         int movingBlockId = -1;
         for (Object2IntMap.Entry<NbtMap> entry : blockStateOrderedMap.object2IntEntrySet()) {
-            if (entry.getKey().getString("name").equals("minecraft:frame")) {
+            String name = entry.getKey().getString("name");
+            if (name.equals("minecraft:frame") || name.equals("minecraft:glow_frame")) {
                 itemFrames.put(entry.getKey(), entry.getIntValue());
             } else if (entry.getKey().getString("name").equals("minecraft:movingBlock")) {
                 movingBlockId = entry.getIntValue();

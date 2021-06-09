@@ -33,11 +33,20 @@ import java.nio.file.Path;
 
 public class FloodgateKeyLoader {
     public static Path getKeyPath(GeyserJacksonConfiguration config, Object floodgate, Path floodgateDataFolder, Path geyserDataFolder, GeyserLogger logger) {
+        if (!config.getRemote().getAuthType().equals("floodgate")) {
+            return geyserDataFolder.resolve(config.getFloodgateKeyFile());
+        }
+
         Path floodgateKey = geyserDataFolder.resolve(config.getFloodgateKeyFile());
 
-        if (!Files.exists(floodgateKey) && config.getRemote().getAuthType().equals("floodgate")) {
+        if (config.getFloodgateKeyFile().equals("public-key.pem")) {
+            logger.info("Floodgate 2.0 doesn't use a public/private key system anymore. We'll search for key.pem instead");
+            floodgateKey = geyserDataFolder.resolve("key.pem");
+        }
+
+        if (!Files.exists(floodgateKey)) {
             if (floodgate != null) {
-                Path autoKey = floodgateDataFolder.resolve("public-key.pem");
+                Path autoKey = floodgateDataFolder.resolve("key.pem");
                 if (Files.exists(autoKey)) {
                     logger.info(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.auto_loaded"));
                     floodgateKey = autoKey;

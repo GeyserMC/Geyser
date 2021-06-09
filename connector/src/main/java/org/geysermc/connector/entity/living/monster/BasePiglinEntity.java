@@ -40,7 +40,7 @@ public class BasePiglinEntity extends MonsterEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 15) {
+        if (entityMetadata.getId() == 16) {
             // Immune to zombification?
             // Apply shaking effect if not in the nether and zombification is possible
             metadata.getFlags().setFlag(EntityFlag.SHAKING, !((boolean) entityMetadata.getValue()) && !session.getDimension().equals(DimensionUtils.NETHER));

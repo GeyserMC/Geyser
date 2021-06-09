@@ -31,27 +31,22 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdate
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
+import org.geysermc.connector.network.translators.world.block.entity.RequiresBlockState;
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.connector.utils.BlockEntityUtils;
-import org.geysermc.connector.utils.ChunkUtils;
 
 @Translator(packet = ServerUpdateTileEntityPacket.class)
 public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdateTileEntityPacket> {
-    private final boolean cacheChunks;
-
-    public JavaUpdateTileEntityTranslator() {
-        cacheChunks = GeyserConnector.getInstance().getConfig().isCacheChunks();
-    }
 
     @Override
     public void translate(ServerUpdateTileEntityPacket packet, GeyserSession session) {
         String id = BlockEntityUtils.getBedrockBlockEntityId(packet.getType().name());
-        if (packet.getNbt().isEmpty()) { // Fixes errors in CubeCraft sending empty NBT
+        if (packet.getNbt().isEmpty()) { // Fixes errors in servers sending empty NBT
             BlockEntityUtils.updateBlockEntity(session, null, packet.getPosition());
             return;
         }
@@ -59,11 +54,12 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
         BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(id);
         // The Java block state is used in BlockEntityTranslator.translateTag() to make up for some inconsistencies
         // between Java block states and Bedrock block entity data
-        int blockState = cacheChunks ?
-                // Cache chunks is enabled; use chunk cache
-                session.getConnector().getWorldManager().getBlockAt(session, packet.getPosition()) :
-                // Cache chunks is not enabled; use block entity cache
-                ChunkUtils.CACHED_BLOCK_ENTITIES.removeInt(packet.getPosition());
+        int blockState;
+        if (translator instanceof RequiresBlockState) {
+            blockState = session.getConnector().getWorldManager().getBlockAt(session, packet.getPosition());
+        } else {
+            blockState = BlockTranslator.JAVA_AIR_ID;
+        }
         BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(), blockState), packet.getPosition());
         // Check for custom skulls.
         if (SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS && packet.getNbt().contains("SkullOwner")) {

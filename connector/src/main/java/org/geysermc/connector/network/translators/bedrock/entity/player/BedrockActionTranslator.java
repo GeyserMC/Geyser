@@ -51,8 +51,6 @@ import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.BlockUtils;
 
-import java.util.concurrent.TimeUnit;
-
 @Translator(packet = PlayerActionPacket.class)
 public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket> {
 
@@ -162,43 +160,42 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 // Otherwise handled in BedrockInventoryTransactionTranslator
                 break;
             case START_BREAK:
-                if (session.getConnector().getConfig().isCacheChunks()) {
-                    // Start the block breaking animation
-                    if (session.getGameMode() != GameMode.CREATIVE) {
-                        int blockState = session.getConnector().getWorldManager().getBlockAt(session, vector);
-                        LevelEventPacket startBreak = new LevelEventPacket();
-                        startBreak.setType(LevelEventType.BLOCK_START_BREAK);
-                        startBreak.setPosition(vector.toFloat());
-                        PlayerInventory inventory = session.getPlayerInventory();
-                        GeyserItemStack item = inventory.getItemInHand();
-                        ItemEntry itemEntry;
-                        CompoundTag nbtData;
-                        if (item != null) {
-                            itemEntry = item.getItemEntry();
-                            nbtData = item.getNbt();
-                        } else {
-                            itemEntry = null;
-                            nbtData = new CompoundTag("");
-                        }
-                        double breakTime = Math.ceil(BlockUtils.getBreakTime(session, BlockTranslator.getBlockMapping(blockState), itemEntry, nbtData, true) * 20);
-                        startBreak.setData((int) (65535 / breakTime));
-                        session.setBreakingBlock(blockState);
-                        session.sendUpstreamPacket(startBreak);
+                // Start the block breaking animation
+                if (session.getGameMode() != GameMode.CREATIVE) {
+                    int blockState = session.getConnector().getWorldManager().getBlockAt(session, vector);
+                    LevelEventPacket startBreak = new LevelEventPacket();
+                    startBreak.setType(LevelEventType.BLOCK_START_BREAK);
+                    startBreak.setPosition(vector.toFloat());
+                    PlayerInventory inventory = session.getPlayerInventory();
+                    GeyserItemStack item = inventory.getItemInHand();
+                    ItemEntry itemEntry;
+                    CompoundTag nbtData;
+                    if (item != null) {
+                        itemEntry = item.getItemEntry();
+                        nbtData = item.getNbt();
+                    } else {
+                        itemEntry = null;
+                        nbtData = new CompoundTag("");
                     }
+                    double breakTime = Math.ceil(BlockUtils.getBreakTime(session, BlockTranslator.getBlockMapping(blockState), itemEntry, nbtData, true) * 20);
+                    startBreak.setData((int) (65535 / breakTime));
+                    session.setBreakingBlock(blockState);
+                    session.sendUpstreamPacket(startBreak);
+                }
 
-                    // Account for fire - the client likes to hit the block behind.
-                    Vector3i fireBlockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getFace());
-                    int blockUp = session.getConnector().getWorldManager().getBlockAt(session, fireBlockPos);
-                    String identifier = BlockTranslator.getJavaIdBlockMap().inverse().get(blockUp);
-                    if (identifier.startsWith("minecraft:fire") || identifier.startsWith("minecraft:soul_fire")) {
-                        ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(fireBlockPos.getX(),
-                                fireBlockPos.getY(), fireBlockPos.getZ()), BlockFace.values()[packet.getFace()]);
-                        session.sendDownstreamPacket(startBreakingPacket);
-                        if (session.getGameMode() == GameMode.CREATIVE) {
-                            break;
-                        }
+                // Account for fire - the client likes to hit the block behind.
+                Vector3i fireBlockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getFace());
+                int blockUp = session.getConnector().getWorldManager().getBlockAt(session, fireBlockPos);
+                String identifier = BlockTranslator.getJavaIdBlockMap().inverse().get(blockUp);
+                if (identifier.startsWith("minecraft:fire") || identifier.startsWith("minecraft:soul_fire")) {
+                    ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(fireBlockPos.getX(),
+                            fireBlockPos.getY(), fireBlockPos.getZ()), BlockFace.values()[packet.getFace()]);
+                    session.sendDownstreamPacket(startBreakingPacket);
+                    if (session.getGameMode() == GameMode.CREATIVE) {
+                        break;
                     }
                 }
+
                 ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, position, BlockFace.values()[packet.getFace()]);
                 session.sendDownstreamPacket(startBreakingPacket);
                 break;
@@ -246,11 +243,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.getEntityCache().updateBossBars();
                 break;
             case JUMP:
-                if (!session.getConnector().getConfig().isCacheChunks()) {
-                    // Save the jumping status for determining teleport status
-                    session.setJumping(true);
-                    session.getConnector().getGeneralThreadPool().schedule(() -> session.setJumping(false), 1, TimeUnit.SECONDS);
-                }
+                // Leaving as a potential placeholder for an event or soul sand fixing
                 break;
         }
     }

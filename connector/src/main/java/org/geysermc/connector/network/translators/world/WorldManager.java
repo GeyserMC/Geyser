@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.world;
 
-import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
@@ -77,17 +76,6 @@ public abstract class WorldManager {
     public abstract int getBlockAt(GeyserSession session, int x, int y, int z);
 
     /**
-     * Gets all block states in the specified chunk section.
-     *
-     * @param session the session
-     * @param x the chunk's X coordinate
-     * @param y the chunk's Y coordinate
-     * @param z the chunk's Z coordinate
-     * @param section the chunk section to store the block data in
-     */
-    public abstract void getBlocksInSection(GeyserSession session, int x, int y, int z, Chunk section);
-
-    /**
      * Checks whether or not this world manager requires a separate chunk cache/has access to more block data than the chunk cache.
      * <p>
      * Some world managers (e.g. Spigot) can provide access to block data outside of the chunk cache, and even with chunk caching disabled. This
@@ -96,16 +84,6 @@ public abstract class WorldManager {
      * @return whether or not this world manager has access to more block data than the chunk cache
      */
     public abstract boolean hasOwnChunkCache();
-
-    /**
-     * Gets the Java biome data for the specified chunk.
-     *
-     * @param session the session of the player
-     * @param x the chunk's X coordinate
-     * @param z the chunk's Z coordinate
-     * @return the biome data for the specified region with a length of 1024.
-     */
-    public abstract int[] getBiomeDataAt(GeyserSession session, int x, int z);
 
     /**
      * Sigh. <br>

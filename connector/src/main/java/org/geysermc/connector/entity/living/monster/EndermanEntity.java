@@ -43,11 +43,11 @@ public class EndermanEntity extends MonsterEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         // Held block
-        if (entityMetadata.getId() == 15) {
+        if (entityMetadata.getId() == 16) {
             metadata.put(EntityData.CARRIED_BLOCK, session.getBlockTranslator().getBedrockBlockId((int) entityMetadata.getValue()));
         }
         // "Is screaming" - controls sound
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 17) {
             if ((boolean) entityMetadata.getValue()) {
                 LevelSoundEvent2Packet packet = new LevelSoundEvent2Packet();
                 packet.setSound(SoundEvent.STARE);
@@ -58,7 +58,7 @@ public class EndermanEntity extends MonsterEntity {
             }
         }
         // "Is staring/provoked" - controls visuals
-        if (entityMetadata.getId() == 17) {
+        if (entityMetadata.getId() == 18) {
             metadata.getFlags().setFlag(EntityFlag.ANGRY, (boolean) entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);

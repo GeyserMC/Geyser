@@ -85,7 +85,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 17) {
+        if (entityMetadata.getId() == 18) {
             VillagerData villagerData = (VillagerData) entityMetadata.getValue();
             // Profession
             metadata.put(EntityData.VARIANT, VILLAGER_PROFESSIONS.get(villagerData.getProfession()));
@@ -111,7 +111,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
         float bedPositionSubtractorW = 0;
         float bedPositionSubtractorN = 0;
         Vector3i bedPosition = metadata.getPos(EntityData.BED_POSITION, null);
-        if (session.getConnector().getConfig().isCacheChunks() && bedPosition != null) {
+        if (bedPosition != null) {
             bedId = session.getConnector().getWorldManager().getBlockAt(session, bedPosition);
         }
         String bedRotationZ = BlockTranslator.getJavaIdBlockMap().inverse().get(bedId);

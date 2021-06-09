@@ -61,7 +61,7 @@ public class GeyserVelocityDumpInfo extends BootstrapDumpInfo {
 
         for (PluginContainer plugin : proxy.getPluginManager().getPlugins()) {
             String pluginClass = plugin.getInstance().map((pl) -> pl.getClass().getName()).orElse("unknown");
-            this.plugins.add(new PluginInfo(true, plugin.getDescription().getName().get(), plugin.getDescription().getVersion().get(), pluginClass, plugin.getDescription().getAuthors()));
+            this.plugins.add(new PluginInfo(true, plugin.getDescription().getName().orElse(null), plugin.getDescription().getVersion().orElse(null), pluginClass, plugin.getDescription().getAuthors()));
         }
     }
 }

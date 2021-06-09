@@ -34,6 +34,12 @@ import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeDa
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
+import com.viaversion.viaversion.api.Via;
+import com.viaversion.viaversion.api.data.MappingData;
+import com.viaversion.viaversion.api.protocol.ProtocolPathEntry;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import com.viaversion.viaversion.protocols.protocol1_13to1_12_2.Protocol1_13To1_12_2;
+import com.viaversion.viaversion.util.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -45,12 +51,6 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.item.RecipeRegistry;
-import us.myles.ViaVersion.api.Pair;
-import us.myles.ViaVersion.api.data.MappingData;
-import us.myles.ViaVersion.api.protocol.Protocol;
-import us.myles.ViaVersion.api.protocol.ProtocolRegistry;
-import us.myles.ViaVersion.api.protocol.ProtocolVersion;
-import us.myles.ViaVersion.protocols.protocol1_13to1_12_2.Protocol1_13To1_12_2;
 
 import java.util.*;
 
@@ -68,12 +68,12 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
     /**
      * The list of all protocols from the client's version to 1.13.
      */
-    private final List<Pair<Integer, Protocol>> protocolList;
+    private final List<ProtocolPathEntry> protocolList;
 
     public GeyserSpigot1_11CraftingListener(GeyserConnector connector) {
         this.connector = connector;
-        this.mappingData1_12to1_13 = ProtocolRegistry.getProtocol(Protocol1_13To1_12_2.class).getMappingData();
-        this.protocolList = ProtocolRegistry.getProtocolPath(MinecraftConstants.PROTOCOL_VERSION,
+        this.mappingData1_12to1_13 = Via.getManager().getProtocolManager().getProtocol(Protocol1_13To1_12_2.class).getMappingData();
+        this.protocolList = Via.getManager().getProtocolManager().getProtocolPath(MinecraftConstants.PROTOCOL_VERSION,
                 ProtocolVersion.v1_13.getVersion());
     }
 
@@ -187,7 +187,7 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
             }
 
             for (int i = protocolList.size() - 1; i >= 0; i--) {
-                MappingData mappingData = protocolList.get(i).getValue().getMappingData();
+                MappingData mappingData = protocolList.get(i).getProtocol().getMappingData();
                 if (mappingData != null) {
                     itemId = mappingData.getNewItemId(itemId);
                 }

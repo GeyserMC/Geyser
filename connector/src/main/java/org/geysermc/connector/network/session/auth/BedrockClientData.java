@@ -25,17 +25,18 @@
 
 package org.geysermc.connector.network.session.auth;
 
-import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
-import org.geysermc.floodgate.util.DeviceOS;
+import org.geysermc.floodgate.util.DeviceOs;
+import org.geysermc.floodgate.util.InputMode;
+import org.geysermc.floodgate.util.UiProfile;
 
 import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
-public class BedrockClientData {
+public final class BedrockClientData {
     @JsonProperty(value = "GameVersion")
     private String gameVersion;
     @JsonProperty(value = "ServerAddress")
@@ -77,9 +78,9 @@ public class BedrockClientData {
     @JsonProperty(value = "DeviceModel")
     private String deviceModel;
     @JsonProperty(value = "DeviceOS")
-    private DeviceOS deviceOS;
+    private DeviceOs deviceOs;
     @JsonProperty(value = "UIProfile")
-    private UIProfile uiProfile;
+    private UiProfile uiProfile;
     @JsonProperty(value = "GuiScale")
     private int guiScale;
     @JsonProperty(value = "CurrentInputMode")
@@ -106,18 +107,19 @@ public class BedrockClientData {
     @JsonProperty(value = "PlayFabId")
     private String playFabId;
 
-    public enum UIProfile {
-        @JsonEnumDefaultValue
-        CLASSIC,
-        POCKET
+    public DeviceOs getDeviceOs() {
+        return deviceOs != null ? deviceOs : DeviceOs.UNKNOWN;
     }
 
-    public enum InputMode {
-        @JsonEnumDefaultValue
-        UNKNOWN,
-        KEYBOARD_MOUSE,
-        TOUCH, // I guess Touch?
-        CONTROLLER,
-        VR
+    public InputMode getCurrentInputMode() {
+        return currentInputMode != null ? currentInputMode : InputMode.UNKNOWN;
+    }
+
+    public InputMode getDefaultInputMode() {
+        return defaultInputMode != null ? defaultInputMode : InputMode.UNKNOWN;
+    }
+
+    public UiProfile getUiProfile() {
+        return uiProfile != null ? uiProfile : UiProfile.CLASSIC;
     }
 }

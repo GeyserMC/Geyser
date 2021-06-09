@@ -36,6 +36,6 @@ public class TranslatableItemEntry extends ItemEntry {
 
     public TranslatableItemEntry(String javaIdentifier, String bedrockIdentifier, int javaId, int bedrockId, int bedrockData, int bedrockBlockId, int stackSize) {
         super(javaIdentifier, bedrockIdentifier, javaId, bedrockId, bedrockData, bedrockBlockId, stackSize);
-        this.translationString = "item." + javaIdentifier.replace(":", ".");
+        this.translationString = (isBlock() ? "block." : "item.") + javaIdentifier.replace(":", ".");
     }
 }

@@ -39,7 +39,6 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.effect.Effect;
 import org.geysermc.connector.network.translators.effect.EffectRegistry;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.LocaleUtils;
 
 import java.util.Collections;
@@ -273,6 +272,23 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     soundEventPacket.setBabySound(false);
                     soundEventPacket.setRelativeVolumeDisabled(false);
                     session.sendUpstreamPacket(soundEventPacket);
+                    break;
+                }
+                case ELECTRIC_SPARK: {
+                    // Matches with a Bedrock server but doesn't seem to match up with Java
+                    effectPacket.setType(LevelEventType.PARTICLE_ELECTRIC_SPARK);
+                    break;
+                }
+                case WAX_ON: {
+                    effectPacket.setType(LevelEventType.PARTICLE_WAX_ON);
+                    break;
+                }
+                case WAX_OFF: {
+                    effectPacket.setType(LevelEventType.PARTICLE_WAX_OFF);
+                    break;
+                }
+                case SCRAPE: {
+                    effectPacket.setType(LevelEventType.PARTICLE_SCRAPE);
                     break;
                 }
                 default: {

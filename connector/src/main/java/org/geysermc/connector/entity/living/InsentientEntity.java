@@ -41,7 +41,7 @@ public class InsentientEntity extends LivingEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 14 && entityMetadata.getType() == MetadataType.BYTE) {
+        if (entityMetadata.getId() == 15 && entityMetadata.getType() == MetadataType.BYTE) {
             byte xd = (byte) entityMetadata.getValue();
             metadata.getFlags().setFlag(EntityFlag.NO_AI, (xd & 0x01) == 0x01);
         }

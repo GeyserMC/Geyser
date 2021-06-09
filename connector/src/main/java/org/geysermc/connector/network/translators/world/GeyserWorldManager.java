@@ -25,8 +25,6 @@
 
 package org.geysermc.connector.network.translators.world;
 
-import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
-import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
@@ -54,42 +52,9 @@ public class GeyserWorldManager extends WorldManager {
     }
 
     @Override
-    public void getBlocksInSection(GeyserSession session, int x, int y, int z, Chunk chunk) {
-        ChunkCache chunkCache = session.getChunkCache();
-        Column cachedColumn;
-        Chunk cachedChunk;
-        if (chunkCache == null || (cachedColumn = chunkCache.getChunk(x, z)) == null || (cachedChunk = cachedColumn.getChunks()[y]) == null) {
-            return;
-        }
-
-        // Copy state IDs from cached chunk to output chunk
-        for (int blockY = 0; blockY < 16; blockY++) { // Cache-friendly iteration order
-            for (int blockZ = 0; blockZ < 16; blockZ++) {
-                for (int blockX = 0; blockX < 16; blockX++) {
-                    chunk.set(blockX, blockY, blockZ, cachedChunk.get(blockX, blockY, blockZ));
-                }
-            }
-        }
-    }
-
-    @Override
     public boolean hasOwnChunkCache() {
         // This implementation can only fetch data from the session chunk cache
         return false;
-    }
-
-    @Override
-    public int[] getBiomeDataAt(GeyserSession session, int x, int z) {
-        if (session.getConnector().getConfig().isCacheChunks()) {
-            ChunkCache chunkCache = session.getChunkCache();
-            if (chunkCache != null) { // Chunk cache can be null if the session is closed asynchronously
-                Column column = chunkCache.getChunk(x, z);
-                if (column != null) { // Column can be null if the server sent a partial chunk update before the first ground-up-continuous one
-                    return column.getBiomeData();
-                }
-            }
-        }
-        return new int[1024];
     }
 
     @Override

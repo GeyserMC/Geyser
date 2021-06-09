@@ -143,61 +143,52 @@ public class CollisionManager {
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY,
                 Double.parseDouble(Float.toString(bedrockPosition.getZ())));
 
-        if (session.getConnector().getConfig().isCacheChunks()) {
-            Vector3d startingPos = playerBoundingBox.getBottomCenter();
-            Vector3d movement = position.sub(startingPos);
-            PistonCache pistonCache = session.getPistonCache();
-            Vector3d adjustedMovement = correctPlayerMovement(movement, false);
-            playerBoundingBox.translate(adjustedMovement.getX(), adjustedMovement.getY(), adjustedMovement.getZ());
-            // Correct player position
-            if (!correctPlayerPosition()) {
-                // Cancel the movement if it needs to be cancelled
-                recalculatePosition();
-                return null;
-            }
-            // The server can't complain about our movement if we never send it
-            if (pistonCache.isPlayerCollided()) {
-                return null;
-            }
+        Vector3d startingPos = playerBoundingBox.getBottomCenter();
+        Vector3d movement = position.sub(startingPos);
+        PistonCache pistonCache = session.getPistonCache();
+        Vector3d adjustedMovement = correctPlayerMovement(movement, false);
+        playerBoundingBox.translate(adjustedMovement.getX(), adjustedMovement.getY(), adjustedMovement.getZ());
+        // Correct player position
+        if (!correctPlayerPosition()) {
+            // Cancel the movement if it needs to be cancelled
+            recalculatePosition();
+            return null;
+        }
+        // The server can't complain about our movement if we never send it
+        if (pistonCache.isPlayerCollided()) {
+            return null;
+        }
 
-            position = playerBoundingBox.getBottomCenter();
+        position = playerBoundingBox.getBottomCenter();
 
-            // Send corrected position to Bedrock
-            if (movement.distanceSquared(adjustedMovement) > 0.08) {
-                PlayerEntity playerEntity = session.getPlayerEntity();
-                onGround = adjustedMovement.getY() != movement.getY() && movement.getY() < 0;
+        // Send corrected position to Bedrock
+        if (movement.distanceSquared(adjustedMovement) > 0.08) {
+            PlayerEntity playerEntity = session.getPlayerEntity();
+            onGround = adjustedMovement.getY() != movement.getY() && movement.getY() < 0;
 
-                playerEntity.setPosition(position.toFloat(), true);
-                playerEntity.setOnGround(onGround);
-                if (pistonCache.getPlayerMotion().equals(Vector3f.ZERO) && !pistonCache.isPlayerSlimeCollision()) {
-                    // Probably can be improved with Server Auth movement with rewind
-                    MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
-                    moveEntityDeltaPacket.setRuntimeEntityId(playerEntity.getGeyserId());
-                    moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.FORCE_MOVE_LOCAL_ENTITY);
-                    if (onGround) {
-                        moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
-                    }
-                    moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
-                    moveEntityDeltaPacket.setX(playerEntity.getPosition().getX());
-                    moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
-                    moveEntityDeltaPacket.setY(playerEntity.getPosition().getY());
-                    moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
-                    moveEntityDeltaPacket.setZ(playerEntity.getPosition().getZ());
-                    session.sendUpstreamPacket(moveEntityDeltaPacket);
+            playerEntity.setPosition(position.toFloat(), true);
+            playerEntity.setOnGround(onGround);
+            if (pistonCache.getPlayerMotion().equals(Vector3f.ZERO) && !pistonCache.isPlayerSlimeCollision()) {
+                // Probably can be improved with Server Auth movement with rewind
+                MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
+                moveEntityDeltaPacket.setRuntimeEntityId(playerEntity.getGeyserId());
+                moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.FORCE_MOVE_LOCAL_ENTITY);
+                if (onGround) {
+                    moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
                 }
+                moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
+                moveEntityDeltaPacket.setX(playerEntity.getPosition().getX());
+                moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
+                moveEntityDeltaPacket.setY(playerEntity.getPosition().getY());
+                moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
+                moveEntityDeltaPacket.setZ(playerEntity.getPosition().getZ());
+                session.sendUpstreamPacket(moveEntityDeltaPacket);
             }
+        }
 
-            if (!onGround) {
-                // Trim the position to prevent rounding errors that make Java think we are clipping into a block
-                position = Vector3d.from(position.getX(), Double.parseDouble(DECIMAL_FORMAT.format(position.getY())), position.getZ());
-            }
-        } else {
-            // When chunk caching is off, we have to rely on this
-            // It rounds the Y position up to the nearest 0.5
-            // This snaps players to snap to the top of stairs and slabs like on Java Edition
-            // However, it causes issues such as the player floating on carpets
-            if (onGround) javaY = Math.ceil(javaY * 2) / 2;
-            position = position.up(javaY - position.getY());
+        if (!onGround) {
+            // Trim the position to prevent rounding errors that make Java think we are clipping into a block
+            position = Vector3d.from(position.getX(), Double.parseDouble(DECIMAL_FORMAT.format(position.getY())), position.getZ());
         }
 
         return position;
@@ -395,10 +386,6 @@ public class CollisionManager {
      * were they not sneaking
      */
     public boolean isUnderSlab() {
-        if (!session.getConnector().getConfig().isCacheChunks()) {
-            // We can't reliably determine this
-            return false;
-        }
         Vector3i position = session.getPlayerEntity().getPosition().toInt();
         BlockCollision collision = CollisionTranslator.getCollisionAt(session, position.getX(), position.getY(), position.getZ());
         if (collision != null) {
@@ -416,8 +403,7 @@ public class CollisionManager {
      * @return if the player is currently in a water block
      */
     public boolean isPlayerInWater() {
-        return session.getConnector().getConfig().isCacheChunks()
-                && session.getConnector().getWorldManager().getBlockAt(session, session.getPlayerEntity().getPosition().toInt()) == BlockTranslator.JAVA_WATER_ID;
+        return session.getConnector().getWorldManager().getBlockAt(session, session.getPlayerEntity().getPosition().toInt()) == BlockTranslator.JAVA_WATER_ID;
     }
 
     /**

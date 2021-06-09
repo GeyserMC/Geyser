@@ -45,25 +45,11 @@ import org.geysermc.connector.utils.ChunkUtils;
 
 @Translator(packet = ServerChunkDataPacket.class)
 public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
-    /**
-     * Determines if we should process non-full chunks
-     */
-    private final boolean cacheChunks;
-
-    public JavaChunkDataTranslator() {
-        cacheChunks = GeyserConnector.getInstance().getConfig().isCacheChunks();
-    }
 
     @Override
     public void translate(ServerChunkDataPacket packet, GeyserSession session) {
         if (session.isSpawned()) {
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
-        }
-
-        if (packet.getColumn().getBiomeData() == null && !cacheChunks) {
-            // Non-full chunk without chunk caching
-            session.getConnector().getLogger().debug("Not sending non-full chunk because chunk caching is off.");
-            return;
         }
 
         // Merge received column with cache on network thread
@@ -72,11 +58,9 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
             return;
         }
 
-        boolean isNonFullChunk = packet.getColumn().getBiomeData() == null;
-
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
-                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, mergedColumn, isNonFullChunk);
+                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, mergedColumn);
                 ChunkSection[] sections = chunkData.getSections();
 
                 // Find highest section

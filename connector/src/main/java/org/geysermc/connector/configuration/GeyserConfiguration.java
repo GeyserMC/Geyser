@@ -87,8 +87,6 @@ public interface GeyserConfiguration {
 
     boolean isAboveBedrockNetherBuilding();
 
-    boolean isCacheChunks();
-
     boolean isForceResourcePacks();
 
     boolean isXboxAchievementsEnabled();
