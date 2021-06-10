@@ -91,21 +91,17 @@ public class PistonBlockEntity {
         this.position = position;
         this.orientation = orientation;
 
-        if (session.getConnector().getConfig().isCacheChunks()) {
-            int blockId = session.getConnector().getWorldManager().getBlockAt(session, position);
-            sticky = BlockStateValues.isStickyPiston(blockId);
-            boolean extended = BlockStateValues.getPistonValues().get(blockId);
-            if (extended) {
-                this.action = PistonValueType.PUSHING;
-                this.progress = 1.0f;
-            } else {
-                this.action = PistonValueType.PULLING;
-                this.progress = 0.0f;
-            }
-            this.lastProgress = progress;
+        int blockId = session.getConnector().getWorldManager().getBlockAt(session, position);
+        sticky = BlockStateValues.isStickyPiston(blockId);
+        boolean extended = BlockStateValues.getPistonValues().get(blockId);
+        if (extended) {
+            this.action = PistonValueType.PUSHING;
+            this.progress = 1.0f;
         } else {
-            sticky = false;
+            this.action = PistonValueType.PULLING;
+            this.progress = 0.0f;
         }
+        this.lastProgress = progress;
     }
 
     /**
@@ -187,10 +183,6 @@ public class PistonBlockEntity {
      * Find the blocks that will be pushed or pulled by the piston
      */
     private void findAffectedBlocks() {
-        if (!session.getConnector().getConfig().isCacheChunks()) {
-            flattenPositions();
-            return;
-        }
         Set<Vector3i> blocksChecked = new ObjectOpenHashSet<>();
         Queue<Vector3i> blocksToCheck = new LinkedList<>();
 

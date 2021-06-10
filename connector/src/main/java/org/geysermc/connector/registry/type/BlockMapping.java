@@ -28,6 +28,7 @@ package org.geysermc.connector.registry.type;
 import lombok.Builder;
 import lombok.Value;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 @Builder
@@ -50,7 +51,8 @@ public class BlockMapping {
     int collisionIndex;
     @Nullable String pickItem;
 
-    @Nonnull String pistonBehavior;
+    @Nonnull
+    String pistonBehavior;
     boolean isBlockEntity;
 
     /**
