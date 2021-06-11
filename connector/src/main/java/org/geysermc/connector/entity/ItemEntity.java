@@ -28,12 +28,15 @@ package org.geysermc.connector.entity;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.AddItemEntityPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 
 public class ItemEntity extends Entity {
+
+    protected ItemData item;
 
     public ItemEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position.add(0d, entityType.getOffset(), 0d), motion, rotation);
@@ -53,19 +56,39 @@ public class ItemEntity extends Entity {
     }
 
     @Override
+    public void spawnEntity(GeyserSession session) {
+        if (item == null) {
+            return;
+        }
+        valid = true;
+        AddItemEntityPacket itemPacket = new AddItemEntityPacket();
+        itemPacket.setRuntimeEntityId(geyserId);
+        itemPacket.setPosition(position.add(0d, this.entityType.getOffset(), 0d));
+        itemPacket.setMotion(motion);
+        itemPacket.setUniqueEntityId(geyserId);
+        itemPacket.setFromFishing(false);
+        itemPacket.getMetadata().putAll(metadata);
+        itemPacket.setItemInHand(item);
+        session.sendUpstreamPacket(itemPacket);
+    }
+
+    @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 8) {
-            AddItemEntityPacket itemPacket = new AddItemEntityPacket();
-            itemPacket.setRuntimeEntityId(geyserId);
-            itemPacket.setPosition(position.add(0d, this.entityType.getOffset(), 0d));
-            itemPacket.setMotion(motion);
-            itemPacket.setUniqueEntityId(geyserId);
-            itemPacket.setFromFishing(false);
-            itemPacket.getMetadata().putAll(metadata);
-            itemPacket.setItemInHand(ItemTranslator.translateToBedrock(session, (ItemStack) entityMetadata.getValue()));
-            session.sendUpstreamPacket(itemPacket);
+            item = ItemTranslator.translateToBedrock(session, (ItemStack) entityMetadata.getValue());
+            despawnEntity(session);
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    public void updateBedrockMetadata(GeyserSession session) {
+        if (!valid) {
+            spawnEntity(session);
+            return;
+        }
+
+        super.updateBedrockMetadata(session);
     }
 }
