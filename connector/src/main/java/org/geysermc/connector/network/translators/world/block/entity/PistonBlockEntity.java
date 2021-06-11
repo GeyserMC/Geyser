@@ -540,14 +540,6 @@ public class PistonBlockEntity {
             if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
                 movementProgress = 1f - progress;
             }
-            // Adjust movement progress to account for when collision is checked in between progress updates
-            double tickDelta = (System.currentTimeMillis() - lastProgressUpdate) / 50f;
-            if (action == PistonValueType.PUSHING) {
-                movementProgress += 0.5f * Math.ceil(tickDelta);
-            } else {
-                movementProgress += 0.5f * Math.floor(tickDelta);
-            }
-            movementProgress = Math.min(movementProgress, 1f);
             Vector3d offset = getMovement().toDouble().mul(movementProgress);
             Vector3d offsetBlockPos = blockPos.sub(getMovement()).toDouble().add(offset);
             BlockCollision blockCollision = CollisionTranslator.getCollision(blockId, 0, 0, 0);
