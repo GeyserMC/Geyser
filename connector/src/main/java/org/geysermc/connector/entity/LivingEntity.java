@@ -46,6 +46,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.utils.ChunkUtils;
+import org.geysermc.connector.utils.MathUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,7 +84,7 @@ public class LivingEntity extends Entity {
                 metadata.getFlags().setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, (xd & 0x04) == 0x04);
                 break;
             case 9:
-                metadata.put(EntityData.HEALTH, entityMetadata.getValue());
+                metadata.put(EntityData.HEALTH, MathUtils.toInt(entityMetadata.getValue()));
                 break;
             case 10:
                 metadata.put(EntityData.EFFECT_COLOR, entityMetadata.getValue());

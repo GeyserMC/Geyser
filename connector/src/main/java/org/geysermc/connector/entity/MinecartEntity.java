@@ -30,6 +30,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.MathUtils;
 
 public class MinecartEntity extends Entity {
 
@@ -41,7 +42,7 @@ public class MinecartEntity extends Entity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
 
         if (entityMetadata.getId() == 8) {
-            metadata.put(EntityData.HEALTH, entityMetadata.getValue());
+            metadata.put(EntityData.HEALTH, MathUtils.toInt(entityMetadata.getValue()));
         }
 
         // Direction in which the minecart is shaking

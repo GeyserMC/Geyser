@@ -94,7 +94,7 @@ public class Entity {
         setPosition(position);
 
         metadata.put(EntityData.SCALE, 1f);
-        metadata.put(EntityData.COLOR, 0);
+        metadata.put(EntityData.COLOR, (byte) 0);
         metadata.put(EntityData.MAX_AIR_SUPPLY, (short) 300);
         metadata.put(EntityData.AIR_SUPPLY, (short) 0);
         metadata.put(EntityData.LEASH_HOLDER_EID, -1L);

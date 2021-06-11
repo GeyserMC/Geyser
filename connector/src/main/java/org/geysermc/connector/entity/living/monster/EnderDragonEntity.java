@@ -318,7 +318,7 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
     }
 
     private boolean isAlive() {
-        return metadata.getFloat(EntityData.HEALTH) > 0;
+        return metadata.getInt(EntityData.HEALTH) > 0;
     }
 
     private boolean isHovering() {

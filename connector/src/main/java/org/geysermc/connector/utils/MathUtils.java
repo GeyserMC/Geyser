@@ -85,4 +85,17 @@ public class MathUtils {
     public static long chunkPositionToLong(int x, int z) {
         return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
     }
+
+    /**
+     * Cast any {@code Object} to {@code int}.
+     *
+     * @param obj the object
+     * @return the int value if object instanceof Number, otherwise 0.
+     */
+    public static int toInt(Object obj) {
+        if (obj instanceof Number) {
+            return ((Number) obj).intValue();
+        }
+        return 0;
+    }
 }
