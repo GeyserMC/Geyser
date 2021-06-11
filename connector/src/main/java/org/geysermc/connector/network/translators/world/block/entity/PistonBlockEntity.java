@@ -493,12 +493,14 @@ public class PistonBlockEntity {
 
             if (javaId == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID) {
                 pistonCache.setPlayerSlimeCollision(true);
+                applySlimeBlockMotion(finalBlockPos, Vector3d.from(playerBoundingBox.getMiddleX(), playerBoundingBox.getMiddleY(), playerBoundingBox.getMiddleZ()));
             }
         }
 
         Vector3d blockPos = startingPos.add(movement.mul(blockMovement));
         if (javaId == BlockTranslator.JAVA_RUNTIME_HONEY_BLOCK_ID && isPlayerAttached(blockPos, playerBoundingBox)) {
             pistonCache.setPlayerCollided(true);
+            pistonCache.setPlayerAttachedToHoney(true);
 
             double delta = Math.abs(progress - lastProgress);
             pistonCache.displacePlayer(movement.mul(delta));
@@ -615,7 +617,10 @@ public class PistonBlockEntity {
             movingBlockMap.remove(blockPos);
             // Send a final block entity packet to detach blocks
             BlockEntityUtils.updateBlockEntity(session, buildMovingBlockTag(blockPos, javaId, Vector3i.from(0, -1, 0)), blockPos);
-            ChunkUtils.updateBlock(session, javaId, blockPos);
+            // Don't place blocks that collide with the player
+            if (!SOLID_BOUNDING_BOX.checkIntersection(blockPos.toDouble(), session.getCollisionManager().getPlayerBoundingBox())) {
+                ChunkUtils.updateBlock(session, javaId, blockPos);
+            }
         });
         // Remove piston head
         if (action == PistonValueType.PUSHING) {

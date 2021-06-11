@@ -76,6 +76,12 @@ public class PistonCache {
     @Getter @Setter
     private boolean playerSlimeCollision = false;
 
+    /**
+     * Stores whether a player is standing on a honey block.
+     */
+    @Getter @Setter
+    private boolean playerAttachedToHoney = false;
+
     public PistonCache(GeyserSession session) {
         this.session = session;
     }
@@ -104,6 +110,7 @@ public class PistonCache {
         playerMotion = Vector3f.ZERO;
         playerCollided = false;
         playerSlimeCollision = false;
+        playerAttachedToHoney = false;
     }
 
     private void sendPlayerMovement() {
