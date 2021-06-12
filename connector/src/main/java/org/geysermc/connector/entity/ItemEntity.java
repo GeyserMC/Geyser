@@ -67,7 +67,6 @@ public class ItemEntity extends Entity {
         itemPacket.setMotion(motion);
         itemPacket.setUniqueEntityId(geyserId);
         itemPacket.setFromFishing(false);
-        itemPacket.getMetadata().putAll(metadata);
         itemPacket.setItemInHand(item);
         session.sendUpstreamPacket(itemPacket);
     }
@@ -77,18 +76,9 @@ public class ItemEntity extends Entity {
         if (entityMetadata.getId() == 8) {
             item = ItemTranslator.translateToBedrock(session, (ItemStack) entityMetadata.getValue());
             despawnEntity(session);
+            spawnEntity(session);
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
-    }
-
-    @Override
-    public void updateBedrockMetadata(GeyserSession session) {
-        if (!valid) {
-            spawnEntity(session);
-            return;
-        }
-
-        super.updateBedrockMetadata(session);
     }
 }
