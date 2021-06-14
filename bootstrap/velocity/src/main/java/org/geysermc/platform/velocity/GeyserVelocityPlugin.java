@@ -28,6 +28,7 @@ package org.geysermc.platform.velocity;
 import com.google.inject.Inject;
 import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
@@ -133,15 +134,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         this.connector = GeyserConnector.start(PlatformType.VELOCITY, this);
 
         this.geyserInjector = new GeyserVelocityInjector(proxyServer);
-        try {
-            // We should listen for this if possible and then inject, so if the server channel initializer changes
-            // we can pick up on it.
-            Class.forName("com.velocitypowered.api.event.proxy.ListenerBoundEvent");
-            GeyserVelocityListenerBoundHandler.register(this, this.geyserInjector, proxyServer);
-        } catch (ClassNotFoundException e) {
-            geyserLogger.debug("Loading injection now as we are running an older version of Velocity.");
-            this.geyserInjector.initializeLocalChannel(this);
-        }
+        // Will be initialized after the proxy has been bound
 
         this.geyserCommandManager = new GeyserVelocityCommandManager(connector);
         this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(connector));
@@ -190,6 +183,12 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     @Subscribe
     public void onShutdown(ProxyShutdownEvent event) {
         onDisable();
+    }
+
+    @Subscribe
+    public void onProxyBound(ListenerBoundEvent event) {
+        // After this bound, we know that the channel initializer cannot change without it being ineffective for Velocity, too
+        geyserInjector.initializeLocalChannel(this);
     }
 
     @Override
