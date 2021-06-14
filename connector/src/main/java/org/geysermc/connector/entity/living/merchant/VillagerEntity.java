@@ -46,7 +46,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
     /**
      * A map of Java profession IDs to Bedrock IDs
      */
-    private static final Int2IntMap VILLAGER_VARIANTS = new Int2IntOpenHashMap();
+    public static final Int2IntMap VILLAGER_PROFESSIONS = new Int2IntOpenHashMap();
     /**
      * A map of all Java region IDs (plains, savanna...) to Bedrock
      */
@@ -54,21 +54,21 @@ public class VillagerEntity extends AbstractMerchantEntity {
 
     static {
         // Java villager profession IDs -> Bedrock
-        VILLAGER_VARIANTS.put(0, 0);
-        VILLAGER_VARIANTS.put(1, 8);
-        VILLAGER_VARIANTS.put(2, 11);
-        VILLAGER_VARIANTS.put(3, 6);
-        VILLAGER_VARIANTS.put(4, 7);
-        VILLAGER_VARIANTS.put(5, 1);
-        VILLAGER_VARIANTS.put(6, 2);
-        VILLAGER_VARIANTS.put(7, 4);
-        VILLAGER_VARIANTS.put(8, 12);
-        VILLAGER_VARIANTS.put(9, 5);
-        VILLAGER_VARIANTS.put(10, 13);
-        VILLAGER_VARIANTS.put(11, 14);
-        VILLAGER_VARIANTS.put(12, 3);
-        VILLAGER_VARIANTS.put(13, 10);
-        VILLAGER_VARIANTS.put(14, 9);
+        VILLAGER_PROFESSIONS.put(0, 0);
+        VILLAGER_PROFESSIONS.put(1, 8);
+        VILLAGER_PROFESSIONS.put(2, 11);
+        VILLAGER_PROFESSIONS.put(3, 6);
+        VILLAGER_PROFESSIONS.put(4, 7);
+        VILLAGER_PROFESSIONS.put(5, 1);
+        VILLAGER_PROFESSIONS.put(6, 2);
+        VILLAGER_PROFESSIONS.put(7, 4);
+        VILLAGER_PROFESSIONS.put(8, 12);
+        VILLAGER_PROFESSIONS.put(9, 5);
+        VILLAGER_PROFESSIONS.put(10, 13);
+        VILLAGER_PROFESSIONS.put(11, 14);
+        VILLAGER_PROFESSIONS.put(12, 3);
+        VILLAGER_PROFESSIONS.put(13, 10);
+        VILLAGER_PROFESSIONS.put(14, 9);
 
         VILLAGER_REGIONS.put(0, 1);
         VILLAGER_REGIONS.put(1, 2);
@@ -85,10 +85,10 @@ public class VillagerEntity extends AbstractMerchantEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 17) {
+        if (entityMetadata.getId() == 18) {
             VillagerData villagerData = (VillagerData) entityMetadata.getValue();
             // Profession
-            metadata.put(EntityData.VARIANT, VILLAGER_VARIANTS.get(villagerData.getProfession()));
+            metadata.put(EntityData.VARIANT, VILLAGER_PROFESSIONS.get(villagerData.getProfession()));
             //metadata.put(EntityData.SKIN_ID, villagerData.getType()); Looks like this is modified but for any reason?
             // Region
             metadata.put(EntityData.MARK_VARIANT, VILLAGER_REGIONS.get(villagerData.getType()));
@@ -111,7 +111,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
         float bedPositionSubtractorW = 0;
         float bedPositionSubtractorN = 0;
         Vector3i bedPosition = metadata.getPos(EntityData.BED_POSITION, null);
-        if (session.getConnector().getConfig().isCacheChunks() && bedPosition != null) {
+        if (bedPosition != null) {
             bedId = session.getConnector().getWorldManager().getBlockAt(session, bedPosition);
         }
         String bedRotationZ = BlockTranslator.getJavaIdBlockMap().inverse().get(bedId);

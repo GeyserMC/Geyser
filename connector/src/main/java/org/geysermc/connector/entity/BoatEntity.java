@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
+import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -65,7 +66,19 @@ public class BoatEntity extends Entity {
     @Override
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
         // We don't include the rotation (y) as it causes the boat to appear sideways
-        super.moveAbsolute(session, position.add(0d, this.entityType.getOffset(), 0d), Vector3f.from(rotation.getX() + 90, 0, rotation.getX() + 90), isOnGround, teleported);
+        setPosition(position.add(0d, this.entityType.getOffset(), 0d));
+        setRotation(Vector3f.from(rotation.getX() + 90, 0, rotation.getX() + 90));
+        setOnGround(isOnGround);
+
+        MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
+        moveEntityPacket.setRuntimeEntityId(geyserId);
+        // Minimal glitching when ServerVehicleMovePacket is sent
+        moveEntityPacket.setPosition(session.getRidingVehicleEntity() == this ? position.up(EntityType.PLAYER.getOffset() - this.entityType.getOffset()) : this.position);
+        moveEntityPacket.setRotation(getBedrockRotation());
+        moveEntityPacket.setOnGround(isOnGround);
+        moveEntityPacket.setTeleported(teleported);
+
+        session.sendUpstreamPacket(moveEntityPacket);
     }
 
     @Override
@@ -85,26 +98,25 @@ public class BoatEntity extends Entity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-
         // Time since last hit
-        if (entityMetadata.getId() == 7) {
+        if (entityMetadata.getId() == 8) {
             metadata.put(EntityData.HURT_TIME, entityMetadata.getValue());
         }
 
         // Rocking direction
-        if (entityMetadata.getId() == 8) {
+        if (entityMetadata.getId() == 9) {
             metadata.put(EntityData.HURT_DIRECTION, entityMetadata.getValue());
         }
 
         // 'Health' in Bedrock, damage taken in Java
-        if (entityMetadata.getId() == 9) {
+        if (entityMetadata.getId() == 10) {
             // Not exactly health but it makes motion in Bedrock
             metadata.put(EntityData.HEALTH, 40 - ((int) (float) entityMetadata.getValue()));
         }
 
-        if (entityMetadata.getId() == 10) {
+        if (entityMetadata.getId() == 11) {
             metadata.put(EntityData.VARIANT, entityMetadata.getValue());
-        } else if (entityMetadata.getId() == 11) {
+        } else if (entityMetadata.getId() == 12) {
             isPaddlingLeft = (boolean) entityMetadata.getValue();
             if (isPaddlingLeft) {
                 // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
@@ -124,7 +136,7 @@ public class BoatEntity extends Entity {
                 metadata.put(EntityData.ROW_TIME_LEFT, 0.0f);
             }
         }
-        else if (entityMetadata.getId() == 12) {
+        else if (entityMetadata.getId() == 13) {
             isPaddlingRight = (boolean) entityMetadata.getValue();
             if (isPaddlingRight) {
                 paddleTimeRight = 0f;
@@ -139,7 +151,7 @@ public class BoatEntity extends Entity {
             } else {
                 metadata.put(EntityData.ROW_TIME_RIGHT, 0.0f);
             }
-        } else if (entityMetadata.getId() == 13) {
+        } else if (entityMetadata.getId() == 14) {
             // Possibly - I don't think this does anything?
             metadata.put(EntityData.BOAT_BUBBLE_TIME, entityMetadata.getValue());
         }

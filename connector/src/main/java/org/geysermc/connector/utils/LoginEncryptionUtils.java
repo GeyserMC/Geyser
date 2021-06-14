@@ -134,7 +134,6 @@ public class LoginEncryptionUtils {
 
             JsonNode clientDataJson = JSON_MAPPER.readTree(clientJwt.getPayload().toBytes());
             BedrockClientData data = JSON_MAPPER.convertValue(clientDataJson, BedrockClientData.class);
-            data.setJsonData(clientDataJson);
             session.setClientData(data);
 
             if (EncryptionUtils.canUseEncryption()) {
@@ -243,7 +242,7 @@ public class LoginEncryptionUtils {
     }
 
     /**
-     * Promts the user between either OAuth code login or manual password authentication
+     * Prompts the user between either OAuth code login or manual password authentication
      */
     public static void buildAndShowMicrosoftAuthenticationWindow(GeyserSession session) {
         session.sendForm(

@@ -23,25 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.window;
+package org.geysermc.connector.network.translators.java.title;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientConfirmTransactionPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerConfirmTransactionPacket;
-import org.geysermc.connector.inventory.Inventory;
+import com.github.steveice10.mc.protocol.packet.ingame.server.title.ServerSetTitleTextPacket;
+import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
-@Translator(packet = ServerConfirmTransactionPacket.class)
-public class JavaConfirmTransactionTranslator extends PacketTranslator<ServerConfirmTransactionPacket> {
+@Translator(packet = ServerSetTitleTextPacket.class)
+public class JavaSetTitleTextTranslator extends PacketTranslator<ServerSetTitleTextPacket> {
 
     @Override
-    public void translate(ServerConfirmTransactionPacket packet, GeyserSession session) {
-        session.addInventoryTask(() -> {
-            if (!packet.isAccepted()) {
-                ClientConfirmTransactionPacket confirmPacket = new ClientConfirmTransactionPacket(packet.getWindowId(), packet.getActionId(), true);
-                session.sendDownstreamPacket(confirmPacket);
-            }
-        });
+    public void translate(ServerSetTitleTextPacket packet, GeyserSession session) {
+        String text;
+        if (packet.getText() == null) { //TODO 1.17 can this happen?
+            text = " ";
+        } else {
+            text = MessageTranslator.convertMessage(packet.getText(), session.getLocale());
+        }
+
+        SetTitlePacket titlePacket = new SetTitlePacket();
+        titlePacket.setType(SetTitlePacket.Type.TITLE);
+        titlePacket.setText(text);
+        session.sendUpstreamPacket(titlePacket);
     }
 }

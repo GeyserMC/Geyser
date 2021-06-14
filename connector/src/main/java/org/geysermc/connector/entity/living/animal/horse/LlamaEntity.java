@@ -46,11 +46,11 @@ public class LlamaEntity extends ChestedHorseEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         // Strength
-        if (entityMetadata.getId() == 19) {
+        if (entityMetadata.getId() == 20) {
             metadata.put(EntityData.STRENGTH, entityMetadata.getValue());
         }
         // Color equipped on the llama
-        if (entityMetadata.getId() == 20) {
+        if (entityMetadata.getId() == 21) {
             // Bedrock treats llama decoration as armor
             MobArmorEquipmentPacket equipmentPacket = new MobArmorEquipmentPacket();
             equipmentPacket.setRuntimeEntityId(geyserId);
@@ -71,7 +71,7 @@ public class LlamaEntity extends ChestedHorseEntity {
             session.sendUpstreamPacket(equipmentPacket);
         }
         // Color of the llama
-        if (entityMetadata.getId() == 21) {
+        if (entityMetadata.getId() == 22) {
             metadata.put(EntityData.VARIANT, entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);

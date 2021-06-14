@@ -114,7 +114,8 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                     return packet;
                 };
             }
-            case DUST: {
+            case DUST:
+            case DUST_COLOR_TRANSITION: { //TODO
                 DustParticleData data = (DustParticleData) particle.getData();
                 int r = (int) (data.getRed() * 255);
                 int g = (int) (data.getGreen() * 255);

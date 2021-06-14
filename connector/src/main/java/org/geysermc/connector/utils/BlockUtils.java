@@ -41,16 +41,28 @@ public class BlockUtils {
      */
     public static final Position POSITION_ZERO = new Position(0, 0, 0);
 
-    private static boolean correctTool(String blockToolType, String itemToolType) {
-        return (blockToolType.equals("sword") && itemToolType.equals("sword")) ||
-                (blockToolType.equals("shovel") && itemToolType.equals("shovel")) ||
-                (blockToolType.equals("pickaxe") && itemToolType.equals("pickaxe")) ||
-                (blockToolType.equals("axe") && itemToolType.equals("axe")) ||
-                (blockToolType.equals("shears") && itemToolType.equals("shears"));
+    private static boolean correctTool(GeyserSession session, BlockMapping blockMapping, String itemToolType) {
+        switch (itemToolType) {
+            case "axe":
+                return session.getTagCache().isAxeEffective(blockMapping);
+            case "hoe":
+                return session.getTagCache().isHoeEffective(blockMapping);
+            case "pickaxe":
+                return session.getTagCache().isPickaxeEffective(blockMapping);
+            case "shears":
+                return session.getTagCache().isShearsEffective(blockMapping);
+            case "shovel":
+                return session.getTagCache().isShovelEffective(blockMapping);
+            case "sword":
+                return blockMapping.getJavaBlockId() == BlockTranslator.JAVA_COBWEB_BLOCK_ID;
+            default:
+                session.getConnector().getLogger().warning("Unknown tool type: " + itemToolType);
+                return false;
+        }
     }
 
-    private static double toolBreakTimeBonus(String toolType, String toolTier, boolean isWoolBlock) {
-        if (toolType.equals("shears")) return isWoolBlock ? 5.0 : 15.0;
+    private static double toolBreakTimeBonus(String toolType, String toolTier, boolean isShearsEffective) {
+        if (toolType.equals("shears")) return isShearsEffective ? 5.0 : 15.0;
         if (toolType.equals("")) return 1.0;
         switch (toolTier) {
             // https://minecraft.gamepedia.com/Breaking#Speed
@@ -71,18 +83,41 @@ public class BlockUtils {
         }
     }
 
-    //http://minecraft.gamepedia.com/Breaking
-    private static double calculateBreakTime(double blockHardness, String toolTier, boolean canHarvestWithHand, boolean correctTool,
-                                             String toolType, boolean isWoolBlock, boolean isCobweb, int toolEfficiencyLevel, int hasteLevel, int miningFatigueLevel,
+    private static boolean canToolTierBreakBlock(GeyserSession session, BlockMapping blockMapping, String toolTier) {
+        if (toolTier.equals("netherite") || toolTier.equals("diamond")) {
+            // As of 1.17, these tiers can mine everything that is mineable
+            return true;
+        }
+
+        switch (toolTier) {
+            // Use intentional fall-throughs to check each tier with this block
+            default:
+                if (session.getTagCache().requiresStoneTool(blockMapping)) {
+                    return false;
+                }
+            case "stone":
+                if (session.getTagCache().requiresIronTool(blockMapping)) {
+                    return false;
+                }
+            case "iron":
+                if (session.getTagCache().requiresDiamondTool(blockMapping)) {
+                    return false;
+                }
+        }
+
+        return true;
+    }
+
+    // https://minecraft.gamepedia.com/Breaking
+    private static double calculateBreakTime(double blockHardness, String toolTier, boolean canHarvestWithHand, boolean correctTool, boolean canTierMineBlock,
+                                             String toolType, boolean isShearsEffective, int toolEfficiencyLevel, int hasteLevel, int miningFatigueLevel,
                                              boolean insideOfWaterWithoutAquaAffinity, boolean outOfWaterButNotOnGround, boolean insideWaterAndNotOnGround) {
-        double baseTime = ((correctTool || canHarvestWithHand) ? 1.5 : 5.0) * blockHardness;
+        double baseTime = (((correctTool && canTierMineBlock) || canHarvestWithHand) ? 1.5 : 5.0) * blockHardness;
         double speed = 1.0 / baseTime;
 
         if (correctTool) {
-            speed *= toolBreakTimeBonus(toolType, toolTier, isWoolBlock);
+            speed *= toolBreakTimeBonus(toolType, toolTier, isShearsEffective);
             speed += toolEfficiencyLevel == 0 ? 0 : toolEfficiencyLevel * toolEfficiencyLevel + 1;
-        } else if (toolType.equals("sword")) {
-            speed*= (isCobweb ? 15.0 : 1.5);
         }
         speed *= 1.0 + (0.2 * hasteLevel);
 
@@ -110,18 +145,18 @@ public class BlockUtils {
     }
 
     public static double getBreakTime(GeyserSession session, BlockMapping blockMapping, ItemEntry item, CompoundTag nbtData, boolean isSessionPlayer) {
-        boolean isWoolBlock = session.getTagCache().isWool(blockMapping);
-        boolean isCobweb = blockMapping.getJavaBlockId() == BlockTranslator.JAVA_COBWEB_BLOCK_ID;
-        String blockToolType = blockMapping.getToolType();
+        boolean isShearsEffective = session.getTagCache().isShearsEffective(blockMapping); //TODO called twice
         boolean canHarvestWithHand = blockMapping.isCanBreakWithHand();
         String toolType = "";
         String toolTier = "";
         boolean correctTool = false;
+        boolean toolCanBreak = false;
         if (item instanceof ToolItemEntry) {
             ToolItemEntry toolItem = (ToolItemEntry) item;
             toolType = toolItem.getToolType();
             toolTier = toolItem.getToolTier();
-            correctTool = correctTool(blockToolType, toolType);
+            correctTool = correctTool(session, blockMapping, toolType);
+            toolCanBreak = canToolTierBreakBlock(session, blockMapping, toolTier);
         }
         int toolEfficiencyLevel = ItemUtils.getEnchantmentLevel(nbtData, "minecraft:efficiency");
         int hasteLevel = 0;
@@ -129,12 +164,12 @@ public class BlockUtils {
 
         if (!isSessionPlayer) {
             // Another entity is currently mining; we have all the information we know
-            return calculateBreakTime(blockMapping.getHardness(), toolTier, canHarvestWithHand, correctTool, toolType, isWoolBlock,
-                    isCobweb, toolEfficiencyLevel, hasteLevel, miningFatigueLevel, false,
+            return calculateBreakTime(blockMapping.getHardness(), toolTier, canHarvestWithHand, correctTool, toolCanBreak, toolType, isShearsEffective,
+                    toolEfficiencyLevel, hasteLevel, miningFatigueLevel, false,
                     false, false);
         }
 
-        hasteLevel = session.getEffectCache().getEffectLevel(Effect.FASTER_DIG);
+        hasteLevel = Math.max(session.getEffectCache().getEffectLevel(Effect.FASTER_DIG), session.getEffectCache().getEffectLevel(Effect.CONDUIT_POWER));
         miningFatigueLevel = session.getEffectCache().getEffectLevel(Effect.SLOWER_DIG);
 
         boolean isInWater = session.getCollisionManager().isPlayerInWater();
@@ -144,8 +179,8 @@ public class BlockUtils {
 
         boolean outOfWaterButNotOnGround = (!isInWater) && (!session.getPlayerEntity().isOnGround());
         boolean insideWaterNotOnGround = isInWater && !session.getPlayerEntity().isOnGround();
-        return calculateBreakTime(blockMapping.getHardness(), toolTier, canHarvestWithHand, correctTool, toolType, isWoolBlock,
-                isCobweb, toolEfficiencyLevel, hasteLevel, miningFatigueLevel, insideOfWaterWithoutAquaAffinity,
+        return calculateBreakTime(blockMapping.getHardness(), toolTier, canHarvestWithHand, correctTool, toolCanBreak, toolType, isShearsEffective,
+                toolEfficiencyLevel, hasteLevel, miningFatigueLevel, insideOfWaterWithoutAquaAffinity,
                 outOfWaterButNotOnGround, insideWaterNotOnGround);
     }
 

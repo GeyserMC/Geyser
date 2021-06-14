@@ -22,10 +22,7 @@ pipeline {
 
         stage ('Deploy') {
             when {
-                anyOf {
-                    branch "master"
-                    branch "floodgate-2.0"
-                }
+                branch "master"
             }
 
             steps {

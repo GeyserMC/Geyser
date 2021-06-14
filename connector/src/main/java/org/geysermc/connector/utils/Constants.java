@@ -29,16 +29,19 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public final class Constants {
-    public static final URI SKIN_UPLOAD_URI;
+    public static final URI GLOBAL_API_WS_URI;
     public static final String NTP_SERVER = "time.cloudflare.com";
 
+    public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v1/news";
+    public static final String NEWS_PROJECT_NAME = "geyser";
+
     static {
-        URI skinUploadUri = null;
+        URI wsUri = null;
         try {
-            skinUploadUri = new URI("wss://api.geysermc.org/ws");
+            wsUri = new URI("wss://api.geysermc.org/ws");
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
-        SKIN_UPLOAD_URI = skinUploadUri;
+        GLOBAL_API_WS_URI = wsUri;
     }
 }

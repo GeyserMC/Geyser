@@ -23,21 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.world.block;
+package org.geysermc.floodgate.news.data;
 
-public class BlockTranslator1_16_210 extends BlockTranslator {
-    public static final BlockTranslator1_16_210 INSTANCE = new BlockTranslator1_16_210();
+import com.google.gson.JsonObject;
 
-    public BlockTranslator1_16_210() {
-        super("bedrock/blockpalette.1_16_210.nbt");
+public class CheckAfterData implements ItemData {
+    private long checkAfter;
+
+    public static CheckAfterData read(JsonObject data) {
+        CheckAfterData checkAfterData = new CheckAfterData();
+        checkAfterData.checkAfter = data.get("check_after").getAsLong();
+        return checkAfterData;
     }
 
-    @Override
-    public int getBlockStateVersion() {
-        return 17879555;
-    }
-
-    public static void init() {
-        // no-op
+    public long getCheckAfter() {
+        return checkAfter;
     }
 }

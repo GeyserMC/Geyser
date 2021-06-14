@@ -28,8 +28,6 @@ package org.geysermc.connector.entity.living.animal;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.geysermc.connector.entity.living.AbstractFishEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -42,34 +40,14 @@ public class TropicalFishEntity extends AbstractFishEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
-            TropicalFishVariant variant = TropicalFishVariant.fromVariantNumber((int) entityMetadata.getValue());
+        if (entityMetadata.getId() == 17) {
+            int varNumber = (int) entityMetadata.getValue();
 
-            metadata.put(EntityData.VARIANT, variant.getShape()); // Shape 0-1
-            metadata.put(EntityData.MARK_VARIANT, variant.getPattern()); // Pattern 0-5
-            metadata.put(EntityData.COLOR, variant.getBaseColor()); // Base color 0-15
-            metadata.put(EntityData.COLOR_2, variant.getPatternColor()); // Pattern color 0-15
+            metadata.put(EntityData.VARIANT, varNumber & 0xFF); // Shape 0-1
+            metadata.put(EntityData.MARK_VARIANT, (varNumber >> 8) & 0xFF); // Pattern 0-5
+            metadata.put(EntityData.COLOR, (byte) ((varNumber >> 16) & 0xFF)); // Base color 0-15
+            metadata.put(EntityData.COLOR_2, (byte) ((varNumber >> 24) & 0xFF)); // Pattern color 0-15
         }
         super.updateBedrockMetadata(entityMetadata, session);
-    }
-
-    @Getter
-    @AllArgsConstructor
-    private static class TropicalFishVariant {
-        private int shape;
-        private int pattern;
-        private byte baseColor;
-        private byte patternColor;
-
-        /**
-         * Convert the variant number from Java into separate values
-         *
-         * @param varNumber Variant number from Java edition
-         *
-         * @return The variant converted into TropicalFishVariant
-         */
-        public static TropicalFishVariant fromVariantNumber(int varNumber) {
-            return new TropicalFishVariant((varNumber & 0xFF), ((varNumber >> 8) & 0xFF), (byte) ((varNumber >> 16) & 0xFF), (byte) ((varNumber >> 24) & 0xFF));
-        }
     }
 }

@@ -27,7 +27,8 @@
 package org.geysermc.floodgate.util;
 
 public enum UiProfile {
-    CLASSIC, POCKET;
+    CLASSIC,
+    POCKET;
 
     private static final UiProfile[] VALUES = values();
 

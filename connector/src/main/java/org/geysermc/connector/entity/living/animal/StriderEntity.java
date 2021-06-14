@@ -46,10 +46,10 @@ public class StriderEntity extends AnimalEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 17) {
+        if (entityMetadata.getId() == 18) {
             shaking = (boolean) entityMetadata.getValue();
         }
-        if (entityMetadata.getId() == 18) {
+        if (entityMetadata.getId() == 19) {
             metadata.getFlags().setFlag(EntityFlag.SADDLED, (boolean) entityMetadata.getValue());
         }
 

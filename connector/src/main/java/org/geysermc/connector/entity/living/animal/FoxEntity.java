@@ -41,10 +41,10 @@ public class FoxEntity extends AnimalEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 17) {
             metadata.put(EntityData.VARIANT, entityMetadata.getValue());
         }
-        if (entityMetadata.getId() == 17) {
+        if (entityMetadata.getId() == 18) {
             byte xd = (byte) entityMetadata.getValue();
             metadata.getFlags().setFlag(EntityFlag.SITTING, (xd & 0x01) == 0x01);
             metadata.getFlags().setFlag(EntityFlag.SNEAKING, (xd & 0x04) == 0x04);
@@ -56,6 +56,6 @@ public class FoxEntity extends AnimalEntity {
 
     @Override
     public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
-        return javaIdentifierStripped.equals("sweet_berries");
+        return session.getTagCache().isFoxFood(itemEntry);
     }
 }

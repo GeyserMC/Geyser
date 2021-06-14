@@ -180,8 +180,8 @@ public class StatisticsUtils {
                             session.sendForm(
                                     builder.content(content.toString())
                                             .button("gui.back", FormImage.Type.PATH, "textures/gui/newgui/undo")
-                                            .responseHandler((form1, responseData1) -> {
-                                                SimpleFormResponse response1 = form.parseResponse(responseData1);
+                                            .responseHandler((form1, subFormResponseData) -> {
+                                                SimpleFormResponse response1 = form.parseResponse(subFormResponseData);
                                                 if (response1.isCorrect()) {
                                                     buildAndSendStatisticsMenu(session);
                                                 }

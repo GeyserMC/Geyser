@@ -41,17 +41,17 @@ public class PiglinEntity extends BasePiglinEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 17) {
             boolean isBaby = (boolean) entityMetadata.getValue();
             if (isBaby) {
                 metadata.put(EntityData.SCALE, .55f);
                 metadata.getFlags().setFlag(EntityFlag.BABY, true);
             }
         }
-        if (entityMetadata.getId() == 17) {
+        if (entityMetadata.getId() == 18) {
             metadata.getFlags().setFlag(EntityFlag.CHARGING, (boolean) entityMetadata.getValue());
         }
-        if (entityMetadata.getId() == 18) {
+        if (entityMetadata.getId() == 19) {
             metadata.getFlags().setFlag(EntityFlag.DANCING, (boolean) entityMetadata.getValue());
         }
 

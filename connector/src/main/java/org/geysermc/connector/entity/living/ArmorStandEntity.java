@@ -126,7 +126,7 @@ public class ArmorStandEntity extends LivingEntity {
             }
         } else if (entityMetadata.getId() == 2) {
             updateSecondEntityStatus(false);
-        } else if (entityMetadata.getId() == 14 && entityMetadata.getType() == MetadataType.BYTE) {
+        } else if (entityMetadata.getId() == 15 && entityMetadata.getType() == MetadataType.BYTE) {
             byte xd = (byte) entityMetadata.getValue();
 
             // isSmall
@@ -169,37 +169,37 @@ public class ArmorStandEntity extends LivingEntity {
             EntityFlag negativeYToggle = null;
             EntityFlag negativeZToggle = null;
             switch (entityMetadata.getId()) {
-                case 15: // Head
+                case 16: // Head
                     dataLeech = EntityData.MARK_VARIANT;
                     negativeXToggle = EntityFlag.INTERESTED;
                     negativeYToggle = EntityFlag.CHARGED;
                     negativeZToggle = EntityFlag.POWERED;
                     break;
-                case 16: // Body
+                case 17: // Body
                     dataLeech = EntityData.VARIANT;
                     negativeXToggle = EntityFlag.IN_LOVE;
                     negativeYToggle = EntityFlag.CELEBRATING;
                     negativeZToggle = EntityFlag.CELEBRATING_SPECIAL;
                     break;
-                case 17: // Left arm
+                case 18: // Left arm
                     dataLeech = EntityData.TRADE_TIER;
                     negativeXToggle = EntityFlag.CHARGING;
                     negativeYToggle = EntityFlag.CRITICAL;
                     negativeZToggle = EntityFlag.DANCING;
                     break;
-                case 18: // Right arm
+                case 19: // Right arm
                     dataLeech = EntityData.MAX_TRADE_TIER;
                     negativeXToggle = EntityFlag.ELDER;
                     negativeYToggle = EntityFlag.EMOTING;
                     negativeZToggle = EntityFlag.IDLING;
                     break;
-                case 19: // Left leg
+                case 20: // Left leg
                     dataLeech = EntityData.SKIN_ID;
                     negativeXToggle = EntityFlag.IS_ILLAGER_CAPTAIN;
                     negativeYToggle = EntityFlag.IS_IN_UI;
                     negativeZToggle = EntityFlag.LINGERING;
                     break;
-                case 20: // Right leg
+                case 21: // Right leg
                     dataLeech = EntityData.HURT_DIRECTION;
                     negativeXToggle = EntityFlag.IS_PREGNANT;
                     negativeYToggle = EntityFlag.SHEARED;

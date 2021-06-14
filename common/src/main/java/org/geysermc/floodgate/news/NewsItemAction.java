@@ -23,13 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.floodgate.util;
+package org.geysermc.floodgate.news;
 
-import lombok.Getter;
-import lombok.Setter;
+public enum NewsItemAction {
+    ON_SERVER_STARTED,
+    ON_OPERATOR_JOIN,
+    BROADCAST_TO_CONSOLE,
+    BROADCAST_TO_OPERATORS;
 
-public class FloodgateConfigHolder {
-    @Getter
-    @Setter
-    private static Object config;
+    private static final NewsItemAction[] VALUES = values();
+
+    public static NewsItemAction getByName(String actionName) {
+        for (NewsItemAction type : VALUES) {
+            if (type.name().equalsIgnoreCase(actionName)) {
+                return type;
+            }
+        }
+        return null;
+    }
 }

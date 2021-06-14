@@ -95,6 +95,7 @@ public class BedrockEntityPickRequestTranslator extends PacketTranslator<EntityP
             case ARMOR_STAND:
             case END_CRYSTAL:
             //case ITEM_FRAME: Not an entity in Bedrock Edition
+            //case GLOW_ITEM_FRAME:
             case MINECART:
             case PAINTING:
                 // No spawn egg, just an item

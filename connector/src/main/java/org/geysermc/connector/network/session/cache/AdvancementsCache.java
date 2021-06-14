@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientAdvancementTabPacket;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.utils.GeyserAdvancement;
@@ -58,7 +57,7 @@ public class AdvancementsCache {
     /**
      * Stores player's chosen advancement's ID and title for use in form creators.
      */
-    @Setter @Accessors(chain = true)
+    @Setter
     private String currentAdvancementCategoryId = null;
 
     private final GeyserSession session;

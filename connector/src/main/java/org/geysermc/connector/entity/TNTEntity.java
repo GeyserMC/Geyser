@@ -45,7 +45,7 @@ public class TNTEntity extends Entity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 7) {
+        if (entityMetadata.getId() == 8) {
             currentTick = (int) entityMetadata.getValue();
             metadata.getFlags().setFlag(EntityFlag.IGNITED, true);
             metadata.put(EntityData.FUSE_LENGTH, currentTick);

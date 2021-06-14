@@ -64,7 +64,7 @@ public class AbstractHorseEntity extends AnimalEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
 
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 17) {
             byte xd = (byte) entityMetadata.getValue();
             metadata.getFlags().setFlag(EntityFlag.TAMED, (xd & 0x02) == 0x02);
             metadata.getFlags().setFlag(EntityFlag.SADDLED, (xd & 0x04) == 0x04);
@@ -106,7 +106,7 @@ public class AbstractHorseEntity extends AnimalEntity {
 
         super.updateBedrockMetadata(entityMetadata, session);
 
-        if (entityMetadata.getId() == 8) {
+        if (entityMetadata.getId() == 9) {
             // Update the health attribute
             updateBedrockAttributes(session);
         }

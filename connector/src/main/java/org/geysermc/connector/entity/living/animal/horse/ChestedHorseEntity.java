@@ -42,7 +42,7 @@ public class ChestedHorseEntity extends AbstractHorseEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 18) {
+        if (entityMetadata.getId() == 19) {
             metadata.getFlags().setFlag(EntityFlag.CHESTED, (boolean) entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);

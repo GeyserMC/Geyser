@@ -25,26 +25,18 @@
 
 package org.geysermc.connector.network.session.auth;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Charsets;
 import lombok.Getter;
-import org.geysermc.connector.skin.SkinProvider;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.InputMode;
 import org.geysermc.floodgate.util.UiProfile;
 
-import java.util.Base64;
 import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 public final class BedrockClientData {
-    @JsonIgnore
-    private JsonNode jsonData;
-
     @JsonProperty(value = "GameVersion")
     private String gameVersion;
     @JsonProperty(value = "ServerAddress")
@@ -114,27 +106,6 @@ public final class BedrockClientData {
     private boolean thirdPartyNameOnly;
     @JsonProperty(value = "PlayFabId")
     private String playFabId;
-
-    public void setJsonData(JsonNode data) {
-        if (this.jsonData == null && data != null) {
-            this.jsonData = data;
-        }
-    }
-
-    public boolean isAlex() {
-        try {
-            byte[] bytes = Base64.getDecoder().decode(geometryName.getBytes(Charsets.UTF_8));
-            String geometryName =
-                    SkinProvider.OBJECT_MAPPER
-                            .readTree(bytes)
-                            .get("geometry").get("default")
-                            .asText();
-            return "geometry.humanoid.customSlim".equals(geometryName);
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            return false;
-        }
-    }
 
     public DeviceOs getDeviceOs() {
         return deviceOs != null ? deviceOs : DeviceOs.UNKNOWN;

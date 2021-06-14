@@ -25,7 +25,7 @@
 
 package org.geysermc.floodgate.util;
 
-public class Base64Utils {
+public final class Base64Utils {
     public static int getEncodedLength(int length) {
         if (length <= 0) {
             return -1;

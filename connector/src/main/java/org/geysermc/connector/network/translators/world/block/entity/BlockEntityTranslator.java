@@ -35,7 +35,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.BlockEntityUtils;
 import org.geysermc.connector.utils.FileUtils;
-import org.geysermc.connector.utils.LanguageUtils;
 import org.reflections.Reflections;
 
 import java.util.HashMap;
@@ -47,10 +46,9 @@ import java.util.Map;
 public abstract class BlockEntityTranslator {
     public static final Map<String, BlockEntityTranslator> BLOCK_ENTITY_TRANSLATORS = new HashMap<>();
     /**
-     * A list of all block entities that require the Java block state in order to fill out their block entity information.
-     * This list will be smaller with cache chunks on as we don't need to double-cache data
+     * A list of all block entities that only exist on Bedrock
      */
-    public static final ObjectArrayList<RequiresBlockState> REQUIRES_BLOCK_STATE_LIST = new ObjectArrayList<>();
+    public static final ObjectArrayList<BedrockOnlyBlockEntity> BEDROCK_ONLY_BLOCK_ENTITIES = new ObjectArrayList<>();
 
     /**
      * Contains a list of irregular block entity name translations that can't be fit into the regex
@@ -81,23 +79,17 @@ public abstract class BlockEntityTranslator {
             try {
                 BLOCK_ENTITY_TRANSLATORS.put(clazz.getAnnotation(BlockEntity.class).name(), (BlockEntityTranslator) clazz.newInstance());
             } catch (InstantiationException | IllegalAccessException e) {
-                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.block_entity.failed", clazz.getCanonicalName()));
+                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated block entity" + clazz.getCanonicalName());
             }
         }
-        boolean cacheChunks = GeyserConnector.getInstance().getConfig().isCacheChunks();
-        for (Class<?> clazz : ref.getSubTypesOf(RequiresBlockState.class)) {
-            GeyserConnector.getInstance().getLogger().debug("Found block entity that requires block state: " + clazz.getCanonicalName());
+        for (Class<?> clazz : ref.getSubTypesOf(BedrockOnlyBlockEntity.class)) {
+            GeyserConnector.getInstance().getLogger().debug("Found Bedrock-only block entity: " + clazz.getCanonicalName());
 
             try {
-                RequiresBlockState requiresBlockState = (RequiresBlockState) clazz.newInstance();
-                if (cacheChunks && !(requiresBlockState instanceof BedrockOnlyBlockEntity)) {
-                    // Not needed to put this one in the map; cache chunks takes care of that for us
-                    GeyserConnector.getInstance().getLogger().debug("Not adding because cache chunks is enabled.");
-                    continue;
-                }
-                REQUIRES_BLOCK_STATE_LIST.add(requiresBlockState);
+                BedrockOnlyBlockEntity bedrockOnlyBlockEntity = (BedrockOnlyBlockEntity) clazz.newInstance();
+                BEDROCK_ONLY_BLOCK_ENTITIES.add(bedrockOnlyBlockEntity);
             } catch (InstantiationException | IllegalAccessException e) {
-                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.block_state.failed", clazz.getCanonicalName()));
+                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated block state " + clazz.getCanonicalName());
             }
         }
     }

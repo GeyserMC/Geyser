@@ -23,32 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.sound.entity;
+package org.geysermc.connector.network.translators.java.entity;
 
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerRemoveEntityPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
-import org.geysermc.connector.network.translators.sound.EntitySoundInteractionHandler;
-import org.geysermc.connector.network.translators.sound.SoundHandler;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-@SoundHandler(entities = "cow", items = "bucket")
-public class MilkCowSoundInteractionHandler implements EntitySoundInteractionHandler {
+@Translator(packet = ServerRemoveEntityPacket.class)
+public class JavaRemoveEntityTranslator extends PacketTranslator<ServerRemoveEntityPacket> {
 
     @Override
-    public void handleInteraction(GeyserSession session, Vector3f position, Entity value) {
-        if (!session.getPlayerInventory().getItemInHand().getItemEntry().getJavaIdentifier().equals("minecraft:bucket")) {
-            return;
+    public void translate(ServerRemoveEntityPacket packet, GeyserSession session) {
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+
+        if (entity != null) {
+            session.getEntityCache().removeEntity(entity, false);
         }
-        LevelSoundEventPacket levelSoundEventPacket = new LevelSoundEventPacket();
-        levelSoundEventPacket.setPosition(position);
-        levelSoundEventPacket.setBabySound(false);
-        levelSoundEventPacket.setRelativeVolumeDisabled(false);
-        levelSoundEventPacket.setIdentifier(":");
-        levelSoundEventPacket.setSound(SoundEvent.MILK);
-        levelSoundEventPacket.setExtraData(-1);
-        session.sendUpstreamPacket(levelSoundEventPacket);
     }
 }
+
