@@ -37,7 +37,6 @@ import org.geysermc.connector.common.GeyserInjector;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
-import java.net.SocketAddress;
 import java.util.List;
 
 public class GeyserSpigotInjector extends GeyserInjector {
@@ -57,8 +56,15 @@ public class GeyserSpigotInjector extends GeyserInjector {
     @Override
     @SuppressWarnings("unchecked")
     protected void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception {
-        String prefix = Bukkit.getServer().getClass().getPackage().getName().replace("org.bukkit.craftbukkit", "net.minecraft.server");
-        Class<?> serverClazz = Class.forName(prefix + ".MinecraftServer");
+        Class<?> serverClazz;
+        try {
+            serverClazz = Class.forName("net.minecraft.server.MinecraftServer");
+            // We're using 1.17+
+        } catch (ClassNotFoundException e) {
+            // We're using pre-1.17
+            String prefix = Bukkit.getServer().getClass().getPackage().getName().replace("org.bukkit.craftbukkit", "net.minecraft.server");
+            serverClazz = Class.forName(prefix + ".MinecraftServer");
+        }
         Method getServer = serverClazz.getDeclaredMethod("getServer");
         Object server = getServer.invoke(null);
         Object connection = null;
@@ -122,19 +128,6 @@ public class GeyserSpigotInjector extends GeyserInjector {
         // This method is what initializes the connection in Java Edition, after Netty is all set.
         Method initChannel = childHandler.getClass().getDeclaredMethod("initChannel", Channel.class);
         initChannel.setAccessible(true);
-        Class<?> networkManagerClazz = Class.forName(prefix + ".NetworkManager");
-        Field socketAddressField = null;
-        for (Field f : networkManagerClazz.getDeclaredFields()) {
-            if (f.getType() == SocketAddress.class) {
-                socketAddressField = f;
-                break;
-            }
-        }
-        if (socketAddressField == null) {
-            throw new RuntimeException();
-        }
-        Field channelField = networkManagerClazz.getField("channel");
-        channelField.setAccessible(true);
 
         ChannelInitializer<Channel> finalChildHandler = childHandler;
         ChannelFuture channelFuture = (new ServerBootstrap().channel(LocalServerChannelWrapper.class).childHandler(new ChannelInitializer<Channel>() {
