@@ -543,7 +543,7 @@ public class GeyserConnector {
 
     /**
      * Whether to use XML reflections in the jar or manually find the reflections.
-     * Will return true  and the platform is not Fabric.
+     * Will return true if in production and the platform is not Fabric.
      * On Fabric - it complains about being unable to create a default XMLReader.
      * On other platforms this should only be true in compiled jars.
      *
