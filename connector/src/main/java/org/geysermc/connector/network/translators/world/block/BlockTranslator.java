@@ -89,6 +89,7 @@ public abstract class BlockTranslator {
     private final EmptyChunkProvider emptyChunkProvider;
 
     public static final int JAVA_COBWEB_BLOCK_ID;
+    public static final int JAVA_BELL_BLOCK_ID;
 
     public static final int JAVA_RUNTIME_FURNACE_ID;
     public static final int JAVA_RUNTIME_FURNACE_LIT_ID;
@@ -115,6 +116,7 @@ public abstract class BlockTranslator {
         }
 
         int javaRuntimeId = -1;
+        int bellBlockId = -1;
         int cobwebBlockId = -1;
         int furnaceRuntimeId = -1;
         int furnaceLitRuntimeId = -1;
@@ -181,7 +183,10 @@ public abstract class BlockTranslator {
 
             JAVA_RUNTIME_ID_TO_BLOCK_MAPPING.put(javaRuntimeId, builder.build());
 
-            if (javaId.contains("cobweb")) {
+            if (javaId.startsWith("minecraft:bell[")) {
+                bellBlockId = uniqueJavaId;
+
+            } else if (javaId.contains("cobweb")) {
                 cobwebBlockId = uniqueJavaId;
 
             } else if (javaId.startsWith("minecraft:furnace[facing=north")) {
@@ -198,6 +203,11 @@ public abstract class BlockTranslator {
                 waterRuntimeId = javaRuntimeId;
             }
         }
+
+        if (bellBlockId == -1) {
+            throw new AssertionError("Unable to find bell in palette");
+        }
+        JAVA_BELL_BLOCK_ID = bellBlockId;
 
         if (cobwebBlockId == -1) {
             throw new AssertionError("Unable to find cobwebs in palette");

@@ -36,6 +36,7 @@ import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.NoteblockBlockEntityTranslator;
 
 import java.util.concurrent.TimeUnit;
@@ -76,8 +77,7 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
         } else if (packet.getValue() instanceof EndGatewayValue) {
             blockEventPacket.setEventType(1);
             session.sendUpstreamPacket(blockEventPacket);
-        } else if (packet.getValue() instanceof GenericBlockValue && packet.getBlockId() == 677) {
-            // TODO: Remove hardcode? Remove hardcodes for all of these? (EndGatewayValue for example still hardcodes the block)
+        } else if (packet.getValue() instanceof GenericBlockValue && packet.getBlockId() == BlockTranslator.JAVA_BELL_BLOCK_ID) {
             // Bells - needed to show ring from other players
             GenericBlockValue bellValue = (GenericBlockValue) packet.getValue();
             Position position = packet.getPosition();
