@@ -49,7 +49,6 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
 
     @Override
     public void translate(ServerPlayEffectPacket packet, GeyserSession session) {
-        System.out.println(packet.toString());
         // Separate case since each RecordEffectData in Java is an individual track in Bedrock
         if (packet.getEffect() == SoundEffect.RECORD) {
             RecordEffectData recordEffectData = (RecordEffectData) packet.getData();
