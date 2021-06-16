@@ -56,6 +56,7 @@ public final class FloodgateSkinUploader {
 
     private final GeyserLogger logger;
     private final WebSocketClient client;
+    private volatile boolean closed;
 
     @Getter private int id;
     @Getter private String verifyCode;
@@ -218,6 +219,12 @@ public final class FloodgateSkinUploader {
     }
 
     private void reconnectLater(GeyserConnector connector) {
+        // we ca only reconnect when the thread pool is open
+        if (connector.getGeneralThreadPool().isShutdown() || closed) {
+            logger.info("The skin uploader has been closed");
+            return;
+        }
+
         long additionalTime = ThreadLocalRandom.current().nextInt(7);
         // we don't have to check the result. onClose will handle that for us
         connector.getGeneralThreadPool()
@@ -230,6 +237,9 @@ public final class FloodgateSkinUploader {
     }
 
     public void close() {
-        client.close();
+        if (!closed) {
+            closed = true;
+            client.close();
+        }
     }
 }

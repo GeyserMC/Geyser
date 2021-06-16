@@ -228,16 +228,20 @@ public class GeyserConnector {
 
         String branch = "unknown";
         int buildNumber = -1;
-        try {
-            Properties gitProperties = new Properties();
-            gitProperties.load(FileUtils.getResource("git.properties"));
-            branch = gitProperties.getProperty("git.branch");
-            String build = gitProperties.getProperty("git.build.number");
-            if (build != null) {
-                buildNumber = Integer.parseInt(build);
+        if (this.isProductionEnvironment()) {
+            try {
+                Properties gitProperties = new Properties();
+                gitProperties.load(FileUtils.getResource("git.properties"));
+                branch = gitProperties.getProperty("git.branch");
+                String build = gitProperties.getProperty("git.build.number");
+                if (build != null) {
+                    buildNumber = Integer.parseInt(build);
+                }
+            } catch (Throwable e) {
+                logger.error("Failed to read git.properties", e);
             }
-        } catch (Throwable e) {
-            logger.error("Failed to read git.properties", e);
+        } else {
+            logger.debug("Not getting git properties for the news handler as we are in a development environment.");
         }
         newsHandler = new NewsHandler(branch, buildNumber);
 
@@ -527,16 +531,26 @@ public class GeyserConnector {
     }
 
     /**
+     * Returns false if this Geyser instance is running in an IDE. This only needs to be used in cases where files
+     * expected to be in a jarfile are not present.
+     *
+     * @return true if the version number is not 'DEV'.
+     */
+    public boolean isProductionEnvironment() {
+        //noinspection ConstantConditions - changes in production
+        return !"DEV".equals(GeyserConnector.VERSION);
+    }
+
+    /**
      * Whether to use XML reflections in the jar or manually find the reflections.
-     * Will return true if the version number is not 'DEV' and the platform is not Fabric.
+     * Will return true if in production and the platform is not Fabric.
      * On Fabric - it complains about being unable to create a default XMLReader.
      * On other platforms this should only be true in compiled jars.
      *
      * @return whether to use XML reflections
      */
     public boolean useXmlReflections() {
-        //noinspection ConstantConditions
-        return !this.getPlatformType().equals(PlatformType.FABRIC) && !"DEV".equals(GeyserConnector.VERSION);
+        return !this.getPlatformType().equals(PlatformType.FABRIC) && isProductionEnvironment();
     }
 
     public static GeyserConnector getInstance() {
