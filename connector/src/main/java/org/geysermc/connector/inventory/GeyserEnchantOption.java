@@ -28,7 +28,6 @@ package org.geysermc.connector.inventory;
 import com.nukkitx.protocol.bedrock.data.inventory.EnchantData;
 import com.nukkitx.protocol.bedrock.data.inventory.EnchantOptionData;
 import lombok.Getter;
-import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.Arrays;
@@ -38,7 +37,6 @@ import java.util.List;
 /**
  * A mutable "wrapper" around {@link EnchantOptionData}
  */
-@Setter
 public class GeyserEnchantOption {
     private static final List<EnchantData> EMPTY = Collections.emptyList();
     /**
@@ -57,6 +55,12 @@ public class GeyserEnchantOption {
     @Getter
     private final int javaIndex;
 
+    /**
+     * Whether the enchantment details have actually changed.
+     * Used to mitigate weird packet spamming pre-1.14, causing the net ID to always update.
+     */
+    private boolean hasChanged;
+
     private int xpCost = 0;
     private int javaEnchantIndex = -1;
     private int bedrockEnchantIndex = -1;
@@ -67,8 +71,35 @@ public class GeyserEnchantOption {
     }
 
     public EnchantOptionData build(GeyserSession session) {
+        this.hasChanged = false;
         return new EnchantOptionData(xpCost, javaIndex + 16, EMPTY,
                 enchantLevel == -1 ? EMPTY : Collections.singletonList(new EnchantData(bedrockEnchantIndex, enchantLevel)), EMPTY,
                 javaEnchantIndex == -1 ? "unknown" : ENCHANT_NAMES.get(javaEnchantIndex), enchantLevel == -1 ? 0 : session.getNextItemNetId());
+    }
+
+    public boolean hasChanged() {
+        return hasChanged;
+    }
+
+    public void setXpCost(int xpCost) {
+        if (this.xpCost != xpCost) {
+            hasChanged = true;
+            this.xpCost = xpCost;
+        }
+    }
+
+    public void setEnchantIndex(int javaEnchantIndex, int bedrockEnchantIndex) {
+        if (this.javaEnchantIndex != javaEnchantIndex) {
+            hasChanged = true;
+            this.javaEnchantIndex = javaEnchantIndex;
+            this.bedrockEnchantIndex = bedrockEnchantIndex;
+        }
+    }
+
+    public void setEnchantLevel(int enchantLevel) {
+        if (this.enchantLevel != enchantLevel) {
+            hasChanged = true;
+            this.enchantLevel = enchantLevel;
+        }
     }
 }

@@ -41,7 +41,7 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.FireworkColor;
 import org.geysermc.connector.utils.MathUtils;
-import org.geysermc.floodgate.util.DeviceOS;
+import org.geysermc.floodgate.util.DeviceOs;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +55,7 @@ public class FireworkEntity extends Entity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 7) {
+        if (entityMetadata.getId() == 8) {
             ItemStack item = (ItemStack) entityMetadata.getValue();
             if (item == null) {
                 return;
@@ -68,7 +68,8 @@ public class FireworkEntity extends Entity {
 
             // TODO: Remove once Mojang fixes bugs with fireworks crashing clients on these specific devices.
             // https://bugs.mojang.com/browse/MCPE-89115
-            if (session.getClientData().getDeviceOS() == DeviceOS.XBOX_ONE || session.getClientData().getDeviceOS() == DeviceOS.ORBIS) {
+            if (session.getClientData().getDeviceOs() == DeviceOs.XBOX
+                    || session.getClientData().getDeviceOs() == DeviceOs.PS4) {
                 return;
             }
 
@@ -134,7 +135,7 @@ public class FireworkEntity extends Entity {
             NbtMapBuilder builder = NbtMap.builder();
             builder.put("Fireworks", fireworksBuilder.build());
             metadata.put(EntityData.DISPLAY_ITEM, builder.build());
-        } else if (entityMetadata.getId() == 8 && !entityMetadata.getValue().equals(OptionalInt.empty()) && ((OptionalInt) entityMetadata.getValue()).getAsInt() == session.getPlayerEntity().getEntityId()) {
+        } else if (entityMetadata.getId() == 9 && !entityMetadata.getValue().equals(OptionalInt.empty()) && ((OptionalInt) entityMetadata.getValue()).getAsInt() == session.getPlayerEntity().getEntityId()) {
             //Checks if the firework has an entity ID (used when a player is gliding) and checks to make sure the player that is gliding is the one getting sent the packet or else every player near the gliding player will boost too.
             PlayerEntity entity = session.getPlayerEntity();
             float yaw = entity.getRotation().getX();

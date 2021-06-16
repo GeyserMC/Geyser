@@ -40,33 +40,33 @@ public class MinecartEntity extends Entity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
 
-        if (entityMetadata.getId() == 7) {
+        if (entityMetadata.getId() == 8) {
             metadata.put(EntityData.HEALTH, entityMetadata.getValue());
         }
 
         // Direction in which the minecart is shaking
-        if (entityMetadata.getId() == 8) {
+        if (entityMetadata.getId() == 9) {
             metadata.put(EntityData.HURT_DIRECTION, entityMetadata.getValue());
         }
 
         // Power in Java, time in Bedrock
-        if (entityMetadata.getId() == 9) {
+        if (entityMetadata.getId() == 10) {
             metadata.put(EntityData.HURT_TIME, Math.min((int) (float) entityMetadata.getValue(), 15));
         }
 
         if (!(this instanceof DefaultBlockMinecartEntity)) { // Handled in the DefaultBlockMinecartEntity class
             // Custom block
-            if (entityMetadata.getId() == 10) {
+            if (entityMetadata.getId() == 11) {
                 metadata.put(EntityData.DISPLAY_ITEM, session.getBlockTranslator().getBedrockBlockId((int) entityMetadata.getValue()));
             }
 
             // Custom block offset
-            if (entityMetadata.getId() == 11) {
+            if (entityMetadata.getId() == 12) {
                 metadata.put(EntityData.DISPLAY_OFFSET, entityMetadata.getValue());
             }
 
             // If the custom block should be enabled
-            if (entityMetadata.getId() == 12) {
+            if (entityMetadata.getId() == 13) {
                 // Needs a byte based off of Java's boolean
                 metadata.put(EntityData.CUSTOM_DISPLAY, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
             }
@@ -78,5 +78,11 @@ public class MinecartEntity extends Entity {
     @Override
     public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
         super.moveAbsolute(session, position.add(0d, this.entityType.getOffset(), 0d), rotation, isOnGround, teleported);
+    }
+
+    @Override
+    public Vector3f getBedrockRotation() {
+        // Note: minecart rotation on rails does not care about the actual rotation value
+        return Vector3f.from(0, rotation.getX(), 0);
     }
 }

@@ -6,15 +6,22 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>bootstrap-parent</artifactId>
-        <version>1.2.1-SNAPSHOT</version>
+        <version>1.4.0-SNAPSHOT</version>
     </parent>
     <artifactId>bootstrap-spigot</artifactId>
+
+    <repositories>
+        <repository>
+            <id>viaversion-repo</id>
+            <url>https://repo.viaversion.com</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>connector</artifactId>
-            <version>1.2.1-SNAPSHOT</version>
+            <version>1.4.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -24,9 +31,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>us.myles</groupId>
+            <groupId>com.viaversion</groupId>
             <artifactId>viaversion</artifactId>
-            <version>3.2.0</version>
+            <version>4.0.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -69,10 +76,6 @@
                         <configuration>
                             <relocations>
                                 <relocation>
-                                    <pattern>io.netty</pattern>
-                                    <shadedPattern>org.geysermc.platform.spigot.shaded.netty</shadedPattern>
-                                </relocation>
-                                <relocation>
                                     <pattern>it.unimi.dsi.fastutil</pattern>
                                     <shadedPattern>org.geysermc.platform.spigot.shaded.fastutil</shadedPattern>
                                 </relocation>
@@ -109,6 +112,20 @@
                         <excludes>
                             <exclude>com.google.code.gson:*</exclude>
                             <exclude>org.yaml:*</exclude>
+                            <!-- We cannot shade Netty, or else native libraries will not load -->
+                            <!-- Needed because older Spigot builds do not provide the haproxy module -->
+                            <exclude>io.netty:netty-transport-native-epoll:*</exclude>
+                            <exclude>io.netty:netty-transport-native-unix-common:*</exclude>
+                            <exclude>io.netty:netty-transport-native-kqueue:*</exclude>
+                            <exclude>io.netty:netty-handler:*</exclude>
+                            <exclude>io.netty:netty-common:*</exclude>
+                            <exclude>io.netty:netty-buffer:*</exclude>
+                            <exclude>io.netty:netty-resolver:*</exclude>
+                            <exclude>io.netty:netty-transport:*</exclude>
+                            <exclude>io.netty:netty-codec:*</exclude>
+                            <exclude>io.netty:netty-codec-dns:*</exclude>
+                            <exclude>io.netty:netty-resolver-dns:*</exclude>
+                            <exclude>io.netty:netty-resolver-dns-native-macos:*</exclude>
                         </excludes>
                     </artifactSet>
                 </configuration>

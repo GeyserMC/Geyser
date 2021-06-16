@@ -263,7 +263,7 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.ON_FIRE, ((xd & 0x01) == 0x01) && !metadata.getFlags().getFlag(EntityFlag.FIRE_IMMUNE)); // Otherwise immune entities sometimes flicker onfire
                     metadata.getFlags().setFlag(EntityFlag.SNEAKING, (xd & 0x02) == 0x02);
                     metadata.getFlags().setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
-                    metadata.getFlags().setFlag(EntityFlag.SWIMMING, ((xd & 0x10) == 0x10) && metadata.getFlags().getFlag(EntityFlag.SPRINTING)); // Otherwise swimming is enabled on older servers
+                    // Swimming is ignored here and instead we rely on the pose
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
 
                     // Armour stands are handled in their own class
@@ -297,16 +297,19 @@ public class Entity {
             case 5: // no gravity
                 metadata.getFlags().setFlag(EntityFlag.HAS_GRAVITY, !(boolean) entityMetadata.getValue());
                 break;
-            case 6: // Pose change
-                if (entityMetadata.getValue().equals(Pose.SLEEPING)) {
-                    metadata.getFlags().setFlag(EntityFlag.SLEEPING, true);
-                    metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.2f);
-                    metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.2f);
-                } else if (metadata.getFlags().getFlag(EntityFlag.SLEEPING)) {
-                    metadata.getFlags().setFlag(EntityFlag.SLEEPING, false);
-                    metadata.put(EntityData.BOUNDING_BOX_WIDTH, getEntityType().getWidth());
-                    metadata.put(EntityData.BOUNDING_BOX_HEIGHT, getEntityType().getHeight());
-                }
+            case 6: // Pose change - typically used for bounding box and not animation
+                Pose pose = (Pose) entityMetadata.getValue();
+
+                metadata.getFlags().setFlag(EntityFlag.SLEEPING, pose.equals(Pose.SLEEPING));
+                // Triggered when crawling
+                metadata.getFlags().setFlag(EntityFlag.SWIMMING, pose.equals(Pose.SWIMMING));
+                setDimensions(pose);
+                break;
+            case 7: // Freezing ticks
+                // The value that Java edition gives us is in ticks, but Bedrock uses a float percentage of the strength 0.0 -> 1.0
+                // The Java client caps its freezing tick percentage at 140
+                int freezingTicks = Math.min((int) entityMetadata.getValue(), 140);
+                metadata.put(EntityData.FREEZING_EFFECT_STRENGTH, (freezingTicks / 140f));
                 break;
         }
     }
@@ -322,6 +325,15 @@ public class Entity {
         entityDataPacket.setRuntimeEntityId(geyserId);
         entityDataPacket.getMetadata().putAll(metadata);
         session.sendUpstreamPacket(entityDataPacket);
+    }
+
+    /**
+     * Set the height and width of the entity's bounding box
+     */
+    protected void setDimensions(Pose pose) {
+        // No flexibility options for basic entities
+        metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
+        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
     }
 
     /**

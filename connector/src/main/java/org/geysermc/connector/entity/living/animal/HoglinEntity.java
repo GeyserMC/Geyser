@@ -30,6 +30,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.utils.DimensionUtils;
 
 public class HoglinEntity extends AnimalEntity {
@@ -40,11 +41,16 @@ public class HoglinEntity extends AnimalEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 17) {
             // Immune to zombification?
             // Apply shaking effect if not in the nether and zombification is possible
             metadata.getFlags().setFlag(EntityFlag.SHAKING, !((boolean) entityMetadata.getValue()) && !session.getDimension().equals(DimensionUtils.NETHER));
         }
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+        return javaIdentifierStripped.equals("crimson_fungus");
     }
 }

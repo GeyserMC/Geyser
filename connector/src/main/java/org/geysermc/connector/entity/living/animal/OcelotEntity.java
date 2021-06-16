@@ -30,6 +30,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 
 public class OcelotEntity extends AnimalEntity {
 
@@ -39,9 +40,14 @@ public class OcelotEntity extends AnimalEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 17) {
             metadata.getFlags().setFlag(EntityFlag.TRUSTING, (boolean) entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+        return javaIdentifierStripped.equals("cod") || javaIdentifierStripped.equals("salmon");
     }
 }

@@ -88,7 +88,7 @@ public class SkullPlayerEntity extends PlayerEntity {
         valid = true;
         session.sendUpstreamPacket(addPlayerPacket);
 
-        updateEquipment(session);
+        updateAllEquipment(session);
         updateBedrockAttributes(session);
     }
 

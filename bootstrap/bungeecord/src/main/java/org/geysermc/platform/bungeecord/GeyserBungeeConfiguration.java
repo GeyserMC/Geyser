@@ -41,7 +41,7 @@ public final class GeyserBungeeConfiguration extends GeyserJacksonConfiguration 
     private Path floodgateKeyPath;
 
     public void loadFloodgate(GeyserBungeePlugin plugin) {
-        Plugin floodgate = plugin.getProxy().getPluginManager().getPlugin("floodgate-bungee");
+        Plugin floodgate = plugin.getProxy().getPluginManager().getPlugin("floodgate");
         Path geyserDataFolder = plugin.getDataFolder().toPath();
         Path floodgateDataFolder = floodgate != null ? floodgate.getDataFolder().toPath() : null;
 

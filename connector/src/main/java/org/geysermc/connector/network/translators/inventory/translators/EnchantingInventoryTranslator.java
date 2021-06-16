@@ -34,6 +34,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequ
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerEnchantOptionsPacket;
 import org.geysermc.connector.inventory.EnchantingContainer;
+import org.geysermc.connector.inventory.GeyserEnchantOption;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -67,18 +68,20 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
             case 6:
                 // Enchantment type
                 slotToUpdate = key - 4;
-                int index = value;
-                if (index != -1) {
-                    Enchantment enchantment = Enchantment.getByJavaIdentifier("minecraft:" + JavaEnchantment.values()[index].name().toLowerCase());
+                // "value" here is the Java enchant ordinal, so that does not need to be changed
+                // The Bedrock index might need changed, so let's look it up and see.
+                int bedrockIndex = value;
+                if (bedrockIndex != -1) {
+                    Enchantment enchantment = Enchantment.getByJavaIdentifier("minecraft:" + Enchantment.JavaEnchantment.of(bedrockIndex).name().toLowerCase());
                     if (enchantment != null) {
                         // Convert the Java enchantment index to Bedrock's
-                        index = enchantment.ordinal();
+                        bedrockIndex = enchantment.ordinal();
                     } else {
-                        index = -1;
+                        // There is no Bedrock enchantment equivalent
+                        bedrockIndex = -1;
                     }
                 }
-                enchantingInventory.getGeyserEnchantOptions()[slotToUpdate].setJavaEnchantIndex(value);
-                enchantingInventory.getGeyserEnchantOptions()[slotToUpdate].setBedrockEnchantIndex(index);
+                enchantingInventory.getGeyserEnchantOptions()[slotToUpdate].setEnchantIndex(value, bedrockIndex);
                 break;
             case 7:
             case 8:
@@ -91,8 +94,9 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
             default:
                 return;
         }
-        if (shouldUpdate) {
-            enchantingInventory.getEnchantOptions()[slotToUpdate] = enchantingInventory.getGeyserEnchantOptions()[slotToUpdate].build(session);
+        GeyserEnchantOption enchantOption = enchantingInventory.getGeyserEnchantOptions()[slotToUpdate];
+        if (shouldUpdate && enchantOption.hasChanged()) {
+            enchantingInventory.getEnchantOptions()[slotToUpdate] = enchantOption.build(session);
             PlayerEnchantOptionsPacket packet = new PlayerEnchantOptionsPacket();
             packet.getOptions().addAll(Arrays.asList(enchantingInventory.getEnchantOptions()));
             session.sendUpstreamPacket(packet);
@@ -165,49 +169,5 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
     @Override
     public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
         return new EnchantingContainer(name, windowId, this.size, windowType, playerInventory);
-    }
-
-    /**
-     * Enchantments classified by their Java index
-     */
-    public enum JavaEnchantment {
-        PROTECTION,
-        FIRE_PROTECTION,
-        FEATHER_FALLING,
-        BLAST_PROTECTION,
-        PROJECTILE_PROTECTION,
-        RESPIRATION,
-        AQUA_AFFINITY,
-        THORNS,
-        DEPTH_STRIDER,
-        FROST_WALKER,
-        BINDING_CURSE,
-        SOUL_SPEED,
-        SHARPNESS,
-        SMITE,
-        BANE_OF_ARTHROPODS,
-        KNOCKBACK,
-        FIRE_ASPECT,
-        LOOTING,
-        SWEEPING,
-        EFFICIENCY,
-        SILK_TOUCH,
-        UNBREAKING,
-        FORTUNE,
-        POWER,
-        PUNCH,
-        FLAME,
-        INFINITY,
-        LUCK_OF_THE_SEA,
-        LURE,
-        LOYALTY,
-        IMPALING,
-        RIPTIDE,
-        CHANNELING,
-        MULTISHOT,
-        QUICK_CHARGE,
-        PIERCING,
-        MENDING,
-        VANISHING_CURSE
     }
 }

@@ -26,6 +26,10 @@
 package org.geysermc.platform.spigot;
 
 import com.github.steveice10.mc.protocol.MinecraftConstants;
+import com.viaversion.viaversion.api.Via;
+import com.viaversion.viaversion.api.data.MappingData;
+import com.viaversion.viaversion.api.protocol.ProtocolPathEntry;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.common.PlatformType;
@@ -46,16 +50,9 @@ import org.geysermc.platform.spigot.command.SpigotCommandSender;
 import org.geysermc.platform.spigot.world.GeyserSpigot1_11CraftingListener;
 import org.geysermc.platform.spigot.world.GeyserSpigotBlockPlaceListener;
 import org.geysermc.platform.spigot.world.manager.*;
-import us.myles.ViaVersion.api.Pair;
-import us.myles.ViaVersion.api.Via;
-import us.myles.ViaVersion.api.data.MappingData;
-import us.myles.ViaVersion.api.protocol.Protocol;
-import us.myles.ViaVersion.api.protocol.ProtocolRegistry;
-import us.myles.ViaVersion.api.protocol.ProtocolVersion;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
@@ -81,18 +78,29 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         try {
             if (!getDataFolder().exists()) {
                 getDataFolder().mkdir();
-                File bukkitConfig = new File("plugins/Geyser-Bukkit/config.yml");
-                if (bukkitConfig.exists()) { // Copy over old configs
-                    getLogger().log(Level.INFO, LanguageUtils.getLocaleStringLog("geyser.bootstrap.config.copy_bukkit_config"));
-                    Files.copy(bukkitConfig.toPath(), new File(getDataFolder().toString() + "/config.yml").toPath());
-                    getLogger().log(Level.INFO, LanguageUtils.getLocaleStringLog("geyser.bootstrap.config.copied_bukkit_config"));
-                }
             }
             File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserSpigotConfiguration.class);
         } catch (IOException ex) {
             getLogger().log(Level.WARNING, LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
+        }
+
+        try {
+            // Required for the Cloudburst Network dependency to initialize.
+            Class.forName("io.netty.channel.kqueue.KQueue");
+        } catch (ClassNotFoundException e) {
+            // While we could support these older versions, the downside is not having KQueue working at all
+            // And since there are alternative ways to get Geyser working for these aging platforms, it's not worth it.
+            getLogger().severe("*********************************************");
+            getLogger().severe("");
+            getLogger().severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.unsupported_server.header"));
+            getLogger().severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.unsupported_server.message", "1.12.2"));
+            getLogger().severe("");
+            getLogger().severe("*********************************************");
+
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
         }
 
         // By default this should be localhost but may need to be changed in some circumstances
@@ -112,11 +120,18 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         this.geyserLogger = new GeyserSpigotLogger(getLogger(), geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
-        if (geyserConfig.getRemote().getAuthType().equals("floodgate") && Bukkit.getPluginManager().getPlugin("floodgate-bukkit") == null) {
+        // Remove this in like a year
+        if (Bukkit.getPluginManager().getPlugin("floodgate-bukkit") != null) {
+            geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/"));
+            this.getPluginLoader().disablePlugin(this);
+            return;
+        }
+
+        if (geyserConfig.getRemote().getAuthType().equals("floodgate") && Bukkit.getPluginManager().getPlugin("floodgate") == null) {
             geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             this.getPluginLoader().disablePlugin(this);
             return;
-        } else if (geyserConfig.isAutoconfiguredRemote() && Bukkit.getPluginManager().getPlugin("floodgate-bukkit") != null) {
+        } else if (geyserConfig.isAutoconfiguredRemote() && Bukkit.getPluginManager().getPlugin("floodgate") != null) {
             // Floodgate installed means that the user wants Floodgate authentication
             geyserLogger.debug("Auto-setting to Floodgate authentication.");
             geyserConfig.getRemote().setAuthType("floodgate");
@@ -137,23 +152,24 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         this.geyserCommandManager = new GeyserSpigotCommandManager(this, connector);
 
-        boolean isViaVersion = (Bukkit.getPluginManager().getPlugin("ViaVersion") != null);
+        boolean isViaVersion = Bukkit.getPluginManager().getPlugin("ViaVersion") != null;
         if (isViaVersion) {
-            if (!isCompatible(Via.getAPI().getVersion().replace("-SNAPSHOT", ""), "3.2.0")) {
+            try {
+                // Ensure that we have the latest 4.0.0 changes and not an older ViaVersion version
+                Class.forName("com.viaversion.viaversion.api.ViaManager");
+            } catch (ClassNotFoundException e) {
                 geyserLogger.warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.viaversion.too_old",
                         "https://ci.viaversion.com/job/ViaVersion/"));
                 isViaVersion = false;
+                if (this.geyserConfig.isDebugMode()) {
+                    e.printStackTrace();
+                }
             }
         }
         // Used to determine if Block.getBlockData() is present.
         boolean isLegacy = !isCompatible(Bukkit.getServer().getVersion(), "1.13.0");
         if (isLegacy)
             geyserLogger.debug("Legacy version of Minecraft (1.12.2 or older) detected; falling back to ViaVersion for block state retrieval.");
-
-        boolean use3dBiomes = isCompatible(Bukkit.getServer().getVersion(), "1.16.0");
-        if (!use3dBiomes) {
-            geyserLogger.debug("Legacy version of Minecraft (1.15.2 or older) detected; not using 3D biomes.");
-        }
 
         boolean isPre1_12 = !isCompatible(Bukkit.getServer().getVersion(), "1.12.0");
         // Set if we need to use a different method for getting a player's locale
@@ -170,11 +186,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                         this.geyserWorldManager = new GeyserSpigot1_12NativeWorldManager(this);
                     } else {
                         // Post-1.13
-                        this.geyserWorldManager = new GeyserSpigotLegacyNativeWorldManager(this, use3dBiomes);
+                        this.geyserWorldManager = new GeyserSpigotLegacyNativeWorldManager(this);
                     }
                 } else {
                     // No ViaVersion
-                    this.geyserWorldManager = new GeyserSpigotNativeWorldManager(this, use3dBiomes);
+                    this.geyserWorldManager = new GeyserSpigotNativeWorldManager(this);
                 }
                 geyserLogger.debug("Using NMS adapter: " + this.geyserWorldManager.getClass() + ", " + nmsVersion);
             } catch (Exception e) {
@@ -196,7 +212,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 this.geyserWorldManager = new GeyserSpigotFallbackWorldManager(this);
             } else {
                 // Post-1.13
-                this.geyserWorldManager = new GeyserSpigotWorldManager(this, use3dBiomes);
+                this.geyserWorldManager = new GeyserSpigotWorldManager(this);
             }
             geyserLogger.debug("Using default world manager: " + this.geyserWorldManager.getClass());
         }
@@ -306,14 +322,14 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
      */
     private boolean isViaVersionNeeded() {
         ProtocolVersion serverVersion = getServerProtocolVersion();
-        List<Pair<Integer, Protocol>> protocolList = ProtocolRegistry.getProtocolPath(MinecraftConstants.PROTOCOL_VERSION,
+        List<ProtocolPathEntry> protocolList = Via.getManager().getProtocolManager().getProtocolPath(MinecraftConstants.PROTOCOL_VERSION,
                 serverVersion.getVersion());
         if (protocolList == null) {
             // No translation needed!
             return false;
         }
         for (int i = protocolList.size() - 1; i >= 0; i--) {
-            MappingData mappingData = protocolList.get(i).getValue().getMappingData();
+            MappingData mappingData = protocolList.get(i).getProtocol().getMappingData();
             if (mappingData != null) {
                 return true;
             }

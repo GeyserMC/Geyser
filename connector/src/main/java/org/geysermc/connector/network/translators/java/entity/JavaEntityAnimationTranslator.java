@@ -25,22 +25,27 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityAnimationPacket;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.packet.AnimateEntityPacket;
+import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
+import com.nukkitx.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityAnimationPacket;
-import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
+import org.geysermc.connector.utils.DimensionUtils;
 
 @Translator(packet = ServerEntityAnimationPacket.class)
 public class JavaEntityAnimationTranslator extends PacketTranslator<ServerEntityAnimationPacket> {
 
     @Override
     public void translate(ServerEntityAnimationPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
+        } else {
+            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         }
         if (entity == null)
             return;
@@ -51,11 +56,30 @@ public class JavaEntityAnimationTranslator extends PacketTranslator<ServerEntity
             case SWING_ARM:
                 animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
                 break;
+            case EAT_FOOD: // ACTUALLY SWING OFF HAND
+                // Use the OptionalPack to trigger the animation
+                AnimateEntityPacket offHandPacket = new AnimateEntityPacket();
+                offHandPacket.setAnimation("animation.player.attack.rotations.offhand");
+                offHandPacket.setNextState("default");
+                offHandPacket.setBlendOutTime(0.0f);
+                offHandPacket.setStopExpression("query.any_animation_finished");
+                offHandPacket.setController("__runtime_controller");
+                offHandPacket.getRuntimeEntityIds().add(entity.getGeyserId());
+
+                session.sendUpstreamPacket(offHandPacket);
+                return;
             case CRITICAL_HIT:
                 animatePacket.setAction(AnimatePacket.Action.CRITICAL_HIT);
                 break;
             case ENCHANTMENT_CRITICAL_HIT:
-                animatePacket.setAction(AnimatePacket.Action.MAGIC_CRITICAL_HIT);
+                animatePacket.setAction(AnimatePacket.Action.MAGIC_CRITICAL_HIT); // Unsure if this does anything
+                // Spawn custom particle
+                SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
+                stringPacket.setIdentifier("geyseropt:enchanted_hit_multiple");
+                stringPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
+                stringPacket.setPosition(Vector3f.ZERO);
+                stringPacket.setUniqueEntityId(entity.getGeyserId());
+                session.sendUpstreamPacket(stringPacket);
                 break;
             case LEAVE_BED:
                 animatePacket.setAction(AnimatePacket.Action.WAKE_UP);

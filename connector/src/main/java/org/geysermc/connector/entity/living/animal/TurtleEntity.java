@@ -30,6 +30,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 
 public class TurtleEntity extends AnimalEntity {
 
@@ -39,11 +40,16 @@ public class TurtleEntity extends AnimalEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 17) {
+        if (entityMetadata.getId() == 18) {
             metadata.getFlags().setFlag(EntityFlag.IS_PREGNANT, (boolean) entityMetadata.getValue());
-        } else if (entityMetadata.getId() == 18) {
+        } else if (entityMetadata.getId() == 19) {
             metadata.getFlags().setFlag(EntityFlag.LAYING_EGG, (boolean) entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+        return javaIdentifierStripped.equals("seagrass");
     }
 }

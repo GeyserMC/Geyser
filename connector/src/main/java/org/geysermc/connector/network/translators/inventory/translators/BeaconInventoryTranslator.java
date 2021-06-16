@@ -55,15 +55,6 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
     public BeaconInventoryTranslator() {
         super(1, new BlockInventoryHolder("minecraft:beacon", ContainerType.BEACON) {
             @Override
-            public void prepareInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
-                if (!session.getConnector().getConfig().isCacheChunks()) {
-                    // Beacons cannot work without knowing their physical location
-                    return;
-                }
-                super.prepareInventory(translator, session, inventory);
-            }
-
-            @Override
             protected boolean checkInteractionPosition(GeyserSession session) {
                 // Since we can't fall back to a virtual inventory, let's make opening one easier
                 return true;
@@ -71,7 +62,7 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
 
             @Override
             public void openInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
-                if (!session.getConnector().getConfig().isCacheChunks() || !((BeaconContainer) inventory).isUsingRealBlock()) {
+                if (!((BeaconContainer) inventory).isUsingRealBlock()) {
                     InventoryUtils.closeInventory(session, inventory.getId(), false);
                     return;
                 }

@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>bootstrap-parent</artifactId>
-        <version>1.2.1-SNAPSHOT</version>
+        <version>1.4.0-SNAPSHOT</version>
     </parent>
     <artifactId>bootstrap-bungeecord</artifactId>
 
@@ -14,13 +14,13 @@
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>connector</artifactId>
-            <version>1.2.1-SNAPSHOT</version>
+            <version>1.4.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.md-5</groupId>
             <artifactId>bungeecord-api</artifactId>
-            <version>1.16-R0.4-SNAPSHOT</version>
+            <version>1.16-R0.5-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -66,8 +66,10 @@
                                     <shadedPattern>org.geysermc.platform.bungeecord.shaded.jackson</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>io.netty</pattern>
-                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.netty</shadedPattern>
+                                    <!-- This is not used because relocating breaks natives, but we must include it
+                                     or else we get ClassDefNotFound -->
+                                    <pattern>io.netty.channel.kqueue</pattern>
+                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.io.netty.channel.kqueue</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.reflections</pattern>
@@ -98,6 +100,15 @@
                         <excludes>
                             <exclude>com.google.code.gson:*</exclude>
                             <exclude>org.yaml:*</exclude>
+                            <exclude>io.netty:netty-transport-native-epoll:*</exclude>
+                            <exclude>io.netty:netty-transport-native-unix-common:*</exclude>
+                            <exclude>io.netty:netty-handler:*</exclude>
+                            <exclude>io.netty:netty-common:*</exclude>
+                            <exclude>io.netty:netty-buffer:*</exclude>
+                            <exclude>io.netty:netty-resolver:*</exclude>
+                            <exclude>io.netty:netty-transport:*</exclude>
+                            <exclude>io.netty:netty-codec:*</exclude>
+                            <exclude>io.netty:netty-resolver-dns:*</exclude>
                         </excludes>
                     </artifactSet>
                 </configuration>

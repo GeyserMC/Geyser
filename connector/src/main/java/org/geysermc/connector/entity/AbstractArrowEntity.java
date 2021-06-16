@@ -36,12 +36,15 @@ public class AbstractArrowEntity extends Entity {
     public AbstractArrowEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
 
+        // Set the correct texture if using the resource pack
+        metadata.getFlags().setFlag(EntityFlag.BRIBED, entityType == EntityType.SPECTRAL_ARROW);
+
         setMotion(motion);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 7) {
+        if (entityMetadata.getId() == 8) {
             byte data = (byte) entityMetadata.getValue();
 
             metadata.getFlags().setFlag(EntityFlag.CRITICAL, (data & 0x01) == 0x01);

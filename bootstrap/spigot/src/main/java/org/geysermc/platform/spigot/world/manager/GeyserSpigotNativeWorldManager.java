@@ -36,8 +36,8 @@ import org.geysermc.geyser.adapters.spigot.SpigotWorldAdapter;
 public class GeyserSpigotNativeWorldManager extends GeyserSpigotWorldManager {
     protected final SpigotWorldAdapter adapter;
 
-    public GeyserSpigotNativeWorldManager(Plugin plugin, boolean use3dBiomes) {
-        super(plugin, use3dBiomes);
+    public GeyserSpigotNativeWorldManager(Plugin plugin) {
+        super(plugin);
         adapter = SpigotAdapters.getWorldAdapter();
     }
 

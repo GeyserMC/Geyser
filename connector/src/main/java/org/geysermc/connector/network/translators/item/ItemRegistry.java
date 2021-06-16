@@ -33,18 +33,22 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntArraySet;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator1_16_210;
+import org.geysermc.connector.network.translators.effect.EffectRegistry;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator1_17_0;
 import org.geysermc.connector.utils.FileUtils;
-import org.geysermc.connector.utils.LanguageUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -78,13 +82,25 @@ public class ItemRegistry {
      */
     public static ItemEntry BAMBOO;
     /**
+     * Banner item entry, used in LivingEntity.java
+     */
+    public static ItemEntry BANNER;
+    /**
      * Boat item entries, used in BedrockInventoryTransactionTranslator.java
      */
-    public static IntList BOATS = new IntArrayList();
+    public static final IntSet BOATS = new IntArraySet();
     /**
      * Bucket item entries (excluding the milk bucket), used in BedrockInventoryTransactionTranslator.java
      */
-    public static IntList BUCKETS = new IntArrayList();
+    public static final IntSet BUCKETS = new IntArraySet();
+    /**
+     * Carpet item data, used in LlamaEntity.java
+     */
+    public static final List<ItemData> CARPETS = new ArrayList<>(16);
+    /**
+     * Crossbow item entry, used in PillagerEntity.java
+     */
+    public static ItemEntry CROSSBOW;
     /**
      * Empty item bucket, used in BedrockInventoryTransactionTranslator.java
      */
@@ -93,10 +109,6 @@ public class ItemRegistry {
      * Egg item entry, used in JavaEntityStatusTranslator.java
      */
     public static ItemEntry EGG;
-    /**
-     * Gold item entry, used in PiglinEntity.java
-     */
-    public static ItemEntry GOLD;
     /**
      * Shield item entry, used in Entity.java and LivingEntity.java
      */
@@ -137,7 +149,7 @@ public class ItemRegistry {
         try {
             itemEntries = GeyserConnector.JSON_MAPPER.readValue(stream, itemEntriesType);
         } catch (Exception e) {
-            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.runtime_bedrock"), e);
+            throw new AssertionError("Unable to load Bedrock runtime item IDs", e);
         }
 
         int lodestoneCompassId = 0;
@@ -150,14 +162,96 @@ public class ItemRegistry {
             }
         }
 
+        Object2IntMap<String> bedrockBlockIdOverrides = new Object2IntOpenHashMap<>();
+        Object2IntMap<String> blacklistedIdentifiers = new Object2IntOpenHashMap<>();
+
+        // Load creative items
+        // We load this before item mappings to get overridden block runtime ID mappings
+        stream = FileUtils.getResource("bedrock/creative_items.json");
+
+        JsonNode creativeItemEntries;
+        try {
+            creativeItemEntries = GeyserConnector.JSON_MAPPER.readTree(stream).get("items");
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load creative items", e);
+        }
+
+        int netId = 1;
+        List<ItemData> creativeItems = new ArrayList<>();
+        for (JsonNode itemNode : creativeItemEntries) {
+            int count = 1;
+            int damage = 0;
+            int blockRuntimeId = 0;
+            NbtMap tag = null;
+            JsonNode damageNode = itemNode.get("damage");
+            if (damageNode != null) {
+                damage = damageNode.asInt();
+            }
+            JsonNode countNode = itemNode.get("count");
+            if (countNode != null) {
+                count = countNode.asInt();
+            }
+            JsonNode blockRuntimeIdNode = itemNode.get("blockRuntimeId");
+            if (blockRuntimeIdNode != null) {
+                blockRuntimeId = blockRuntimeIdNode.asInt();
+            }
+            JsonNode nbtNode = itemNode.get("nbt_b64");
+            if (nbtNode != null) {
+                byte[] bytes = Base64.getDecoder().decode(nbtNode.asText());
+                ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+                try {
+                    tag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            String identifier = itemNode.get("id").textValue();
+            int id = -1;
+            for (StartGamePacket.ItemEntry itemEntry : ITEMS) {
+                if (itemEntry.getIdentifier().equals(identifier)) {
+                    id = itemEntry.getId();
+                    break;
+                }
+            }
+            if (id == -1) {
+                throw new RuntimeException("Unable to find matching Bedrock item for " + identifier);
+            }
+
+            creativeItems.add(ItemData.builder()
+                    .id(id)
+                    .damage(damage)
+                    .count(count)
+                    .blockRuntimeId(blockRuntimeId)
+                    .tag(tag)
+                    .netId(netId++).build());
+
+            if (blockRuntimeId != 0) {
+                // Add override for item mapping, unless it already exists... then we know multiple states can exist
+                if (!blacklistedIdentifiers.containsKey(identifier)) {
+                    if (bedrockBlockIdOverrides.containsKey(identifier)) {
+                        bedrockBlockIdOverrides.remove(identifier);
+                        // Save this as a blacklist, but also as knowledge of what the block state name should be
+                        blacklistedIdentifiers.put(identifier, blockRuntimeId);
+                    } else {
+                        // Unless there's multiple possibilities for this one state, let this be
+                        bedrockBlockIdOverrides.put(identifier, blockRuntimeId);
+                    }
+                }
+            }
+        }
+
+        // Load item mappings from Java Edition to Bedrock Edition
         stream = FileUtils.getResource("mappings/items.json");
 
         JsonNode items;
         try {
             items = GeyserConnector.JSON_MAPPER.readTree(stream);
         } catch (Exception e) {
-            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.runtime_java"), e);
+            throw new AssertionError("Unable to load Java runtime item IDs", e);
         }
+
+        BlockTranslator blockTranslator = BlockTranslator1_17_0.INSTANCE;
 
         int itemIndex = 0;
         int javaFurnaceMinecartId = 0;
@@ -181,7 +275,116 @@ public class ItemRegistry {
             int bedrockBlockId = -1;
             JsonNode blockRuntimeIdNode = entry.getValue().get("blockRuntimeId");
             if (blockRuntimeIdNode != null) {
-                bedrockBlockId = BlockTranslator1_16_210.INSTANCE.getBedrockBlockId(blockRuntimeIdNode.intValue());
+                int blockIdOverride = bedrockBlockIdOverrides.getOrDefault(bedrockIdentifier, -1);
+                if (blockIdOverride != -1) {
+                    // Straight from BDS is our best chance of getting an item that doesn't run into issues
+                    bedrockBlockId = blockIdOverride;
+                } else {
+                    // Try to get an example block runtime ID from the creative contents packet, for Bedrock identifier obtaining
+                    int aValidBedrockBlockId = blacklistedIdentifiers.getOrDefault(bedrockIdentifier, -1);
+                    if (aValidBedrockBlockId == -1) {
+                        // Fallback
+                        bedrockBlockId = blockTranslator.getBedrockBlockId(blockRuntimeIdNode.intValue());
+                    } else {
+                        // As of 1.16.220, every item requires a block runtime ID attached to it.
+                        // This is mostly for identifying different blocks with the same item ID - wool, slabs, some walls.
+                        // However, in order for some visuals and crafting to work, we need to send the first matching block state
+                        // as indexed by Bedrock's block palette
+                        // There are exceptions! But, ideally, the block ID override should take care of those.
+                        String javaBlockIdentifier = BlockTranslator.getBlockMapping(blockRuntimeIdNode.intValue()).getCleanJavaIdentifier();
+                        NbtMapBuilder requiredBlockStatesBuilder = NbtMap.builder();
+                        String correctBedrockIdentifier = blockTranslator.getAllBedrockBlockStates().get(aValidBedrockBlockId).getString("name");
+                        boolean firstPass = true;
+                        for (Map.Entry<String, Integer> blockEntry : BlockTranslator.getJavaIdBlockMap().entrySet()) {
+                            if (blockEntry.getKey().split("\\[")[0].equals(javaBlockIdentifier)) {
+                                int bedrockBlockRuntimeId = blockTranslator.getBedrockBlockId(blockEntry.getValue());
+                                NbtMap blockTag = blockTranslator.getAllBedrockBlockStates().get(bedrockBlockRuntimeId);
+                                String bedrockName = blockTag.getString("name");
+                                if (!bedrockName.equals(correctBedrockIdentifier)) {
+                                    continue;
+                                }
+                                NbtMap states = blockTag.getCompound("states");
+
+                                if (firstPass) {
+                                    firstPass = false;
+                                    if (states.size() == 0) {
+                                        // No need to iterate and find all block states - this is the one, as there can't be any others
+                                        bedrockBlockId = bedrockBlockRuntimeId;
+                                        break;
+                                    }
+                                    requiredBlockStatesBuilder.putAll(states);
+                                    continue;
+                                }
+                                for (Map.Entry<String, Object> nbtEntry : states.entrySet()) {
+                                    Object value = requiredBlockStatesBuilder.get(nbtEntry.getKey());
+                                    if (value != null && !nbtEntry.getValue().equals(value)) { // Null means this value has already been removed/deemed as unneeded
+                                        // This state can change between different block states, and therefore is not required
+                                        // to build a successful block state of this
+                                        requiredBlockStatesBuilder.remove(nbtEntry.getKey());
+                                    }
+                                }
+                                if (requiredBlockStatesBuilder.size() == 0) {
+                                    // There are no required block states
+                                    // E.G. there was only a direction property that is no longer in play
+                                    // (States that are important include color for glass)
+                                    break;
+                                }
+                            }
+                        }
+
+                        NbtMap requiredBlockStates = requiredBlockStatesBuilder.build();
+                        if (bedrockBlockId == -1) {
+                            int i = -1;
+                            // We need to loop around again (we can't cache the block tags above) because Bedrock can include states that we don't have a pairing for
+                            // in it's "preferred" block state - I.E. the first matching block state in the list
+                            for (NbtMap blockTag : blockTranslator.getAllBedrockBlockStates()) {
+                                i++;
+                                if (blockTag.getString("name").equals(correctBedrockIdentifier)) {
+                                    NbtMap states = blockTag.getCompound("states");
+                                    boolean valid = true;
+                                    for (Map.Entry<String, Object> nbtEntry : requiredBlockStates.entrySet()) {
+                                        if (!states.get(nbtEntry.getKey()).equals(nbtEntry.getValue())) {
+                                            // A required block state doesn't match - this one is not valid
+                                            valid = false;
+                                            break;
+                                        }
+                                    }
+                                    if (valid) {
+                                        bedrockBlockId = i;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (bedrockBlockId == -1) {
+                                throw new RuntimeException("Could not find a block match for " + entry.getKey());
+                            }
+                        }
+
+                        // Because we have replaced the Bedrock block ID, we also need to replace the creative contents block runtime ID
+                        // That way, creative items work correctly for these blocks
+                        for (int j = 0; j < creativeItems.size(); j++) {
+                            ItemData itemData = creativeItems.get(j);
+                            if (itemData.getId() == bedrockId) {
+                                if (itemData.getDamage() != 0) {
+                                    break;
+                                }
+                                NbtMap states = blockTranslator.getAllBedrockBlockStates().get(itemData.getBlockRuntimeId()).getCompound("states");
+                                boolean valid = true;
+                                for (Map.Entry<String, Object> nbtEntry : requiredBlockStates.entrySet()) {
+                                    if (!states.get(nbtEntry.getKey()).equals(nbtEntry.getValue())) {
+                                        // A required block state doesn't match - this one is not valid
+                                        valid = false;
+                                        break;
+                                    }
+                                }
+                                if (valid) {
+                                    creativeItems.set(j, itemData.toBuilder().blockRuntimeId(bedrockBlockId).build());
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             ItemEntry itemEntry;
@@ -202,6 +405,16 @@ public class ItemRegistry {
                             "", bedrockBlockId,
                             stackSize);
                 }
+            } else if (entry.getKey().equals("minecraft:spectral_arrow") || entry.getKey().equals("minecraft:knowledge_book")
+            // To remove later... hopefully
+            || entry.getKey().contains("candle") || entry.getKey().equals("minecraft:bundle") || entry.getKey().equals("minecraft:sculk_sensor")) {
+                // These items don't exist on Bedrock, so set up a container that indicates they should have custom names
+                itemEntry = new TranslatableItemEntry(
+                        entry.getKey(), bedrockIdentifier, itemIndex, bedrockId,
+                        entry.getValue().get("bedrock_data").intValue(),
+                        bedrockBlockId,
+                        stackSize);
+                GeyserConnector.getInstance().getLogger().debug("Adding " + entry.getKey() + " as an item that needs to be translated.");
             } else {
                 itemEntry = new ItemEntry(
                         entry.getKey(), bedrockIdentifier, itemIndex, bedrockId,
@@ -218,11 +431,11 @@ public class ItemRegistry {
                 case "minecraft:bamboo":
                     BAMBOO = itemEntry;
                     break;
+                case "minecraft:crossbow":
+                    CROSSBOW = itemEntry;
+                    break;
                 case "minecraft:egg":
                     EGG = itemEntry;
-                    break;
-                case "minecraft:gold_ingot":
-                    GOLD = itemEntry;
                     break;
                 case "minecraft:shield":
                     SHIELD = itemEntry;
@@ -232,6 +445,9 @@ public class ItemRegistry {
                     break;
                 case "minecraft:wheat":
                     WHEAT = itemEntry;
+                    break;
+                case "minecraft:white_banner": // As of 1.16.220, all banners share the same Bedrock ID and differ their colors through their damage value
+                    BANNER = itemEntry;
                     break;
                 case "minecraft:writable_book":
                     WRITABLE_BOOK = itemEntry;
@@ -244,6 +460,17 @@ public class ItemRegistry {
                 BOATS.add(entry.getValue().get("bedrock_id").intValue());
             } else if (entry.getKey().contains("bucket") && !entry.getKey().contains("milk")) {
                 BUCKETS.add(entry.getValue().get("bedrock_id").intValue());
+            } else if (entry.getKey().contains("_carpet") && !entry.getKey().contains("moss")) {
+                // This should be the numerical order Java sends as an integer value for llamas
+                CARPETS.add(ItemData.builder()
+                        .id(itemEntry.getBedrockId())
+                        .damage(itemEntry.getBedrockData())
+                        .count(1)
+                        .blockRuntimeId(itemEntry.getBedrockBlockId()).build());
+            } else if (entry.getKey().startsWith("minecraft:music_disc_")) {
+                // The Java record level event uses the item ID as the "key" to play the record
+                EffectRegistry.RECORDS.put(itemIndex, SoundEvent.valueOf("RECORD_" +
+                        entry.getKey().replace("minecraft:music_disc_", "").toUpperCase(Locale.ENGLISH)));
             }
 
             itemNames.add(entry.getKey());
@@ -252,7 +479,6 @@ public class ItemRegistry {
         }
 
         itemNames.add("minecraft:furnace_minecart");
-        itemNames.add("minecraft:spectral_arrow");
 
         if (lodestoneCompassId == 0) {
             throw new RuntimeException("Lodestone compass not found in item palette!");
@@ -262,38 +488,8 @@ public class ItemRegistry {
         ITEM_ENTRIES.put(itemIndex, new ItemEntry("minecraft:lodestone_compass", "minecraft:lodestone_compass", itemIndex,
                 lodestoneCompassId, 0, -1, 1));
 
-        /* Load creative items */
-        stream = FileUtils.getResource("bedrock/creative_items.json");
-
-        JsonNode creativeItemEntries;
-        try {
-            creativeItemEntries = GeyserConnector.JSON_MAPPER.readTree(stream).get("items");
-        } catch (Exception e) {
-            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.creative"), e);
-        }
-
-        Set<String> javaOnlyItems = new ObjectOpenHashSet<>();
-        Collections.addAll(javaOnlyItems, "minecraft:spectral_arrow", "minecraft:debug_stick",
-                "minecraft:knowledge_book", "minecraft:tipped_arrow");
-        if (!usingFurnaceMinecart) {
-            javaOnlyItems.add("minecraft:furnace_minecart");
-        }
-        JAVA_ONLY_ITEMS = ImmutableSet.copyOf(javaOnlyItems);
-
-        int netId = 1;
-        List<ItemData> creativeItems = new ArrayList<>();
-        for (JsonNode itemNode : creativeItemEntries) {
-            ItemData.Builder item = getBedrockItemFromJson(itemNode);
-            int bedrockRuntimeId = 0;
-            ItemEntry itemEntry = getItem(item.build()); // please
-            if (itemEntry.isBlock()) {
-                bedrockRuntimeId = itemEntry.getBedrockBlockId();
-            }
-            creativeItems.add(item.netId(netId++).blockRuntimeId(bedrockRuntimeId).build());
-        }
-
         if (usingFurnaceMinecart) {
-            // Add the furnace minecart as an item
+            // Add the furnace minecart as a custom item
             int furnaceMinecartId = ITEMS.size() + 1;
 
             ITEMS.add(new StartGamePacket.ItemEntry("geysermc:furnace_minecart", (short) furnaceMinecartId, true));
@@ -339,6 +535,20 @@ public class ItemRegistry {
         CREATIVE_ITEMS = creativeItems.toArray(new ItemData[0]);
 
         ITEM_NAMES = itemNames.toArray(new String[0]);
+
+        Set<String> javaOnlyItems = new ObjectOpenHashSet<>();
+        Collections.addAll(javaOnlyItems, "minecraft:spectral_arrow", "minecraft:debug_stick",
+                "minecraft:knowledge_book", "minecraft:tipped_arrow", "minecraft:trader_llama_spawn_egg",
+                // To be removed in Bedrock 1.17.10... right??? RIGHT???
+                "minecraft:candle", "minecraft:white_candle", "minecraft:orange_candle", "minecraft:magenta_candle",
+                "minecraft:light_blue_candle", "minecraft:yellow_candle", "minecraft:lime_candle", "minecraft:pink_candle",
+                "minecraft:gray_candle", "minecraft:light_gray_candle", "minecraft:cyan_candle", "minecraft:purple_candle",
+                "minecraft:blue_candle", "minecraft:brown_candle", "minecraft:green_candle", "minecraft:red_candle", "minecraft:black_candle",
+                "minecraft:bundle", "minecraft:sculk_sensor");
+        if (!usingFurnaceMinecart) {
+            javaOnlyItems.add("minecraft:furnace_minecart");
+        }
+        JAVA_ONLY_ITEMS = ImmutableSet.copyOf(javaOnlyItems);
     }
 
     /**
@@ -358,10 +568,22 @@ public class ItemRegistry {
      * @return an item entry from the given item data
      */
     public static ItemEntry getItem(ItemData data) {
+        boolean isBlock = data.getBlockRuntimeId() != 0;
+        boolean hasDamage = data.getDamage() != 0;
+
         for (ItemEntry itemEntry : ITEM_ENTRIES.values()) {
-            if (itemEntry.getBedrockId() == data.getId() && (itemEntry.getBedrockData() == data.getDamage() ||
-                    // Make exceptions for potions and tipped arrows, whose damage values can vary
-                    (itemEntry.getJavaIdentifier().endsWith("potion") || itemEntry.getJavaIdentifier().equals("minecraft:arrow")))) {
+            if (itemEntry.getBedrockId() == data.getId()) {
+                if (isBlock && !hasDamage) { // Pre-1.16.220 will not use block runtime IDs at all, so we shouldn't check either
+                    if (data.getBlockRuntimeId() != itemEntry.getBedrockBlockId()) {
+                        continue;
+                    }
+                } else {
+                    if (!(itemEntry.getBedrockData() == data.getDamage() ||
+                            // Make exceptions for potions and tipped arrows, whose damage values can vary
+                            (itemEntry.getJavaIdentifier().endsWith("potion") || itemEntry.getJavaIdentifier().equals("minecraft:arrow")))) {
+                        continue;
+                    }
+                }
                 if (!JAVA_ONLY_ITEMS.contains(itemEntry.getJavaIdentifier())) {
                     // From a Bedrock item data, we aren't getting one of these items
                     return itemEntry;
@@ -392,36 +614,5 @@ public class ItemRegistry {
             }
             return null;
         });
-    }
-
-    /**
-     * Gets a Bedrock {@link com.nukkitx.protocol.bedrock.data.inventory.ItemData.Builder} from a {@link JsonNode}
-     * @param itemNode the JSON node that contains ProxyPass-compatible Bedrock item data
-     * @return
-     */
-    public static ItemData.Builder getBedrockItemFromJson(JsonNode itemNode) {
-        int count = 1;
-        short damage = 0;
-        NbtMap tag = null;
-        if (itemNode.has("damage")) {
-            damage = itemNode.get("damage").numberValue().shortValue();
-        }
-        if (itemNode.has("count")) {
-            count = itemNode.get("count").asInt();
-        }
-        if (itemNode.has("nbt_b64")) {
-            byte[] bytes = Base64.getDecoder().decode(itemNode.get("nbt_b64").asText());
-            ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-            try {
-                tag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return ItemData.builder()
-                .id(itemNode.get("id").asInt())
-                .damage(damage)
-                .count(count)
-                .tag(tag);
     }
 }

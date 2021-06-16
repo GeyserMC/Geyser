@@ -32,6 +32,7 @@ import com.github.steveice10.mc.protocol.data.game.chunk.palette.GlobalPalette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.Palette;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.math.vector.Vector2i;
@@ -42,12 +43,9 @@ import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Data;
 import lombok.experimental.UtilityClass;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -56,7 +54,6 @@ import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BedrockOnlyBlockEntity;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
-import org.geysermc.connector.network.translators.world.block.entity.RequiresBlockState;
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.chunk.BlockStorage;
 import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
@@ -72,18 +69,23 @@ import static org.geysermc.connector.network.translators.world.block.BlockTransl
 @UtilityClass
 public class ChunkUtils {
     /**
-     * Temporarily stores positions of BlockState values that are needed for certain block entities actively.
-     * Not used if cache chunks is enabled
+     * The minimum height Bedrock Edition will accept.
      */
-    public static final Object2IntMap<Position> CACHED_BLOCK_ENTITIES = new Object2IntOpenHashMap<>();
+    private static final int MINIMUM_ACCEPTED_HEIGHT = 0;
+    /**
+     * The maximum height Bedrock Edition will accept.
+     */
+    private static final int MAXIMUM_ACCEPTED_HEIGHT = 256;
 
     private static int indexYZXtoXZY(int yzx) {
         return (yzx >> 8) | (yzx & 0x0F0) | ((yzx & 0x00F) << 8);
     }
 
-    public static ChunkData translateToBedrock(GeyserSession session, Column column, boolean isNonFullChunk) {
+    public static ChunkData translateToBedrock(GeyserSession session, Column column) {
         Chunk[] javaSections = column.getChunks();
-        ChunkSection[] sections = new ChunkSection[javaSections.length];
+        // Ensure that, if the player is using lower world heights, the position is not offset
+        int yOffset = session.getChunkCache().getChunkMinY();
+        ChunkSection[] sections = new ChunkSection[javaSections.length - yOffset];
 
         // Temporarily stores compound tags of Bedrock-only block entities
         List<NbtMap> bedrockOnlyBlockEntities = new ArrayList<>();
@@ -91,45 +93,16 @@ public class ChunkUtils {
         BitSet waterloggedPaletteIds = new BitSet();
         BitSet pistonOrFlowerPaletteIds = new BitSet();
 
-        boolean worldManagerHasMoreBlockDataThanCache = session.getConnector().getWorldManager().hasOwnChunkCache();
-
-        // If the received packet was a full chunk update, null sections in the chunk are guaranteed to also be null in the world manager
-        boolean shouldCheckWorldManagerOnMissingSections = isNonFullChunk && worldManagerHasMoreBlockDataThanCache;
-        Chunk temporarySection = null;
-
         for (int sectionY = 0; sectionY < javaSections.length; sectionY++) {
-            Chunk javaSection = javaSections[sectionY];
-
-            // Section is null, the cache will not contain anything of use
-            if (javaSection == null) {
-                // The column parameter contains all data currently available from the cache. If the chunk is null and the world manager
-                // reports the ability to access more data than the cache, attempt to fetch from the world manager instead.
-                if (shouldCheckWorldManagerOnMissingSections) {
-                    // Ensure that temporary chunk is set
-                    if (temporarySection == null) {
-                        temporarySection = new Chunk();
-                    }
-
-                    // Read block data in section
-                    session.getConnector().getWorldManager().getBlocksInSection(session, column.getX(), sectionY, column.getZ(), temporarySection);
-
-                    if (temporarySection.isEmpty()) {
-                        // The world manager only contains air for the given section
-                        // We can leave temporarySection as-is to allow it to potentially be re-used for later sections
-                        continue;
-                    } else {
-                        javaSection = temporarySection;
-
-                        // Section contents have been modified, we can't re-use it
-                        temporarySection = null;
-                    }
-                } else {
-                    continue;
-                }
+            if (yOffset < 0 && sectionY < -yOffset) {
+                // Ignore this chunk since it goes below the accepted height limit
+                continue;
             }
 
+            Chunk javaSection = javaSections[sectionY];
+
             // No need to encode an empty section...
-            if (javaSection.isEmpty()) {
+            if (javaSection == null || javaSection.isEmpty()) {
                 continue;
             }
 
@@ -157,7 +130,7 @@ public class ChunkUtils {
                         ));
                     }
                 }
-                sections[sectionY] = section;
+                sections[sectionY + yOffset] = section;
                 continue;
             }
 
@@ -230,7 +203,7 @@ public class ChunkUtils {
                 layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
             }
 
-            sections[sectionY] = new ChunkSection(layers);
+            sections[sectionY + yOffset] = new ChunkSection(layers);
         }
 
         CompoundTag[] blockEntities = column.getTileEntities();
@@ -263,7 +236,7 @@ public class ChunkUtils {
 
             // Get Java blockstate ID from block entity position
             int blockState = 0;
-            Chunk section = column.getChunks()[pos.getY() >> 4];
+            Chunk section = column.getChunks()[(pos.getY() >> 4) - yOffset];
             if (section != null) {
                 blockState = section.get(pos.getX() & 0xF, pos.getY() & 0xF, pos.getZ() & 0xF);
             }
@@ -329,21 +302,15 @@ public class ChunkUtils {
      */
     public static void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         // Checks for item frames so they aren't tripped up and removed
-        long frameEntityId = ItemFrameEntity.getItemFrameEntityId(session, position);
-        if (frameEntityId != -1) {
-            // TODO: Very occasionally the item frame doesn't sync up when destroyed
-            Entity entity = session.getEntityCache().getEntityByJavaId(frameEntityId);
-            if (blockState == JAVA_AIR_ID && entity != null) { // Item frame is still present and no block overrides that; refresh it
-                ((ItemFrameEntity) entity).updateBlock(session);
+        ItemFrameEntity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, position);
+        if (itemFrameEntity != null) {
+            if (blockState == JAVA_AIR_ID) { // Item frame is still present and no block overrides that; refresh it
+                itemFrameEntity.updateBlock(session);
+                // Still update the chunk cache with the new block
+                session.getChunkCache().updateBlock(position.getX(), position.getY(), position.getZ(), blockState);
                 return;
             }
-
-            // Otherwise the item frame is gone
-            if (entity != null) {
-                session.getEntityCache().removeEntity(entity, false);
-            } else {
-                ItemFrameEntity.removePosition(session, position);
-            }
+            // Otherwise, let's still store our reference to the item frame, but let the new block take precedence for now
         }
 
         SkullPlayerEntity skull = session.getSkullCache().get(position);
@@ -397,20 +364,12 @@ public class ChunkUtils {
             return newLecternHasBook;
         });
 
-        // Since Java stores bed colors/skull information as part of the namespaced ID and Bedrock stores it as a tag
-        // This is the only place I could find that interacts with the Java block state and block updates
-        // Iterates through all block entity translators and determines if the block state needs to be saved
-        for (RequiresBlockState requiresBlockState : BlockEntityTranslator.REQUIRES_BLOCK_STATE_LIST) {
-            if (requiresBlockState.isBlock(blockState)) {
+        // Iterates through all Bedrock-only block entity translators and determines if a manual block entity packet
+        // needs to be sent
+        for (BedrockOnlyBlockEntity bedrockOnlyBlockEntity : BlockEntityTranslator.BEDROCK_ONLY_BLOCK_ENTITIES) {
+            if (bedrockOnlyBlockEntity.isBlock(blockState)) {
                 // Flower pots are block entities only in Bedrock and are not updated anywhere else like note blocks
-                if (requiresBlockState instanceof BedrockOnlyBlockEntity) {
-                    ((BedrockOnlyBlockEntity) requiresBlockState).updateBlock(session, blockState, position);
-                    break;
-                }
-                if (!session.getConnector().getConfig().isCacheChunks()) {
-                    // Blocks aren't saved to a chunk cache; resort to this smaller cache
-                    CACHED_BLOCK_ENTITIES.put(new Position(position.getX(), position.getY(), position.getZ()), blockState);
-                }
+                bedrockOnlyBlockEntity.updateBlock(session, blockState, position);
                 break; //No block will be a part of two classes
             }
         }
@@ -442,10 +401,31 @@ public class ChunkUtils {
         }
     }
 
+    /**
+     * Process the minimum and maximum heights for this dimension
+     */
+    public static void applyDimensionHeight(GeyserSession session, CompoundTag dimensionTag) {
+        int minY = ((IntTag) dimensionTag.get("min_y")).getValue();
+        int maxY = ((IntTag) dimensionTag.get("height")).getValue();
+        // Logical height can be ignored probably - seems to be for artificial limits like the Nether.
+
+        if (minY % 16 != 0) {
+            throw new RuntimeException("Minimum Y must be a multiple of 16!");
+        }
+        if (maxY % 16 != 0) {
+            throw new RuntimeException("Maximum Y must be a multiple of 16!");
+        }
+
+        if (minY < MINIMUM_ACCEPTED_HEIGHT || maxY > MAXIMUM_ACCEPTED_HEIGHT) {
+            session.getConnector().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds"));
+        }
+
+        session.getChunkCache().setMinY(minY);
+    }
+
     @Data
     public static final class ChunkData {
         private final ChunkSection[] sections;
-
         private final NbtMap[] blockEntities;
     }
 }

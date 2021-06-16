@@ -47,7 +47,7 @@ public class EnderCrystalEntity extends Entity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         // Show beam
         // Usually performed client-side on Bedrock except for Ender Dragon respawn event
-        if (entityMetadata.getId() == 7) {
+        if (entityMetadata.getId() == 8) {
             if (entityMetadata.getValue() instanceof Position) {
                 Position pos = (Position) entityMetadata.getValue();
                 metadata.put(EntityData.BLOCK_TARGET, Vector3i.from(pos.getX(), pos.getY(), pos.getZ()));
@@ -56,7 +56,7 @@ public class EnderCrystalEntity extends Entity {
             }
         }
         // There is a base located on the ender crystal
-        if (entityMetadata.getId() == 8) {
+        if (entityMetadata.getId() == 9) {
             metadata.getFlags().setFlag(EntityFlag.SHOW_BOTTOM, (boolean) entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);

@@ -27,6 +27,8 @@ package org.geysermc.connector.network.translators.bedrock;
 
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.BlockPickRequestPacket;
+import org.geysermc.connector.entity.ItemFrameEntity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -43,9 +45,21 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
         
         // Block is air - chunk caching is probably off
         if (blockToPick == BlockTranslator.JAVA_AIR_ID) {
+            // Check for an item frame since the client thinks that's a block when it's an entity in Java
+            ItemFrameEntity entity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
+            if (entity != null) {
+                // Check to see if the item frame has an item in it first
+                if (entity.getHeldItem() != null && entity.getHeldItem().getId() != 0) {
+                    // Grab the item in the frame
+                    InventoryUtils.findOrCreateItem(session, entity.getHeldItem());
+                } else {
+                    // Grab the frame as the item
+                    InventoryUtils.findOrCreateItem(session, entity.getEntityType() == EntityType.GLOW_ITEM_FRAME ? "minecraft:glow_item_frame" : "minecraft:item_frame");
+                }
+            }
             return;
         }
 
-        InventoryUtils.findOrCreateItem(session, BlockTranslator.getPickItem(blockToPick));
+        InventoryUtils.findOrCreateItem(session, BlockTranslator.getBlockMapping(blockToPick).getPickItem());
     }
 }

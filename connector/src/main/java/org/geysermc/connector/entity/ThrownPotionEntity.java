@@ -51,7 +51,7 @@ public class ThrownPotionEntity extends ThrowableEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 7 && entityMetadata.getType() == MetadataType.ITEM) {
+        if (entityMetadata.getId() == 8 && entityMetadata.getType() == MetadataType.ITEM) {
             ItemStack itemStack = (ItemStack) entityMetadata.getValue();
             ItemEntry itemEntry = ItemRegistry.getItem(itemStack);
             if (itemEntry.getJavaIdentifier().endsWith("potion") && itemStack.getNbt() != null) {

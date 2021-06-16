@@ -41,7 +41,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.FileUtils;
-import org.geysermc.connector.utils.LanguageUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -144,7 +143,7 @@ public class RecipeRegistry {
         try {
             items = GeyserConnector.JSON_MAPPER.readTree(stream);
         } catch (Exception e) {
-            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.runtime_java"), e);
+            throw new AssertionError("Unable to load Java runtime item IDs", e);
         }
 
         for (JsonNode entry : items.get("leather_armor")) {
@@ -276,6 +275,7 @@ public class RecipeRegistry {
                 .id(itemEntry.getBedrockId())
                 .damage(damage)
                 .count(count)
+                .blockRuntimeId(itemEntry.isBlock() ? itemEntry.getBedrockBlockId() : 0)
                 .tag(tag).build();
     }
 

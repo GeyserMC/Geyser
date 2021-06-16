@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>bootstrap-parent</artifactId>
-        <version>1.2.1-SNAPSHOT</version>
+        <version>1.4.0-SNAPSHOT</version>
     </parent>
     <artifactId>bootstrap-velocity</artifactId>
 
@@ -14,7 +14,7 @@
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>connector</artifactId>
-            <version>1.2.1-SNAPSHOT</version>
+            <version>1.4.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -103,6 +103,7 @@
                             <exclude>io.netty:netty-resolver:*</exclude>
                             <exclude>io.netty:netty-transport:*</exclude>
                             <exclude>io.netty:netty-codec:*</exclude>
+                            <exclude>io.netty:netty-codec-haproxy:*</exclude>
                             <exclude>org.slf4j:*</exclude>
                             <exclude>org.ow2.asm:*</exclude>
                             <!-- Exclude all Kyori dependencies except the legacy NBT serializer -->

@@ -31,6 +31,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 
 public class RabbitEntity extends AnimalEntity {
 
@@ -41,22 +42,30 @@ public class RabbitEntity extends AnimalEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         super.updateBedrockMetadata(entityMetadata, session);
-        if (entityMetadata.getId() == 15) {
+        if (entityMetadata.getId() == 16) {
             metadata.put(EntityData.SCALE, .55f);
             boolean isBaby = (boolean) entityMetadata.getValue();
             if (isBaby) {
                 metadata.put(EntityData.SCALE, .35f);
                 metadata.getFlags().setFlag(EntityFlag.BABY, true);
             }
-        } else if (entityMetadata.getId() == 16) {
+        } else if (entityMetadata.getId() == 17) {
             int variant = (int) entityMetadata.getValue();
 
             // Change the killer bunny to display as white since it only exists on Java Edition
-            if (variant == 99) {
+            boolean isKillerBunny = variant == 99;
+            if (isKillerBunny) {
                 variant = 1;
             }
+            // Allow the resource pack to adjust to the killer bunny
+            metadata.getFlags().setFlag(EntityFlag.BRIBED, isKillerBunny);
 
             metadata.put(EntityData.VARIANT, variant);
         }
+    }
+
+    @Override
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+        return javaIdentifierStripped.equals("dandelion") || javaIdentifierStripped.equals("carrot") || javaIdentifierStripped.equals("golden_carrot");
     }
 }

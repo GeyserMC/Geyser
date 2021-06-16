@@ -31,6 +31,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 
 public class StriderEntity extends AnimalEntity {
 
@@ -45,10 +46,10 @@ public class StriderEntity extends AnimalEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 17) {
+        if (entityMetadata.getId() == 18) {
             shaking = (boolean) entityMetadata.getValue();
         }
-        if (entityMetadata.getId() == 18) {
+        if (entityMetadata.getId() == 19) {
             metadata.getFlags().setFlag(EntityFlag.SADDLED, (boolean) entityMetadata.getValue());
         }
 
@@ -84,5 +85,10 @@ public class StriderEntity extends AnimalEntity {
         }
 
         super.updateBedrockMetadata(session);
+    }
+
+    @Override
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+        return javaIdentifierStripped.equals("warped_fungus");
     }
 }

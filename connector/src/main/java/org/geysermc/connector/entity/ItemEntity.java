@@ -54,7 +54,7 @@ public class ItemEntity extends Entity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 7) {
+        if (entityMetadata.getId() == 8) {
             AddItemEntityPacket itemPacket = new AddItemEntityPacket();
             itemPacket.setRuntimeEntityId(geyserId);
             itemPacket.setPosition(position.add(0d, this.entityType.getOffset(), 0d));

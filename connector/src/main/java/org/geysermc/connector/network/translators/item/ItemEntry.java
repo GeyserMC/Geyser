@@ -28,7 +28,7 @@ package org.geysermc.connector.network.translators.item;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator1_16_210;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator1_17_0;
 
 @Getter
 @AllArgsConstructor
@@ -36,7 +36,7 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator1_1
 public class ItemEntry {
 
     public static ItemEntry AIR = new ItemEntry("minecraft:air", "minecraft:air", 0, 0, 0,
-            BlockTranslator1_16_210.INSTANCE.getBedrockAirId(), 64);
+            BlockTranslator1_17_0.INSTANCE.getBedrockAirId(), 64);
 
     private final String javaIdentifier;
     private final String bedrockIdentifier;
@@ -44,7 +44,7 @@ public class ItemEntry {
     private final int bedrockId;
     private final int bedrockData;
     /**
-     * The Bedrock block runtime ID to render this item with. The specific state *does* matter in how this item is rendered.
+     * The Bedrock block runtime ID to render this item with. The specific state *does* matter in how this item is rendered and used as a crafting ingredient.
      * Required since 1.16.220.
      */
     private final int bedrockBlockId;
