@@ -94,7 +94,7 @@ public class PistonCache {
         // Update blocks after movement, so that players don't get stuck inside blocks
         pistons.values().forEach(PistonBlockEntity::updateBlocks);
 
-        pistons.entrySet().removeIf((entry) -> entry.getValue().isDone());
+        pistons.entrySet().removeIf((entry) -> entry.getValue().isDone() && entry.getValue().getTimeSinceCompletion() > PistonBlockEntity.REMOVAL_DELAY);
         if (pistons.isEmpty() && !movingBlocksMap.isEmpty()) {
             session.getConnector().getLogger().error("Moving block map de-synced");
             for (Map.Entry<Vector3i, PistonBlockEntity> entry : movingBlocksMap.entrySet()) {

@@ -347,6 +347,10 @@ public class CollisionManager {
 
         BoundingBox movementBoundingBox = boundingBox.clone();
         movementBoundingBox.extend(movement);
+        // Expand bounding box slightly on all sides
+        movementBoundingBox.extend(Vector3d.from(COLLISION_TOLERANCE));
+        movementBoundingBox.extend(Vector3d.from(-COLLISION_TOLERANCE));
+
         List<Vector3i> collidableBlocks = session.getCollisionManager().getCollidableBlocks(movementBoundingBox);
 
         if (Math.abs(movementY) > CollisionManager.COLLISION_TOLERANCE) {

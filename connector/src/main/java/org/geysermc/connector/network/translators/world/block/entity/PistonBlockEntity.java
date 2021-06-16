@@ -69,12 +69,20 @@ public class PistonBlockEntity {
     /**
      * The position of the piston head
      */
-    private float progress = 0.0f;
-    private float lastProgress = 0.0f;
-    private long lastProgressUpdate;
+    private float progress;
+    private float lastProgress;
+
+    @Getter
+    private long timeSinceCompletion = 0;
 
     private static final BoundingBox SOLID_BOUNDING_BOX = new BoundingBox(0.5, 0.5, 0.5, 1, 1, 1);
     private static final BoundingBox HONEY_BOUNDING_BOX;
+
+    /**
+     * Stores the number of ticks to wait after a piston finishes its movement before
+     * it is removed
+     */
+    public static final int REMOVAL_DELAY = 5;
 
     static {
         // Create a ~1 x ~0.5 x ~1 bounding box above the honey block
@@ -132,8 +140,6 @@ public class PistonBlockEntity {
         }
         lastProgress = progress;
 
-        lastProgressUpdate = System.currentTimeMillis();
-
         BlockEntityUtils.updateBlockEntity(session, buildPistonTag(), position);
     }
 
@@ -142,7 +148,10 @@ public class PistonBlockEntity {
      */
     public synchronized void updateMovement() {
         if (isDone()) {
+            timeSinceCompletion++;
             return;
+        } else {
+            timeSinceCompletion = 0;
         }
         updateProgress();
         pushPlayer();
@@ -153,13 +162,16 @@ public class PistonBlockEntity {
      * Place attached blocks in their final position when done pushing or pulling
      */
     public synchronized void updateBlocks() {
-        if (isDone()) {
-            if (action != PistonValueType.PUSHING) { // PULLING or CANCELED_MID_PUSH
-                removePistonHead();
+        // Give a few ticks for player collisions to be fully resolved
+        if (timeSinceCompletion >= REMOVAL_DELAY) {
+            if (isDone()) {
+                if (action != PistonValueType.PUSHING) { // PULLING or CANCELED_MID_PUSH
+                    removePistonHead();
+                }
+                finishMovingBlocks();
+            } else if (action == PistonValueType.CANCELLED_MID_PUSH) {
+                finishMovingBlocks();
             }
-            finishMovingBlocks();
-        } else if (action == PistonValueType.CANCELLED_MID_PUSH) {
-            finishMovingBlocks();
         }
     }
 
@@ -669,7 +681,6 @@ public class PistonBlockEntity {
      * Update the progress or position of the piston head
      */
     private void updateProgress() {
-        lastProgressUpdate = System.currentTimeMillis();
         switch (action) {
             case PUSHING:
                 lastProgress = progress;
