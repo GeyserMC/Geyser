@@ -78,6 +78,8 @@ public class PistonCache {
 
     /**
      * Stores whether a player is standing on a honey block.
+     * This is used to cancel movement from Bedrock to prevent them from
+     * falling off.
      */
     @Getter @Setter
     private boolean playerAttachedToHoney = false;
@@ -94,13 +96,14 @@ public class PistonCache {
         // Update blocks after movement, so that players don't get stuck inside blocks
         pistons.values().forEach(PistonBlockEntity::updateBlocks);
 
-        pistons.entrySet().removeIf((entry) -> entry.getValue().isDone() && entry.getValue().getTimeSinceCompletion() > PistonBlockEntity.REMOVAL_DELAY);
+        pistons.entrySet().removeIf((entry) -> entry.getValue().canBeRemoved());
+
         if (pistons.isEmpty() && !movingBlocksMap.isEmpty()) {
-            session.getConnector().getLogger().error("Moving block map de-synced");
+            session.getConnector().getLogger().error("The moving block map has de-synced!");
             for (Map.Entry<Vector3i, PistonBlockEntity> entry : movingBlocksMap.entrySet()) {
                 Vector3i position = entry.getKey();
                 PistonBlockEntity pistonBlockEntity = entry.getValue();
-                session.getConnector().getLogger().error("Moving Block at " + position + " was previously owned by piston at " + pistonBlockEntity.getPosition());
+                session.getConnector().getLogger().error("Moving Block at " + position + " was previously owned by the piston at " + pistonBlockEntity.getPosition());
             }
         }
     }
@@ -145,9 +148,9 @@ public class PistonCache {
 
     /**
      * Add to the player's displacement and move the player's bounding box
-     * The total displacement is capped to a range of -0.51 to 0.51
+     * The total displacement is capped to a range of -0.51 to 0.51 per tick
      *
-     * @param displacement The new player displacement
+     * @param displacement The displacement to apply to the player's bounding box
      */
     public void displacePlayer(Vector3d displacement) {
         Vector3d totalDisplacement = playerDisplacement.add(displacement);
@@ -160,6 +163,13 @@ public class PistonCache {
         playerDisplacement = totalDisplacement;
     }
 
+    /**
+     * @param blockPos The block position to test
+     * @param boundingBox The bounding box that moves
+     * @param axis The axis to apply the offset
+     * @param offset The current maximum distance the bounding box can travel
+     * @return The new maximum distance the bounding box can travel without colliding with the tested moving block
+     */
     public synchronized double computeCollisionOffset(Vector3i blockPos, BoundingBox boundingBox, Axis axis, double offset) {
         PistonBlockEntity piston = movingBlocksMap.get(blockPos);
         if (piston != null) {

@@ -129,7 +129,7 @@ public class CollisionManager {
 
     /**
      * Adjust the Bedrock position before sending to the Java server to account for inaccuracies in movement between
-     * the two versions.
+     * the two versions. Will also send corrected movement packets back to bedrock if they collide with pistons.
      *
      * @param bedrockPosition the current Bedrock position of the client
      * @param onGround whether the Bedrock player is on the ground
@@ -137,6 +137,8 @@ public class CollisionManager {
      */
     public Vector3d adjustBedrockPosition(Vector3f bedrockPosition, boolean onGround) {
         PistonCache pistonCache = session.getPistonCache();
+
+        // Bedrock clients tend to fall off of honey blocks, so we need to teleport them to the new position
         if (pistonCache.isPlayerAttachedToHoney()) {
             recalculatePosition();
             return null;
@@ -159,13 +161,14 @@ public class CollisionManager {
             return null;
         }
         // The server can't complain about our movement if we never send it
+        // TODO get rid of this and handle teleports smoothly
         if (pistonCache.isPlayerCollided()) {
             return null;
         }
 
         position = playerBoundingBox.getBottomCenter();
 
-        // Send corrected position to Bedrock
+        // Send corrected position to Bedrock if they differ by too much to prevent desyncs
         if (movement.distanceSquared(adjustedMovement) > 0.08) {
             PlayerEntity playerEntity = session.getPlayerEntity();
             onGround = adjustedMovement.getY() != movement.getY() && movement.getY() < 0;

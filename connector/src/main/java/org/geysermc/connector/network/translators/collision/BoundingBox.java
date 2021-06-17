@@ -102,7 +102,7 @@ public class BoundingBox implements Cloneable {
     }
 
     /**
-     * Find the maximum offset of another bounding box in an axis, so that it won't collide with this bounding box
+     * Find the maximum offset of another bounding box in an axis that will not collide with this bounding box
      *
      * @param offsetX The offset of this bounding box in the X axis
      * @param offsetY The offset of this bounding box in the Y axis

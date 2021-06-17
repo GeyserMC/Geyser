@@ -72,7 +72,6 @@ public class PistonBlockEntity {
     private float progress;
     private float lastProgress;
 
-    @Getter
     private long timeSinceCompletion = 0;
 
     private static final BoundingBox SOLID_BOUNDING_BOX = new BoundingBox(0.5, 0.5, 0.5, 1, 1, 1);
@@ -80,9 +79,9 @@ public class PistonBlockEntity {
 
     /**
      * Stores the number of ticks to wait after a piston finishes its movement before
-     * it is removed
+     * it can be removed
      */
-    public static final int REMOVAL_DELAY = 5;
+    private static final int REMOVAL_DELAY = 5;
 
     static {
         // Create a ~1 x ~0.5 x ~1 bounding box above the honey block
@@ -115,7 +114,7 @@ public class PistonBlockEntity {
     /**
      * Set whether the piston is pulling or pushing blocks
      *
-     * @param action Pulling or Pushing
+     * @param action PULLING or PUSHING or CANCELED_MID_PUSH
      */
     public synchronized void setAction(PistonValueType action) {
         finishMovingBlocks();
@@ -584,7 +583,7 @@ public class PistonBlockEntity {
      */
     private void createMovingBlocks() {
         boolean enableMovingBlocks = false;
-        // Currently as of 1.16.210.60 movingBlocks are always white
+        // Currently as of 1.17 movingBlocks are always white
         // https://bugs.mojang.com/browse/MCPE-66250
         if (enableMovingBlocks) {
             Vector3i movement = getMovement();
@@ -628,8 +627,8 @@ public class PistonBlockEntity {
     }
 
     /**
-     * Detach moving blocks from the piston
-     * The Java server handles placing the new blocks for the player
+     * Remove moving blocks and place blocks that don't collide with the player into their
+     * final position. The Java server will handle updating the blocks that do collide later.
      */
     private void finishMovingBlocks() {
         Vector3i movement = getMovement();
@@ -722,6 +721,10 @@ public class PistonBlockEntity {
                 return progress == 0.0f && lastProgress == 0.0f;
         }
         return true;
+    }
+
+    public boolean canBeRemoved() {
+        return isDone() && timeSinceCompletion > REMOVAL_DELAY;
     }
 
     /**
