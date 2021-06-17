@@ -34,6 +34,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.PistonCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
@@ -65,11 +66,12 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             PistonValue direction = (PistonValue) packet.getValue();
             // Unlike everything else, pistons need a block entity packet to convey motion
             // TODO: Doesn't register on chunk load; needs to be interacted with first
+            PistonCache pistonCache = session.getPistonCache();
             Vector3i position = Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
-            PistonBlockEntity blockEntity = session.getPistonCache().getPistonAt(position);
+            PistonBlockEntity blockEntity = pistonCache.getPistonAt(position);
             if (blockEntity == null) {
                 blockEntity = new PistonBlockEntity(session, position, Direction.fromPistonValue(direction));
-                session.getPistonCache().putPiston(blockEntity);
+                pistonCache.putPiston(blockEntity);
             }
             blockEntity.setAction(action);
         } else if (packet.getValue() instanceof MobSpawnerValue) {

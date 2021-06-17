@@ -347,11 +347,8 @@ public class CollisionManager {
 
         BoundingBox movementBoundingBox = boundingBox.clone();
         movementBoundingBox.extend(movement);
-        // Expand bounding box slightly on all sides
-        movementBoundingBox.extend(Vector3d.from(COLLISION_TOLERANCE));
-        movementBoundingBox.extend(Vector3d.from(-COLLISION_TOLERANCE));
 
-        List<Vector3i> collidableBlocks = session.getCollisionManager().getCollidableBlocks(movementBoundingBox);
+        List<Vector3i> collidableBlocks = getCollidableBlocks(movementBoundingBox);
 
         if (Math.abs(movementY) > CollisionManager.COLLISION_TOLERANCE) {
             movementY = computeCollisionOffset(boundingBox, Axis.Y, movementY, collidableBlocks, checkWorld);
@@ -385,6 +382,9 @@ public class CollisionManager {
                 }
             }
             offset = session.getPistonCache().computeCollisionOffset(blockPos, boundingBox, axis, offset);
+            if (Math.abs(offset) < COLLISION_TOLERANCE) {
+                return 0;
+            }
         }
         return offset;
     }

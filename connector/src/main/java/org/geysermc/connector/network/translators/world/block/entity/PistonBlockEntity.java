@@ -615,6 +615,16 @@ public class PistonBlockEntity {
                 BlockEntityUtils.updateBlockEntity(session, buildMovingBlockTag(newPos, javaId, position), newPos);
             });
         }
+
+        Vector3i movement = getMovement();
+        BoundingBox playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox();
+        attachedBlocks.forEach((blockPos, javaId) -> {
+            Vector3i newPos = blockPos.add(movement);
+            if (SOLID_BOUNDING_BOX.checkIntersection(newPos.toDouble(), playerBoundingBox) ||
+                SOLID_BOUNDING_BOX.checkIntersection(blockPos.toDouble(), playerBoundingBox)) {
+                session.getPistonCache().setPlayerCollided(true);
+            }
+        });
     }
 
     /**

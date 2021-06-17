@@ -156,6 +156,9 @@ public class BlockCollision {
     public double computeCollisionOffset(Vector3d blockPos, BoundingBox boundingBox, Axis axis, double offset) {
         for (BoundingBox b : boundingBoxes) {
             offset = b.getMaxOffset(blockPos.getX(), blockPos.getY(), blockPos.getZ(), boundingBox, axis, offset);
+            if (Math.abs(offset) < CollisionManager.COLLISION_TOLERANCE) {
+                return 0;
+            }
         }
         return offset;
     }
