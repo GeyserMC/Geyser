@@ -178,6 +178,14 @@ public class PistonCache {
         return offset;
     }
 
+    public synchronized boolean checkCollision(Vector3i blockPos, BoundingBox boundingBox) {
+        PistonBlockEntity piston = movingBlocksMap.get(blockPos);
+        if (piston != null) {
+            return piston.checkCollision(blockPos, boundingBox);
+        }
+        return false;
+    }
+
     public synchronized PistonBlockEntity getPistonAt(Vector3i position) {
         return pistons.get(position);
     }

@@ -399,15 +399,17 @@ public class CollisionManager {
     public boolean isUnderSlab() {
         Vector3i position = session.getPlayerEntity().getPosition().toInt();
         BlockCollision collision = CollisionTranslator.getCollisionAt(session, position.getX(), position.getY(), position.getZ());
+        // Determine, if the player's bounding box *were* at full height, if it would intersect with the block
+        // at the current location.
+        boolean result = false;
+        playerBoundingBox.setSizeY(EntityType.PLAYER.getHeight());
         if (collision != null) {
-            // Determine, if the player's bounding box *were* at full height, if it would intersect with the block
-            // at the current location.
-            playerBoundingBox.setSizeY(EntityType.PLAYER.getHeight());
-            boolean result = collision.checkIntersection(playerBoundingBox);
-            playerBoundingBox.setSizeY(session.getPlayerEntity().getMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT));
-            return result;
+            result = collision.checkIntersection(playerBoundingBox);
         }
-        return false;
+        result |= session.getPistonCache().checkCollision(position, playerBoundingBox);
+        playerBoundingBox.setSizeY(session.getPlayerEntity().getMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT));
+
+        return result;
     }
 
     /**

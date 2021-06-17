@@ -568,6 +568,23 @@ public class PistonBlockEntity {
         return movement;
     }
 
+    public synchronized boolean checkCollision(Vector3i blockPos, BoundingBox boundingBox) {
+        int blockId = getAttachedBlockId(blockPos);
+        if (blockId != BlockTranslator.JAVA_AIR_ID) {
+            double movementProgress = progress;
+            if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
+                movementProgress = 1f - progress;
+            }
+            Vector3d offset = getMovement().toDouble().mul(movementProgress);
+            Vector3d offsetBlockPos = blockPos.sub(getMovement()).toDouble().add(offset);
+            BlockCollision blockCollision = CollisionTranslator.getCollision(blockId, 0, 0, 0);
+            if (blockCollision != null) {
+                return blockCollision.checkIntersection(offsetBlockPos, boundingBox);
+            }
+        }
+        return false;
+    }
+
     private int getAttachedBlockId(Vector3i blockPos) {
         if (action == PistonValueType.PULLING && blockPos.equals(position)) {
             return BlockStateValues.getPistonHead(orientation);
@@ -594,13 +611,9 @@ public class PistonBlockEntity {
             }
             attachedBlocks.forEach((blockPos, javaId) -> {
                 Vector3i newPos = blockPos.add(movement);
-                if (SOLID_BOUNDING_BOX.checkIntersection(newPos.toDouble(), playerBoundingBox)) {
-                    BlockCollision blockCollision = CollisionTranslator.getCollision(javaId, 0, 0, 0);
-                    // Don't place a movingBlock for slime blocks if it will collide with the player as it messes with motion
-                    // Also don't place a movingBlock for other types of collision as it acts like a full block
-                    if (javaId == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID || !(blockCollision instanceof SolidCollision)) {
-                        return;
-                    }
+                if (SOLID_BOUNDING_BOX.checkIntersection(blockPos.toDouble(), playerBoundingBox) ||
+                    SOLID_BOUNDING_BOX.checkIntersection(newPos.toDouble(), playerBoundingBox)) {
+                    return;
                 }
                 // Place a moving block at the new location of the block
                 UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
@@ -622,6 +635,9 @@ public class PistonBlockEntity {
             if (SOLID_BOUNDING_BOX.checkIntersection(newPos.toDouble(), playerBoundingBox) ||
                 SOLID_BOUNDING_BOX.checkIntersection(blockPos.toDouble(), playerBoundingBox)) {
                 session.getPistonCache().setPlayerCollided(true);
+                if (javaId == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID) {
+                    session.getPistonCache().setPlayerSlimeCollision(true);
+                }
             }
         });
     }

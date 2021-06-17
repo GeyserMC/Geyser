@@ -153,6 +153,15 @@ public class BlockCollision {
         return false;
     }
 
+    public boolean checkIntersection(Vector3d blockPos, BoundingBox playerCollision) {
+        for (BoundingBox b : boundingBoxes) {
+            if (b.checkIntersection(blockPos, playerCollision)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public double computeCollisionOffset(Vector3d blockPos, BoundingBox boundingBox, Axis axis, double offset) {
         for (BoundingBox b : boundingBoxes) {
             offset = b.getMaxOffset(blockPos.getX(), blockPos.getY(), blockPos.getZ(), boundingBox, axis, offset);
