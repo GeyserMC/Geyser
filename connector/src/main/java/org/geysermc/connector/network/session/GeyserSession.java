@@ -912,10 +912,6 @@ public class GeyserSession implements CommandSender {
     }
 
     public void setSwimming(boolean swimming) {
-        if (!swimming && this.pose == Pose.SWIMMING && collisionManager.isUnderSlab()) {
-            // Prevent the player from standing up when there is a block above them
-            return;
-        }
         this.pose = swimming ? Pose.SWIMMING : Pose.STANDING;
         playerEntity.getMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, swimming ? 0.6f : playerEntity.getEntityType().getHeight());
         playerEntity.getMetadata().getFlags().setFlag(EntityFlag.SWIMMING, swimming);
