@@ -71,7 +71,7 @@ public enum EntityType {
     ZOMBIE(ZombieEntity.class, 32, 1.8f, 0.6f, 0.6f, 1.62f),
     GIANT(GiantEntity.class, 32, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:zombie"),
     CREEPER(CreeperEntity.class, 33, 1.7f, 0.6f, 0.6f, 1.62f),
-    SKELETON(AbstractSkeletonEntity.class, 34, 1.8f, 0.6f, 0.6f, 1.62f),
+    SKELETON(SkeletonEntity.class, 34, 1.8f, 0.6f, 0.6f, 1.62f),
     SPIDER(SpiderEntity.class, 35, 0.9f, 1.4f, 1.4f, 1f),
     ZOMBIFIED_PIGLIN(ZombifiedPiglinEntity.class, 36, 1.95f, 0.6f, 0.6f, 1.62f, "minecraft:zombie_pigman"),
     SLIME(SlimeEntity.class, 37, 0.51f),

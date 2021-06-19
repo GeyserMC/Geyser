@@ -62,6 +62,11 @@ public class LivingEntity extends Entity {
     protected ItemData hand = ItemData.AIR;
     protected ItemData offHand = ItemData.AIR;
 
+    /**
+     * A convenience variable for if the entity has reached the maximum frozen ticks and should be shaking
+     */
+    private boolean isMaxFrozenState = false;
+
     public LivingEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }
@@ -113,6 +118,11 @@ public class LivingEntity extends Entity {
     }
 
     @Override
+    protected boolean isShaking(GeyserSession session) {
+        return isMaxFrozenState;
+    }
+
+    @Override
     protected void setDimensions(Pose pose) {
         if (pose == Pose.SLEEPING) {
             metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.2f);
@@ -120,6 +130,13 @@ public class LivingEntity extends Entity {
         } else {
             super.setDimensions(pose);
         }
+    }
+
+    @Override
+    protected void setFreezing(GeyserSession session, float amount) {
+        super.setFreezing(session, amount);
+        this.isMaxFrozenState = amount >= 1.0f;
+        metadata.getFlags().setFlag(EntityFlag.SHAKING, isShaking(session));
     }
 
     public void updateAllEquipment(GeyserSession session) {
