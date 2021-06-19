@@ -145,7 +145,6 @@
             <version>29.0-jre</version>
             <scope>compile</scope>
         </dependency>
-
         <dependency>
             <groupId>com.github.GeyserMC</groupId>
             <artifactId>MCAuthLib</artifactId>

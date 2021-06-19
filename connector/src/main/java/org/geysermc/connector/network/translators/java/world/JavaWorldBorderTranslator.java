@@ -50,7 +50,6 @@ public class JavaWorldBorderTranslator extends PacketTranslator<ServerInitialize
         worldBorder.setWarningBlocks(packet.getWarningBlocks());
         worldBorder.update();
     }
-
 }
 
 
