@@ -26,40 +26,29 @@
 package org.geysermc.connector.entity.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.VillagerData;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.living.merchant.VillagerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
-public class ZombieVillagerEntity extends ZombieEntity {
-    private boolean isTransforming;
+public class SkeletonEntity extends AbstractSkeletonEntity {
+    private boolean convertingToStray = false;
 
-    public ZombieVillagerEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public SkeletonEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 19) {
-            isTransforming = (boolean) entityMetadata.getValue();
-            metadata.getFlags().setFlag(EntityFlag.IS_TRANSFORMING, (boolean) entityMetadata.getValue());
+        super.updateBedrockMetadata(entityMetadata, session);
+        if (entityMetadata.getId() == 16) {
+            this.convertingToStray = (boolean) entityMetadata.getValue();
             metadata.getFlags().setFlag(EntityFlag.SHAKING, isShaking(session));
         }
-        if (entityMetadata.getId() == 20) {
-            VillagerData villagerData = (VillagerData) entityMetadata.getValue();
-            metadata.put(EntityData.VARIANT, VillagerEntity.VILLAGER_PROFESSIONS.get(villagerData.getProfession())); // Actually works properly with the OptionalPack
-            metadata.put(EntityData.MARK_VARIANT, VillagerEntity.VILLAGER_REGIONS.get(villagerData.getType()));
-            // Used with the OptionalPack
-            metadata.put(EntityData.TRADE_TIER, villagerData.getLevel() - 1);
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
     }
 
     @Override
     protected boolean isShaking(GeyserSession session) {
-        return isTransforming || super.isShaking(session);
+        return convertingToStray;
     }
 }

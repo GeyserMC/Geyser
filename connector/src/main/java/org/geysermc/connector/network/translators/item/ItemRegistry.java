@@ -33,6 +33,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
@@ -44,10 +45,10 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.translators.effect.EffectRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator1_17_0;
 import org.geysermc.connector.utils.FileUtils;
-import org.geysermc.connector.utils.LanguageUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -466,6 +467,10 @@ public class ItemRegistry {
                         .damage(itemEntry.getBedrockData())
                         .count(1)
                         .blockRuntimeId(itemEntry.getBedrockBlockId()).build());
+            } else if (entry.getKey().startsWith("minecraft:music_disc_")) {
+                // The Java record level event uses the item ID as the "key" to play the record
+                EffectRegistry.RECORDS.put(itemIndex, SoundEvent.valueOf("RECORD_" +
+                        entry.getKey().replace("minecraft:music_disc_", "").toUpperCase(Locale.ENGLISH)));
             }
 
             itemNames.add(entry.getKey());

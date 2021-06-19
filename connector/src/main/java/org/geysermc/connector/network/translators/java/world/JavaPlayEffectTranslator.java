@@ -228,6 +228,7 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     effectPacket.setType(LevelEventType.PARTICLE_MOB_BLOCK_SPAWN); // TODO: Check, but I don't think I really verified this ever went into effect on Java
                     break;
                 }
+                case BONEMEAL_GROW_WITH_SOUND: // Note that there is no particle without sound in Bedrock. If you wanted to implement the sound, send a PlaySoundPacket with "item.bone_meal.use" and volume and pitch at 1.0F
                 case BONEMEAL_GROW: {
                     effectPacket.setType(LevelEventType.PARTICLE_CROP_GROWTH);
 
@@ -272,6 +273,10 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     soundEventPacket.setBabySound(false);
                     soundEventPacket.setRelativeVolumeDisabled(false);
                     session.sendUpstreamPacket(soundEventPacket);
+                    break;
+                }
+                case DRIPSTONE_DRIP: {
+                    effectPacket.setType(LevelEventType.PARTICLE_DRIPSTONE_DRIP);
                     break;
                 }
                 case ELECTRIC_SPARK: {

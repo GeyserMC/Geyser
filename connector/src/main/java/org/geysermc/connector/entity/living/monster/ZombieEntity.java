@@ -33,6 +33,7 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
 public class ZombieEntity extends MonsterEntity {
+    private boolean convertingToDrowned = false;
 
     public ZombieEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
@@ -42,11 +43,17 @@ public class ZombieEntity extends MonsterEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 16) {
             boolean isBaby = (boolean) entityMetadata.getValue();
-            if (isBaby) {
-                metadata.put(EntityData.SCALE, .55f);
-                metadata.getFlags().setFlag(EntityFlag.BABY, true);
-            }
+            metadata.put(EntityData.SCALE, isBaby ? .55f : 1.0f);
+            metadata.getFlags().setFlag(EntityFlag.BABY, isBaby);
+        } else if (entityMetadata.getId() == 18) {
+            convertingToDrowned = (boolean) entityMetadata.getValue();
+            metadata.getFlags().setFlag(EntityFlag.SHAKING, isShaking(session));
         }
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    protected boolean isShaking(GeyserSession session) {
+        return convertingToDrowned || super.isShaking(session);
     }
 }

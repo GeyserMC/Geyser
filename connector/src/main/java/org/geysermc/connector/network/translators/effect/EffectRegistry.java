@@ -127,20 +127,15 @@ public class EffectRegistry {
                         javaEffect = SoundEffect.valueOf(entry.getKey());
                         String name = node.get("name").asText();
                         float volume = node.has("volume") ? node.get("volume").floatValue() : 1.0f;
-                        boolean pitchSub = node.has("pitch_sub") ? node.get("pitch_sub").booleanValue() : false;
+                        boolean pitchSub = node.has("pitch_sub") && node.get("pitch_sub").booleanValue();
                         float pitchMul = node.has("pitch_mul") ? node.get("pitch_mul").floatValue() : 1.0f;
                         float pitchAdd = node.has("pitch_add") ? node.get("pitch_add").floatValue() : 0.0f;
-                        boolean relative = node.has("relative") ? node.get("relative").booleanValue() : true;
+                        boolean relative = node.has("relative") && node.get("relative").booleanValue();
                         effect = new PlaySoundEffect(name, volume, pitchSub, pitchMul, pitchAdd, relative);
                         break;
                     }
                     case "record": {
-                        JsonNode records = entry.getValue().get("records");
-                        Iterator<Map.Entry<String, JsonNode>> recordsIterator = records.fields();
-                        while (recordsIterator.hasNext()) {
-                            Map.Entry<String, JsonNode> recordEntry = recordsIterator.next();
-                            RECORDS.put(Integer.parseInt(recordEntry.getKey()), SoundEvent.valueOf(recordEntry.getValue().asText()));
-                        }
+                        // Special case handled in ItemRegistry
                         break;
                     }
                 }
