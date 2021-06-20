@@ -27,6 +27,7 @@ package org.geysermc.connector.entity.living;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Rotation;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -123,44 +124,105 @@ public class ArmorStandEntity extends LivingEntity {
                 isInvisible = (xd & 0x20) == 0x20;
                 updateSecondEntityStatus(false);
             }
-        } else if (entityMetadata.getId() == 2 || entityMetadata.getId() == 3) {
+        } else if (entityMetadata.getId() == 2) {
             updateSecondEntityStatus(false);
-        } else if (entityMetadata.getId() == 14 && entityMetadata.getType() == MetadataType.BYTE) {
+        } else if (entityMetadata.getId() == 15 && entityMetadata.getType() == MetadataType.BYTE) {
             byte xd = (byte) entityMetadata.getValue();
 
             // isSmall
             boolean newIsSmall = (xd & 0x01) == 0x01;
-            if ((newIsSmall != isSmall) && positionRequiresOffset) {
-                // Fix new inconsistency with offset
-                this.position = fixOffsetForSize(position, newIsSmall);
-                positionUpdateRequired = true;
-            }
-            isSmall = newIsSmall;
-            if (isSmall) {
-
-                float scale = metadata.getFloat(EntityData.SCALE);
-                if (scale != 0.55f && scale != 0.0f) {
-                    metadata.put(EntityData.SCALE, 0.55f);
+            if (newIsSmall != isSmall) {
+                if (positionRequiresOffset) {
+                    // Fix new inconsistency with offset
+                    this.position = fixOffsetForSize(position, newIsSmall);
+                    positionUpdateRequired = true;
                 }
 
-                if (metadata.getFloat(EntityData.BOUNDING_BOX_WIDTH) == 0.5f) {
-                    metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.25f);
-                    metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.9875f);
+                isSmall = newIsSmall;
+                if (!isMarker) {
+                    toggleSmallStatus();
                 }
-            } else if (metadata.getFloat(EntityData.BOUNDING_BOX_WIDTH) == 0.25f) {
-                metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
-                metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
             }
 
             // setMarker
             boolean oldIsMarker = isMarker;
             isMarker = (xd & 0x10) == 0x10;
-            if (isMarker) {
-                metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.0f);
-                metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.0f);
-            }
             if (oldIsMarker != isMarker) {
+                if (isMarker) {
+                    metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.0f);
+                    metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.0f);
+                    metadata.put(EntityData.SCALE, 0f);
+                } else {
+                    toggleSmallStatus();
+                }
+
                 updateSecondEntityStatus(false);
+            }
+
+            // The following values don't do anything on normal Bedrock.
+            // But if given a resource pack, then we can use these values to control armor stand visual properties
+            metadata.getFlags().setFlag(EntityFlag.ANGRY, (xd & 0x04) != 0x04); // Has arms
+            metadata.getFlags().setFlag(EntityFlag.ADMIRING, (xd & 0x08) == 0x08); // Has no baseplate
+        } else {
+            EntityData dataLeech = null;
+            EntityFlag negativeXToggle = null;
+            EntityFlag negativeYToggle = null;
+            EntityFlag negativeZToggle = null;
+            switch (entityMetadata.getId()) {
+                case 16: // Head
+                    dataLeech = EntityData.MARK_VARIANT;
+                    negativeXToggle = EntityFlag.INTERESTED;
+                    negativeYToggle = EntityFlag.CHARGED;
+                    negativeZToggle = EntityFlag.POWERED;
+                    break;
+                case 17: // Body
+                    dataLeech = EntityData.VARIANT;
+                    negativeXToggle = EntityFlag.IN_LOVE;
+                    negativeYToggle = EntityFlag.CELEBRATING;
+                    negativeZToggle = EntityFlag.CELEBRATING_SPECIAL;
+                    break;
+                case 18: // Left arm
+                    dataLeech = EntityData.TRADE_TIER;
+                    negativeXToggle = EntityFlag.CHARGING;
+                    negativeYToggle = EntityFlag.CRITICAL;
+                    negativeZToggle = EntityFlag.DANCING;
+                    break;
+                case 19: // Right arm
+                    dataLeech = EntityData.MAX_TRADE_TIER;
+                    negativeXToggle = EntityFlag.ELDER;
+                    negativeYToggle = EntityFlag.EMOTING;
+                    negativeZToggle = EntityFlag.IDLING;
+                    break;
+                case 20: // Left leg
+                    dataLeech = EntityData.SKIN_ID;
+                    negativeXToggle = EntityFlag.IS_ILLAGER_CAPTAIN;
+                    negativeYToggle = EntityFlag.IS_IN_UI;
+                    negativeZToggle = EntityFlag.LINGERING;
+                    break;
+                case 21: // Right leg
+                    dataLeech = EntityData.HURT_DIRECTION;
+                    negativeXToggle = EntityFlag.IS_PREGNANT;
+                    negativeYToggle = EntityFlag.SHEARED;
+                    negativeZToggle = EntityFlag.STALKING;
+                    break;
+            }
+            if (dataLeech != null) {
+                // Indicate that rotation should be checked
+                metadata.getFlags().setFlag(EntityFlag.BRIBED, true);
+
+                Rotation rotation = (Rotation) entityMetadata.getValue();
+                int rotationX = getRotation(rotation.getPitch());
+                int rotationY = getRotation(rotation.getYaw());
+                int rotationZ = getRotation(rotation.getRoll());
+                // The top bit acts like binary and determines if each rotation goes above 100
+                // We don't do this for the negative values out of concerns of the number being too big
+                int topBit = (Math.abs(rotationX) >= 100 ? 4 : 0) + (Math.abs(rotationY) >= 100 ? 2 : 0) + (Math.abs(rotationZ) >= 100 ? 1 : 0);
+                int value = (topBit * 1000000) + ((Math.abs(rotationX) % 100) * 10000) + ((Math.abs(rotationY) % 100) * 100) + (Math.abs(rotationZ) % 100);
+                metadata.put(dataLeech, value);
+                // Set the entity flags if a value is negative
+                metadata.getFlags().setFlag(negativeXToggle, rotationX < 0);
+                metadata.getFlags().setFlag(negativeYToggle, rotationY < 0);
+                metadata.getFlags().setFlag(negativeZToggle, rotationZ < 0);
             }
         }
         if (secondEntity != null) {
@@ -226,6 +288,7 @@ public class ArmorStandEntity extends LivingEntity {
         if (!primaryEntity) return;
         if (!isInvisible || isMarker) {
             // It is either impossible to show armor, or the armor stand isn't invisible. We good.
+            metadata.getFlags().setFlag(EntityFlag.INVISIBLE, false);
             updateOffsetRequirement(false);
             if (positionUpdateRequired) {
                 positionUpdateRequired = false;
@@ -304,6 +367,26 @@ public class ArmorStandEntity extends LivingEntity {
         if (sendMetadata) {
             this.updateBedrockMetadata(session);
         }
+    }
+
+    private int getRotation(float rotation) {
+        rotation = rotation % 360f;
+        if (rotation < -180f) {
+            rotation += 360f;
+        } else if (rotation >= 180f) {
+            // 181 -> -179
+            rotation = -(180 - (rotation - 180));
+        }
+        return (int) rotation;
+    }
+
+    /**
+     * If this armor stand is not a marker, set its bounding box size and scale.
+     */
+    private void toggleSmallStatus() {
+        metadata.put(EntityData.BOUNDING_BOX_WIDTH, isSmall ? 0.25f : entityType.getWidth());
+        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, isSmall ? 0.9875f : entityType.getHeight());
+        metadata.put(EntityData.SCALE, isSmall ? 0.55f : 1f);
     }
 
     /**

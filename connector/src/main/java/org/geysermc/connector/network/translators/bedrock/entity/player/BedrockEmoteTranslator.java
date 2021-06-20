@@ -25,25 +25,43 @@
 
 package org.geysermc.connector.network.translators.bedrock.entity.player;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
+import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.nukkitx.protocol.bedrock.packet.EmotePacket;
+import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.BlockUtils;
 
 @Translator(packet = EmotePacket.class)
 public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
 
     @Override
     public void translate(EmotePacket packet, GeyserSession session) {
+        if (session.getConnector().getConfig().getEmoteOffhandWorkaround() != EmoteOffhandWorkaroundOption.DISABLED) {
+            // Activate the workaround - we should trigger the offhand now
+            ClientPlayerActionPacket swapHandsPacket = new ClientPlayerActionPacket(PlayerAction.SWAP_HANDS, BlockUtils.POSITION_ZERO,
+                    BlockFace.DOWN);
+            session.sendDownstreamPacket(swapHandsPacket);
+
+            if (session.getConnector().getConfig().getEmoteOffhandWorkaround() == EmoteOffhandWorkaroundOption.NO_EMOTES) {
+                return;
+            }
+        }
+
         long javaId = session.getPlayerEntity().getEntityId();
         for (GeyserSession otherSession : session.getConnector().getPlayers()) {
             if (otherSession != session) {
                 if (otherSession.isClosed()) continue;
                 Entity otherEntity = otherSession.getEntityCache().getEntityByJavaId(javaId);
                 if (otherEntity == null) continue;
-                packet.setRuntimeEntityId(otherEntity.getGeyserId());
-                otherSession.sendUpstreamPacket(packet);
+                EmotePacket otherEmotePacket = new EmotePacket();
+                otherEmotePacket.setEmoteId(packet.getEmoteId());
+                otherEmotePacket.setRuntimeEntityId(otherEntity.getGeyserId());
+                otherSession.sendUpstreamPacket(otherEmotePacket);
             }
         }
     }

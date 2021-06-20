@@ -31,19 +31,22 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.utils.InventoryUtils;
 
 @Translator(packet = ServerWindowPropertyPacket.class)
 public class JavaWindowPropertyTranslator extends PacketTranslator<ServerWindowPropertyPacket> {
 
     @Override
     public void translate(ServerWindowPropertyPacket packet, GeyserSession session) {
-        Inventory inventory = session.getInventoryCache().getInventories().get(packet.getWindowId());
-        if (inventory == null || (packet.getWindowId() != 0 && inventory.getWindowType() == null))
-            return;
+        session.addInventoryTask(() -> {
+            Inventory inventory = InventoryUtils.getInventory(session, packet.getWindowId());
+            if (inventory == null)
+                return;
 
-        InventoryTranslator translator = InventoryTranslator.INVENTORY_TRANSLATORS.get(inventory.getWindowType());
-        if (translator != null) {
-            translator.updateProperty(session, inventory, packet.getRawProperty(), packet.getValue());
-        }
+            InventoryTranslator translator = session.getInventoryTranslator();
+            if (translator != null) {
+                translator.updateProperty(session, inventory, packet.getRawProperty(), packet.getValue());
+            }
+        });
     }
 }

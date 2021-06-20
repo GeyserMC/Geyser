@@ -26,12 +26,13 @@
 package org.geysermc.connector.network.translators.bedrock.entity;
 
 import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientSelectTradePacket;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
+import org.geysermc.connector.inventory.MerchantContainer;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -47,20 +48,25 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
                 session.sendUpstreamPacket(packet);
                 return;
             case COMPLETE_TRADE:
-                ClientSelectTradePacket selectTradePacket = new ClientSelectTradePacket(packet.getData());
-                session.sendDownstreamPacket(selectTradePacket);
+                session.addInventoryTask(() -> {
+                    ClientSelectTradePacket selectTradePacket = new ClientSelectTradePacket(packet.getData());
+                    session.sendDownstreamPacket(selectTradePacket);
+                });
 
-                Entity villager = session.getPlayerEntity();
-                Inventory openInventory = session.getInventoryCache().getOpenInventory();
-                if (openInventory != null && openInventory.getWindowType() == WindowType.MERCHANT) {
-                    VillagerTrade[] trades = session.getVillagerTrades();
-                    if (trades != null && packet.getData() >= 0 && packet.getData() < trades.length) {
-                        VillagerTrade trade = session.getVillagerTrades()[packet.getData()];
-                        openInventory.setItem(2, trade.getOutput());
-                        villager.getMetadata().put(EntityData.TRADE_XP, trade.getXp() + villager.getMetadata().getInt(EntityData.TRADE_XP));
-                        villager.updateBedrockMetadata(session);
+                session.addInventoryTask(() -> {
+                    Entity villager = session.getPlayerEntity();
+                    Inventory openInventory = session.getOpenInventory();
+                    if (openInventory instanceof MerchantContainer) {
+                        MerchantContainer merchantInventory = (MerchantContainer) openInventory;
+                        VillagerTrade[] trades = merchantInventory.getVillagerTrades();
+                        if (trades != null && packet.getData() >= 0 && packet.getData() < trades.length) {
+                            VillagerTrade trade = merchantInventory.getVillagerTrades()[packet.getData()];
+                            openInventory.setItem(2, GeyserItemStack.from(trade.getOutput()), session);
+                            villager.getMetadata().put(EntityData.TRADE_XP, trade.getXp() + villager.getMetadata().getInt(EntityData.TRADE_XP));
+                            villager.updateBedrockMetadata(session);
+                        }
                     }
-                }
+                }, 100);
                 return;
         }
         session.getConnector().getLogger().debug("Did not translate incoming EntityEventPacket: " + packet.toString());

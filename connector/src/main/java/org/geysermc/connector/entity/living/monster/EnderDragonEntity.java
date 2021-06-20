@@ -92,7 +92,7 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 15) { // Phase
+        if (entityMetadata.getId() == 16) { // Phase
             phase = (int) entityMetadata.getValue();
             phaseTicks = 0;
             metadata.getFlags().setFlag(EntityFlag.SITTING, isSitting());
@@ -100,7 +100,7 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
 
         super.updateBedrockMetadata(entityMetadata, session);
 
-        if (entityMetadata.getId() == 8) { // Health
+        if (entityMetadata.getId() == 9) { // Health
             // Update the health attribute, so that the death animation gets played
             // Round health up, so that Bedrock doesn't consider the dragon to be dead when health is between 0 and 1
             float health = (float) Math.ceil(metadata.getFloat(EntityData.HEALTH));

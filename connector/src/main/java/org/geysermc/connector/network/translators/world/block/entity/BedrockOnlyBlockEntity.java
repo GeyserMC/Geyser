@@ -32,7 +32,14 @@ import org.geysermc.connector.network.session.GeyserSession;
 /**
  * Implemented only if a block is a block entity in Bedrock and not Java Edition.
  */
-public interface BedrockOnlyBlockEntity {
+public interface BedrockOnlyBlockEntity extends RequiresBlockState {
+    /**
+     * Determines if block is part of class
+     * @param blockState BlockState to be compared
+     * @return true if part of the class
+     */
+    boolean isBlock(int blockState);
+
     /**
      * Update the block on Bedrock Edition.
      * @param session GeyserSession.
@@ -47,9 +54,9 @@ public interface BedrockOnlyBlockEntity {
      * @param blockState Java BlockState of block.
      * @return Bedrock tag, or null if not a Bedrock-only Block Entity
      */
-    static NbtMap getTag(Vector3i position, int blockState) {
+    static NbtMap getTag(GeyserSession session, Vector3i position, int blockState) {
         if (FlowerPotBlockEntityTranslator.isFlowerBlock(blockState)) {
-            return FlowerPotBlockEntityTranslator.getTag(blockState, position);
+            return FlowerPotBlockEntityTranslator.getTag(session, blockState, position);
         } else if (PistonBlockEntityTranslator.isBlock(blockState)) {
             return PistonBlockEntityTranslator.getTag(blockState, position);
         }

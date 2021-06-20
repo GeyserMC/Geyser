@@ -41,35 +41,38 @@ public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowP
 
     @Override
     public void translate(ServerOpenWindowPacket packet, GeyserSession session) {
-        if (packet.getWindowId() == 0) {
-            return;
-        }
-        InventoryTranslator newTranslator = InventoryTranslator.INVENTORY_TRANSLATORS.get(packet.getType());
-        Inventory openInventory = session.getInventoryCache().getOpenInventory();
-        if (newTranslator == null) {
+        session.addInventoryTask(() -> {
+            if (packet.getWindowId() == 0) {
+                return;
+            }
+
+            InventoryTranslator newTranslator = InventoryTranslator.INVENTORY_TRANSLATORS.get(packet.getType());
+            Inventory openInventory = session.getOpenInventory();
+            //No translator exists for this window type. Close all windows and return.
+            if (newTranslator == null) {
+                if (openInventory != null) {
+                    InventoryUtils.closeInventory(session, openInventory.getId(), true);
+                }
+                ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(packet.getWindowId());
+                session.sendDownstreamPacket(closeWindowPacket);
+                return;
+            }
+
+            String name = MessageTranslator.convertMessageLenient(packet.getName(), session.getLocale());
+            name = LocaleUtils.getLocaleString(name, session.getLocale());
+
+            Inventory newInventory = newTranslator.createInventory(name, packet.getWindowId(), packet.getType(), session.getPlayerInventory());
             if (openInventory != null) {
-                InventoryUtils.closeWindow(session, openInventory.getId());
-                InventoryUtils.closeInventory(session, openInventory.getId());
+                // If the window type is the same, don't close.
+                // In rare cases, inventories can do funny things where it keeps the same window type up but change the contents.
+                if (openInventory.getWindowType() != packet.getType()) {
+                    // Sometimes the server can double-open an inventory with the same ID - don't confirm in that instance.
+                    InventoryUtils.closeInventory(session, openInventory.getId(), openInventory.getId() != packet.getWindowId());
+                }
             }
-            ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(packet.getWindowId());
-            session.sendDownstreamPacket(closeWindowPacket);
-            return;
-        }
 
-        String name = MessageTranslator.convertMessageLenient(packet.getName(), session.getLocale());
-
-        name = LocaleUtils.getLocaleString(name, session.getLocale());
-
-        Inventory newInventory = new Inventory(name, packet.getWindowId(), packet.getType(), newTranslator.size + 36);
-        session.getInventoryCache().cacheInventory(newInventory);
-        if (openInventory != null) {
-            InventoryTranslator openTranslator = InventoryTranslator.INVENTORY_TRANSLATORS.get(openInventory.getWindowType());
-            if (!openTranslator.getClass().equals(newTranslator.getClass())) {
-                InventoryUtils.closeWindow(session, openInventory.getId());
-                InventoryUtils.closeInventory(session, openInventory.getId());
-            }
-        }
-
-        InventoryUtils.openInventory(session, newInventory);
+            session.setInventoryTranslator(newTranslator);
+            InventoryUtils.openInventory(session, newInventory);
+        });
     }
 }

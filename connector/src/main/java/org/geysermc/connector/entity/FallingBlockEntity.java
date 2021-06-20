@@ -31,14 +31,19 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
 public class FallingBlockEntity extends Entity {
+    private final int javaId;
 
     public FallingBlockEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation, int javaId) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+        this.javaId = javaId;
+    }
 
-        this.metadata.put(EntityData.VARIANT, BlockTranslator.getBedrockBlockId(javaId));
+    @Override
+    public void spawnEntity(GeyserSession session) {
+        this.metadata.put(EntityData.VARIANT, session.getBlockTranslator().getBedrockBlockId(javaId));
+        super.spawnEntity(session);
     }
 
     @Override

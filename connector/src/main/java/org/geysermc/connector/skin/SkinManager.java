@@ -286,7 +286,7 @@ public class SkinManager {
 
             String skinUrl = isAlex ? SkinProvider.EMPTY_SKIN_ALEX.getTextureUrl() : SkinProvider.EMPTY_SKIN.getTextureUrl();
             String capeUrl = SkinProvider.EMPTY_CAPE.getTextureUrl();
-            if (("steve".equals(skinUrl) || "alex".equals(skinUrl)) && GeyserConnector.getInstance().getAuthType() != AuthType.ONLINE) {
+            if (("steve".equals(skinUrl) || "alex".equals(skinUrl)) && GeyserConnector.getInstance().getDefaultAuthType() != AuthType.ONLINE) {
                 GeyserSession session = GeyserConnector.getInstance().getPlayerByUuid(profile.getId());
 
                 if (session != null) {

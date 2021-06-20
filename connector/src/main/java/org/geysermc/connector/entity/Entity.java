@@ -28,12 +28,6 @@ package org.geysermc.connector.entity;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -51,9 +45,8 @@ import org.geysermc.connector.entity.living.ArmorStandEntity;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
-import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
+import org.geysermc.connector.utils.AttributeUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,8 +71,6 @@ public class Entity {
      * Saves if the entity should be on the ground. Otherwise entities like parrots are flapping when rotating
      */
     protected boolean onGround;
-
-    protected float scale = 1;
 
     protected EntityType entityType;
 
@@ -270,34 +261,12 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.ON_FIRE, ((xd & 0x01) == 0x01) && !metadata.getFlags().getFlag(EntityFlag.FIRE_IMMUNE)); // Otherwise immune entities sometimes flicker onfire
                     metadata.getFlags().setFlag(EntityFlag.SNEAKING, (xd & 0x02) == 0x02);
                     metadata.getFlags().setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
-                    metadata.getFlags().setFlag(EntityFlag.SWIMMING, ((xd & 0x10) == 0x10) && metadata.getFlags().getFlag(EntityFlag.SPRINTING)); // Otherwise swimming is enabled on older servers
+                    // Swimming is ignored here and instead we rely on the pose
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
 
                     // Armour stands are handled in their own class
                     if (!this.is(ArmorStandEntity.class)) {
                         metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
-                    }
-
-                    // Shield code
-                    if (session.getPlayerEntity().getEntityId() == entityId && metadata.getFlags().getFlag(EntityFlag.SNEAKING)) {
-                        if ((session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == ItemRegistry.SHIELD.getJavaId()) ||
-                                (session.getInventoryCache().getPlayerInventory().getItem(45) != null && session.getInventoryCache().getPlayerInventory().getItem(45).getId() == ItemRegistry.SHIELD.getJavaId())) {
-                            ClientPlayerUseItemPacket useItemPacket;
-                            metadata.getFlags().setFlag(EntityFlag.BLOCKING, true);
-                            if (session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() == ItemRegistry.SHIELD.getJavaId()) {
-                                useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
-                            }
-                            // Else we just assume it's the offhand, to simplify logic and to assure the packet gets sent
-                            else {
-                                useItemPacket = new ClientPlayerUseItemPacket(Hand.OFF_HAND);
-                            }
-                            session.sendDownstreamPacket(useItemPacket);
-                        }
-                    } else if (session.getPlayerEntity().getEntityId() == entityId && !metadata.getFlags().getFlag(EntityFlag.SNEAKING) && metadata.getFlags().getFlag(EntityFlag.BLOCKING)) {
-                        metadata.getFlags().setFlag(EntityFlag.BLOCKING, false);
-                        metadata.getFlags().setFlag(EntityFlag.IS_AVOIDING_BLOCK, true);
-                        ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, new Position(0, 0, 0), BlockFace.DOWN);
-                        session.sendDownstreamPacket(releaseItemPacket);
                     }
                 }
                 break;
@@ -326,19 +295,19 @@ public class Entity {
             case 5: // no gravity
                 metadata.getFlags().setFlag(EntityFlag.HAS_GRAVITY, !(boolean) entityMetadata.getValue());
                 break;
-            case 6: // Pose change
-                if (entityMetadata.getValue().equals(Pose.SLEEPING)) {
-                    metadata.getFlags().setFlag(EntityFlag.SLEEPING, true);
-                    // Has to be a byte or it does not work
-                    metadata.put(EntityData.PLAYER_FLAGS, (byte) 2);
-                    metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.2f);
-                    metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.2f);
-                } else if (metadata.getFlags().getFlag(EntityFlag.SLEEPING)) {
-                    metadata.getFlags().setFlag(EntityFlag.SLEEPING, false);
-                    metadata.put(EntityData.BOUNDING_BOX_WIDTH, getEntityType().getWidth());
-                    metadata.put(EntityData.BOUNDING_BOX_HEIGHT, getEntityType().getHeight());
-                    metadata.put(EntityData.PLAYER_FLAGS, (byte) 0);
-                }
+            case 6: // Pose change - typically used for bounding box and not animation
+                Pose pose = (Pose) entityMetadata.getValue();
+
+                metadata.getFlags().setFlag(EntityFlag.SLEEPING, pose.equals(Pose.SLEEPING));
+                // Triggered when crawling
+                metadata.getFlags().setFlag(EntityFlag.SWIMMING, pose.equals(Pose.SWIMMING));
+                setDimensions(pose);
+                break;
+            case 7: // Freezing ticks
+                // The value that Java edition gives us is in ticks, but Bedrock uses a float percentage of the strength 0.0 -> 1.0
+                // The Java client caps its freezing tick percentage at 140
+                int freezingTicks = Math.min((int) entityMetadata.getValue(), 140);
+                setFreezing(session, freezingTicks / 140f);
                 break;
         }
     }
@@ -354,6 +323,31 @@ public class Entity {
         entityDataPacket.setRuntimeEntityId(geyserId);
         entityDataPacket.getMetadata().putAll(metadata);
         session.sendUpstreamPacket(entityDataPacket);
+    }
+
+    /**
+     * If true, the entity should be shaking on the client's end.
+     *
+     * @return whether {@link EntityFlag#SHAKING} should be set to true.
+     */
+    protected boolean isShaking(GeyserSession session) {
+        return false;
+    }
+
+    /**
+     * Set the height and width of the entity's bounding box
+     */
+    protected void setDimensions(Pose pose) {
+        // No flexibility options for basic entities
+        metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
+        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
+    }
+
+    /**
+     * Set a float from 0-1 - how strong the "frozen" overlay should be on screen.
+     */
+    protected void setFreezing(GeyserSession session, float amount) {
+        metadata.put(EntityData.FREEZING_EFFECT_STRENGTH, amount);
     }
 
     /**

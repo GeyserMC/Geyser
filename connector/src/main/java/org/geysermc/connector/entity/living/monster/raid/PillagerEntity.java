@@ -25,11 +25,11 @@
 
 package org.geysermc.connector.entity.living.monster.raid;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 public class PillagerEntity extends AbstractIllagerEntity {
 
@@ -38,12 +38,30 @@ public class PillagerEntity extends AbstractIllagerEntity {
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
-            // Java Edition always has the Pillager entity as positioning the crossbow
-            metadata.getFlags().setFlag(EntityFlag.USING_ITEM, true);
-            metadata.getFlags().setFlag(EntityFlag.CHARGED, true);
+    public void updateMainHand(GeyserSession session) {
+        checkForCrossbow(session);
+
+        super.updateMainHand(session);
+    }
+
+    @Override
+    public void updateOffHand(GeyserSession session) {
+        checkForCrossbow(session);
+
+        super.updateOffHand(session);
+    }
+
+    /**
+     * Check for a crossbow in either the mainhand or offhand. If one exists, indicate that the pillager should be posing
+     */
+    protected void checkForCrossbow(GeyserSession session) {
+        boolean hasCrossbow = this.hand.getId() == ItemRegistry.CROSSBOW.getBedrockId()
+                || this.offHand.getId() == ItemRegistry.CROSSBOW.getBedrockId();
+        boolean usingItemChanged = metadata.getFlags().setFlag(EntityFlag.USING_ITEM, hasCrossbow);
+        boolean chargedChanged = metadata.getFlags().setFlag(EntityFlag.CHARGED, hasCrossbow);
+
+        if (usingItemChanged || chargedChanged) {
+            updateBedrockMetadata(session);
         }
-        super.updateBedrockMetadata(entityMetadata, session);
     }
 }

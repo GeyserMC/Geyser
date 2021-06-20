@@ -46,7 +46,7 @@ public class WorldBorder {
     @Getter @Setter private double oldDiameter;
     @Getter @Setter private double newDiameter;
     @Getter @Setter private long speed;
-    @Getter @Setter private int warningTime;
+    @Getter @Setter private int warningDelay;
     @Getter @Setter private int warningBlocks;
 
     @Getter
@@ -84,18 +84,18 @@ public class WorldBorder {
      * @param oldDiameter double for the diameter in blocks of the world border before it got changed or similar to newDiameter if not changed.
      * @param newDiameter double for the diameter in blocks of the new world border.
      * @param speed long for the speed to apply an expansion/shrinking of the world border. When a client joins they get the actual border oldDiameter and the time left to reach the newDiameter.
-     * @param warningTime int for the time in seconds before a shrinking world border would hit a not moving player. Creates the same visual warning effect as warningBlocks.
+     * @param warningDelay int for the time in seconds before a shrinking world border would hit a not moving player. Creates the same visual warning effect as warningBlocks.
      * @param warningBlocks int in blocks before you reach the border to show warning particles.
      */
-    public WorldBorder(GeyserSession session, @NonNull Vector2f center, @NonNull double oldDiameter, @NonNull double newDiameter,
-                       @NonNull long speed, @NonNull int warningTime, @NonNull int warningBlocks) {
+    public WorldBorder(GeyserSession session, @NonNull Vector2f center, double oldDiameter, double newDiameter,
+                       long speed, int warningDelay, int warningBlocks) {
         this.session = session;
 
         this.center = center;
         this.oldDiameter = oldDiameter;
         this.newDiameter = newDiameter;
         this.speed = speed;
-        this.warningTime = warningTime;
+        this.warningDelay = warningDelay;
         this.warningBlocks = warningBlocks;
 
         this.currentDiameter = newDiameter;

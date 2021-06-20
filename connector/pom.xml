@@ -6,11 +6,14 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>geyser-parent</artifactId>
-        <version>1.2.0-SNAPSHOT</version>
+        <version>1.4.0-SNAPSHOT</version>
     </parent>
     <artifactId>connector</artifactId>
 
     <properties>
+        <adventure.version>4.8.0</adventure.version>
+        <fastutil.version>8.5.2</fastutil.version>
+        <jackson.version>2.10.2</jackson.version>
         <netty.version>4.1.59.Final</netty.version>
     </properties>
 
@@ -18,25 +21,46 @@
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>common</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
+            <version>1.4.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- Jackson JSON and YAML serialization -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
-            <version>2.10.2</version>
+            <version>${jackson.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>1.5.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.github.CloudburstMC.Protocol</groupId>
-            <artifactId>bedrock-v422</artifactId>
-            <version>294e7e5</version>
+            <artifactId>bedrock-v440</artifactId>
+            <version>1656151</version>
             <scope>compile</scope>
             <exclusions>
-                <exclusion>
-                    <groupId>net.sf.trove4j</groupId>
-                    <artifactId>trove</artifactId>
-                </exclusion>
                 <exclusion>
                     <groupId>com.nukkitx.network</groupId>
                     <artifactId>raknet</artifactId>
@@ -44,9 +68,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.github.CloudburstMC.Network</groupId>
+            <groupId>com.nukkitx.network</groupId>
             <artifactId>raknet</artifactId>
-            <version>a94d2dd</version>
+            <version>1.6.26-20210217.205834-2</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -58,61 +82,61 @@
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-int-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-float-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-long-long-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-object-long-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-byte-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-double-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-boolean-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-object-int-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-object-byte-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-object-object-maps</artifactId>
-            <version>8.3.1</version>
+            <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -122,9 +146,15 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.steveice10</groupId>
-            <artifactId>mcprotocollib</artifactId>
-            <version>62721cf</version>
+            <groupId>com.github.GeyserMC</groupId>
+            <artifactId>MCAuthLib</artifactId>
+            <version>0e48a094f2</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.GeyserMC</groupId>
+            <artifactId>MCProtocolLib</artifactId>
+            <version>7248769</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -142,9 +172,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.github.steveice10</groupId>
+            <groupId>com.github.GeyserMC</groupId>
             <artifactId>PacketLib</artifactId>
-            <version>54f761c</version>
+            <version>0b75570</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion> <!-- Move this exclusion back to MCProtocolLib it gets the latest PacketLib -->
@@ -205,34 +235,37 @@
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
             <version>0.9.11</version> <!-- This isn't the latest version to get round https://github.com/ronmamo/reflections/issues/273 -->
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.dom4j</groupId>
             <artifactId>dom4j</artifactId>
             <version>2.1.3</version>
+            <scope>compile</scope>
         </dependency>
+        <!-- Adventure text serialization -->
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-api</artifactId>
-            <version>4.5.0</version>
+            <version>${adventure.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-gson</artifactId>
-            <version>4.5.0</version>
+            <version>${adventure.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-legacy</artifactId>
-            <version>4.5.0</version>
+            <version>${adventure.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-gson-legacy-impl</artifactId>
-            <version>4.5.0</version>
+            <version>${adventure.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -240,11 +273,6 @@
             <artifactId>junit</artifactId>
             <version>4.13.1</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.GeyserMC</groupId>
-            <artifactId>MCAuthLib</artifactId>
-            <version>0e48a094f2</version>
         </dependency>
     </dependencies>
 
@@ -307,6 +335,7 @@
                                 </replacement>
                                 <replacement>
                                     <token>String GIT_VERSION = ".*"</token>
+                                    <!--suppress UnresolvedMavenProperty -->
                                     <value>String GIT_VERSION = "git-${git.branch}-${git.commit.id.abbrev}"</value>
                                 </replacement>
                             </replacements>

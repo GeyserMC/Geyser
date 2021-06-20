@@ -39,7 +39,7 @@ public class SnowGolemEntity extends GolemEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 15) {
+        if (entityMetadata.getId() == 16) {
             byte xd = (byte) entityMetadata.getValue();
             // Handle the visibility of the pumpkin
             metadata.getFlags().setFlag(EntityFlag.SHEARED, (xd & 0x10) != 0x10);

@@ -107,6 +107,15 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         this.geyserLogger = new GeyserVelocityLogger(logger, geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
+        // Remove this in like a year
+        try {
+            // Should only exist on 1.0
+            Class.forName("org.geysermc.floodgate.FloodgateAPI");
+            geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/"));
+            return;
+        } catch (ClassNotFoundException ignored) {
+        }
+
         if (geyserConfig.getRemote().getAuthType().equals("floodgate") && !proxyServer.getPluginManager().getPlugin("floodgate").isPresent()) {
             geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             return;

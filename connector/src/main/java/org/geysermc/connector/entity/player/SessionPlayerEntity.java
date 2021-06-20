@@ -26,7 +26,10 @@
 package org.geysermc.connector.entity.player;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.UUID;
@@ -35,6 +38,10 @@ import java.util.UUID;
  * The entity class specifically for a {@link GeyserSession}'s player.
  */
 public class SessionPlayerEntity extends PlayerEntity {
+    /**
+     * Whether to check for updated speed after all entity metadata has been processed
+     */
+    private boolean refreshSpeed = false;
 
     private final GeyserSession session;
 
@@ -43,7 +50,6 @@ public class SessionPlayerEntity extends PlayerEntity {
 
         valid = true;
         this.session = session;
-        this.session.getCollisionManager().updatePlayerBoundingBox(position);
     }
 
     @Override
@@ -63,5 +69,28 @@ public class SessionPlayerEntity extends PlayerEntity {
             session.getCollisionManager().updatePlayerBoundingBox(position);
         }
         super.setPosition(position);
+    }
+
+    @Override
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        super.updateBedrockMetadata(entityMetadata, session);
+        if (entityMetadata.getId() == 0) {
+            session.setSwimmingInWater((((byte) entityMetadata.getValue()) & 0x10) == 0x10 && metadata.getFlags().getFlag(EntityFlag.SPRINTING));
+            refreshSpeed = true;
+        } else if (entityMetadata.getId() == 6) {
+            session.setPose((Pose) entityMetadata.getValue());
+            refreshSpeed = true;
+        }
+    }
+
+    @Override
+    public void updateBedrockMetadata(GeyserSession session) {
+        super.updateBedrockMetadata(session);
+        if (refreshSpeed) {
+            if (session.adjustSpeed()) {
+                updateBedrockAttributes(session);
+            }
+            refreshSpeed = false;
+        }
     }
 }

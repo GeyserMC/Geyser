@@ -32,10 +32,9 @@ import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.NonNull;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.FileUtils;
 
 import java.io.InputStream;
@@ -51,11 +50,6 @@ public class EffectRegistry {
     public static final Map<SoundEffect, Effect> SOUND_EFFECTS = new HashMap<>();
     public static final Int2ObjectMap<SoundEvent> RECORDS = new Int2ObjectOpenHashMap<>();
 
-    /**
-     * Java particle type to Bedrock particle ID
-     * Used for area effect clouds.
-     */
-    private static final Object2IntMap<ParticleType> PARTICLE_TO_ID = new Object2IntOpenHashMap<>();
     /**
      * Java particle type to Bedrock level event
      */
@@ -84,11 +78,7 @@ public class EffectRegistry {
             while (particlesIterator.hasNext()) {
                 Map.Entry<String, JsonNode> entry = particlesIterator.next();
                 JsonNode bedrockId = entry.getValue().get("bedrockId");
-                JsonNode bedrockIdNumeric = entry.getValue().get("bedrockNumericId");
                 JsonNode eventType = entry.getValue().get("eventType");
-                if (bedrockIdNumeric != null) {
-                    PARTICLE_TO_ID.put(ParticleType.valueOf(entry.getKey().toUpperCase()), bedrockIdNumeric.asInt());
-                }
                 if (bedrockId != null) {
                     PARTICLE_TO_STRING.put(ParticleType.valueOf(entry.getKey().toUpperCase()), bedrockId.asText());
                 }
@@ -137,20 +127,15 @@ public class EffectRegistry {
                         javaEffect = SoundEffect.valueOf(entry.getKey());
                         String name = node.get("name").asText();
                         float volume = node.has("volume") ? node.get("volume").floatValue() : 1.0f;
-                        boolean pitchSub = node.has("pitch_sub") ? node.get("pitch_sub").booleanValue() : false;
+                        boolean pitchSub = node.has("pitch_sub") && node.get("pitch_sub").booleanValue();
                         float pitchMul = node.has("pitch_mul") ? node.get("pitch_mul").floatValue() : 1.0f;
                         float pitchAdd = node.has("pitch_add") ? node.get("pitch_add").floatValue() : 0.0f;
-                        boolean relative = node.has("relative") ? node.get("relative").booleanValue() : true;
+                        boolean relative = node.has("relative") && node.get("relative").booleanValue();
                         effect = new PlaySoundEffect(name, volume, pitchSub, pitchMul, pitchAdd, relative);
                         break;
                     }
                     case "record": {
-                        JsonNode records = entry.getValue().get("records");
-                        Iterator<Map.Entry<String, JsonNode>> recordsIterator = records.fields();
-                        while (recordsIterator.hasNext()) {
-                            Map.Entry<String, JsonNode> recordEntry = recordsIterator.next();
-                            RECORDS.put(Integer.parseInt(recordEntry.getKey()), SoundEvent.valueOf(recordEntry.getValue().asText()));
-                        }
+                        // Special case handled in ItemRegistry
                         break;
                     }
                 }
@@ -164,11 +149,19 @@ public class EffectRegistry {
     }
 
     /**
+     * Used for area effect clouds.
+     *
      * @param type the Java particle to search for
      * @return the Bedrock integer ID of the particle, or -1 if it does not exist
      */
-    public static int getParticleId(@NonNull ParticleType type) {
-        return PARTICLE_TO_ID.getOrDefault(type, -1);
+    public static int getParticleId(GeyserSession session, @NonNull ParticleType type) {
+        LevelEventType levelEventType = getParticleLevelEventType(type);
+        if (levelEventType == null) {
+            return -1;
+        }
+
+        // Remove the legacy bit applied to particles for LevelEventType serialization
+        return session.getUpstream().getSession().getPacketCodec().getHelper().getLevelEventId(levelEventType) & ~0x4000;
     }
 
     /**

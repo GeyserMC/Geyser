@@ -57,12 +57,12 @@ public enum AttributeType {
     HUNGER(null, "minecraft:player.hunger", 0f, 20f, 20f),
     SATURATION(null, "minecraft:player.saturation", 0f, 20f, 20f);
 
-    private String javaIdentifier;
-    private String bedrockIdentifier;
+    private final String javaIdentifier;
+    private final String bedrockIdentifier;
 
-    private float minimum;
-    private float maximum;
-    private float defaultValue;
+    private final float minimum;
+    private final float maximum;
+    private final float defaultValue;
 
     public Attribute getAttribute(float value) {
         return getAttribute(value, maximum);

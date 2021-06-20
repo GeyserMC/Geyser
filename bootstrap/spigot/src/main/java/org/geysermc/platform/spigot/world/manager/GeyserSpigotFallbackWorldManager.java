@@ -25,7 +25,7 @@
 
 package org.geysermc.platform.spigot.world.manager;
 
-import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
+import org.bukkit.plugin.Plugin;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 
@@ -35,9 +35,8 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
  * If this occurs to you somehow, please let us know!!
  */
 public class GeyserSpigotFallbackWorldManager extends GeyserSpigotWorldManager {
-    public GeyserSpigotFallbackWorldManager() {
-        // Since this is pre-1.13 (and thus pre-1.15), there will never be 3D biomes.
-        super(false);
+    public GeyserSpigotFallbackWorldManager(Plugin plugin) {
+        super(plugin);
     }
 
     @Override
@@ -46,12 +45,7 @@ public class GeyserSpigotFallbackWorldManager extends GeyserSpigotWorldManager {
     }
 
     @Override
-    public void getBlocksInSection(GeyserSession session, int x, int y, int z, Chunk chunk) {
-        // Do nothing, since we can't do anything with the chunk
-    }
-
-    @Override
-    public boolean hasMoreBlockDataThanChunkCache() {
+    public boolean hasOwnChunkCache() {
         return false;
     }
 

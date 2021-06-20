@@ -26,13 +26,24 @@
 package org.geysermc.connector.entity.living.animal.tameable;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.google.common.collect.ImmutableSet;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemEntry;
+
+import java.util.Set;
 
 public class WolfEntity extends TameableEntity {
+    /**
+     * A list of all foods a wolf can eat on Java Edition.
+     * Used to display interactive tag or particles if needed.
+     */
+    private static final Set<String> WOLF_FOODS = ImmutableSet.of("pufferfish", "tropical_fish", "chicken", "cooked_chicken",
+            "porkchop", "beef", "rabbit", "cooked_porkchop", "cooked_beef", "rotten_flesh", "mutton", "cooked_mutton",
+            "cooked_rabbit");
 
     private byte collarColor;
 
@@ -43,7 +54,7 @@ public class WolfEntity extends TameableEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         //Reset wolf color
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 17) {
             byte xd = (byte) entityMetadata.getValue();
             boolean angry = (xd & 0x02) == 0x02;
             if (angry) {
@@ -52,13 +63,13 @@ public class WolfEntity extends TameableEntity {
         }
 
         // "Begging" on wiki.vg, "Interested" in Nukkit - the tilt of the head
-        if (entityMetadata.getId() == 18) {
+        if (entityMetadata.getId() == 19) {
             metadata.getFlags().setFlag(EntityFlag.INTERESTED, (boolean) entityMetadata.getValue());
         }
 
         // Wolf collar color
         // Relies on EntityData.OWNER_EID being set in TameableEntity.java
-        if (entityMetadata.getId() == 19 && !metadata.getFlags().getFlag(EntityFlag.ANGRY)) {
+        if (entityMetadata.getId() == 20 && !metadata.getFlags().getFlag(EntityFlag.ANGRY)) {
             metadata.put(EntityData.COLOR, collarColor = (byte) (int) entityMetadata.getValue());
             if (!metadata.containsKey(EntityData.OWNER_EID)) {
                 // If a color is set and there is no owner entity ID, set one.
@@ -68,11 +79,17 @@ public class WolfEntity extends TameableEntity {
         }
 
         // Wolf anger (1.16+)
-        if (entityMetadata.getId() == 20) {
+        if (entityMetadata.getId() == 21) {
             metadata.getFlags().setFlag(EntityFlag.ANGRY, (int) entityMetadata.getValue() != 0);
             metadata.put(EntityData.COLOR, (int) entityMetadata.getValue() != 0 ? (byte) 0 : collarColor);
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+        // Cannot be a baby to eat these foods
+        return WOLF_FOODS.contains(javaIdentifierStripped) && !metadata.getFlags().getFlag(EntityFlag.BABY);
     }
 }

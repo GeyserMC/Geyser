@@ -29,23 +29,21 @@ import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import org.geysermc.connector.bootstrap.GeyserBootstrap;
+import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.MathUtils;
 
 public class ChunkCache {
-
     private final boolean cache;
+    private final Long2ObjectMap<Column> chunks;
 
-    private final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
+    @Setter
+    private int minY;
 
     public ChunkCache(GeyserSession session) {
-        if (session.getConnector().getWorldManager().getClass() == GeyserBootstrap.DEFAULT_CHUNK_MANAGER.getClass()) {
-            this.cache = session.getConnector().getConfig().isCacheChunks();
-        } else {
-            this.cache = false; // To prevent Spigot from initializing
-        }
+        this.cache = !session.getConnector().getWorldManager().hasOwnChunkCache(); // To prevent Spigot from initializing
+        chunks = cache ? new Long2ObjectOpenHashMap<>() : null;
     }
 
     public Column addToCache(Column chunk) {
@@ -86,7 +84,12 @@ public class ChunkCache {
             return;
         }
 
-        Chunk chunk = column.getChunks()[y >> 4];
+        if (y < minY || (y >> 4) > column.getChunks().length - 1) {
+            // Y likely goes above or below the height limit of this world
+            return;
+        }
+
+        Chunk chunk = column.getChunks()[(y >> 4) - getChunkMinY()];
         if (chunk != null) {
             chunk.set(x & 0xF, y & 0xF, z & 0xF, block);
         }
@@ -102,7 +105,12 @@ public class ChunkCache {
             return BlockTranslator.JAVA_AIR_ID;
         }
 
-        Chunk chunk = column.getChunks()[y >> 4];
+        if (y < minY || (y >> 4) > column.getChunks().length - 1) {
+            // Y likely goes above or below the height limit of this world
+            return BlockTranslator.JAVA_AIR_ID;
+        }
+
+        Chunk chunk = column.getChunks()[(y >> 4) - getChunkMinY()];
         if (chunk != null) {
             return chunk.get(x & 0xF, y & 0xF, z & 0xF);
         }
@@ -117,5 +125,9 @@ public class ChunkCache {
 
         long chunkPosition = MathUtils.chunkPositionToLong(chunkX, chunkZ);
         chunks.remove(chunkPosition);
+    }
+
+    public int getChunkMinY() {
+        return minY >> 4;
     }
 }

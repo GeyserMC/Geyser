@@ -86,7 +86,7 @@ public class SkinProvider {
     public static final String EARS_GEOMETRY_SLIM;
     public static final SkinGeometry SKULL_GEOMETRY;
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     static {
         /* Load in the normal ears geometry */
@@ -412,15 +412,32 @@ public class SkinProvider {
 
         // if the requested image is a cape
         if (provider != null) {
-            if (image.getWidth() > 64) {
-                image = scale(image, 64, 32);
+            if (image.getWidth() > 64 || image.getHeight() > 32) {
+                // Prevent weirdly-scaled capes from being cut off
+                BufferedImage newImage = new BufferedImage(128, 64, BufferedImage.TYPE_INT_ARGB);
+                Graphics g = newImage.createGraphics();
+                g.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null);
+                g.dispose();
+                image.flush();
+                image = scale(newImage, 64, 32);
+            } else if (image.getWidth() < 64 || image.getHeight() < 32) {
+                // Bedrock doesn't like smaller-sized capes, either.
+                BufferedImage newImage = new BufferedImage(64, 32, BufferedImage.TYPE_INT_ARGB);
+                Graphics g = newImage.createGraphics();
+                g.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null);
+                g.dispose();
+                image.flush();
+                image = newImage;
             }
         } else {
             // Very rarely, skins can be larger than Minecraft's default.
             // Bedrock will not render anything above a width of 128.
             if (image.getWidth() > 128) {
-                image = scale(image, 128, image.getHeight() / (image.getWidth() / 128));
+                // On Height: Scale by the amount we divided width by, or simply cut down to 128
+                image = scale(image, 128, image.getHeight() >= 256 ? (image.getHeight() / (image.getWidth() / 128)) : 128);
             }
+
+            // TODO remove alpha channel
         }
 
         byte[] data = bufferedImageToImageData(image);
@@ -504,7 +521,7 @@ public class SkinProvider {
         return null;
     }
 
-    private static BufferedImage scale(BufferedImage bufferedImage, int newWidth, int newHeight) {
+    public static BufferedImage scale(BufferedImage bufferedImage, int newWidth, int newHeight) {
         BufferedImage resized = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = resized.createGraphics();
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
@@ -564,7 +581,6 @@ public class SkinProvider {
                 outputStream.write((rgba >> 24) & 0xFF);
             }
         }
-
         return outputStream.toByteArray();
     }
 

@@ -44,7 +44,7 @@ public class WitherEntity extends MonsterEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         long targetID = 0;
 
-        if (entityMetadata.getId() >= 15 && entityMetadata.getId() <= 17) {
+        if (entityMetadata.getId() >= 16 && entityMetadata.getId() <= 18) {
             Entity entity = session.getEntityCache().getEntityByJavaId((int) entityMetadata.getValue());
             if (entity == null && session.getPlayerEntity().getEntityId() == (int) entityMetadata.getValue()) {
                 entity = session.getPlayerEntity();
@@ -55,13 +55,13 @@ public class WitherEntity extends MonsterEntity {
             }
         }
 
-        if (entityMetadata.getId() == 15) {
+        if (entityMetadata.getId() == 16) {
             metadata.put(EntityData.WITHER_TARGET_1, targetID);
-        } else if (entityMetadata.getId() == 16) {
-            metadata.put(EntityData.WITHER_TARGET_2, targetID);
         } else if (entityMetadata.getId() == 17) {
-            metadata.put(EntityData.WITHER_TARGET_3, targetID);
+            metadata.put(EntityData.WITHER_TARGET_2, targetID);
         } else if (entityMetadata.getId() == 18) {
+            metadata.put(EntityData.WITHER_TARGET_3, targetID);
+        } else if (entityMetadata.getId() == 19) {
             metadata.put(EntityData.WITHER_INVULNERABLE_TICKS, entityMetadata.getValue());
 
             // Show the shield for the first few seconds of spawning (like Java)

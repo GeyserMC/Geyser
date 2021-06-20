@@ -73,17 +73,19 @@ public interface GeyserConfiguration {
 
     boolean isAllowThirdPartyEars();
 
-    boolean isShowCooldown();
+    String getShowCooldown();
 
     boolean isShowCoordinates();
+
+    EmoteOffhandWorkaroundOption getEmoteOffhandWorkaround();
 
     String getDefaultLocale();
 
     Path getFloodgateKeyPath();
 
-    boolean isAboveBedrockNetherBuilding();
+    boolean isAddNonBedrockItems();
 
-    boolean isCacheChunks();
+    boolean isAboveBedrockNetherBuilding();
 
     boolean isForceResourcePacks();
 
@@ -108,6 +110,8 @@ public interface GeyserConfiguration {
         String getMotd2();
 
         String getServerName();
+
+        int getCompressionLevel();
 
         boolean isEnableProxyProtocol();
 
@@ -134,6 +138,8 @@ public interface GeyserConfiguration {
         boolean isPasswordAuthentication();
 
         boolean isUseProxyProtocol();
+
+        boolean isForwardHost();
     }
 
     interface IUserAuthenticationInfo {

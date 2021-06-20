@@ -67,7 +67,7 @@ public class FishingHookEntity extends ThrowableEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 7) { // Hooked entity
+        if (entityMetadata.getId() == 8) { // Hooked entity
             int hookedEntityId = (int) entityMetadata.getValue() - 1;
             Entity entity = session.getEntityCache().getEntityByJavaId(hookedEntityId);
             if (entity == null && session.getPlayerEntity().getEntityId() == hookedEntityId) {
@@ -96,27 +96,25 @@ public class FishingHookEntity extends ThrowableEntity {
         boolean touchingWater = false;
         boolean collided = false;
         for (Vector3i blockPos : collidableBlocks) {
-            if (0 <= blockPos.getY() && blockPos.getY() <= 255) {
-                int blockID = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
-                BlockCollision blockCollision = CollisionTranslator.getCollision(blockID, blockPos.getX(), blockPos.getY(), blockPos.getZ());
-                if (blockCollision != null && blockCollision.checkIntersection(boundingBox)) {
-                    // TODO Push bounding box out of collision to improve movement
-                    collided = true;
-                }
+            int blockID = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
+            BlockCollision blockCollision = CollisionTranslator.getCollision(blockID, blockPos.getX(), blockPos.getY(), blockPos.getZ());
+            if (blockCollision != null && blockCollision.checkIntersection(boundingBox)) {
+                // TODO Push bounding box out of collision to improve movement
+                collided = true;
+            }
 
-                int waterLevel = BlockStateValues.getWaterLevel(blockID);
-                if (BlockTranslator.isWaterlogged(blockID)) {
-                    waterLevel = 0;
+            int waterLevel = BlockStateValues.getWaterLevel(blockID);
+            if (BlockTranslator.isWaterlogged(blockID)) {
+                waterLevel = 0;
+            }
+            if (waterLevel >= 0) {
+                double waterMaxY = blockPos.getY() + 1 - (waterLevel + 1) / 9.0;
+                // Falling water is a full block
+                if (waterLevel >= 8) {
+                    waterMaxY = blockPos.getY() + 1;
                 }
-                if (waterLevel >= 0) {
-                    double waterMaxY = blockPos.getY() + 1 - (waterLevel + 1) / 9.0;
-                    // Falling water is a full block
-                    if (waterLevel >= 8) {
-                        waterMaxY = blockPos.getY() + 1;
-                    }
-                    if (position.getY() <= waterMaxY) {
-                        touchingWater = true;
-                    }
+                if (position.getY() <= waterMaxY) {
+                    touchingWater = true;
                 }
             }
         }
@@ -176,13 +174,8 @@ public class FishingHookEntity extends ThrowableEntity {
      * @return true if this entity is currently in air.
      */
     protected boolean isInAir(GeyserSession session) {
-        if (session.getConnector().getConfig().isCacheChunks()) {
-            if (0 <= position.getFloorY() && position.getFloorY() <= 255) {
-                int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
-                return block == BlockTranslator.JAVA_AIR_ID;
-            }
-        }
-        return false;
+        int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
+        return block == BlockTranslator.JAVA_AIR_ID;
     }
 
     @Override

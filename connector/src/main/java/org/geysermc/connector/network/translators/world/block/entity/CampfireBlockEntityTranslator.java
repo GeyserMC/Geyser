@@ -32,7 +32,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 
-@BlockEntity(name = "Campfire", regex = "campfire")
+@BlockEntity(name = "Campfire")
 public class CampfireBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {

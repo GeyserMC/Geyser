@@ -27,62 +27,69 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
-import org.geysermc.common.window.CustomFormBuilder;
-import org.geysermc.common.window.CustomFormWindow;
-import org.geysermc.common.window.button.FormImage;
-import org.geysermc.common.window.component.DropdownComponent;
-import org.geysermc.common.window.component.InputComponent;
-import org.geysermc.common.window.component.LabelComponent;
-import org.geysermc.common.window.component.ToggleComponent;
-import org.geysermc.common.window.response.CustomFormResponse;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.world.WorldManager;
+import org.geysermc.cumulus.CustomForm;
+import org.geysermc.cumulus.component.DropdownComponent;
+import org.geysermc.cumulus.response.CustomFormResponse;
 
 import java.util.ArrayList;
 
 public class SettingsUtils {
-
-    // Used in UpstreamPacketHandler.java
-    public static final int SETTINGS_FORM_ID = 1338;
-
     /**
      * Build a settings form for the given session and store it for later
      *
      * @param session The session to build the form for
      */
-    public static void buildForm(GeyserSession session) {
+    public static CustomForm buildForm(GeyserSession session) {
         // Cache the language for cleaner access
         String language = session.getLocale();
 
-        CustomFormBuilder builder = new CustomFormBuilder(LanguageUtils.getPlayerLocaleString("geyser.settings.title.main", language));
-        builder.setIcon(new FormImage(FormImage.FormImageType.PATH, "textures/ui/settings_glyph_color_2x.png"));
+        CustomForm.Builder builder = CustomForm.builder()
+                .translator(LanguageUtils::getPlayerLocaleString, language)
+                .title("geyser.settings.title.main")
+                .iconPath("textures/ui/settings_glyph_color_2x.png");
 
-        builder.addComponent(new LabelComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.title.client", language)));
-        builder.addComponent(new ToggleComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.option.coordinates", language), session.getWorldCache().isShowCoordinates()));
+        // Only show the client title if any of the client settings are available
+        if (session.getPreferencesCache().isAllowShowCoordinates() || CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
+            builder.label("geyser.settings.title.client");
 
+            // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
+            if (session.getPreferencesCache().isAllowShowCoordinates()) {
+                builder.toggle("geyser.settings.option.coordinates", session.getPreferencesCache().isPrefersShowCoordinates());
+            }
+
+            if (CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
+                DropdownComponent.Builder cooldownDropdown = DropdownComponent.builder("options.attackIndicator");
+                cooldownDropdown.option("options.attack.crosshair", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.TITLE);
+                cooldownDropdown.option("options.attack.hotbar", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.ACTIONBAR);
+                cooldownDropdown.option("options.off", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.DISABLED);
+                builder.dropdown(cooldownDropdown);
+            }
+        }
 
         if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
-            builder.addComponent(new LabelComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.title.server", language)));
+            builder.label("geyser.settings.title.server");
 
-            DropdownComponent gamemodeDropdown = new DropdownComponent();
-            gamemodeDropdown.setText("%createWorldScreen.gameMode.personal");
-            gamemodeDropdown.setOptions(new ArrayList<>());
+            DropdownComponent.Builder gamemodeDropdown = DropdownComponent.builder("%createWorldScreen.gameMode.personal");
             for (GameMode gamemode : GameMode.values()) {
-                gamemodeDropdown.addOption(LocaleUtils.getLocaleString("selectWorld.gameMode." + gamemode.name().toLowerCase(), language), session.getGameMode() == gamemode);
+                gamemodeDropdown.option("selectWorld.gameMode." + gamemode.name().toLowerCase(), session.getGameMode() == gamemode);
             }
-            builder.addComponent(gamemodeDropdown);
+            builder.dropdown(gamemodeDropdown);
 
-            DropdownComponent difficultyDropdown = new DropdownComponent();
-            difficultyDropdown.setText("%options.difficulty");
-            difficultyDropdown.setOptions(new ArrayList<>());
+            DropdownComponent.Builder difficultyDropdown = DropdownComponent.builder("%options.difficulty");
             for (Difficulty difficulty : Difficulty.values()) {
-                difficultyDropdown.addOption("%options.difficulty." + difficulty.name().toLowerCase(), session.getWorldCache().getDifficulty() == difficulty);
+                difficultyDropdown.option("%options.difficulty." + difficulty.name().toLowerCase(), session.getWorldCache().getDifficulty() == difficulty);
             }
-            builder.addComponent(difficultyDropdown);
+            builder.dropdown(difficultyDropdown);
         }
 
         if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.gamerules")) {
-            builder.addComponent(new LabelComponent(LanguageUtils.getPlayerLocaleString("geyser.settings.title.game_rules", language)));
+            builder.label("geyser.settings.title.game_rules")
+                    .translator(LocaleUtils::getLocaleString); // we need translate gamerules next
+
+            WorldManager worldManager = GeyserConnector.getInstance().getWorldManager();
             for (GameRule gamerule : GameRule.values()) {
                 if (gamerule.equals(GameRule.UNKNOWN)) {
                     continue;
@@ -90,77 +97,69 @@ public class SettingsUtils {
 
                 // Add the relevant form item based on the gamerule type
                 if (Boolean.class.equals(gamerule.getType())) {
-                    builder.addComponent(new ToggleComponent(LocaleUtils.getLocaleString("gamerule." + gamerule.getJavaID(), language), GeyserConnector.getInstance().getWorldManager().getGameRuleBool(session, gamerule)));
+                    builder.toggle("gamerule." + gamerule.getJavaID(), worldManager.getGameRuleBool(session, gamerule));
                 } else if (Integer.class.equals(gamerule.getType())) {
-                    builder.addComponent(new InputComponent(LocaleUtils.getLocaleString("gamerule." + gamerule.getJavaID(), language), "", String.valueOf(GeyserConnector.getInstance().getWorldManager().getGameRuleInt(session, gamerule))));
+                    builder.input("gamerule." + gamerule.getJavaID(), "", String.valueOf(worldManager.getGameRuleInt(session, gamerule)));
                 }
             }
         }
 
-        session.setSettingsForm(builder.build());
-    }
-
-    /**
-     * Handle the settings form response
-     *
-     * @param session The session that sent the response
-     * @param response The response string to parse
-     * @return True if the form was parsed correctly, false if not
-     */
-    public static boolean handleSettingsForm(GeyserSession session, String response) {
-        CustomFormWindow settingsForm = session.getSettingsForm();
-        settingsForm.setResponse(response);
-
-        CustomFormResponse settingsResponse = (CustomFormResponse) settingsForm.getResponse();
-        if (settingsResponse == null) {
-            return false;
-        }
-        int offset = 0;
-
-        offset++; // Client settings title
-
-        session.getWorldCache().setShowCoordinates(settingsResponse.getToggleResponses().get(offset));
-        offset++;
-
-        if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
-            offset++; // Server settings title
-
-            GameMode gameMode = GameMode.values()[settingsResponse.getDropdownResponses().get(offset).getElementID()];
-            if (gameMode != null && gameMode != session.getGameMode()) {
-                session.getConnector().getWorldManager().setPlayerGameMode(session, gameMode);
+        builder.responseHandler((form, responseData) -> {
+            CustomFormResponse response = form.parseResponse(responseData);
+            if (response.isClosed() || response.isInvalid()) {
+                return;
             }
-            offset++;
 
-            Difficulty difficulty = Difficulty.values()[settingsResponse.getDropdownResponses().get(offset).getElementID()];
-            if (difficulty != null && difficulty != session.getWorldCache().getDifficulty()) {
-                session.getConnector().getWorldManager().setDifficulty(session, difficulty);
-            }
-            offset++;
-        }
+            if (session.getPreferencesCache().isAllowShowCoordinates() || CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
+                response.skip(); // Client settings title
 
-        if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.gamerules")) {
-            offset++; // Game rule title
-
-            for (GameRule gamerule : GameRule.values()) {
-                if (gamerule.equals(GameRule.UNKNOWN)) {
-                    continue;
+                // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
+                if (session.getPreferencesCache().isAllowShowCoordinates()) {
+                    session.getPreferencesCache().setPrefersShowCoordinates(response.next());
+                    session.getPreferencesCache().updateShowCoordinates();
+                    response.skip();
                 }
 
-                if (Boolean.class.equals(gamerule.getType())) {
-                    boolean value = settingsResponse.getToggleResponses().get(offset);
-                    if (value != session.getConnector().getWorldManager().getGameRuleBool(session, gamerule)) {
-                        session.getConnector().getWorldManager().setGameRule(session, gamerule.getJavaID(), value);
+                if (CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
+                    CooldownUtils.CooldownType cooldownType = CooldownUtils.CooldownType.VALUES[(int) response.next()];
+                    session.getPreferencesCache().setCooldownPreference(cooldownType);
+                    response.skip();
+                }
+            }
+
+            if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
+                GameMode gameMode = GameMode.values()[(int) response.next()];
+                if (gameMode != null && gameMode != session.getGameMode()) {
+                    session.getConnector().getWorldManager().setPlayerGameMode(session, gameMode);
+                }
+
+                Difficulty difficulty = Difficulty.values()[(int) response.next()];
+                if (difficulty != null && difficulty != session.getWorldCache().getDifficulty()) {
+                    session.getConnector().getWorldManager().setDifficulty(session, difficulty);
+                }
+            }
+
+            if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.gamerules")) {
+                for (GameRule gamerule : GameRule.values()) {
+                    if (gamerule.equals(GameRule.UNKNOWN)) {
+                        continue;
                     }
-                } else if (Integer.class.equals(gamerule.getType())) {
-                    int value = Integer.parseInt(settingsResponse.getInputResponses().get(offset));
-                    if (value != session.getConnector().getWorldManager().getGameRuleInt(session, gamerule)) {
-                        session.getConnector().getWorldManager().setGameRule(session, gamerule.getJavaID(), value);
+
+                    if (Boolean.class.equals(gamerule.getType())) {
+                        boolean value = response.next();
+                        if (value != session.getConnector().getWorldManager().getGameRuleBool(session, gamerule)) {
+                            session.getConnector().getWorldManager().setGameRule(session, gamerule.getJavaID(), value);
+                        }
+                    } else if (Integer.class.equals(gamerule.getType())) {
+                        int value = Integer.parseInt(response.next());
+                        if (value != session.getConnector().getWorldManager().getGameRuleInt(session, gamerule)) {
+                            session.getConnector().getWorldManager().setGameRule(session, gamerule.getJavaID(), value);
+                        }
                     }
                 }
-                offset++;
             }
-        }
+        });
 
-        return true;
+        return builder.build();
     }
 }

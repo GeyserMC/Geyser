@@ -45,25 +45,11 @@ import org.geysermc.connector.utils.ChunkUtils;
 
 @Translator(packet = ServerChunkDataPacket.class)
 public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
-    /**
-     * Determines if we should process non-full chunks
-     */
-    private final boolean cacheChunks;
-
-    public JavaChunkDataTranslator() {
-        cacheChunks = GeyserConnector.getInstance().getConfig().isCacheChunks();
-    }
 
     @Override
     public void translate(ServerChunkDataPacket packet, GeyserSession session) {
         if (session.isSpawned()) {
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
-        }
-
-        if (packet.getColumn().getBiomeData() == null && !cacheChunks) {
-            // Non-full chunk without chunk caching
-            session.getConnector().getLogger().debug("Not sending non-full chunk because chunk caching is off.");
-            return;
         }
 
         // Merge received column with cache on network thread
@@ -72,11 +58,9 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
             return;
         }
 
-        boolean isNonFullChunk = packet.getColumn().getBiomeData() == null;
-
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
-                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, mergedColumn, isNonFullChunk);
+                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, mergedColumn);
                 ChunkSection[] sections = chunkData.getSections();
 
                 // Find highest section
@@ -90,7 +74,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 int size = 0;
                 for (int i = 0; i < sectionCount; i++) {
                     ChunkSection section = sections[i];
-                    size += (section != null ? section : ChunkUtils.EMPTY_SECTION).estimateNetworkSize();
+                    size += (section != null ? section : session.getBlockTranslator().getEmptyChunkSection()).estimateNetworkSize();
                 }
                 size += 256; // Biomes
                 size += 1; // Border blocks
@@ -103,7 +87,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 try {
                     for (int i = 0; i < sectionCount; i++) {
                         ChunkSection section = sections[i];
-                        (section != null ? section : ChunkUtils.EMPTY_SECTION).writeToNetwork(byteBuf);
+                        (section != null ? section : session.getBlockTranslator().getEmptyChunkSection()).writeToNetwork(byteBuf);
                     }
 
                     byteBuf.writeBytes(BiomeTranslator.toBedrockBiome(mergedColumn.getBiomeData())); // Biomes - 256 bytes

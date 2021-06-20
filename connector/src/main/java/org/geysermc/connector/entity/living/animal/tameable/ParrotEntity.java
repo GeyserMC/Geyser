@@ -30,6 +30,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 
 public class ParrotEntity extends TameableEntity {
 
@@ -40,9 +41,14 @@ public class ParrotEntity extends TameableEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         // Parrot color
-        if (entityMetadata.getId() == 18) {
+        if (entityMetadata.getId() == 19) {
             metadata.put(EntityData.VARIANT, entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+        return javaIdentifierStripped.contains("seeds") || javaIdentifierStripped.equals("cookie");
     }
 }

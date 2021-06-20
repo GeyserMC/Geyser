@@ -28,6 +28,7 @@ package org.geysermc.connector.configuration;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.GeyserConnector;
@@ -95,10 +96,14 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private boolean allowThirdPartyCapes = true;
 
     @JsonProperty("show-cooldown")
-    private boolean showCooldown = true;
+    private String showCooldown = "title";
 
     @JsonProperty("show-coordinates")
     private boolean showCoordinates = true;
+
+    @JsonDeserialize(using = EmoteOffhandWorkaroundOption.Deserializer.class)
+    @JsonProperty("emote-offhand-workaround")
+    private EmoteOffhandWorkaroundOption emoteOffhandWorkaround = EmoteOffhandWorkaroundOption.DISABLED;
 
     @JsonProperty("allow-third-party-ears")
     private boolean allowThirdPartyEars = false;
@@ -106,14 +111,14 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("default-locale")
     private String defaultLocale = null; // is null by default so system language takes priority
 
-    @JsonProperty("cache-chunks")
-    private boolean cacheChunks = false;
-
     @JsonProperty("cache-images")
     private int cacheImages = 0;
 
     @JsonProperty("allow-custom-skulls")
     private boolean allowCustomSkulls = true;
+
+    @JsonProperty("add-non-bedrock-items")
+    private boolean addNonBedrockItems = true;
 
     @JsonProperty("above-bedrock-nether-building")
     private boolean aboveBedrockNetherBuilding = false;
@@ -129,7 +134,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @Getter
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class BedrockConfiguration implements IBedrockConfiguration {
-        @AsteriskSerializer.Asterisk(sensitive = true)
+        @AsteriskSerializer.Asterisk(isIp = true)
         private String address = "0.0.0.0";
 
         @Setter
@@ -143,6 +148,13 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
         @JsonProperty("server-name")
         private String serverName = GeyserConnector.NAME;
+
+        @JsonProperty("compression-level")
+        private int compressionLevel = 6;
+
+        public int getCompressionLevel() {
+            return Math.max(-1, Math.min(compressionLevel, 9));
+        }
 
         @JsonProperty("enable-proxy-protocol")
         private boolean enableProxyProtocol = false;
@@ -172,7 +184,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class RemoteConfiguration implements IRemoteConfiguration {
         @Setter
-        @AsteriskSerializer.Asterisk(sensitive = true)
+        @AsteriskSerializer.Asterisk(isIp = true)
         private String address = "auto";
 
         @Setter
@@ -187,6 +199,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
         @JsonProperty("use-proxy-protocol")
         private boolean useProxyProtocol = false;
+
+        @JsonProperty("forward-hostname")
+        private boolean forwardHost = false;
     }
 
     @Getter

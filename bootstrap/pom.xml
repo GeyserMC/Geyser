@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>geyser-parent</artifactId>
-        <version>1.2.0-SNAPSHOT</version>
+        <version>1.4.0-SNAPSHOT</version>
     </parent>
     <artifactId>bootstrap-parent</artifactId>
     <packaging>pom</packaging>
@@ -15,10 +15,6 @@
         <repository>
             <id>spigot-public</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/public/</url>
-        </repository>
-        <repository>
-            <id>bukkit-public</id>
-            <url>https://repo.md-5.net/content/repositories/public/</url>
         </repository>
         <repository>
             <id>sponge-repo</id>

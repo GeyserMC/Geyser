@@ -36,10 +36,4 @@ public @interface BlockEntity {
      * @return the name of the block entity
      */
     String name();
-
-    /**
-     * The search term used in BlockTranslator
-     * @return the search term used in BlockTranslator
-     */
-    String regex();
 }

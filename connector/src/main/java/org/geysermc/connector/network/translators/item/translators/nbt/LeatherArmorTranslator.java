@@ -35,29 +35,28 @@ import org.geysermc.connector.network.translators.item.ItemEntry;
 @ItemRemapper
 public class LeatherArmorTranslator extends NbtItemStackTranslator {
 
-    private static final String[] ITEMS = new String[]{"minecraft:leather_helmet", "minecraft:leather_chestplate", "minecraft:leather_leggings", "minecraft:leather_boots"};
+    private static final String[] ITEMS = new String[]{"minecraft:leather_helmet", "minecraft:leather_chestplate",
+            "minecraft:leather_leggings", "minecraft:leather_boots", "minecraft:leather_horse_armor"};
 
     @Override
     public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
-        if (!itemTag.contains("display")) {
+        CompoundTag displayTag = itemTag.get("display");
+        if (displayTag == null) {
             return;
         }
-        CompoundTag displayTag = itemTag.get("display");
-        if (displayTag.contains("color")) {
-            IntTag color = displayTag.get("color");
-            if (color != null) {
-                itemTag.put(new IntTag("customColor", color.getValue()));
-                displayTag.remove("color");
-            }
+        IntTag color = displayTag.get("color");
+        if (color != null) {
+            itemTag.put(new IntTag("customColor", color.getValue()));
+            displayTag.remove("color");
         }
     }
 
     @Override
     public void translateToJava(CompoundTag itemTag, ItemEntry itemEntry) {
-        if (!itemTag.contains("customColor")) {
+        IntTag color = itemTag.get("customColor");
+        if (color == null) {
             return;
         }
-        IntTag color = itemTag.get("customColor");
         CompoundTag displayTag = itemTag.get("display");
         if (displayTag == null) {
             displayTag = new CompoundTag("display");

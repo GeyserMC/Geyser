@@ -46,14 +46,9 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-@BlockEntity(name = "Skull", regex = "skull")
+@BlockEntity(name = "Skull")
 public class SkullBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     public static boolean ALLOW_CUSTOM_SKULLS;
-
-    @Override
-    public boolean isBlock(int blockState) {
-        return BlockStateValues.getSkullVariant(blockState) != -1;
-    }
 
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {

@@ -30,7 +30,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
-@BlockEntity(name = "CommandBlock", regex = "command_block")
+@BlockEntity(name = "CommandBlock")
 public class CommandBlockBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
@@ -53,10 +53,5 @@ public class CommandBlockBlockEntityTranslator extends BlockEntityTranslator imp
         } else {
             builder.put("LastExecution", (long) 0);
         }
-    }
-
-    @Override
-    public boolean isBlock(int blockState) {
-        return BlockStateValues.getCommandBlockValues().containsKey(blockState);
     }
 }

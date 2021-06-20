@@ -32,31 +32,34 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 public class LlamaEntity extends ChestedHorseEntity {
 
     public LlamaEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+
+        metadata.put(EntityData.CONTAINER_STRENGTH_MODIFIER, 3); // Presumably 3 slots for every 1 strength
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         // Strength
-        if (entityMetadata.getId() == 19) {
+        if (entityMetadata.getId() == 20) {
             metadata.put(EntityData.STRENGTH, entityMetadata.getValue());
         }
         // Color equipped on the llama
-        if (entityMetadata.getId() == 20) {
+        if (entityMetadata.getId() == 21) {
             // Bedrock treats llama decoration as armor
             MobArmorEquipmentPacket equipmentPacket = new MobArmorEquipmentPacket();
-            equipmentPacket.setRuntimeEntityId(getGeyserId());
+            equipmentPacket.setRuntimeEntityId(geyserId);
             // -1 means no armor
-            if ((int) entityMetadata.getValue() != -1) {
-                // The damage value is the dye color that Java sends us
-                // Always going to be a carpet so we can hardcode 171 in BlockTranslator
-                // The int then short conversion is required or we get a ClassCastException
-                equipmentPacket.setChestplate(ItemData.of(BlockTranslator.CARPET, (short)((int) entityMetadata.getValue()), 1));
+            int carpetIndex = (int) entityMetadata.getValue();
+            if (carpetIndex > -1 && carpetIndex <= 15) {
+                // The damage value is the dye color that Java sends us, for pre-1.16.220
+                // The item is always going to be a carpet
+                equipmentPacket.setChestplate(ItemRegistry.CARPETS.get(carpetIndex));
             } else {
                 equipmentPacket.setChestplate(ItemData.AIR);
             }
@@ -68,9 +71,14 @@ public class LlamaEntity extends ChestedHorseEntity {
             session.sendUpstreamPacket(equipmentPacket);
         }
         // Color of the llama
-        if (entityMetadata.getId() == 21) {
+        if (entityMetadata.getId() == 22) {
             metadata.put(EntityData.VARIANT, entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+        return javaIdentifierStripped.equals("wheat") || javaIdentifierStripped.equals("hay_block");
     }
 }

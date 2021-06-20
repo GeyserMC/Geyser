@@ -25,11 +25,10 @@
 
 package org.geysermc.connector.network.translators.sound;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 import java.util.Map;
 
@@ -47,6 +46,9 @@ public interface EntitySoundInteractionHandler extends SoundInteractionHandler<E
      * @param entity the entity interacted with
      */
     static void handleEntityInteraction(GeyserSession session, Vector3f position, Entity entity) {
+        // If we need to get the hand identifier, only get it once and save it to a variable
+        String handIdentifier = null;
+
         for (Map.Entry<SoundHandler, SoundInteractionHandler<?>> interactionEntry : SoundHandlerRegistry.INTERACTION_HANDLERS.entrySet()) {
             if (!(interactionEntry.getValue() instanceof EntitySoundInteractionHandler)) {
                 continue;
@@ -61,12 +63,15 @@ public interface EntitySoundInteractionHandler extends SoundInteractionHandler<E
                 }
                 if (!contains) continue;
             }
-            ItemStack itemInHand = session.getInventory().getItemInHand();
+            GeyserItemStack itemInHand = session.getPlayerInventory().getItemInHand();
             if (interactionEntry.getKey().items().length != 0) {
-                if (itemInHand == null || itemInHand.getId() == 0) {
+                if (itemInHand.isEmpty()) {
                     continue;
                 }
-                String handIdentifier = ItemRegistry.getItem(session.getInventory().getItemInHand()).getJavaIdentifier();
+                if (handIdentifier == null) {
+                    // Don't get the identifier unless we need it
+                    handIdentifier = itemInHand.getItemEntry().getJavaIdentifier();
+                }
                 boolean contains = false;
                 for (String itemIdentifier : interactionEntry.getKey().items()) {
                     if (handIdentifier.contains(itemIdentifier)) {
@@ -77,7 +82,7 @@ public interface EntitySoundInteractionHandler extends SoundInteractionHandler<E
                 if (!contains) continue;
             }
             if (session.isSneaking() && !interactionEntry.getKey().ignoreSneakingWhileHolding()) {
-                if (session.getInventory().getItemInHand() != null && session.getInventory().getItemInHand().getId() != 0) {
+                if (!itemInHand.isEmpty()) {
                     continue;
                 }
             }
