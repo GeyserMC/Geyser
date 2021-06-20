@@ -40,6 +40,14 @@ public class Inventory {
     @Getter
     protected final int id;
 
+    /**
+     * If this is out of sync with the server, the server will resync items.
+     * Since Java Edition 1.17.1.
+     */
+    @Getter
+    @Setter
+    private int stateId;
+
     @Getter
     protected final int size;
 

@@ -152,9 +152,9 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.GeyserMC</groupId>
-            <artifactId>MCProtocolLib</artifactId>
-            <version>7248769</version>
+            <groupId>com.github.steveice10</groupId>
+            <artifactId>mcprotocollib</artifactId>
+            <version>1.17.1-pre1-SNAPSHOT</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
