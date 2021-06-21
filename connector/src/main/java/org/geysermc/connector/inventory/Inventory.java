@@ -53,7 +53,7 @@ public class Inventory {
     @Setter
     protected String title;
 
-    protected GeyserItemStack[] items;
+    protected final GeyserItemStack[] items;
 
     /**
      * The location of the inventory block. Will either be a fake block above the player's head, or the actual block location

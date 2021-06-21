@@ -71,13 +71,13 @@ public enum GameRule {
     private static final GameRule[] VALUES = values();
 
     @Getter
-    private String javaID;
+    private final String javaID;
 
     @Getter
-    private Class<?> type;
+    private final Class<?> type;
 
     @Getter
-    private Object defaultValue;
+    private final Object defaultValue;
 
     GameRule(String javaID, Class<?> type) {
         this(javaID, type, null);

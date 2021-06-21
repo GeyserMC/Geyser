@@ -46,7 +46,7 @@ public final class GraphPanel extends JPanel {
     private final static Color pointColor = new Color(100, 100, 100, 255);
     private final static Color gridColor = new Color(200, 200, 200, 255);
     private static final Stroke graphStroke = new BasicStroke(2f);
-    private List<Integer> values = new ArrayList<>(10);
+    private final List<Integer> values = new ArrayList<>(10);
 
     @Setter
     private String xLabel = "";
@@ -172,6 +172,7 @@ public final class GraphPanel extends JPanel {
             for (Point graphPoint : graphPoints) {
                 final int x = graphPoint.x - pointWidth / 2;
                 final int y = graphPoint.y - pointWidth / 2;
+                //noinspection SuspiciousNameCombination
                 g.fillOval(x, y, pointWidth, pointWidth);
             }
         }

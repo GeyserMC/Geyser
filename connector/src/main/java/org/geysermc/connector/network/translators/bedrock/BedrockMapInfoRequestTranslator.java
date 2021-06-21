@@ -39,16 +39,13 @@ public class BedrockMapInfoRequestTranslator extends PacketTranslator<MapInfoReq
 
     @Override
     public void translate(MapInfoRequestPacket packet, GeyserSession session) {
-        long mapID = packet.getUniqueMapId();
+        long mapId = packet.getUniqueMapId();
 
-        if (session.getStoredMaps().containsKey(mapID)) {
+        ClientboundMapItemDataPacket mapPacket = session.getStoredMaps().remove(mapId);
+        if (mapPacket != null) {
             // Delay the packet 100ms to prevent the client from ignoring the packet
-            GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> {
-                ClientboundMapItemDataPacket mapPacket = session.getStoredMaps().remove(mapID);
-                if (mapPacket != null) {
-                    session.sendUpstreamPacket(mapPacket);
-                }
-            }, 100, TimeUnit.MILLISECONDS);
+            GeyserConnector.getInstance().getGeneralThreadPool().schedule(() -> session.sendUpstreamPacket(mapPacket),
+                    100, TimeUnit.MILLISECONDS);
         }
     }
 }

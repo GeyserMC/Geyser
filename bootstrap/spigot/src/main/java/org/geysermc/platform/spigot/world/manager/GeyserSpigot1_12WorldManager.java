@@ -93,7 +93,6 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
      * @param z Z coordinate of block
      * @return the block state updated to the latest Minecraft version
      */
-    @SuppressWarnings("deprecation")
     public int getLegacyBlock(BlockStorage storage, int blockId, int x, int y, int z) {
         // Convert block state from old version (1.12.2) -> 1.13 -> 1.13.1 -> 1.14 -> 1.15 -> 1.16 -> 1.16.2
         blockId = mappingData1_12to1_13.getNewBlockId(blockId);

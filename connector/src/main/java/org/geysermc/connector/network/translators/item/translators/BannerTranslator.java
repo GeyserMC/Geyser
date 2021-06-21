@@ -134,8 +134,8 @@ public class BannerTranslator extends ItemTranslator {
      */
     public static ListTag convertBannerPattern(List<NbtMap> patterns) {
         List<Tag> tagsList = new ArrayList<>();
-        for (Object patternTag : patterns) {
-            tagsList.add(getJavaBannerPattern((NbtMap) patternTag));
+        for (NbtMap patternTag : patterns) {
+            tagsList.add(getJavaBannerPattern(patternTag));
         }
 
         return new ListTag("Patterns", tagsList);

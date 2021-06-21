@@ -135,22 +135,27 @@ public class FireworkEntity extends Entity {
             NbtMapBuilder builder = NbtMap.builder();
             builder.put("Fireworks", fireworksBuilder.build());
             metadata.put(EntityData.DISPLAY_ITEM, builder.build());
-        } else if (entityMetadata.getId() == 9 && !entityMetadata.getValue().equals(OptionalInt.empty()) && ((OptionalInt) entityMetadata.getValue()).getAsInt() == session.getPlayerEntity().getEntityId()) {
-            //Checks if the firework has an entity ID (used when a player is gliding) and checks to make sure the player that is gliding is the one getting sent the packet or else every player near the gliding player will boost too.
-            PlayerEntity entity = session.getPlayerEntity();
-            float yaw = entity.getRotation().getX();
-            float pitch = entity.getRotation().getY();
-            //Uses math from NukkitX
-            entity.setMotion(Vector3f.from(
-                    -Math.sin(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * 2,
-                    -Math.sin(Math.toRadians(pitch)) * 2,
-                    Math.cos(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * 2));
-            //Need to update the EntityMotionPacket or else the player won't boost
-            SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
-            entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());
-            entityMotionPacket.setMotion(entity.getMotion());
+        } else if (entityMetadata.getId() == 9) {
+            OptionalInt optional = (OptionalInt) entityMetadata.getValue();
+            // Checks if the firework has an entity ID (used when a player is gliding)
+            // and checks to make sure the player that is gliding is the one getting sent the packet
+            // or else every player near the gliding player will boost too.
+            if (optional.isPresent() && optional.getAsInt() == session.getPlayerEntity().getEntityId()) {
+                PlayerEntity entity = session.getPlayerEntity();
+                float yaw = entity.getRotation().getX();
+                float pitch = entity.getRotation().getY();
+                // Uses math from NukkitX
+                entity.setMotion(Vector3f.from(
+                        -Math.sin(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * 2,
+                        -Math.sin(Math.toRadians(pitch)) * 2,
+                        Math.cos(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * 2));
+                // Need to update the EntityMotionPacket or else the player won't boost
+                SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
+                entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());
+                entityMotionPacket.setMotion(entity.getMotion());
 
-            session.sendUpstreamPacket(entityMotionPacket);
+                session.sendUpstreamPacket(entityMotionPacket);
+            }
         }
 
         super.updateBedrockMetadata(entityMetadata, session);

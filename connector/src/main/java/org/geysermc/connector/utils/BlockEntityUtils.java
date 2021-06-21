@@ -39,6 +39,8 @@ import org.geysermc.connector.registry.Registries;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 public class BlockEntityUtils {
     /**
      * A list of all block entities that require the Java block state in order to fill out their block entity information.
@@ -105,11 +107,11 @@ public class BlockEntityUtils {
         return EMPTY_TRANSLATOR;
     }
 
-    public static void updateBlockEntity(GeyserSession session, NbtMap blockEntity, Position position) {
+    public static void updateBlockEntity(GeyserSession session, @Nonnull NbtMap blockEntity, Position position) {
         updateBlockEntity(session, blockEntity, Vector3i.from(position.getX(), position.getY(), position.getZ()));
     }
 
-    public static void updateBlockEntity(GeyserSession session, NbtMap blockEntity, Vector3i position) {
+    public static void updateBlockEntity(GeyserSession session, @Nonnull NbtMap blockEntity, Vector3i position) {
         BlockEntityDataPacket blockEntityPacket = new BlockEntityDataPacket();
         blockEntityPacket.setBlockPosition(position);
         blockEntityPacket.setData(blockEntity);
