@@ -244,7 +244,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                 return CommandParam.OPERATOR;
 
             case BLOCK_STATE:
-                return BlockRegistries.JAVA_IDENTIFIERS.get().keySet().toArray(new String[0]);
+                return BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.get().keySet().toArray(new String[0]);
 
             case ITEM_STACK:
                 return session.getItemMappings().getItemNames();

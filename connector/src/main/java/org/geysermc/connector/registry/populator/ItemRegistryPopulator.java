@@ -501,6 +501,7 @@ public class ItemRegistryPopulator {
                     .javaOnlyItems(javaOnlyItems)
                     .bucketIds(buckets)
                     .boatIds(boats)
+                    .spawnEggIds(spawnEggs)
                     .carpets(carpets)
                     .furnaceMinecartData(furnaceMinecartData)
                     .build();
