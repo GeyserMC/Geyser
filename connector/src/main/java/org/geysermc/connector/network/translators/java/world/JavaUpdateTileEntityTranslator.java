@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.world.block.UpdatedTileType;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTileEntityPacket;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -47,7 +48,7 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
     public void translate(ServerUpdateTileEntityPacket packet, GeyserSession session) {
         String id = BlockEntityUtils.getBedrockBlockEntityId(packet.getType().name());
         if (packet.getNbt().isEmpty()) { // Fixes errors in servers sending empty NBT
-            BlockEntityUtils.updateBlockEntity(session, null, packet.getPosition());
+            BlockEntityUtils.updateBlockEntity(session, NbtMap.EMPTY, packet.getPosition());
             return;
         }
 

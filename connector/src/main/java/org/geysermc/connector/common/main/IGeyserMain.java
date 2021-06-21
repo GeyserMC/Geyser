@@ -84,7 +84,8 @@ public class IGeyserMain {
             Class<?> graphicsEnvironment = Class.forName("java.awt.GraphicsEnvironment");
             Method isHeadless = graphicsEnvironment.getDeclaredMethod("isHeadless");
             return (Boolean)isHeadless.invoke(null);
-        } catch (Exception ex) { }
+        } catch (Exception ignored) {
+        }
 
         return true;
     }

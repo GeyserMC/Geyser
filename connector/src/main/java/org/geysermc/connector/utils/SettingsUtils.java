@@ -34,8 +34,6 @@ import org.geysermc.cumulus.CustomForm;
 import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.response.CustomFormResponse;
 
-import java.util.ArrayList;
-
 public class SettingsUtils {
     /**
      * Build a settings form for the given session and store it for later

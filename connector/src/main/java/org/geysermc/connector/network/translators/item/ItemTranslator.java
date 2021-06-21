@@ -296,7 +296,7 @@ public abstract class ItemTranslator {
             ListTag listTag = (ListTag) tag;
 
             List<Object> tagList = new ArrayList<>();
-            for (com.github.steveice10.opennbt.tag.builtin.Tag value : listTag) {
+            for (Tag value : listTag) {
                 tagList.add(translateToBedrockNBT(value));
             }
             NbtType<?> type = NbtType.COMPOUND;
