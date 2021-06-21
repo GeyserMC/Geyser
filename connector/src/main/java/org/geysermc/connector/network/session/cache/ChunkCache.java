@@ -31,7 +31,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.utils.MathUtils;
 
 public class ChunkCache {
@@ -97,17 +97,17 @@ public class ChunkCache {
 
     public int getBlockAt(int x, int y, int z) {
         if (!cache) {
-            return BlockTranslator.JAVA_AIR_ID;
+            return BlockStateValues.JAVA_AIR_ID;
         }
 
         Column column = this.getChunk(x >> 4, z >> 4);
         if (column == null) {
-            return BlockTranslator.JAVA_AIR_ID;
+            return BlockStateValues.JAVA_AIR_ID;
         }
 
         if (y < minY || (y >> 4) > column.getChunks().length - 1) {
             // Y likely goes above or below the height limit of this world
-            return BlockTranslator.JAVA_AIR_ID;
+            return BlockStateValues.JAVA_AIR_ID;
         }
 
         Chunk chunk = column.getChunks()[(y >> 4) - getChunkMinY()];
@@ -115,7 +115,7 @@ public class ChunkCache {
             return chunk.get(x & 0xF, y & 0xF, z & 0xF);
         }
 
-        return BlockTranslator.JAVA_AIR_ID;
+        return BlockStateValues.JAVA_AIR_ID;
     }
 
     public void removeChunk(int chunkX, int chunkZ) {

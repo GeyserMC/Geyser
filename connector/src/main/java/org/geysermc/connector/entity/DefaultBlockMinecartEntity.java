@@ -60,7 +60,7 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
             customBlock = (int) entityMetadata.getValue();
 
             if (showCustomBlock) {
-                metadata.put(EntityData.DISPLAY_ITEM, session.getBlockTranslator().getBedrockBlockId(customBlock));
+                metadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId(customBlock));
             }
         }
 
@@ -77,7 +77,7 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
         if (entityMetadata.getId() == 13) {
             if ((boolean) entityMetadata.getValue()) {
                 showCustomBlock = true;
-                metadata.put(EntityData.DISPLAY_ITEM, session.getBlockTranslator().getBedrockBlockId(customBlock));
+                metadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId(customBlock));
                 metadata.put(EntityData.DISPLAY_OFFSET, customBlockOffset);
             } else {
                 showCustomBlock = false;

@@ -47,14 +47,22 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.translators.LecternInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.translators.chest.DoubleChestInventoryTranslator;
-import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.registry.Registries;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.IntFunction;
 
 public class InventoryUtils {
+    /**
+     * Stores the last used recipe network ID. Since 1.16.200 (and for server-authoritative inventories),
+     * each recipe needs a unique network ID (or else in .200 the client crashes).
+     */
+    public static final AtomicInteger LAST_RECIPE_NET_ID = new AtomicInteger(0);
+    
     public static final ItemStack REFRESH_ITEM = new ItemStack(1, 127, new CompoundTag(""));
 
     public static void openInventory(GeyserSession session, Inventory inventory) {
@@ -155,7 +163,7 @@ public class InventoryUtils {
      * @param description the description
      * @return the unusable space block
      */
-    public static ItemData createUnusableSpaceBlock(String description) {
+    public static IntFunction<ItemData> createUnusableSpaceBlock(String description) {
         NbtMapBuilder root = NbtMap.builder();
         NbtMapBuilder display = NbtMap.builder();
 
@@ -164,8 +172,8 @@ public class InventoryUtils {
         display.putList("Lore", NbtType.STRING, Collections.singletonList(ChatColor.RESET + ChatColor.DARK_PURPLE + description));
 
         root.put("display", display.build());
-        return ItemData.builder()
-                .id(ItemRegistry.ITEM_ENTRIES.get(ItemRegistry.BARRIER_INDEX).getBedrockId())
+        return protocolVersion -> ItemData.builder()
+                .id(Registries.ITEMS.forVersion(protocolVersion).getStored("minecraft:barrier").getBedrockId())
                 .count(1)
                 .tag(root.build()).build();
     }
@@ -250,7 +258,7 @@ public class InventoryUtils {
                 continue;
             }
             // If this isn't the item we're looking for
-            if (!geyserItem.getItemEntry().getJavaIdentifier().equals(itemName)) {
+            if (!geyserItem.getMapping(session).getJavaIdentifier().equals(itemName)) {
                 continue;
             }
 
@@ -266,7 +274,7 @@ public class InventoryUtils {
                 continue;
             }
             // If this isn't the item we're looking for
-            if (!geyserItem.getItemEntry().getJavaIdentifier().equals(itemName)) {
+            if (!geyserItem.getMapping(session).getJavaIdentifier().equals(itemName)) {
                 continue;
             }
 
@@ -279,10 +287,10 @@ public class InventoryUtils {
         if (session.getGameMode() == GameMode.CREATIVE) {
             int slot = findEmptyHotbarSlot(inventory);
 
-            ItemEntry entry = ItemRegistry.getItemEntry(itemName);
-            if (entry != null) {
+            ItemMapping mapping = session.getItemMappings().getMapping(itemName);
+            if (mapping != null) {
                 ClientCreativeInventoryActionPacket actionPacket = new ClientCreativeInventoryActionPacket(slot,
-                        new ItemStack(entry.getJavaId()));
+                        new ItemStack(mapping.getJavaId()));
                 if ((slot - 36) != inventory.getHeldItemSlot()) {
                     setHotbarItem(session, slot);
                 }

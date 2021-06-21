@@ -60,7 +60,7 @@ public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
      */
     @Override
     public void updateDefaultBlockMetadata(GeyserSession session) {
-        metadata.put(EntityData.DISPLAY_ITEM, session.getBlockTranslator().getBedrockRuntimeCommandBlockId());
+        metadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getCommandBlockRuntimeId());
         metadata.put(EntityData.DISPLAY_OFFSET, 6);
     }
 }

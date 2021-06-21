@@ -50,9 +50,10 @@ import org.bukkit.inventory.ShapelessRecipe;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.geysermc.connector.network.translators.item.RecipeRegistry;
+import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Used to send all available recipes from the server to the client, as a valid recipe book packet won't be sent by the server.
@@ -94,7 +95,7 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
     }
 
     public void sendServerRecipes(GeyserSession session) {
-        int netId = RecipeRegistry.LAST_RECIPE_NET_ID;
+        AtomicInteger netId = InventoryUtils.LAST_RECIPE_NET_ID;
 
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
@@ -106,7 +107,7 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
             Pair<ItemStack, ItemData> outputs = translateToBedrock(session, recipe.getResult());
             ItemStack javaOutput = outputs.getKey();
             ItemData output = outputs.getValue();
-            if (output.getId() == 0) continue; // If items make air we don't want that
+            if (output == null || output.getId() == 0) continue; // If items make air we don't want that
 
             boolean isNotAllAir = false; // Check for all-air recipes
             if (recipe instanceof ShapedRecipe) {
@@ -127,13 +128,13 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
                 // Add recipe to our internal cache
                 ShapedRecipeData data = new ShapedRecipeData(shapedRecipe.getShape()[0].length(), shapedRecipe.getShape().length,
                         "", ingredients, javaOutput);
-                session.getCraftingRecipes().put(netId,
+                session.getCraftingRecipes().put(netId.get(),
                         new com.github.steveice10.mc.protocol.data.game.recipe.Recipe(RecipeType.CRAFTING_SHAPED, uuid.toString(), data));
 
                 // Add recipe for Bedrock
                 craftingDataPacket.getCraftingData().add(CraftingData.fromShaped(uuid.toString(),
                         shapedRecipe.getShape()[0].length(), shapedRecipe.getShape().length, Arrays.asList(input),
-                        Collections.singletonList(output), uuid, "crafting_table", 0, netId++));
+                        Collections.singletonList(output), uuid, "crafting_table", 0, netId.getAndIncrement()));
             } else if (recipe instanceof ShapelessRecipe) {
                 ShapelessRecipe shapelessRecipe = (ShapelessRecipe) recipe;
                 Ingredient[] ingredients = new Ingredient[shapelessRecipe.getIngredientList().size()];
@@ -150,12 +151,12 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
                 UUID uuid = UUID.randomUUID();
                 // Add recipe to our internal cache
                 ShapelessRecipeData data = new ShapelessRecipeData("", ingredients, javaOutput);
-                session.getCraftingRecipes().put(netId,
+                session.getCraftingRecipes().put(netId.get(),
                         new com.github.steveice10.mc.protocol.data.game.recipe.Recipe(RecipeType.CRAFTING_SHAPELESS, uuid.toString(), data));
 
                 // Add recipe for Bedrock
                 craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
-                        Arrays.asList(input), Collections.singletonList(output), uuid, "crafting_table", 0, netId++));
+                        Arrays.asList(input), Collections.singletonList(output), uuid, "crafting_table", 0, netId.getAndIncrement()));
             }
         }
 

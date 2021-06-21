@@ -34,7 +34,7 @@ import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.RequiresBlockState;
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
@@ -58,7 +58,7 @@ public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdat
         if (translator instanceof RequiresBlockState) {
             blockState = session.getConnector().getWorldManager().getBlockAt(session, packet.getPosition());
         } else {
-            blockState = BlockTranslator.JAVA_AIR_ID;
+            blockState = BlockStateValues.JAVA_AIR_ID;
         }
         BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(), blockState), packet.getPosition());
         // Check for custom skulls.

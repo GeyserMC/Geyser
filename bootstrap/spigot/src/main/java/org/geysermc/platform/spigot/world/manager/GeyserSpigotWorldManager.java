@@ -42,7 +42,8 @@ import org.bukkit.plugin.Plugin;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.translators.LecternInventoryTranslator;
 import org.geysermc.connector.network.translators.world.GeyserWorldManager;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.utils.BlockEntityUtils;
 import org.geysermc.connector.utils.GameRule;
 
@@ -68,10 +69,10 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
         Player bukkitPlayer;
         if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
-            return BlockTranslator.JAVA_AIR_ID;
+            return BlockStateValues.JAVA_AIR_ID;
         }
         World world = bukkitPlayer.getWorld();
-        return BlockTranslator.getJavaIdBlockMap().getOrDefault(world.getBlockAt(x, y, z).getBlockData().getAsString(), BlockTranslator.JAVA_AIR_ID);
+        return BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(world.getBlockAt(x, y, z).getBlockData().getAsString(), BlockStateValues.JAVA_AIR_ID);
     }
 
     @Override

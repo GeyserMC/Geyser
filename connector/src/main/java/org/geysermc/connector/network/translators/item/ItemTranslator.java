@@ -38,6 +38,9 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
+import org.geysermc.connector.registry.BlockRegistries;
+import org.geysermc.connector.registry.Registries;
+import org.geysermc.connector.registry.type.ItemMapping;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 import org.reflections.Reflections;
@@ -73,8 +76,8 @@ public abstract class ItemTranslator {
                     continue;
                 }
                 ItemTranslator itemStackTranslator = (ItemTranslator) clazz.newInstance();
-                List<ItemEntry> appliedItems = itemStackTranslator.getAppliedItems();
-                for (ItemEntry item : appliedItems) {
+                List<ItemMapping> appliedItems = itemStackTranslator.getAppliedItems();
+                for (ItemMapping item : appliedItems) {
                     ItemTranslator registered = ITEM_STACK_TRANSLATORS.get(item.getJavaId());
                     if (registered != null) {
                         GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated item translator " +
@@ -92,18 +95,19 @@ public abstract class ItemTranslator {
         NBT_TRANSLATORS = loadedNbtItemTranslators.keySet().stream().sorted(Comparator.comparingInt(loadedNbtItemTranslators::get)).collect(Collectors.toList());
     }
 
-    public static ItemStack translateToJava(ItemData data) {
+    public static ItemStack translateToJava(ItemData data, int protocolVersion) {
         if (data == null) {
             return new ItemStack(0);
         }
-        ItemEntry javaItem = ItemRegistry.getItem(data);
+
+        ItemMapping javaItem = Registries.ITEMS.forVersion(protocolVersion).getMapping(data);
 
         ItemStack itemStack;
         ItemTranslator itemStackTranslator = ITEM_STACK_TRANSLATORS.get(javaItem.getJavaId());
         if (itemStackTranslator != null) {
-            itemStack = itemStackTranslator.translateToJava(data, javaItem);
+            itemStack = itemStackTranslator.translateToJava(data, javaItem, protocolVersion);
         } else {
-            itemStack = DEFAULT_TRANSLATOR.translateToJava(data, javaItem);
+            itemStack = DEFAULT_TRANSLATOR.translateToJava(data, javaItem, protocolVersion);
         }
 
         if (itemStack != null && itemStack.getNbt() != null) {
@@ -125,9 +129,9 @@ public abstract class ItemTranslator {
             return ItemData.AIR;
         }
 
-        ItemEntry bedrockItem = ItemRegistry.getItem(stack);
+        ItemMapping bedrockItem = session.getItemMappings().getMapping(stack);
         if (bedrockItem == null) {
-            session.getConnector().getLogger().debug("No matching ItemEntry for " + stack);
+            session.getConnector().getLogger().debug("No matching ItemMapping for " + stack);
             return ItemData.AIR;
         }
 
@@ -154,9 +158,9 @@ public abstract class ItemTranslator {
         ItemData.Builder builder;
         ItemTranslator itemStackTranslator = ITEM_STACK_TRANSLATORS.get(bedrockItem.getJavaId());
         if (itemStackTranslator != null) {
-            builder = itemStackTranslator.translateToBedrock(itemStack, bedrockItem);
+            builder = itemStackTranslator.translateToBedrock(itemStack, bedrockItem, session.getUpstream().getProtocolVersion());
         } else {
-            builder = DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem);
+            builder = DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem, session.getUpstream().getProtocolVersion());
         }
         if (bedrockItem.isBlock()) {
             builder.blockRuntimeId(bedrockItem.getBedrockBlockId());
@@ -195,7 +199,7 @@ public abstract class ItemTranslator {
                 if (!block.startsWith("minecraft:")) block = "minecraft:" + block;
                 // Get the Bedrock identifier of the item and replace it.
                 // This will unfortunately be limited - for example, beds and banners will be translated weirdly
-                canModifyBedrock[i] = session.getBlockTranslator().getBedrockBlockIdentifier(block).replace("minecraft:", "");
+                canModifyBedrock[i] = BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.get(block).replace("minecraft:", "");
             }
         }
         return canModifyBedrock;
@@ -203,19 +207,19 @@ public abstract class ItemTranslator {
 
     private static final ItemTranslator DEFAULT_TRANSLATOR = new ItemTranslator() {
         @Override
-        public List<ItemEntry> getAppliedItems() {
+        public List<ItemMapping> getAppliedItems() {
             return null;
         }
     };
 
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemEntry itemEntry) {
+    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, int protocolVersion) {
         if (itemStack == null) {
             // Return, essentially, air
             return ItemData.builder();
         }
         ItemData.Builder builder = ItemData.builder()
-                .id(itemEntry.getBedrockId())
-                .damage(itemEntry.getBedrockData())
+                .id(mapping.getBedrockId())
+                .damage(mapping.getBedrockData())
                 .count(itemStack.getAmount());
         if (itemStack.getNbt() != null) {
             builder.tag(this.translateNbtToBedrock(itemStack.getNbt()));
@@ -223,15 +227,15 @@ public abstract class ItemTranslator {
         return builder;
     }
 
-    public ItemStack translateToJava(ItemData itemData, ItemEntry itemEntry) {
+    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, int protocolVersion) {
         if (itemData == null) return null;
         if (itemData.getTag() == null) {
-            return new ItemStack(itemEntry.getJavaId(), itemData.getCount(), new com.github.steveice10.opennbt.tag.builtin.CompoundTag(""));
+            return new ItemStack(mapping.getJavaId(), itemData.getCount(), new com.github.steveice10.opennbt.tag.builtin.CompoundTag(""));
         }
-        return new ItemStack(itemEntry.getJavaId(), itemData.getCount(), this.translateToJavaNBT("", itemData.getTag()));
+        return new ItemStack(mapping.getJavaId(), itemData.getCount(), this.translateToJavaNBT("", itemData.getTag()));
     }
 
-    public abstract List<ItemEntry> getAppliedItems();
+    public abstract List<ItemMapping> getAppliedItems();
 
     public NbtMap translateNbtToBedrock(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag) {
         NbtMapBuilder builder = NbtMap.builder();
@@ -395,19 +399,19 @@ public abstract class ItemTranslator {
      * Translates the display name of the item
      * @param session the Bedrock client's session
      * @param tag the tag to translate
-     * @param itemEntry the item entry, in case it requires translation
+     * @param mapping the item entry, in case it requires translation
      *
      * @return the new tag to use, should the current one be null
      */
-    public static CompoundTag translateDisplayProperties(GeyserSession session, CompoundTag tag, ItemEntry itemEntry) {
-        return translateDisplayProperties(session, tag, itemEntry, 'f');
+    public static CompoundTag translateDisplayProperties(GeyserSession session, CompoundTag tag, ItemMapping mapping) {
+        return translateDisplayProperties(session, tag, mapping, 'f');
     }
 
     /**
      * @param translationColor if this item is not available on Java, the color that the new name should be.
      *                         Normally, this should just be white, but for shulker boxes this should be gray.
      */
-    public static CompoundTag translateDisplayProperties(GeyserSession session, CompoundTag tag, ItemEntry itemEntry, char translationColor) {
+    public static CompoundTag translateDisplayProperties(GeyserSession session, CompoundTag tag, ItemMapping mapping, char translationColor) {
         boolean hasCustomName = false;
         if (tag != null) {
             CompoundTag display = tag.get("display");
@@ -427,7 +431,7 @@ public abstract class ItemTranslator {
             }
         }
 
-        if (!hasCustomName && itemEntry instanceof TranslatableItemEntry) {
+        if (!hasCustomName && mapping.hasTranslation()) {
             // No custom name, but we need to localize the item's name
             if (tag == null) {
                 tag = new CompoundTag("");
@@ -439,7 +443,7 @@ public abstract class ItemTranslator {
                 tag.put(display);
             }
 
-            String translationKey = ((TranslatableItemEntry) itemEntry).getTranslationString();
+            String translationKey = mapping.getTranslationString();
             // Reset formatting since Bedrock defaults to italics
             display.put(new StringTag("Name", "§r§" + translationColor + LocaleUtils.getLocaleString(translationKey, session.getLocale())));
         }

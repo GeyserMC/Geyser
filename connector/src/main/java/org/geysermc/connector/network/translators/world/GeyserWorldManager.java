@@ -35,7 +35,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.ChunkCache;
 import org.geysermc.connector.network.translators.inventory.translators.LecternInventoryTranslator;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.utils.GameRule;
 
 public class GeyserWorldManager extends WorldManager {
@@ -48,7 +48,7 @@ public class GeyserWorldManager extends WorldManager {
         if (chunkCache != null) { // Chunk cache can be null if the session is closed asynchronously
             return chunkCache.getBlockAt(x, y, z);
         }
-        return BlockTranslator.JAVA_AIR_ID;
+        return BlockStateValues.JAVA_AIR_ID;
     }
 
     @Override

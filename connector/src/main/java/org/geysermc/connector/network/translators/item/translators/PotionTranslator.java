@@ -30,11 +30,12 @@ import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.network.BedrockProtocol;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.ItemRemapper;
-import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.Potion;
+import org.geysermc.connector.registry.Registries;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,34 +43,39 @@ import java.util.stream.Collectors;
 @ItemRemapper
 public class PotionTranslator extends ItemTranslator {
 
-    private final List<ItemEntry> appliedItems;
+    private final List<ItemMapping> appliedItems;
 
     public PotionTranslator() {
-        appliedItems = ItemRegistry.ITEM_ENTRIES.values().stream().filter(entry -> entry.getJavaIdentifier().endsWith("potion")).collect(Collectors.toList());
+        appliedItems = Registries.ITEMS.forVersion(BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
+                .getItems()
+                .values()
+                .stream()
+                .filter(entry -> entry.getJavaIdentifier().endsWith("potion"))
+                .collect(Collectors.toList());
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemEntry itemEntry) {
-        if (itemStack.getNbt() == null) return super.translateToBedrock(itemStack, itemEntry);
+    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, int protocolVersion) {
+        if (itemStack.getNbt() == null) return super.translateToBedrock(itemStack, mapping, protocolVersion);
         Tag potionTag = itemStack.getNbt().get("Potion");
         if (potionTag instanceof StringTag) {
             Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
             if (potion != null) {
                 return ItemData.builder()
-                        .id(itemEntry.getBedrockId())
+                        .id(mapping.getBedrockId())
                         .damage(potion.getBedrockId())
                         .count(itemStack.getAmount())
                         .tag(translateNbtToBedrock(itemStack.getNbt()));
             }
             GeyserConnector.getInstance().getLogger().debug("Unknown Java potion: " + potionTag.getValue());
         }
-        return super.translateToBedrock(itemStack, itemEntry);
+        return super.translateToBedrock(itemStack, mapping, protocolVersion);
     }
 
     @Override
-    public ItemStack translateToJava(ItemData itemData, ItemEntry itemEntry) {
+    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, int protocolVersion) {
         Potion potion = Potion.getByBedrockId(itemData.getDamage());
-        ItemStack itemStack = super.translateToJava(itemData, itemEntry);
+        ItemStack itemStack = super.translateToJava(itemData, mapping, protocolVersion);
         if (potion != null) {
             StringTag potionTag = new StringTag("Potion", potion.getJavaIdentifier());
             itemStack.getNbt().put(potionTag);
@@ -78,7 +84,7 @@ public class PotionTranslator extends ItemTranslator {
     }
 
     @Override
-    public List<ItemEntry> getAppliedItems() {
+    public List<ItemMapping> getAppliedItems() {
         return appliedItems;
     }
 }

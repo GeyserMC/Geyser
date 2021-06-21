@@ -23,39 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.item;
+package org.geysermc.connector.registry;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.ToString;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator1_17_0;
+import org.geysermc.connector.registry.loader.RegistryLoader;
 
-@Getter
-@AllArgsConstructor
-@ToString
-public class ItemEntry {
+import java.util.Map;
+import java.util.function.Supplier;
 
-    public static ItemEntry AIR = new ItemEntry("minecraft:air", "minecraft:air", 0, 0, 0,
-            BlockTranslator1_17_0.INSTANCE.getBedrockAirId(), 64);
-
-    private final String javaIdentifier;
-    private final String bedrockIdentifier;
-    private final int javaId;
-    private final int bedrockId;
-    private final int bedrockData;
-    /**
-     * The Bedrock block runtime ID to render this item with. The specific state *does* matter in how this item is rendered and used as a crafting ingredient.
-     * Required since 1.16.220.
-     */
-    private final int bedrockBlockId;
-    private final int stackSize;
-
-    public boolean isBlock() {
-        return bedrockBlockId != -1;
+public class SimpleMappedRegistry<K, V> extends AbstractMappedRegistry<K, V, Map<K, V>> {
+    protected <I> SimpleMappedRegistry(I input, RegistryLoader<I, Map<K, V>> registryLoader) {
+        super(input, registryLoader);
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        return obj == this || (obj instanceof ItemEntry && ((ItemEntry) obj).getBedrockId() == this.getBedrockId() && ((ItemEntry) obj).getJavaIdentifier().equals(this.getJavaIdentifier()));
+    public static <I, K, V> SimpleMappedRegistry<K, V> create(RegistryLoader<I, Map<K, V>> registryLoader) {
+        return new SimpleMappedRegistry<>(null, registryLoader);
+    }
+
+    public static <I, K, V> SimpleMappedRegistry<K, V> create(I input, RegistryLoader<I, Map<K, V>> registryLoader) {
+        return new SimpleMappedRegistry<>(input, registryLoader);
+    }
+
+    public static <I, K, V> SimpleMappedRegistry<K, V> create(Supplier<RegistryLoader<I, Map<K, V>>> registryLoader) {
+        return new SimpleMappedRegistry<>(null, registryLoader.get());
+    }
+
+    public static <I, K, V> SimpleMappedRegistry<K, V> create(I input, Supplier<RegistryLoader<I, Map<K, V>>> registryLoader) {
+        return new SimpleMappedRegistry<>(input, registryLoader.get());
     }
 }

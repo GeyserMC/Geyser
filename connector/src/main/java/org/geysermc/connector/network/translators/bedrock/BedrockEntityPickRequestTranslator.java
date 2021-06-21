@@ -32,8 +32,7 @@ import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.registry.type.ItemMapping;
 import org.geysermc.connector.utils.InventoryUtils;
 
 /**
@@ -107,9 +106,9 @@ public class BedrockEntityPickRequestTranslator extends PacketTranslator<EntityP
         }
 
         String fullItemName = "minecraft:" + itemName;
-        ItemEntry entry = ItemRegistry.getItemEntry(fullItemName);
+        ItemMapping mapping = session.getItemMappings().getMapping(fullItemName);
         // Verify it is, indeed, an item
-        if (entry == null) return;
+        if (mapping == null) return;
 
         InventoryUtils.findOrCreateItem(session, fullItemName);
     }

@@ -75,7 +75,7 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
             return rejectRequest(request);
         }
 
-        ItemStack javaOutput = ItemTranslator.translateToJava(craftData.getResultItems()[0]);
+        ItemStack javaOutput = ItemTranslator.translateToJava(craftData.getResultItems()[0], session.getUpstream().getProtocolVersion());
         int button = results.indexOf(javaOutput.getId());
         // If we've already pressed the button with this item, no need to press it again!
         if (container.getStonecutterButton() != button) {

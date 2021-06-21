@@ -31,7 +31,7 @@ import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHandler;
 import org.geysermc.connector.network.translators.sound.SoundHandler;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.registry.BlockRegistries;
 
 @SoundHandler(blocks = "farmland", items = "hoe", ignoreSneakingWhileHolding = true)
 public class HoeInteractionHandler implements BlockSoundInteractionHandler {
@@ -44,7 +44,7 @@ public class HoeInteractionHandler implements BlockSoundInteractionHandler {
         levelSoundEventPacket.setRelativeVolumeDisabled(false);
         levelSoundEventPacket.setIdentifier(":");
         levelSoundEventPacket.setSound(SoundEvent.ITEM_USE_ON);
-        levelSoundEventPacket.setExtraData(session.getBlockTranslator().getBedrockBlockId(BlockTranslator.getJavaBlockState(identifier)));
+        levelSoundEventPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(BlockRegistries.JAVA_IDENTIFIERS.get(identifier)));
         session.sendUpstreamPacket(levelSoundEventPacket);
     }
 }

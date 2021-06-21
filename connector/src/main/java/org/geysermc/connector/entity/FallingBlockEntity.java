@@ -42,7 +42,7 @@ public class FallingBlockEntity extends Entity {
 
     @Override
     public void spawnEntity(GeyserSession session) {
-        this.metadata.put(EntityData.VARIANT, session.getBlockTranslator().getBedrockBlockId(javaId));
+        this.metadata.put(EntityData.VARIANT, session.getBlockMappings().getBedrockBlockId(javaId));
         super.spawnEntity(session);
     }
 

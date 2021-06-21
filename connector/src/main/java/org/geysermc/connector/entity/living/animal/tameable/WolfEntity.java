@@ -32,7 +32,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 import java.util.Set;
 
@@ -88,7 +88,7 @@ public class WolfEntity extends TameableEntity {
     }
 
     @Override
-    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemMapping mapping) {
         // Cannot be a baby to eat these foods
         return WOLF_FOODS.contains(javaIdentifierStripped) && !metadata.getFlags().getFlag(EntityFlag.BABY);
     }
