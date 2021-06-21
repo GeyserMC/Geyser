@@ -144,6 +144,7 @@ public class ItemRegistryPopulator {
 
             IntList boats = new IntArrayList();
             IntList buckets = new IntArrayList();
+            IntList spawnEggs = new IntArrayList();
             List<ItemData> carpets = new ObjectArrayList<>();
 
             Int2ObjectMap<ItemMapping> mappings = new Int2ObjectOpenHashMap<>();
@@ -393,6 +394,8 @@ public class ItemRegistryPopulator {
                     // The Java record level event uses the item ID as the "key" to play the record
                     Registries.RECORDS.register(itemIndex, SoundEvent.valueOf("RECORD_" +
                             entry.getKey().replace("minecraft:music_disc_", "").toUpperCase(Locale.ENGLISH)));
+                } else if (entry.getKey().endsWith("_spawn_egg")) {
+                    spawnEggs.add(mapping.getBedrockId());
                 }
 
                 mappings.put(itemIndex, mapping);

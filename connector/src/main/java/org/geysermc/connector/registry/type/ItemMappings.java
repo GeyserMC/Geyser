@@ -59,6 +59,7 @@ public class ItemMappings {
 
     IntList bucketIds;
     IntList boatIds;
+    IntList spawnEggIds;
     List<ItemData> carpets;
 
     @Nullable ComponentItemData furnaceMinecartData;
