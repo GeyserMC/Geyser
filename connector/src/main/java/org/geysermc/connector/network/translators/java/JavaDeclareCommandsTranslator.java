@@ -97,9 +97,6 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
 
     @Override
     public void translate(ServerDeclareCommandsPacket packet, GeyserSession session) {
-        if (true) {
-            return;
-        }
         // Don't send command suggestions if they are disabled
         if (!session.getConnector().getConfig().isCommandSuggestions()) {
             session.getConnector().getLogger().debug("Not sending translated command suggestions as they are disabled.");
