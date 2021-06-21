@@ -99,6 +99,10 @@ public class ItemRegistry {
      */
     public static ItemEntry CROSSBOW;
     /**
+     * Fishing rod item entry, used in ItemUtils.java
+     */
+    public static ItemEntry FISHING_ROD;
+    /**
      * Empty item bucket, used in BedrockInventoryTransactionTranslator.java
      */
     public static ItemEntry MILK_BUCKET;
@@ -437,6 +441,9 @@ public class ItemRegistry {
                     break;
                 case "minecraft:egg":
                     EGG = itemEntry;
+                    break;
+                case "minecraft:fishing_rod":
+                    FISHING_ROD = itemEntry;
                     break;
                 case "minecraft:shield":
                     SHIELD = itemEntry;
