@@ -52,7 +52,7 @@ public class SkullSkinManager extends SkinManager {
                                             Consumer<SkinProvider.Skin> skinConsumer) {
         GameProfileData data = GameProfileData.from(entity.getProfile());
 
-        SkinProvider.requestSkin(entity.getUuid(), data.getSkinUrl(), true)
+        SkinProvider.requestSkin(entity.getUuid(), data.getSkinUrl(), false)
                 .whenCompleteAsync((skin, throwable) -> {
                     try {
                         if (session.getUpstream().isInitialized()) {
