@@ -52,15 +52,12 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
         }
 
-        // Merge received column with cache on network thread
-        Column mergedColumn = session.getChunkCache().addToCache(packet.getColumn());
-        if (mergedColumn == null) { // There were no changes?!?
-            return;
-        }
+        session.getChunkCache().addToCache(packet.getColumn());
+        Column column = packet.getColumn();
 
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
-                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, mergedColumn);
+                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, column);
                 ChunkSection[] sections = chunkData.getSections();
 
                 // Find highest section
@@ -90,7 +87,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                         (section != null ? section : session.getBlockTranslator().getEmptyChunkSection()).writeToNetwork(byteBuf);
                     }
 
-                    byteBuf.writeBytes(BiomeTranslator.toBedrockBiome(mergedColumn.getBiomeData())); // Biomes - 256 bytes
+                    byteBuf.writeBytes(BiomeTranslator.toBedrockBiome(column.getBiomeData())); // Biomes - 256 bytes
                     byteBuf.writeByte(0); // Border blocks - Edu edition only
                     VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now
 
@@ -109,8 +106,8 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 LevelChunkPacket levelChunkPacket = new LevelChunkPacket();
                 levelChunkPacket.setSubChunksLength(sectionCount);
                 levelChunkPacket.setCachingEnabled(false);
-                levelChunkPacket.setChunkX(mergedColumn.getX());
-                levelChunkPacket.setChunkZ(mergedColumn.getZ());
+                levelChunkPacket.setChunkX(column.getX());
+                levelChunkPacket.setChunkZ(column.getZ());
                 levelChunkPacket.setData(payload);
                 session.sendUpstreamPacket(levelChunkPacket);
             } catch (Exception ex) {

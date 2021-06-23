@@ -46,27 +46,12 @@ public class ChunkCache {
         chunks = cache ? new Long2ObjectOpenHashMap<>() : null;
     }
 
-    public Column addToCache(Column chunk) {
+    public void addToCache(Column chunk) {
         if (!cache) {
-            return chunk;
+            return;
         }
 
-        long chunkPosition = MathUtils.chunkPositionToLong(chunk.getX(), chunk.getZ());
-        Column existingChunk;
-        if (chunk.getBiomeData() == null // Only consider merging columns if the new chunk isn't a full chunk
-            && (existingChunk = chunks.getOrDefault(chunkPosition, null)) != null) { // Column is already present in cache, we can merge with existing
-            boolean changed = false;
-            for (int i = 0; i < chunk.getChunks().length; i++) { // The chunks member is final, so chunk.getChunks() will probably be inlined and then completely optimized away
-                if (chunk.getChunks()[i] != null) {
-                    existingChunk.getChunks()[i] = chunk.getChunks()[i];
-                    changed = true;
-                }
-            }
-            return changed ? existingChunk : null;
-        } else {
-            chunks.put(chunkPosition, chunk);
-            return chunk;
-        }
+        chunks.put(MathUtils.chunkPositionToLong(chunk.getX(), chunk.getZ()), chunk);
     }
 
     public Column getChunk(int chunkX, int chunkZ)  {
