@@ -103,6 +103,10 @@
                                     <pattern>net.kyori</pattern>
                                     <shadedPattern>org.geysermc.platform.spigot.shaded.kyori</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>org.objectweb.asm</pattern>
+                                    <shadedPattern>org.geysermc.platform.spigot.shaded.asm</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>
