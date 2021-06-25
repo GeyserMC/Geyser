@@ -55,9 +55,12 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
         session.getChunkCache().addToCache(packet.getColumn());
         Column column = packet.getColumn();
 
+        // Ensure that, if the player is using lower world heights, the position is not offset
+        int yOffset = session.getChunkCache().getChunkMinY();
+
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
-                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, column);
+                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, column, yOffset);
                 ChunkSection[] sections = chunkData.getSections();
 
                 // Find highest section
