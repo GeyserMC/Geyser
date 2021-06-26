@@ -153,6 +153,9 @@ public class PistonCache {
      * @param displacement The displacement to apply to the player's bounding box
      */
     public void displacePlayer(Vector3d displacement) {
+        // Check if the piston is pushing a player into collision
+        displacement = session.getCollisionManager().correctPlayerMovement(displacement, true);
+
         Vector3d totalDisplacement = playerDisplacement.add(displacement);
         // Clamp to range -0.51 to 0.51
         totalDisplacement = totalDisplacement.max(-0.51d, -0.51d, -0.51d).min(0.51d, 0.51d, 0.51d);
@@ -170,7 +173,7 @@ public class PistonCache {
      * @param offset The current maximum distance the bounding box can travel
      * @return The new maximum distance the bounding box can travel without colliding with the tested moving block
      */
-    public synchronized double computeCollisionOffset(Vector3i blockPos, BoundingBox boundingBox, Axis axis, double offset) {
+    public double computeCollisionOffset(Vector3i blockPos, BoundingBox boundingBox, Axis axis, double offset) {
         PistonBlockEntity piston = movingBlocksMap.get(blockPos);
         if (piston != null) {
             return piston.computeCollisionOffset(blockPos, boundingBox, axis, offset);
@@ -186,15 +189,15 @@ public class PistonCache {
         return false;
     }
 
-    public synchronized PistonBlockEntity getPistonAt(Vector3i position) {
+    public PistonBlockEntity getPistonAt(Vector3i position) {
         return pistons.get(position);
     }
 
-    public synchronized void putPiston(PistonBlockEntity pistonBlockEntity) {
+    public void putPiston(PistonBlockEntity pistonBlockEntity) {
         pistons.put(pistonBlockEntity.getPosition(), pistonBlockEntity);
     }
 
-    public void clear() {
+    public synchronized void clear() {
         pistons.clear();
         movingBlocksMap.clear();
     }

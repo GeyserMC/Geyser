@@ -55,6 +55,10 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+/**
+ * Anything that interacts with pistons should be synchronized with
+ * the PistonCache object in GeyserSession.
+ */
 public class PistonBlockEntity {
     private final GeyserSession session;
     @Getter
@@ -123,7 +127,7 @@ public class PistonBlockEntity {
      *
      * @param action PULLING or PUSHING or CANCELED_MID_PUSH
      */
-    public synchronized void setAction(PistonValueType action) {
+    public void setAction(PistonValueType action) {
         placeFinalBlocks();
         removeMovingBlocks();
 
@@ -153,7 +157,7 @@ public class PistonBlockEntity {
     /**
      * Update the position of the piston head, moving blocks, and players.
      */
-    public synchronized void updateMovement() {
+    public void updateMovement() {
         if (isDone()) {
             timeSinceCompletion++;
             return;
@@ -168,7 +172,7 @@ public class PistonBlockEntity {
     /**
      * Place attached blocks in their final position when done pushing or pulling
      */
-    public synchronized void updateBlocks() {
+    public void updateBlocks() {
         if (isDone()) {
             if (action != PistonValueType.PUSHING) { // PULLING or CANCELED_MID_PUSH
                 removePistonHead();
@@ -369,7 +373,7 @@ public class PistonBlockEntity {
      * If the player is pushed, the displacement is added to playerDisplacement in PistonCache
      * If the player contacts a slime block, playerMotion in PistonCache is updated
      */
-    public synchronized void pushPlayer() {
+    public void pushPlayer() {
         Vector3i direction = orientation.getUnitVector();
         double blockMovement = lastProgress;
         if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
@@ -553,7 +557,7 @@ public class PistonBlockEntity {
      * @param movement The movement in the axis
      * @return The adjusted movement
      */
-    public synchronized double computeCollisionOffset(Vector3i blockPos, BoundingBox boundingBox, Axis axis, double movement) {
+    public double computeCollisionOffset(Vector3i blockPos, BoundingBox boundingBox, Axis axis, double movement) {
         int blockId = getAttachedBlockId(blockPos);
         if (blockId != BlockTranslator.JAVA_AIR_ID) {
             double movementProgress = progress;
@@ -575,7 +579,7 @@ public class PistonBlockEntity {
         return movement;
     }
 
-    public synchronized boolean checkCollision(Vector3i blockPos, BoundingBox boundingBox) {
+    public boolean checkCollision(Vector3i blockPos, BoundingBox boundingBox) {
         int blockId = getAttachedBlockId(blockPos);
         if (blockId != BlockTranslator.JAVA_AIR_ID) {
             double movementProgress = progress;
