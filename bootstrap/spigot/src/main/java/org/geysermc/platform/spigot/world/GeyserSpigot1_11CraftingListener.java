@@ -95,7 +95,7 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
     }
 
     public void sendServerRecipes(GeyserSession session) {
-        AtomicInteger netId = InventoryUtils.LAST_RECIPE_NET_ID;
+        int netId = InventoryUtils.LAST_RECIPE_NET_ID.get();
 
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
@@ -128,13 +128,13 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
                 // Add recipe to our internal cache
                 ShapedRecipeData data = new ShapedRecipeData(shapedRecipe.getShape()[0].length(), shapedRecipe.getShape().length,
                         "", ingredients, javaOutput);
-                session.getCraftingRecipes().put(netId.get(),
+                session.getCraftingRecipes().put(netId,
                         new com.github.steveice10.mc.protocol.data.game.recipe.Recipe(RecipeType.CRAFTING_SHAPED, uuid.toString(), data));
 
                 // Add recipe for Bedrock
                 craftingDataPacket.getCraftingData().add(CraftingData.fromShaped(uuid.toString(),
                         shapedRecipe.getShape()[0].length(), shapedRecipe.getShape().length, Arrays.asList(input),
-                        Collections.singletonList(output), uuid, "crafting_table", 0, netId.getAndIncrement()));
+                        Collections.singletonList(output), uuid, "crafting_table", 0, netId++));
             } else if (recipe instanceof ShapelessRecipe) {
                 ShapelessRecipe shapelessRecipe = (ShapelessRecipe) recipe;
                 Ingredient[] ingredients = new Ingredient[shapelessRecipe.getIngredientList().size()];
@@ -151,12 +151,12 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
                 UUID uuid = UUID.randomUUID();
                 // Add recipe to our internal cache
                 ShapelessRecipeData data = new ShapelessRecipeData("", ingredients, javaOutput);
-                session.getCraftingRecipes().put(netId.get(),
+                session.getCraftingRecipes().put(netId,
                         new com.github.steveice10.mc.protocol.data.game.recipe.Recipe(RecipeType.CRAFTING_SHAPELESS, uuid.toString(), data));
 
                 // Add recipe for Bedrock
                 craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
-                        Arrays.asList(input), Collections.singletonList(output), uuid, "crafting_table", 0, netId.getAndIncrement()));
+                        Arrays.asList(input), Collections.singletonList(output), uuid, "crafting_table", 0, netId++));
             }
         }
 
