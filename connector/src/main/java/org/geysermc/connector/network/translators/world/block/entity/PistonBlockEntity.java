@@ -174,10 +174,13 @@ public class PistonBlockEntity {
      */
     public void updateBlocks() {
         if (isDone()) {
-            if (action != PistonValueType.PUSHING) { // PULLING or CANCELED_MID_PUSH
-                removePistonHead();
+            // Update blocks only once
+            if (timeSinceCompletion == 0) {
+                if (action != PistonValueType.PUSHING) { // PULLING or CANCELED_MID_PUSH
+                    removePistonHead();
+                }
+                placeFinalBlocks();
             }
-            placeFinalBlocks();
             // Give a few ticks for player collisions to be fully resolved
             if (timeSinceCompletion >= REMOVAL_DELAY) {
                 removeMovingBlocks();
