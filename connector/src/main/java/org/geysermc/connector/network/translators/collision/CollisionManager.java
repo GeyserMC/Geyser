@@ -168,28 +168,12 @@ public class CollisionManager {
 
         position = playerBoundingBox.getBottomCenter();
 
-        // Send corrected position to Bedrock if they differ by too much to prevent desyncs
-        if (movement.distanceSquared(adjustedMovement) > 0.08) {
+        boolean newOnGround = adjustedMovement.getY() != movement.getY() && movement.getY() < 0 || onGround;
+        // Send corrected position to Bedrock if they differ by too much to prevent de-syncs
+        if (onGround != newOnGround || movement.distanceSquared(adjustedMovement) > 0.08) {
             PlayerEntity playerEntity = session.getPlayerEntity();
-            onGround = adjustedMovement.getY() != movement.getY() && movement.getY() < 0;
-
-            playerEntity.setPosition(position.toFloat(), true);
-            playerEntity.setOnGround(onGround);
             if (pistonCache.getPlayerMotion().equals(Vector3f.ZERO) && !pistonCache.isPlayerSlimeCollision()) {
-                // Probably can be improved with Server Auth movement with rewind
-                MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
-                moveEntityDeltaPacket.setRuntimeEntityId(playerEntity.getGeyserId());
-                moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.FORCE_MOVE_LOCAL_ENTITY);
-                if (onGround) {
-                    moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
-                }
-                moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
-                moveEntityDeltaPacket.setX(playerEntity.getPosition().getX());
-                moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
-                moveEntityDeltaPacket.setY(playerEntity.getPosition().getY());
-                moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
-                moveEntityDeltaPacket.setZ(playerEntity.getPosition().getZ());
-                session.sendUpstreamPacket(moveEntityDeltaPacket);
+                playerEntity.moveAbsolute(session, position.toFloat(), playerEntity.getRotation(), newOnGround, true);
             }
         }
 

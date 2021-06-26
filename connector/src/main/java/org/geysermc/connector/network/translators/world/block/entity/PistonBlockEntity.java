@@ -32,7 +32,9 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
-import it.unimi.dsi.fastutil.objects.*;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.PistonCache;
@@ -40,13 +42,18 @@ import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.collision.CollisionTranslator;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
-import org.geysermc.connector.network.translators.collision.translators.SolidCollision;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.registry.type.BlockMapping;
-import org.geysermc.connector.utils.*;
+import org.geysermc.connector.utils.Axis;
+import org.geysermc.connector.utils.BlockEntityUtils;
+import org.geysermc.connector.utils.ChunkUtils;
+import org.geysermc.connector.utils.Direction;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 
 public class PistonBlockEntity {
     private final GeyserSession session;
@@ -117,7 +124,8 @@ public class PistonBlockEntity {
      * @param action PULLING or PUSHING or CANCELED_MID_PUSH
      */
     public synchronized void setAction(PistonValueType action) {
-        finishMovingBlocks();
+        placeFinalBlocks();
+        removeMovingBlocks();
 
         this.action = action;
         if (action == PistonValueType.PUSHING || (action == PistonValueType.PULLING && sticky)) {
@@ -161,15 +169,14 @@ public class PistonBlockEntity {
      * Place attached blocks in their final position when done pushing or pulling
      */
     public synchronized void updateBlocks() {
-        // Give a few ticks for player collisions to be fully resolved
-        if (timeSinceCompletion >= REMOVAL_DELAY) {
-            if (isDone()) {
-                if (action != PistonValueType.PUSHING) { // PULLING or CANCELED_MID_PUSH
-                    removePistonHead();
-                }
-                finishMovingBlocks();
-            } else if (action == PistonValueType.CANCELLED_MID_PUSH) {
-                finishMovingBlocks();
+        if (isDone()) {
+            if (action != PistonValueType.PUSHING) { // PULLING or CANCELED_MID_PUSH
+                removePistonHead();
+            }
+            placeFinalBlocks();
+            // Give a few ticks for player collisions to be fully resolved
+            if (timeSinceCompletion >= REMOVAL_DELAY) {
+                removeMovingBlocks();
             }
         }
     }
@@ -643,21 +650,32 @@ public class PistonBlockEntity {
     }
 
     /**
-     * Remove moving blocks and place blocks that don't collide with the player into their
-     * final position. The Java server will handle updating the blocks that do collide later.
+     * Place blocks that don't collide with the player into their final position
+     * otherwise the player will fall off the block.
+     * The Java server will handle updating the blocks that do collide later.
      */
-    private void finishMovingBlocks() {
+    private void placeFinalBlocks() {
         Vector3i movement = getMovement();
-        Map<Vector3i, PistonBlockEntity> movingBlockMap = session.getPistonCache().getMovingBlocksMap();
         attachedBlocks.forEach((blockPos, javaId) -> {
             blockPos = blockPos.add(movement);
-            movingBlockMap.remove(blockPos);
             // Send a final block entity packet to detach blocks
             BlockEntityUtils.updateBlockEntity(session, buildMovingBlockTag(blockPos, javaId, Vector3i.from(0, -1, 0)), blockPos);
             // Don't place blocks that collide with the player
             if (!SOLID_BOUNDING_BOX.checkIntersection(blockPos.toDouble(), session.getCollisionManager().getPlayerBoundingBox())) {
                 ChunkUtils.updateBlock(session, javaId, blockPos);
             }
+        });
+    }
+
+    /**
+     * Remove moving blocks the piston cache
+     */
+    private void removeMovingBlocks() {
+        Vector3i movement = getMovement();
+        Map<Vector3i, PistonBlockEntity> movingBlockMap = session.getPistonCache().getMovingBlocksMap();
+        attachedBlocks.forEach((blockPos, javaId) -> {
+            blockPos = blockPos.add(movement);
+            movingBlockMap.remove(blockPos);
         });
         // Remove piston head
         if (action == PistonValueType.PUSHING) {
