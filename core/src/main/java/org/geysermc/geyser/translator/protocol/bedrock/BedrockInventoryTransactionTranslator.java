@@ -44,6 +44,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
@@ -295,6 +296,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                         // Delay the interaction in case the client doesn't intend to actually use the bucket
                                         // See BedrockActionTranslator.java
                                         session.setBucketScheduledFuture(session.scheduleInEventLoop(() -> {
+                                            rotateIfNeeded(session, packet);
                                             ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getNextSequence());
                                             session.sendDownstreamPacket(itemPacket);
                                         }, 5, TimeUnit.MILLISECONDS));
@@ -529,5 +531,101 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         slotPacket.setSlot(packet.getHotbarSlot());
         slotPacket.setItem(packet.getItemInHand());
         session.sendUpstreamPacket(slotPacket);
+    }
+
+    // TODO format so IntelliJ doesn't botch my beautiful drawing
+    /**
+     * Determine the rotation necessary to activate this transaction.
+     *
+     * The position between the intended click position and the player can be determined with two triangles.
+     * First, we compute the difference of the X and Z coordinates:
+     *
+     * Player position (0, 0)
+     * |
+     * |
+     * |
+     * |_____________ Intended target (-3, 2)
+     *
+     * We then use the Pythagorean Theorem to find the direct line (hypotenuse) on the XZ plane. Finding the angle of the
+     * triangle from there, closest to the player, gives us our yaw rotation value (with some offsets needed depending on
+     * the direction the player is looking at).
+     * Then doing the same using the new XZ distance and Y difference, we can find the direct line of sight from the
+     * player to the intended target, and the pitch rotation value. If the difference between the player's rotation and
+     * the desired target is too high, we update the player's rotation to our calculated values and then send the necessary packets.
+     */
+    private void rotateIfNeeded(GeyserSession session, InventoryTransactionPacket packet) {
+        SessionPlayerEntity entity = session.getPlayerEntity();
+        if (packet.getBlockPosition().getX() == Math.floor(entity.getPosition().getX()) && packet.getBlockPosition().getZ() == Math.floor(entity.getPosition().getZ())) {
+            // Standing on or above the block
+            System.out.println("Ignoring since we're standing on the block.");
+            return;
+        }
+
+        Vector3f target = packet.getBlockPosition().toFloat().add(packet.getClickPosition());
+        float xDiff = entity.getPosition().getX() - target.getX();
+        float xDiffAbs = Math.abs(xDiff);
+        float yDiff = entity.getPosition().getY() - target.getY();
+        float yDiffAbs = Math.abs(yDiff);
+        float zDiff = entity.getPosition().getZ() - target.getZ();
+        float zDiffAbs = Math.abs(zDiff);
+
+        int xOffset;
+        if (xDiff < 0) {
+            if (zDiff > 0) {
+                // Between east and south
+                xOffset = -180;
+            } else {
+                // Between north and east
+                xOffset = -90;
+            }
+        } else {
+            if (zDiff > 0) {
+                // Between south and west
+                xOffset = 90;
+            } else {
+                // Between west and north
+                xOffset = 0;
+            }
+        }
+
+        // First triangle on the X and Z axis
+        double xzDistance = hypot(xDiffAbs, zDiffAbs);
+        double xRotation = Math.toDegrees(Math.acos(xDiffAbs / xzDistance)) + xOffset;
+        if (xOffset == 0) {
+            xRotation = 90 - xRotation;
+        } else if (xOffset == -180) {
+            // This can't be right
+            xRotation = -270 + -xRotation;
+        }
+        // Second triangle on the Y axis using the hypotenuse of the first triangle as a side
+        double yDistance = hypot(xzDistance, yDiffAbs);
+        double yRotation = Math.toDegrees(Math.acos(Math.abs(xzDistance) / yDistance));
+        if (yDiff < 0) {
+            // Looking up
+            yRotation = -yRotation;
+        }
+
+        if (Math.abs(entity.getHeadYaw() - xRotation) > 3 || Math.abs(entity.getPitch() - yRotation) > 3) {
+            // Great enough distance that we need to move
+            entity.setPitch((float) yRotation);
+            entity.setYaw((float) xRotation);
+            entity.setHeadYaw((float) xRotation);
+            ServerboundMovePlayerRotPacket rotationPacket = new ServerboundMovePlayerRotPacket(entity.isOnGround(), entity.getYaw(), entity.getPitch());
+            session.sendDownstreamPacket(rotationPacket);
+
+            MovePlayerPacket playerPacket = new MovePlayerPacket();
+            playerPacket.setRuntimeEntityId(entity.getGeyserId());
+            playerPacket.setPosition(entity.getPosition());
+            playerPacket.setRotation(entity.getBedrockRotation());
+            playerPacket.setOnGround(entity.isOnGround());
+            playerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
+            playerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);
+            session.sendUpstreamPacket(playerPacket);
+        }
+    }
+
+    // TODO is it better to use Math.hypot ?
+    private double hypot(double a, double b) {
+        return Math.sqrt((a * a) + (b * b));
     }
 }
