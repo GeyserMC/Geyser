@@ -31,6 +31,7 @@ import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.cumulus.Form;
 import org.geysermc.cumulus.SimpleForm;
@@ -73,17 +74,19 @@ public class FormCache {
     }
 
     public void handleResponse(ModalFormResponsePacket response) {
-        Form form = forms.get(response.getFormId());
+        Form form = forms.remove(response.getFormId());
         if (form == null) {
             return;
         }
 
         Consumer<String> responseConsumer = form.getResponseHandler();
         if (responseConsumer != null) {
-            responseConsumer.accept(response.getFormData());
+            try {
+                responseConsumer.accept(response.getFormData());
+            } catch (Exception e) {
+                GeyserConnector.getInstance().getLogger().error("Error while processing form response!", e);
+            }
         }
-
-        removeWindow(response.getFormId());
     }
 
     public boolean removeWindow(int id) {
