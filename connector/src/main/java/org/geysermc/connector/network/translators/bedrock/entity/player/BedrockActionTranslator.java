@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.*;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.*;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.PlayerActionType;
@@ -41,12 +41,10 @@ import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerActionPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
-import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.BlockUtils;
@@ -192,15 +190,17 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 if (session.getGameMode() == GameMode.CREATIVE) {
                     break;
                 }
+                Vector3f vectorFloat = vector.toFloat();
                 LevelEventPacket continueBreakPacket = new LevelEventPacket();
                 continueBreakPacket.setType(LevelEventType.PARTICLE_CRACK_BLOCK);
                 continueBreakPacket.setData((session.getBlockTranslator().getBedrockBlockId(session.getBreakingBlock())) | (packet.getFace() << 24));
-                continueBreakPacket.setPosition(vector.toFloat());
+                continueBreakPacket.setPosition(vectorFloat);
                 session.sendUpstreamPacket(continueBreakPacket);
 
+                // Update the break time in the event that player conditions changed (jumping, effects applied)
                 LevelEventPacket updateBreak = new LevelEventPacket();
                 updateBreak.setType(LevelEventType.BLOCK_UPDATE_BREAK);
-                updateBreak.setPosition(vector.toFloat());
+                updateBreak.setPosition(vectorFloat);
                 double breakTime = BlockUtils.getSessionBreakTime(session, BlockTranslator.getBlockMapping(session.getBreakingBlock())) * 20;
                 updateBreak.setData((int) (65535 / breakTime));
                 session.sendUpstreamPacket(updateBreak);
@@ -239,7 +239,6 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.getEntityCache().updateBossBars();
                 break;
             case JUMP:
-                // Leaving as a potential placeholder for an event or soul sand fixing
                 entity.setOnGround(false); // Increase block break time while jumping
                 break;
         }
