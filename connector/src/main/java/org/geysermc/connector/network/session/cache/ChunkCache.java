@@ -78,7 +78,7 @@ public class ChunkCache {
         if (chunk == null) {
             if (block != BlockTranslator.JAVA_AIR_ID) {
                 chunk = new Chunk();
-                // A previously empty chunk, which is no longer empty as a
+                // A previously empty chunk, which is no longer empty as a block has been added to it
                 column.getChunks()[(y >> 4) - getChunkMinY()] = chunk;
             } else {
                 // Nothing to update
