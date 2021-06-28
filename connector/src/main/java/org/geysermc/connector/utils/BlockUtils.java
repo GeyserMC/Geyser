@@ -29,6 +29,8 @@ import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3i;
+import org.geysermc.connector.inventory.GeyserItemStack;
+import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ToolItemEntry;
@@ -182,6 +184,21 @@ public class BlockUtils {
         return calculateBreakTime(blockMapping.getHardness(), toolTier, canHarvestWithHand, correctTool, toolCanBreak, toolType, isShearsEffective,
                 toolEfficiencyLevel, hasteLevel, miningFatigueLevel, insideOfWaterWithoutAquaAffinity,
                 outOfWaterButNotOnGround, insideWaterNotOnGround);
+    }
+
+    public static double getSessionBreakTime(GeyserSession session, BlockMapping blockMapping) {
+        PlayerInventory inventory = session.getPlayerInventory();
+        GeyserItemStack item = inventory.getItemInHand();
+        ItemEntry itemEntry;
+        CompoundTag nbtData;
+        if (item != null) {
+            itemEntry = item.getItemEntry();
+            nbtData = item.getNbt();
+        } else {
+            itemEntry = null;
+            nbtData = new CompoundTag("");
+        }
+        return getBreakTime(session, blockMapping, itemEntry, nbtData, true);
     }
 
     /**

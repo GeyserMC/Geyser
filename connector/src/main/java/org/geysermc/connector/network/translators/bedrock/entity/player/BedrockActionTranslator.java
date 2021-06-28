@@ -166,18 +166,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                     LevelEventPacket startBreak = new LevelEventPacket();
                     startBreak.setType(LevelEventType.BLOCK_START_BREAK);
                     startBreak.setPosition(vector.toFloat());
-                    PlayerInventory inventory = session.getPlayerInventory();
-                    GeyserItemStack item = inventory.getItemInHand();
-                    ItemEntry itemEntry;
-                    CompoundTag nbtData;
-                    if (item != null) {
-                        itemEntry = item.getItemEntry();
-                        nbtData = item.getNbt();
-                    } else {
-                        itemEntry = null;
-                        nbtData = new CompoundTag("");
-                    }
-                    double breakTime = Math.ceil(BlockUtils.getBreakTime(session, BlockTranslator.getBlockMapping(blockState), itemEntry, nbtData, true) * 20);
+                    double breakTime = Math.ceil(BlockUtils.getSessionBreakTime(session, BlockTranslator.getBlockMapping(blockState))) * 20;
                     startBreak.setData((int) (65535 / breakTime));
                     session.setBreakingBlock(blockState);
                     session.sendUpstreamPacket(startBreak);
@@ -208,6 +197,13 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 continueBreakPacket.setData((session.getBlockTranslator().getBedrockBlockId(session.getBreakingBlock())) | (packet.getFace() << 24));
                 continueBreakPacket.setPosition(vector.toFloat());
                 session.sendUpstreamPacket(continueBreakPacket);
+
+                LevelEventPacket updateBreak = new LevelEventPacket();
+                updateBreak.setType(LevelEventType.BLOCK_UPDATE_BREAK);
+                updateBreak.setPosition(vector.toFloat());
+                double breakTime = Math.ceil(BlockUtils.getSessionBreakTime(session, BlockTranslator.getBlockMapping(session.getBreakingBlock()))) * 20;
+                updateBreak.setData((int) (65535 / breakTime));
+                session.sendUpstreamPacket(updateBreak);
                 break;
             case ABORT_BREAK:
                 if (session.getGameMode() != GameMode.CREATIVE) {
