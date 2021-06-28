@@ -446,21 +446,17 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         int xzOffset;
         if (xDiff < 0) {
             if (zDiff > 0) {
-                System.out.println(4);
                 // Between south and west
                 xzOffset = 0;
             } else {
-                System.out.println(3);
                 // Between west and north
                 xzOffset = 90;
             }
         } else {
             if (zDiff > 0) {
-                System.out.println(2);
                 // Between north and east
                 xzOffset = -90;
             } else {
-                System.out.println(1);
                 // Between east and south
                 xzOffset = -180;
             }
