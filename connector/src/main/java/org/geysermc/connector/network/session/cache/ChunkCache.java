@@ -75,9 +75,18 @@ public class ChunkCache {
         }
 
         Chunk chunk = column.getChunks()[(y >> 4) - getChunkMinY()];
-        if (chunk != null) {
-            chunk.set(x & 0xF, y & 0xF, z & 0xF, block);
+        if (chunk == null) {
+            if (block != BlockTranslator.JAVA_AIR_ID) {
+                chunk = new Chunk();
+                // A previously empty chunk, which is no longer empty as a
+                column.getChunks()[(y >> 4) - getChunkMinY()] = chunk;
+            } else {
+                // Nothing to update
+                return;
+            }
         }
+
+        chunk.set(x & 0xF, y & 0xF, z & 0xF, block);
     }
 
     public int getBlockAt(int x, int y, int z) {
