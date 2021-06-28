@@ -185,7 +185,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             int blockState = session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition());
                             if (blockState == BlockTranslator.JAVA_WATER_ID) {
                                 // Otherwise causes multiple mobs to spawn - just send a use item packet
-                                // TODO when we fix mobile bucket rotation, use it for this, too
+                                rotateIfNeeded(session, packet);
                                 ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                                 session.sendDownstreamPacket(itemPacket);
                                 break;
