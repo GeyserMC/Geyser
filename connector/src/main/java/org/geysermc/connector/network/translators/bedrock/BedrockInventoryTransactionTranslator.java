@@ -436,45 +436,49 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         }
 
         Vector3f target = packet.getBlockPosition().toFloat().add(packet.getClickPosition());
-        float xDiff = entity.getPosition().getX() - target.getX();
+        float xDiff = target.getX() - entity.getPosition().getX();
         float xDiffAbs = Math.abs(xDiff);
-        float yDiff = entity.getPosition().getY() - target.getY();
+        float yDiff = target.getY() - entity.getPosition().getY();
         float yDiffAbs = Math.abs(yDiff);
-        float zDiff = entity.getPosition().getZ() - target.getZ();
+        float zDiff = target.getZ() - entity.getPosition().getZ();
         float zDiffAbs = Math.abs(zDiff);
 
-        int xOffset;
+        int xzOffset;
         if (xDiff < 0) {
             if (zDiff > 0) {
-                // Between east and south
-                xOffset = -180;
+                System.out.println(4);
+                // Between south and west
+                xzOffset = 0;
             } else {
-                // Between north and east
-                xOffset = -90;
+                System.out.println(3);
+                // Between west and north
+                xzOffset = 90;
             }
         } else {
             if (zDiff > 0) {
-                // Between south and west
-                xOffset = 90;
+                System.out.println(2);
+                // Between north and east
+                xzOffset = -90;
             } else {
-                // Between west and north
-                xOffset = 0;
+                System.out.println(1);
+                // Between east and south
+                xzOffset = -180;
             }
         }
 
         // First triangle on the X and Z axis
         double xzDistance = hypot(xDiffAbs, zDiffAbs);
-        double xRotation = Math.toDegrees(Math.acos(xDiffAbs / xzDistance)) + xOffset;
-        if (xOffset == 0) {
+        double xRotation = Math.toDegrees(Math.acos(xDiffAbs / xzDistance)) + xzOffset;
+        if (xzOffset == 0) {
             xRotation = 90 - xRotation;
-        } else if (xOffset == -180) {
+        } else if (xzOffset == -180) {
             // This can't be right
             xRotation = -270 + -xRotation;
         }
         // Second triangle on the Y axis using the hypotenuse of the first triangle as a side
         double yDistance = hypot(xzDistance, yDiffAbs);
         double yRotation = Math.toDegrees(Math.acos(Math.abs(xzDistance) / yDistance));
-        if (yDiff < 0) {
+        if (yDiff > 0) {
             // Looking up
             yRotation = -yRotation;
         }
