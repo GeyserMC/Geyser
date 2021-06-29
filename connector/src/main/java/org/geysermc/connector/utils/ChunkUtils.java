@@ -419,6 +419,7 @@ public class ChunkUtils {
         }
 
         session.getChunkCache().setMinY(minY);
+        session.getChunkCache().setHeightY(maxY);
     }
 
     @Data
