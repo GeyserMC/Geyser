@@ -55,7 +55,6 @@ public class JavaBossBarTranslator extends PacketTranslator<ServerBossBarPacket>
             case UPDATE_STYLE:
             case UPDATE_FLAGS:
                 //todo
-                return;
         }
     }
 }

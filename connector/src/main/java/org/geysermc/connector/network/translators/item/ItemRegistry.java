@@ -37,10 +37,7 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntArraySet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -102,6 +99,10 @@ public class ItemRegistry {
      */
     public static ItemEntry CROSSBOW;
     /**
+     * Fishing rod item entry, used in ItemUtils.java
+     */
+    public static ItemEntry FISHING_ROD;
+    /**
      * Empty item bucket, used in BedrockInventoryTransactionTranslator.java
      */
     public static ItemEntry MILK_BUCKET;
@@ -113,6 +114,10 @@ public class ItemRegistry {
      * Shield item entry, used in Entity.java and LivingEntity.java
      */
     public static ItemEntry SHIELD;
+    /**
+     * A list of all spawn eggs by their Bedrock IDs. Used in BedrockInventoryTransactionTranslator.java
+     */
+    public static final IntSet SPAWN_EGGS = new IntArraySet();
     /**
      * Wheat item entry, used in AbstractHorseEntity.java
      */
@@ -437,6 +442,9 @@ public class ItemRegistry {
                 case "minecraft:egg":
                     EGG = itemEntry;
                     break;
+                case "minecraft:fishing_rod":
+                    FISHING_ROD = itemEntry;
+                    break;
                 case "minecraft:shield":
                     SHIELD = itemEntry;
                     break;
@@ -457,9 +465,9 @@ public class ItemRegistry {
             }
 
             if (entry.getKey().contains("boat")) {
-                BOATS.add(entry.getValue().get("bedrock_id").intValue());
+                BOATS.add(itemEntry.getBedrockId());
             } else if (entry.getKey().contains("bucket") && !entry.getKey().contains("milk")) {
-                BUCKETS.add(entry.getValue().get("bedrock_id").intValue());
+                BUCKETS.add(itemEntry.getBedrockId());
             } else if (entry.getKey().contains("_carpet") && !entry.getKey().contains("moss")) {
                 // This should be the numerical order Java sends as an integer value for llamas
                 CARPETS.add(ItemData.builder()
@@ -471,6 +479,8 @@ public class ItemRegistry {
                 // The Java record level event uses the item ID as the "key" to play the record
                 EffectRegistry.RECORDS.put(itemIndex, SoundEvent.valueOf("RECORD_" +
                         entry.getKey().replace("minecraft:music_disc_", "").toUpperCase(Locale.ENGLISH)));
+            } else if (entry.getKey().endsWith("_spawn_egg")) {
+                SPAWN_EGGS.add(itemEntry.getBedrockId());
             }
 
             itemNames.add(entry.getKey());

@@ -34,8 +34,6 @@ import org.geysermc.cumulus.CustomForm;
 import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.response.CustomFormResponse;
 
-import java.util.ArrayList;
-
 public class SettingsUtils {
     /**
      * Build a settings form for the given session and store it for later
@@ -47,12 +45,13 @@ public class SettingsUtils {
         String language = session.getLocale();
 
         CustomForm.Builder builder = CustomForm.builder()
-                .translator(LanguageUtils::getPlayerLocaleString, language)
+                .translator(SettingsUtils::translateEntry, language)
                 .title("geyser.settings.title.main")
                 .iconPath("textures/ui/settings_glyph_color_2x.png");
 
         // Only show the client title if any of the client settings are available
-        if (session.getPreferencesCache().isAllowShowCoordinates() || CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
+        boolean showClientSettings = session.getPreferencesCache().isAllowShowCoordinates() || CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED;
+        if (showClientSettings) {
             builder.label("geyser.settings.title.client");
 
             // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
@@ -69,7 +68,8 @@ public class SettingsUtils {
             }
         }
 
-        if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
+        boolean canModifyServer = session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server");
+        if (canModifyServer) {
             builder.label("geyser.settings.title.server");
 
             DropdownComponent.Builder gamemodeDropdown = DropdownComponent.builder("%createWorldScreen.gameMode.personal");
@@ -85,7 +85,8 @@ public class SettingsUtils {
             builder.dropdown(difficultyDropdown);
         }
 
-        if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.gamerules")) {
+        boolean showGamerules = session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.gamerules");
+        if (showGamerules) {
             builder.label("geyser.settings.title.game_rules")
                     .translator(LocaleUtils::getLocaleString); // we need translate gamerules next
 
@@ -110,24 +111,20 @@ public class SettingsUtils {
                 return;
             }
 
-            if (session.getPreferencesCache().isAllowShowCoordinates() || CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
-                response.skip(); // Client settings title
-
+            if (showClientSettings) {
                 // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
                 if (session.getPreferencesCache().isAllowShowCoordinates()) {
                     session.getPreferencesCache().setPrefersShowCoordinates(response.next());
                     session.getPreferencesCache().updateShowCoordinates();
-                    response.skip();
                 }
 
                 if (CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
                     CooldownUtils.CooldownType cooldownType = CooldownUtils.CooldownType.VALUES[(int) response.next()];
                     session.getPreferencesCache().setCooldownPreference(cooldownType);
-                    response.skip();
                 }
             }
 
-            if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.server")) {
+            if (canModifyServer) {
                 GameMode gameMode = GameMode.values()[(int) response.next()];
                 if (gameMode != null && gameMode != session.getGameMode()) {
                     session.getConnector().getWorldManager().setPlayerGameMode(session, gameMode);
@@ -139,8 +136,8 @@ public class SettingsUtils {
                 }
             }
 
-            if (session.getOpPermissionLevel() >= 2 || session.hasPermission("geyser.settings.gamerules")) {
-                for (GameRule gamerule : GameRule.values()) {
+            if (showGamerules) {
+                for (GameRule gamerule : GameRule.VALUES) {
                     if (gamerule.equals(GameRule.UNKNOWN)) {
                         continue;
                     }
@@ -161,5 +158,12 @@ public class SettingsUtils {
         });
 
         return builder.build();
+    }
+
+    private static String translateEntry(String key, String locale) {
+        if (key.startsWith("geyser.")) {
+            return LanguageUtils.getPlayerLocaleString(key, locale);
+        }
+        return LocaleUtils.getLocaleString(key, locale);
     }
 }

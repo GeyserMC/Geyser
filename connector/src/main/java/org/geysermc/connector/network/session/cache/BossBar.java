@@ -37,15 +37,14 @@ import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 @AllArgsConstructor
 public class BossBar {
+    private final GeyserSession session;
 
-    private GeyserSession session;
-
-    private long entityId;
+    private final long entityId;
     private Component title;
     private float health;
-    private int color;
-    private int overlay;
-    private int darkenSky;
+    private final int color;
+    private final int overlay;
+    private final int darkenSky;
 
     public void addBossBar() {
         addBossEntity();

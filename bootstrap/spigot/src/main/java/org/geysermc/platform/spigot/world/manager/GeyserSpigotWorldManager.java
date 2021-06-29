@@ -71,6 +71,11 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             return BlockTranslator.JAVA_AIR_ID;
         }
         World world = bukkitPlayer.getWorld();
+        if (!world.isChunkLoaded(x >> 4, z >> 4)) {
+            // If the chunk isn't loaded, how could we even be here?
+            return BlockTranslator.JAVA_AIR_ID;
+        }
+
         return BlockTranslator.getJavaIdBlockMap().getOrDefault(world.getBlockAt(x, y, z).getBlockData().getAsString(), BlockTranslator.JAVA_AIR_ID);
     }
 
@@ -151,12 +156,20 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     }
 
     public Boolean getGameRuleBool(GeyserSession session, GameRule gameRule) {
-        return Boolean.parseBoolean(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getGameRuleValue(gameRule.getJavaID()));
+        String value = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getGameRuleValue(gameRule.getJavaID());
+        if (!value.isEmpty()) {
+            return Boolean.parseBoolean(value);
+        }
+        return (Boolean) gameRule.getDefaultValue();
     }
 
     @Override
     public int getGameRuleInt(GeyserSession session, GameRule gameRule) {
-        return Integer.parseInt(Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getGameRuleValue(gameRule.getJavaID()));
+        String value = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getGameRuleValue(gameRule.getJavaID());
+        if (!value.isEmpty()) {
+            return Integer.parseInt(value);
+        }
+        return (int) gameRule.getDefaultValue();
     }
 
     @Override

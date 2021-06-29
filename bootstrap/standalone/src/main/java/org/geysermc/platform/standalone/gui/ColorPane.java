@@ -60,8 +60,8 @@ public class ColorPane extends JTextPane {
      */
     public void appendANSI(String s) { // convert ANSI color codes first
         int aPos = 0;   // current char position in addString
-        int aIndex = 0; // index of next Escape sequence
-        int mIndex = 0; // index of "m" terminating Escape sequence
+        int aIndex; // index of next Escape sequence
+        int mIndex; // index of "m" terminating Escape sequence
         String tmpString = "";
         boolean stillSearching = true; // true until no more Escape sequences
         String addString = remaining + s;
@@ -83,7 +83,6 @@ public class ColorPane extends JTextPane {
 
 
             // while there's text in the input buffer
-            stillSearching = true;
             while (stillSearching) {
                 mIndex = addString.indexOf("m", aPos); // find the end of the escape sequence
                 if (mIndex < 0) { // the buffer ends halfway through the ansi string!

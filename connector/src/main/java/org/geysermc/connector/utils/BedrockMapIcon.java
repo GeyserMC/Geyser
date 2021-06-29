@@ -58,22 +58,17 @@ public enum BedrockMapIcon {
 
     private static final BedrockMapIcon[] VALUES = values();
 
-    private MapIconType iconType;
+    private final MapIconType iconType;
 
     @Getter
-    private int iconID;
+    private final int iconID;
 
-    private int red;
-    private int green;
-    private int blue;
+    private final int red;
+    private final int green;
+    private final int blue;
 
     BedrockMapIcon(MapIconType iconType, int iconID) {
-        this.iconType = iconType;
-        this.iconID = iconID;
-
-        this.red = 255;
-        this.green = 255;
-        this.blue = 255;
+        this(iconType, iconID, 255, 255, 255);
     }
 
     BedrockMapIcon(MapIconType iconType, int iconID, int red, int green, int blue) {
@@ -107,11 +102,11 @@ public enum BedrockMapIcon {
      * @return ARGB as an int
      */
     public int toARGB() {
-        int alpha = 255;
+        final int alpha = 255;
 
         return ((alpha & 0xFF) << 24) |
                 ((red & 0xFF) << 16) |
                 ((green & 0xFF) << 8) |
-                ((blue & 0xFF) << 0);
+                (blue & 0xFF);
     }
 }
