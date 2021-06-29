@@ -32,8 +32,7 @@ import org.spongepowered.api.command.CommandMapping;
 import org.spongepowered.api.text.Text;
 
 public class GeyserSpongeCommandManager extends CommandManager {
-
-    private org.spongepowered.api.command.CommandManager handle;
+    private final org.spongepowered.api.command.CommandManager handle;
 
     public GeyserSpongeCommandManager(org.spongepowered.api.command.CommandManager handle, GeyserConnector connector) {
         super(connector);
@@ -43,6 +42,8 @@ public class GeyserSpongeCommandManager extends CommandManager {
 
     @Override
     public String getDescription(String command) {
-        return handle.get(command).map(CommandMapping::getCallable).map(callable -> callable.getShortDescription(Sponge.getServer().getConsole()).orElse(Text.EMPTY)).orElse(Text.EMPTY).toPlain();
+        return handle.get(command).map(CommandMapping::getCallable)
+                .map(callable -> callable.getShortDescription(Sponge.getServer().getConsole()).orElse(Text.EMPTY))
+                .orElse(Text.EMPTY).toPlain();
     }
 }

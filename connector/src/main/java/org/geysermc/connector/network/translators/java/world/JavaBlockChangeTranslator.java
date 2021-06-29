@@ -45,8 +45,7 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
     public void translate(ServerBlockChangePacket packet, GeyserSession session) {
         Position pos = packet.getRecord().getPosition();
         boolean updatePlacement = session.getConnector().getPlatformType() != PlatformType.SPIGOT && // Spigot simply listens for the block place event
-                !(session.getConnector().getConfig().isCacheChunks() &&
-                session.getConnector().getWorldManager().getBlockAt(session, pos) == packet.getRecord().getBlock());
+                session.getConnector().getWorldManager().getBlockAt(session, pos) != packet.getRecord().getBlock();
         ChunkUtils.updateBlock(session, packet.getRecord().getBlock(), pos);
         if (updatePlacement) {
             this.checkPlace(session, packet);
@@ -68,7 +67,7 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
         // We need to check if the identifier is the same, else a packet with the sound of what the
         // player has in their hand is played, despite if the block is being placed or not
         boolean contains = false;
-        String identifier = BlockTranslator.getJavaIdBlockMap().inverse().get(packet.getRecord().getBlock()).split("\\[")[0];
+        String identifier = BlockTranslator.getBlockMapping(packet.getRecord().getBlock()).getItemIdentifier();
         if (identifier.equals(session.getLastBlockPlacedId())) {
             contains = true;
         }

@@ -26,6 +26,7 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
@@ -61,6 +62,11 @@ public class LivingEntity extends Entity {
     protected ItemData hand = ItemData.AIR;
     protected ItemData offHand = ItemData.AIR;
 
+    /**
+     * A convenience variable for if the entity has reached the maximum frozen ticks and should be shaking
+     */
+    private boolean isMaxFrozenState = false;
+
     public LivingEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }
@@ -68,7 +74,7 @@ public class LivingEntity extends Entity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         switch (entityMetadata.getId()) {
-            case 7: // blocking
+            case 8: // blocking
                 byte xd = (byte) entityMetadata.getValue();
 
                 //blocking gets triggered when using a bow, but if we set USING_ITEM for all items, it may look like
@@ -81,24 +87,22 @@ public class LivingEntity extends Entity {
                 // Riptide spin attack
                 metadata.getFlags().setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, (xd & 0x04) == 0x04);
                 break;
-            case 8:
+            case 9:
                 metadata.put(EntityData.HEALTH, entityMetadata.getValue());
                 break;
-            case 9:
+            case 10:
                 metadata.put(EntityData.EFFECT_COLOR, entityMetadata.getValue());
                 break;
-            case 10:
+            case 11:
                 metadata.put(EntityData.EFFECT_AMBIENT, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
                 break;
-            case 13: // Bed Position
+            case 14: // Bed Position
                 Position bedPosition = (Position) entityMetadata.getValue();
                 if (bedPosition != null) {
                     metadata.put(EntityData.BED_POSITION, Vector3i.from(bedPosition.getX(), bedPosition.getY(), bedPosition.getZ()));
-                    if (session.getConnector().getConfig().isCacheChunks()) {
-                        int bed = session.getConnector().getWorldManager().getBlockAt(session, bedPosition);
-                        // Bed has to be updated, or else player is floating in the air
-                        ChunkUtils.updateBlock(session, bed, bedPosition);
-                    }
+                    int bed = session.getConnector().getWorldManager().getBlockAt(session, bedPosition);
+                    // Bed has to be updated, or else player is floating in the air
+                    ChunkUtils.updateBlock(session, bed, bedPosition);
                     // Indicate that the player should enter the sleep cycle
                     // Has to be a byte or it does not work
                     // (Bed position is what actually triggers sleep - "pose" is only optional)
@@ -111,6 +115,28 @@ public class LivingEntity extends Entity {
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    protected boolean isShaking(GeyserSession session) {
+        return isMaxFrozenState;
+    }
+
+    @Override
+    protected void setDimensions(Pose pose) {
+        if (pose == Pose.SLEEPING) {
+            metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.2f);
+            metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.2f);
+        } else {
+            super.setDimensions(pose);
+        }
+    }
+
+    @Override
+    protected void setFreezing(GeyserSession session, float amount) {
+        super.setFreezing(session, amount);
+        this.isMaxFrozenState = amount >= 1.0f;
+        metadata.getFlags().setFlag(EntityFlag.SHAKING, isShaking(session));
     }
 
     public void updateAllEquipment(GeyserSession session) {

@@ -32,7 +32,7 @@ import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import javax.annotation.Nullable;
 
 @BlockEntity(name = "ShulkerBox")
-public class ShulkerBoxBlockEntityTranslator extends BlockEntityTranslator {
+public class ShulkerBoxBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     /**
      * Also used in {@link org.geysermc.connector.network.translators.inventory.translators.ShulkerInventoryTranslator}
      * where {@code tag} is passed as null.

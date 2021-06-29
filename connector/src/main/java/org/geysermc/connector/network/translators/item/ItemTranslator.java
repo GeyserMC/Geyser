@@ -41,7 +41,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.utils.FileUtils;
-import org.geysermc.connector.utils.LanguageUtils;
+import org.geysermc.connector.utils.LocaleUtils;
 import org.reflections.Reflections;
 
 import java.util.*;
@@ -83,13 +83,15 @@ public abstract class ItemTranslator {
                 for (ItemEntry item : appliedItems) {
                     ItemTranslator registered = ITEM_STACK_TRANSLATORS.get(item.getJavaId());
                     if (registered != null) {
-                        GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.item.already_registered", clazz.getCanonicalName(), registered.getClass().getCanonicalName(), item.getJavaIdentifier()));
+                        GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated item translator " +
+                                clazz.getCanonicalName() + ". Item translator " + registered.getClass().getCanonicalName() +
+                                " is already registered for the item " + item.getJavaIdentifier());
                         continue;
                     }
                     ITEM_STACK_TRANSLATORS.put(item.getJavaId(), itemStackTranslator);
                 }
             } catch (InstantiationException | IllegalAccessException e) {
-                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.item.failed", clazz.getCanonicalName()));
+                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated item translator " + clazz.getCanonicalName());
             }
         }
 
@@ -143,8 +145,6 @@ public abstract class ItemTranslator {
             nbt.put(new IntTag("map", 0));
         }
 
-        ItemStack itemStack = new ItemStack(stack.getId(), stack.getAmount(), nbt);
-
         if (nbt != null) {
             for (NbtItemStackTranslator translator : NBT_TRANSLATORS) {
                 if (translator.acceptItem(bedrockItem)) {
@@ -153,7 +153,9 @@ public abstract class ItemTranslator {
             }
         }
 
-        translateDisplayProperties(session, nbt);
+        nbt = translateDisplayProperties(session, nbt, bedrockItem);
+
+        ItemStack itemStack = new ItemStack(stack.getId(), stack.getAmount(), nbt);
 
         ItemData.Builder builder;
         ItemTranslator itemStackTranslator = ITEM_STACK_TRANSLATORS.get(bedrockItem.getJavaId());
@@ -230,14 +232,14 @@ public abstract class ItemTranslator {
     public ItemStack translateToJava(ItemData itemData, ItemEntry itemEntry) {
         if (itemData == null) return null;
         if (itemData.getTag() == null) {
-            return new ItemStack(itemEntry.getJavaId(), itemData.getCount(), new com.github.steveice10.opennbt.tag.builtin.CompoundTag(""));
+            return new ItemStack(itemEntry.getJavaId(), itemData.getCount(), new CompoundTag(""));
         }
         return new ItemStack(itemEntry.getJavaId(), itemData.getCount(), this.translateToJavaNBT("", itemData.getTag()));
     }
 
     public abstract List<ItemEntry> getAppliedItems();
 
-    public NbtMap translateNbtToBedrock(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag) {
+    public NbtMap translateNbtToBedrock(CompoundTag tag) {
         NbtMapBuilder builder = NbtMap.builder();
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
             for (String str : tag.getValue().keySet()) {
@@ -252,7 +254,7 @@ public abstract class ItemTranslator {
         return builder.build();
     }
 
-    private Object translateToBedrockNBT(com.github.steveice10.opennbt.tag.builtin.Tag tag) {
+    private Object translateToBedrockNBT(Tag tag) {
         if (tag instanceof ByteArrayTag) {
             return ((ByteArrayTag) tag).getValue();
         }
@@ -300,7 +302,7 @@ public abstract class ItemTranslator {
             ListTag listTag = (ListTag) tag;
 
             List<Object> tagList = new ArrayList<>();
-            for (com.github.steveice10.opennbt.tag.builtin.Tag value : listTag) {
+            for (Tag value : listTag) {
                 tagList.add(translateToBedrockNBT(value));
             }
             NbtType<?> type = NbtType.COMPOUND;
@@ -399,8 +401,20 @@ public abstract class ItemTranslator {
      * Translates the display name of the item
      * @param session the Bedrock client's session
      * @param tag the tag to translate
+     * @param itemEntry the item entry, in case it requires translation
+     *
+     * @return the new tag to use, should the current one be null
      */
-    public static void translateDisplayProperties(GeyserSession session, CompoundTag tag) {
+    public static CompoundTag translateDisplayProperties(GeyserSession session, CompoundTag tag, ItemEntry itemEntry) {
+        return translateDisplayProperties(session, tag, itemEntry, 'f');
+    }
+
+    /**
+     * @param translationColor if this item is not available on Java, the color that the new name should be.
+     *                         Normally, this should just be white, but for shulker boxes this should be gray.
+     */
+    public static CompoundTag translateDisplayProperties(GeyserSession session, CompoundTag tag, ItemEntry itemEntry, char translationColor) {
+        boolean hasCustomName = false;
         if (tag != null) {
             CompoundTag display = tag.get("display");
             if (display != null && display.contains("Name")) {
@@ -411,11 +425,32 @@ public abstract class ItemTranslator {
 
                 // Add the new name tag
                 display.put(new StringTag("Name", name));
+                // Indicate that a custom name is present
+                hasCustomName = true;
 
                 // Add to the new root tag
                 tag.put(display);
             }
         }
+
+        if (!hasCustomName && itemEntry instanceof TranslatableItemEntry) {
+            // No custom name, but we need to localize the item's name
+            if (tag == null) {
+                tag = new CompoundTag("");
+            }
+            CompoundTag display = tag.get("display");
+            if (display == null) {
+                display = new CompoundTag("display");
+                // Add to the new root tag
+                tag.put(display);
+            }
+
+            String translationKey = ((TranslatableItemEntry) itemEntry).getTranslationString();
+            // Reset formatting since Bedrock defaults to italics
+            display.put(new StringTag("Name", "§r§" + translationColor + LocaleUtils.getLocaleString(translationKey, session.getLocale())));
+        }
+
+        return tag;
     }
 
     /**

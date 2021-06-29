@@ -28,15 +28,14 @@ package org.geysermc.connector.network.translators.item;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator1_16_210;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator1_17_0;
 
 @Getter
 @AllArgsConstructor
 @ToString
 public class ItemEntry {
-
-    public static ItemEntry AIR = new ItemEntry("minecraft:air", "minecraft:air", 0, 0, 0,
-            BlockTranslator1_16_210.INSTANCE.getBedrockAirId(), 64);
+    public static final ItemEntry AIR = new ItemEntry("minecraft:air", "minecraft:air", 0, 0, 0,
+            BlockTranslator1_17_0.INSTANCE.getBedrockAirId(), 64);
 
     private final String javaIdentifier;
     private final String bedrockIdentifier;

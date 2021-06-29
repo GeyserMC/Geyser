@@ -40,10 +40,9 @@ public class PufferFishEntity extends AbstractFishEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
-            // Transfers correctly but doesn't apply on the client
+        if (entityMetadata.getId() == 17) {
             int puffsize = (int) entityMetadata.getValue();
-            metadata.put(EntityData.PUFFERFISH_SIZE, puffsize);
+            metadata.put(EntityData.PUFFERFISH_SIZE, (byte) puffsize);
             metadata.put(EntityData.VARIANT, puffsize);
         }
         super.updateBedrockMetadata(entityMetadata, session);

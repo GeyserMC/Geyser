@@ -59,6 +59,7 @@ import org.geysermc.connector.network.translators.inventory.translators.furnace.
 import org.geysermc.connector.network.translators.inventory.translators.furnace.FurnaceInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.translators.furnace.SmokerInventoryTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
+import org.geysermc.connector.utils.ItemUtils;
 
 import java.util.*;
 
@@ -868,7 +869,7 @@ public abstract class InventoryTranslator {
             if (itemStack.getNbt() != null) {
                 Tag damage = itemStack.getNbt().get("Damage");
                 if (damage instanceof IntTag) {
-                    durability = ((IntTag) damage).getValue();
+                    durability = ItemUtils.getCorrectBedrockDurability(itemStack.getJavaId(), ((IntTag) damage).getValue());
                 }
             }
 

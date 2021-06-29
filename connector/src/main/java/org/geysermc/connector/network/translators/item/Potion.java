@@ -74,6 +74,8 @@ public enum Potion {
     SLOW_FALLING(40),
     LONG_SLOW_FALLING(41);
 
+    public static final Potion[] VALUES = values();
+
     private final String javaIdentifier;
     private final short bedrockId;
 
@@ -83,7 +85,7 @@ public enum Potion {
     }
 
     public static Potion getByJavaIdentifier(String javaIdentifier) {
-        for (Potion potion : Potion.values()) {
+        for (Potion potion : VALUES) {
             if (potion.javaIdentifier.equals(javaIdentifier)) {
                 return potion;
             }
@@ -92,7 +94,7 @@ public enum Potion {
     }
 
     public static Potion getByBedrockId(int bedrockId) {
-        for (Potion potion : Potion.values()) {
+        for (Potion potion : VALUES) {
             if (potion.bedrockId == bedrockId) {
                 return potion;
             }

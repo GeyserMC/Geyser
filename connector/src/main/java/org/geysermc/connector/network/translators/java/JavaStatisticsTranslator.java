@@ -40,7 +40,7 @@ public class JavaStatisticsTranslator extends PacketTranslator<ServerStatisticsP
 
         if (session.isWaitingForStatistics()) {
             session.setWaitingForStatistics(false);
-            session.sendForm(StatisticsUtils.buildMenuForm(session), StatisticsUtils.STATISTICS_MENU_FORM_ID);
+            StatisticsUtils.buildAndSendStatisticsMenu(session);
         }
     }
 }

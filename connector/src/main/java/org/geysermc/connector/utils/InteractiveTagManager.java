@@ -25,12 +25,12 @@
 
 package org.geysermc.connector.utils;
 
-import com.google.common.collect.ImmutableSet;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import lombok.Getter;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.entity.living.animal.horse.HorseEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -40,20 +40,6 @@ import java.util.EnumSet;
 import java.util.Set;
 
 public class InteractiveTagManager {
-    /**
-     * A list of all foods a horse/donkey can eat on Java Edition.
-     * Used to display interactive tag if needed.
-     */
-    private static final Set<String> DONKEY_AND_HORSE_FOODS = ImmutableSet.of("golden_apple", "enchanted_golden_apple",
-            "golden_carrot", "sugar", "apple", "wheat", "hay_block");
-
-    /**
-     * A list of all flowers. Used for feeding bees.
-     */
-    private static final Set<String> FLOWERS = ImmutableSet.of("dandelion", "poppy", "blue_orchid", "allium", "azure_bluet",
-            "red_tulip", "pink_tulip", "white_tulip", "orange_tulip", "cornflower", "lily_of_the_valley", "wither_rose",
-            "sunflower", "lilac", "rose_bush", "peony");
-
     /**
      * All entity types that can be leashed on Java Edition
      */
@@ -67,14 +53,6 @@ public class InteractiveTagManager {
             EntityType.ZOMBIE_HORSE, EntityType.MULE);
 
     /**
-     * A list of all foods a wolf can eat on Java Edition.
-     * Used to display interactive tag if needed.
-     */
-    private static final Set<String> WOLF_FOODS = ImmutableSet.of("pufferfish", "tropical_fish", "chicken", "cooked_chicken",
-            "porkchop", "beef", "rabbit", "cooked_porkchop", "cooked_beef", "rotten_flesh", "mutton", "cooked_mutton",
-            "cooked_rabbit");
-
-    /**
      * Update the suggestion that the client currently has on their screen for this entity (for example, "Feed" or "Ride")
      *
      * @param session the Bedrock client session
@@ -85,9 +63,8 @@ public class InteractiveTagManager {
         ItemEntry itemEntry = session.getPlayerInventory().getItemInHand().getItemEntry();
         String javaIdentifierStripped = itemEntry.getJavaIdentifier().replace("minecraft:", "");
 
-        // TODO - in the future, update these in the metadata? So the client doesn't have to wiggle their cursor around for it to happen
-        // TODO - also, might be good to abstract out the eating thing. I know there will need to be food tracked for https://github.com/GeyserMC/Geyser/issues/1005 but not all food is breeding food
         InteractiveTag interactiveTag = InteractiveTag.NONE;
+
         if (entityMetadata.getLong(EntityData.LEASH_HOLDER_EID) == session.getPlayerEntity().getGeyserId()) {
             // Unleash the entity
             interactiveTag = InteractiveTag.REMOVE_LEASH;
@@ -105,29 +82,22 @@ public class InteractiveTagManager {
             // Holding a leash and the mob is leashable for sure
             // (Plugins can change this behavior so that's something to look into in the far far future)
             interactiveTag = InteractiveTag.LEASH;
+        } else if (interactEntity instanceof AnimalEntity && ((AnimalEntity) interactEntity).canEat(session, javaIdentifierStripped, itemEntry)) {
+            // This animal can be fed
+            interactiveTag = InteractiveTag.FEED;
         } else {
             switch (interactEntity.getEntityType()) {
-                case BEE:
-                    if (FLOWERS.contains(javaIdentifierStripped)) {
-                        interactiveTag = InteractiveTag.FEED;
+                case BOAT:
+                    if (interactEntity.getPassengers().size() < 2) {
+                        interactiveTag = InteractiveTag.BOARD_BOAT;
                     }
                     break;
-                case BOAT:
-                    interactiveTag = InteractiveTag.BOARD_BOAT;
-                    break;
                 case CAT:
-                    if (javaIdentifierStripped.equals("cod") || javaIdentifierStripped.equals("salmon")) {
-                        interactiveTag = InteractiveTag.FEED;
-                    } else if (entityMetadata.getFlags().getFlag(EntityFlag.TAMED) &&
+                    if (entityMetadata.getFlags().getFlag(EntityFlag.TAMED) &&
                             entityMetadata.getLong(EntityData.OWNER_EID) == session.getPlayerEntity().getGeyserId()) {
                         // Tamed and owned by player - can sit/stand
                         interactiveTag = entityMetadata.getFlags().getFlag(EntityFlag.SITTING) ? InteractiveTag.STAND : InteractiveTag.SIT;
                         break;
-                    }
-                    break;
-                case CHICKEN:
-                    if (javaIdentifierStripped.contains("seeds")) {
-                        interactiveTag = InteractiveTag.FEED;
                     }
                     break;
                 case MOOSHROOM:
@@ -143,9 +113,7 @@ public class InteractiveTagManager {
                     }
                     // Fall down to COW as this works on mooshrooms
                 case COW:
-                    if (javaIdentifierStripped.equals("wheat")) {
-                        interactiveTag = InteractiveTag.FEED;
-                    } else if (javaIdentifierStripped.equals("bucket")) {
+                    if (javaIdentifierStripped.equals("bucket")) {
                         // Milk the cow
                         interactiveTag = InteractiveTag.MILK;
                     }
@@ -175,69 +143,28 @@ public class InteractiveTagManager {
                         interactiveTag = InteractiveTag.OPEN_CONTAINER;
                         break;
                     }
-                    // have another switch statement as, while these share mount attributes they don't share food
-                    switch (interactEntity.getEntityType()) {
-                        case LLAMA:
-                        case TRADER_LLAMA:
-                            if (javaIdentifierStripped.equals("wheat") || javaIdentifierStripped.equals("hay_block")) {
-                                interactiveTag = InteractiveTag.FEED;
-                                break;
-                            }
-                        case DONKEY:
-                        case HORSE:
-                            // Undead can't eat
-                            if (DONKEY_AND_HORSE_FOODS.contains(javaIdentifierStripped)) {
-                                interactiveTag = InteractiveTag.FEED;
-                                break;
-                            }
-                    }
                     if (!entityMetadata.getFlags().getFlag(EntityFlag.BABY)) {
                         // Can't ride a baby
                         if (tamed) {
                             interactiveTag = InteractiveTag.RIDE_HORSE;
-                        } else if (itemEntry.equals(ItemEntry.AIR)) {
+                        } else if (itemEntry.getJavaId() == 0) {
                             // Can't hide an untamed entity without having your hand empty
                             interactiveTag = InteractiveTag.MOUNT;
                         }
                     }
                     break;
-                case FOX:
-                    if (javaIdentifierStripped.equals("sweet_berries")) {
-                        interactiveTag = InteractiveTag.FEED;
-                    }
-                    break;
-                case HOGLIN:
-                    if (javaIdentifierStripped.equals("crimson_fungus")) {
-                        interactiveTag = InteractiveTag.FEED;
-                    }
-                    break;
                 case MINECART:
-                    interactiveTag = InteractiveTag.RIDE_MINECART;
+                    if (interactEntity.getPassengers().isEmpty()) {
+                        interactiveTag = InteractiveTag.RIDE_MINECART;
+                    }
                     break;
                 case MINECART_CHEST:
                 case MINECART_COMMAND_BLOCK:
                 case MINECART_HOPPER:
                     interactiveTag = InteractiveTag.OPEN_CONTAINER;
                     break;
-                case OCELOT:
-                    if (javaIdentifierStripped.equals("cod") || javaIdentifierStripped.equals("salmon")) {
-                        interactiveTag = InteractiveTag.FEED;
-                    }
-                    break;
-                case PANDA:
-                    if (javaIdentifierStripped.equals("bamboo")) {
-                        interactiveTag = InteractiveTag.FEED;
-                    }
-                    break;
-                case PARROT:
-                    if (javaIdentifierStripped.contains("seeds") || javaIdentifierStripped.equals("cookie")) {
-                        interactiveTag = InteractiveTag.FEED;
-                    }
-                    break;
                 case PIG:
-                    if (javaIdentifierStripped.equals("carrot") || javaIdentifierStripped.equals("potato") || javaIdentifierStripped.equals("beetroot")) {
-                        interactiveTag = InteractiveTag.FEED;
-                    } else if (entityMetadata.getFlags().getFlag(EntityFlag.SADDLED)) {
+                    if (entityMetadata.getFlags().getFlag(EntityFlag.SADDLED)) {
                         interactiveTag = InteractiveTag.MOUNT;
                     }
                     break;
@@ -246,15 +173,8 @@ public class InteractiveTagManager {
                         interactiveTag = InteractiveTag.BARTER;
                     }
                     break;
-                case RABBIT:
-                    if (javaIdentifierStripped.equals("dandelion") || javaIdentifierStripped.equals("carrot") || javaIdentifierStripped.equals("golden_carrot")) {
-                        interactiveTag = InteractiveTag.FEED;
-                    }
-                    break;
                 case SHEEP:
-                    if (javaIdentifierStripped.equals("wheat")) {
-                        interactiveTag = InteractiveTag.FEED;
-                    } else if (!entityMetadata.getFlags().getFlag(EntityFlag.SHEARED)) {
+                    if (!entityMetadata.getFlags().getFlag(EntityFlag.SHEARED)) {
                         if (javaIdentifierStripped.equals("shears")) {
                             // Shear the sheep
                             interactiveTag = InteractiveTag.SHEAR;
@@ -265,15 +185,8 @@ public class InteractiveTagManager {
                     }
                     break;
                 case STRIDER:
-                    if (javaIdentifierStripped.equals("warped_fungus")) {
-                        interactiveTag = InteractiveTag.FEED;
-                    } else if (entityMetadata.getFlags().getFlag(EntityFlag.SADDLED)) {
+                    if (entityMetadata.getFlags().getFlag(EntityFlag.SADDLED)) {
                         interactiveTag = InteractiveTag.RIDE_STRIDER;
-                    }
-                    break;
-                case TURTLE:
-                    if (javaIdentifierStripped.equals("seagrass")) {
-                        interactiveTag = InteractiveTag.FEED;
                     }
                     break;
                 case VILLAGER:
@@ -289,10 +202,6 @@ public class InteractiveTagManager {
                     if (javaIdentifierStripped.equals("bone") && !entityMetadata.getFlags().getFlag(EntityFlag.TAMED)) {
                         // Bone and untamed - can tame
                         interactiveTag = InteractiveTag.TAME;
-                    } else if (WOLF_FOODS.contains(javaIdentifierStripped)) {
-                        // Compatible food in hand - feed
-                        // Sometimes just sits/stands when the wolf isn't hungry - there doesn't appear to be a way to fix this
-                        interactiveTag = InteractiveTag.FEED;
                     } else if (entityMetadata.getFlags().getFlag(EntityFlag.TAMED) &&
                             entityMetadata.getLong(EntityData.OWNER_EID) == session.getPlayerEntity().getGeyserId()) {
                         // Tamed and owned by player - can sit/stand

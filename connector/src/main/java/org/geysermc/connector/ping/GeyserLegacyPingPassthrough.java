@@ -43,8 +43,7 @@ import java.net.SocketTimeoutException;
 import java.util.concurrent.TimeUnit;
 
 public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runnable {
-
-    private GeyserConnector connector;
+    private final GeyserConnector connector;
 
     public GeyserLegacyPingPassthrough(GeyserConnector connector) {
         this.connector = connector;

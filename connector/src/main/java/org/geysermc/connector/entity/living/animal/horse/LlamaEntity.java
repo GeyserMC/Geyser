@@ -32,6 +32,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 public class LlamaEntity extends ChestedHorseEntity {
@@ -45,11 +46,11 @@ public class LlamaEntity extends ChestedHorseEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         // Strength
-        if (entityMetadata.getId() == 19) {
+        if (entityMetadata.getId() == 20) {
             metadata.put(EntityData.STRENGTH, entityMetadata.getValue());
         }
         // Color equipped on the llama
-        if (entityMetadata.getId() == 20) {
+        if (entityMetadata.getId() == 21) {
             // Bedrock treats llama decoration as armor
             MobArmorEquipmentPacket equipmentPacket = new MobArmorEquipmentPacket();
             equipmentPacket.setRuntimeEntityId(geyserId);
@@ -70,9 +71,14 @@ public class LlamaEntity extends ChestedHorseEntity {
             session.sendUpstreamPacket(equipmentPacket);
         }
         // Color of the llama
-        if (entityMetadata.getId() == 21) {
+        if (entityMetadata.getId() == 22) {
             metadata.put(EntityData.VARIANT, entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+        return javaIdentifierStripped.equals("wheat") || javaIdentifierStripped.equals("hay_block");
     }
 }

@@ -34,6 +34,7 @@ import org.bukkit.util.CachedServerIcon;
 import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 
+import javax.annotation.Nonnull;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collections;
@@ -72,9 +73,10 @@ public class GeyserSpigotPingPassthrough implements IGeyserPingPassthrough {
         public void setServerIcon(CachedServerIcon icon) throws IllegalArgumentException, UnsupportedOperationException {
         }
 
+        @Nonnull
         @Override
         public Iterator<Player> iterator() throws UnsupportedOperationException {
-            return Collections.EMPTY_LIST.iterator();
+            return Collections.emptyIterator();
         }
     }
 

@@ -30,21 +30,14 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
-import org.geysermc.connector.utils.ChunkUtils;
 
 /**
  * Does not implement BlockEntityTranslator because it's only a block entity in Bedrock
  */
-public class NoteblockBlockEntityTranslator implements RequiresBlockState {
-    @Override
-    public boolean isBlock(int blockState) {
-        return BlockStateValues.getNoteblockPitch(blockState) != -1;
-    }
+public class NoteblockBlockEntityTranslator {
 
     public static void translate(GeyserSession session, Position position) {
-        int blockState = session.getConnector().getConfig().isCacheChunks() ?
-                session.getConnector().getWorldManager().getBlockAt(session, position) :
-                ChunkUtils.CACHED_BLOCK_ENTITIES.removeInt(position);
+        int blockState = session.getConnector().getWorldManager().getBlockAt(session, position);
         BlockEventPacket blockEventPacket = new BlockEventPacket();
         blockEventPacket.setBlockPosition(Vector3i.from(position.getX(), position.getY(), position.getZ()));
         blockEventPacket.setEventType(0);

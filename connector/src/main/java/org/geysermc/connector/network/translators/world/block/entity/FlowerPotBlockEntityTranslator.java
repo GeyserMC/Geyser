@@ -33,7 +33,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.utils.BlockEntityUtils;
 
-public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity, RequiresBlockState {
+public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity {
     /**
      * @param blockState the Java block state of a potential flower pot block
      * @return true if the block is a flower pot

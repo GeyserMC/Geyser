@@ -72,8 +72,6 @@ public class Entity {
      */
     protected boolean onGround;
 
-    protected float scale = 1;
-
     protected EntityType entityType;
 
     protected boolean valid;
@@ -303,31 +301,13 @@ public class Entity {
                 metadata.getFlags().setFlag(EntityFlag.SLEEPING, pose.equals(Pose.SLEEPING));
                 // Triggered when crawling
                 metadata.getFlags().setFlag(EntityFlag.SWIMMING, pose.equals(Pose.SWIMMING));
-                float width = entityType.getWidth();
-                float height = entityType.getHeight();
-                switch (pose) {
-                    case SLEEPING:
-                        if (this instanceof LivingEntity) {
-                            width = 0.2f;
-                            height = 0.2f;
-                        }
-                        break;
-                    case SNEAKING:
-                        if (entityType == EntityType.PLAYER) {
-                            height = 1.5f;
-                        }
-                        break;
-                    case FALL_FLYING:
-                    case SPIN_ATTACK:
-                    case SWIMMING:
-                        if (entityType == EntityType.PLAYER) {
-                            // Seems like this is only cared about for players; nothing else
-                            height = 0.6f;
-                        }
-                        break;
-                }
-                metadata.put(EntityData.BOUNDING_BOX_WIDTH, width);
-                metadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
+                setDimensions(pose);
+                break;
+            case 7: // Freezing ticks
+                // The value that Java edition gives us is in ticks, but Bedrock uses a float percentage of the strength 0.0 -> 1.0
+                // The Java client caps its freezing tick percentage at 140
+                int freezingTicks = Math.min((int) entityMetadata.getValue(), 140);
+                setFreezing(session, freezingTicks / 140f);
                 break;
         }
     }
@@ -343,6 +323,31 @@ public class Entity {
         entityDataPacket.setRuntimeEntityId(geyserId);
         entityDataPacket.getMetadata().putAll(metadata);
         session.sendUpstreamPacket(entityDataPacket);
+    }
+
+    /**
+     * If true, the entity should be shaking on the client's end.
+     *
+     * @return whether {@link EntityFlag#SHAKING} should be set to true.
+     */
+    protected boolean isShaking(GeyserSession session) {
+        return false;
+    }
+
+    /**
+     * Set the height and width of the entity's bounding box
+     */
+    protected void setDimensions(Pose pose) {
+        // No flexibility options for basic entities
+        metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
+        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
+    }
+
+    /**
+     * Set a float from 0-1 - how strong the "frozen" overlay should be on screen.
+     */
+    protected void setFreezing(GeyserSession session, float amount) {
+        metadata.put(EntityData.FREEZING_EFFECT_STRENGTH, amount);
     }
 
     /**

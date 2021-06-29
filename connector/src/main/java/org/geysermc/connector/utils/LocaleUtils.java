@@ -136,7 +136,7 @@ public class LocaleUtils {
         // Check if we have already downloaded the locale file
         if (localeFile.exists()) {
             String curHash = "";
-            String targetHash = "";
+            String targetHash;
 
             if (locale.equals("en_us")) {
                 try {

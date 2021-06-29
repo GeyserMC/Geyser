@@ -83,7 +83,7 @@ public class QueryPacketHandler {
      * @return if the packet is a query packet
      */
     private boolean isQueryPacket(ByteBuf buffer) {
-        return (buffer.readableBytes() >= 2) ? buffer.readUnsignedShort() == 0xFEFD : false;
+        return buffer.readableBytes() >= 2 && buffer.readUnsignedShort() == 0xFEFD;
     }
 
     /**

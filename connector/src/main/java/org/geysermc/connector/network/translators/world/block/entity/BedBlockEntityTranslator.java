@@ -32,11 +32,6 @@ import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 @BlockEntity(name = "Bed")
 public class BedBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
-    public boolean isBlock(int blockState) {
-        return BlockStateValues.getBedColor(blockState) != -1;
-    }
-
-    @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
         byte bedcolor = BlockStateValues.getBedColor(blockState);
         // Just in case...

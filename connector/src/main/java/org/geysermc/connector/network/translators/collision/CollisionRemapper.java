@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.translators.collision;
 
-import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 

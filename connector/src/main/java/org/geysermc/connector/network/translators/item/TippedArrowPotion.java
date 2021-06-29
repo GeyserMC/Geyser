@@ -77,6 +77,8 @@ public enum TippedArrowPotion {
     SLOW_FALLING(41, ArrowParticleColors.SLOW_FALLING),
     LONG_SLOW_FALLING(42, ArrowParticleColors.SLOW_FALLING);
 
+    private static final TippedArrowPotion[] VALUES = values();
+
     private final String javaIdentifier;
     private final short bedrockId;
     /**
@@ -92,7 +94,7 @@ public enum TippedArrowPotion {
     }
 
     public static TippedArrowPotion getByJavaIdentifier(String javaIdentifier) {
-        for (TippedArrowPotion potion : TippedArrowPotion.values()) {
+        for (TippedArrowPotion potion : VALUES) {
             if (potion.javaIdentifier.equals(javaIdentifier)) {
                 return potion;
             }
@@ -101,7 +103,7 @@ public enum TippedArrowPotion {
     }
 
     public static TippedArrowPotion getByBedrockId(int bedrockId) {
-        for (TippedArrowPotion potion : TippedArrowPotion.values()) {
+        for (TippedArrowPotion potion : VALUES) {
             if (potion.bedrockId == bedrockId) {
                 return potion;
             }
@@ -114,7 +116,7 @@ public enum TippedArrowPotion {
      * @return the tipped arrow potion that most closely resembles that color.
      */
     public static TippedArrowPotion getByJavaColor(int color) {
-        for (TippedArrowPotion potion : TippedArrowPotion.values()) {
+        for (TippedArrowPotion potion : VALUES) {
             if (potion.javaColor == color) {
                 return potion;
             }
