@@ -581,9 +581,9 @@ public class GeyserConnector {
      *
      * @param channel Channel to register
      */
-    public void registerPluginChannel(String channel) {
+    public void registerPluginChannel(String channel) throws IllegalArgumentException {
         if (registeredPluginChannels.contains(channel)) {
-            return;
+            throw new IllegalArgumentException("Channel already registered");
         }
 
         registeredPluginChannels.add(channel);
