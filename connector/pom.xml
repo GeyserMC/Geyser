@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>geyser-parent</artifactId>
-        <version>1.4.0-ext-SNAPSHOT</version>
+        <version>1.4.0-bundabrg-SNAPSHOT</version>
     </parent>
     <artifactId>connector</artifactId>
 

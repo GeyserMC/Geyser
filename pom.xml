@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.geysermc</groupId>
     <artifactId>geyser-parent</artifactId>
-    <version>1.4.0-ext-SNAPSHOT</version>
+    <version>1.4.0-bundabrg-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Geyser</name>
     <description>Allows for players from Minecraft Bedrock Edition to join Minecraft Java Edition servers.</description>
