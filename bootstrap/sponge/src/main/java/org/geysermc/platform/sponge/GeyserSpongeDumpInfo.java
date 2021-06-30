@@ -36,13 +36,12 @@ import java.util.List;
 
 @Getter
 public class GeyserSpongeDumpInfo extends BootstrapDumpInfo {
-
-    private String platformName;
-    private String platformVersion;
-    private boolean onlineMode;
-    private String serverIP;
-    private int serverPort;
-    private List<PluginInfo> plugins;
+    private final String platformName;
+    private final String platformVersion;
+    private final boolean onlineMode;
+    private final String serverIP;
+    private final int serverPort;
+    private final List<PluginInfo> plugins;
 
     GeyserSpongeDumpInfo() {
         super();

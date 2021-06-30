@@ -62,10 +62,6 @@ public class BlockStorage {
         return (version.getId() << 1) | (runtime ? 1 : 0);
     }
 
-    private static BitArrayVersion getVersionFromHeader(byte header) {
-        return BitArrayVersion.get(header >> 1, true);
-    }
-
     public int getFullBlock(int index) {
         return this.palette.getInt(this.bitArray.get(index));
     }

@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerInteractEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.ItemFrameDropItemPacket;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -44,9 +45,11 @@ public class BedrockItemFrameDropItemTranslator extends PacketTranslator<ItemFra
 
     @Override
     public void translate(ItemFrameDropItemPacket packet, GeyserSession session) {
-        ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) ItemFrameEntity.getItemFrameEntityId(session, packet.getBlockPosition()),
-                InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
-        session.sendDownstreamPacket(interactPacket);
+        Entity entity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
+        if (entity != null) {
+            ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
+                    InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
+            session.sendDownstreamPacket(interactPacket);
+        }
     }
-
 }

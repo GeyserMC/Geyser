@@ -33,21 +33,19 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntArraySet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.translators.effect.EffectRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator1_16_210;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator1_17_0;
 import org.geysermc.connector.utils.FileUtils;
-import org.geysermc.connector.utils.LanguageUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -101,6 +99,10 @@ public class ItemRegistry {
      */
     public static ItemEntry CROSSBOW;
     /**
+     * Fishing rod item entry, used in ItemUtils.java
+     */
+    public static ItemEntry FISHING_ROD;
+    /**
      * Empty item bucket, used in BedrockInventoryTransactionTranslator.java
      */
     public static ItemEntry MILK_BUCKET;
@@ -109,13 +111,13 @@ public class ItemRegistry {
      */
     public static ItemEntry EGG;
     /**
-     * Gold item entry, used in PiglinEntity.java
-     */
-    public static ItemEntry GOLD;
-    /**
      * Shield item entry, used in Entity.java and LivingEntity.java
      */
     public static ItemEntry SHIELD;
+    /**
+     * A list of all spawn eggs by their Bedrock IDs. Used in BedrockInventoryTransactionTranslator.java
+     */
+    public static final IntSet SPAWN_EGGS = new IntArraySet();
     /**
      * Wheat item entry, used in AbstractHorseEntity.java
      */
@@ -152,7 +154,7 @@ public class ItemRegistry {
         try {
             itemEntries = GeyserConnector.JSON_MAPPER.readValue(stream, itemEntriesType);
         } catch (Exception e) {
-            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.runtime_bedrock"), e);
+            throw new AssertionError("Unable to load Bedrock runtime item IDs", e);
         }
 
         int lodestoneCompassId = 0;
@@ -176,7 +178,7 @@ public class ItemRegistry {
         try {
             creativeItemEntries = GeyserConnector.JSON_MAPPER.readTree(stream).get("items");
         } catch (Exception e) {
-            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.creative"), e);
+            throw new AssertionError("Unable to load creative items", e);
         }
 
         int netId = 1;
@@ -251,10 +253,10 @@ public class ItemRegistry {
         try {
             items = GeyserConnector.JSON_MAPPER.readTree(stream);
         } catch (Exception e) {
-            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.runtime_java"), e);
+            throw new AssertionError("Unable to load Java runtime item IDs", e);
         }
 
-        BlockTranslator blockTranslator = BlockTranslator1_16_210.INSTANCE;
+        BlockTranslator blockTranslator = BlockTranslator1_17_0.INSTANCE;
 
         int itemIndex = 0;
         int javaFurnaceMinecartId = 0;
@@ -294,7 +296,7 @@ public class ItemRegistry {
                         // However, in order for some visuals and crafting to work, we need to send the first matching block state
                         // as indexed by Bedrock's block palette
                         // There are exceptions! But, ideally, the block ID override should take care of those.
-                        String javaBlockIdentifier = BlockTranslator.getJavaIdBlockMap().inverse().get(blockRuntimeIdNode.intValue()).split("\\[")[0];
+                        String javaBlockIdentifier = BlockTranslator.getBlockMapping(blockRuntimeIdNode.intValue()).getCleanJavaIdentifier();
                         NbtMapBuilder requiredBlockStatesBuilder = NbtMap.builder();
                         String correctBedrockIdentifier = blockTranslator.getAllBedrockBlockStates().get(aValidBedrockBlockId).getString("name");
                         boolean firstPass = true;
@@ -408,6 +410,16 @@ public class ItemRegistry {
                             "", bedrockBlockId,
                             stackSize);
                 }
+            } else if (entry.getKey().equals("minecraft:spectral_arrow") || entry.getKey().equals("minecraft:knowledge_book")
+            // To remove later... hopefully
+            || entry.getKey().contains("candle") || entry.getKey().equals("minecraft:bundle") || entry.getKey().equals("minecraft:sculk_sensor")) {
+                // These items don't exist on Bedrock, so set up a container that indicates they should have custom names
+                itemEntry = new TranslatableItemEntry(
+                        entry.getKey(), bedrockIdentifier, itemIndex, bedrockId,
+                        entry.getValue().get("bedrock_data").intValue(),
+                        bedrockBlockId,
+                        stackSize);
+                GeyserConnector.getInstance().getLogger().debug("Adding " + entry.getKey() + " as an item that needs to be translated.");
             } else {
                 itemEntry = new ItemEntry(
                         entry.getKey(), bedrockIdentifier, itemIndex, bedrockId,
@@ -430,8 +442,8 @@ public class ItemRegistry {
                 case "minecraft:egg":
                     EGG = itemEntry;
                     break;
-                case "minecraft:gold_ingot":
-                    GOLD = itemEntry;
+                case "minecraft:fishing_rod":
+                    FISHING_ROD = itemEntry;
                     break;
                 case "minecraft:shield":
                     SHIELD = itemEntry;
@@ -453,16 +465,22 @@ public class ItemRegistry {
             }
 
             if (entry.getKey().contains("boat")) {
-                BOATS.add(entry.getValue().get("bedrock_id").intValue());
+                BOATS.add(itemEntry.getBedrockId());
             } else if (entry.getKey().contains("bucket") && !entry.getKey().contains("milk")) {
-                BUCKETS.add(entry.getValue().get("bedrock_id").intValue());
-            } else if (entry.getKey().contains("_carpet")) {
+                BUCKETS.add(itemEntry.getBedrockId());
+            } else if (entry.getKey().contains("_carpet") && !entry.getKey().contains("moss")) {
                 // This should be the numerical order Java sends as an integer value for llamas
                 CARPETS.add(ItemData.builder()
                         .id(itemEntry.getBedrockId())
                         .damage(itemEntry.getBedrockData())
                         .count(1)
                         .blockRuntimeId(itemEntry.getBedrockBlockId()).build());
+            } else if (entry.getKey().startsWith("minecraft:music_disc_")) {
+                // The Java record level event uses the item ID as the "key" to play the record
+                EffectRegistry.RECORDS.put(itemIndex, SoundEvent.valueOf("RECORD_" +
+                        entry.getKey().replace("minecraft:music_disc_", "").toUpperCase(Locale.ENGLISH)));
+            } else if (entry.getKey().endsWith("_spawn_egg")) {
+                SPAWN_EGGS.add(itemEntry.getBedrockId());
             }
 
             itemNames.add(entry.getKey());
@@ -471,7 +489,6 @@ public class ItemRegistry {
         }
 
         itemNames.add("minecraft:furnace_minecart");
-        itemNames.add("minecraft:spectral_arrow");
 
         if (lodestoneCompassId == 0) {
             throw new RuntimeException("Lodestone compass not found in item palette!");
@@ -531,43 +548,18 @@ public class ItemRegistry {
 
         Set<String> javaOnlyItems = new ObjectOpenHashSet<>();
         Collections.addAll(javaOnlyItems, "minecraft:spectral_arrow", "minecraft:debug_stick",
-                "minecraft:knowledge_book", "minecraft:tipped_arrow");
+                "minecraft:knowledge_book", "minecraft:tipped_arrow", "minecraft:trader_llama_spawn_egg",
+                // To be removed in Bedrock 1.17.10... right??? RIGHT???
+                "minecraft:candle", "minecraft:white_candle", "minecraft:orange_candle", "minecraft:magenta_candle",
+                "minecraft:light_blue_candle", "minecraft:yellow_candle", "minecraft:lime_candle", "minecraft:pink_candle",
+                "minecraft:gray_candle", "minecraft:light_gray_candle", "minecraft:cyan_candle", "minecraft:purple_candle",
+                "minecraft:blue_candle", "minecraft:brown_candle", "minecraft:green_candle", "minecraft:red_candle", "minecraft:black_candle",
+                "minecraft:bundle", "minecraft:sculk_sensor");
         if (!usingFurnaceMinecart) {
             javaOnlyItems.add("minecraft:furnace_minecart");
         }
         JAVA_ONLY_ITEMS = ImmutableSet.copyOf(javaOnlyItems);
     }
-
-    /* pre-1.16.220 support start */
-
-    private static ItemData[] LEGACY_CREATIVE_CONTENTS = null;
-
-    /**
-     * Built on the fly so extra memory isn't used if there are no 1.16.210-or-below clients joining.
-     *
-     * @return a list of creative items built for versions before 1.16.220.
-     */
-    public static ItemData[] getPre1_16_220CreativeContents() {
-        if (LEGACY_CREATIVE_CONTENTS != null) {
-            return LEGACY_CREATIVE_CONTENTS;
-        }
-
-        // Pre-1.16.220 relies on item damage values that the creative content packet drops
-        ItemData[] creativeContents = new ItemData[CREATIVE_ITEMS.length];
-        for (int i = 0; i < CREATIVE_ITEMS.length; i++) {
-            ItemData item = CREATIVE_ITEMS[i];
-            if (item.getBlockRuntimeId() != 0) {
-                creativeContents[i] = item.toBuilder().damage(getItem(item).getBedrockData()).build();
-            } else {
-                // No block runtime ID means that this item is backwards-compatible
-                creativeContents[i] = item;
-            }
-        }
-        LEGACY_CREATIVE_CONTENTS = creativeContents;
-        return creativeContents;
-    }
-
-    /* pre-1.16.220 support end */
 
     /**
      * Gets an {@link ItemEntry} from the given {@link ItemStack}.

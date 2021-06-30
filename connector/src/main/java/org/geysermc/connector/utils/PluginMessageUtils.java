@@ -25,35 +25,63 @@
 
 package org.geysermc.connector.utils;
 
+import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPluginMessagePacket;
+import com.google.common.base.Charsets;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.session.GeyserSession;
 
-import java.nio.charset.StandardCharsets;
+import java.nio.ByteBuffer;
 
 public class PluginMessageUtils {
-
-    private static final byte[] BRAND_DATA;
+    private static final String SKIN_CHANNEL = "floodgate:skin";
+    private static final byte[] GEYSER_BRAND_DATA;
+    private static final byte[] FLOODGATE_REGISTER_DATA;
 
     static {
-        byte[] data = GeyserConnector.NAME.getBytes(StandardCharsets.UTF_8);
-        byte[] varInt = writeVarInt(data.length);
-        BRAND_DATA = new byte[varInt.length + data.length];
-        System.arraycopy(varInt, 0, BRAND_DATA, 0, varInt.length);
-        System.arraycopy(data, 0, BRAND_DATA, varInt.length, data.length);
+        byte[] data = GeyserConnector.NAME.getBytes(Charsets.UTF_8);
+        GEYSER_BRAND_DATA =
+                ByteBuffer.allocate(data.length + getVarIntLength(data.length))
+                        .put(writeVarInt(data.length))
+                        .put(data)
+                        .array();
+
+        FLOODGATE_REGISTER_DATA = (SKIN_CHANNEL + "\0floodgate:form").getBytes(Charsets.UTF_8);
     }
 
     /**
      * Get the prebuilt brand as a byte array
+     *
      * @return the brand information of the Geyser client
      */
     public static byte[] getGeyserBrandData() {
-        return BRAND_DATA;
+        return GEYSER_BRAND_DATA;
+    }
+
+    /**
+     * Get the prebuilt register data as a byte array
+     *
+     * @return the register data of the Floodgate channels
+     */
+    public static byte[] getFloodgateRegisterData() {
+        return FLOODGATE_REGISTER_DATA;
+    }
+
+    /**
+     * Returns the skin channel used in Floodgate
+     */
+    public static String getSkinChannel() {
+        return SKIN_CHANNEL;
+    }
+
+    public static void sendMessage(GeyserSession session, String channel, byte[] data) {
+        session.sendDownstreamPacket(new ClientPluginMessagePacket(channel, data));
     }
 
     private static byte[] writeVarInt(int value) {
         byte[] data = new byte[getVarIntLength(value)];
         int index = 0;
         do {
-            byte temp = (byte)(value & 0b01111111);
+            byte temp = (byte) (value & 0b01111111);
             value >>>= 7;
             if (value != 0) {
                 temp |= 0b10000000;

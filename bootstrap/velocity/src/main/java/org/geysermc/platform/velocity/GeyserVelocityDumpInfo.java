@@ -37,13 +37,13 @@ import java.util.List;
 @Getter
 public class GeyserVelocityDumpInfo extends BootstrapDumpInfo {
 
-    private String platformName;
-    private String platformVersion;
-    private String platformVendor;
-    private boolean onlineMode;
-    private String serverIP;
-    private int serverPort;
-    private List<PluginInfo> plugins;
+    private final String platformName;
+    private final String platformVersion;
+    private final String platformVendor;
+    private final boolean onlineMode;
+    private final String serverIP;
+    private final int serverPort;
+    private final List<PluginInfo> plugins;
 
     GeyserVelocityDumpInfo(ProxyServer proxy) {
         super();
@@ -61,7 +61,7 @@ public class GeyserVelocityDumpInfo extends BootstrapDumpInfo {
 
         for (PluginContainer plugin : proxy.getPluginManager().getPlugins()) {
             String pluginClass = plugin.getInstance().map((pl) -> pl.getClass().getName()).orElse("unknown");
-            this.plugins.add(new PluginInfo(true, plugin.getDescription().getName().get(), plugin.getDescription().getVersion().get(), pluginClass, plugin.getDescription().getAuthors()));
+            this.plugins.add(new PluginInfo(true, plugin.getDescription().getName().orElse(null), plugin.getDescription().getVersion().orElse(null), pluginClass, plugin.getDescription().getAuthors()));
         }
     }
 }

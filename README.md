@@ -27,10 +27,10 @@ The ultimate goal of this project is to allow Minecraft: Bedrock Edition users t
 
 Special thanks to the DragonProxy project for being a trailblazer in protocol translation and for all the team members who have joined us here!
 
-### Currently supporting Minecraft Bedrock v1.16.100 - v1.16.220 and Minecraft Java v1.16.4 - v1.16.5.
+### Currently supporting Minecraft Bedrock 1.17 - 1.17.2 and Minecraft Java 1.17.
 
 ## Setting Up
-Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set up Geyser.
+Take a look [here](https://github.com/GeyserMC/Geyser/wiki/Setup) for how to set up Geyser.
 
 [![YouTube Video](https://img.youtube.com/vi/U7dZZ8w7Gi4/0.jpg)](https://www.youtube.com/watch?v=U7dZZ8w7Gi4)
 
@@ -48,13 +48,10 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki#Setup) for how to set
 - Some Entity Flags
 - Structure block UI
 
-## What can't be fixed
-The following things cannot be fixed without changes to Bedrock. As of now, they are not fixable in Geyser.
+Extended height features can be "supported", but require additional work.
 
-- Custom heads in inventories
-- Clickable links in chat
-- Glowing effect
-- Custom armor stand poses
+## What can't be fixed
+There are a few things Geyser is unable to support due to various differences between Minecraft Bedrock and Java. For a list of these limitations, see the [Current Limitations](https://github.com/GeyserMC/Geyser/wiki/Current-Limitations) page.
 
 ## Compiling
 1. Clone the repo to your computer
@@ -67,6 +64,7 @@ Any contributions are appreciated. Please feel free to reach out to us on [Disco
 you're interested in helping out with Geyser.
 
 ## Libraries Used:
+- [Adventure Text Library](https://github.com/KyoriPowered/adventure)
 - [NukkitX Bedrock Protocol Library](https://github.com/NukkitX/Protocol)
 - [Steveice10's Java Protocol Library](https://github.com/Steveice10/MCProtocolLib)
 - [TerminalConsoleAppender](https://github.com/Minecrell/TerminalConsoleAppender)

@@ -96,6 +96,7 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
+        //TODO Bedrock 1.17.10 glow text
         StringBuilder signText = new StringBuilder();
         for (int i = 0; i < 4; i++) {
             int currentLine = i + 1;
@@ -132,7 +133,7 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
                 signText.append(getBedrockSignColor(color.getValue().toString()));
             }
 
-            signText.append(finalSignLine.toString());
+            signText.append(finalSignLine);
             signText.append("\n");
         }
 

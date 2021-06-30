@@ -37,7 +37,7 @@ import org.geysermc.connector.utils.BlockEntityUtils;
  * Chests have more block entity properties in Bedrock, which is solved by implementing the BedrockOnlyBlockEntity
  */
 @BlockEntity(name = "Chest")
-public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator implements BedrockOnlyBlockEntity, RequiresBlockState {
+public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator implements BedrockOnlyBlockEntity {
     @Override
     public boolean isBlock(int blockState) {
         return BlockStateValues.getDoubleChestValues().containsKey(blockState);

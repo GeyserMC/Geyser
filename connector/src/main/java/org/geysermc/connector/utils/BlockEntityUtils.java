@@ -32,6 +32,8 @@ import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 
+import javax.annotation.Nonnull;
+
 public class BlockEntityUtils {
     private static final BlockEntityTranslator EMPTY_TRANSLATOR = BlockEntityTranslator.BLOCK_ENTITY_TRANSLATORS.get("Empty");
 
@@ -66,11 +68,11 @@ public class BlockEntityUtils {
         return EMPTY_TRANSLATOR;
     }
 
-    public static void updateBlockEntity(GeyserSession session, NbtMap blockEntity, Position position) {
+    public static void updateBlockEntity(GeyserSession session, @Nonnull NbtMap blockEntity, Position position) {
         updateBlockEntity(session, blockEntity, Vector3i.from(position.getX(), position.getY(), position.getZ()));
     }
 
-    public static void updateBlockEntity(GeyserSession session, NbtMap blockEntity, Vector3i position) {
+    public static void updateBlockEntity(GeyserSession session, @Nonnull NbtMap blockEntity, Vector3i position) {
         BlockEntityDataPacket blockEntityPacket = new BlockEntityDataPacket();
         blockEntityPacket.setBlockPosition(position);
         blockEntityPacket.setData(blockEntity);

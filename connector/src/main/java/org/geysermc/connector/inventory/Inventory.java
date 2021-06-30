@@ -53,7 +53,7 @@ public class Inventory {
     @Setter
     protected String title;
 
-    protected GeyserItemStack[] items;
+    protected final GeyserItemStack[] items;
 
     /**
      * The location of the inventory block. Will either be a fake block above the player's head, or the actual block location
@@ -65,9 +65,6 @@ public class Inventory {
     @Getter
     @Setter
     protected long holderId = -1;
-
-    @Getter
-    protected short transactionId = 0;
 
     @Getter
     @Setter
@@ -114,10 +111,6 @@ public class Inventory {
         }
     }
 
-    public short getNextTransactionId() {
-        return ++transactionId;
-    }
-
     @Override
     public String toString() {
         return "Inventory{" +
@@ -127,7 +120,6 @@ public class Inventory {
                 ", items=" + Arrays.toString(items) +
                 ", holderPosition=" + holderPosition +
                 ", holderId=" + holderId +
-                ", transactionId=" + transactionId +
                 '}';
     }
 }

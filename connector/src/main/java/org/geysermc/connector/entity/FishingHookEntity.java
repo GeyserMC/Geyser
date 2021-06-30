@@ -67,7 +67,7 @@ public class FishingHookEntity extends ThrowableEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 7) { // Hooked entity
+        if (entityMetadata.getId() == 8) { // Hooked entity
             int hookedEntityId = (int) entityMetadata.getValue() - 1;
             Entity entity = session.getEntityCache().getEntityByJavaId(hookedEntityId);
             if (entity == null && session.getPlayerEntity().getEntityId() == hookedEntityId) {
@@ -174,11 +174,8 @@ public class FishingHookEntity extends ThrowableEntity {
      * @return true if this entity is currently in air.
      */
     protected boolean isInAir(GeyserSession session) {
-        if (session.getConnector().getConfig().isCacheChunks()) {
-            int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
-            return block == BlockTranslator.JAVA_AIR_ID;
-        }
-        return false;
+        int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
+        return block == BlockTranslator.JAVA_AIR_ID;
     }
 
     @Override

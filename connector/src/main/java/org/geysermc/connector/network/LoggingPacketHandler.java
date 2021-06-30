@@ -38,9 +38,8 @@ import org.geysermc.connector.network.session.GeyserSession;
  * packets of interest and limit boilerplate code.
  */
 public class LoggingPacketHandler implements BedrockPacketHandler {
-
-    protected GeyserConnector connector;
-    protected GeyserSession session;
+    protected final GeyserConnector connector;
+    protected final GeyserSession session;
 
     LoggingPacketHandler(GeyserConnector connector, GeyserSession session) {
         this.connector = connector;
@@ -759,9 +758,6 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
         return defaultHandler(packet);
     }
 
-    // I question if God exists because of this packet - God does not exist if I find out there's a built-in dab
-    // TODO for the future: redirect this as a /me command
-    // TODO for the far future: should we have a client mod that handles skins, handle these too
     @Override
     public boolean handle(EmoteListPacket packet) {
         return defaultHandler(packet);

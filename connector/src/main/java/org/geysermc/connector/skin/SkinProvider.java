@@ -86,7 +86,7 @@ public class SkinProvider {
     public static final String EARS_GEOMETRY_SLIM;
     public static final SkinGeometry SKULL_GEOMETRY;
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     static {
         /* Load in the normal ears geometry */
@@ -521,7 +521,7 @@ public class SkinProvider {
         return null;
     }
 
-    private static BufferedImage scale(BufferedImage bufferedImage, int newWidth, int newHeight) {
+    public static BufferedImage scale(BufferedImage bufferedImage, int newWidth, int newHeight) {
         BufferedImage resized = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = resized.createGraphics();
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
@@ -581,7 +581,6 @@ public class SkinProvider {
                 outputStream.write((rgba >> 24) & 0xFF);
             }
         }
-
         return outputStream.toByteArray();
     }
 

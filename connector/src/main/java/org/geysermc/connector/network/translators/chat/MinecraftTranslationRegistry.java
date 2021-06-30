@@ -31,6 +31,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.connector.utils.LocaleUtils;
 
+import javax.annotation.Nonnull;
 import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -42,7 +43,7 @@ import java.util.regex.Pattern;
  */
 public class MinecraftTranslationRegistry implements Translator {
     @Override
-    public @NonNull Key name() {
+    public @Nonnull Key name() {
         return Key.key("geyser", "minecraft_translations");
     }
 

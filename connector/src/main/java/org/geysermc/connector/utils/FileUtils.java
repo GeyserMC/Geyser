@@ -163,7 +163,7 @@ public class FileUtils {
         ResourceReadEvent event = EventManager.getInstance().triggerEvent(new ResourceReadEvent(resource, stream)).getEvent();
 
         if (event.getInputStream() == null) {
-            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.resource", resource));
+            throw new AssertionError("Unable to find resource: " + resource);
         }
         return event.getInputStream();
     }
@@ -216,7 +216,8 @@ public class FileUtils {
         URL resource = FileUtils.class.getClassLoader().getResource("META-INF/reflections/" + path + "-reflections.xml");
         try (InputStream inputStream = resource.openConnection().getInputStream()) {
             reflections.merge(serializer.read(inputStream));
-        } catch (IOException e) { }
+        } catch (IOException ignored) {
+        }
 
         return reflections;
     }

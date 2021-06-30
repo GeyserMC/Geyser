@@ -40,7 +40,6 @@ public class JavaVehicleMoveTranslator extends PacketTranslator<ServerVehicleMov
         Entity entity = session.getRidingVehicleEntity();
         if (entity == null) return;
 
-        entity.moveAbsolute(session, Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), false, false);
-
+        entity.moveAbsolute(session, Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), false, true);
     }
 }

@@ -77,6 +77,8 @@ public interface GeyserConfiguration {
 
     boolean isShowCoordinates();
 
+    EmoteOffhandWorkaroundOption getEmoteOffhandWorkaround();
+
     String getDefaultLocale();
 
     Path getFloodgateKeyPath();
@@ -84,8 +86,6 @@ public interface GeyserConfiguration {
     boolean isAddNonBedrockItems();
 
     boolean isAboveBedrockNetherBuilding();
-
-    boolean isCacheChunks();
 
     boolean isForceResourcePacks();
 

@@ -34,8 +34,7 @@ import java.util.List;
 
 @Getter
 public class BootstrapDumpInfo {
-
-    private PlatformType platform;
+    private final PlatformType platform;
 
     public BootstrapDumpInfo() {
         this.platform = GeyserConnector.getInstance().getPlatformType();
@@ -43,8 +42,7 @@ public class BootstrapDumpInfo {
 
     @Getter
     @AllArgsConstructor
-    public class PluginInfo {
-
+    public static class PluginInfo {
         public boolean enabled;
         public String name;
         public String version;
@@ -54,8 +52,7 @@ public class BootstrapDumpInfo {
 
     @Getter
     @AllArgsConstructor
-    public class ListenerInfo {
-
+    public static class ListenerInfo {
         public String ip;
         public int port;
     }

@@ -30,9 +30,11 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.utils.DimensionUtils;
 
 public class HoglinEntity extends AnimalEntity {
+    private boolean isImmuneToZombification;
 
     public HoglinEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
@@ -40,11 +42,22 @@ public class HoglinEntity extends AnimalEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 17) {
             // Immune to zombification?
             // Apply shaking effect if not in the nether and zombification is possible
-            metadata.getFlags().setFlag(EntityFlag.SHAKING, !((boolean) entityMetadata.getValue()) && !session.getDimension().equals(DimensionUtils.NETHER));
+            this.isImmuneToZombification = (boolean) entityMetadata.getValue();
+            metadata.getFlags().setFlag(EntityFlag.SHAKING, isShaking(session));
         }
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    protected boolean isShaking(GeyserSession session) {
+        return (!isImmuneToZombification && !session.getDimension().equals(DimensionUtils.NETHER)) || super.isShaking(session);
+    }
+
+    @Override
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+        return javaIdentifierStripped.equals("crimson_fungus");
     }
 }

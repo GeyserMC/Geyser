@@ -26,76 +26,20 @@
 package org.geysermc.connector.network.translators.inventory.translators;
 
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientRenameItemPacket;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.protocol.bedrock.data.inventory.*;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.CraftResultsDeprecatedStackRequestActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
-import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import org.geysermc.connector.inventory.AnvilContainer;
-import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.inventory.PlayerInventory;
-import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
 import org.geysermc.connector.network.translators.inventory.updater.UIInventoryUpdater;
-import org.geysermc.connector.network.translators.item.ItemTranslator;
 
 public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
     public AnvilInventoryTranslator() {
         super(3, "minecraft:anvil[facing=north]", ContainerType.ANVIL, UIInventoryUpdater.INSTANCE,
                 "minecraft:chipped_anvil", "minecraft:damaged_anvil");
     }
-
-    /* 1.16.100 support start */
-    @Override
-    @Deprecated
-    public boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
-        return action.getType() == StackRequestActionType.CRAFT_NON_IMPLEMENTED_DEPRECATED;
-    }
-
-    @Override
-    @Deprecated
-    public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
-        if (!(request.getActions()[1] instanceof CraftResultsDeprecatedStackRequestActionData)) {
-            // Just silently log an error
-            session.getConnector().getLogger().debug("Something isn't quite right with taking an item out of an anvil.");
-            return translateRequest(session, inventory, request);
-        }
-        CraftResultsDeprecatedStackRequestActionData actionData = (CraftResultsDeprecatedStackRequestActionData) request.getActions()[1];
-        ItemData resultItem = actionData.getResultItems()[0];
-        if (resultItem.getTag() != null) {
-            NbtMap displayTag = resultItem.getTag().getCompound("display");
-            if (displayTag != null && displayTag.containsKey("Name")) {
-                ItemData sourceSlot = inventory.getItem(0).getItemData(session);
-
-                if (sourceSlot.getTag() != null) {
-                    NbtMap oldDisplayTag = sourceSlot.getTag().getCompound("display");
-                    if (oldDisplayTag != null && oldDisplayTag.containsKey("Name")) {
-                        if (!displayTag.getString("Name").equals(oldDisplayTag.getString("Name"))) {
-                            // Name has changed
-                            sendRenamePacket(session, inventory, resultItem, displayTag.getString("Name"));
-                        }
-                    } else {
-                        // No display tag on the old item
-                        sendRenamePacket(session, inventory, resultItem, displayTag.getString("Name"));
-                    }
-                } else {
-                    // New NBT tag
-                    sendRenamePacket(session, inventory, resultItem, displayTag.getString("Name"));
-                }
-            }
-        }
-        return translateRequest(session, inventory, request);
-    }
-
-    private void sendRenamePacket(GeyserSession session, Inventory inventory, ItemData outputItem, String name) {
-        session.sendDownstreamPacket(new ClientRenameItemPacket(name));
-        inventory.setItem(2, GeyserItemStack.from(ItemTranslator.translateToJava(outputItem)), session);
-    }
-
-    /* 1.16.100 support end */
 
     @Override
     public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {

@@ -42,7 +42,7 @@ public class FurnaceMinecartEntity extends DefaultBlockMinecartEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 13 && !showCustomBlock) {
+        if (entityMetadata.getId() == 14 && !showCustomBlock) {
             hasFuel = (boolean) entityMetadata.getValue();
             updateDefaultBlockMetadata(session);
         }

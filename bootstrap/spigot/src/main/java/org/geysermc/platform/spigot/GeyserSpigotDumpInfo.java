@@ -37,13 +37,13 @@ import java.util.List;
 @Getter
 public class GeyserSpigotDumpInfo extends BootstrapDumpInfo {
 
-    private String platformName;
-    private String platformVersion;
-    private String platformAPIVersion;
-    private boolean onlineMode;
-    private String serverIP;
-    private int serverPort;
-    private List<PluginInfo> plugins;
+    private final String platformName;
+    private final String platformVersion;
+    private final String platformAPIVersion;
+    private final boolean onlineMode;
+    private final String serverIP;
+    private final int serverPort;
+    private final List<PluginInfo> plugins;
 
     GeyserSpigotDumpInfo() {
         super();

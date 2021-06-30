@@ -39,7 +39,7 @@ public class SlimeEntity extends InsentientEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 15) {
+        if (entityMetadata.getId() == 16) {
             this.metadata.put(EntityData.SCALE, 0.10f + (int) entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);
