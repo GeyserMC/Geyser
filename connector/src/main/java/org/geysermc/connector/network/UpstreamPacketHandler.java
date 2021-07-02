@@ -195,6 +195,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             titlePacket.setFadeInTime(0);
             titlePacket.setFadeOutTime(1);
             titlePacket.setStayTime(2);
+            titlePacket.setXuid("");
+            titlePacket.setPlatformOnlineId("");
             session.sendUpstreamPacket(titlePacket);
         }
 
