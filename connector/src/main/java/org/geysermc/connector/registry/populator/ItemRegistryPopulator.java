@@ -66,6 +66,7 @@ public class ItemRegistryPopulator {
             .add("minecraft:compass")
             .add("minecraft:crossbow")
             .add("minecraft:egg")
+            .add("minecraft:fishing_rod")
             .add("minecraft:lodestone_compass")
             .add("minecraft:shield")
             .add("minecraft:milk_bucket")

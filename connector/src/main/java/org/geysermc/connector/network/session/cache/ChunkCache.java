@@ -32,44 +32,34 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import org.geysermc.connector.network.translators.world.chunk.GeyserColumn;
 import org.geysermc.connector.utils.MathUtils;
 
 public class ChunkCache {
     private final boolean cache;
-    private final Long2ObjectMap<Column> chunks;
+    private final Long2ObjectMap<GeyserColumn> chunks;
 
     @Setter
     private int minY;
+    @Setter
+    private int heightY;
 
     public ChunkCache(GeyserSession session) {
         this.cache = !session.getConnector().getWorldManager().hasOwnChunkCache(); // To prevent Spigot from initializing
         chunks = cache ? new Long2ObjectOpenHashMap<>() : null;
     }
 
-    public Column addToCache(Column chunk) {
+    public void addToCache(Column chunk) {
         if (!cache) {
-            return chunk;
+            return;
         }
 
         long chunkPosition = MathUtils.chunkPositionToLong(chunk.getX(), chunk.getZ());
-        Column existingChunk;
-        if (chunk.getBiomeData() == null // Only consider merging columns if the new chunk isn't a full chunk
-            && (existingChunk = chunks.getOrDefault(chunkPosition, null)) != null) { // Column is already present in cache, we can merge with existing
-            boolean changed = false;
-            for (int i = 0; i < chunk.getChunks().length; i++) { // The chunks member is final, so chunk.getChunks() will probably be inlined and then completely optimized away
-                if (chunk.getChunks()[i] != null) {
-                    existingChunk.getChunks()[i] = chunk.getChunks()[i];
-                    changed = true;
-                }
-            }
-            return changed ? existingChunk : null;
-        } else {
-            chunks.put(chunkPosition, chunk);
-            return chunk;
-        }
+        GeyserColumn geyserColumn = GeyserColumn.from(this, chunk);
+        chunks.put(chunkPosition, geyserColumn);
     }
 
-    public Column getChunk(int chunkX, int chunkZ)  {
+    public GeyserColumn getChunk(int chunkX, int chunkZ)  {
         long chunkPosition = MathUtils.chunkPositionToLong(chunkX, chunkZ);
         return chunks.getOrDefault(chunkPosition, null);
     }
@@ -79,7 +69,7 @@ public class ChunkCache {
             return;
         }
 
-        Column column = this.getChunk(x >> 4, z >> 4);
+        GeyserColumn column = this.getChunk(x >> 4, z >> 4);
         if (column == null) {
             return;
         }
@@ -90,9 +80,20 @@ public class ChunkCache {
         }
 
         Chunk chunk = column.getChunks()[(y >> 4) - getChunkMinY()];
-        if (chunk != null) {
-            chunk.set(x & 0xF, y & 0xF, z & 0xF, block);
+        if (chunk == null) {
+            if (block != BlockStateValues.JAVA_AIR_ID) {
+                // A previously empty chunk, which is no longer empty as a block has been added to it
+                chunk = new Chunk();
+                // Fixes the chunk assuming that all blocks is the `block` variable we are updating. /shrug
+                chunk.getPalette().stateToId(BlockStateValues.JAVA_AIR_ID);
+                column.getChunks()[(y >> 4) - getChunkMinY()] = chunk;
+            } else {
+                // Nothing to update
+                return;
+            }
         }
+
+        chunk.set(x & 0xF, y & 0xF, z & 0xF, block);
     }
 
     public int getBlockAt(int x, int y, int z) {
@@ -100,7 +101,7 @@ public class ChunkCache {
             return BlockStateValues.JAVA_AIR_ID;
         }
 
-        Column column = this.getChunk(x >> 4, z >> 4);
+        GeyserColumn column = this.getChunk(x >> 4, z >> 4);
         if (column == null) {
             return BlockStateValues.JAVA_AIR_ID;
         }
@@ -129,5 +130,9 @@ public class ChunkCache {
 
     public int getChunkMinY() {
         return minY >> 4;
+    }
+
+    public int getChunkHeightY() {
+        return heightY >> 4;
     }
 }

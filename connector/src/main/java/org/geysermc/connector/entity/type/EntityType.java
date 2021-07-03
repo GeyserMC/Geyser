@@ -97,7 +97,7 @@ public enum EntityType {
     VINDICATOR(VindicatorEntity.class, 57, 1.8f, 0.6f, 0.6f, 1.62f),
     PILLAGER(PillagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f),
     WANDERING_TRADER(AbstractMerchantEntity.class, 118, 1.8f, 0.6f, 0.6f, 1.62f),
-    PHANTOM(FlyingEntity.class, 58, 0.5f, 0.9f, 0.9f, 0.6f),
+    PHANTOM(PhantomEntity.class, 58, 0.5f, 0.9f, 0.9f, 0.6f),
     RAVAGER(RaidParticipantEntity.class, 59, 1.9f, 1.2f),
 
     ARMOR_STAND(ArmorStandEntity.class, 61, 1.975f, 0.5f),

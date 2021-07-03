@@ -25,15 +25,13 @@
 
 package org.geysermc.connector.network.translators.item.translators.nbt;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
+import com.github.steveice10.opennbt.tag.builtin.*;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
 import org.geysermc.connector.registry.type.ItemMapping;
+import org.geysermc.connector.utils.ItemUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +41,16 @@ public class BasicItemTranslator extends NbtItemStackTranslator {
 
     @Override
     public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
+        Tag damage = itemTag.get("Damage");
+        if (damage instanceof IntTag) {
+            int originalDurability = ((IntTag) damage).getValue();
+            int durability = ItemUtils.getCorrectBedrockDurability(session, mapping.getJavaId(), originalDurability);
+            if (durability != originalDurability) {
+                // Fix damage tag inconsistencies
+                itemTag.put(new IntTag("Damage", durability));
+            }
+        }
+
         CompoundTag displayTag = itemTag.get("display");
         if (displayTag == null) {
             return;

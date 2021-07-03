@@ -81,10 +81,8 @@ public class ChunkUtils {
         return (yzx >> 8) | (yzx & 0x0F0) | ((yzx & 0x00F) << 8);
     }
 
-    public static ChunkData translateToBedrock(GeyserSession session, Column column) {
+    public static ChunkData translateToBedrock(GeyserSession session, Column column, int yOffset) {
         Chunk[] javaSections = column.getChunks();
-        // Ensure that, if the player is using lower world heights, the position is not offset
-        int yOffset = session.getChunkCache().getChunkMinY();
         ChunkSection[] sections = new ChunkSection[javaSections.length - yOffset];
 
         // Temporarily stores compound tags of Bedrock-only block entities
@@ -421,6 +419,7 @@ public class ChunkUtils {
         }
 
         session.getChunkCache().setMinY(minY);
+        session.getChunkCache().setHeightY(maxY);
     }
 
     @Data

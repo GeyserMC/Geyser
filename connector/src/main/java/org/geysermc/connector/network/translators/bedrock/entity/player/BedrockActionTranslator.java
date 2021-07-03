@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.*;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.*;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.PlayerActionType;
@@ -41,7 +41,6 @@ import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerActionPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
-import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -167,18 +166,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                     LevelEventPacket startBreak = new LevelEventPacket();
                     startBreak.setType(LevelEventType.BLOCK_START_BREAK);
                     startBreak.setPosition(vector.toFloat());
-                    PlayerInventory inventory = session.getPlayerInventory();
-                    GeyserItemStack item = inventory.getItemInHand();
-                    ItemMapping mapping;
-                    CompoundTag nbtData;
-                    if (item != null) {
-                        mapping = item.getMapping(session);
-                        nbtData = item.getNbt();
-                    } else {
-                        mapping = ItemMapping.AIR;
-                        nbtData = new CompoundTag("");
-                    }
-                    double breakTime = Math.ceil(BlockUtils.getBreakTime(session, BlockRegistries.JAVA_BLOCKS.get(blockState), mapping, nbtData, true) * 20);
+                    double breakTime = BlockUtils.getSessionBreakTime(session, BlockRegistries.JAVA_BLOCKS.get(blockState)) * 20;
                     startBreak.setData((int) (65535 / breakTime));
                     session.setBreakingBlock(blockState);
                     session.sendUpstreamPacket(startBreak);
@@ -204,11 +192,20 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 if (session.getGameMode() == GameMode.CREATIVE) {
                     break;
                 }
+                Vector3f vectorFloat = vector.toFloat();
                 LevelEventPacket continueBreakPacket = new LevelEventPacket();
                 continueBreakPacket.setType(LevelEventType.PARTICLE_CRACK_BLOCK);
                 continueBreakPacket.setData((session.getBlockMappings().getBedrockBlockId(session.getBreakingBlock())) | (packet.getFace() << 24));
-                continueBreakPacket.setPosition(vector.toFloat());
+                continueBreakPacket.setPosition(vectorFloat);
                 session.sendUpstreamPacket(continueBreakPacket);
+
+                // Update the break time in the event that player conditions changed (jumping, effects applied)
+                LevelEventPacket updateBreak = new LevelEventPacket();
+                updateBreak.setType(LevelEventType.BLOCK_UPDATE_BREAK);
+                updateBreak.setPosition(vectorFloat);
+                double breakTime = BlockUtils.getSessionBreakTime(session, BlockRegistries.JAVA_BLOCKS.get(session.getBreakingBlock())) * 20;
+                updateBreak.setData((int) (65535 / breakTime));
+                session.sendUpstreamPacket(updateBreak);
                 break;
             case ABORT_BREAK:
                 if (session.getGameMode() != GameMode.CREATIVE) {
@@ -244,7 +241,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.getEntityCache().updateBossBars();
                 break;
             case JUMP:
-                // Leaving as a potential placeholder for an event or soul sand fixing
+                entity.setOnGround(false); // Increase block break time while jumping
                 break;
         }
     }

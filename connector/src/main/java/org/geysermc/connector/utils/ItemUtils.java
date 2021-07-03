@@ -26,6 +26,7 @@
 package org.geysermc.connector.utils;
 
 import com.github.steveice10.opennbt.tag.builtin.*;
+import org.geysermc.connector.network.session.GeyserSession;
 
 public class ItemUtils {
 
@@ -43,5 +44,18 @@ public class ItemUtils {
             return enchantmentLevel;
         }
         return 0;
+    }
+
+    /**
+     * @return the correct Bedrock durability for this item.
+     */
+    public static int getCorrectBedrockDurability(GeyserSession session, int javaId, int original) {
+        if (javaId == session.getItemMappings().getStored("minecraft:fishing_rod").getJavaId()) {
+            // Java durability: 64
+            // Bedrock durability : 384
+            // 384 / 64 = 6
+            return original * 6;
+        }
+        return original;
     }
 }
