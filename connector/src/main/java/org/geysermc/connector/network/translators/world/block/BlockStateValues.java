@@ -59,9 +59,6 @@ public class BlockStateValues {
     public static int JAVA_SPAWNER_ID;
     public static int JAVA_WATER_ID;
 
-    // Bedrock carpet ID, used in LlamaEntity.java for decoration
-    public static final int BEDROCK_CARPET_ID = 171;
-
     /**
      * Determines if the block state contains Bedrock block information
      *

@@ -41,32 +41,17 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import it.unimi.dsi.fastutil.objects.*;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.registry.Registries;
-import org.geysermc.connector.registry.type.BlockMappings;
-import org.geysermc.connector.registry.type.ItemMapping;
-import org.geysermc.connector.registry.type.ItemMappings;
-import org.geysermc.connector.registry.type.MappingItem;
-import org.geysermc.connector.registry.type.PaletteItem;
+import org.geysermc.connector.registry.type.*;
 import org.geysermc.connector.utils.FileUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ItemRegistryPopulator {
     private static final Object2IntMap<String> PALETTE_VERSIONS = new Object2IntOpenHashMap<String>() {
@@ -416,8 +401,8 @@ public class ItemRegistryPopulator {
                 throw new RuntimeException("Lodestone compass not found in item palette!");
             }
 
-            // Add the loadstone compass since it doesn't exist on java but we need it for item conversion
-            mappings.put(itemIndex, ItemMapping.builder()
+            // Add the lodestone compass since it doesn't exist on java but we need it for item conversion
+            ItemMapping lodestoneEntry = ItemMapping.builder()
                     .javaIdentifier("minecraft:lodestone_compass")
                     .bedrockIdentifier("minecraft:lodestone_compass")
                     .javaId(itemIndex)
@@ -425,7 +410,9 @@ public class ItemRegistryPopulator {
                     .bedrockData(0)
                     .bedrockBlockId(-1)
                     .stackSize(1)
-                    .build());
+                    .build();
+            mappings.put(itemIndex, lodestoneEntry);
+            storedItems.put(lodestoneEntry.getJavaIdentifier(), lodestoneEntry);
 
             ComponentItemData furnaceMinecartData = null;
             if (usingFurnaceMinecart) {

@@ -182,7 +182,8 @@ public class BlockRegistryPopulator {
 
             // Loop around again to find all item frame runtime IDs
             for (Object2IntMap.Entry<NbtMap> entry : blockStateOrderedMap.object2IntEntrySet()) {
-                if (entry.getKey().getString("name").equals("minecraft:frame")) {
+                String name = entry.getKey().getString("name");
+                if (name.equals("minecraft:frame") || name.equals("minecraft:glow_frame")) {
                     itemFrames.put(entry.getKey(), entry.getIntValue());
                 }
             }
