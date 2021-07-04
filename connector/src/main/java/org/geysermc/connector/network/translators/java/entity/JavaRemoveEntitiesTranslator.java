@@ -25,21 +25,22 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerRemoveEntityPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerRemoveEntitiesPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-@Translator(packet = ServerRemoveEntityPacket.class)
-public class JavaRemoveEntityTranslator extends PacketTranslator<ServerRemoveEntityPacket> {
+@Translator(packet = ServerRemoveEntitiesPacket.class)
+public class JavaRemoveEntitiesTranslator extends PacketTranslator<ServerRemoveEntitiesPacket> {
 
     @Override
-    public void translate(ServerRemoveEntityPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-
-        if (entity != null) {
-            session.getEntityCache().removeEntity(entity, false);
+    public void translate(ServerRemoveEntitiesPacket packet, GeyserSession session) {
+        for (int entityId : packet.getEntityIds()) {
+            Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
+            if (entity != null) {
+                session.getEntityCache().removeEntity(entity, false);
+            }
         }
     }
 }
