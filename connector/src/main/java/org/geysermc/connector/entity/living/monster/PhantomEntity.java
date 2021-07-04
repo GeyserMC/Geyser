@@ -23,32 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.command.defaults;
+package org.geysermc.connector.entity.living.monster;
 
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.command.CommandSender;
-import org.geysermc.connector.command.GeyserCommand;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import org.geysermc.connector.entity.living.FlyingEntity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.LanguageUtils;
 
-import java.util.stream.Collectors;
-
-public class ListCommand extends GeyserCommand {
-
-    private final GeyserConnector connector;
-
-    public ListCommand(GeyserConnector connector, String name, String description, String permission) {
-        super(name, description, permission);
-
-        this.connector = connector;
+public class PhantomEntity extends FlyingEntity {
+    public PhantomEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
     }
 
     @Override
-    public void execute(GeyserSession session, CommandSender sender, String[] args) {
-        String message = LanguageUtils.getPlayerLocaleString("geyser.commands.list.message", sender.getLocale(),
-                connector.getPlayers().size(),
-                connector.getPlayers().stream().map(GeyserSession::getName).collect(Collectors.joining(" ")));
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        if (entityMetadata.getId() == 16) { // Size
+            int size = (int) entityMetadata.getValue();
+            float modelScale = 1f + 0.15f * size;
+            float boundsScale = (1f + (0.2f * size) / EntityType.PHANTOM.getWidth()) / modelScale;
 
-        sender.sendMessage(message);
+            metadata.put(EntityData.BOUNDING_BOX_WIDTH, boundsScale * EntityType.PHANTOM.getWidth());
+            metadata.put(EntityData.BOUNDING_BOX_HEIGHT, boundsScale * EntityType.PHANTOM.getHeight());
+            metadata.put(EntityData.SCALE, modelScale);
+        }
+        super.updateBedrockMetadata(entityMetadata, session);
     }
 }

@@ -34,8 +34,7 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator1_1
 @AllArgsConstructor
 @ToString
 public class ItemEntry {
-
-    public static ItemEntry AIR = new ItemEntry("minecraft:air", "minecraft:air", 0, 0, 0,
+    public static final ItemEntry AIR = new ItemEntry("minecraft:air", "minecraft:air", 0, 0, 0,
             BlockTranslator1_17_0.INSTANCE.getBedrockAirId(), 64);
 
     private final String javaIdentifier;

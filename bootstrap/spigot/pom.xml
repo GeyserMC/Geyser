@@ -39,7 +39,7 @@
         <dependency>
             <groupId>org.geysermc.geyser.adapters</groupId>
             <artifactId>spigot-all</artifactId>
-            <version>1.1-SNAPSHOT</version>
+            <version>1.2-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <build>
@@ -102,6 +102,10 @@
                                 <relocation>
                                     <pattern>net.kyori</pattern>
                                     <shadedPattern>org.geysermc.platform.spigot.shaded.kyori</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.objectweb.asm</pattern>
+                                    <shadedPattern>org.geysermc.platform.spigot.shaded.asm</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

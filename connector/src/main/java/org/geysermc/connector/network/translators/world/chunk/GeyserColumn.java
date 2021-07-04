@@ -23,27 +23,35 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.sponge.command;
+package org.geysermc.connector.network.translators.world.chunk;
 
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.command.CommandManager;
-import org.spongepowered.api.Sponge;
-import org.spongepowered.api.command.CommandMapping;
-import org.spongepowered.api.text.Text;
+import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
+import com.github.steveice10.mc.protocol.data.game.chunk.Column;
+import lombok.Getter;
+import org.geysermc.connector.network.session.cache.ChunkCache;
 
-public class GeyserSpongeCommandManager extends CommandManager {
-    private final org.spongepowered.api.command.CommandManager handle;
+/**
+ * Acts as a lightweight version of {@link Column} that doesn't store
+ * biomes or heightmaps.
+ */
+public class GeyserColumn {
+    @Getter
+    private final Chunk[] chunks;
 
-    public GeyserSpongeCommandManager(org.spongepowered.api.command.CommandManager handle, GeyserConnector connector) {
-        super(connector);
-
-        this.handle = handle;
+    private GeyserColumn(Chunk[] chunks) {
+        this.chunks = chunks;
     }
 
-    @Override
-    public String getDescription(String command) {
-        return handle.get(command).map(CommandMapping::getCallable)
-                .map(callable -> callable.getShortDescription(Sponge.getServer().getConsole()).orElse(Text.EMPTY))
-                .orElse(Text.EMPTY).toPlain();
+    public static GeyserColumn from(ChunkCache chunkCache, Column column) {
+        int chunkHeightY = chunkCache.getChunkHeightY();
+        Chunk[] chunks;
+        if (chunkHeightY < column.getChunks().length) {
+            chunks = new Chunk[chunkHeightY];
+            // TODO addresses https://github.com/Steveice10/MCProtocolLib/pull/598#issuecomment-862782392
+            System.arraycopy(column.getChunks(), 0, chunks, 0, chunks.length);
+        } else {
+            chunks = column.getChunks();
+        }
+        return new GeyserColumn(chunks);
     }
 }

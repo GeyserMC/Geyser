@@ -30,8 +30,7 @@ import org.geysermc.connector.dump.BootstrapDumpInfo;
 
 @Getter
 public class GeyserStandaloneDumpInfo extends BootstrapDumpInfo {
-
-    private boolean isGui;
+    private final boolean isGui;
 
     GeyserStandaloneDumpInfo(GeyserStandaloneBootstrap bootstrap) {
         super();
