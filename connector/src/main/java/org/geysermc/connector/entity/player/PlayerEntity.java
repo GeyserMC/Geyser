@@ -55,10 +55,7 @@ import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Getter @Setter
@@ -95,7 +92,7 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.setUsername(username);
         addPlayerPacket.setRuntimeEntityId(geyserId);
         addPlayerPacket.setUniqueEntityId(geyserId);
-        addPlayerPacket.setPosition(position.clone().sub(0, EntityType.PLAYER.getOffset(), 0));
+        addPlayerPacket.setPosition(position.sub(0, EntityType.PLAYER.getOffset(), 0));
         addPlayerPacket.setRotation(getBedrockRotation());
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(hand);
@@ -277,10 +274,9 @@ public class PlayerEntity extends LivingEntity {
         if (entityMetadata.getId() == 15) {
             UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
             attributesPacket.setRuntimeEntityId(geyserId);
-            List<AttributeData> attributes = new ArrayList<>();
             // Setting to a higher maximum since plugins/datapacks can probably extend the Bedrock soft limit
-            attributes.add(new AttributeData("minecraft:absorption", 0.0f, 1024f, (float) entityMetadata.getValue(), 0.0f));
-            attributesPacket.setAttributes(attributes);
+            attributesPacket.setAttributes(Collections.singletonList(
+                    new AttributeData("minecraft:absorption", 0.0f, 1024f, (float) entityMetadata.getValue(), 0.0f)));
             session.sendUpstreamPacket(attributesPacket);
         }
 
