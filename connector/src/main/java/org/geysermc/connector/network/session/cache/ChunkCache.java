@@ -32,14 +32,17 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.chunk.GeyserColumn;
 import org.geysermc.connector.utils.MathUtils;
 
 public class ChunkCache {
     private final boolean cache;
-    private final Long2ObjectMap<Column> chunks;
+    private final Long2ObjectMap<GeyserColumn> chunks;
 
     @Setter
     private int minY;
+    @Setter
+    private int heightY;
 
     public ChunkCache(GeyserSession session) {
         this.cache = !session.getConnector().getWorldManager().hasOwnChunkCache(); // To prevent Spigot from initializing
@@ -51,10 +54,12 @@ public class ChunkCache {
             return;
         }
 
-        chunks.put(MathUtils.chunkPositionToLong(chunk.getX(), chunk.getZ()), chunk);
+        long chunkPosition = MathUtils.chunkPositionToLong(chunk.getX(), chunk.getZ());
+        GeyserColumn geyserColumn = GeyserColumn.from(this, chunk);
+        chunks.put(chunkPosition, geyserColumn);
     }
 
-    public Column getChunk(int chunkX, int chunkZ)  {
+    public GeyserColumn getChunk(int chunkX, int chunkZ)  {
         long chunkPosition = MathUtils.chunkPositionToLong(chunkX, chunkZ);
         return chunks.getOrDefault(chunkPosition, null);
     }
@@ -64,7 +69,7 @@ public class ChunkCache {
             return;
         }
 
-        Column column = this.getChunk(x >> 4, z >> 4);
+        GeyserColumn column = this.getChunk(x >> 4, z >> 4);
         if (column == null) {
             return;
         }
@@ -77,8 +82,10 @@ public class ChunkCache {
         Chunk chunk = column.getChunks()[(y >> 4) - getChunkMinY()];
         if (chunk == null) {
             if (block != BlockTranslator.JAVA_AIR_ID) {
-                chunk = new Chunk();
                 // A previously empty chunk, which is no longer empty as a block has been added to it
+                chunk = new Chunk();
+                // Fixes the chunk assuming that all blocks is the `block` variable we are updating. /shrug
+                chunk.getPalette().stateToId(BlockTranslator.JAVA_AIR_ID);
                 column.getChunks()[(y >> 4) - getChunkMinY()] = chunk;
             } else {
                 // Nothing to update
@@ -94,7 +101,7 @@ public class ChunkCache {
             return BlockTranslator.JAVA_AIR_ID;
         }
 
-        Column column = this.getChunk(x >> 4, z >> 4);
+        GeyserColumn column = this.getChunk(x >> 4, z >> 4);
         if (column == null) {
             return BlockTranslator.JAVA_AIR_ID;
         }
@@ -123,5 +130,9 @@ public class ChunkCache {
 
     public int getChunkMinY() {
         return minY >> 4;
+    }
+
+    public int getChunkHeightY() {
+        return heightY >> 4;
     }
 }

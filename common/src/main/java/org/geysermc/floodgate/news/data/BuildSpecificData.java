@@ -34,6 +34,8 @@ public final class BuildSpecificData implements ItemData {
     private int affectedGreaterThan;
     private int affectedLessThan;
 
+    private BuildSpecificData() {}
+
     public static BuildSpecificData read(JsonObject data) {
         BuildSpecificData updateData = new BuildSpecificData();
         updateData.branch = data.get("branch").getAsString();

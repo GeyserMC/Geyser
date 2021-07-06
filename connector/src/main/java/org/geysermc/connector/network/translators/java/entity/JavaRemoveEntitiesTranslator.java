@@ -23,22 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.floodgate.news.data;
+package org.geysermc.connector.network.translators.java.entity;
 
-import com.google.gson.JsonObject;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerRemoveEntitiesPacket;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
 
-public final class CheckAfterData implements ItemData {
-    private long checkAfter;
+@Translator(packet = ServerRemoveEntitiesPacket.class)
+public class JavaRemoveEntitiesTranslator extends PacketTranslator<ServerRemoveEntitiesPacket> {
 
-    private CheckAfterData() {}
-
-    public static CheckAfterData read(JsonObject data) {
-        CheckAfterData checkAfterData = new CheckAfterData();
-        checkAfterData.checkAfter = data.get("check_after").getAsLong();
-        return checkAfterData;
-    }
-
-    public long getCheckAfter() {
-        return checkAfter;
+    @Override
+    public void translate(ServerRemoveEntitiesPacket packet, GeyserSession session) {
+        for (int entityId : packet.getEntityIds()) {
+            Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
+            if (entity != null) {
+                session.getEntityCache().removeEntity(entity, false);
+            }
+        }
     }
 }
+

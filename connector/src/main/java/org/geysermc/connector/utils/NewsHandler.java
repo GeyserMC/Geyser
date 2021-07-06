@@ -35,6 +35,7 @@ import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.floodgate.news.NewsItem;
 import org.geysermc.floodgate.news.NewsItemAction;
+import org.geysermc.floodgate.news.data.AnnouncementData;
 import org.geysermc.floodgate.news.data.BuildSpecificData;
 import org.geysermc.floodgate.news.data.CheckAfterData;
 
@@ -148,6 +149,11 @@ public class NewsHandler {
         }
 
         switch (item.getType()) {
+            case ANNOUNCEMENT:
+                if (!item.getDataAs(AnnouncementData.class).isAffected(Constants.NEWS_PROJECT_NAME)) {
+                    return;
+                }
+                break;
             case BUILD_SPECIFIC:
                 if (!item.getDataAs(BuildSpecificData.class).isAffected(branch, build)) {
                     return;
@@ -157,6 +163,9 @@ public class NewsHandler {
                 long checkAfter = item.getDataAs(CheckAfterData.class).getCheckAfter();
                 long delayMs = System.currentTimeMillis() - checkAfter;
                 schedule(delayMs > 0 ? delayMs : 0);
+                break;
+            case CONFIG_SPECIFIC:
+                //todo implement
                 break;
         }
 
