@@ -25,20 +25,39 @@
 
 package org.geysermc.floodgate.news.data;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public final class CheckAfterData implements ItemData {
-    private long checkAfter;
+import java.util.HashSet;
+import java.util.Set;
 
-    private CheckAfterData() {}
+public final class AnnouncementData implements ItemData {
+    private final Set<String> including = new HashSet<>();
+    private final Set<String> excluding = new HashSet<>();
 
-    public static CheckAfterData read(JsonObject data) {
-        CheckAfterData checkAfterData = new CheckAfterData();
-        checkAfterData.checkAfter = data.get("check_after").getAsLong();
-        return checkAfterData;
+    private AnnouncementData() {}
+
+    public static AnnouncementData read(JsonObject data) {
+        AnnouncementData announcementData = new AnnouncementData();
+
+        if (data.has("including")) {
+            JsonArray including = data.getAsJsonArray("including");
+            for (JsonElement element : including) {
+                announcementData.including.add(element.getAsString());
+            }
+        }
+
+        if (data.has("excluding")) {
+            JsonArray including = data.getAsJsonArray("excluding");
+            for (JsonElement element : including) {
+                announcementData.excluding.add(element.getAsString());
+            }
+        }
+        return announcementData;
     }
 
-    public long getCheckAfter() {
-        return checkAfter;
+    public boolean isAffected(String project) {
+        return !excluding.contains(project) && (including.isEmpty() || including.contains(project));
     }
 }
