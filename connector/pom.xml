@@ -87,31 +87,13 @@
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
-            <artifactId>fastutil-int-float-maps</artifactId>
-            <version>${fastutil.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-long-long-maps</artifactId>
             <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
-            <artifactId>fastutil-object-long-maps</artifactId>
-            <version>${fastutil.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-byte-maps</artifactId>
-            <version>${fastutil.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.nukkitx.fastutil</groupId>
-            <artifactId>fastutil-int-double-maps</artifactId>
             <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
@@ -124,12 +106,6 @@
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-object-int-maps</artifactId>
-            <version>${fastutil.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.nukkitx.fastutil</groupId>
-            <artifactId>fastutil-object-byte-maps</artifactId>
             <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
