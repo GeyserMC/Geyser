@@ -44,6 +44,8 @@ public class JavaWindowItemsTranslator extends PacketTranslator<ServerWindowItem
             if (inventory == null)
                 return;
 
+            inventory.setStateId(packet.getStateId());
+
             for (int i = 0; i < packet.getItems().length; i++) {
                 GeyserItemStack newItem = GeyserItemStack.from(packet.getItems()[i]);
                 inventory.setItem(i, newItem, session);
@@ -53,6 +55,9 @@ public class JavaWindowItemsTranslator extends PacketTranslator<ServerWindowItem
             if (translator != null) {
                 translator.updateInventory(session, inventory);
             }
+
+            session.getPlayerInventory().setCursor(GeyserItemStack.from(packet.getCarriedItem()), session);
+            InventoryUtils.updateCursor(session);
         });
     }
 }

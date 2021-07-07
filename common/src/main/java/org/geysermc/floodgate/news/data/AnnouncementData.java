@@ -23,24 +23,41 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.entity;
+package org.geysermc.floodgate.news.data;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerRemoveEntityPacket;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
-@Translator(packet = ServerRemoveEntityPacket.class)
-public class JavaRemoveEntityTranslator extends PacketTranslator<ServerRemoveEntityPacket> {
+import java.util.HashSet;
+import java.util.Set;
 
-    @Override
-    public void translate(ServerRemoveEntityPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+public final class AnnouncementData implements ItemData {
+    private final Set<String> including = new HashSet<>();
+    private final Set<String> excluding = new HashSet<>();
 
-        if (entity != null) {
-            session.getEntityCache().removeEntity(entity, false);
+    private AnnouncementData() {}
+
+    public static AnnouncementData read(JsonObject data) {
+        AnnouncementData announcementData = new AnnouncementData();
+
+        if (data.has("including")) {
+            JsonArray including = data.getAsJsonArray("including");
+            for (JsonElement element : including) {
+                announcementData.including.add(element.getAsString());
+            }
         }
+
+        if (data.has("excluding")) {
+            JsonArray including = data.getAsJsonArray("excluding");
+            for (JsonElement element : including) {
+                announcementData.excluding.add(element.getAsString());
+            }
+        }
+        return announcementData;
+    }
+
+    public boolean isAffected(String project) {
+        return !excluding.contains(project) && (including.isEmpty() || including.contains(project));
     }
 }
-

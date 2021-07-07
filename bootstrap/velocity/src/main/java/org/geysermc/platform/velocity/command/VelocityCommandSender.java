@@ -28,7 +28,7 @@ package org.geysermc.platform.velocity.command;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
-import net.kyori.text.TextComponent;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.utils.LanguageUtils;
 
@@ -56,7 +56,7 @@ public class VelocityCommandSender implements CommandSender {
 
     @Override
     public void sendMessage(String message) {
-        handle.sendMessage(TextComponent.of(message));
+        handle.sendMessage(LegacyComponentSerializer.legacy('§').deserialize(message));
     }
 
     @Override

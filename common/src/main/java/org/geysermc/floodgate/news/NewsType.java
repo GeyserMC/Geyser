@@ -26,15 +26,15 @@
 package org.geysermc.floodgate.news;
 
 import com.google.gson.JsonObject;
-import org.geysermc.floodgate.news.data.BuildSpecificData;
-import org.geysermc.floodgate.news.data.CheckAfterData;
-import org.geysermc.floodgate.news.data.ItemData;
+import org.geysermc.floodgate.news.data.*;
 
 import java.util.function.Function;
 
 public enum NewsType {
     BUILD_SPECIFIC(BuildSpecificData::read),
-    CHECK_AFTER(CheckAfterData::read);
+    CHECK_AFTER(CheckAfterData::read),
+    ANNOUNCEMENT(AnnouncementData::read),
+    CONFIG_SPECIFIC(ConfigSpecificData::read);
 
     private static final NewsType[] VALUES = values();
 
