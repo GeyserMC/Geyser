@@ -25,20 +25,41 @@
 
 package org.geysermc.floodgate.news.data;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public final class CheckAfterData implements ItemData {
-    private long checkAfter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
 
-    private CheckAfterData() {}
+public final class ConfigSpecificData implements ItemData {
+    private final Map<String, Pattern> affectedKeys = new HashMap<>();
 
-    public static CheckAfterData read(JsonObject data) {
-        CheckAfterData checkAfterData = new CheckAfterData();
-        checkAfterData.checkAfter = data.get("check_after").getAsLong();
-        return checkAfterData;
+    private ConfigSpecificData() {}
+
+    public static ConfigSpecificData read(JsonObject data) {
+        ConfigSpecificData configSpecificData = new ConfigSpecificData();
+
+        JsonArray entries = data.getAsJsonArray("entries");
+        for (JsonElement element : entries) {
+            JsonObject entry = element.getAsJsonObject();
+            String key = entry.get("key").getAsString();
+            String pattern = entry.get("pattern").getAsString();
+            configSpecificData.affectedKeys.put(key, Pattern.compile(pattern));
+        }
+        return configSpecificData;
     }
 
-    public long getCheckAfter() {
-        return checkAfter;
+    public boolean isAffected(Map<String, String> config) {
+        for (Map.Entry<String, Pattern> entry : affectedKeys.entrySet()) {
+            if (config.containsKey(entry.getKey())) {
+                String value = config.get(entry.getKey());
+                if (entry.getValue().matcher(value).matches()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

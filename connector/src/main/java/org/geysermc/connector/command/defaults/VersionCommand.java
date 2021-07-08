@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.command.defaults;
 
-import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
@@ -67,8 +66,7 @@ public class VersionCommand extends GeyserCommand {
         sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.version", sender.getLocale(), GeyserConnector.NAME, GeyserConnector.VERSION, GeyserConnector.MINECRAFT_VERSION, bedrockVersions));
 
         // Disable update checking in dev mode and for players in Geyser Standalone
-        //noinspection ConstantConditions - changes in production
-        if (!GeyserConnector.VERSION.equals("DEV") && !(!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE)) {
+        if (GeyserConnector.getInstance().isProductionEnvironment() && !(!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE)) {
             sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.checking", sender.getLocale()));
             try {
                 Properties gitProp = new Properties();

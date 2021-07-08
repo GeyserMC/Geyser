@@ -43,11 +43,12 @@ public class InteractiveTagManager {
     /**
      * All entity types that can be leashed on Java Edition
      */
-    private static final Set<EntityType> LEASHABLE_MOB_TYPES = EnumSet.of(EntityType.BEE, EntityType.CAT, EntityType.CHICKEN,
-            EntityType.COW, EntityType.DOLPHIN, EntityType.DONKEY, EntityType.FOX, EntityType.HOGLIN, EntityType.HORSE, EntityType.SKELETON_HORSE,
-            EntityType.ZOMBIE_HORSE, EntityType.IRON_GOLEM, EntityType.LLAMA, EntityType.TRADER_LLAMA, EntityType.MOOSHROOM,
-            EntityType.MULE, EntityType.OCELOT, EntityType.PARROT, EntityType.PIG, EntityType.POLAR_BEAR, EntityType.RABBIT,
-            EntityType.SHEEP, EntityType.SNOW_GOLEM, EntityType.STRIDER, EntityType.WOLF, EntityType.ZOGLIN);
+    private static final Set<EntityType> LEASHABLE_MOB_TYPES = EnumSet.of(EntityType.AXOLOTL, EntityType.BEE, EntityType.CAT, EntityType.CHICKEN,
+            EntityType.COW, EntityType.DOLPHIN, EntityType.DONKEY, EntityType.FOX, EntityType.GOAT, EntityType.GLOW_SQUID, EntityType.HOGLIN,
+            EntityType.HORSE, EntityType.SKELETON_HORSE, EntityType.ZOMBIE_HORSE, EntityType.IRON_GOLEM, EntityType.LLAMA,
+            EntityType.TRADER_LLAMA, EntityType.MOOSHROOM, EntityType.MULE, EntityType.OCELOT, EntityType.PARROT, EntityType.PIG,
+            EntityType.POLAR_BEAR, EntityType.RABBIT, EntityType.SHEEP, EntityType.SNOW_GOLEM, EntityType.SQUID, EntityType.STRIDER,
+            EntityType.WOLF, EntityType.ZOGLIN);
 
     private static final Set<EntityType> SADDLEABLE_WHEN_TAMED_MOB_TYPES = EnumSet.of(EntityType.DONKEY, EntityType.HORSE,
             EntityType.ZOMBIE_HORSE, EntityType.MULE);

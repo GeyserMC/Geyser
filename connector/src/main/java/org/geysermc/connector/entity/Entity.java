@@ -72,8 +72,6 @@ public class Entity {
      */
     protected boolean onGround;
 
-    protected float scale = 1;
-
     protected EntityType entityType;
 
     protected boolean valid;
@@ -309,7 +307,7 @@ public class Entity {
                 // The value that Java edition gives us is in ticks, but Bedrock uses a float percentage of the strength 0.0 -> 1.0
                 // The Java client caps its freezing tick percentage at 140
                 int freezingTicks = Math.min((int) entityMetadata.getValue(), 140);
-                metadata.put(EntityData.FREEZING_EFFECT_STRENGTH, (freezingTicks / 140f));
+                setFreezing(session, freezingTicks / 140f);
                 break;
         }
     }
@@ -328,12 +326,28 @@ public class Entity {
     }
 
     /**
+     * If true, the entity should be shaking on the client's end.
+     *
+     * @return whether {@link EntityFlag#SHAKING} should be set to true.
+     */
+    protected boolean isShaking(GeyserSession session) {
+        return false;
+    }
+
+    /**
      * Set the height and width of the entity's bounding box
      */
     protected void setDimensions(Pose pose) {
         // No flexibility options for basic entities
         metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
         metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
+    }
+
+    /**
+     * Set a float from 0-1 - how strong the "frozen" overlay should be on screen.
+     */
+    protected void setFreezing(GeyserSession session, float amount) {
+        metadata.put(EntityData.FREEZING_EFFECT_STRENGTH, amount);
     }
 
     /**

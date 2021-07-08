@@ -205,7 +205,8 @@ public class FileUtils {
         URL resource = FileUtils.class.getClassLoader().getResource("META-INF/reflections/" + path + "-reflections.xml");
         try (InputStream inputStream = resource.openConnection().getInputStream()) {
             reflections.merge(serializer.read(inputStream));
-        } catch (IOException e) { }
+        } catch (IOException ignored) {
+        }
 
         return reflections;
     }

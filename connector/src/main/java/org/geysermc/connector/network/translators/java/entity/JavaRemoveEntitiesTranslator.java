@@ -23,38 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java;
+package org.geysermc.connector.network.translators.java.entity;
 
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerRemoveEntitiesPacket;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.cache.BossBar;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerBossBarPacket;
+@Translator(packet = ServerRemoveEntitiesPacket.class)
+public class JavaRemoveEntitiesTranslator extends PacketTranslator<ServerRemoveEntitiesPacket> {
 
-@Translator(packet = ServerBossBarPacket.class)
-public class JavaBossBarTranslator extends PacketTranslator<ServerBossBarPacket> {
     @Override
-    public void translate(ServerBossBarPacket packet, GeyserSession session) {
-        BossBar bossBar = session.getEntityCache().getBossBar(packet.getUuid());
-        switch (packet.getAction()) {
-            case ADD:
-                long entityId = session.getEntityCache().getNextEntityId().incrementAndGet();
-                bossBar = new BossBar(session, entityId, packet.getTitle(), packet.getHealth(), 0, 1, 0);
-                session.getEntityCache().addBossBar(packet.getUuid(), bossBar);
-                break;
-            case UPDATE_TITLE:
-                if (bossBar != null) bossBar.updateTitle(packet.getTitle());
-                break;
-            case UPDATE_HEALTH:
-                if (bossBar != null) bossBar.updateHealth(packet.getHealth());
-                break;
-            case REMOVE:
-                session.getEntityCache().removeBossBar(packet.getUuid());
-                break;
-            case UPDATE_STYLE:
-            case UPDATE_FLAGS:
-                //todo
+    public void translate(ServerRemoveEntitiesPacket packet, GeyserSession session) {
+        for (int entityId : packet.getEntityIds()) {
+            Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
+            if (entity != null) {
+                session.getEntityCache().removeEntity(entity, false);
+            }
         }
     }
 }
+

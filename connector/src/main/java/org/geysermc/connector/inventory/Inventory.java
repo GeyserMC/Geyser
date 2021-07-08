@@ -40,6 +40,14 @@ public class Inventory {
     @Getter
     protected final int id;
 
+    /**
+     * If this is out of sync with the server, the server will resync items.
+     * Since Java Edition 1.17.1.
+     */
+    @Getter
+    @Setter
+    private int stateId;
+
     @Getter
     protected final int size;
 
@@ -53,7 +61,7 @@ public class Inventory {
     @Setter
     protected String title;
 
-    protected GeyserItemStack[] items;
+    protected final GeyserItemStack[] items;
 
     /**
      * The location of the inventory block. Will either be a fake block above the player's head, or the actual block location

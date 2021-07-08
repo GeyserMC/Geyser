@@ -23,22 +23,32 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.floodgate.news.data;
+package org.geysermc.connector.entity.living.monster;
 
-import com.google.gson.JsonObject;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.session.GeyserSession;
 
-public final class CheckAfterData implements ItemData {
-    private long checkAfter;
+public class SkeletonEntity extends AbstractSkeletonEntity {
+    private boolean convertingToStray = false;
 
-    private CheckAfterData() {}
-
-    public static CheckAfterData read(JsonObject data) {
-        CheckAfterData checkAfterData = new CheckAfterData();
-        checkAfterData.checkAfter = data.get("check_after").getAsLong();
-        return checkAfterData;
+    public SkeletonEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+        super(entityId, geyserId, entityType, position, motion, rotation);
     }
 
-    public long getCheckAfter() {
-        return checkAfter;
+    @Override
+    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+        super.updateBedrockMetadata(entityMetadata, session);
+        if (entityMetadata.getId() == 16) {
+            this.convertingToStray = (boolean) entityMetadata.getValue();
+            metadata.getFlags().setFlag(EntityFlag.SHAKING, isShaking(session));
+        }
+    }
+
+    @Override
+    protected boolean isShaking(GeyserSession session) {
+        return convertingToStray;
     }
 }

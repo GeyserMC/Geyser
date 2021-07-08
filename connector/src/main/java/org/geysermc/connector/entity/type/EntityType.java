@@ -71,7 +71,7 @@ public enum EntityType {
     ZOMBIE(ZombieEntity.class, 32, 1.8f, 0.6f, 0.6f, 1.62f),
     GIANT(GiantEntity.class, 32, 1.8f, 0.6f, 0.6f, 1.62f, "minecraft:zombie"),
     CREEPER(CreeperEntity.class, 33, 1.7f, 0.6f, 0.6f, 1.62f),
-    SKELETON(AbstractSkeletonEntity.class, 34, 1.8f, 0.6f, 0.6f, 1.62f),
+    SKELETON(SkeletonEntity.class, 34, 1.8f, 0.6f, 0.6f, 1.62f),
     SPIDER(SpiderEntity.class, 35, 0.9f, 1.4f, 1.4f, 1f),
     ZOMBIFIED_PIGLIN(ZombifiedPiglinEntity.class, 36, 1.95f, 0.6f, 0.6f, 1.62f, "minecraft:zombie_pigman"),
     SLIME(SlimeEntity.class, 37, 0.51f),
@@ -97,7 +97,7 @@ public enum EntityType {
     VINDICATOR(VindicatorEntity.class, 57, 1.8f, 0.6f, 0.6f, 1.62f),
     PILLAGER(PillagerEntity.class, 114, 1.8f, 0.6f, 0.6f, 1.62f),
     WANDERING_TRADER(AbstractMerchantEntity.class, 118, 1.8f, 0.6f, 0.6f, 1.62f),
-    PHANTOM(FlyingEntity.class, 58, 0.5f, 0.9f, 0.9f, 0.6f),
+    PHANTOM(PhantomEntity.class, 58, 0.5f, 0.9f, 0.9f, 0.6f),
     RAVAGER(RaidParticipantEntity.class, 59, 1.9f, 1.2f),
 
     ARMOR_STAND(ArmorStandEntity.class, 61, 1.975f, 0.5f),
