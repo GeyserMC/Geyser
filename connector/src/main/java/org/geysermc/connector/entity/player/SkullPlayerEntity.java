@@ -87,9 +87,6 @@ public class SkullPlayerEntity extends PlayerEntity {
 
         valid = true;
         session.sendUpstreamPacket(addPlayerPacket);
-
-        updateAllEquipment(session);
-        updateBedrockAttributes(session);
     }
 
     public void despawnEntity(GeyserSession session, Vector3i position) {

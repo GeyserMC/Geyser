@@ -29,29 +29,23 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
-import com.nukkitx.protocol.bedrock.packet.*;
+import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
+import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import org.geysermc.connector.entity.attribute.Attribute;
-import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.living.ArmorStandEntity;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
-import org.geysermc.connector.utils.AttributeUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Getter
 @Setter
@@ -77,7 +71,6 @@ public class Entity {
     protected boolean valid;
 
     protected LongOpenHashSet passengers = new LongOpenHashSet();
-    protected Map<AttributeType, Attribute> attributes = new HashMap<>();
     protected EntityDataMap metadata = new EntityDataMap();
 
     public Entity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
@@ -116,11 +109,19 @@ public class Entity {
         addEntityPacket.setRotation(getBedrockRotation());
         addEntityPacket.setEntityType(entityType.getType());
         addEntityPacket.getMetadata().putAll(metadata);
+        addAdditionalSpawnData(addEntityPacket);
 
         valid = true;
         session.sendUpstreamPacket(addEntityPacket);
 
         session.getConnector().getLogger().debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
+    }
+
+    /**
+     * To be overridden in other entity classes, if additional things need to be done to the spawn entity packet.
+     */
+    public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
+
     }
 
     /**
@@ -229,23 +230,6 @@ public class Entity {
      */
     public void updateRotation(GeyserSession session, float yaw, float pitch, boolean isOnGround) {
         updatePositionAndRotation(session, 0, 0, 0, yaw, pitch, isOnGround);
-    }
-
-    public void updateBedrockAttributes(GeyserSession session) {
-        if (!valid) return;
-
-        List<AttributeData> attributes = new ArrayList<>();
-        for (Map.Entry<AttributeType, Attribute> entry : this.attributes.entrySet()) {
-            if (!entry.getValue().getType().isBedrockAttribute())
-                continue;
-
-            attributes.add(AttributeUtils.getBedrockAttribute(entry.getValue()));
-        }
-
-        UpdateAttributesPacket updateAttributesPacket = new UpdateAttributesPacket();
-        updateAttributesPacket.setRuntimeEntityId(geyserId);
-        updateAttributesPacket.setAttributes(attributes);
-        session.sendUpstreamPacket(updateAttributesPacket);
     }
 
     /**
