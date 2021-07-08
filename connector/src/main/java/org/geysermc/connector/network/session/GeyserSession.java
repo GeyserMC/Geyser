@@ -78,8 +78,7 @@ import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.entity.Tickable;
-import org.geysermc.connector.entity.attribute.Attribute;
-import org.geysermc.connector.entity.attribute.AttributeType;
+import org.geysermc.connector.entity.attribute.GeyserAttributeType;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.inventory.Inventory;
@@ -880,9 +879,13 @@ public class GeyserSession implements CommandSender {
         this.sneaking = sneaking;
 
         // Update pose and bounding box on our end
-        if (!sneaking && adjustSpeed()) {
+        AttributeData speedAttribute;
+        if (!sneaking && (speedAttribute = adjustSpeed()) != null) {
             // Update attributes since we're still "sneaking" under a 1.5-block-tall area
-            playerEntity.updateBedrockAttributes(this);
+            UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+            attributesPacket.setRuntimeEntityId(playerEntity.getGeyserId());
+            attributesPacket.setAttributes(Collections.singletonList(speedAttribute));
+            sendUpstreamPacket(attributesPacket);
             // the server *should* update our pose once it has returned to normal
         } else {
             if (!flying) {
@@ -928,23 +931,25 @@ public class GeyserSession implements CommandSender {
     /**
      * Adjusts speed if the player is crawling.
      *
-     * @return true if attributes should be updated.
+     * @return not null if attributes should be updated.
      */
-    public boolean adjustSpeed() {
-        Attribute currentPlayerSpeed = playerEntity.getAttributes().get(AttributeType.MOVEMENT_SPEED);
+    public AttributeData adjustSpeed() {
+        AttributeData currentPlayerSpeed = playerEntity.getAttributes().get(GeyserAttributeType.MOVEMENT_SPEED);
         if (currentPlayerSpeed != null) {
             if ((pose.equals(Pose.SNEAKING) && !sneaking && collisionManager.isUnderSlab()) ||
                     (!swimmingInWater && playerEntity.getMetadata().getFlags().getFlag(EntityFlag.SWIMMING) && !collisionManager.isPlayerInWater())) {
                 // Either of those conditions means that Bedrock goes zoom when they shouldn't be
-                currentPlayerSpeed.setValue(originalSpeedAttribute / 3.32f);
-                return true;
+                AttributeData speedAttribute = GeyserAttributeType.MOVEMENT_SPEED.getAttribute(originalSpeedAttribute / 3.32f);
+                playerEntity.getAttributes().put(GeyserAttributeType.MOVEMENT_SPEED, speedAttribute);
+                return speedAttribute;
             } else if (originalSpeedAttribute != currentPlayerSpeed.getValue()) {
                 // Speed has reset to normal
-                currentPlayerSpeed.setValue(originalSpeedAttribute);
-                return true;
+                AttributeData speedAttribute = GeyserAttributeType.MOVEMENT_SPEED.getAttribute(originalSpeedAttribute);
+                playerEntity.getAttributes().put(GeyserAttributeType.MOVEMENT_SPEED, speedAttribute);
+                return speedAttribute;
             }
         }
-        return false;
+        return null;
     }
 
     /**
@@ -977,8 +982,8 @@ public class GeyserSession implements CommandSender {
         return false;
     }
 
-     @Override
-     public String getLocale() {
+    @Override
+    public String getLocale() {
         return clientData.getLanguageCode();
      }
 

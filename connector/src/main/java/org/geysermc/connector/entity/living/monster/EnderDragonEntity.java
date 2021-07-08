@@ -35,16 +35,12 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.Data;
 import org.geysermc.connector.entity.Tickable;
-import org.geysermc.connector.entity.attribute.AttributeType;
+import org.geysermc.connector.entity.attribute.GeyserAttributeType;
 import org.geysermc.connector.entity.living.InsentientEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.utils.DimensionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
@@ -100,44 +96,21 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
 
         super.updateBedrockMetadata(entityMetadata, session);
 
-        if (entityMetadata.getId() == 9) { // Health
-            // Update the health attribute, so that the death animation gets played
-            // Round health up, so that Bedrock doesn't consider the dragon to be dead when health is between 0 and 1
-            float health = (float) Math.ceil(metadata.getFloat(EntityData.HEALTH));
-            if (phase == 9 && health <= 0) { // Dying phase
+        if (entityMetadata.getId() == 9) {
+            if (phase == 9 && this.health <= 0) { // Dying phase
                 EntityEventPacket entityEventPacket = new EntityEventPacket();
                 entityEventPacket.setType(EntityEventType.ENDER_DRAGON_DEATH);
                 entityEventPacket.setRuntimeEntityId(geyserId);
                 entityEventPacket.setData(0);
                 session.sendUpstreamPacket(entityEventPacket);
             }
-            attributes.put(AttributeType.HEALTH, AttributeType.HEALTH.getAttribute(health, 200));
-            updateBedrockAttributes(session);
         }
     }
 
-    /**
-     * Send an updated list of attributes to the Bedrock client.
-     * This is overwritten to allow the health attribute to differ from
-     * the health specified in the metadata.
-     *
-     * @param session GeyserSession
-     */
     @Override
-    public void updateBedrockAttributes(GeyserSession session) {
-        if (!valid) return;
-
-        List<AttributeData> attributes = new ArrayList<>();
-        for (Map.Entry<AttributeType, org.geysermc.connector.entity.attribute.Attribute> entry : this.attributes.entrySet()) {
-            if (!entry.getValue().getType().isBedrockAttribute())
-                continue;
-            attributes.add(AttributeUtils.getBedrockAttribute(entry.getValue()));
-        }
-
-        UpdateAttributesPacket updateAttributesPacket = new UpdateAttributesPacket();
-        updateAttributesPacket.setRuntimeEntityId(geyserId);
-        updateAttributesPacket.setAttributes(attributes);
-        session.sendUpstreamPacket(updateAttributesPacket);
+    protected AttributeData createHealthAttribute() {
+        // Round health up, so that Bedrock doesn't consider the dragon to be dead when health is between 0 and 1
+        return GeyserAttributeType.HEALTH.getAttribute((float) Math.ceil(this.health), this.maxHealth);
     }
 
     @Override
@@ -166,6 +139,13 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
             segmentHistory[i].yaw = rotation.getZ();
             segmentHistory[i].y = position.getY();
         }
+    }
+
+    @Override
+    public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
+        // Bedrock is EXTREMELY sensitive to the Ender Dragon's health - if it is dead once, it is dead for the rest of its life
+        // Ensure that the first spawn packet sent has health data so this cannot happen until it actually should
+        addEntityPacket.getAttributes().add(createHealthAttribute());
     }
 
     @Override
@@ -318,7 +298,7 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
     }
 
     private boolean isAlive() {
-        return metadata.getFloat(EntityData.HEALTH) > 0;
+        return health > 0;
     }
 
     private boolean isHovering() {

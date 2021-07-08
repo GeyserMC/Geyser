@@ -35,12 +35,10 @@ import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.PlayerActionType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayerActionPacket;
+import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
+import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -49,12 +47,14 @@ import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.BlockUtils;
 
+import java.util.ArrayList;
+
 @Translator(packet = PlayerActionPacket.class)
 public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket> {
 
     @Override
     public void translate(PlayerActionPacket packet, GeyserSession session) {
-        Entity entity = session.getPlayerEntity();
+        SessionPlayerEntity entity = session.getPlayerEntity();
 
         // Send book update before any player action
         if (packet.getAction() != PlayerActionType.RESPAWN) {
@@ -73,7 +73,10 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 eventPacket.setData(0);
                 session.sendUpstreamPacket(eventPacket);
                 // Resend attributes or else in rare cases the user can think they're not dead when they are, upon joining the server
-                entity.updateBedrockAttributes(session);
+                UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+                attributesPacket.setRuntimeEntityId(entity.getGeyserId());
+                attributesPacket.setAttributes(new ArrayList<>(entity.getAttributes().values()));
+                session.sendUpstreamPacket(attributesPacket);
                 break;
             case START_SWIMMING:
                 ClientPlayerStatePacket startSwimPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);
@@ -235,7 +238,12 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 PlayStatusPacket spawnPacket = new PlayStatusPacket();
                 spawnPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
                 session.sendUpstreamPacket(spawnPacket);
-                entity.updateBedrockAttributes(session);
+
+                attributesPacket = new UpdateAttributesPacket();
+                attributesPacket.setRuntimeEntityId(entity.getGeyserId());
+                attributesPacket.setAttributes(new ArrayList<>(entity.getAttributes().values()));
+                session.sendUpstreamPacket(attributesPacket);
+
                 session.getEntityCache().updateBossBars();
                 break;
             case JUMP:

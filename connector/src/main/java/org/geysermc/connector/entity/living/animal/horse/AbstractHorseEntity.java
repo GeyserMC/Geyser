@@ -33,7 +33,8 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
-import org.geysermc.connector.entity.attribute.AttributeType;
+import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.connector.entity.attribute.GeyserAttributeType;
 import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -55,15 +56,24 @@ public class AbstractHorseEntity extends AnimalEntity {
 
         // Specifies the size of the entity's inventory. Required to place slots in the entity.
         metadata.put(EntityData.CONTAINER_BASE_SIZE, 2);
-        // Add dummy health attribute since LivingEntity updates the attribute for us
-        attributes.put(AttributeType.HEALTH, AttributeType.HEALTH.getAttribute(20, 20));
-        // Add horse jump strength attribute to allow donkeys and mules to jump
-        attributes.put(AttributeType.HORSE_JUMP_STRENGTH, AttributeType.HORSE_JUMP_STRENGTH.getAttribute(0.5f, 2));
+    }
+
+    @Override
+    public void spawnEntity(GeyserSession session) {
+        super.spawnEntity(session);
+
+        // Add horse jump strength attribute to allow donkeys and mules to jump, if they don't send the attribute themselves.
+        // Confirmed broken without this code by making a new donkey in vanilla 1.17.1
+        // The spawn packet does have an attributes section, but adding the jump strength property there causes the
+        // donkey to jump very high.
+        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+        attributesPacket.setRuntimeEntityId(geyserId);
+        attributesPacket.getAttributes().add(GeyserAttributeType.HORSE_JUMP_STRENGTH.getAttribute(0.5f, 2));
+        session.sendUpstreamPacket(attributesPacket);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-
         if (entityMetadata.getId() == 17) {
             byte xd = (byte) entityMetadata.getValue();
             metadata.getFlags().setFlag(EntityFlag.TAMED, (xd & 0x02) == 0x02);
@@ -105,11 +115,6 @@ public class AbstractHorseEntity extends AnimalEntity {
         metadata.getFlags().setFlag(EntityFlag.WASD_CONTROLLED, true);
 
         super.updateBedrockMetadata(entityMetadata, session);
-
-        if (entityMetadata.getId() == 9) {
-            // Update the health attribute
-            updateBedrockAttributes(session);
-        }
     }
 
     @Override

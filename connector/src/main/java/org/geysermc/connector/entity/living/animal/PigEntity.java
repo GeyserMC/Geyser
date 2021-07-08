@@ -50,9 +50,4 @@ public class PigEntity extends AnimalEntity {
     public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
         return javaIdentifierStripped.equals("carrot") || javaIdentifierStripped.equals("potato") || javaIdentifierStripped.equals("beetroot");
     }
-
-    @Override
-    protected float getDefaultMaxHealth() {
-        return 10f;
-    }
 }

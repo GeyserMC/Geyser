@@ -26,14 +26,13 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientKeepAlivePacket;
+import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
-import org.geysermc.connector.entity.attribute.Attribute;
-import org.geysermc.connector.entity.attribute.AttributeType;
+import org.geysermc.connector.entity.attribute.GeyserAttributeType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.floodgate.util.DeviceOs;
 
 import java.util.Collections;
@@ -70,11 +69,11 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
         attributesPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
 
-        Attribute attribute = session.getPlayerEntity().getAttributes().get(AttributeType.EXPERIENCE_LEVEL);
+        AttributeData attribute = session.getPlayerEntity().getAttributes().get(GeyserAttributeType.EXPERIENCE_LEVEL);
         if (attribute != null) {
-            attributesPacket.setAttributes(Collections.singletonList(AttributeUtils.getBedrockAttribute(attribute)));
+            attributesPacket.setAttributes(Collections.singletonList(attribute));
         } else {
-            attributesPacket.setAttributes(Collections.singletonList(AttributeUtils.getBedrockAttribute(AttributeType.EXPERIENCE_LEVEL.getAttribute(0))));
+            attributesPacket.setAttributes(Collections.singletonList(GeyserAttributeType.EXPERIENCE_LEVEL.getAttribute(0)));
         }
 
         session.getConnector().getGeneralThreadPool().schedule(

@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
@@ -38,9 +39,10 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import com.nukkitx.protocol.bedrock.packet.MobEquipmentPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.connector.entity.attribute.AttributeType;
+import org.geysermc.connector.entity.attribute.GeyserAttributeType;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
@@ -48,8 +50,8 @@ import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.utils.ChunkUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 @Getter
 @Setter
@@ -62,6 +64,11 @@ public class LivingEntity extends Entity {
     protected ItemData hand = ItemData.AIR;
     protected ItemData offHand = ItemData.AIR;
 
+    @Getter(value = AccessLevel.NONE)
+    protected float health = 1f; // The default value in Java Edition before any entity metadata is sent
+    @Getter(value = AccessLevel.NONE)
+    protected float maxHealth = 20f; // The value Java Edition defaults to if no attribute is given
+
     /**
      * A convenience variable for if the entity has reached the maximum frozen ticks and should be shaking
      */
@@ -69,6 +76,9 @@ public class LivingEntity extends Entity {
 
     public LivingEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+
+        // Matches Bedrock behavior; is always set to this
+        metadata.put(EntityData.HEALTH, 1);
     }
 
     @Override
@@ -88,7 +98,13 @@ public class LivingEntity extends Entity {
                 metadata.getFlags().setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, (xd & 0x04) == 0x04);
                 break;
             case 9:
-                metadata.put(EntityData.HEALTH, entityMetadata.getValue());
+                this.health = (float) entityMetadata.getValue();
+
+                AttributeData healthData = createHealthAttribute();
+                UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+                attributesPacket.setRuntimeEntityId(geyserId);
+                attributesPacket.setAttributes(Collections.singletonList(healthData));
+                session.sendUpstreamPacket(attributesPacket);
                 break;
             case 10:
                 metadata.put(EntityData.EFFECT_COLOR, entityMetadata.getValue());
@@ -139,12 +155,12 @@ public class LivingEntity extends Entity {
         metadata.getFlags().setFlag(EntityFlag.SHAKING, isShaking(session));
     }
 
-    public void updateAllEquipment(GeyserSession session) {
-        if (!valid) return;
-
-        updateArmor(session);
-        updateMainHand(session);
-        updateOffHand(session);
+    /**
+     * @return a Bedrock health attribute constructed from the data sent from the server
+     */
+    protected AttributeData createHealthAttribute() {
+        // Default health needs to be specified as the max health in order for maximum hearts to show correctly on mounted entities
+        return new AttributeData(GeyserAttributeType.HEALTH.getBedrockIdentifier(), 0f, this.maxHealth, this.health, this.maxHealth);
     }
 
     public void updateArmor(GeyserSession session) {
@@ -198,37 +214,67 @@ public class LivingEntity extends Entity {
         session.sendUpstreamPacket(offHandPacket);
     }
 
-    @Override
-    public void updateBedrockAttributes(GeyserSession session) {
+    /**
+     * Attributes are properties of an entity that are generally more runtime-based instead of permanent properties.
+     * Movement speed, current attack damage with a weapon, current knockback resistance.
+     *
+     * @param attributes the Java list of attributes sent from the server
+     */
+    public void updateBedrockAttributes(GeyserSession session, List<Attribute> attributes) {
         if (!valid) return;
 
-        float maxHealth = this.attributes.containsKey(AttributeType.MAX_HEALTH) ? this.attributes.get(AttributeType.MAX_HEALTH).getValue() : getDefaultMaxHealth();
+        List<AttributeData> newAttributes = new ArrayList<>();
 
-        List<AttributeData> attributes = new ArrayList<>();
-        for (Map.Entry<AttributeType, org.geysermc.connector.entity.attribute.Attribute> entry : this.attributes.entrySet()) {
-            if (!entry.getValue().getType().isBedrockAttribute())
-                continue;
-            if (entry.getValue().getType() == AttributeType.HEALTH) {
-                // Add health attribute to properly show hearts when mounting
-                // TODO: Not a perfect system, since it led to respawn bugs
-                attributes.add(new AttributeData("minecraft:health", 0.0f, maxHealth, metadata.getFloat(EntityData.HEALTH, 20f), maxHealth));
-                continue;
-            }
+        for (Attribute attribute : attributes) {
+            // Convert the attribute to a Bedrock version, if relevant
+            updateAttribute(attribute, newAttributes);
+        }
 
-            attributes.add(AttributeUtils.getBedrockAttribute(entry.getValue()));
+        if (newAttributes.isEmpty()) {
+            // If there are Java-only attributes or only attributes that are not translated by us
+            return;
         }
 
         UpdateAttributesPacket updateAttributesPacket = new UpdateAttributesPacket();
         updateAttributesPacket.setRuntimeEntityId(geyserId);
-        updateAttributesPacket.setAttributes(attributes);
+        updateAttributesPacket.setAttributes(newAttributes);
         session.sendUpstreamPacket(updateAttributesPacket);
     }
 
     /**
-     * Used for the health visual when mounting an entity.
-     * @return the default maximum health for the entity.
+     * Takes the Java attribute and adds it to newAttributes as a Bedrock-formatted attribute
      */
-    protected float getDefaultMaxHealth() {
-        return 20f;
+    protected void updateAttribute(Attribute javaAttribute, List<AttributeData> newAttributes) {
+        switch (javaAttribute.getType()) {
+            case GENERIC_MAX_HEALTH:
+                this.maxHealth = (float) AttributeUtils.calculateValue(javaAttribute);
+                newAttributes.add(createHealthAttribute());
+                break;
+            case GENERIC_ATTACK_DAMAGE:
+                newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.ATTACK_DAMAGE));
+                break;
+            case GENERIC_FLYING_SPEED:
+                newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED));
+                break;
+            case GENERIC_MOVEMENT_SPEED:
+                newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.MOVEMENT_SPEED));
+                break;
+            case GENERIC_FOLLOW_RANGE:
+                newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FOLLOW_RANGE));
+                break;
+            case GENERIC_KNOCKBACK_RESISTANCE:
+                newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.KNOCKBACK_RESISTANCE));
+                break;
+            case HORSE_JUMP_STRENGTH:
+                newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.HORSE_JUMP_STRENGTH));
+                break;
+        }
+    }
+
+    /**
+     * Calculates the complete attribute value to send to Bedrock. Will be overriden if attributes need to be cached.
+     */
+    protected AttributeData calculateAttribute(Attribute javaAttribute, GeyserAttributeType type) {
+        return type.getAttribute((float) AttributeUtils.calculateValue(javaAttribute));
     }
 }

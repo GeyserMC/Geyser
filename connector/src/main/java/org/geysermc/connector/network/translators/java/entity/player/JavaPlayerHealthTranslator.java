@@ -25,38 +25,48 @@
 
 package org.geysermc.connector.network.translators.java.entity.player;
 
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.attribute.AttributeType;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerHealthPacket;
+import com.nukkitx.protocol.bedrock.data.AttributeData;
+import com.nukkitx.protocol.bedrock.packet.SetHealthPacket;
+import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.connector.entity.attribute.GeyserAttributeType;
+import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerHealthPacket;
-import com.nukkitx.protocol.bedrock.packet.SetHealthPacket;
+import java.util.List;
 
 @Translator(packet = ServerPlayerHealthPacket.class)
 public class JavaPlayerHealthTranslator extends PacketTranslator<ServerPlayerHealthPacket> {
 
     @Override
     public void translate(ServerPlayerHealthPacket packet, GeyserSession session) {
-        Entity entity = session.getPlayerEntity();
-        if (entity == null)
-            return;
+        SessionPlayerEntity entity = session.getPlayerEntity();
 
         int health = (int) Math.ceil(packet.getHealth());
         SetHealthPacket setHealthPacket = new SetHealthPacket();
         setHealthPacket.setHealth(health);
         session.sendUpstreamPacket(setHealthPacket);
 
-        float maxHealth = entity.getAttributes().containsKey(AttributeType.MAX_HEALTH) ? entity.getAttributes().get(AttributeType.MAX_HEALTH).getValue() : 20f;
-        // Max health must be divisible by two in bedrock
-        if ((maxHealth % 2) == 1) {
-            maxHealth += 1;
-        }
+        entity.setHealth(packet.getHealth());
 
-        entity.getAttributes().put(AttributeType.HEALTH, AttributeType.HEALTH.getAttribute(health, maxHealth));
-        entity.getAttributes().put(AttributeType.HUNGER, AttributeType.HUNGER.getAttribute(packet.getFood()));
-        entity.getAttributes().put(AttributeType.SATURATION, AttributeType.SATURATION.getAttribute(packet.getSaturation()));
-        entity.updateBedrockAttributes(session);
+        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+        List<AttributeData> attributes = attributesPacket.getAttributes();
+
+        AttributeData healthAttribute = entity.createHealthAttribute();
+        entity.getAttributes().put(GeyserAttributeType.HEALTH, healthAttribute);
+        attributes.add(healthAttribute);
+
+        AttributeData hungerAttribute = GeyserAttributeType.HUNGER.getAttribute(packet.getFood());
+        entity.getAttributes().put(GeyserAttributeType.HUNGER, hungerAttribute);
+        attributes.add(hungerAttribute);
+
+        AttributeData saturationAttribute = GeyserAttributeType.SATURATION.getAttribute(packet.getSaturation());
+        entity.getAttributes().put(GeyserAttributeType.SATURATION, saturationAttribute);
+        attributes.add(saturationAttribute);
+
+        attributesPacket.setRuntimeEntityId(entity.getGeyserId());
+        session.sendUpstreamPacket(attributesPacket);
     }
 }
