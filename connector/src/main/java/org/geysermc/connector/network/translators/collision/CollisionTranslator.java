@@ -48,11 +48,6 @@ public class CollisionTranslator {
     private static final Int2ObjectMap<BlockCollision> COLLISION_MAP = new Int2ObjectOpenHashMap<>();
 
     public static void init() {
-        // If chunk caching is off then don't initialize
-        if (!GeyserConnector.getInstance().getConfig().isCacheChunks()) {
-            return;
-        }
-
         List<Class<?>> collisionTypes = new ArrayList<>();
 
         Map<Class<?>, CollisionRemapper> annotationMap = new HashMap<>();

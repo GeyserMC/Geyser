@@ -41,7 +41,7 @@ public class ParrotEntity extends TameableEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         // Parrot color
-        if (entityMetadata.getId() == 18) {
+        if (entityMetadata.getId() == 19) {
             metadata.put(EntityData.VARIANT, entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);

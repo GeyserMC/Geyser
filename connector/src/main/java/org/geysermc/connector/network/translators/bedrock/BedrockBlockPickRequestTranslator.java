@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.bedrock;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.BlockPickRequestPacket;
 import org.geysermc.connector.entity.ItemFrameEntity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -53,7 +54,7 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
                     InventoryUtils.findOrCreateItem(session, entity.getHeldItem());
                 } else {
                     // Grab the frame as the item
-                    InventoryUtils.findOrCreateItem(session, "minecraft:item_frame");
+                    InventoryUtils.findOrCreateItem(session, entity.getEntityType() == EntityType.GLOW_ITEM_FRAME ? "minecraft:glow_item_frame" : "minecraft:item_frame");
                 }
             }
             return;

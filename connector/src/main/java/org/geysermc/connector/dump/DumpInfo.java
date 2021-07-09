@@ -41,7 +41,8 @@ import org.geysermc.connector.network.BedrockProtocol;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.FileUtils;
-import org.geysermc.floodgate.util.DeviceOS;
+import org.geysermc.floodgate.util.DeviceOs;
+import org.geysermc.floodgate.util.FloodgateInfoHolder;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,27 +54,29 @@ import java.util.Properties;
 
 @Getter
 public class DumpInfo {
-
     @JsonIgnore
     private static final long MEGABYTE = 1024L * 1024L;
 
     private final DumpInfo.VersionInfo versionInfo;
     private Properties gitInfo;
     private final GeyserConfiguration config;
+    private final Floodgate floodgate;
+    private final Object2IntMap<DeviceOs> userPlatforms;
     private final HashInfo hashInfo;
-    private final Object2IntMap<DeviceOS> userPlatforms;
     private final RamInfo ramInfo;
     private final BootstrapDumpInfo bootstrapInfo;
 
     public DumpInfo() {
-        this.versionInfo = new DumpInfo.VersionInfo();
+        this.versionInfo = new VersionInfo();
 
         try {
             this.gitInfo = new Properties();
             this.gitInfo.load(FileUtils.getResource("git.properties"));
-        } catch (IOException ignored) { }
+        } catch (IOException ignored) {
+        }
 
         this.config = GeyserConnector.getInstance().getConfig();
+        this.floodgate = new Floodgate();
 
         String md5Hash = "unknown";
         String sha256Hash = "unknown";
@@ -92,14 +95,13 @@ public class DumpInfo {
                 e.printStackTrace();
             }
         }
-
         this.hashInfo = new HashInfo(md5Hash, sha256Hash);
 
         this.ramInfo = new DumpInfo.RamInfo();
 
         this.userPlatforms = new Object2IntOpenHashMap<>();
         for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
-            DeviceOS device = session.getClientData().getDeviceOS();
+            DeviceOs device = session.getClientData().getDeviceOs();
             userPlatforms.put(device, userPlatforms.getOrDefault(device, 0) + 1);
         }
 
@@ -108,7 +110,6 @@ public class DumpInfo {
 
     @Getter
     public static class VersionInfo {
-
         private final String name;
         private final String version;
         private final String javaVersion;
@@ -123,7 +124,8 @@ public class DumpInfo {
             this.name = GeyserConnector.NAME;
             this.version = GeyserConnector.VERSION;
             this.javaVersion = System.getProperty("java.version");
-            this.architecture = System.getProperty("os.arch"); // Usually gives Java architecture but still may be helpful.
+            // Usually gives Java architecture but still may be helpful.
+            this.architecture = System.getProperty("os.arch");
             this.operatingSystem = System.getProperty("os.name");
             this.operatingSystemVersion = System.getProperty("os.version");
 
@@ -132,18 +134,10 @@ public class DumpInfo {
         }
     }
 
-    @AllArgsConstructor
-    @Getter
-    public static class HashInfo {
-        private final String md5Hash;
-        private final String sha256Hash;
-    }
-
     @Getter
     public static class NetworkInfo {
-
-        private String internalIP;
         private final boolean dockerCheck;
+        private String internalIP;
 
         NetworkInfo() {
             if (AsteriskSerializer.showSensitive) {
@@ -156,7 +150,8 @@ public class DumpInfo {
                     try {
                         // Fallback to the normal way of getting the local IP
                         this.internalIP = InetAddress.getLocalHost().getHostAddress();
-                    } catch (UnknownHostException ignored) { }
+                    } catch (UnknownHostException ignored) {
+                    }
                 }
             } else {
                 // Sometimes the internal IP is the external IP...
@@ -169,7 +164,6 @@ public class DumpInfo {
 
     @Getter
     public static class MCInfo {
-
         private final String bedrockVersion;
         private final int bedrockProtocol;
         private final String javaVersion;
@@ -184,8 +178,25 @@ public class DumpInfo {
     }
 
     @Getter
-    public static class RamInfo {
+    public static class Floodgate {
+        private final Properties gitInfo;
+        private final Object config;
 
+        Floodgate() {
+            this.gitInfo = FloodgateInfoHolder.getGitProperties();
+            this.config = FloodgateInfoHolder.getConfig();
+        }
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class HashInfo {
+        private final String md5Hash;
+        private final String sha256Hash;
+    }
+
+    @Getter
+    public static class RamInfo {
         private final long free;
         private final long total;
         private final long max;

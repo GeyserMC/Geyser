@@ -32,7 +32,14 @@ import org.geysermc.connector.network.session.GeyserSession;
 /**
  * Implemented only if a block is a block entity in Bedrock and not Java Edition.
  */
-public interface BedrockOnlyBlockEntity {
+public interface BedrockOnlyBlockEntity extends RequiresBlockState {
+    /**
+     * Determines if block is part of class
+     * @param blockState BlockState to be compared
+     * @return true if part of the class
+     */
+    boolean isBlock(int blockState);
+
     /**
      * Update the block on Bedrock Edition.
      * @param session GeyserSession.

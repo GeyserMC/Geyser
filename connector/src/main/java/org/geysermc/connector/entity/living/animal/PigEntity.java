@@ -40,8 +40,7 @@ public class PigEntity extends AnimalEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 17) {
             metadata.getFlags().setFlag(EntityFlag.SADDLED, (boolean) entityMetadata.getValue());
         }
         super.updateBedrockMetadata(entityMetadata, session);
@@ -50,10 +49,5 @@ public class PigEntity extends AnimalEntity {
     @Override
     public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
         return javaIdentifierStripped.equals("carrot") || javaIdentifierStripped.equals("potato") || javaIdentifierStripped.equals("beetroot");
-    }
-
-    @Override
-    protected float getDefaultMaxHealth() {
-        return 10f;
     }
 }

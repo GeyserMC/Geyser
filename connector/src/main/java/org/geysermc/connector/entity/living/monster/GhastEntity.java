@@ -40,7 +40,7 @@ public class GhastEntity extends FlyingEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 15) {
+        if (entityMetadata.getId() == 16) {
             // If the ghast is attacking
             metadata.put(EntityData.CHARGE_AMOUNT, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
         }

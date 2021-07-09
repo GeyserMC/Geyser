@@ -32,17 +32,16 @@ import org.geysermc.connector.common.serializer.AsteriskSerializer;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @Getter
 public class GeyserBungeeDumpInfo extends BootstrapDumpInfo {
-
-    private String platformName;
-    private String platformVersion;
-    private boolean onlineMode;
-    private List<ListenerInfo> listeners;
-    private List<PluginInfo> plugins;
+    private final String platformName;
+    private final String platformVersion;
+    private final boolean onlineMode;
+    private final List<ListenerInfo> listeners;
+    private final List<PluginInfo> plugins;
 
     GeyserBungeeDumpInfo(ProxyServer proxy) {
         super();
@@ -63,7 +62,7 @@ public class GeyserBungeeDumpInfo extends BootstrapDumpInfo {
         }
 
         for (Plugin plugin : proxy.getPluginManager().getPlugins()) {
-            this.plugins.add(new PluginInfo(true, plugin.getDescription().getName(), plugin.getDescription().getVersion(), plugin.getDescription().getMain(), Arrays.asList(plugin.getDescription().getAuthor())));
+            this.plugins.add(new PluginInfo(true, plugin.getDescription().getName(), plugin.getDescription().getVersion(), plugin.getDescription().getMain(), Collections.singletonList(plugin.getDescription().getAuthor())));
         }
     }
 }

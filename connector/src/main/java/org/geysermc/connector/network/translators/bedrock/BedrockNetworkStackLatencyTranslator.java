@@ -26,11 +26,17 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientKeepAlivePacket;
+import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
+import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.connector.entity.attribute.GeyserAttributeType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.floodgate.util.DeviceOS;
+import org.geysermc.floodgate.util.DeviceOs;
+
+import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Used to send the forwarded keep alive packet back to the server
@@ -40,18 +46,38 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
 
     @Override
     public void translate(NetworkStackLatencyPacket packet, GeyserSession session) {
-        if (session.getConnector().getConfig().isForwardPlayerPing()) {
-            long pingId;
-            // so apparently, as of 1.16.200
-            // PS4 divides the network stack latency timestamp FOR US!!!
-            // WTF
-            if (session.getClientData().getDeviceOS().equals(DeviceOS.NX)) {
-                // Ignore the weird DeviceOS, our order is wrong and will be fixed in Floodgate 2.0
-                pingId = packet.getTimestamp();
-            } else {
-                pingId = packet.getTimestamp() / 1000;
-            }
-            session.sendDownstreamPacket(new ClientKeepAlivePacket(pingId));
+        long pingId;
+        // so apparently, as of 1.16.200
+        // PS4 divides the network stack latency timestamp FOR US!!!
+        // WTF
+        if (session.getClientData().getDeviceOs().equals(DeviceOs.PS4)) {
+            pingId = packet.getTimestamp();
+        } else {
+            pingId = packet.getTimestamp() / 1000;
         }
+
+        // negative timestamps are used as hack to fix the url image loading bug
+        if (packet.getTimestamp() > 0) {
+            if (session.getConnector().getConfig().isForwardPlayerPing()) {
+                ClientKeepAlivePacket keepAlivePacket = new ClientKeepAlivePacket(pingId);
+                session.sendDownstreamPacket(keepAlivePacket);
+            }
+            return;
+        }
+
+        // Hack to fix the url image loading bug
+        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+        attributesPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+
+        AttributeData attribute = session.getPlayerEntity().getAttributes().get(GeyserAttributeType.EXPERIENCE_LEVEL);
+        if (attribute != null) {
+            attributesPacket.setAttributes(Collections.singletonList(attribute));
+        } else {
+            attributesPacket.setAttributes(Collections.singletonList(GeyserAttributeType.EXPERIENCE_LEVEL.getAttribute(0)));
+        }
+
+        session.getConnector().getGeneralThreadPool().schedule(
+                () -> session.sendUpstreamPacket(attributesPacket),
+                500, TimeUnit.MILLISECONDS);
     }
 }

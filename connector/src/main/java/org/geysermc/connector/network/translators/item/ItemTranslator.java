@@ -39,7 +39,6 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.utils.FileUtils;
-import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 import org.reflections.Reflections;
 
@@ -78,13 +77,15 @@ public abstract class ItemTranslator {
                 for (ItemEntry item : appliedItems) {
                     ItemTranslator registered = ITEM_STACK_TRANSLATORS.get(item.getJavaId());
                     if (registered != null) {
-                        GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.item.already_registered", clazz.getCanonicalName(), registered.getClass().getCanonicalName(), item.getJavaIdentifier()));
+                        GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated item translator " +
+                                clazz.getCanonicalName() + ". Item translator " + registered.getClass().getCanonicalName() +
+                                " is already registered for the item " + item.getJavaIdentifier());
                         continue;
                     }
                     ITEM_STACK_TRANSLATORS.put(item.getJavaId(), itemStackTranslator);
                 }
             } catch (InstantiationException | IllegalAccessException e) {
-                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.item.failed", clazz.getCanonicalName()));
+                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated item translator " + clazz.getCanonicalName());
             }
         }
 
@@ -225,14 +226,14 @@ public abstract class ItemTranslator {
     public ItemStack translateToJava(ItemData itemData, ItemEntry itemEntry) {
         if (itemData == null) return null;
         if (itemData.getTag() == null) {
-            return new ItemStack(itemEntry.getJavaId(), itemData.getCount(), new com.github.steveice10.opennbt.tag.builtin.CompoundTag(""));
+            return new ItemStack(itemEntry.getJavaId(), itemData.getCount(), new CompoundTag(""));
         }
         return new ItemStack(itemEntry.getJavaId(), itemData.getCount(), this.translateToJavaNBT("", itemData.getTag()));
     }
 
     public abstract List<ItemEntry> getAppliedItems();
 
-    public NbtMap translateNbtToBedrock(com.github.steveice10.opennbt.tag.builtin.CompoundTag tag) {
+    public NbtMap translateNbtToBedrock(CompoundTag tag) {
         NbtMapBuilder builder = NbtMap.builder();
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
             for (String str : tag.getValue().keySet()) {
@@ -247,7 +248,7 @@ public abstract class ItemTranslator {
         return builder.build();
     }
 
-    private Object translateToBedrockNBT(com.github.steveice10.opennbt.tag.builtin.Tag tag) {
+    private Object translateToBedrockNBT(Tag tag) {
         if (tag instanceof ByteArrayTag) {
             return ((ByteArrayTag) tag).getValue();
         }
@@ -295,7 +296,7 @@ public abstract class ItemTranslator {
             ListTag listTag = (ListTag) tag;
 
             List<Object> tagList = new ArrayList<>();
-            for (com.github.steveice10.opennbt.tag.builtin.Tag value : listTag) {
+            for (Tag value : listTag) {
                 tagList.add(translateToBedrockNBT(value));
             }
             NbtType<?> type = NbtType.COMPOUND;

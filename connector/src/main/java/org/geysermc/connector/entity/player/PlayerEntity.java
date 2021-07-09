@@ -27,6 +27,7 @@ package org.geysermc.connector.entity.player;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
@@ -45,18 +46,13 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.LivingEntity;
-import org.geysermc.connector.entity.attribute.Attribute;
-import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.living.animal.tameable.ParrotEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.scoreboard.Team;
-import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
+import org.geysermc.connector.scoreboard.Team;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -94,7 +90,7 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.setUsername(username);
         addPlayerPacket.setRuntimeEntityId(geyserId);
         addPlayerPacket.setUniqueEntityId(geyserId);
-        addPlayerPacket.setPosition(position.clone().sub(0, EntityType.PLAYER.getOffset(), 0));
+        addPlayerPacket.setPosition(position.sub(0, EntityType.PLAYER.getOffset(), 0));
         addPlayerPacket.setRotation(getBedrockRotation());
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(hand);
@@ -114,9 +110,6 @@ public class PlayerEntity extends LivingEntity {
 
         valid = true;
         session.sendUpstreamPacket(addPlayerPacket);
-
-        updateAllEquipment(session);
-        updateBedrockAttributes(session);
     }
 
     public void sendPlayer(GeyserSession session) {
@@ -273,17 +266,16 @@ public class PlayerEntity extends LivingEntity {
         }
 
         // Extra hearts - is not metadata but an attribute on Bedrock
-        if (entityMetadata.getId() == 14) {
+        if (entityMetadata.getId() == 15) {
             UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
             attributesPacket.setRuntimeEntityId(geyserId);
-            List<AttributeData> attributes = new ArrayList<>();
             // Setting to a higher maximum since plugins/datapacks can probably extend the Bedrock soft limit
-            attributes.add(new AttributeData("minecraft:absorption", 0.0f, 1024f, (float) entityMetadata.getValue(), 0.0f));
-            attributesPacket.setAttributes(attributes);
+            attributesPacket.setAttributes(Collections.singletonList(
+                    new AttributeData("minecraft:absorption", 0.0f, 1024f, (float) entityMetadata.getValue(), 0.0f)));
             session.sendUpstreamPacket(attributesPacket);
         }
 
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 17) {
             // OptionalPack usage for toggling skin bits
             // In Java Edition, a bit being set means that part should be enabled
             // However, to ensure that the pack still works on other servers, we invert the bit so all values by default
@@ -292,10 +284,10 @@ public class PlayerEntity extends LivingEntity {
         }
 
         // Parrot occupying shoulder
-        if (entityMetadata.getId() == 18 || entityMetadata.getId() == 19) {
+        if (entityMetadata.getId() == 19 || entityMetadata.getId() == 20) {
             CompoundTag tag = (CompoundTag) entityMetadata.getValue();
             if (tag != null && !tag.isEmpty()) {
-                if ((entityMetadata.getId() == 18 && leftParrot != null) || (entityMetadata.getId() == 19 && rightParrot != null)) {
+                if ((entityMetadata.getId() == 19 && leftParrot != null) || (entityMetadata.getId() == 20 && rightParrot != null)) {
                     // No need to update a parrot's data when it already exists
                     return;
                 }
@@ -321,10 +313,10 @@ public class PlayerEntity extends LivingEntity {
                     rightParrot = parrot;
                 }
             } else {
-                Entity parrot = (entityMetadata.getId() == 18 ? leftParrot : rightParrot);
+                Entity parrot = (entityMetadata.getId() == 19 ? leftParrot : rightParrot);
                 if (parrot != null) {
                     parrot.despawnEntity(session);
-                    if (entityMetadata.getId() == 18) {
+                    if (entityMetadata.getId() == 19) {
                         leftParrot = null;
                     } else {
                         rightParrot = null;
@@ -335,20 +327,22 @@ public class PlayerEntity extends LivingEntity {
     }
 
     @Override
-    public void updateBedrockAttributes(GeyserSession session) { // TODO: Don't use duplicated code
-        if (!valid) return;
-
-        List<AttributeData> attributes = new ArrayList<>();
-        for (Map.Entry<AttributeType, Attribute> entry : this.attributes.entrySet()) {
-            if (!entry.getValue().getType().isBedrockAttribute())
-                continue;
-
-            attributes.add(AttributeUtils.getBedrockAttribute(entry.getValue()));
+    protected void setDimensions(Pose pose) {
+        float height;
+        switch (pose) {
+            case SNEAKING:
+                height = 1.5f;
+                break;
+            case FALL_FLYING:
+            case SPIN_ATTACK:
+            case SWIMMING:
+                height = 0.6f;
+                break;
+            default:
+                super.setDimensions(pose);
+                return;
         }
-
-        UpdateAttributesPacket updateAttributesPacket = new UpdateAttributesPacket();
-        updateAttributesPacket.setRuntimeEntityId(geyserId);
-        updateAttributesPacket.setAttributes(attributes);
-        session.sendUpstreamPacket(updateAttributesPacket);
+        metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
+        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
     }
 }

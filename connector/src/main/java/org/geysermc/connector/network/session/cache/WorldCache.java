@@ -28,7 +28,6 @@ package org.geysermc.connector.network.session.cache;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.scoreboard.Objective;
 import org.geysermc.connector.scoreboard.Scoreboard;
@@ -40,15 +39,8 @@ public class WorldCache {
     @Setter
     private Difficulty difficulty = Difficulty.EASY;
 
-    /**
-     * True if the client prefers being shown their coordinates, regardless if they're being shown or not.
-     * This will be true everytime the client joins the server because neither the client nor server store the preference permanently.
-     */
     @Setter
-    private boolean prefersShowCoordinates = true;
-
-    @Setter
-    private volatile boolean disableBedrockScaffolding;
+    private boolean disableBedrockScaffolding;
 
     private Scoreboard scoreboard;
     private final ScoreboardUpdater scoreboardUpdater;
@@ -75,18 +67,5 @@ public class WorldCache {
         int pendingPps = scoreboardUpdater.incrementAndGetPacketsPerSecond();
         int pps = scoreboardUpdater.getPacketsPerSecond();
         return Math.max(pps, pendingPps);
-    }
-
-    /**
-     * Tell the client to hide or show the coordinates.
-     *
-     * If {@link #prefersShowCoordinates} is true, coordinates will be shown, unless either of the following conditions apply: <br>
-     * <br>
-     * {@link GeyserSession#reducedDebugInfo} is enabled
-     * {@link GeyserConfiguration#isShowCoordinates()} is disabled
-     */
-    public void updateShowCoordinates() {
-        boolean allowShowCoordinates = !session.isReducedDebugInfo() && session.getConnector().getConfig().isShowCoordinates();
-        session.sendGameRule("showcoordinates", allowShowCoordinates && prefersShowCoordinates);
     }
 }

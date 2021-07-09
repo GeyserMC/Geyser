@@ -152,20 +152,15 @@ public class Metrics {
      */
     private ObjectNode getServerData() {
         // OS specific data
-        int playerAmount = connector.getPlayers().size();
-
         String osName = System.getProperty("os.name");
         String osArch = System.getProperty("os.arch");
         String osVersion = System.getProperty("os.version");
-        String javaVersion = System.getProperty("java.version");
         int coreCount = Runtime.getRuntime().availableProcessors();
 
         ObjectNode data = mapper.createObjectNode();
 
         data.put("serverUUID", serverUUID);
 
-        data.put("playerAmount", playerAmount);
-        data.put("javaVersion", javaVersion);
         data.put("osName", osName);
         data.put("osArch", osArch);
         data.put("osVersion", osVersion);

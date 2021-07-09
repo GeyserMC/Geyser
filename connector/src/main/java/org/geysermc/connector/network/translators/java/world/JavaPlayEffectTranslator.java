@@ -39,7 +39,6 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.effect.Effect;
 import org.geysermc.connector.network.translators.effect.EffectRegistry;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.utils.LocaleUtils;
 
 import java.util.Collections;
@@ -229,6 +228,7 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     effectPacket.setType(LevelEventType.PARTICLE_MOB_BLOCK_SPAWN); // TODO: Check, but I don't think I really verified this ever went into effect on Java
                     break;
                 }
+                case BONEMEAL_GROW_WITH_SOUND: // Note that there is no particle without sound in Bedrock. If you wanted to implement the sound, send a PlaySoundPacket with "item.bone_meal.use" and volume and pitch at 1.0F
                 case BONEMEAL_GROW: {
                     effectPacket.setType(LevelEventType.PARTICLE_CROP_GROWTH);
 
@@ -273,6 +273,27 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     soundEventPacket.setBabySound(false);
                     soundEventPacket.setRelativeVolumeDisabled(false);
                     session.sendUpstreamPacket(soundEventPacket);
+                    break;
+                }
+                case DRIPSTONE_DRIP: {
+                    effectPacket.setType(LevelEventType.PARTICLE_DRIPSTONE_DRIP);
+                    break;
+                }
+                case ELECTRIC_SPARK: {
+                    // Matches with a Bedrock server but doesn't seem to match up with Java
+                    effectPacket.setType(LevelEventType.PARTICLE_ELECTRIC_SPARK);
+                    break;
+                }
+                case WAX_ON: {
+                    effectPacket.setType(LevelEventType.PARTICLE_WAX_ON);
+                    break;
+                }
+                case WAX_OFF: {
+                    effectPacket.setType(LevelEventType.PARTICLE_WAX_OFF);
+                    break;
+                }
+                case SCRAPE: {
+                    effectPacket.setType(LevelEventType.PARTICLE_SCRAPE);
                     break;
                 }
                 default: {

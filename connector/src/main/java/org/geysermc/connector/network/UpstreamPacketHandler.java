@@ -30,16 +30,13 @@ import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.data.ExperimentData;
 import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
-import com.nukkitx.protocol.bedrock.v428.Bedrock_v428;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.cache.AdvancementsCache;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.network.translators.item.ItemRegistry;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator1_16_100;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator1_16_210;
+import org.geysermc.connector.network.translators.world.block.BlockTranslator1_17_0;
 import org.geysermc.connector.utils.*;
 
 import java.io.FileInputStream;
@@ -74,8 +71,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         session.getUpstream().getSession().setPacketCodec(packetCodec);
 
         // Set the block translation based off of version
-        session.setBlockTranslator(packetCodec.getProtocolVersion() >= Bedrock_v428.V428_CODEC.getProtocolVersion()
-                ? BlockTranslator1_16_210.INSTANCE : BlockTranslator1_16_100.INSTANCE);
+        session.setBlockTranslator(BlockTranslator1_17_0.INSTANCE);
 
         LoginEncryptionUtils.encryptPlayerConnection(connector, session, loginPacket);
 
@@ -153,22 +149,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
-        switch (packet.getFormId()) {
-            case AdvancementsCache.ADVANCEMENT_INFO_FORM_ID:
-                return session.getAdvancementsCache().handleInfoForm(packet.getFormData());
-            case AdvancementsCache.ADVANCEMENTS_LIST_FORM_ID:
-                return session.getAdvancementsCache().handleListForm(packet.getFormData());
-            case AdvancementsCache.ADVANCEMENTS_MENU_FORM_ID:
-                return session.getAdvancementsCache().handleMenuForm(packet.getFormData());
-            case SettingsUtils.SETTINGS_FORM_ID:
-                return SettingsUtils.handleSettingsForm(session, packet.getFormData());
-            case StatisticsUtils.STATISTICS_LIST_FORM_ID:
-                return StatisticsUtils.handleListForm(session, packet.getFormData());
-            case StatisticsUtils.STATISTICS_MENU_FORM_ID:
-                return StatisticsUtils.handleMenuForm(session, packet.getFormData());
-        }
-
-        return LoginEncryptionUtils.authenticateFromForm(session, connector, packet.getFormId(), packet.getFormData());
+        session.getFormCache().handleResponse(packet);
+        return true;
     }
 
     private boolean couldLoginUserByName(String bedrockUsername) {
@@ -196,7 +178,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         if (!session.isLoggedIn() && !session.isLoggingIn() && session.getRemoteAuthType() == AuthType.ONLINE) {
             // TODO it is safer to key authentication on something that won't change (UUID, not username)
             if (!couldLoginUserByName(session.getAuthData().getName())) {
-                LoginEncryptionUtils.showLoginWindow(session);
+                LoginEncryptionUtils.buildAndShowLoginWindow(session);
             }
             // else we were able to log the user in
         }

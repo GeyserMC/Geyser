@@ -37,15 +37,24 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 @Translator(packet = BookEditPacket.class)
 public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> {
+    private static final int MAXIMUM_PAGE_LENGTH = 8192 * 4;
+    private static final int MAXIMUM_TITLE_LENGTH = 128 * 4;
 
     @Override
     public void translate(BookEditPacket packet, GeyserSession session) {
+        if (packet.getText() != null && !packet.getText().isEmpty() && packet.getText().getBytes(StandardCharsets.UTF_8).length > MAXIMUM_PAGE_LENGTH) {
+            session.getConnector().getLogger().warning("Page length greater than server allowed!");
+            return;
+        }
+
         GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand();
         if (itemStack != null) {
             CompoundTag tag = itemStack.getNbt() != null ? itemStack.getNbt() : new CompoundTag("");
@@ -106,10 +115,29 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
                 }
             }
             tag.put(new ListTag("pages", pages));
+            // Update local copy
             session.getPlayerInventory().setItem(36 + session.getPlayerInventory().getHeldItemSlot(), GeyserItemStack.from(bookItem), session);
             session.getInventoryTranslator().updateInventory(session, session.getPlayerInventory());
 
-            session.getBookEditCache().setPacket(new ClientEditBookPacket(bookItem, packet.getAction() == BookEditPacket.Action.SIGN_BOOK, session.getPlayerInventory().getHeldItemSlot()));
+            List<String> networkPages = new ArrayList<>();
+            for (Tag pageTag : pages) {
+                networkPages.add(((StringTag) pageTag).getValue());
+            }
+
+            String title;
+            if (packet.getAction() == BookEditPacket.Action.SIGN_BOOK) {
+                // Add title to packet so the server knows we're signing
+                if (packet.getTitle().getBytes(StandardCharsets.UTF_8).length > MAXIMUM_TITLE_LENGTH) {
+                    session.getConnector().getLogger().warning("Book title larger than server allows!");
+                    return;
+                }
+
+                title = packet.getTitle();
+            } else {
+                title = null;
+            }
+
+            session.getBookEditCache().setPacket(new ClientEditBookPacket(session.getPlayerInventory().getHeldItemSlot(), networkPages, title));
             // There won't be any more book updates after this, so we can try sending the edit packet immediately
             if (packet.getAction() == BookEditPacket.Action.SIGN_BOOK) {
                 session.getBookEditCache().checkForSend();
