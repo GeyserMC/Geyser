@@ -110,7 +110,7 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
     @Override
     protected AttributeData createHealthAttribute() {
         // Round health up, so that Bedrock doesn't consider the dragon to be dead when health is between 0 and 1
-        return GeyserAttributeType.HEALTH.getAttribute((float) Math.ceil(this.health), this.maxHealth);
+        return new AttributeData(GeyserAttributeType.HEALTH.getBedrockIdentifier(), 0f, this.maxHealth, (float) Math.ceil(this.health), this.maxHealth);
     }
 
     @Override

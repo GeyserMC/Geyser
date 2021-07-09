@@ -55,6 +55,8 @@ public class AbstractHorseEntity extends AnimalEntity {
 
         // Specifies the size of the entity's inventory. Required to place slots in the entity.
         metadata.put(EntityData.CONTAINER_BASE_SIZE, 2);
+
+        metadata.getFlags().setFlag(EntityFlag.WASD_CONTROLLED, true);
     }
 
     @Override
@@ -75,8 +77,10 @@ public class AbstractHorseEntity extends AnimalEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 17) {
             byte xd = (byte) entityMetadata.getValue();
-            metadata.getFlags().setFlag(EntityFlag.TAMED, (xd & 0x02) == 0x02);
-            metadata.getFlags().setFlag(EntityFlag.SADDLED, (xd & 0x04) == 0x04);
+            boolean tamed = (xd & 0x02) == 0x02;
+            boolean saddled = (xd & 0x04) == 0x04;
+            metadata.getFlags().setFlag(EntityFlag.TAMED, tamed);
+            metadata.getFlags().setFlag(EntityFlag.SADDLED, saddled);
             metadata.getFlags().setFlag(EntityFlag.EATING, (xd & 0x10) == 0x10);
             metadata.getFlags().setFlag(EntityFlag.STANDING, (xd & 0x20) == 0x20);
 
@@ -105,13 +109,11 @@ public class AbstractHorseEntity extends AnimalEntity {
             }
 
             // Set container type if tamed
-            metadata.put(EntityData.CONTAINER_TYPE, ((xd & 0x02) == 0x02) ? (byte) ContainerType.HORSE.getId() : (byte) 0);
-        }
+            metadata.put(EntityData.CONTAINER_TYPE, tamed ? (byte) ContainerType.HORSE.getId() : (byte) 0);
 
-        // Needed to control horses
-        boolean canPowerJump = entityType != EntityType.LLAMA && entityType != EntityType.TRADER_LLAMA;
-        metadata.getFlags().setFlag(EntityFlag.CAN_POWER_JUMP, canPowerJump);
-        metadata.getFlags().setFlag(EntityFlag.WASD_CONTROLLED, true);
+            // Shows the jump meter
+            metadata.getFlags().setFlag(EntityFlag.CAN_POWER_JUMP, saddled);
+        }
 
         super.updateBedrockMetadata(entityMetadata, session);
     }
