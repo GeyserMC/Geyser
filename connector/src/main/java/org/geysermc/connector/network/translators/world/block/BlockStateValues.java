@@ -257,6 +257,11 @@ public class BlockStateValues {
         return IS_STICKY_PISTON.get(blockState);
     }
 
+    public static boolean isPistonHead(int state) {
+        String javaId = BlockTranslator.getJavaIdBlockMap().inverse().get(state);
+        return javaId.startsWith("minecraft:piston_head");
+    }
+
     /**
      * Get the Java Block State for a piston head for a specific direction
      * This is used in PistonBlockEntity to get the BlockCollision for the piston head.
@@ -273,11 +278,48 @@ public class BlockStateValues {
      * This is used in ChunkUtils to prevent them from being placed as it causes
      * pistons to flicker and it is not needed
      *
-     * @param blockState BlockState of the block
+     * @param state Block state of the block
      * @return True if the block is a moving_piston
      */
-    public static boolean isMovingPiston(int blockState) {
-        return MOVING_PISTONS.contains(blockState);
+    public static boolean isMovingPiston(int state) {
+        return MOVING_PISTONS.contains(state);
+    }
+
+    /**
+     * Checks if a block sticks to other blocks
+     * (Slime and honey blocks)
+     *
+     * @param state The block state
+     * @return True if the block sticks to adjacent blocks
+     */
+    public static boolean isBlockSticky(int state) {
+        return state == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID || state == BlockTranslator.JAVA_RUNTIME_HONEY_BLOCK_ID;
+    }
+
+    /**
+     * Check if two blocks are attached to each other.
+     *
+     * @param stateA The block state of block a
+     * @param stateB The block state of block b
+     * @return True if the blocks are attached to each other
+     */
+    public static boolean isBlockAttached(int stateA, int stateB) {
+        boolean aSticky = isBlockSticky(stateA);
+        boolean bSticky = isBlockSticky(stateB);
+        if (aSticky && bSticky) {
+            // Only matching sticky blocks are attached together
+            // Honey + Honey & Slime + Slime
+            return stateA == stateB;
+        }
+        return aSticky || bSticky;
+    }
+
+    /**
+     * @param state The block state of the block
+     * @return true if a piston can break the block
+     */
+    public static boolean canPistonDestroyBlock(int state)  {
+        return !BlockTranslator.getBlockMapping(state).getPistonBehavior().equals("destroy");
     }
 
     /**

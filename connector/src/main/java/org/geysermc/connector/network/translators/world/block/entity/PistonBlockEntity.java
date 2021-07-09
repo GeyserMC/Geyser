@@ -188,18 +188,13 @@ public class PistonBlockEntity {
         }
     }
 
-    private boolean isPistonHead(int blockId) {
-        String javaId = BlockTranslator.getJavaIdBlockMap().inverse().get(blockId);
-        return javaId.contains("piston_head");
-    }
-
     /**
      * Removes lingering piston heads
      */
     private void removePistonHead() {
         Vector3i blockInFront = position.add(orientation.getUnitVector());
         int blockId = session.getConnector().getWorldManager().getBlockAt(session, blockInFront);
-        if (isPistonHead(blockId)) {
+        if (BlockStateValues.isPistonHead(blockId)) {
             ChunkUtils.updateBlock(session, BlockTranslator.JAVA_AIR_ID, blockInFront);
         }
     }
@@ -236,7 +231,7 @@ public class PistonBlockEntity {
             }
             if (canMoveBlock(blockId, action == PistonValueType.PUSHING)) {
                 attachedBlocks.put(blockPos, blockId);
-                if (isBlockSticky(blockId)) {
+                if (BlockStateValues.isBlockSticky(blockId)) {
                     // For honey blocks and slime blocks check the blocks adjacent to it
                     for (Direction direction : Direction.values()) {
                         Vector3i offset = direction.getUnitVector();
@@ -254,9 +249,9 @@ public class PistonBlockEntity {
                             continue;
                         }
                         int adjacentBlockId = session.getConnector().getWorldManager().getBlockAt(session, adjacentPos);
-                        if (adjacentBlockId != BlockTranslator.JAVA_AIR_ID && isBlockAttached(blockId, adjacentBlockId) && canMoveBlock(adjacentBlockId, false)) {
+                        if (adjacentBlockId != BlockTranslator.JAVA_AIR_ID && BlockStateValues.isBlockAttached(blockId, adjacentBlockId) && canMoveBlock(adjacentBlockId, false)) {
                             // If it is another slime/honey block we need to check its adjacent blocks
-                            if (isBlockSticky(adjacentBlockId)) {
+                            if (BlockStateValues.isBlockSticky(adjacentBlockId)) {
                                 blocksToCheck.add(adjacentPos);
                             } else {
                                 attachedBlocks.put(adjacentPos, adjacentBlockId);
@@ -268,7 +263,7 @@ public class PistonBlockEntity {
                 }
                 // Check next block in line
                 blocksToCheck.add(blockPos.add(movement));
-            } else if (cannotDestroyBlock(blockId)) {
+            } else if (BlockStateValues.canPistonDestroyBlock(blockId)) {
                 // Block can't be moved or destroyed, so it blocks all block movement
                 moveBlocks = false;
                 break;
@@ -298,7 +293,7 @@ public class PistonBlockEntity {
             return true;
         }
         // Pistons can only be moved if they aren't extended
-        if (PistonBlockEntityTranslator.isBlock(javaId) && !isPistonHead(javaId)) {
+        if (PistonBlockEntityTranslator.isBlock(javaId) && !BlockStateValues.isPistonHead(javaId)) {
             return !BlockStateValues.getPistonValues().get(javaId);
         }
         BlockMapping block = BlockTranslator.getBlockMapping(javaId);
@@ -315,39 +310,6 @@ public class PistonBlockEntity {
         }
         // Pistons can't move block entities
         return !block.isBlockEntity();
-    }
-
-    private boolean cannotDestroyBlock(int javaId)  {
-        return !BlockTranslator.getBlockMapping(javaId).getPistonBehavior().equals("destroy");
-    }
-
-    /**
-     * Checks if a block sticks to other blocks
-     * (Slime and honey blocks)
-     *
-     * @param javaId The block id
-     * @return True if the block sticks to adjacent blocks
-     */
-    private boolean isBlockSticky(int javaId) {
-        return javaId == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID || javaId == BlockTranslator.JAVA_RUNTIME_HONEY_BLOCK_ID;
-    }
-
-    /**
-     * Check if two blocks are attached to each other
-     *
-     * @param javaIdA The block id of block a
-     * @param javaIdB The block id of block b
-     * @return True if the blocks are attached to each other
-     */
-    private boolean isBlockAttached(int javaIdA, int javaIdB) {
-        boolean aSticky = isBlockSticky(javaIdA);
-        boolean bSticky = isBlockSticky(javaIdB);
-        if (aSticky && bSticky) {
-            // Only matching sticky blocks are attached together
-            // Honey + Honey & Slime + Slime
-            return javaIdA == javaIdB;
-        }
-        return aSticky || bSticky;
     }
 
     /**
