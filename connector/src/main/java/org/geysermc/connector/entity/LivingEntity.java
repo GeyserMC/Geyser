@@ -160,7 +160,8 @@ public class LivingEntity extends Entity {
      */
     protected AttributeData createHealthAttribute() {
         // Default health needs to be specified as the max health in order for maximum hearts to show correctly on mounted entities
-        return new AttributeData(GeyserAttributeType.HEALTH.getBedrockIdentifier(), 0f, this.maxHealth, this.health, this.maxHealth);
+        // Round health value up, so that Bedrock doesn't consider the entity to be dead when health is between 0 and 1
+        return new AttributeData(GeyserAttributeType.HEALTH.getBedrockIdentifier(), 0f, this.maxHealth, (float) Math.ceil(this.health), this.maxHealth);
     }
 
     public void updateArmor(GeyserSession session) {
