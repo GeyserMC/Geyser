@@ -1,9 +1,5 @@
 /*
-<<<<<<< HEAD
  * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
-=======
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
->>>>>>> 887296ef788fbbd59b648b5361bc2c724188a43e
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
