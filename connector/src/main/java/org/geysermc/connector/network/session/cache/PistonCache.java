@@ -36,7 +36,6 @@ import lombok.Setter;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
-import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.world.block.entity.PistonBlockEntity;
 import org.geysermc.connector.utils.Axis;
 
@@ -117,18 +116,11 @@ public class PistonCache {
     }
 
     private void sendPlayerMovement() {
-        SessionPlayerEntity playerEntity = session.getPlayerEntity();
         if (!playerDisplacement.equals(Vector3d.ZERO) || playerDisplacement.getY() > 0) {
-            CollisionManager collisionManager = session.getCollisionManager();
-            BoundingBox playerBoundingBox = collisionManager.getPlayerBoundingBox();
-
-            playerBoundingBox.translate(-playerDisplacement.getX(), -playerDisplacement.getY(), -playerDisplacement.getZ());
-            playerDisplacement = collisionManager.correctPlayerMovement(playerDisplacement, true);
-            playerBoundingBox.translate(playerDisplacement.getX(), playerDisplacement.getY(), playerDisplacement.getZ());
-
-            if (collisionManager.correctPlayerPosition() && playerMotion.equals(Vector3f.ZERO)) {
-                Vector3d position = collisionManager.getPlayerBoundingBox().getBottomCenter();
+            if (playerMotion.equals(Vector3f.ZERO)) {
+                SessionPlayerEntity playerEntity = session.getPlayerEntity();
                 boolean isOnGround = playerDisplacement.getY() > 0 || playerEntity.isOnGround();
+                Vector3d position = session.getCollisionManager().getPlayerBoundingBox().getBottomCenter();
                 playerEntity.moveAbsolute(session, position.toFloat(), playerEntity.getRotation(), isOnGround, true);
             }
         }
@@ -153,14 +145,14 @@ public class PistonCache {
      * @param displacement The displacement to apply to the player's bounding box
      */
     public void displacePlayer(Vector3d displacement) {
-        // Check if the piston is pushing a player into collision
-        displacement = session.getCollisionManager().correctPlayerMovement(displacement, true);
-
         Vector3d totalDisplacement = playerDisplacement.add(displacement);
         // Clamp to range -0.51 to 0.51
         totalDisplacement = totalDisplacement.max(-0.51d, -0.51d, -0.51d).min(0.51d, 0.51d, 0.51d);
 
         Vector3d delta = totalDisplacement.sub(playerDisplacement);
+        // Check if the piston is pushing a player into collision
+        delta = session.getCollisionManager().correctPlayerMovement(delta, true);
+
         session.getCollisionManager().getPlayerBoundingBox().translate(delta.getX(), delta.getY(), delta.getZ());
 
         playerDisplacement = totalDisplacement;
