@@ -51,16 +51,7 @@ import org.geysermc.connector.utils.LanguageUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static org.geysermc.connector.utils.InventoryUtils.LAST_RECIPE_NET_ID;
 
@@ -89,14 +80,6 @@ public class RecipeRegistryPopulator {
                 Collections.singletonList(CraftingData.fromMulti(UUID.fromString("85939755-ba10-4d9d-a4cc-efb7a8e943c4"), LAST_RECIPE_NET_ID.incrementAndGet())));
         craftingData.put(RecipeType.CRAFTING_SPECIAL_BANNERADDPATTERN,
                 Collections.singletonList(CraftingData.fromMulti(UUID.fromString("b5c5d105-75a2-4076-af2b-923ea2bf4bf0"), LAST_RECIPE_NET_ID.incrementAndGet())));
-
-        // Add all cartography table recipe UUIDs, so we can use the cartography table
-        craftingData.put(RecipeType.CRAFTING_SHAPELESS, Arrays.asList(
-                CraftingData.fromMulti(UUID.fromString("8b36268c-1829-483c-a0f1-993b7156a8f2"), LAST_RECIPE_NET_ID.incrementAndGet()), // Map extending
-                CraftingData.fromMulti(UUID.fromString("442d85ed-8272-4543-a6f1-418f90ded05d"), LAST_RECIPE_NET_ID.incrementAndGet()), // Map cloning
-                CraftingData.fromMulti(UUID.fromString("98c84b38-1085-46bd-b1ce-dd38c159e6cc"), LAST_RECIPE_NET_ID.incrementAndGet()), // Map upgrading
-                CraftingData.fromMulti(UUID.fromString("602234e4-cac1-4353-8bb7-b1ebff70024b"), LAST_RECIPE_NET_ID.incrementAndGet()) // Map locking
-        ));
 
         // https://github.com/pmmp/PocketMine-MP/blob/stable/src/pocketmine/inventory/MultiRecipe.php
 

@@ -42,14 +42,15 @@ import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.item.*;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.ItemMapping;
 import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
+import static org.geysermc.connector.utils.InventoryUtils.LAST_RECIPE_NET_ID;
 
 /**
  * Used to send all valid recipes from Java to Bedrock.
@@ -58,6 +59,15 @@ import java.util.stream.Collectors;
  */
 @Translator(packet = ServerDeclareRecipesPacket.class)
 public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclareRecipesPacket> {
+    /**
+     * Required to use the specified cartography table recipes
+     */
+    private static final List<CraftingData> CARTOGRAPHY_RECIPES = Arrays.asList(
+            CraftingData.fromMulti(UUID.fromString("8b36268c-1829-483c-a0f1-993b7156a8f2"), LAST_RECIPE_NET_ID.incrementAndGet()), // Map extending
+            CraftingData.fromMulti(UUID.fromString("442d85ed-8272-4543-a6f1-418f90ded05d"), LAST_RECIPE_NET_ID.incrementAndGet()), // Map cloning
+            CraftingData.fromMulti(UUID.fromString("98c84b38-1085-46bd-b1ce-dd38c159e6cc"), LAST_RECIPE_NET_ID.incrementAndGet()), // Map upgrading
+            CraftingData.fromMulti(UUID.fromString("602234e4-cac1-4353-8bb7-b1ebff70024b"), LAST_RECIPE_NET_ID.incrementAndGet()) // Map locking
+    );
 
     @Override
     public void translate(ServerDeclareRecipesPacket packet, GeyserSession session) {
@@ -121,6 +131,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                 }
             }
         }
+        craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
         craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.get());
 
         Int2ObjectMap<IntList> stonecutterRecipeMap = new Int2ObjectOpenHashMap<>();
