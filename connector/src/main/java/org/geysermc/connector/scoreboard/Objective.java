@@ -26,6 +26,7 @@
 package org.geysermc.connector.scoreboard;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
+import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -69,7 +70,7 @@ public final class Objective {
     public Objective(Scoreboard scoreboard, String objectiveName, ScoreboardPosition displaySlot, String displayName, int type) {
         this(scoreboard);
         this.objectiveName = objectiveName;
-        this.displaySlot = correctDisplaySlot(displaySlot);
+        this.displaySlot = displaySlot;
         this.displaySlotName = translateDisplaySlot(displaySlot);
         this.displayName = displayName;
         this.type = type;
@@ -83,17 +84,6 @@ public final class Objective {
                 return "list";
             default:
                 return "sidebar";
-        }
-    }
-
-    private static ScoreboardPosition correctDisplaySlot(ScoreboardPosition displaySlot) {
-        switch (displaySlot) {
-            case BELOW_NAME:
-                return ScoreboardPosition.BELOW_NAME;
-            case PLAYER_LIST:
-                return ScoreboardPosition.PLAYER_LIST;
-            default:
-                return ScoreboardPosition.SIDEBAR;
         }
     }
 
@@ -151,12 +141,74 @@ public final class Objective {
     public void setActive(ScoreboardPosition displaySlot) {
         if (!active) {
             active = true;
-            this.displaySlot = correctDisplaySlot(displaySlot);
+            this.displaySlot = displaySlot;
             displaySlotName = translateDisplaySlot(displaySlot);
         }
     }
 
+    public void deactivate() {
+        active = false;
+    }
+
+    public ScoreboardPosition getPositionCategory() {
+        switch (displaySlot) {
+            case PLAYER_LIST:
+                return ScoreboardPosition.PLAYER_LIST;
+            case BELOW_NAME:
+                return ScoreboardPosition.BELOW_NAME;
+            default:
+                return ScoreboardPosition.SIDEBAR;
+        }
+    }
+
+    public boolean hasTeamColor() {
+        return displaySlot != ScoreboardPosition.PLAYER_LIST &&
+                displaySlot != ScoreboardPosition.BELOW_NAME &&
+                displaySlot != ScoreboardPosition.SIDEBAR;
+    }
+
+    public TeamColor getTeamColor() {
+        switch (displaySlot) {
+            case SIDEBAR_TEAM_RED:
+                return TeamColor.RED;
+            case SIDEBAR_TEAM_AQUA:
+                return TeamColor.AQUA;
+            case SIDEBAR_TEAM_BLUE:
+                return TeamColor.BLUE;
+            case SIDEBAR_TEAM_GOLD:
+                return TeamColor.GOLD;
+            case SIDEBAR_TEAM_GRAY:
+                return TeamColor.GRAY;
+            case SIDEBAR_TEAM_BLACK:
+                return TeamColor.BLACK;
+            case SIDEBAR_TEAM_GREEN:
+                return TeamColor.GREEN;
+            case SIDEBAR_TEAM_WHITE:
+                return TeamColor.WHITE;
+            case SIDEBAR_TEAM_YELLOW:
+                return TeamColor.YELLOW;
+            case SIDEBAR_TEAM_DARK_RED:
+                return TeamColor.DARK_RED;
+            case SIDEBAR_TEAM_DARK_AQUA:
+                return TeamColor.DARK_AQUA;
+            case SIDEBAR_TEAM_DARK_BLUE:
+                return TeamColor.DARK_BLUE;
+            case SIDEBAR_TEAM_DARK_GRAY:
+                return TeamColor.DARK_GRAY;
+            case SIDEBAR_TEAM_DARK_GREEN:
+                return TeamColor.DARK_GREEN;
+            case SIDEBAR_TEAM_DARK_PURPLE:
+                return TeamColor.DARK_PURPLE;
+            case SIDEBAR_TEAM_LIGHT_PURPLE:
+                return TeamColor.LIGHT_PURPLE;
+            default:
+                return null;
+        }
+    }
+
     public void removed() {
+        active = false;
+        updateType = UpdateType.REMOVE;
         scores = null;
     }
 }
