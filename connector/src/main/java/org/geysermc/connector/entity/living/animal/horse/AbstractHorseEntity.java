@@ -104,7 +104,7 @@ public class AbstractHorseEntity extends AnimalEntity {
                 EntityEventPacket entityEventPacket = new EntityEventPacket();
                 entityEventPacket.setRuntimeEntityId(geyserId);
                 entityEventPacket.setType(EntityEventType.EATING_ITEM);
-                entityEventPacket.setData(session.getItemMappings().getStored("minecraft:wheat").getBedrockId() << 16);
+                entityEventPacket.setData(session.getItemMappings().getStoredItems().wheat().getBedrockId() << 16);
                 session.sendUpstreamPacket(entityEventPacket);
             }
 

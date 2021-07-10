@@ -43,6 +43,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.*;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.translators.item.StoredItemMappings;
 import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.*;
@@ -134,7 +135,8 @@ public class ItemRegistryPopulator {
             List<ItemData> carpets = new ObjectArrayList<>();
 
             Int2ObjectMap<ItemMapping> mappings = new Int2ObjectOpenHashMap<>();
-            Map<String, ItemMapping> storedItems = new Object2ObjectOpenHashMap<>();
+            // Temporary mapping to create stored items
+            Map<String, ItemMapping> identifierToMapping = new Object2ObjectOpenHashMap<>();
 
             int netId = 1;
             List<ItemData> creativeItems = new ArrayList<>();
@@ -190,7 +192,7 @@ public class ItemRegistryPopulator {
                     // Add override for item mapping, unless it already exists... then we know multiple states can exist
                     if (!blacklistedIdentifiers.containsKey(identifier)) {
                         if (bedrockBlockIdOverrides.containsKey(identifier)) {
-                            bedrockBlockIdOverrides.remove(identifier);
+                            bedrockBlockIdOverrides.removeInt(identifier);
                             // Save this as a blacklist, but also as knowledge of what the block state name should be
                             blacklistedIdentifiers.put(identifier, blockRuntimeId);
                         } else {
@@ -385,10 +387,7 @@ public class ItemRegistryPopulator {
                 }
 
                 mappings.put(itemIndex, mapping);
-
-                if (STORED_ITEMS.contains(entry.getKey())) {
-                    storedItems.put(entry.getKey(), mapping);
-                }
+                identifierToMapping.put(entry.getKey(), mapping);
 
                 itemNames.add(entry.getKey());
 
@@ -413,7 +412,7 @@ public class ItemRegistryPopulator {
                     .stackSize(1)
                     .build();
             mappings.put(itemIndex, lodestoneEntry);
-            storedItems.put(lodestoneEntry.getJavaIdentifier(), lodestoneEntry);
+            identifierToMapping.put(lodestoneEntry.getJavaIdentifier(), lodestoneEntry);
 
             ComponentItemData furnaceMinecartData = null;
             if (usingFurnaceMinecart) {
@@ -485,7 +484,7 @@ public class ItemRegistryPopulator {
                     .creativeItems(creativeItems.toArray(new ItemData[0]))
                     .itemEntries(new ArrayList<>(entries.values()))
                     .itemNames(itemNames.toArray(new String[0]))
-                    .storedItems(storedItems)
+                    .storedItems(new StoredItemMappings(identifierToMapping))
                     .javaOnlyItems(javaOnlyItems)
                     .bucketIds(buckets)
                     .boatIds(boats)

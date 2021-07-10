@@ -46,7 +46,7 @@ public class TippedArrowTranslator extends ItemTranslator {
     private final List<ItemMapping> appliedItems;
 
     private static final int TIPPED_ARROW_JAVA_ID = Registries.ITEMS.forVersion(BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
-            .getStored("minecraft:tipped_arrow")
+            .getMapping("minecraft:tipped_arrow")
             .getJavaId();
 
     public TippedArrowTranslator() {

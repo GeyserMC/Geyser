@@ -55,7 +55,7 @@ public class PillagerEntity extends AbstractIllagerEntity {
      * Check for a crossbow in either the mainhand or offhand. If one exists, indicate that the pillager should be posing
      */
     protected void checkForCrossbow(GeyserSession session) {
-        ItemMapping crossbow = session.getItemMappings().getStored("minecraft:crossbow");
+        ItemMapping crossbow = session.getItemMappings().getStoredItems().crossbow();
         boolean hasCrossbow = this.hand.getId() == crossbow.getBedrockId()
                 || this.offHand.getId() == crossbow.getBedrockId();
         boolean usingItemChanged = metadata.getFlags().setFlag(EntityFlag.USING_ITEM, hasCrossbow);

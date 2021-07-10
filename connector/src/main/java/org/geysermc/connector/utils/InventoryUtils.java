@@ -173,7 +173,7 @@ public class InventoryUtils {
 
         root.put("display", display.build());
         return protocolVersion -> ItemData.builder()
-                .id(Registries.ITEMS.forVersion(protocolVersion).getStored("minecraft:barrier").getBedrockId())
+                .id(Registries.ITEMS.forVersion(protocolVersion).getStoredItems().barrier().getBedrockId())
                 .count(1)
                 .tag(root.build()).build();
     }

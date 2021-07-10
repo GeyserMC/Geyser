@@ -63,7 +63,7 @@ public class BookEditCache {
         }
         // Don't send the update if the player isn't not holding a book, shouldn't happen if we catch all interactions
         GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand();
-        if (itemStack == null || itemStack.getJavaId() != this.session.getItemMappings().getStored("minecraft:writable_book").getJavaId()) {
+        if (itemStack == null || itemStack.getJavaId() != this.session.getItemMappings().getStoredItems().writableBook().getJavaId()) {
             packet = null;
             return;
         }

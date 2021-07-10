@@ -89,7 +89,7 @@ public class LivingEntity extends Entity {
 
                 //blocking gets triggered when using a bow, but if we set USING_ITEM for all items, it may look like
                 //you're "mining" with ex. a shield.
-                ItemMapping shield = session.getItemMappings().getStored("minecraft:shield");
+                ItemMapping shield = session.getItemMappings().getStoredItems().shield();
                 boolean isUsingShield = (getHand().getId() == shield.getBedrockId() ||
                                          getHand().equals(ItemData.AIR) && getOffHand().getId() == shield.getBedrockId());
                 metadata.getFlags().setFlag(EntityFlag.USING_ITEM, (xd & 0x01) == 0x01 && !isUsingShield);
@@ -171,7 +171,7 @@ public class LivingEntity extends Entity {
         ItemData chestplate = this.chestplate;
         // If an entity has a banner on them, it will be in the helmet slot in Java but the chestplate spot in Bedrock
         // But don't overwrite the chestplate if it isn't empty
-        ItemMapping banner = session.getItemMappings().getStored("minecraft:white_banner");
+        ItemMapping banner = session.getItemMappings().getStoredItems().banner();
         if (chestplate.getId() == ItemData.AIR.getId() && helmet.getId() == banner.getBedrockId()) {
             chestplate = this.helmet;
             helmet = ItemData.AIR;

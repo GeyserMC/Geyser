@@ -34,6 +34,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.Builder;
 import lombok.Value;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.translators.item.StoredItemMappings;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -53,7 +54,7 @@ public class ItemMappings {
     ItemData[] creativeItems;
     List<StartGamePacket.ItemEntry> itemEntries;
 
-    Map<String, ItemMapping> storedItems;
+    StoredItemMappings storedItems;
     String[] itemNames;
     Set<String> javaOnlyItems;
 
@@ -140,9 +141,5 @@ public class ItemMappings {
             }
             return ItemMapping.AIR;
         });
-    }
-
-    public ItemMapping getStored(String identifier) {
-        return this.storedItems.get(identifier);
     }
 }

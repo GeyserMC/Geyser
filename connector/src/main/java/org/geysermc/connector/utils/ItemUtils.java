@@ -50,7 +50,7 @@ public class ItemUtils {
      * @return the correct Bedrock durability for this item.
      */
     public static int getCorrectBedrockDurability(GeyserSession session, int javaId, int original) {
-        if (javaId == session.getItemMappings().getStored("minecraft:fishing_rod").getJavaId()) {
+        if (javaId == session.getItemMappings().getStoredItems().fishingRod().getJavaId()) {
             // Java durability: 64
             // Bedrock durability : 384
             // 384 / 64 = 6

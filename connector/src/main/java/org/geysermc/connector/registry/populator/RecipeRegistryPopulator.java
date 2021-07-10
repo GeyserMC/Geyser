@@ -79,11 +79,16 @@ public class RecipeRegistryPopulator {
         Map<RecipeType, List<CraftingData>> craftingData = new EnumMap<>(RecipeType.class);
         Int2ObjectMap<Recipe> recipes = new Int2ObjectOpenHashMap<>();
 
-        craftingData.put(RecipeType.CRAFTING_SPECIAL_BOOKCLONING, Collections.singletonList(CraftingData.fromMulti(UUID.fromString("d1ca6b84-338e-4f2f-9c6b-76cc8b4bd98d"), LAST_RECIPE_NET_ID.incrementAndGet())));
-        craftingData.put(RecipeType.CRAFTING_SPECIAL_REPAIRITEM, Collections.singletonList(CraftingData.fromMulti(UUID.fromString("00000000-0000-0000-0000-000000000001"), LAST_RECIPE_NET_ID.incrementAndGet())));
-        craftingData.put(RecipeType.CRAFTING_SPECIAL_MAPEXTENDING, Collections.singletonList(CraftingData.fromMulti(UUID.fromString("d392b075-4ba1-40ae-8789-af868d56f6ce"), LAST_RECIPE_NET_ID.incrementAndGet())));
-        craftingData.put(RecipeType.CRAFTING_SPECIAL_MAPCLONING, Collections.singletonList(CraftingData.fromMulti(UUID.fromString("85939755-ba10-4d9d-a4cc-efb7a8e943c4"), LAST_RECIPE_NET_ID.incrementAndGet())));
-        craftingData.put(RecipeType.CRAFTING_SPECIAL_BANNERADDPATTERN, Collections.singletonList(CraftingData.fromMulti(UUID.fromString("b5c5d105-75a2-4076-af2b-923ea2bf4bf0"), LAST_RECIPE_NET_ID.incrementAndGet())));
+        craftingData.put(RecipeType.CRAFTING_SPECIAL_BOOKCLONING,
+                Collections.singletonList(CraftingData.fromMulti(UUID.fromString("d1ca6b84-338e-4f2f-9c6b-76cc8b4bd98d"), LAST_RECIPE_NET_ID.incrementAndGet())));
+        craftingData.put(RecipeType.CRAFTING_SPECIAL_REPAIRITEM,
+                Collections.singletonList(CraftingData.fromMulti(UUID.fromString("00000000-0000-0000-0000-000000000001"), LAST_RECIPE_NET_ID.incrementAndGet())));
+        craftingData.put(RecipeType.CRAFTING_SPECIAL_MAPEXTENDING,
+                Collections.singletonList(CraftingData.fromMulti(UUID.fromString("d392b075-4ba1-40ae-8789-af868d56f6ce"), LAST_RECIPE_NET_ID.incrementAndGet())));
+        craftingData.put(RecipeType.CRAFTING_SPECIAL_MAPCLONING,
+                Collections.singletonList(CraftingData.fromMulti(UUID.fromString("85939755-ba10-4d9d-a4cc-efb7a8e943c4"), LAST_RECIPE_NET_ID.incrementAndGet())));
+        craftingData.put(RecipeType.CRAFTING_SPECIAL_BANNERADDPATTERN,
+                Collections.singletonList(CraftingData.fromMulti(UUID.fromString("b5c5d105-75a2-4076-af2b-923ea2bf4bf0"), LAST_RECIPE_NET_ID.incrementAndGet())));
 
         // Add all cartography table recipe UUIDs, so we can use the cartography table
         craftingData.put(RecipeType.CRAFTING_SHAPELESS, Arrays.asList(

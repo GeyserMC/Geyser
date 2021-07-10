@@ -59,7 +59,7 @@ public class CompassTranslator extends ItemTranslator {
         Tag lodestoneTag = itemStack.getNbt().get("LodestoneTracked");
         if (lodestoneTag instanceof ByteTag) {
             // Get the fake lodestonecompass entry
-            mapping = Registries.ITEMS.forVersion(protocolVersion).getStored("minecraft:lodestone_compass");
+            mapping = Registries.ITEMS.forVersion(protocolVersion).getStoredItems().lodestoneCompass();
 
             // Get the loadstone pos
             CompoundTag loadstonePos = itemStack.getNbt().get("LodestonePos");
@@ -89,7 +89,7 @@ public class CompassTranslator extends ItemTranslator {
         boolean isLoadstone = false;
         if (mapping.getBedrockIdentifier().equals("minecraft:lodestone_compass")) {
             // Revert the entry back to the compass
-            mapping = Registries.ITEMS.forVersion(protocolVersion).getStored("minecraft:compass");
+            mapping = Registries.ITEMS.forVersion(protocolVersion).getStoredItems().compass();
 
             isLoadstone = true;
         }

@@ -265,14 +265,14 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         // Handled when sneaking
-                        if (session.getPlayerInventory().getItemInHand().getJavaId() == mappings.getStored("minecraft:shield").getJavaId()) {
+                        if (session.getPlayerInventory().getItemInHand().getJavaId() == mappings.getStoredItems().shield().getJavaId()) {
                             break;
                         }
 
                         // Handled in ITEM_USE if the item is not milk
                         if (packet.getItemInHand() != null) {
                             if (session.getItemMappings().getBucketIds().contains(packet.getItemInHand().getId()) &&
-                                    packet.getItemInHand().getId() != session.getItemMappings().getStored("minecraft:milk_bucket").getBedrockId()) {
+                                    packet.getItemInHand().getId() != session.getItemMappings().getStoredItems().milkBucket().getBedrockId()) {
                                 // Handled in case 0 if the item is not milk
                                 break;
                             } else if (session.getItemMappings().getSpawnEggIds().contains(packet.getItemInHand().getId())) {

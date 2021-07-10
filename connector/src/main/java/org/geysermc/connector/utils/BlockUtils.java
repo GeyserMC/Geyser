@@ -235,11 +235,6 @@ public class BlockUtils {
     }
 
     public static BlockCollision getCollisionAt(GeyserSession session, int x, int y, int z) {
-        try {
-            return getCollision(session.getConnector().getWorldManager().getBlockAt(session, x, y, z), x, y, z);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            // Block out of world
-            return null;
-        }
+        return getCollision(session.getConnector().getWorldManager().getBlockAt(session, x, y, z), x, y, z);
     }
 }
