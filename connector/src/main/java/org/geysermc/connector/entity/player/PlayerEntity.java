@@ -46,7 +46,6 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.LivingEntity;
-import org.geysermc.connector.entity.attribute.GeyserAttributeType;
 import org.geysermc.connector.entity.living.animal.tameable.ParrotEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -243,13 +242,6 @@ public class PlayerEntity extends LivingEntity {
      */
     public void setPosition(Vector3f position, boolean includeOffset) {
         this.position = includeOffset ? position.add(0, entityType.getOffset(), 0) : position;
-    }
-
-    @Override
-    protected AttributeData createHealthAttribute() {
-        // Round health up, so that Bedrock doesn't consider the player to be dead when health is between 0 and 1 (half a heart)
-        // This issue, as of Bedrock 1.17.0, does not appear to persist with any other entity except the ender dragon
-        return new AttributeData(GeyserAttributeType.HEALTH.getBedrockIdentifier(), 0f, this.maxHealth, (float) Math.ceil(this.health), this.maxHealth);
     }
 
     @Override
