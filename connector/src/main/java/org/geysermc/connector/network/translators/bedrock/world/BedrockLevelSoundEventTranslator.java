@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock.world;
 
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -37,11 +38,17 @@ public class BedrockLevelSoundEventTranslator extends PacketTranslator<LevelSoun
 
     @Override
     public void translate(LevelSoundEventPacket packet, GeyserSession session) {
+        boolean isAttacking = packet.getSound() == SoundEvent.ATTACK_NODAMAGE || packet.getSound() == SoundEvent.ATTACK || packet.getSound() == SoundEvent.ATTACK_STRONG;
+        if (isAttacking && session.getPlayerEntity().getMetadata().getFlags().getFlag(EntityFlag.BLOCKING)) {
+            // You cannot attack while blocking, so don't even send the sound
+            return;
+        }
+
         // lol what even :thinking:
         session.sendUpstreamPacket(packet);
 
         // Yes, what even, but thankfully we can hijack this packet to send the cooldown
-        if (packet.getSound() == SoundEvent.ATTACK_NODAMAGE || packet.getSound() == SoundEvent.ATTACK || packet.getSound() == SoundEvent.ATTACK_STRONG) {
+        if (isAttacking) {
             // Send a faux cooldown since Bedrock has no cooldown support
             // Sent here because Java still sends a cooldown if the player doesn't hit anything but Bedrock always sends a sound
             CooldownUtils.sendCooldown(session);
