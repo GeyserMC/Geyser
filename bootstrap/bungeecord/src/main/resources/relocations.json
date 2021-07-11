@@ -1,0 +1,34 @@
+[
+  {
+    "from": "net.md_5.bungee.jni",
+    "to": "org.geysermc.platform.bungeecord.shaded.jni"
+  },
+  {
+    "from": "com.fasterxml.jackson",
+    "to": "org.geysermc.platform.bungeecord.shaded.jackson"
+  },
+  {
+    "from": "io.netty",
+    "to": "org.geysermc.platform.bungeecord.shaded.netty"
+  },
+  {
+    "from": "com.google.common",
+    "to": "org.geysermc.platform.bungeecord.shaded.google.common"
+  },
+  {
+    "from": "com.google.guava",
+    "to": "org.geysermc.platform.bungeecord.shaded.guava"
+  },
+  {
+    "from": "org.reflections.reflections",
+    "to": "org.geysermc.platform.bungeecord.shaded.reflections"
+  },
+  {
+    "from": "org.dom4j",
+    "to": "org.geysermc.platform.bungeecord.shaded.dom4j"
+  },
+  {
+    "from": "net.kyori.adventure",
+    "to": "org.geysermc.platform.bungeecord.shaded.adventure"
+  }
+]

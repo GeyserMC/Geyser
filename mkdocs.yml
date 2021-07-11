@@ -1,0 +1,83 @@
+site_name: GeyserMC
+site_author: Geyser Devs
+site_url: https://bundabrg.github.io/Geyser
+site_dir: build/docs
+repo_name: GeyserMC/Geyser
+repo_url: https://github.com/GeyserMC/Geyser
+#edit_uri: ""
+copyright: 'Copyright (C) 2020 GeyserMC Developers'
+
+extra_css:
+  - 'css/mkdocs.css'
+#  - 'css/version_select.css'
+
+#extra_javascript:
+#  - 'js/version_select.js'
+
+# More info on this theme: https://squidfunk.github.io/mkdocs-material
+theme:
+  name: 'material'
+  logo: 'img/header_logo.png'
+  favicon: 'img/favicon.ico'
+  palette:
+    primary: 'indigo'
+    accent: 'indigo'
+#  features:
+#    - instant
+
+
+
+# See the following for docs on these extensions: https://squidfunk.github.io/mkdocs-material/extensions
+markdown_extensions:
+  - codehilite:
+      linenums: true
+  - admonition
+  - pymdownx.arithmatex
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_generator: !!python/name:pymdownx.emoji.to_svg
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+  - pymdownx.escapeall
+  - toc:
+      permalink: true
+#  - footnotes
+#  - metadata
+
+# Bundie's Tip: Disable mkpdfs whilst using `mkdocs serve` on a local machine
+plugins:
+  - search
+  - exclude:
+      glob:
+        - 'theme/*'
+  - git-revision-date-localized:
+      type: timeago
+#  - mkpdfs:
+#      author: GeyserMC Developers
+#      toc_title: Table of contents
+#      output_path: pdf/documentation.pdf
+#      design: docs/css/pdf.css
+
+# Discord not yet supported but it will be soon
+#extra:
+#  social:
+#    - type: discord
+#      link: https://discord.gg/blahblah
+
+nav:
+  - Introduction: index.md
+  - Events: events.md
+  - Extensions: extensions.md
+  - Coding Hints: coding.md
+  - Contributing: contributing.md
+  - API: 'https://bundabrg.github.io/Geyser/apidocs/'

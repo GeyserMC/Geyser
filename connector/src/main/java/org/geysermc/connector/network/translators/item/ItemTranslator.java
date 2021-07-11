@@ -35,6 +35,8 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.event.EventManager;
+import org.geysermc.connector.event.events.registry.ItemRemapperRegistryEvent;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
@@ -43,11 +45,12 @@ import org.geysermc.connector.utils.LocaleUtils;
 import org.reflections.Reflections;
 
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public abstract class ItemTranslator {
-    private static final Int2ObjectMap<ItemTranslator> ITEM_STACK_TRANSLATORS = new Int2ObjectOpenHashMap<>();
-    private static final List<NbtItemStackTranslator> NBT_TRANSLATORS;
+    public static final Int2ObjectMap<ItemTranslator> ITEM_STACK_TRANSLATORS = new Int2ObjectOpenHashMap<>();
+    public static final List<NbtItemStackTranslator> NBT_TRANSLATORS = new ArrayList<>();
 
     protected ItemTranslator() {
     }
@@ -59,9 +62,12 @@ public abstract class ItemTranslator {
     static {
         /* Load item translators */
         Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators.item") : new Reflections("org.geysermc.connector.network.translators.item");
+        Set<Class<?>> itemRemapperClasses = EventManager.getInstance().triggerEvent(new ItemRemapperRegistryEvent(
+                ref.getTypesAnnotatedWith(ItemRemapper.class)
+        )).getEvent().getRegisteredTranslators();
 
         Map<NbtItemStackTranslator, Integer> loadedNbtItemTranslators = new HashMap<>();
-        for (Class<?> clazz : ref.getTypesAnnotatedWith(ItemRemapper.class)) {
+        for (Class<?> clazz : itemRemapperClasses) {
             int priority = clazz.getAnnotation(ItemRemapper.class).priority();
 
             GeyserConnector.getInstance().getLogger().debug("Found annotated item translator: " + clazz.getCanonicalName());
@@ -89,7 +95,7 @@ public abstract class ItemTranslator {
             }
         }
 
-        NBT_TRANSLATORS = loadedNbtItemTranslators.keySet().stream().sorted(Comparator.comparingInt(loadedNbtItemTranslators::get)).collect(Collectors.toList());
+        NBT_TRANSLATORS.addAll(loadedNbtItemTranslators.keySet().stream().sorted(Comparator.comparingInt(loadedNbtItemTranslators::get)).collect(Collectors.toList()));
     }
 
     public static ItemStack translateToJava(ItemData data) {

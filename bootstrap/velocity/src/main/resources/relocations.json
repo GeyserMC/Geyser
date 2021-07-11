@@ -1,0 +1,34 @@
+[
+  {
+    "from": "com.fasterxml.jackson",
+    "to": "org.geysermc.platform.velocity.shaded.jackson"
+  },
+  {
+    "from": "it.unimi.dsi.fastutil",
+    "to": "org.geysermc.platform.velocity.shaded.fastutil"
+  },
+  {
+    "from": "org.reflections.reflections",
+    "to": "org.geysermc.platform.velocity.shaded.reflections"
+  },
+  {
+    "from": "com.google.common",
+    "to": "org.geysermc.platform.velocity.shaded.google.common"
+  },
+  {
+    "from": "com.google.guava",
+    "to": "org.geysermc.platform.velocity.shaded.guava"
+  },
+  {
+    "from": "org.dom4j",
+    "to": "org.geysermc.platform.velocity.shaded.dom4j"
+  },
+  {
+    "from": "net.kyori.adventure",
+    "to": "org.geysermc.platform.velocity.shaded.adventure"
+  },
+  {
+    "from": "org.objectweb.asm",
+    "to": "org.geysermc.platform.velocity.shaded.objectweb.asm"
+  }
+]

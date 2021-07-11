@@ -46,6 +46,9 @@ import org.geysermc.connector.inventory.CartographyContainer;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.inventory.PlayerInventory;
+import org.geysermc.connector.event.EventManager;
+import org.geysermc.connector.event.events.registry.InventoryTranslatorRegistryEvent;
+import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.click.Click;
 import org.geysermc.connector.network.translators.inventory.click.ClickPlan;
@@ -64,7 +67,8 @@ import java.util.*;
 public abstract class InventoryTranslator {
 
     public static final InventoryTranslator PLAYER_INVENTORY_TRANSLATOR = new PlayerInventoryTranslator();
-    public static final Map<WindowType, InventoryTranslator> INVENTORY_TRANSLATORS = new HashMap<WindowType, InventoryTranslator>() {
+    public static final Map<WindowType, InventoryTranslator> INVENTORY_TRANSLATORS = EventManager.getInstance()
+            .triggerEvent(new InventoryTranslatorRegistryEvent(new HashMap<WindowType, InventoryTranslator>() {
         {
             /* Player Inventory */
             put(null, PLAYER_INVENTORY_TRANSLATOR);
@@ -100,8 +104,7 @@ public abstract class InventoryTranslator {
 
             /* Lectern */
             put(WindowType.LECTERN, new LecternInventoryTranslator());
-        }
-    };
+        }})).getEvent().getRegisteredTranslators();
 
     public static final int PLAYER_INVENTORY_SIZE = 36;
     public static final int PLAYER_INVENTORY_OFFSET = 9;
@@ -413,7 +416,7 @@ public abstract class InventoryTranslator {
         affectedSlots.addAll(plan.getAffectedSlots());
         return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
     }
-    
+
     public ItemStackResponsePacket.Response translateCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         int resultSize = 0;
         int timesCrafted;

@@ -33,6 +33,8 @@ import io.netty.channel.socket.DatagramPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.configuration.GeyserConfiguration;
+import org.geysermc.connector.event.EventManager;
+import org.geysermc.connector.event.events.network.BedrockPongEvent;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
@@ -153,7 +155,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             pong.setMaximumPlayerCount(pong.getPlayerCount() + 1);
         }
 
-        return pong;
+        return EventManager.getInstance().triggerEvent(new BedrockPongEvent(inetSocketAddress, pong)).getEvent().getPong();
     }
 
     @Override

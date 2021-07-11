@@ -46,7 +46,7 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
         this.session = session;
     }
 
-    boolean defaultHandler(BedrockPacket packet) {
+    <T extends BedrockPacket> boolean defaultHandler(T packet) {
         connector.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
         return false;
     }

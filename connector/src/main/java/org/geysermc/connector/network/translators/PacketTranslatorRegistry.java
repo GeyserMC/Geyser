@@ -31,7 +31,10 @@ import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.common.PlatformType;
+import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.event.EventManager;
+import org.geysermc.connector.event.events.registry.PacketTranslatorRegistryEvent;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -40,18 +43,22 @@ import org.reflections.Reflections;
 import java.util.HashMap;
 import java.util.Map;
 
+@Getter
 public class PacketTranslatorRegistry<T> {
     private final Map<Class<? extends T>, PacketTranslator<? extends T>> translators = new HashMap<>();
 
     public static final PacketTranslatorRegistry<Packet> JAVA_TRANSLATOR = new PacketTranslatorRegistry<>();
     public static final PacketTranslatorRegistry<BedrockPacket> BEDROCK_TRANSLATOR = new PacketTranslatorRegistry<>();
 
-    private static final ObjectArrayList<Class<?>> IGNORED_PACKETS = new ObjectArrayList<>();
+    public static final ObjectArrayList<Class<?>> IGNORED_PACKETS = new ObjectArrayList<>();
 
     static {
         Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators") : new Reflections("org.geysermc.connector.network.translators");
+        PacketTranslatorRegistryEvent event = EventManager.getInstance().triggerEvent(new PacketTranslatorRegistryEvent(
+                ref.getTypesAnnotatedWith(Translator.class))
+        ).getEvent();
 
-        for (Class<?> clazz : ref.getTypesAnnotatedWith(Translator.class)) {
+        for (Class<?> clazz : event.getRegisteredTranslators()) {
             Class<?> packet = clazz.getAnnotation(Translator.class).packet();
 
             GeyserConnector.getInstance().getLogger().debug("Found annotated translator: " + clazz.getCanonicalName() + " : " + packet.getSimpleName());
