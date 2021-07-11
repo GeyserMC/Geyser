@@ -172,7 +172,7 @@ public class SkinManager {
                         if (session.getUpstream().isInitialized()) {
                             PlayerListPacket.Entry updatedEntry = buildEntryManually(
                                     session,
-                                    entity.getUuid(),
+                                    entity.getSpawningUUID(), // Apply the skin to the uuid used to spawn the player
                                     entity.getUsername(),
                                     entity.getGeyserId(),
                                     skin.getTextureUrl(),

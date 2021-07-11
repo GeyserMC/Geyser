@@ -71,12 +71,19 @@ public class PlayerEntity extends LivingEntity {
      * Saves the parrot currently on the player's right shoulder; otherwise null
      */
     private ParrotEntity rightParrot;
+    /**
+     * UUID to use instead when spawning the player
+     * Bedrock expects uuids to be actually unique for each player entity
+     * Spawning another player entity with the same uuid will replace the old entity
+     */
+    private UUID spawningUUID;
 
     public PlayerEntity(GameProfile gameProfile, long entityId, long geyserId, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, EntityType.PLAYER, position, motion, rotation);
 
         profile = gameProfile;
         uuid = gameProfile.getId();
+        spawningUUID = uuid;
         username = gameProfile.getName();
 
         // For the OptionalPack, set all bits as invisible by default as this matches Java Edition behavior
@@ -86,7 +93,7 @@ public class PlayerEntity extends LivingEntity {
     @Override
     public void spawnEntity(GeyserSession session) {
         AddPlayerPacket addPlayerPacket = new AddPlayerPacket();
-        addPlayerPacket.setUuid(uuid);
+        addPlayerPacket.setUuid(spawningUUID);
         addPlayerPacket.setUsername(username);
         addPlayerPacket.setRuntimeEntityId(geyserId);
         addPlayerPacket.setUniqueEntityId(geyserId);
