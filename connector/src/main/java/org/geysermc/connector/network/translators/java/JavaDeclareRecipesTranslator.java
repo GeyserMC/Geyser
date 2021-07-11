@@ -108,8 +108,6 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     }
                     break;
                 }
-
-                // These recipes are enabled by sending a special recipe
                 case STONECUTTING: {
                     StoneCuttingRecipeData stoneCuttingData = (StoneCuttingRecipeData) recipe.getData();
                     ItemStack ingredient = stoneCuttingData.getIngredient().getOptions()[0];

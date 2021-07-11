@@ -36,7 +36,9 @@ import org.geysermc.connector.registry.BlockRegistries;
 @EqualsAndHashCode
 public class ItemMapping {
 
-    public static ItemMapping AIR = new ItemMapping("minecraft:air", "minecraft:air", 0, 0, 0, BlockRegistries.BLOCKS.forVersion(BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getBedrockAirId(), 64, null, null, null);
+    public static ItemMapping AIR = new ItemMapping("minecraft:air", "minecraft:air", 0, 0, 0,
+            BlockRegistries.BLOCKS.forVersion(BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getBedrockAirId(),
+            64, null, null, null);
 
     String javaIdentifier;
     String bedrockIdentifier;

@@ -172,8 +172,8 @@ public abstract class ItemTranslator {
             String[] canBreak = new String[0];
             ListTag canPlaceOn = nbt.get("CanPlaceOn");
             String[] canPlace = new String[0];
-            canBreak = getCanModify(session, canDestroy, canBreak);
-            canPlace = getCanModify(session, canPlaceOn, canPlace);
+            canBreak = getCanModify(canDestroy, canBreak);
+            canPlace = getCanModify(canPlaceOn, canPlace);
             builder.canBreak(canBreak);
             builder.canPlace(canPlace);
         }
@@ -189,7 +189,7 @@ public abstract class ItemTranslator {
      * @param canModifyBedrock the empty list of items in Bedrock
      * @return the new list of items in Bedrock
      */
-    private static String[] getCanModify(GeyserSession session, ListTag canModifyJava, String[] canModifyBedrock) {
+    private static String[] getCanModify(ListTag canModifyJava, String[] canModifyBedrock) {
         if (canModifyJava != null && canModifyJava.size() > 0) {
             canModifyBedrock = new String[canModifyJava.size()];
             for (int i = 0; i < canModifyBedrock.length; i++) {

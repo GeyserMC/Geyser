@@ -47,7 +47,6 @@ import java.util.WeakHashMap;
 public class ItemMappings {
 
     Map<String, ItemMapping> cachedJavaMappings = new WeakHashMap<>();
-    Map<Integer, ItemMapping> cachedBedrockMappings = new WeakHashMap<>();
 
     Int2ObjectMap<ItemMapping> items;
 
@@ -114,32 +113,30 @@ public class ItemMappings {
         boolean isBlock = data.getBlockRuntimeId() != 0;
         boolean hasDamage = data.getDamage() != 0;
 
-        return this.cachedBedrockMappings.computeIfAbsent(data.getId(), key -> {
-            for (ItemMapping mapping : this.items.values()) {
-                if (mapping.getBedrockId() == data.getId()) {
-                    if (isBlock && !hasDamage) { // Pre-1.16.220 will not use block runtime IDs at all, so we shouldn't check either
-                        if (data.getBlockRuntimeId() != mapping.getBedrockBlockId()) {
-                            continue;
-                        }
-                    } else {
-                        if (!(mapping.getBedrockData() == data.getDamage() ||
-                                // Make exceptions for potions and tipped arrows, whose damage values can vary
-                                (mapping.getJavaIdentifier().endsWith("potion") || mapping.getJavaIdentifier().equals("minecraft:arrow")))) {
-                            continue;
-                        }
+        for (ItemMapping mapping : this.items.values()) {
+            if (mapping.getBedrockId() == data.getId()) {
+                if (isBlock && !hasDamage) { // Pre-1.16.220 will not use block runtime IDs at all, so we shouldn't check either
+                    if (data.getBlockRuntimeId() != mapping.getBedrockBlockId()) {
+                        continue;
                     }
-                    if (!this.javaOnlyItems.contains(mapping.getJavaIdentifier())) {
-                        // From a Bedrock item data, we aren't getting one of these items
-                        return mapping;
+                } else {
+                    if (!(mapping.getBedrockData() == data.getDamage() ||
+                            // Make exceptions for potions and tipped arrows, whose damage values can vary
+                            (mapping.getJavaIdentifier().endsWith("potion") || mapping.getJavaIdentifier().equals("minecraft:arrow")))) {
+                        continue;
                     }
                 }
+                if (!this.javaOnlyItems.contains(mapping.getJavaIdentifier())) {
+                    // From a Bedrock item data, we aren't getting one of these items
+                    return mapping;
+                }
             }
+        }
 
-            // This will hide the message when the player clicks with an empty hand
-            if (data.getId() != 0 && data.getDamage() != 0) {
-                GeyserConnector.getInstance().getLogger().debug("Missing mapping for bedrock item " + data.getId() + ":" + data.getDamage());
-            }
-            return ItemMapping.AIR;
-        });
+        // This will hide the message when the player clicks with an empty hand
+        if (data.getId() != 0 && data.getDamage() != 0) {
+            GeyserConnector.getInstance().getLogger().debug("Missing mapping for bedrock item " + data.getId() + ":" + data.getDamage());
+        }
+        return ItemMapping.AIR;
     }
 }

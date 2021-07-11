@@ -27,7 +27,6 @@ package org.geysermc.connector.registry.populator;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.ImmutableList;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
@@ -61,29 +60,13 @@ public class ItemRegistryPopulator {
         }
     };
 
-    private static final ImmutableList<String> STORED_ITEMS = ImmutableList.<String>builder()
-            .add("minecraft:barrier")
-            .add("minecraft:bamboo")
-            .add("minecraft:compass")
-            .add("minecraft:crossbow")
-            .add("minecraft:egg")
-            .add("minecraft:fishing_rod")
-            .add("minecraft:lodestone_compass")
-            .add("minecraft:shield")
-            .add("minecraft:milk_bucket")
-            .add("minecraft:tipped_arrow")
-            .add("minecraft:wheat")
-            .add("minecraft:white_banner")
-            .add("minecraft:writable_book")
-            .build();
-
     public static void populate() {
         // Load item mappings from Java Edition to Bedrock Edition
         InputStream stream = FileUtils.getResource("mappings/items.json");
 
-        TypeReference<Map<String, MappingItem>> mappingItemsType = new TypeReference<Map<String, MappingItem>>() { };
+        TypeReference<Map<String, GeyserMappingItem>> mappingItemsType = new TypeReference<Map<String, GeyserMappingItem>>() { };
 
-        Map<String, MappingItem> items;
+        Map<String, GeyserMappingItem> items;
         try {
             items = GeyserConnector.JSON_MAPPER.readValue(stream, mappingItemsType);
         } catch (Exception e) {
@@ -120,7 +103,7 @@ public class ItemRegistryPopulator {
 
             // Load creative items
             // We load this before item mappings to get overridden block runtime ID mappings
-            stream = FileUtils.getResource("bedrock/creative_items.json");
+            stream = FileUtils.getResource(String.format("bedrock/creative_items.%s.json", palette.getKey()));
 
             JsonNode creativeItemEntries;
             try {
@@ -208,8 +191,8 @@ public class ItemRegistryPopulator {
             int itemIndex = 0;
             int javaFurnaceMinecartId = 0;
             boolean usingFurnaceMinecart = GeyserConnector.getInstance().getConfig().isAddNonBedrockItems();
-            for (Map.Entry<String, MappingItem> entry : items.entrySet()) {
-                MappingItem mappingItem = entry.getValue();
+            for (Map.Entry<String, GeyserMappingItem> entry : items.entrySet()) {
+                GeyserMappingItem mappingItem = entry.getValue();
 
                 if (usingFurnaceMinecart && entry.getKey().equals("minecraft:furnace_minecart")) {
                     javaFurnaceMinecartId = itemIndex;
@@ -322,8 +305,7 @@ public class ItemRegistryPopulator {
                                     NbtMap states = blockMappings.getBedrockBlockStates().get(itemData.getBlockRuntimeId()).getCompound("states");
                                     boolean valid = true;
                                     for (Map.Entry<String, Object> nbtEntry : requiredBlockStates.entrySet()) {
-                                        Object value = states.get(nbtEntry.getKey());
-                                        if (!nbtEntry.getValue().equals(value)) {
+                                        if (!states.get(nbtEntry.getKey()).equals(nbtEntry.getValue())) {
                                             // A required block state doesn't match - this one is not valid
                                             valid = false;
                                             break;

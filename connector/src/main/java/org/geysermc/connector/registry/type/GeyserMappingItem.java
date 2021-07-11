@@ -28,8 +28,11 @@ package org.geysermc.connector.registry.type;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+/**
+ * Represents Geyser's own serialized item information before being processed per-version
+ */
 @Data
-public class MappingItem {
+public class GeyserMappingItem {
     @JsonProperty("bedrock_identifier") String bedrockIdentifier;
     int bedrockData;
     Integer blockRuntimeId;
