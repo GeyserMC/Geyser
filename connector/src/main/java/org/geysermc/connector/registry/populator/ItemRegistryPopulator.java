@@ -41,6 +41,8 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.item.StoredItemMappings;
 import org.geysermc.connector.registry.BlockRegistries;
@@ -54,11 +56,41 @@ import java.io.InputStream;
 import java.util.*;
 
 public class ItemRegistryPopulator {
-    private static final Object2IntMap<String> PALETTE_VERSIONS = new Object2IntOpenHashMap<String>() {
+    private static final Map<String, PaletteVersion> PALETTE_VERSIONS = new Object2ObjectOpenHashMap<String, PaletteVersion>(){
         {
-            put("1_17_0", Bedrock_v440.V440_CODEC.getProtocolVersion());
+            put("1_17_0", new PaletteVersion(Bedrock_v440.V440_CODEC.getProtocolVersion(), new Object2ObjectOpenHashMap<String, String>() {
+                {
+                    put("minecraft:candle", "minecraft:sea_pickle");
+                    put("minecraft:white_candle", "minecraft:sea_pickle");
+                    put("minecraft:orange_candle", "minecraft:sea_pickle");
+                    put("minecraft:magenta_candle", "minecraft:sea_pickle");
+                    put("minecraft:light_blue_candle", "minecraft:sea_pickle");
+                    put("minecraft:yellow_candle", "minecraft:sea_pickle");
+                    put("minecraft:lime_candle", "minecraft:sea_pickle");
+                    put("minecraft:pink_candle", "minecraft:sea_pickle");
+                    put("minecraft:gray_candle", "minecraft:sea_pickle");
+                    put("minecraft:light_gray_candle", "minecraft:sea_pickle");
+                    put("minecraft:cyan_candle", "minecraft:sea_pickle");
+                    put("minecraft:purple_candle", "minecraft:sea_pickle");
+                    put("minecraft:blue_candle", "minecraft:sea_pickle");
+                    put("minecraft:brown_candle", "minecraft:sea_pickle");
+                    put("minecraft:green_candle", "minecraft:sea_pickle");
+                    put("minecraft:red_candle", "minecraft:sea_pickle");
+                    put("minecraft:black_candle", "minecraft:sea_pickle");
+                }
+            }));
         }
     };
+
+    @Getter
+    @AllArgsConstructor
+    private static class PaletteVersion {
+        private final int protocolVersion;
+        /**
+         * Key - item not available in this version. Value - Java replacement item
+         */
+        private final Map<String, String> additionalTranslatedItems;
+    }
 
     public static void populate() {
         // Load item mappings from Java Edition to Bedrock Edition
@@ -74,7 +106,7 @@ public class ItemRegistryPopulator {
         }
 
         /* Load item palette */
-        for (Object2IntMap.Entry<String> palette : PALETTE_VERSIONS.object2IntEntrySet()) {
+        for (Map.Entry<String, PaletteVersion> palette : PALETTE_VERSIONS.entrySet()) {
             stream = FileUtils.getResource(String.format("bedrock/runtime_item_states.%s.json", palette.getKey()));
 
             TypeReference<List<PaletteItem>> paletteEntriesType = new TypeReference<List<PaletteItem>>() { };
@@ -186,13 +218,31 @@ public class ItemRegistryPopulator {
                 }
             }
 
-            BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.getIntValue());
+            BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.getValue().getProtocolVersion());
 
             int itemIndex = 0;
             int javaFurnaceMinecartId = 0;
             boolean usingFurnaceMinecart = GeyserConnector.getInstance().getConfig().isAddNonBedrockItems();
+
+            Set<String> javaOnlyItems = new ObjectOpenHashSet<>();
+            Collections.addAll(javaOnlyItems, "minecraft:spectral_arrow", "minecraft:debug_stick",
+                    "minecraft:knowledge_book", "minecraft:tipped_arrow", "minecraft:trader_llama_spawn_egg",
+                    "minecraft:bundle", "minecraft:sculk_sensor");
+            if (!usingFurnaceMinecart) {
+                javaOnlyItems.add("minecraft:furnace_minecart");
+            }
+            // Java-only items for this version
+            javaOnlyItems.addAll(palette.getValue().getAdditionalTranslatedItems().keySet());
+
             for (Map.Entry<String, GeyserMappingItem> entry : items.entrySet()) {
-                GeyserMappingItem mappingItem = entry.getValue();
+                GeyserMappingItem mappingItem;
+                String replacementItem = palette.getValue().getAdditionalTranslatedItems().get(entry.getKey());
+                if (replacementItem != null) {
+                    mappingItem = items.get(replacementItem);
+                } else {
+                    // This items has a mapping specifically for this version of the game
+                    mappingItem = entry.getValue();
+                }
 
                 if (usingFurnaceMinecart && entry.getKey().equals("minecraft:furnace_minecart")) {
                     javaFurnaceMinecartId = itemIndex;
@@ -338,10 +388,9 @@ public class ItemRegistryPopulator {
                         mappingBuilder = mappingBuilder.toolType(mappingItem.getToolType())
                                 .toolTier("");
                     }
-                } else if (entry.getKey().equals("minecraft:spectral_arrow") || entry.getKey().equals("minecraft:knowledge_book")
-                        // To remove later... hopefully
-                        || entry.getKey().contains("candle") || entry.getKey().equals("minecraft:bundle") || entry.getKey().equals("minecraft:sculk_sensor")) {
-                    // These items don't exist on Bedrock, so set up a container that indicates they should have custom names
+                }
+                if (javaOnlyItems.contains(entry.getKey())) {
+                    // These items don't exist on Bedrock, so set up a variable that indicates they should have custom names
                     mappingBuilder = mappingBuilder.translationString((bedrockBlockId != -1 ? "block." : "item.") + entry.getKey().replace(":", "."));
                     GeyserConnector.getInstance().getLogger().debug("Adding " + entry.getKey() + " as an item that needs to be translated.");
                 }
@@ -448,19 +497,6 @@ public class ItemRegistryPopulator {
                 furnaceMinecartData = new ComponentItemData("geysermc:furnace_minecart", builder.build());
             }
 
-            Set<String> javaOnlyItems = new ObjectOpenHashSet<>();
-            Collections.addAll(javaOnlyItems, "minecraft:spectral_arrow", "minecraft:debug_stick",
-                    "minecraft:knowledge_book", "minecraft:tipped_arrow", "minecraft:trader_llama_spawn_egg",
-                    // To be removed in Bedrock 1.17.10... right??? RIGHT???
-                    "minecraft:candle", "minecraft:white_candle", "minecraft:orange_candle", "minecraft:magenta_candle",
-                    "minecraft:light_blue_candle", "minecraft:yellow_candle", "minecraft:lime_candle", "minecraft:pink_candle",
-                    "minecraft:gray_candle", "minecraft:light_gray_candle", "minecraft:cyan_candle", "minecraft:purple_candle",
-                    "minecraft:blue_candle", "minecraft:brown_candle", "minecraft:green_candle", "minecraft:red_candle", "minecraft:black_candle",
-                    "minecraft:bundle", "minecraft:sculk_sensor");
-            if (!usingFurnaceMinecart) {
-                javaOnlyItems.add("minecraft:furnace_minecart");
-            }
-
             ItemMappings itemMappings = ItemMappings.builder()
                     .items(mappings)
                     .creativeItems(creativeItems.toArray(new ItemData[0]))
@@ -475,7 +511,7 @@ public class ItemRegistryPopulator {
                     .furnaceMinecartData(furnaceMinecartData)
                     .build();
 
-            Registries.ITEMS.register(palette.getIntValue(), itemMappings);
+            Registries.ITEMS.register(palette.getValue().getProtocolVersion(), itemMappings);
         }
     }
 }
