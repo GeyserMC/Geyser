@@ -106,7 +106,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             slotPacket.setSlot(i + 27);
 
             if (session.getGameMode() == GameMode.CREATIVE) {
-                slotPacket.setItem(UNUSUABLE_CRAFTING_SPACE_BLOCK);
+                slotPacket.setItem(GeyserItemStack.EMPTY.getItemData(session));
             } else {
                 slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(i).getItemStack()));
             }
@@ -224,12 +224,30 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     if (!(checkNetId(session, inventory, transferAction.getSource()) && checkNetId(session, inventory, transferAction.getDestination()))) {
                         return rejectRequest(request);
                     }
-                    if (isCraftingGrid(transferAction.getSource()) || isCraftingGrid(transferAction.getDestination())) {
+                    if (isCraftingGrid(transferAction.getSource())) {
                         return rejectRequest(request, false);
                     }
 
                     int transferAmount = transferAction.getCount();
-                    if (isCursor(transferAction.getDestination())) {
+
+                    if (isCraftingGrid(transferAction.getDestination())) {
+                        if (isCursor(transferAction.getSource())) {
+                            GeyserItemStack sourceItem = playerInv.getCursor();
+                            if (playerInv.getCursor().isEmpty()) {
+                                playerInv.setCursor(sourceItem.copy(0), session);
+                            }
+
+                            sourceItem.sub(transferAmount);
+                        } else {
+                            int sourceSlot = bedrockSlotToJava(transferAction.getSource());
+                            inventory.getItem(sourceSlot).sub(transferAmount);
+                            affectedSlots.add(sourceSlot);
+                        }
+
+                        int destSlot = bedrockSlotToJava(transferAction.getDestination());
+                        inventory.setItem(destSlot, GeyserItemStack.EMPTY, session);
+                        affectedSlots.add(destSlot);
+                    } else if (isCursor(transferAction.getDestination())) {
                         int sourceSlot = bedrockSlotToJava(transferAction.getSource());
                         GeyserItemStack sourceItem = inventory.getItem(sourceSlot);
                         if (playerInv.getCursor().isEmpty()) {
@@ -272,11 +290,23 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     if (!(checkNetId(session, inventory, swapAction.getSource()) && checkNetId(session, inventory, swapAction.getDestination()))) {
                         return rejectRequest(request);
                     }
-                    if (isCraftingGrid(swapAction.getSource()) || isCraftingGrid(swapAction.getDestination())) {
-                        return rejectRequest(request, false);
+                    if (isCraftingGrid(swapAction.getSource())) {
+                        return rejectRequest(request);
                     }
 
-                    if (isCursor(swapAction.getDestination())) {
+                    if (isCraftingGrid(swapAction.getDestination())) {
+                        int sourceSlot = bedrockSlotToJava(swapAction.getSource());
+                        int destSlot = bedrockSlotToJava(swapAction.getDestination());
+
+                        inventory.setItem(sourceSlot, GeyserItemStack.EMPTY, session);
+                        inventory.setItem(destSlot, GeyserItemStack.from(ItemTranslator.translateToJava(UNUSUABLE_CRAFTING_SPACE_BLOCK)), session);
+                        playerInv.setCursor(playerInv.getCursor().copy(0), session);
+
+                        affectedSlots.add(sourceSlot);
+                        affectedSlots.add(destSlot);
+
+                        updateCraftingGrid(session, inventory);
+                    } else if (isCursor(swapAction.getDestination())) {
                         int sourceSlot = bedrockSlotToJava(swapAction.getSource());
                         GeyserItemStack sourceItem = inventory.getItem(sourceSlot);
                         GeyserItemStack destItem = playerInv.getCursor();
