@@ -39,7 +39,7 @@ public class VersionedRegistry<V> extends AbstractMappedRegistry<Integer, V, Map
         V value = null;
         for (Map.Entry<Integer, V> entry : this.mappings.entrySet()) {
             if (version < entry.getKey()) {
-                break;
+                continue;
             }
             if (version == entry.getKey()) {
                 return entry.getValue();
