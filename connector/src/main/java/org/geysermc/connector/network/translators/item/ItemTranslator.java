@@ -39,8 +39,8 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.registry.BlockRegistries;
-import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.ItemMapping;
+import org.geysermc.connector.registry.type.ItemMappings;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 import org.reflections.Reflections;
@@ -95,19 +95,23 @@ public abstract class ItemTranslator {
         NBT_TRANSLATORS = loadedNbtItemTranslators.keySet().stream().sorted(Comparator.comparingInt(loadedNbtItemTranslators::get)).collect(Collectors.toList());
     }
 
-    public static ItemStack translateToJava(ItemData data, int protocolVersion) {
+    /**
+     * @param mappings item mappings to use while translating. This can't just be a Geyser session as this method is used
+     *                 when loading recipes.
+     */
+    public static ItemStack translateToJava(ItemData data, ItemMappings mappings) {
         if (data == null) {
             return new ItemStack(0);
         }
 
-        ItemMapping javaItem = Registries.ITEMS.forVersion(protocolVersion).getMapping(data);
+        ItemMapping javaItem = mappings.getMapping(data);
 
         ItemStack itemStack;
         ItemTranslator itemStackTranslator = ITEM_STACK_TRANSLATORS.get(javaItem.getJavaId());
         if (itemStackTranslator != null) {
-            itemStack = itemStackTranslator.translateToJava(data, javaItem, protocolVersion);
+            itemStack = itemStackTranslator.translateToJava(data, javaItem, mappings);
         } else {
-            itemStack = DEFAULT_TRANSLATOR.translateToJava(data, javaItem, protocolVersion);
+            itemStack = DEFAULT_TRANSLATOR.translateToJava(data, javaItem, mappings);
         }
 
         if (itemStack != null && itemStack.getNbt() != null) {
@@ -158,9 +162,9 @@ public abstract class ItemTranslator {
         ItemData.Builder builder;
         ItemTranslator itemStackTranslator = ITEM_STACK_TRANSLATORS.get(bedrockItem.getJavaId());
         if (itemStackTranslator != null) {
-            builder = itemStackTranslator.translateToBedrock(itemStack, bedrockItem, session.getUpstream().getProtocolVersion());
+            builder = itemStackTranslator.translateToBedrock(itemStack, bedrockItem, session.getItemMappings());
         } else {
-            builder = DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem, session.getUpstream().getProtocolVersion());
+            builder = DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem, session.getItemMappings());
         }
         if (bedrockItem.isBlock()) {
             builder.blockRuntimeId(bedrockItem.getBedrockBlockId());
@@ -212,7 +216,7 @@ public abstract class ItemTranslator {
         }
     };
 
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, int protocolVersion) {
+    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
         if (itemStack == null) {
             // Return, essentially, air
             return ItemData.builder();
@@ -227,7 +231,7 @@ public abstract class ItemTranslator {
         return builder;
     }
 
-    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, int protocolVersion) {
+    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
         if (itemData == null) return null;
         if (itemData.getTag() == null) {
             return new ItemStack(mapping.getJavaId(), itemData.getCount(), new CompoundTag(""));

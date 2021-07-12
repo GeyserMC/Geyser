@@ -40,7 +40,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.network.BedrockProtocol;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.ItemMapping;
@@ -67,45 +66,53 @@ public class RecipeRegistryPopulator {
             throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.runtime_java"), e);
         }
 
-        Map<RecipeType, List<CraftingData>> craftingData = new EnumMap<>(RecipeType.class);
-        Int2ObjectMap<Recipe> recipes = new Int2ObjectOpenHashMap<>();
+        for (Map.Entry<Integer, ItemMappings> version : Registries.ITEMS.get().entrySet()) {
+            Map<RecipeType, List<CraftingData>> craftingData = new EnumMap<>(RecipeType.class);
+            Int2ObjectMap<Recipe> recipes = new Int2ObjectOpenHashMap<>();
 
-        craftingData.put(RecipeType.CRAFTING_SPECIAL_BOOKCLONING,
-                Collections.singletonList(CraftingData.fromMulti(UUID.fromString("d1ca6b84-338e-4f2f-9c6b-76cc8b4bd98d"), LAST_RECIPE_NET_ID.incrementAndGet())));
-        craftingData.put(RecipeType.CRAFTING_SPECIAL_REPAIRITEM,
-                Collections.singletonList(CraftingData.fromMulti(UUID.fromString("00000000-0000-0000-0000-000000000001"), LAST_RECIPE_NET_ID.incrementAndGet())));
-        craftingData.put(RecipeType.CRAFTING_SPECIAL_MAPEXTENDING,
-                Collections.singletonList(CraftingData.fromMulti(UUID.fromString("d392b075-4ba1-40ae-8789-af868d56f6ce"), LAST_RECIPE_NET_ID.incrementAndGet())));
-        craftingData.put(RecipeType.CRAFTING_SPECIAL_MAPCLONING,
-                Collections.singletonList(CraftingData.fromMulti(UUID.fromString("85939755-ba10-4d9d-a4cc-efb7a8e943c4"), LAST_RECIPE_NET_ID.incrementAndGet())));
-        craftingData.put(RecipeType.CRAFTING_SPECIAL_BANNERADDPATTERN,
-                Collections.singletonList(CraftingData.fromMulti(UUID.fromString("b5c5d105-75a2-4076-af2b-923ea2bf4bf0"), LAST_RECIPE_NET_ID.incrementAndGet())));
+            craftingData.put(RecipeType.CRAFTING_SPECIAL_BOOKCLONING,
+                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("d1ca6b84-338e-4f2f-9c6b-76cc8b4bd98d"), LAST_RECIPE_NET_ID.incrementAndGet())));
+            craftingData.put(RecipeType.CRAFTING_SPECIAL_REPAIRITEM,
+                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("00000000-0000-0000-0000-000000000001"), LAST_RECIPE_NET_ID.incrementAndGet())));
+            craftingData.put(RecipeType.CRAFTING_SPECIAL_MAPEXTENDING,
+                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("d392b075-4ba1-40ae-8789-af868d56f6ce"), LAST_RECIPE_NET_ID.incrementAndGet())));
+            craftingData.put(RecipeType.CRAFTING_SPECIAL_MAPCLONING,
+                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("85939755-ba10-4d9d-a4cc-efb7a8e943c4"), LAST_RECIPE_NET_ID.incrementAndGet())));
+            craftingData.put(RecipeType.CRAFTING_SPECIAL_BANNERADDPATTERN,
+                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("b5c5d105-75a2-4076-af2b-923ea2bf4bf0"), LAST_RECIPE_NET_ID.incrementAndGet())));
 
-        // https://github.com/pmmp/PocketMine-MP/blob/stable/src/pocketmine/inventory/MultiRecipe.php
+            // https://github.com/pmmp/PocketMine-MP/blob/stable/src/pocketmine/inventory/MultiRecipe.php
 
-        for (JsonNode entry : items.get("leather_armor")) {
-            // This won't be perfect, as we can't possibly send every leather input for every kind of color
-            // But it does display the correct output from a base leather armor, and besides visuals everything works fine
-            craftingData.computeIfAbsent(RecipeType.CRAFTING_SPECIAL_ARMORDYE, c -> new ObjectArrayList<>()).add(getCraftingDataFromJsonNode(entry, recipes));
-        }
-        for (JsonNode entry : items.get("firework_rockets")) {
-            craftingData.computeIfAbsent(RecipeType.CRAFTING_SPECIAL_FIREWORK_ROCKET, c -> new ObjectArrayList<>()).add(getCraftingDataFromJsonNode(entry, recipes));
-        }
-        for (JsonNode entry : items.get("firework_stars")) {
-            craftingData.computeIfAbsent(RecipeType.CRAFTING_SPECIAL_FIREWORK_STAR, c -> new ObjectArrayList<>()).add(getCraftingDataFromJsonNode(entry, recipes));
-        }
-        for (JsonNode entry : items.get("shulker_boxes")) {
-            craftingData.computeIfAbsent(RecipeType.CRAFTING_SPECIAL_SHULKERBOXCOLORING, c -> new ObjectArrayList<>()).add(getCraftingDataFromJsonNode(entry, recipes));
-        }
-        for (JsonNode entry : items.get("suspicious_stew")) {
-            craftingData.computeIfAbsent(RecipeType.CRAFTING_SPECIAL_SUSPICIOUSSTEW, c -> new ObjectArrayList<>()).add(getCraftingDataFromJsonNode(entry, recipes));
-        }
-        for (JsonNode entry : items.get("tipped_arrows")) {
-            craftingData.computeIfAbsent(RecipeType.CRAFTING_SPECIAL_TIPPEDARROW, c -> new ObjectArrayList<>()).add(getCraftingDataFromJsonNode(entry, recipes));
-        }
+            for (JsonNode entry : items.get("leather_armor")) {
+                // This won't be perfect, as we can't possibly send every leather input for every kind of color
+                // But it does display the correct output from a base leather armor, and besides visuals everything works fine
+                craftingData.computeIfAbsent(RecipeType.CRAFTING_SPECIAL_ARMORDYE,
+                        c -> new ObjectArrayList<>()).add(getCraftingDataFromJsonNode(entry, recipes, version.getValue()));
+            }
+            for (JsonNode entry : items.get("firework_rockets")) {
+                craftingData.computeIfAbsent(RecipeType.CRAFTING_SPECIAL_FIREWORK_ROCKET,
+                        c -> new ObjectArrayList<>()).add(getCraftingDataFromJsonNode(entry, recipes, version.getValue()));
+            }
+            for (JsonNode entry : items.get("firework_stars")) {
+                craftingData.computeIfAbsent(RecipeType.CRAFTING_SPECIAL_FIREWORK_STAR,
+                        c -> new ObjectArrayList<>()).add(getCraftingDataFromJsonNode(entry, recipes, version.getValue()));
+            }
+            for (JsonNode entry : items.get("shulker_boxes")) {
+                craftingData.computeIfAbsent(RecipeType.CRAFTING_SPECIAL_SHULKERBOXCOLORING,
+                        c -> new ObjectArrayList<>()).add(getCraftingDataFromJsonNode(entry, recipes, version.getValue()));
+            }
+            for (JsonNode entry : items.get("suspicious_stew")) {
+                craftingData.computeIfAbsent(RecipeType.CRAFTING_SPECIAL_SUSPICIOUSSTEW,
+                        c -> new ObjectArrayList<>()).add(getCraftingDataFromJsonNode(entry, recipes, version.getValue()));
+            }
+            for (JsonNode entry : items.get("tipped_arrows")) {
+                craftingData.computeIfAbsent(RecipeType.CRAFTING_SPECIAL_TIPPEDARROW,
+                        c -> new ObjectArrayList<>()).add(getCraftingDataFromJsonNode(entry, recipes, version.getValue()));
+            }
 
-        craftingData.forEach(Registries.CRAFTING_DATA::register);
-        recipes.forEach(Registries.RECIPES::register);
+            Registries.CRAFTING_DATA.register(version.getKey(), craftingData);
+            Registries.RECIPES.register(version.getKey(), recipes);
+        }
     }
 
     /**
@@ -114,10 +121,7 @@ public class RecipeRegistryPopulator {
      * @param recipes a list of all the recipes
      * @return the {@link CraftingData} to send to the Bedrock client.
      */
-    private static CraftingData getCraftingDataFromJsonNode(JsonNode node, Int2ObjectMap<Recipe> recipes) {
-        int protocolVersion = BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion();
-        ItemMappings mappings = Registries.ITEMS.forVersion(protocolVersion);
-
+    private static CraftingData getCraftingDataFromJsonNode(JsonNode node, Int2ObjectMap<Recipe> recipes, ItemMappings mappings) {
         int netId = LAST_RECIPE_NET_ID.incrementAndGet();
         int type = node.get("bedrockRecipeType").asInt();
         JsonNode outputNode = node.get("output");
@@ -156,10 +160,10 @@ public class RecipeRegistryPopulator {
             /* Convert into a Java recipe class for autocrafting */
             List<Ingredient> ingredients = new ArrayList<>();
             for (ItemData input : inputs) {
-                ingredients.add(new Ingredient(new ItemStack[]{ItemTranslator.translateToJava(input, protocolVersion)}));
+                ingredients.add(new Ingredient(new ItemStack[]{ItemTranslator.translateToJava(input, mappings)}));
             }
             ShapedRecipeData data = new ShapedRecipeData(shape.get(0).length(), shape.size(), "crafting_table",
-                    ingredients.toArray(new Ingredient[0]), ItemTranslator.translateToJava(output, protocolVersion));
+                    ingredients.toArray(new Ingredient[0]), ItemTranslator.translateToJava(output, mappings));
             Recipe recipe = new Recipe(RecipeType.CRAFTING_SHAPED, "", data);
             recipes.put(netId, recipe);
             /* Convert end */
@@ -176,10 +180,10 @@ public class RecipeRegistryPopulator {
         /* Convert into a Java Recipe class for autocrafting */
         List<Ingredient> ingredients = new ArrayList<>();
         for (ItemData input : inputs) {
-            ingredients.add(new Ingredient(new ItemStack[]{ItemTranslator.translateToJava(input, protocolVersion)}));
+            ingredients.add(new Ingredient(new ItemStack[]{ItemTranslator.translateToJava(input, mappings)}));
         }
         ShapelessRecipeData data = new ShapelessRecipeData("crafting_table",
-                ingredients.toArray(new Ingredient[0]), ItemTranslator.translateToJava(output, protocolVersion));
+                ingredients.toArray(new Ingredient[0]), ItemTranslator.translateToJava(output, mappings));
         Recipe recipe = new Recipe(RecipeType.CRAFTING_SHAPELESS, "", data);
         recipes.put(netId, recipe);
         /* Convert end */

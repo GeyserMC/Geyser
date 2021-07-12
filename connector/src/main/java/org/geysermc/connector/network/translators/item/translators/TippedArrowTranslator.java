@@ -36,6 +36,7 @@ import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.item.TippedArrowPotion;
 import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.ItemMapping;
+import org.geysermc.connector.registry.type.ItemMappings;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -60,10 +61,10 @@ public class TippedArrowTranslator extends ItemTranslator {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, int protocolVersion) {
+    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
         if (!mapping.getJavaIdentifier().equals("minecraft:tipped_arrow") || itemStack.getNbt() == null) {
             // We're only concerned about minecraft:arrow when translating Bedrock -> Java
-            return super.translateToBedrock(itemStack, mapping, protocolVersion);
+            return super.translateToBedrock(itemStack, mapping, mappings);
         }
         Tag potionTag = itemStack.getNbt().get("Potion");
         if (potionTag instanceof StringTag) {
@@ -77,13 +78,13 @@ public class TippedArrowTranslator extends ItemTranslator {
             }
             GeyserConnector.getInstance().getLogger().debug("Unknown Java potion (tipped arrow): " + potionTag.getValue());
         }
-        return super.translateToBedrock(itemStack, mapping, protocolVersion);
+        return super.translateToBedrock(itemStack, mapping, mappings);
     }
 
     @Override
-    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, int protocolVersion) {
+    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
         TippedArrowPotion tippedArrowPotion = TippedArrowPotion.getByBedrockId(itemData.getDamage());
-        ItemStack itemStack = super.translateToJava(itemData, mapping, protocolVersion);
+        ItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
         if (tippedArrowPotion != null) {
             itemStack = new ItemStack(TIPPED_ARROW_JAVA_ID, itemStack.getAmount(), itemStack.getNbt());
             StringTag potionTag = new StringTag("Potion", tippedArrowPotion.getJavaIdentifier());

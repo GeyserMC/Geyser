@@ -34,6 +34,7 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
 import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
@@ -56,6 +57,7 @@ import org.geysermc.connector.registry.type.ParticleMapping;
 import org.geysermc.connector.registry.type.SoundMapping;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class Registries {
@@ -65,7 +67,7 @@ public class Registries {
 
     public static final SimpleMappedRegistry<Integer, BlockCollision> COLLISIONS = SimpleMappedRegistry.create(Pair.of("org.geysermc.connector.network.translators.collision.translators", "mappings/collision.json"), CollisionRegistryLoader::new);
 
-    public static final SimpleMappedRegistry<RecipeType, List<CraftingData>> CRAFTING_DATA = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectLinkedOpenHashMap::new));
+    public static final VersionedRegistry<Map<RecipeType, List<CraftingData>>> CRAFTING_DATA = VersionedRegistry.create(RegistryLoaders.empty(Object2ObjectLinkedOpenHashMap::new));
 
     public static final SimpleRegistry<NbtMap> ENTITY_IDENTIFIERS = SimpleRegistry.create("bedrock/entity_identifiers.dat", RegistryLoaders.NBT);
 
@@ -75,7 +77,7 @@ public class Registries {
 
     public static final SimpleRegistry<Set<PotionMixData>> POTION_MIXES;
 
-    public static final SimpleMappedRegistry<Integer, Recipe> RECIPES = SimpleMappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
+    public static final VersionedRegistry<Int2ObjectMap<Recipe>> RECIPES = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
     public static final SimpleMappedRegistry<Integer, SoundEvent> RECORDS = SimpleMappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 

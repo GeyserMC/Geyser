@@ -37,6 +37,7 @@ import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.ItemMapping;
+import org.geysermc.connector.registry.type.ItemMappings;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -156,12 +157,12 @@ public class BannerTranslator extends ItemTranslator {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, int protocolVersion) {
+    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
         if (itemStack.getNbt() == null) {
-            return super.translateToBedrock(itemStack, mapping, protocolVersion);
+            return super.translateToBedrock(itemStack, mapping, mappings);
         }
 
-        ItemData.Builder builder = super.translateToBedrock(itemStack, mapping, protocolVersion);
+        ItemData.Builder builder = super.translateToBedrock(itemStack, mapping, mappings);
 
         CompoundTag blockEntityTag = itemStack.getNbt().get("BlockEntityTag");
         if (blockEntityTag != null && blockEntityTag.contains("Patterns")) {
@@ -183,12 +184,12 @@ public class BannerTranslator extends ItemTranslator {
     }
 
     @Override
-    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, int protocolVersion) {
+    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
         if (itemData.getTag() == null) {
-            return super.translateToJava(itemData, mapping, protocolVersion);
+            return super.translateToJava(itemData, mapping, mappings);
         }
 
-        ItemStack itemStack = super.translateToJava(itemData, mapping, protocolVersion);
+        ItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
 
         NbtMap nbtTag = itemData.getTag();
         if (nbtTag.containsKey("Type", NbtType.INT) && nbtTag.getInt("Type") == 1) {

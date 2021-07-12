@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.java;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
+import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.StoneCuttingRecipeData;
@@ -71,9 +72,11 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
 
     @Override
     public void translate(ServerDeclareRecipesPacket packet, GeyserSession session) {
+        Map<RecipeType, List<CraftingData>> recipeTypes = Registries.CRAFTING_DATA.forVersion(session.getUpstream().getProtocolVersion());
         // Get the last known network ID (first used for the pregenerated recipes) and increment from there.
         int netId = InventoryUtils.LAST_RECIPE_NET_ID.get() + 1;
-        Int2ObjectMap<Recipe> recipeMap = new Int2ObjectOpenHashMap<>(Registries.RECIPES.get());
+
+        Int2ObjectMap<Recipe> recipeMap = new Int2ObjectOpenHashMap<>(Registries.RECIPES.forVersion(session.getUpstream().getProtocolVersion()));
         Int2ObjectMap<List<StoneCuttingRecipeData>> unsortedStonecutterData = new Int2ObjectOpenHashMap<>();
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
@@ -121,7 +124,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     break;
                 }
                 default: {
-                    List<CraftingData> craftingData = Registries.CRAFTING_DATA.get(recipe.getType());
+                    List<CraftingData> craftingData = recipeTypes.get(recipe.getType());
                     if (craftingData != null) {
                         craftingDataPacket.getCraftingData().addAll(craftingData);
                     }

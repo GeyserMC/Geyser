@@ -36,6 +36,7 @@ import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.Potion;
 import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.ItemMapping;
+import org.geysermc.connector.registry.type.ItemMappings;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,8 +56,8 @@ public class PotionTranslator extends ItemTranslator {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, int protocolVersion) {
-        if (itemStack.getNbt() == null) return super.translateToBedrock(itemStack, mapping, protocolVersion);
+    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
+        if (itemStack.getNbt() == null) return super.translateToBedrock(itemStack, mapping, mappings);
         Tag potionTag = itemStack.getNbt().get("Potion");
         if (potionTag instanceof StringTag) {
             Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
@@ -69,13 +70,13 @@ public class PotionTranslator extends ItemTranslator {
             }
             GeyserConnector.getInstance().getLogger().debug("Unknown Java potion: " + potionTag.getValue());
         }
-        return super.translateToBedrock(itemStack, mapping, protocolVersion);
+        return super.translateToBedrock(itemStack, mapping, mappings);
     }
 
     @Override
-    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, int protocolVersion) {
+    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
         Potion potion = Potion.getByBedrockId(itemData.getDamage());
-        ItemStack itemStack = super.translateToJava(itemData, mapping, protocolVersion);
+        ItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
         if (potion != null) {
             StringTag potionTag = new StringTag("Potion", potion.getJavaIdentifier());
             itemStack.getNbt().put(potionTag);

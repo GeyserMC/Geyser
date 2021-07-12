@@ -33,6 +33,7 @@ import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.ItemMapping;
+import org.geysermc.connector.registry.type.ItemMappings;
 import org.geysermc.connector.utils.LoadstoneTracker;
 
 import java.util.List;
@@ -53,13 +54,13 @@ public class CompassTranslator extends ItemTranslator {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, int protocolVersion) {
-        if (itemStack.getNbt() == null) return super.translateToBedrock(itemStack, mapping, protocolVersion);
+    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
+        if (itemStack.getNbt() == null) return super.translateToBedrock(itemStack, mapping, mappings);
 
         Tag lodestoneTag = itemStack.getNbt().get("LodestoneTracked");
         if (lodestoneTag instanceof ByteTag) {
             // Get the fake lodestonecompass entry
-            mapping = Registries.ITEMS.forVersion(protocolVersion).getStoredItems().lodestoneCompass();
+            mapping = mappings.getStoredItems().lodestoneCompass();
 
             // Get the loadstone pos
             CompoundTag loadstonePos = itemStack.getNbt().get("LodestonePos");
@@ -81,20 +82,20 @@ public class CompassTranslator extends ItemTranslator {
             }
         }
 
-        return super.translateToBedrock(itemStack, mapping, protocolVersion);
+        return super.translateToBedrock(itemStack, mapping, mappings);
     }
 
     @Override
-    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, int protocolVersion) {
+    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
         boolean isLoadstone = false;
         if (mapping.getBedrockIdentifier().equals("minecraft:lodestone_compass")) {
             // Revert the entry back to the compass
-            mapping = Registries.ITEMS.forVersion(protocolVersion).getStoredItems().compass();
+            mapping = mappings.getStoredItems().compass();
 
             isLoadstone = true;
         }
 
-        ItemStack itemStack = super.translateToJava(itemData, mapping, protocolVersion);
+        ItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
 
         if (isLoadstone) {
             // Get the tracking id
