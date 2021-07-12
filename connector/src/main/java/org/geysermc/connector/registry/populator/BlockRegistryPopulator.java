@@ -46,7 +46,6 @@ import org.geysermc.connector.utils.FileUtils;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -69,7 +68,7 @@ public class BlockRegistryPopulator {
                 }
                 return null;
             })
-            .put("1_17_10", (bedrockIdentifier, statesBuilder) -> { return null; })
+            .put("1_17_10", (bedrockIdentifier, statesBuilder) -> null)
             .build();
 
     private static final Object2IntMap<String> PALETTE_VERSIONS = new Object2IntOpenHashMap<String>() {
@@ -82,13 +81,13 @@ public class BlockRegistryPopulator {
     /**
      * Stores the raw blocks JSON until it is no longer needed.
      */
-    private static WeakReference<JsonNode> BLOCKS_JSON;
+    private static JsonNode BLOCKS_JSON;
 
     public static void populate() {
         registerJavaBlocks();
         registerBedrockBlocks();
 
-        BLOCKS_JSON.clear();
+        BLOCKS_JSON = null;
     }
 
     private static void registerBedrockBlocks() {
@@ -121,9 +120,9 @@ public class BlockRegistryPopulator {
             int commandBlockRuntimeId = -1;
             int javaRuntimeId = -1;
             int waterRuntimeId = -1;
-            Iterator<Map.Entry<String, JsonNode>> blocksIterator = BLOCKS_JSON.get().fields();
+            Iterator<Map.Entry<String, JsonNode>> blocksIterator = BLOCKS_JSON.fields();
 
-            BiFunction<String, NbtMapBuilder, String> stateMapper = STATE_MAPPER.getOrDefault(palette.getKey(), (i, s) -> { return null; });
+            BiFunction<String, NbtMapBuilder, String> stateMapper = STATE_MAPPER.getOrDefault(palette.getKey(), (i, s) -> null);
 
             Int2IntMap javaToBedrockBlockMap = new Int2IntOpenHashMap();
             Int2IntMap bedrockToJavaBlockMap = new Int2IntOpenHashMap();
@@ -334,7 +333,7 @@ public class BlockRegistryPopulator {
         }
         BlockStateValues.JAVA_WATER_ID = waterRuntimeId;
 
-        BLOCKS_JSON = new WeakReference<>(blocksJson);
+        BLOCKS_JSON = blocksJson;
     }
 
     private static NbtMap buildBedrockState(JsonNode node, int blockStateVersion, BiFunction<String, NbtMapBuilder, String> statesMapper) {
