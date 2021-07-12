@@ -42,7 +42,6 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.ItemMapping;
 
 import java.util.ArrayList;

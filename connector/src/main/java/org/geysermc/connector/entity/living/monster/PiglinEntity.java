@@ -31,7 +31,6 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.registry.Registries;
 
 public class PiglinEntity extends BasePiglinEntity {
 
@@ -61,8 +60,7 @@ public class PiglinEntity extends BasePiglinEntity {
     @Override
     public void updateOffHand(GeyserSession session) {
         // Check if the Piglin is holding Gold and set the ADMIRING flag accordingly so its pose updates
-        boolean changed = metadata.getFlags().setFlag(EntityFlag.ADMIRING, session.getTagCache().shouldPiglinAdmire(session.getItemMappings().getMapping(this.offHand))
-        );
+        boolean changed = metadata.getFlags().setFlag(EntityFlag.ADMIRING, session.getTagCache().shouldPiglinAdmire(session.getItemMappings().getMapping(this.offHand)));
         if (changed) {
             super.updateBedrockMetadata(session);
         }
