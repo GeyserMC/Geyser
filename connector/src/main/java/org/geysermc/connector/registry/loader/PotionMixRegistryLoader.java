@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+//TODO this needs to be versioned, but the runtime item states between 1.17 and 1.17.10 are identical except for new blocks so this works for both
 public class PotionMixRegistryLoader implements RegistryLoader<Object, Set<PotionMixData>> {
 
     @Override
