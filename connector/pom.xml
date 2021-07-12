@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>geyser-parent</artifactId>
-        <version>1.4.0-SNAPSHOT</version>
+        <version>1.4.1-SNAPSHOT</version>
     </parent>
     <artifactId>connector</artifactId>
 
@@ -21,7 +21,7 @@
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>common</artifactId>
-            <version>1.4.0-SNAPSHOT</version>
+            <version>1.4.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <!-- Jackson JSON and YAML serialization -->
