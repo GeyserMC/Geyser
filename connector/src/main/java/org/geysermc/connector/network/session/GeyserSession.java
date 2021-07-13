@@ -864,6 +864,7 @@ public class GeyserSession implements CommandSender {
             Vector3d position = collisionManager.adjustBedrockPosition(playerEntity.getPosition(), playerEntity.isOnGround());
             // A null return value cancels the packet
             if (position != null) {
+                confirmTeleport(position);
                 ClientPlayerPositionPacket packet = new ClientPlayerPositionPacket(playerEntity.isOnGround(),
                         position.getX(), position.getY(), position.getZ());
                 sendDownstreamPacket(packet);
@@ -1128,9 +1129,9 @@ public class GeyserSession implements CommandSender {
         }
     }
 
-    public boolean confirmTeleport(Vector3d position) {
+    public void confirmTeleport(Vector3d position) {
         if (teleportMap.size() == 0) {
-            return true;
+            return;
         }
         int teleportID = -1;
 
@@ -1181,8 +1182,6 @@ public class GeyserSession implements CommandSender {
                         teleport.getYaw(), teleport.getPitch(), playerEntity.isOnGround(), true);
             }
         }
-
-        return true;
     }
 
     /**
