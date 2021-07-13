@@ -74,6 +74,7 @@ import lombok.Setter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
+import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
@@ -81,6 +82,7 @@ import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.attribute.GeyserAttributeType;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.entity.player.SkullPlayerEntity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.auth.AuthData;
@@ -144,6 +146,13 @@ public class GeyserSession implements CommandSender {
     private final TagCache tagCache;
     private WorldCache worldCache;
     private final Int2ObjectMap<TeleportCache> teleportMap = new Int2ObjectOpenHashMap<>();
+
+    @Setter
+    private WorldBorder worldBorder;
+    /**
+     * Whether simulated fog has been sent to the client or not.
+     */
+    private boolean isInWorldBorderWarningArea = false;
 
     private final PlayerInventory playerInventory;
     @Setter
@@ -847,6 +856,8 @@ public class GeyserSession implements CommandSender {
         this.effectCache = null;
         this.worldCache = null;
 
+        this.worldBorder = null;
+
         closed = true;
     }
 
@@ -869,6 +880,38 @@ public class GeyserSession implements CommandSender {
                 sendDownstreamPacket(packet);
             }
             lastMovementTimestamp = System.currentTimeMillis();
+        }
+
+        if (worldBorder != null) {
+            if (worldBorder.isResizing()) {
+                worldBorder.resize();
+            }
+
+            if (!worldBorder.isWithinWarningBoundaries()) {
+                // Show particles representing where the world border is
+                worldBorder.drawWall();
+                // Send message explaining what is going on
+                SetTitlePacket setTitlePacket = new SetTitlePacket();
+                setTitlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
+                setTitlePacket.setText(ChatColor.BOLD + ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.network.translator.world_border.too_close", getLocale()));
+                setTitlePacket.setStayTime(1);
+                setTitlePacket.setFadeInTime(1);
+                setTitlePacket.setFadeOutTime(1);
+                sendUpstreamPacket(setTitlePacket);
+                // Set the mood
+                if (!isInWorldBorderWarningArea) {
+                    isInWorldBorderWarningArea = true;
+                    WorldBorder.sendFog(this, "minecraft:fog_crimson_forest");
+                }
+            } else if (isInWorldBorderWarningArea) {
+                // Clear fog as we are outside the world border now
+                WorldBorder.removeFog(this);
+                isInWorldBorderWarningArea = false;
+            }
+        } else if (isInWorldBorderWarningArea) {
+            // Clear fog
+            WorldBorder.removeFog(this);
+            isInWorldBorderWarningArea = false;
         }
 
         for (Tickable entity : entityCache.getTickableEntities()) {
@@ -1183,6 +1226,41 @@ public class GeyserSession implements CommandSender {
         }
 
         return true;
+    }
+
+    /**
+     * Checks to see if the player is within world border boundaries, but does NOT adjust position if they are outside it.
+     *
+     * @return if this player is within world border boundaries. Will return true if no world border was defined for us.
+     */
+    public boolean isWithinWorldBorderBoundaries() {
+        if (worldBorder == null) {
+            return true;
+        }
+
+        return worldBorder.isInsideBorderBoundaries();
+    }
+
+    /**
+     * Confirms that the player is within world border boundaries when they move.
+     * Otherwise, if {@code adjustPosition} is true, this function will push the player back.
+     *
+     * @return if this player was indeed against the world border. Will return false if no world border was defined for us.
+     */
+    public boolean isPassingWorldBorderBoundaries(Vector3f newPosition, boolean adjustPosition) {
+        if (worldBorder == null) {
+            return false;
+        }
+
+        boolean isInWorldBorder = worldBorder.isPassingIntoBorderBoundaries(newPosition);
+        if (isInWorldBorder && adjustPosition) {
+            // Move the player back, but allow gravity to take place
+            // Teleported = true makes going back better, but disconnects the player from their mounted entity
+            playerEntity.moveAbsolute(this,
+                    Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - EntityType.PLAYER.getOffset()), playerEntity.getPosition().getZ()),
+                    playerEntity.getRotation(), playerEntity.isOnGround(), ridingVehicleEntity == null);
+        }
+        return isInWorldBorder;
     }
 
     /**
