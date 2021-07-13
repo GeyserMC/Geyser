@@ -30,16 +30,19 @@ import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
-import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.registry.type.ItemMapping;
+
+import java.util.Arrays;
+import java.util.List;
 
 @ItemRemapper
 public class LeatherArmorTranslator extends NbtItemStackTranslator {
 
-    private static final String[] ITEMS = new String[]{"minecraft:leather_helmet", "minecraft:leather_chestplate",
-            "minecraft:leather_leggings", "minecraft:leather_boots", "minecraft:leather_horse_armor"};
+    private static final List<String> ITEMS = Arrays.asList("minecraft:leather_helmet", "minecraft:leather_chestplate",
+            "minecraft:leather_leggings", "minecraft:leather_boots", "minecraft:leather_horse_armor");
 
     @Override
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
         CompoundTag displayTag = itemTag.get("display");
         if (displayTag == null) {
             return;
@@ -52,7 +55,7 @@ public class LeatherArmorTranslator extends NbtItemStackTranslator {
     }
 
     @Override
-    public void translateToJava(CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToJava(CompoundTag itemTag, ItemMapping mapping) {
         IntTag color = itemTag.get("customColor");
         if (color == null) {
             return;
@@ -66,10 +69,7 @@ public class LeatherArmorTranslator extends NbtItemStackTranslator {
     }
 
     @Override
-    public boolean acceptItem(ItemEntry itemEntry) {
-        for (String item : ITEMS) {
-            if (itemEntry.getJavaIdentifier().equals(item)) return true;
-        }
-        return false;
+    public boolean acceptItem(ItemMapping mapping) {
+        return ITEMS.contains(mapping.getJavaIdentifier());
     }
 }

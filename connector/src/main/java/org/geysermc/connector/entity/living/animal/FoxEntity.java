@@ -31,7 +31,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 public class FoxEntity extends AnimalEntity {
 
@@ -55,7 +55,7 @@ public class FoxEntity extends AnimalEntity {
     }
 
     @Override
-    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
-        return session.getTagCache().isFoxFood(itemEntry);
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemMapping mapping) {
+        return session.getTagCache().isFoxFood(mapping);
     }
 }

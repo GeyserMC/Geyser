@@ -23,21 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.world.block;
+package org.geysermc.connector.registry;
 
-public class BlockTranslator1_17_0 extends BlockTranslator {
-    public static final BlockTranslator1_17_0 INSTANCE = new BlockTranslator1_17_0();
+import org.geysermc.connector.registry.loader.RegistryLoader;
 
-    public BlockTranslator1_17_0() {
-        super("bedrock/block_palette.1_17_0.nbt");
+import java.util.function.Supplier;
+
+public class SimpleRegistry<M> extends Registry<M> {
+    private <I> SimpleRegistry(I input, RegistryLoader<I, M> registryLoader) {
+        super(input, registryLoader);
     }
 
-    @Override
-    public int getBlockStateVersion() {
-        return 17879555;
+    public static <I, M> SimpleRegistry<M> create(Supplier<RegistryLoader<I, M>> registryLoader) {
+        return new SimpleRegistry<>(null, registryLoader.get());
     }
 
-    public static void init() {
-        // no-op
+    public static <I, M> SimpleRegistry<M> create(I input, Supplier<RegistryLoader<I, M>> registryLoader) {
+        return new SimpleRegistry<>(input, registryLoader.get());
+    }
+
+    public static <I, M> SimpleRegistry<M> create(RegistryLoader<I, M> registryLoader) {
+        return new SimpleRegistry<>(null, registryLoader);
+    }
+
+    public static <I, M> SimpleRegistry<M> create(I input, RegistryLoader<I, M> registryLoader) {
+        return new SimpleRegistry<>(input, registryLoader);
     }
 }

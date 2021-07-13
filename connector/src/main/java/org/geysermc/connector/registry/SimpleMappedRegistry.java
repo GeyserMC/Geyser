@@ -23,37 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators;
+package org.geysermc.connector.registry;
 
-import com.nukkitx.nbt.NBTInputStream;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtUtils;
-import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.connector.registry.loader.RegistryLoader;
 
-import java.io.InputStream;
+import java.util.Map;
+import java.util.function.Supplier;
 
-/**
- * Registry for entity identifiers.
- */
-public class EntityIdentifierRegistry {
-
-    public static final NbtMap ENTITY_IDENTIFIERS;
-
-    private EntityIdentifierRegistry() {
+public class SimpleMappedRegistry<K, V> extends AbstractMappedRegistry<K, V, Map<K, V>> {
+    protected <I> SimpleMappedRegistry(I input, RegistryLoader<I, Map<K, V>> registryLoader) {
+        super(input, registryLoader);
     }
 
-    public static void init() {
-        // no-op
+    public static <I, K, V> SimpleMappedRegistry<K, V> create(RegistryLoader<I, Map<K, V>> registryLoader) {
+        return new SimpleMappedRegistry<>(null, registryLoader);
     }
 
-    static {
-        /* Load entity identifiers */
-        InputStream stream = FileUtils.getResource("bedrock/entity_identifiers.dat");
+    public static <I, K, V> SimpleMappedRegistry<K, V> create(I input, RegistryLoader<I, Map<K, V>> registryLoader) {
+        return new SimpleMappedRegistry<>(input, registryLoader);
+    }
 
-        try (NBTInputStream nbtInputStream = NbtUtils.createNetworkReader(stream)) {
-            ENTITY_IDENTIFIERS = (NbtMap) nbtInputStream.readTag();
-        } catch (Exception e) {
-            throw new AssertionError("Unable to get entities from entity identifiers", e);
-        }
+    public static <I, K, V> SimpleMappedRegistry<K, V> create(Supplier<RegistryLoader<I, Map<K, V>>> registryLoader) {
+        return new SimpleMappedRegistry<>(null, registryLoader.get());
+    }
+
+    public static <I, K, V> SimpleMappedRegistry<K, V> create(I input, Supplier<RegistryLoader<I, Map<K, V>>> registryLoader) {
+        return new SimpleMappedRegistry<>(input, registryLoader.get());
     }
 }

@@ -32,7 +32,8 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.utils.InventoryUtils;
 
 @Translator(packet = BlockPickRequestPacket.class)
@@ -44,7 +45,7 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
         int blockToPick = session.getConnector().getWorldManager().getBlockAt(session, vector.getX(), vector.getY(), vector.getZ());
         
         // Block is air - chunk caching is probably off
-        if (blockToPick == BlockTranslator.JAVA_AIR_ID) {
+        if (blockToPick == BlockStateValues.JAVA_AIR_ID) {
             // Check for an item frame since the client thinks that's a block when it's an entity in Java
             ItemFrameEntity entity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
             if (entity != null) {
@@ -60,6 +61,6 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
             return;
         }
 
-        InventoryUtils.findOrCreateItem(session, BlockTranslator.getBlockMapping(blockToPick).getPickItem());
+        InventoryUtils.findOrCreateItem(session, BlockRegistries.JAVA_BLOCKS.get(blockToPick).getPickItem());
     }
 }

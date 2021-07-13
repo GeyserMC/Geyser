@@ -35,7 +35,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.platform.spigot.world.manager.GeyserSpigotWorldManager;
 
 @AllArgsConstructor
@@ -53,11 +54,11 @@ public class GeyserSpigotBlockPlaceListener implements Listener {
                 placeBlockSoundPacket.setPosition(Vector3f.from(event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ()));
                 placeBlockSoundPacket.setBabySound(false);
                 if (worldManager.isLegacy()) {
-                    placeBlockSoundPacket.setExtraData(session.getBlockTranslator().getBedrockBlockId(worldManager.getBlockAt(session,
+                    placeBlockSoundPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(worldManager.getBlockAt(session,
                             event.getBlockPlaced().getX(), event.getBlockPlaced().getY(), event.getBlockPlaced().getZ())));
                 } else {
                     String javaBlockId = event.getBlockPlaced().getBlockData().getAsString();
-                    placeBlockSoundPacket.setExtraData(session.getBlockTranslator().getBedrockBlockId(BlockTranslator.getJavaIdBlockMap().getOrDefault(javaBlockId, BlockTranslator.JAVA_AIR_ID)));
+                    placeBlockSoundPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(BlockRegistries.JAVA_IDENTIFIERS.get().getOrDefault(javaBlockId, BlockStateValues.JAVA_AIR_ID)));
                 }
                 placeBlockSoundPacket.setIdentifier(":");
                 session.sendUpstreamPacket(placeBlockSoundPacket);

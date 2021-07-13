@@ -23,38 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.item;
+package org.geysermc.connector.utils;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.ToString;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator1_17_0;
+import com.nukkitx.protocol.bedrock.data.SoundEvent;
 
-@Getter
-@AllArgsConstructor
-@ToString
-public class ItemEntry {
-    public static final ItemEntry AIR = new ItemEntry("minecraft:air", "minecraft:air", 0, 0, 0,
-            BlockTranslator1_17_0.INSTANCE.getBedrockAirId(), 64);
+public class SoundUtils {
 
-    private final String javaIdentifier;
-    private final String bedrockIdentifier;
-    private final int javaId;
-    private final int bedrockId;
-    private final int bedrockData;
     /**
-     * The Bedrock block runtime ID to render this item with. The specific state *does* matter in how this item is rendered and used as a crafting ingredient.
-     * Required since 1.16.220.
+     * Maps a sound name to a sound event, null if one
+     * does not exist.
+     *
+     * @param sound the sound name
+     * @return a sound event from the given sound
      */
-    private final int bedrockBlockId;
-    private final int stackSize;
-
-    public boolean isBlock() {
-        return bedrockBlockId != -1;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj == this || (obj instanceof ItemEntry && ((ItemEntry) obj).getBedrockId() == this.getBedrockId() && ((ItemEntry) obj).getJavaIdentifier().equals(this.getJavaIdentifier()));
+    public static SoundEvent toSoundEvent(String sound) {
+        try {
+            return SoundEvent.valueOf(sound.toUpperCase().replaceAll("\\.", "_"));
+        } catch (Exception ex) {
+            return null;
+        }
     }
 }
