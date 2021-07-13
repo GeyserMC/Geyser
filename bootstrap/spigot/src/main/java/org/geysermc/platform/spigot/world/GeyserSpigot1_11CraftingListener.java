@@ -53,7 +53,6 @@ import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Used to send all available recipes from the server to the client, as a valid recipe book packet won't be sent by the server.
@@ -95,7 +94,7 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
     }
 
     public void sendServerRecipes(GeyserSession session) {
-        int netId = InventoryUtils.LAST_RECIPE_NET_ID.get();
+        int netId = InventoryUtils.LAST_RECIPE_NET_ID;
 
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);

@@ -53,7 +53,6 @@ import org.geysermc.connector.registry.type.ItemMapping;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntFunction;
 
 public class InventoryUtils {
@@ -61,7 +60,7 @@ public class InventoryUtils {
      * Stores the last used recipe network ID. Since 1.16.200 (and for server-authoritative inventories),
      * each recipe needs a unique network ID (or else in .200 the client crashes).
      */
-    public static final AtomicInteger LAST_RECIPE_NET_ID = new AtomicInteger(0);
+    public static int LAST_RECIPE_NET_ID;
     
     public static final ItemStack REFRESH_ITEM = new ItemStack(1, 127, new CompoundTag(""));
 

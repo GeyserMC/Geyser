@@ -66,20 +66,23 @@ public class RecipeRegistryPopulator {
             throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.runtime_java"), e);
         }
 
+        int currentRecipeId = LAST_RECIPE_NET_ID;
         for (Map.Entry<Integer, ItemMappings> version : Registries.ITEMS.get().entrySet()) {
+            // Make a bit of an assumption here that the last recipe net ID will be equivalent between all versions
+            LAST_RECIPE_NET_ID = currentRecipeId;
             Map<RecipeType, List<CraftingData>> craftingData = new EnumMap<>(RecipeType.class);
             Int2ObjectMap<Recipe> recipes = new Int2ObjectOpenHashMap<>();
 
             craftingData.put(RecipeType.CRAFTING_SPECIAL_BOOKCLONING,
-                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("d1ca6b84-338e-4f2f-9c6b-76cc8b4bd98d"), LAST_RECIPE_NET_ID.incrementAndGet())));
+                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("d1ca6b84-338e-4f2f-9c6b-76cc8b4bd98d"), ++LAST_RECIPE_NET_ID)));
             craftingData.put(RecipeType.CRAFTING_SPECIAL_REPAIRITEM,
-                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("00000000-0000-0000-0000-000000000001"), LAST_RECIPE_NET_ID.incrementAndGet())));
+                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("00000000-0000-0000-0000-000000000001"), ++LAST_RECIPE_NET_ID)));
             craftingData.put(RecipeType.CRAFTING_SPECIAL_MAPEXTENDING,
-                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("d392b075-4ba1-40ae-8789-af868d56f6ce"), LAST_RECIPE_NET_ID.incrementAndGet())));
+                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("d392b075-4ba1-40ae-8789-af868d56f6ce"), ++LAST_RECIPE_NET_ID)));
             craftingData.put(RecipeType.CRAFTING_SPECIAL_MAPCLONING,
-                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("85939755-ba10-4d9d-a4cc-efb7a8e943c4"), LAST_RECIPE_NET_ID.incrementAndGet())));
+                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("85939755-ba10-4d9d-a4cc-efb7a8e943c4"), ++LAST_RECIPE_NET_ID)));
             craftingData.put(RecipeType.CRAFTING_SPECIAL_BANNERADDPATTERN,
-                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("b5c5d105-75a2-4076-af2b-923ea2bf4bf0"), LAST_RECIPE_NET_ID.incrementAndGet())));
+                    Collections.singletonList(CraftingData.fromMulti(UUID.fromString("b5c5d105-75a2-4076-af2b-923ea2bf4bf0"), ++LAST_RECIPE_NET_ID)));
 
             // https://github.com/pmmp/PocketMine-MP/blob/stable/src/pocketmine/inventory/MultiRecipe.php
 
@@ -122,7 +125,7 @@ public class RecipeRegistryPopulator {
      * @return the {@link CraftingData} to send to the Bedrock client.
      */
     private static CraftingData getCraftingDataFromJsonNode(JsonNode node, Int2ObjectMap<Recipe> recipes, ItemMappings mappings) {
-        int netId = LAST_RECIPE_NET_ID.incrementAndGet();
+        int netId = ++LAST_RECIPE_NET_ID;
         int type = node.get("bedrockRecipeType").asInt();
         JsonNode outputNode = node.get("output");
         ItemMapping outputEntry = mappings.getMapping(outputNode.get("identifier").asText());

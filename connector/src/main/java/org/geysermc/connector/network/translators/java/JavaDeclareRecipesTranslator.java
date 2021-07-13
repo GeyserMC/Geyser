@@ -64,17 +64,17 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
      * Required to use the specified cartography table recipes
      */
     private static final List<CraftingData> CARTOGRAPHY_RECIPES = Arrays.asList(
-            CraftingData.fromMulti(UUID.fromString("8b36268c-1829-483c-a0f1-993b7156a8f2"), LAST_RECIPE_NET_ID.incrementAndGet()), // Map extending
-            CraftingData.fromMulti(UUID.fromString("442d85ed-8272-4543-a6f1-418f90ded05d"), LAST_RECIPE_NET_ID.incrementAndGet()), // Map cloning
-            CraftingData.fromMulti(UUID.fromString("98c84b38-1085-46bd-b1ce-dd38c159e6cc"), LAST_RECIPE_NET_ID.incrementAndGet()), // Map upgrading
-            CraftingData.fromMulti(UUID.fromString("602234e4-cac1-4353-8bb7-b1ebff70024b"), LAST_RECIPE_NET_ID.incrementAndGet()) // Map locking
+            CraftingData.fromMulti(UUID.fromString("8b36268c-1829-483c-a0f1-993b7156a8f2"), ++LAST_RECIPE_NET_ID), // Map extending
+            CraftingData.fromMulti(UUID.fromString("442d85ed-8272-4543-a6f1-418f90ded05d"), ++LAST_RECIPE_NET_ID), // Map cloning
+            CraftingData.fromMulti(UUID.fromString("98c84b38-1085-46bd-b1ce-dd38c159e6cc"), ++LAST_RECIPE_NET_ID), // Map upgrading
+            CraftingData.fromMulti(UUID.fromString("602234e4-cac1-4353-8bb7-b1ebff70024b"), ++LAST_RECIPE_NET_ID) // Map locking
     );
 
     @Override
     public void translate(ServerDeclareRecipesPacket packet, GeyserSession session) {
         Map<RecipeType, List<CraftingData>> recipeTypes = Registries.CRAFTING_DATA.forVersion(session.getUpstream().getProtocolVersion());
         // Get the last known network ID (first used for the pregenerated recipes) and increment from there.
-        int netId = InventoryUtils.LAST_RECIPE_NET_ID.get() + 1;
+        int netId = InventoryUtils.LAST_RECIPE_NET_ID + 1;
 
         Int2ObjectMap<Recipe> recipeMap = new Int2ObjectOpenHashMap<>(Registries.RECIPES.forVersion(session.getUpstream().getProtocolVersion()));
         Int2ObjectMap<List<StoneCuttingRecipeData>> unsortedStonecutterData = new Int2ObjectOpenHashMap<>();
