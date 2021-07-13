@@ -39,6 +39,7 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.registry.Registries;
+import org.geysermc.connector.registry.type.ParticleMapping;
 import org.geysermc.connector.utils.DimensionUtils;
 
 import java.util.Random;
@@ -129,30 +130,32 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                     return packet;
                 };
             }
-            default:
-                LevelEventType typeParticle = Registries.PARTICLES.get(particle.getType()).getLevelEventType();
-                if (typeParticle != null) {
+            default: {
+                ParticleMapping particleMapping = Registries.PARTICLES.get(particle.getType());
+                if (particleMapping == null) { //TODO ensure no particle can be null
+                    return null;
+                }
+
+                if (particleMapping.getLevelEventType() != null) {
                     return (position) -> {
                         LevelEventPacket packet = new LevelEventPacket();
-                        packet.setType(typeParticle);
+                        packet.setType(particleMapping.getLevelEventType());
                         packet.setPosition(position);
                         return packet;
                     };
+                } else if (particleMapping.getIdentifier() != null) {
+                    int dimensionId = DimensionUtils.javaToBedrock(session.getDimension());
+                    return (position) -> {
+                        SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
+                        stringPacket.setIdentifier(particleMapping.getIdentifier());
+                        stringPacket.setDimensionId(dimensionId);
+                        stringPacket.setPosition(position);
+                        return stringPacket;
+                    };
                 } else {
-                    String stringParticle = Registries.PARTICLES.get(particle.getType()).getIdentifier();
-                    if (stringParticle != null) {
-                        int dimensionId = DimensionUtils.javaToBedrock(session.getDimension());
-                        return (position) -> {
-                            SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
-                            stringPacket.setIdentifier(stringParticle);
-                            stringPacket.setDimensionId(dimensionId);
-                            stringPacket.setPosition(position);
-                            return stringPacket;
-                        };
-                    } else {
-                        return null;
-                    }
+                    return null;
                 }
+            }
         }
     }
 }
