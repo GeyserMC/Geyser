@@ -34,7 +34,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.connector.common.ChatColor;
-import org.geysermc.connector.entity.player.PlayerEntity;
+import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -45,7 +45,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
     @Override
     public void translate(MovePlayerPacket packet, GeyserSession session) {
-        PlayerEntity entity = session.getPlayerEntity();
+        SessionPlayerEntity entity = session.getPlayerEntity();
         if (!session.isSpawned()) return;
 
         if (!session.getUpstream().isInitialized()) {
@@ -100,7 +100,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                         // Compare positions here for void floor fix below before the player's position variable is set to the packet position
                         boolean notMovingUp = entity.getPosition().getY() >= packet.getPosition().getY();
 
-                        entity.setPosition(packet.getPosition(), false);
+                        entity.setPositionManual(packet.getPosition());
                         entity.setOnGround(packet.isOnGround());
 
                         // Send final movement changes
