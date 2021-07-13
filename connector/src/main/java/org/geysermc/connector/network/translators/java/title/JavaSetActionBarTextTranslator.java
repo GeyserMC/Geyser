@@ -47,6 +47,8 @@ public class JavaSetActionBarTextTranslator extends PacketTranslator<ServerSetAc
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
         titlePacket.setText(text);
+        titlePacket.setXuid("");
+        titlePacket.setPlatformOnlineId("");
         session.sendUpstreamPacket(titlePacket);
     }
 }

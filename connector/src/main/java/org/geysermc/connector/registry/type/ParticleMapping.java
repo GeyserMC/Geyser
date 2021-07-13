@@ -23,21 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.world.block;
+package org.geysermc.connector.registry.type;
 
-public class BlockTranslator1_17_0 extends BlockTranslator {
-    public static final BlockTranslator1_17_0 INSTANCE = new BlockTranslator1_17_0();
+import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import lombok.Value;
 
-    public BlockTranslator1_17_0() {
-        super("bedrock/block_palette.1_17_0.nbt");
-    }
+import javax.annotation.ParametersAreNullableByDefault;
 
-    @Override
-    public int getBlockStateVersion() {
-        return 17879555;
-    }
-
-    public static void init() {
-        // no-op
-    }
+@Value
+@ParametersAreNullableByDefault
+public class ParticleMapping {
+    LevelEventType levelEventType;
+    String identifier;
+    int id;
 }

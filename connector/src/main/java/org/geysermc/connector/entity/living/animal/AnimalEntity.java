@@ -29,7 +29,7 @@ import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.living.AgeableEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 public class AnimalEntity extends AgeableEntity {
 
@@ -42,7 +42,7 @@ public class AnimalEntity extends AgeableEntity {
      *                               <code>wheat</code>.
      * @return true if this is a valid item to breed with for this animal.
      */
-    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemMapping mapping) {
         // This is what it defaults to. OK.
         return javaIdentifierStripped.equals("wheat");
     }

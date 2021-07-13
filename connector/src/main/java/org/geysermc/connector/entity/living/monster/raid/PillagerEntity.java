@@ -29,7 +29,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 public class PillagerEntity extends AbstractIllagerEntity {
 
@@ -55,8 +55,9 @@ public class PillagerEntity extends AbstractIllagerEntity {
      * Check for a crossbow in either the mainhand or offhand. If one exists, indicate that the pillager should be posing
      */
     protected void checkForCrossbow(GeyserSession session) {
-        boolean hasCrossbow = this.hand.getId() == ItemRegistry.CROSSBOW.getBedrockId()
-                || this.offHand.getId() == ItemRegistry.CROSSBOW.getBedrockId();
+        ItemMapping crossbow = session.getItemMappings().getStoredItems().crossbow();
+        boolean hasCrossbow = this.hand.getId() == crossbow.getBedrockId()
+                || this.offHand.getId() == crossbow.getBedrockId();
         boolean usingItemChanged = metadata.getFlags().setFlag(EntityFlag.USING_ITEM, hasCrossbow);
         boolean chargedChanged = metadata.getFlags().setFlag(EntityFlag.CHARGED, hasCrossbow);
 

@@ -30,15 +30,15 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
-import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
+import org.geysermc.connector.registry.type.ItemMapping;
 import org.geysermc.connector.utils.LocaleUtils;
 
 @ItemRemapper
 public class AxolotlBucketTranslator extends NbtItemStackTranslator {
 
     @Override
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
         // Bedrock Edition displays the properties of the axolotl. Java does not.
         // To work around this, set the custom name to the Axolotl translation and it's displayed correctly
         itemTag.put(new ByteTag("AppendCustomName", (byte) 1));
@@ -49,7 +49,7 @@ public class AxolotlBucketTranslator extends NbtItemStackTranslator {
     }
 
     @Override
-    public boolean acceptItem(ItemEntry itemEntry) {
-        return itemEntry.getJavaIdentifier().equals("minecraft:axolotl_bucket");
+    public boolean acceptItem(ItemMapping mapping) {
+        return mapping.getJavaIdentifier().equals("minecraft:axolotl_bucket");
     }
 }

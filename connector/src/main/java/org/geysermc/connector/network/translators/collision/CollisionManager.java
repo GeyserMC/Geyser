@@ -40,7 +40,8 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.PistonCache;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 import org.geysermc.connector.network.translators.collision.translators.ScaffoldingCollision;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import org.geysermc.connector.utils.BlockUtils;
 import org.geysermc.connector.utils.Axis;
 
 import java.text.DecimalFormat;
@@ -255,7 +256,7 @@ public class CollisionManager {
 
         // Used when correction code needs to be run before the main correction
         for (Vector3i blockPos : collidableBlocks) {
-            BlockCollision blockCollision = CollisionTranslator.getCollisionAt(
+            BlockCollision blockCollision = BlockUtils.getCollisionAt(
                     session, blockPos.getX(), blockPos.getY(), blockPos.getZ()
             );
             if (blockCollision != null) {
@@ -265,7 +266,7 @@ public class CollisionManager {
 
         // Main correction code
         for (Vector3i blockPos : collidableBlocks) {
-            BlockCollision blockCollision = CollisionTranslator.getCollisionAt(
+            BlockCollision blockCollision = BlockUtils.getCollisionAt(
                     session, blockPos.getX(), blockPos.getY(), blockPos.getZ()
             );
             if (blockCollision != null) {
@@ -385,7 +386,7 @@ public class CollisionManager {
      */
     public boolean isUnderSlab() {
         Vector3i position = session.getPlayerEntity().getPosition().toInt();
-        BlockCollision collision = CollisionTranslator.getCollisionAt(session, position.getX(), position.getY(), position.getZ());
+        BlockCollision collision = BlockUtils.getCollisionAt(session, position.getX(), position.getY(), position.getZ());
         // Determine, if the player's bounding box *were* at full height, if it would intersect with the block
         // at the current location.
         boolean result = false;
@@ -403,7 +404,7 @@ public class CollisionManager {
      * @return if the player is currently in a water block
      */
     public boolean isPlayerInWater() {
-        return session.getConnector().getWorldManager().getBlockAt(session, session.getPlayerEntity().getPosition().toInt()) == BlockTranslator.JAVA_WATER_ID;
+        return session.getConnector().getWorldManager().getBlockAt(session, session.getPlayerEntity().getPosition().toInt()) == BlockStateValues.JAVA_WATER_ID;
     }
 
     /**

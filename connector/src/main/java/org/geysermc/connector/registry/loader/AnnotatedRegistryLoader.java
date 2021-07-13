@@ -23,48 +23,37 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.sound;
+package org.geysermc.connector.registry.loader;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.FileUtils;
 import org.reflections.Reflections;
 
-import java.util.HashMap;
+import java.lang.annotation.Annotation;
 import java.util.Map;
+import java.util.function.Function;
 
-/**
- * Registry that holds {@link SoundInteractionHandler}s.
- */
-public class SoundHandlerRegistry {
+public class AnnotatedRegistryLoader<R, A extends Annotation, V> implements RegistryLoader<String, Map<R, V>> {
+    private final Class<A> annotation;
+    private final Function<A, R> mapper;
 
-    static final Map<SoundHandler, SoundInteractionHandler<?>> INTERACTION_HANDLERS = new HashMap<>();
+    public AnnotatedRegistryLoader(Class<A> annotation, Function<A, R> mapper) {
+        this.annotation = annotation;
+        this.mapper = mapper;
+    }
 
-    static {
-        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators.sound") : new Reflections("org.geysermc.connector.network.translators.sound");
-        for (Class<?> clazz : ref.getTypesAnnotatedWith(SoundHandler.class)) {
+    @Override
+    public Map<R, V> load(String input) {
+        Map<R, V> entries = new Object2ObjectOpenHashMap<>();
+        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections(input) : new Reflections(input);
+        for (Class<?> clazz : ref.getTypesAnnotatedWith(this.annotation)) {
             try {
-                SoundInteractionHandler<?> interactionHandler = (SoundInteractionHandler<?>) clazz.newInstance();
-                SoundHandler annotation = clazz.getAnnotation(SoundHandler.class);
-                INTERACTION_HANDLERS.put(annotation, interactionHandler);
+                entries.put(this.mapper.apply(clazz.getAnnotation(this.annotation)), (V) clazz.newInstance());
             } catch (InstantiationException | IllegalAccessException ex) {
                 ex.printStackTrace();
             }
         }
-    }
-
-    private SoundHandlerRegistry() {
-    }
-
-    public static void init() {
-        // no-op
-    }
-
-    /**
-     * Returns a map of the interaction handlers
-     *
-     * @return a map of the interaction handlers
-     */
-    public static Map<SoundHandler, SoundInteractionHandler<?>> getInteractionHandlers() {
-        return INTERACTION_HANDLERS;
+        return entries;
     }
 }

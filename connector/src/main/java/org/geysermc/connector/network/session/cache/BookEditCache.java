@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientEditB
 import lombok.Setter;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 /**
  * Manages updating the current writable book.
@@ -64,7 +63,7 @@ public class BookEditCache {
         }
         // Don't send the update if the player isn't not holding a book, shouldn't happen if we catch all interactions
         GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand();
-        if (itemStack == null || itemStack.getJavaId() != ItemRegistry.WRITABLE_BOOK.getJavaId()) {
+        if (itemStack == null || itemStack.getJavaId() != this.session.getItemMappings().getStoredItems().writableBook().getJavaId()) {
             packet = null;
             return;
         }

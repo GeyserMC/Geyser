@@ -843,7 +843,7 @@ public abstract class InventoryTranslator {
         for (int slot : affectedSlots) {
             BedrockContainerSlot bedrockSlot = javaSlotToBedrockContainer(slot);
             List<ItemStackResponsePacket.ItemEntry> list = containerMap.computeIfAbsent(bedrockSlot.getContainer(), k -> new ArrayList<>());
-            list.add(makeItemEntry(bedrockSlot.getSlot(), inventory.getItem(slot)));
+            list.add(makeItemEntry(session, bedrockSlot.getSlot(), inventory.getItem(slot)));
         }
 
         List<ItemStackResponsePacket.ContainerEntry> containerEntries = new ArrayList<>();
@@ -851,13 +851,13 @@ public abstract class InventoryTranslator {
             containerEntries.add(new ItemStackResponsePacket.ContainerEntry(entry.getKey(), entry.getValue()));
         }
 
-        ItemStackResponsePacket.ItemEntry cursorEntry = makeItemEntry(0, session.getPlayerInventory().getCursor());
+        ItemStackResponsePacket.ItemEntry cursorEntry = makeItemEntry(session, 0, session.getPlayerInventory().getCursor());
         containerEntries.add(new ItemStackResponsePacket.ContainerEntry(ContainerSlotType.CURSOR, Collections.singletonList(cursorEntry)));
 
         return containerEntries;
     }
 
-    public static ItemStackResponsePacket.ItemEntry makeItemEntry(int bedrockSlot, GeyserItemStack itemStack) {
+    public static ItemStackResponsePacket.ItemEntry makeItemEntry(GeyserSession session, int bedrockSlot, GeyserItemStack itemStack) {
         ItemStackResponsePacket.ItemEntry itemEntry;
         if (!itemStack.isEmpty()) {
             // As of 1.16.210: Bedrock needs confirmation on what the current item durability is.
@@ -866,7 +866,7 @@ public abstract class InventoryTranslator {
             if (itemStack.getNbt() != null) {
                 Tag damage = itemStack.getNbt().get("Damage");
                 if (damage instanceof IntTag) {
-                    durability = ItemUtils.getCorrectBedrockDurability(itemStack.getJavaId(), ((IntTag) damage).getValue());
+                    durability = ItemUtils.getCorrectBedrockDurability(session, itemStack.getJavaId(), ((IntTag) damage).getValue());
                 }
             }
 

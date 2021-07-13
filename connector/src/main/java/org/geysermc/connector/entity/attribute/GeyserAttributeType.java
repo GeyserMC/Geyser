@@ -25,12 +25,13 @@
 
 package org.geysermc.connector.entity.attribute;
 
+import com.nukkitx.protocol.bedrock.data.AttributeData;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum AttributeType {
+public enum GeyserAttributeType {
 
     // Universal Attributes
     FOLLOW_RANGE("minecraft:generic.follow_range", "minecraft:follow_range", 0f, 2048f, 32f),
@@ -39,13 +40,13 @@ public enum AttributeType {
     FLYING_SPEED("minecraft:generic.flying_speed", "minecraft:movement", 0.0f, 1024.0f, 0.4000000059604645f),
     ATTACK_DAMAGE("minecraft:generic.attack_damage", "minecraft:attack_damage", 0f, 2048f, 1f),
     HORSE_JUMP_STRENGTH("minecraft:horse.jump_strength", "minecraft:horse.jump_strength", 0.0f, 2.0f, 0.7f),
+    LUCK("minecraft:generic.luck", "minecraft:luck", -1024f, 1024f, 0f),
 
     // Java Attributes
     ARMOR("minecraft:generic.armor", null, 0f, 30f, 0f),
     ARMOR_TOUGHNESS("minecraft:generic.armor_toughness", null, 0F, 20f, 0f),
     ATTACK_KNOCKBACK("minecraft:generic.attack_knockback", null, 1.5f, Float.MAX_VALUE, 0f),
     ATTACK_SPEED("minecraft:generic.attack_speed", null, 0f, 1024f, 4f),
-    LUCK("minecraft:generic.luck", null, -1024f, 1024f, 0f),
     MAX_HEALTH("minecraft:generic.max_health", null, 0f, 1024f, 20f),
 
     // Bedrock Attributes
@@ -64,19 +65,15 @@ public enum AttributeType {
     private final float maximum;
     private final float defaultValue;
 
-    public Attribute getAttribute(float value) {
+    public AttributeData getAttribute(float value) {
         return getAttribute(value, maximum);
     }
 
-    public Attribute getAttribute(float value, float maximum) {
-        return new Attribute(this, minimum, maximum, value, defaultValue);
-    }
-
-    public boolean isJavaAttribute() {
-        return javaIdentifier != null;
-    }
-
-    public boolean isBedrockAttribute() {
-        return bedrockIdentifier != null;
+    public AttributeData getAttribute(float value, float maximum) {
+        if (bedrockIdentifier == null) {
+            return null;
+        }
+        // Minimum, maximum, and default values are hardcoded on Java Edition, whereas controlled by the server on Bedrock
+        return new AttributeData(bedrockIdentifier, minimum, maximum, value, defaultValue);
     }
 }

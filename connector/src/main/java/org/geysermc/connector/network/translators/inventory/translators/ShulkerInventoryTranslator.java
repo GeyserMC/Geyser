@@ -37,11 +37,12 @@ import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot
 import org.geysermc.connector.network.translators.inventory.holder.BlockInventoryHolder;
 import org.geysermc.connector.network.translators.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
+import org.geysermc.connector.registry.Registries;
 
 public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator {
     public ShulkerInventoryTranslator() {
         super(27, new BlockInventoryHolder("minecraft:shulker_box[facing=north]", ContainerType.CONTAINER) {
-            private final BlockEntityTranslator shulkerBoxTranslator = BlockEntityTranslator.BLOCK_ENTITY_TRANSLATORS.get("ShulkerBox");
+            private final BlockEntityTranslator shulkerBoxTranslator = Registries.BLOCK_ENTITIES.get("ShulkerBox");
 
             @Override
             protected boolean isValidBlock(String[] javaBlockString) {

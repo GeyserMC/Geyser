@@ -78,8 +78,7 @@ import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.entity.Tickable;
-import org.geysermc.connector.entity.attribute.Attribute;
-import org.geysermc.connector.entity.attribute.AttributeType;
+import org.geysermc.connector.entity.attribute.GeyserAttributeType;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.inventory.Inventory;
@@ -87,14 +86,13 @@ import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.auth.AuthData;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
 import org.geysermc.connector.network.session.cache.*;
-import org.geysermc.connector.network.translators.BiomeTranslator;
-import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.registry.Registries;
+import org.geysermc.connector.registry.type.BlockMappings;
+import org.geysermc.connector.registry.type.ItemMappings;
 import org.geysermc.connector.skin.FloodgateSkinUploader;
 import org.geysermc.connector.skin.SkinManager;
 import org.geysermc.connector.utils.*;
@@ -177,10 +175,16 @@ public class GeyserSession implements CommandSender {
     private final CollisionManager collisionManager;
 
     /**
-     * Stores the block translations for this specific version.
+     * Stores the block mappings for this specific version.
      */
     @Setter
-    private BlockTranslator blockTranslator;
+    private BlockMappings blockMappings;
+
+    /**
+     * Stores the item translations for this specific version.
+     */
+    @Setter
+    private ItemMappings itemMappings;
 
     private final Map<Vector3i, SkullPlayerEntity> skullCache = new ConcurrentHashMap<>();
     private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
@@ -490,26 +494,26 @@ public class GeyserSession implements CommandSender {
         this.remoteAuthType = connector.getDefaultAuthType();
 
         // Set the hardcoded shield ID to the ID we just defined in StartGamePacket
-        upstream.getSession().getHardcodedBlockingId().set(ItemRegistry.SHIELD.getBedrockId());
+        upstream.getSession().getHardcodedBlockingId().set(this.itemMappings.getStoredItems().shield().getBedrockId());
 
-        if (ItemRegistry.FURNACE_MINECART_DATA != null) {
+        if (this.itemMappings.getFurnaceMinecartData() != null) {
             ItemComponentPacket componentPacket = new ItemComponentPacket();
-            componentPacket.getItems().add(ItemRegistry.FURNACE_MINECART_DATA);
+            componentPacket.getItems().add(this.itemMappings.getFurnaceMinecartData());
             upstream.sendPacket(componentPacket);
         }
 
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-        biomeDefinitionListPacket.setDefinitions(BiomeTranslator.BIOMES);
+        biomeDefinitionListPacket.setDefinitions(Registries.BIOMES.get());
         upstream.sendPacket(biomeDefinitionListPacket);
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
-        entityPacket.setIdentifiers(EntityIdentifierRegistry.ENTITY_IDENTIFIERS);
+        entityPacket.setIdentifiers(Registries.ENTITY_IDENTIFIERS.get());
         upstream.sendPacket(entityPacket);
 
         CreativeContentPacket creativePacket = new CreativeContentPacket();
-        creativePacket.setContents(ItemRegistry.CREATIVE_ITEMS);
+        creativePacket.setContents(this.itemMappings.getCreativeItems());
         upstream.sendPacket(creativePacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
@@ -883,9 +887,13 @@ public class GeyserSession implements CommandSender {
         this.sneaking = sneaking;
 
         // Update pose and bounding box on our end
-        if (!sneaking && adjustSpeed()) {
+        AttributeData speedAttribute;
+        if (!sneaking && (speedAttribute = adjustSpeed()) != null) {
             // Update attributes since we're still "sneaking" under a 1.5-block-tall area
-            playerEntity.updateBedrockAttributes(this);
+            UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+            attributesPacket.setRuntimeEntityId(playerEntity.getGeyserId());
+            attributesPacket.setAttributes(Collections.singletonList(speedAttribute));
+            sendUpstreamPacket(attributesPacket);
             // the server *should* update our pose once it has returned to normal
         } else {
             if (!flying) {
@@ -931,23 +939,25 @@ public class GeyserSession implements CommandSender {
     /**
      * Adjusts speed if the player is crawling.
      *
-     * @return true if attributes should be updated.
+     * @return not null if attributes should be updated.
      */
-    public boolean adjustSpeed() {
-        Attribute currentPlayerSpeed = playerEntity.getAttributes().get(AttributeType.MOVEMENT_SPEED);
+    public AttributeData adjustSpeed() {
+        AttributeData currentPlayerSpeed = playerEntity.getAttributes().get(GeyserAttributeType.MOVEMENT_SPEED);
         if (currentPlayerSpeed != null) {
             if ((pose.equals(Pose.SNEAKING) && !sneaking && collisionManager.isUnderSlab()) ||
                     (!swimmingInWater && playerEntity.getMetadata().getFlags().getFlag(EntityFlag.SWIMMING) && !collisionManager.isPlayerInWater())) {
                 // Either of those conditions means that Bedrock goes zoom when they shouldn't be
-                currentPlayerSpeed.setValue(originalSpeedAttribute / 3.32f);
-                return true;
+                AttributeData speedAttribute = GeyserAttributeType.MOVEMENT_SPEED.getAttribute(originalSpeedAttribute / 3.32f);
+                playerEntity.getAttributes().put(GeyserAttributeType.MOVEMENT_SPEED, speedAttribute);
+                return speedAttribute;
             } else if (originalSpeedAttribute != currentPlayerSpeed.getValue()) {
                 // Speed has reset to normal
-                currentPlayerSpeed.setValue(originalSpeedAttribute);
-                return true;
+                AttributeData speedAttribute = GeyserAttributeType.MOVEMENT_SPEED.getAttribute(originalSpeedAttribute);
+                playerEntity.getAttributes().put(GeyserAttributeType.MOVEMENT_SPEED, speedAttribute);
+                return speedAttribute;
             }
         }
-        return false;
+        return null;
     }
 
     /**
@@ -980,8 +990,8 @@ public class GeyserSession implements CommandSender {
         return false;
     }
 
-     @Override
-     public String getLocale() {
+    @Override
+    public String getLocale() {
         return clientData.getLanguageCode();
      }
 
@@ -1052,7 +1062,7 @@ public class GeyserSession implements CommandSender {
         // startGamePacket.setCurrentTick(0);
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
-        startGamePacket.setItemEntries(ItemRegistry.ITEMS);
+        startGamePacket.setItemEntries(this.itemMappings.getItemEntries());
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
         startGamePacket.setServerEngine(""); // Do we want to fill this in?

@@ -25,20 +25,10 @@
 
 package org.geysermc.connector.entity.living;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
-import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.type.EntityType;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.AttributeUtils;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 public class IronGolemEntity extends GolemEntity {
 
@@ -48,33 +38,5 @@ public class IronGolemEntity extends GolemEntity {
         metadata.getFlags().setFlag(EntityFlag.BRIBED, true);
         // Required, or else the overlay is black
         metadata.put(EntityData.COLOR_2, (byte) 0);
-    }
-
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        super.updateBedrockMetadata(entityMetadata, session);
-        if (entityMetadata.getId() == 9) {
-            // Required so the resource pack sees the entity health
-            attributes.put(AttributeType.HEALTH, AttributeType.HEALTH.getAttribute(metadata.getFloat(EntityData.HEALTH), 100f));
-            updateBedrockAttributes(session);
-        }
-    }
-
-    @Override
-    public void updateBedrockAttributes(GeyserSession session) {
-        if (!valid) return;
-
-        List<AttributeData> attributes = new ArrayList<>();
-        for (Map.Entry<AttributeType, org.geysermc.connector.entity.attribute.Attribute> entry : this.attributes.entrySet()) {
-            if (!entry.getValue().getType().isBedrockAttribute())
-                continue;
-
-            attributes.add(AttributeUtils.getBedrockAttribute(entry.getValue()));
-        }
-
-        UpdateAttributesPacket updateAttributesPacket = new UpdateAttributesPacket();
-        updateAttributesPacket.setRuntimeEntityId(geyserId);
-        updateAttributesPacket.setAttributes(attributes);
-        session.sendUpstreamPacket(updateAttributesPacket);
     }
 }

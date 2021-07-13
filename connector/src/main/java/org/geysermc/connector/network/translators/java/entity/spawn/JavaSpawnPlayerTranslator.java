@@ -60,9 +60,7 @@ public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlaye
         }
         session.getEntityCache().cacheEntity(entity);
 
-        if (session.getUpstream().isInitialized()) {
-            entity.sendPlayer(session);
-            SkinManager.requestAndHandleSkinAndCape(entity, session, null);
-        }
+        entity.sendPlayer(session);
+        SkinManager.requestAndHandleSkinAndCape(entity, session, null);
     }
 }

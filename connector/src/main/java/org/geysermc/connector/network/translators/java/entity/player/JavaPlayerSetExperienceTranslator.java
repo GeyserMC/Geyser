@@ -25,25 +25,32 @@
 
 package org.geysermc.connector.network.translators.java.entity.player;
 
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.attribute.AttributeType;
+import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerSetExperiencePacket;
+import com.nukkitx.protocol.bedrock.data.AttributeData;
+import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.connector.entity.attribute.GeyserAttributeType;
+import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerSetExperiencePacket;
+import java.util.Arrays;
 
 @Translator(packet = ServerPlayerSetExperiencePacket.class)
 public class JavaPlayerSetExperienceTranslator extends PacketTranslator<ServerPlayerSetExperiencePacket> {
 
     @Override
     public void translate(ServerPlayerSetExperiencePacket packet, GeyserSession session) {
-        Entity entity = session.getPlayerEntity();
-        if (entity == null)
-            return;
+        SessionPlayerEntity entity = session.getPlayerEntity();
 
-        entity.getAttributes().put(AttributeType.EXPERIENCE, AttributeType.EXPERIENCE.getAttribute(packet.getExperience()));
-        entity.getAttributes().put(AttributeType.EXPERIENCE_LEVEL, AttributeType.EXPERIENCE_LEVEL.getAttribute(packet.getLevel()));
-        entity.updateBedrockAttributes(session);
+        AttributeData experience = GeyserAttributeType.EXPERIENCE.getAttribute(packet.getExperience());
+        entity.getAttributes().put(GeyserAttributeType.EXPERIENCE, experience);
+        AttributeData experienceLevel = GeyserAttributeType.EXPERIENCE_LEVEL.getAttribute(packet.getLevel());
+        entity.getAttributes().put(GeyserAttributeType.EXPERIENCE_LEVEL, experienceLevel);
+
+        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+        attributesPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+        attributesPacket.setAttributes(Arrays.asList(experience, experienceLevel));
+        session.sendUpstreamPacket(attributesPacket);
     }
 }

@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.sound;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.registry.Registries;
 
 import java.util.Map;
 
@@ -48,7 +49,7 @@ public interface BlockSoundInteractionHandler extends SoundInteractionHandler<St
         // If we need to get the hand identifier, only get it once and save it to a variable
         String handIdentifier = null;
 
-        for (Map.Entry<SoundHandler, SoundInteractionHandler<?>> interactionEntry : SoundHandlerRegistry.INTERACTION_HANDLERS.entrySet()) {
+        for (Map.Entry<SoundHandler, SoundInteractionHandler<?>> interactionEntry : Registries.SOUND_HANDLERS.get().entrySet()) {
             if (!(interactionEntry.getValue() instanceof BlockSoundInteractionHandler)) {
                 continue;
             }
@@ -68,7 +69,7 @@ public interface BlockSoundInteractionHandler extends SoundInteractionHandler<St
                     continue;
                 }
                 if (handIdentifier == null) {
-                    handIdentifier = itemInHand.getItemEntry().getJavaIdentifier();
+                    handIdentifier = itemInHand.getMapping(session).getJavaIdentifier();
                 }
                 boolean contains = false;
                 for (String itemIdentifier : interactionEntry.getKey().items()) {

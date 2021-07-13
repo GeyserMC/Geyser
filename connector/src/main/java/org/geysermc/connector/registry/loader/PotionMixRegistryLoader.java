@@ -23,14 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.item;
+package org.geysermc.connector.registry.loader;
 
 import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
+import org.geysermc.connector.network.BedrockProtocol;
+import org.geysermc.connector.registry.Registries;
+import org.geysermc.connector.registry.type.ItemMapping;
+import org.geysermc.connector.network.translators.item.Potion;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
+//TODO this needs to be versioned, but the runtime item states between 1.17 and 1.17.10 are identical except for new blocks so this works for both
 /**
- * Generates a {@link Collection} of {@link PotionMixData} that enables the
+ * Generates a collection of {@link PotionMixData} that enables the
  * Bedrock client to place brewing items into the brewing stand.
  * (Does not contain actual potion mixes.)
  *
@@ -38,18 +46,11 @@ import java.util.*;
  * (Ex: Bedrock cannot normally place glass bottles or fully upgraded
  * potions into the brewing stand, but Java can.)
  */
-public class PotionMixRegistry {
-    public static final Collection<PotionMixData> POTION_MIXES;
+public class PotionMixRegistryLoader implements RegistryLoader<Object, Set<PotionMixData>> {
 
-    private PotionMixRegistry() {
-    }
-
-    public static void init() {
-        // no-op
-    }
-
-    static {
-        List<ItemEntry> ingredients = new ArrayList<>();
+    @Override
+    public Set<PotionMixData> load(Object input) {
+        List<ItemMapping> ingredients = new ArrayList<>();
         ingredients.add(getNonNull("minecraft:nether_wart"));
         ingredients.add(getNonNull("minecraft:redstone"));
         ingredients.add(getNonNull("minecraft:glowstone_dust"));
@@ -68,21 +69,21 @@ public class PotionMixRegistry {
         ingredients.add(getNonNull("minecraft:turtle_helmet"));
         ingredients.add(getNonNull("minecraft:phantom_membrane"));
 
-        List<ItemEntry> inputs = new ArrayList<>();
+        List<ItemMapping> inputs = new ArrayList<>();
         inputs.add(getNonNull("minecraft:potion"));
         inputs.add(getNonNull("minecraft:splash_potion"));
         inputs.add(getNonNull("minecraft:lingering_potion"));
 
-        ItemEntry glassBottle = getNonNull("minecraft:glass_bottle");
+        ItemMapping glassBottle = getNonNull("minecraft:glass_bottle");
 
         Set<PotionMixData> potionMixes = new HashSet<>();
 
         // Add all types of potions as inputs
-        ItemEntry fillerIngredient = ingredients.get(0);
-        for (ItemEntry input : inputs) {
-            for (Potion potion : Potion.VALUES) {
+        ItemMapping fillerIngredient = ingredients.get(0);
+        for (ItemMapping entryInput : inputs) {
+            for (Potion potion : Potion.values()) {
                 potionMixes.add(new PotionMixData(
-                        input.getBedrockId(), potion.getBedrockId(),
+                        entryInput.getBedrockId(), potion.getBedrockId(),
                         fillerIngredient.getBedrockId(), fillerIngredient.getBedrockData(),
                         glassBottle.getBedrockId(), glassBottle.getBedrockData())
                 );
@@ -91,22 +92,21 @@ public class PotionMixRegistry {
 
         // Add all brewing ingredients
         // Also adds glass bottle as input
-        for (ItemEntry ingredient : ingredients) {
+        for (ItemMapping ingredient : ingredients) {
             potionMixes.add(new PotionMixData(
                     glassBottle.getBedrockId(), glassBottle.getBedrockData(),
                     ingredient.getBedrockId(), ingredient.getBedrockData(),
                     glassBottle.getBedrockId(), glassBottle.getBedrockData())
             );
         }
-
-        POTION_MIXES = potionMixes;
+        return potionMixes;
     }
 
-    private static ItemEntry getNonNull(String javaIdentifier) {
-        ItemEntry itemEntry = ItemRegistry.getItemEntry(javaIdentifier);
-        if (itemEntry == null)
+    private static ItemMapping getNonNull(String javaIdentifier) {
+        ItemMapping itemMapping = Registries.ITEMS.forVersion(BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getMapping(javaIdentifier);
+        if (itemMapping == null)
             throw new NullPointerException("No item entry exists for java identifier: " + javaIdentifier);
 
-        return itemEntry;
+        return itemMapping;
     }
 }
