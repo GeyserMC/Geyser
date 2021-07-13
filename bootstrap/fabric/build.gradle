@@ -27,8 +27,8 @@ dependencies {
     // PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
     // You may need to force-disable transitiveness on them.
 
-    implementation 'org.geysermc:connector:1.4.0-SNAPSHOT'
-    shadow 'org.geysermc:connector:1.4.0-SNAPSHOT'
+    implementation 'org.geysermc:connector:1.4.1-SNAPSHOT'
+    shadow 'org.geysermc:connector:1.4.1-SNAPSHOT'
 }
 
 repositories {
