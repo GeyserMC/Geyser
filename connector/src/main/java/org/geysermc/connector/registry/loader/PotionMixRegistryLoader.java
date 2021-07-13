@@ -37,6 +37,15 @@ import java.util.List;
 import java.util.Set;
 
 //TODO this needs to be versioned, but the runtime item states between 1.17 and 1.17.10 are identical except for new blocks so this works for both
+/**
+ * Generates a collection of {@link PotionMixData} that enables the
+ * Bedrock client to place brewing items into the brewing stand.
+ * (Does not contain actual potion mixes.)
+ *
+ * Designed to replicate Java Edition behavior.
+ * (Ex: Bedrock cannot normally place glass bottles or fully upgraded
+ * potions into the brewing stand, but Java can.)
+ */
 public class PotionMixRegistryLoader implements RegistryLoader<Object, Set<PotionMixData>> {
 
     @Override
