@@ -367,7 +367,7 @@ public class CollisionManager {
         for (Vector3i blockPos : collidableBlocks) {
             if (checkWorld) {
                 int blockId = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
-                BlockCollision blockCollision = CollisionTranslator.getCollision(blockId, 0, 0, 0);
+                BlockCollision blockCollision = BlockUtils.getCollision(blockId, 0, 0, 0);
                 if (!(blockCollision instanceof ScaffoldingCollision)) {
                     offset = blockCollision.computeCollisionOffset(blockPos.toDouble(), boundingBox, axis, offset);
                 }

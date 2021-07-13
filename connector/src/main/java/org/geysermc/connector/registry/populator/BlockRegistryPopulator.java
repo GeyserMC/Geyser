@@ -120,6 +120,7 @@ public class BlockRegistryPopulator {
             int commandBlockRuntimeId = -1;
             int javaRuntimeId = -1;
             int waterRuntimeId = -1;
+            int movingBlockRuntimeId = -1;
             Iterator<Map.Entry<String, JsonNode>> blocksIterator = BLOCKS_JSON.fields();
 
             BiFunction<String, NbtMapBuilder, String> stateMapper = STATE_MAPPER.getOrDefault(palette.getKey(), (i, s) -> null);
@@ -152,6 +153,8 @@ public class BlockRegistryPopulator {
                     case "minecraft:command_block[conditional=false,facing=north]":
                         commandBlockRuntimeId = bedrockRuntimeId;
                         break;
+                    case "minecraft:moving_piston[facing=north,type=normal]":
+                        movingBlockRuntimeId = bedrockRuntimeId;
                 }
 
                 boolean waterlogged = entry.getKey().contains("waterlogged=true")
@@ -194,6 +197,11 @@ public class BlockRegistryPopulator {
             }
             builder.bedrockAirId(airRuntimeId);
 
+            if (movingBlockRuntimeId == -1) {
+                throw new AssertionError("Unable to find moving block in palette");
+            }
+            builder.bedrockMovingBlockId(movingBlockRuntimeId);
+
             // Loop around again to find all item frame runtime IDs
             for (Object2IntMap.Entry<NbtMap> entry : blockStateOrderedMap.object2IntEntrySet()) {
                 String name = entry.getKey().getString("name");
@@ -229,6 +237,8 @@ public class BlockRegistryPopulator {
         int cobwebBlockId = -1;
         int furnaceRuntimeId = -1;
         int furnaceLitRuntimeId = -1;
+        int honeyBlockRuntimeId = -1;
+        int slimeBlockRuntimeId = -1;
         int spawnerRuntimeId = -1;
         int uniqueJavaId = -1;
         int waterRuntimeId = -1;
@@ -260,6 +270,20 @@ public class BlockRegistryPopulator {
             JsonNode pickItemNode = entry.getValue().get("pick_item");
             if (pickItemNode != null) {
                 builder.pickItem(pickItemNode.textValue());
+            }
+
+            JsonNode pistonBehaviorNode = entry.getValue().get("piston_behavior");
+            if (pistonBehaviorNode != null) {
+                builder.pistonBehavior(pistonBehaviorNode.textValue());
+            } else {
+                builder.pistonBehavior("normal");
+            }
+
+            JsonNode hasBlockEntityNode = entry.getValue().get("has_block_entity");
+            if (hasBlockEntityNode != null) {
+                builder.isBlockEntity(hasBlockEntityNode.booleanValue());
+            } else {
+                builder.isBlockEntity(false);
             }
 
             builder.javaIdentifier(javaId);
@@ -301,6 +325,10 @@ public class BlockRegistryPopulator {
 
             } else if ("minecraft:water[level=0]".equals(javaId)) {
                 waterRuntimeId = javaRuntimeId;
+            } else if (javaId.equals("minecraft:honey_block")) {
+                honeyBlockRuntimeId = javaRuntimeId;
+            } else if (javaId.equals("minecraft:slime_block")) {
+                slimeBlockRuntimeId = javaRuntimeId;
             }
         }
         if (bellBlockId == -1) {
@@ -322,6 +350,16 @@ public class BlockRegistryPopulator {
             throw new AssertionError("Unable to find lit furnace in palette");
         }
         BlockStateValues.JAVA_FURNACE_LIT_ID = furnaceLitRuntimeId;
+
+        if (honeyBlockRuntimeId == -1) {
+            throw new AssertionError("Unable to find honey block in palette");
+        }
+        BlockStateValues.JAVA_HONEY_BLOCK_ID = honeyBlockRuntimeId;
+
+        if (slimeBlockRuntimeId == -1) {
+            throw new AssertionError("Unable to find slime block in palette");
+        }
+        BlockStateValues.JAVA_SLIME_BLOCK_ID = slimeBlockRuntimeId;
 
         if (spawnerRuntimeId == -1) {
             throw new AssertionError("Unable to find spawner in palette");

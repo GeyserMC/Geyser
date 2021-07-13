@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.utils.Direction;
 
 import java.util.Map;
@@ -61,6 +62,8 @@ public class BlockStateValues {
     public static int JAVA_COBWEB_ID;
     public static int JAVA_FURNACE_ID;
     public static int JAVA_FURNACE_LIT_ID;
+    public static int JAVA_HONEY_BLOCK_ID;
+    public static int JAVA_SLIME_BLOCK_ID;
     public static int JAVA_SPAWNER_ID;
     public static int JAVA_WATER_ID;
 
@@ -267,7 +270,7 @@ public class BlockStateValues {
     }
 
     public static boolean isPistonHead(int state) {
-        String javaId = BlockTranslator.getJavaIdBlockMap().inverse().get(state);
+        String javaId = BlockRegistries.JAVA_BLOCKS.get(state).getJavaIdentifier();
         return javaId.startsWith("minecraft:piston_head");
     }
 
@@ -279,7 +282,7 @@ public class BlockStateValues {
      * @return Block state for the piston head
      */
     public static int getPistonHead(Direction direction) {
-        return PISTON_HEADS.getOrDefault(direction, BlockTranslator.JAVA_AIR_ID);
+        return PISTON_HEADS.getOrDefault(direction, BlockStateValues.JAVA_AIR_ID);
     }
 
     /**
@@ -302,7 +305,7 @@ public class BlockStateValues {
      * @return True if the block sticks to adjacent blocks
      */
     public static boolean isBlockSticky(int state) {
-        return state == BlockTranslator.JAVA_RUNTIME_SLIME_BLOCK_ID || state == BlockTranslator.JAVA_RUNTIME_HONEY_BLOCK_ID;
+        return state == JAVA_SLIME_BLOCK_ID || state == JAVA_HONEY_BLOCK_ID;
     }
 
     /**
@@ -328,7 +331,7 @@ public class BlockStateValues {
      * @return true if a piston can break the block
      */
     public static boolean canPistonDestroyBlock(int state)  {
-        return !BlockTranslator.getBlockMapping(state).getPistonBehavior().equals("destroy");
+        return !BlockRegistries.JAVA_BLOCKS.get(state).getPistonBehavior().equals("destroy");
     }
 
     /**
