@@ -50,6 +50,13 @@ public class GeyserBungeeInjector extends GeyserInjector {
     @Override
     @SuppressWarnings("unchecked")
     protected void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception {
+        // TODO - allow Geyser to specify its own listener info properties
+        if (proxy.getConfig().getListeners().size() != 1) {
+            throw new UnsupportedOperationException("We currently do not support multiple listeners with injection! " +
+                    "Please reach out to us on our Discord so we can hear feedback on your setup.");
+        }
+        ListenerInfo listenerInfo = proxy.getConfig().getListeners().stream().findFirst().orElseThrow(IllegalStateException::new);
+
         Class<?> pipelineUtils = Class.forName("net.md_5.bungee.netty.PipelineUtils");
         ChannelInitializer<Channel> channelInitializer = (ChannelInitializer<Channel>) pipelineUtils.getField("SERVER_CHILD").get(null);
 
@@ -73,8 +80,6 @@ public class GeyserBungeeInjector extends GeyserInjector {
 
         // Is currently just AttributeKey.valueOf("ListerInfo") but we might as well copy the value itself.
         AttributeKey<ListenerInfo> listener = (AttributeKey<ListenerInfo>) pipelineUtils.getField("LISTENER").get(null);
-        //TODO expand? But how?
-        ListenerInfo listenerInfo = proxy.getConfig().getListeners().stream().findFirst().orElseThrow(IllegalStateException::new);
         listenerInfo = new ListenerInfo(
                 listenerInfo.getSocketAddress(),
                 listenerInfo.getMotd(),
