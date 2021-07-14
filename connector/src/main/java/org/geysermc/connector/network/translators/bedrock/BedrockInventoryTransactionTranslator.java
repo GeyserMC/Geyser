@@ -112,6 +112,33 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             case ITEM_USE:
                 switch (packet.getActionType()) {
                     case 0:
+                        Vector3i blockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getBlockFace());
+
+                        if (session.getWorldCache().isDisableBedrockScaffolding()) {
+                            boolean isGodBridging = false;
+                            float yaw = session.getPlayerEntity().getRotation().getX();
+                            switch (packet.getBlockFace()) {
+                                case 2:
+                                    isGodBridging = yaw <= -135f || yaw > 135f;
+                                    break;
+                                case 3:
+                                    isGodBridging = yaw <= 45f && yaw > -45f;
+                                    break;
+                                case 4:
+                                    isGodBridging = yaw > 45f && yaw <= 135f;
+                                    break;
+                                case 5:
+                                    isGodBridging = yaw <= -45f && yaw > -135f;
+                                    break;
+                                default:
+                                    break;
+                            }
+                            if (isGodBridging) {
+                                restoreCorrectBlock(session, blockPos, packet);
+                                return;
+                            }
+                        }
+
                         // Check to make sure the client isn't spamming interaction
                         // Based on Nukkit 1.0, with changes to ensure holding down still works
                         boolean hasAlreadyClicked = System.currentTimeMillis() - session.getLastInteractionTime() < 110.0 &&
@@ -141,7 +168,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             }
                         }
 
-                        Vector3i blockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getBlockFace());
                         /*
                         Checks to ensure that the range will be accepted by the server.
                         "Not in range" doesn't refer to how far a vanilla client goes (that's a whole other mess),

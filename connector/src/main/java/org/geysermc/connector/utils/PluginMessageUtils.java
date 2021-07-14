@@ -28,13 +28,16 @@ package org.geysermc.connector.utils;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPluginMessagePacket;
 import com.google.common.base.Charsets;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 public class PluginMessageUtils {
     private static final String SKIN_CHANNEL = "floodgate:skin";
     private static final byte[] GEYSER_BRAND_DATA;
+    private static final byte[] GEYSER_REGISTER_DATA;
     private static final byte[] FLOODGATE_REGISTER_DATA;
 
     static {
@@ -45,7 +48,9 @@ public class PluginMessageUtils {
                         .put(data)
                         .array();
 
-        FLOODGATE_REGISTER_DATA = (SKIN_CHANNEL + "\0floodgate:form").getBytes(Charsets.UTF_8);
+        GEYSER_REGISTER_DATA = "geyser:settings".getBytes(StandardCharsets.UTF_8);
+
+        FLOODGATE_REGISTER_DATA = ("geyser:settings\0" + SKIN_CHANNEL + "\0floodgate:form").getBytes(Charsets.UTF_8);
     }
 
     /**
@@ -60,10 +65,14 @@ public class PluginMessageUtils {
     /**
      * Get the prebuilt register data as a byte array
      *
-     * @return the register data of the Floodgate channels
+     * @return the register data of the Floodgate channels (if relevant) and Geyser channel
      */
-    public static byte[] getFloodgateRegisterData() {
-        return FLOODGATE_REGISTER_DATA;
+    public static byte[] getRegisterData(GeyserSession session) {
+        if (session.getRemoteAuthType() == AuthType.FLOODGATE) {
+            return FLOODGATE_REGISTER_DATA;
+        }
+
+        return GEYSER_REGISTER_DATA;
     }
 
     /**

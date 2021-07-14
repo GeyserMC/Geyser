@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,9 +25,11 @@
 
 package org.geysermc.connector.network.translators.java;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPluginMessagePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPluginMessagePacket;
 import com.google.common.base.Charsets;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -36,18 +38,35 @@ import org.geysermc.cumulus.Form;
 import org.geysermc.cumulus.Forms;
 import org.geysermc.cumulus.util.FormType;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 @Translator(packet = ServerPluginMessagePacket.class)
 public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMessagePacket> {
     @Override
     public void translate(ServerPluginMessagePacket packet, GeyserSession session) {
-        // The only plugin messages it has to listen for are Floodgate plugin messages
+        String channel = packet.getChannel();
+
+        if (channel.equals("geyser:settings")) {
+            try {
+                JsonNode data = GeyserConnector.JSON_MAPPER.readTree(packet.getData());
+
+                if (data.get("success").asBoolean()) {
+                    JsonNode settings = data.get("settings");
+                    JsonNode disableBedrockScaffolding = settings.get("disable-bedrock-scaffolding");
+                    if (disableBedrockScaffolding != null) {
+                        session.getWorldCache().setDisableBedrockScaffolding(disableBedrockScaffolding.asBoolean() || session.getConnector().getConfig().isDisableBedrockScaffolding());
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // The only plugin messages it has to listen for at this point are Floodgate plugin messages
         if (session.getConnector().getDefaultAuthType() != AuthType.FLOODGATE) {
             return;
         }
-
-        String channel = packet.getChannel();
 
         if (channel.equals("floodgate:form")) {
             byte[] data = packet.getData();
