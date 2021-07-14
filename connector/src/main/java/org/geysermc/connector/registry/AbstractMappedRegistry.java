@@ -23,19 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.item;
+package org.geysermc.connector.registry;
 
-import lombok.Getter;
+import org.geysermc.connector.registry.loader.RegistryLoader;
 
-/**
- * Used when an item should have a custom name applied, if there already isn't one.
- */
-public class TranslatableItemEntry extends ItemEntry {
-    @Getter
-    private final String translationString;
+import java.util.Map;
 
-    public TranslatableItemEntry(String javaIdentifier, String bedrockIdentifier, int javaId, int bedrockId, int bedrockData, int bedrockBlockId, int stackSize) {
-        super(javaIdentifier, bedrockIdentifier, javaId, bedrockId, bedrockData, bedrockBlockId, stackSize);
-        this.translationString = (isBlock() ? "block." : "item.") + javaIdentifier.replace(":", ".");
+public abstract class AbstractMappedRegistry<K, V, C extends Map<K, V>> extends Registry<C> {
+    protected <I> AbstractMappedRegistry(I input, RegistryLoader<I, C> registryLoader) {
+        super(input, registryLoader);
+    }
+
+    public V get(K key) {
+        return this.mappings.get(key);
+    }
+
+    public V getOrDefault(K key, V defaultValue) {
+        return this.mappings.getOrDefault(key, defaultValue);
+    }
+
+    public V register(K key, V value) {
+        return this.mappings.put(key, value);
     }
 }

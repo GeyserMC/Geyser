@@ -40,6 +40,8 @@ public class JavaClearTitlesTranslator extends PacketTranslator<ServerClearTitle
         // TODO handle packet.isResetTimes()
         titlePacket.setType(SetTitlePacket.Type.CLEAR);
         titlePacket.setText("");
+        titlePacket.setXuid("");
+        titlePacket.setPlatformOnlineId("");
         session.sendUpstreamPacket(titlePacket);
     }
 }

@@ -31,67 +31,13 @@ import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.BlockEntityUtils;
-import org.geysermc.connector.utils.FileUtils;
-import org.reflections.Reflections;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * The class that all block entities (on both Java and Bedrock) should translate with
  */
 public abstract class BlockEntityTranslator {
-    public static final Map<String, BlockEntityTranslator> BLOCK_ENTITY_TRANSLATORS = new HashMap<>();
-    /**
-     * A list of all block entities that only exist on Bedrock
-     */
-    public static final ObjectArrayList<BedrockOnlyBlockEntity> BEDROCK_ONLY_BLOCK_ENTITIES = new ObjectArrayList<>();
-
-    /**
-     * Contains a list of irregular block entity name translations that can't be fit into the regex
-     */
-    public static final Map<String, String> BLOCK_ENTITY_TRANSLATIONS = new HashMap<String, String>() {
-        {
-            // Bedrock/Java differences
-            put("minecraft:enchanting_table", "EnchantTable");
-            put("minecraft:jigsaw", "JigsawBlock");
-            put("minecraft:piston_head", "PistonArm");
-            put("minecraft:trapped_chest", "Chest");
-            // There are some legacy IDs sent but as far as I can tell they are not needed for things to work properly
-        }
-    };
-
     protected BlockEntityTranslator() {
-    }
-
-    public static void init() {
-        // no-op
-    }
-
-    static {
-        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators.world.block.entity") : new Reflections("org.geysermc.connector.network.translators.world.block.entity");
-        for (Class<?> clazz : ref.getTypesAnnotatedWith(BlockEntity.class)) {
-            GeyserConnector.getInstance().getLogger().debug("Found annotated block entity: " + clazz.getCanonicalName());
-
-            try {
-                BLOCK_ENTITY_TRANSLATORS.put(clazz.getAnnotation(BlockEntity.class).name(), (BlockEntityTranslator) clazz.newInstance());
-            } catch (InstantiationException | IllegalAccessException e) {
-                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated block entity" + clazz.getCanonicalName());
-            }
-        }
-        for (Class<?> clazz : ref.getSubTypesOf(BedrockOnlyBlockEntity.class)) {
-            GeyserConnector.getInstance().getLogger().debug("Found Bedrock-only block entity: " + clazz.getCanonicalName());
-
-            try {
-                BedrockOnlyBlockEntity bedrockOnlyBlockEntity = (BedrockOnlyBlockEntity) clazz.newInstance();
-                BEDROCK_ONLY_BLOCK_ENTITIES.add(bedrockOnlyBlockEntity);
-            } catch (InstantiationException | IllegalAccessException e) {
-                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated block state " + clazz.getCanonicalName());
-            }
-        }
     }
 
     public abstract void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState);

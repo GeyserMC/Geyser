@@ -27,6 +27,7 @@ package org.geysermc.connector.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.v440.Bedrock_v440;
+import com.nukkitx.protocol.bedrock.v448.Bedrock_v448;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,7 @@ public class BedrockProtocol {
 
     static {
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v448.V448_CODEC);
     }
 
     /**

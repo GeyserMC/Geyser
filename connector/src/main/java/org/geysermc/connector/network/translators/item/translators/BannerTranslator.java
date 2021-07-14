@@ -32,10 +32,12 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import org.geysermc.connector.network.BedrockProtocol;
 import org.geysermc.connector.network.translators.ItemRemapper;
-import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.registry.Registries;
+import org.geysermc.connector.registry.type.ItemMapping;
+import org.geysermc.connector.registry.type.ItemMappings;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,7 +56,7 @@ public class BannerTranslator extends ItemTranslator {
      */
     public static final ListTag OMINOUS_BANNER_PATTERN;
 
-    private final List<ItemEntry> appliedItems;
+    private final List<ItemMapping> appliedItems;
 
     static {
         OMINOUS_BANNER_PATTERN = new ListTag("Patterns");
@@ -79,7 +81,9 @@ public class BannerTranslator extends ItemTranslator {
     }
 
     public BannerTranslator() {
-        appliedItems = ItemRegistry.ITEM_ENTRIES.values()
+        appliedItems = Registries.ITEMS.forVersion(BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
+                .getItems()
+                .values()
                 .stream()
                 .filter(entry -> entry.getJavaIdentifier().endsWith("banner"))
                 .collect(Collectors.toList());
@@ -153,12 +157,12 @@ public class BannerTranslator extends ItemTranslator {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemEntry itemEntry) {
+    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
         if (itemStack.getNbt() == null) {
-            return super.translateToBedrock(itemStack, itemEntry);
+            return super.translateToBedrock(itemStack, mapping, mappings);
         }
 
-        ItemData.Builder builder = super.translateToBedrock(itemStack, itemEntry);
+        ItemData.Builder builder = super.translateToBedrock(itemStack, mapping, mappings);
 
         CompoundTag blockEntityTag = itemStack.getNbt().get("BlockEntityTag");
         if (blockEntityTag != null && blockEntityTag.contains("Patterns")) {
@@ -180,12 +184,12 @@ public class BannerTranslator extends ItemTranslator {
     }
 
     @Override
-    public ItemStack translateToJava(ItemData itemData, ItemEntry itemEntry) {
+    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
         if (itemData.getTag() == null) {
-            return super.translateToJava(itemData, itemEntry);
+            return super.translateToJava(itemData, mapping, mappings);
         }
 
-        ItemStack itemStack = super.translateToJava(itemData, itemEntry);
+        ItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
 
         NbtMap nbtTag = itemData.getTag();
         if (nbtTag.containsKey("Type", NbtType.INT) && nbtTag.getInt("Type") == 1) {
@@ -209,7 +213,7 @@ public class BannerTranslator extends ItemTranslator {
     }
 
     @Override
-    public List<ItemEntry> getAppliedItems() {
+    public List<ItemMapping> getAppliedItems() {
         return appliedItems;
     }
 }

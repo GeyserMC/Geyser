@@ -23,22 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.attribute;
+package org.geysermc.connector.registry;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import org.geysermc.connector.registry.loader.RegistryLoader;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@ToString
-public class Attribute {
+import java.util.function.Supplier;
 
-    private AttributeType type;
-    private float minimum;
-    private float maximum;
-    private float value;
-    private float defaultValue;
+public class SimpleRegistry<M> extends Registry<M> {
+    private <I> SimpleRegistry(I input, RegistryLoader<I, M> registryLoader) {
+        super(input, registryLoader);
+    }
+
+    public static <I, M> SimpleRegistry<M> create(Supplier<RegistryLoader<I, M>> registryLoader) {
+        return new SimpleRegistry<>(null, registryLoader.get());
+    }
+
+    public static <I, M> SimpleRegistry<M> create(I input, Supplier<RegistryLoader<I, M>> registryLoader) {
+        return new SimpleRegistry<>(input, registryLoader.get());
+    }
+
+    public static <I, M> SimpleRegistry<M> create(RegistryLoader<I, M> registryLoader) {
+        return new SimpleRegistry<>(null, registryLoader);
+    }
+
+    public static <I, M> SimpleRegistry<M> create(I input, RegistryLoader<I, M> registryLoader) {
+        return new SimpleRegistry<>(input, registryLoader);
+    }
 }

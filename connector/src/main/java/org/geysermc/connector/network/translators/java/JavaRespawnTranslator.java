@@ -30,8 +30,8 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.attribute.AttributeType;
+import org.geysermc.connector.entity.attribute.GeyserAttributeType;
+import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -44,11 +44,10 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
 
     @Override
     public void translate(ServerRespawnPacket packet, GeyserSession session) {
-        Entity entity = session.getPlayerEntity();
+        SessionPlayerEntity entity = session.getPlayerEntity();
 
-        float maxHealth = entity.getAttributes().containsKey(AttributeType.MAX_HEALTH) ? entity.getAttributes().get(AttributeType.MAX_HEALTH).getValue() : 20f;
-        // Max health must be divisible by two in bedrock
-        entity.getAttributes().put(AttributeType.HEALTH, AttributeType.HEALTH.getAttribute(maxHealth, (maxHealth % 2 == 1 ? maxHealth + 1 : maxHealth)));
+        entity.setHealth(entity.getMaxHealth());
+        entity.getAttributes().put(GeyserAttributeType.HEALTH, entity.createHealthAttribute());
 
         session.addInventoryTask(() -> {
             session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);

@@ -35,7 +35,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHandler;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.utils.ChunkUtils;
 
 @Translator(packet = ServerBlockChangePacket.class)
@@ -67,7 +67,7 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
         // We need to check if the identifier is the same, else a packet with the sound of what the
         // player has in their hand is played, despite if the block is being placed or not
         boolean contains = false;
-        String identifier = BlockTranslator.getBlockMapping(packet.getRecord().getBlock()).getItemIdentifier();
+        String identifier = BlockRegistries.JAVA_BLOCKS.get(packet.getRecord().getBlock()).getItemIdentifier();
         if (identifier.equals(session.getLastBlockPlacedId())) {
             contains = true;
         }
@@ -83,7 +83,7 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
         placeBlockSoundPacket.setSound(SoundEvent.PLACE);
         placeBlockSoundPacket.setPosition(lastPlacePos.toFloat());
         placeBlockSoundPacket.setBabySound(false);
-        placeBlockSoundPacket.setExtraData(session.getBlockTranslator().getBedrockBlockId(packet.getRecord().getBlock()));
+        placeBlockSoundPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(packet.getRecord().getBlock()));
         placeBlockSoundPacket.setIdentifier(":");
         session.sendUpstreamPacket(placeBlockSoundPacket);
         session.setLastBlockPlacePosition(null);
@@ -101,7 +101,7 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
                 || lastInteractPos.getZ() != packet.getRecord().getPosition().getZ())) {
             return;
         }
-        String identifier = BlockTranslator.getJavaIdBlockMap().inverse().get(packet.getRecord().getBlock());
+        String identifier = BlockRegistries.JAVA_IDENTIFIERS.get().inverse().get(packet.getRecord().getBlock());
         session.setInteracting(false);
         BlockSoundInteractionHandler.handleBlockInteraction(session, lastInteractPos.toFloat(), identifier);
     }

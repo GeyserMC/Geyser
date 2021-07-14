@@ -36,10 +36,10 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionManager;
-import org.geysermc.connector.network.translators.collision.CollisionTranslator;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.registry.BlockRegistries;
+import org.geysermc.connector.utils.BlockUtils;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -97,14 +97,14 @@ public class FishingHookEntity extends ThrowableEntity {
         boolean collided = false;
         for (Vector3i blockPos : collidableBlocks) {
             int blockID = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
-            BlockCollision blockCollision = CollisionTranslator.getCollision(blockID, blockPos.getX(), blockPos.getY(), blockPos.getZ());
+            BlockCollision blockCollision = BlockUtils.getCollision(blockID, blockPos.getX(), blockPos.getY(), blockPos.getZ());
             if (blockCollision != null && blockCollision.checkIntersection(boundingBox)) {
                 // TODO Push bounding box out of collision to improve movement
                 collided = true;
             }
 
             int waterLevel = BlockStateValues.getWaterLevel(blockID);
-            if (BlockTranslator.isWaterlogged(blockID)) {
+            if (BlockRegistries.WATERLOGGED.get().contains(blockID)) {
                 waterLevel = 0;
             }
             if (waterLevel >= 0) {
@@ -175,7 +175,7 @@ public class FishingHookEntity extends ThrowableEntity {
      */
     protected boolean isInAir(GeyserSession session) {
         int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
-        return block == BlockTranslator.JAVA_AIR_ID;
+        return block == BlockStateValues.JAVA_AIR_ID;
     }
 
     @Override

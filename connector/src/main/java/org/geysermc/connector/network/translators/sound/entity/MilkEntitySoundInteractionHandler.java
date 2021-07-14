@@ -40,7 +40,7 @@ public class MilkEntitySoundInteractionHandler implements EntitySoundInteraction
 
     @Override
     public void handleInteraction(GeyserSession session, Vector3f position, Entity value) {
-        if (!session.getPlayerInventory().getItemInHand().getItemEntry().getJavaIdentifier().equals("minecraft:bucket")) {
+        if (!session.getPlayerInventory().getItemInHand().getMapping(session).getJavaIdentifier().equals("minecraft:bucket")) {
             return;
         }
         if (value.getMetadata().getFlags().getFlag(EntityFlag.BABY)) {

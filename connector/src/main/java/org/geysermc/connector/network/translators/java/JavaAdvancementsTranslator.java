@@ -95,6 +95,8 @@ public class JavaAdvancementsTranslator extends PacketTranslator<ServerAdvanceme
                     titlePacket.setFadeOutTime(3);
                     titlePacket.setFadeInTime(3);
                     titlePacket.setStayTime(3);
+                    titlePacket.setXuid("");
+                    titlePacket.setPlatformOnlineId("");
                     session.sendUpstreamPacket(titlePacket);
                 }
             }

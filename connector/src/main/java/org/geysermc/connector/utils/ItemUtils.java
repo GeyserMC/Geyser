@@ -26,7 +26,7 @@
 package org.geysermc.connector.utils;
 
 import com.github.steveice10.opennbt.tag.builtin.*;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.network.session.GeyserSession;
 
 public class ItemUtils {
 
@@ -49,8 +49,8 @@ public class ItemUtils {
     /**
      * @return the correct Bedrock durability for this item.
      */
-    public static int getCorrectBedrockDurability(int javaId, int original) {
-        if (javaId == ItemRegistry.FISHING_ROD.getJavaId()) {
+    public static int getCorrectBedrockDurability(GeyserSession session, int javaId, int original) {
+        if (javaId == session.getItemMappings().getStoredItems().fishingRod().getJavaId()) {
             // Java durability: 64
             // Bedrock durability : 384
             // 384 / 64 = 6

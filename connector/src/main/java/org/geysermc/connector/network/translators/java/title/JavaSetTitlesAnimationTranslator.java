@@ -42,6 +42,8 @@ public class JavaSetTitlesAnimationTranslator extends PacketTranslator<ServerSet
         titlePacket.setFadeInTime(packet.getFadeIn());
         titlePacket.setFadeOutTime(packet.getFadeOut());
         titlePacket.setStayTime(packet.getStay());
+        titlePacket.setXuid("");
+        titlePacket.setPlatformOnlineId("");
         session.sendUpstreamPacket(titlePacket);
     }
 }
