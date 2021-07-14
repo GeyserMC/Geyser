@@ -57,9 +57,15 @@ import java.io.InputStream;
 import java.util.*;
 
 public class ItemRegistryPopulator {
-    private static final Map<String, PaletteVersion> PALETTE_VERSIONS = new Object2ObjectOpenHashMap<String, PaletteVersion>(){
-        {
-            put("1_17_0", new PaletteVersion(Bedrock_v440.V440_CODEC.getProtocolVersion(), new Object2ObjectOpenHashMap<String, String>() {
+    private static final Map<String, PaletteVersion> PALETTE_VERSIONS;
+
+    static {
+        PALETTE_VERSIONS = new Object2ObjectOpenHashMap<>();
+        if (GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
+            // Required to send the full palette or else the client crashes
+            PALETTE_VERSIONS.put("1_17_10.caves_and_cliffs", new PaletteVersion(Bedrock_v448.V448_CODEC.getProtocolVersion(), Collections.emptyMap()));
+        } else {
+            PALETTE_VERSIONS.put("1_17_0", new PaletteVersion(Bedrock_v440.V440_CODEC.getProtocolVersion(), new Object2ObjectOpenHashMap<String, String>() {
                 {
                     put("minecraft:candle", "minecraft:sea_pickle");
                     put("minecraft:white_candle", "minecraft:sea_pickle");
@@ -80,9 +86,9 @@ public class ItemRegistryPopulator {
                     put("minecraft:black_candle", "minecraft:sea_pickle");
                 }
             }));
-            put("1_17_10", new PaletteVersion(Bedrock_v448.V448_CODEC.getProtocolVersion(), Collections.emptyMap()));
+            PALETTE_VERSIONS.put("1_17_10", new PaletteVersion(Bedrock_v448.V448_CODEC.getProtocolVersion(), Collections.emptyMap()));
         }
-    };
+    }
 
     @Getter
     @AllArgsConstructor

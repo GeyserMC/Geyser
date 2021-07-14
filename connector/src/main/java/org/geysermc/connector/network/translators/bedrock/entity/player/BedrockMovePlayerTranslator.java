@@ -33,6 +33,7 @@ import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
@@ -42,6 +43,14 @@ import org.geysermc.connector.network.translators.Translator;
 
 @Translator(packet = MovePlayerPacket.class)
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
+    /* The upper and lower bounds to check for the void floor that only exists in Bedrock */
+    private static final int BEDROCK_VOID_FLOOR_UPPER_Y;
+    private static final int BEDROCK_VOID_FLOOR_LOWER_Y;
+
+    static {
+        BEDROCK_VOID_FLOOR_LOWER_Y = GeyserConnector.getInstance().getConfig().isExtendedWorldHeight() ? -104 : -40;
+        BEDROCK_VOID_FLOOR_UPPER_Y = BEDROCK_VOID_FLOOR_LOWER_Y + 2;
+    }
 
     @Override
     public void translate(MovePlayerPacket packet, GeyserSession session) {
@@ -108,7 +117,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
                         if (notMovingUp) {
                             int floorY = position.getFloorY();
-                            if (floorY <= -38 && floorY >= -40) {
+                            if (floorY <= BEDROCK_VOID_FLOOR_LOWER_Y && floorY >= BEDROCK_VOID_FLOOR_UPPER_Y) {
                                 // Work around there being a floor at Y -40 and teleport the player below it
                                 // Moving from below Y -40 to above the void floor works fine
                                 //TODO: This will need to be changed for 1.17

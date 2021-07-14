@@ -52,8 +52,15 @@ import java.util.function.BiFunction;
 import java.util.zip.GZIPInputStream;
 
 public class BlockRegistryPopulator {
-    private static final ImmutableMap<String, BiFunction<String, NbtMapBuilder, String>> STATE_MAPPER = ImmutableMap.<String, BiFunction<String, NbtMapBuilder, String>>builder()
-            .put("1_17_0", (bedrockIdentifier, statesBuilder) -> {
+    private static final ImmutableMap<String, BiFunction<String, NbtMapBuilder, String>> STATE_MAPPER;
+
+    private static final Object2IntMap<String> PALETTE_VERSIONS;
+
+    static {
+        ImmutableMap.Builder<String, BiFunction<String, NbtMapBuilder, String>> stateMapperBuilder = ImmutableMap.<String, BiFunction<String, NbtMapBuilder, String>>builder()
+                .put("1_17_10", (bedrockIdentifier, statesBuilder) -> null);
+        if (!GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
+            stateMapperBuilder.put("1_17_0", (bedrockIdentifier, statesBuilder) -> {
                 if (bedrockIdentifier.contains("candle")) {
                     // Replace candles with sea pickles or cake
                     if (bedrockIdentifier.contains("cake")) {
@@ -67,16 +74,16 @@ public class BlockRegistryPopulator {
                     }
                 }
                 return null;
-            })
-            .put("1_17_10", (bedrockIdentifier, statesBuilder) -> null)
-            .build();
-
-    private static final Object2IntMap<String> PALETTE_VERSIONS = new Object2IntOpenHashMap<String>() {
-        {
-            put("1_17_0", Bedrock_v440.V440_CODEC.getProtocolVersion());
-            put("1_17_10", Bedrock_v448.V448_CODEC.getProtocolVersion());
+            });
         }
-    };
+        STATE_MAPPER = stateMapperBuilder.build();
+
+        PALETTE_VERSIONS = new Object2IntOpenHashMap<>();
+        if (!GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
+            PALETTE_VERSIONS.put("1_17_0", Bedrock_v440.V440_CODEC.getProtocolVersion());
+        }
+        PALETTE_VERSIONS.put("1_17_10", Bedrock_v448.V448_CODEC.getProtocolVersion());
+    }
 
     /**
      * Stores the raw blocks JSON until it is no longer needed.

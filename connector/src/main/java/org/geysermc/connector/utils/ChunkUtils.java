@@ -71,11 +71,11 @@ public class ChunkUtils {
     /**
      * The minimum height Bedrock Edition will accept.
      */
-    private static final int MINIMUM_ACCEPTED_HEIGHT = 0;
+    private static final int MINIMUM_ACCEPTED_HEIGHT = GeyserConnector.getInstance().getConfig().isExtendedWorldHeight() ? -64 : 0;
     /**
-     * The maximum height Bedrock Edition will accept.
+     * The maximum chunk height Bedrock Edition will accept, from the lowest point to the highest.
      */
-    private static final int MAXIMUM_ACCEPTED_HEIGHT = 256;
+    private static final int MAXIMUM_ACCEPTED_HEIGHT = GeyserConnector.getInstance().getConfig().isExtendedWorldHeight() ? 380 : 256;
 
     private static int indexYZXtoXZY(int yzx) {
         return (yzx >> 8) | (yzx & 0x0F0) | ((yzx & 0x00F) << 8);
@@ -92,7 +92,7 @@ public class ChunkUtils {
         BitSet pistonOrFlowerPaletteIds = new BitSet();
 
         for (int sectionY = 0; sectionY < javaSections.length; sectionY++) {
-            if (yOffset < 0 && sectionY < -yOffset) {
+            if (yOffset < MINIMUM_ACCEPTED_HEIGHT && sectionY < -yOffset) {
                 // Ignore this chunk since it goes below the accepted height limit
                 continue;
             }
