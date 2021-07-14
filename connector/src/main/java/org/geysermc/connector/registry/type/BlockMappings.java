@@ -40,6 +40,7 @@ import java.util.Map;
 public class BlockMappings {
     int bedrockAirId;
     int bedrockWaterId;
+    int bedrockMovingBlockId;
 
     int blockStateVersion;
 

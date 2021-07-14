@@ -256,7 +256,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public WorldManager getWorldManager() {
-        return this.geyserWorldManager;
+        return DEFAULT_CHUNK_MANAGER;
     }
 
     @Override
