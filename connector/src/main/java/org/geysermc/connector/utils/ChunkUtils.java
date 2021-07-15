@@ -123,7 +123,7 @@ public class ChunkUtils {
         BitSet waterloggedPaletteIds = new BitSet();
         BitSet pistonOrFlowerPaletteIds = new BitSet();
 
-        boolean overworld = session.getDimension().equals(DimensionUtils.OVERWORLD);
+        boolean overworld = session.getChunkCache().isExtendedHeight();
 
         for (int sectionY = 0; sectionY < javaSections.length; sectionY++) {
             if (yOffset < ((overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4) && sectionY < -yOffset) {
@@ -434,7 +434,8 @@ public class ChunkUtils {
     }
 
     /**
-     * Process the minimum and maximum heights for this dimension
+     * Process the minimum and maximum heights for this dimension.
+     * This must be done after the player has switched dimensions so we know what their dimension is
      */
     public static void applyDimensionHeight(GeyserSession session, CompoundTag dimensionTag) {
         int minY = ((IntTag) dimensionTag.get("min_y")).getValue();
@@ -448,7 +449,10 @@ public class ChunkUtils {
             throw new RuntimeException("Maximum Y must be a multiple of 16!");
         }
 
-        if (minY < MINIMUM_ACCEPTED_HEIGHT || maxY > MAXIMUM_ACCEPTED_HEIGHT) {
+        session.getChunkCache().setExtendedHeight(DimensionUtils.javaToBedrock(session.getDimension()) == 0 && session.getConnector().getConfig().isExtendedWorldHeight());
+
+        if (minY < (session.getChunkCache().isExtendedHeight() ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT)
+                || maxY > (session.getChunkCache().isExtendedHeight() ? MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD : MAXIMUM_ACCEPTED_HEIGHT)) {
             session.getConnector().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds"));
         }
 

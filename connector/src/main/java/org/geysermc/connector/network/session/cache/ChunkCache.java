@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
@@ -43,6 +44,13 @@ public class ChunkCache {
     private int minY;
     @Setter
     private int heightY;
+
+    /**
+     * Whether the Bedrock client believes they are in a world with a minimum of -64 and maximum of 320
+     */
+    @Getter
+    @Setter
+    private boolean isExtendedHeight = false;
 
     public ChunkCache(GeyserSession session) {
         this.cache = !session.getConnector().getWorldManager().hasOwnChunkCache(); // To prevent Spigot from initializing

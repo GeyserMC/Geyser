@@ -44,12 +44,12 @@ import org.geysermc.connector.network.translators.Translator;
 @Translator(packet = MovePlayerPacket.class)
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
     /* The upper and lower bounds to check for the void floor that only exists in Bedrock */
-    private static final int BEDROCK_VOID_FLOOR_UPPER_Y;
-    private static final int BEDROCK_VOID_FLOOR_LOWER_Y;
+    private static final int BEDROCK_OVERWORLD_VOID_FLOOR_UPPER_Y;
+    private static final int BEDROCK_OVERWORLD_VOID_FLOOR_LOWER_Y;
 
     static {
-        BEDROCK_VOID_FLOOR_LOWER_Y = GeyserConnector.getInstance().getConfig().isExtendedWorldHeight() ? -104 : -40;
-        BEDROCK_VOID_FLOOR_UPPER_Y = BEDROCK_VOID_FLOOR_LOWER_Y + 2;
+        BEDROCK_OVERWORLD_VOID_FLOOR_UPPER_Y = GeyserConnector.getInstance().getConfig().isExtendedWorldHeight() ? -104 : -40;
+        BEDROCK_OVERWORLD_VOID_FLOOR_LOWER_Y = BEDROCK_OVERWORLD_VOID_FLOOR_UPPER_Y + 2;
     }
 
     @Override
@@ -117,10 +117,11 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
                         if (notMovingUp) {
                             int floorY = position.getFloorY();
-                            if (floorY <= BEDROCK_VOID_FLOOR_LOWER_Y && floorY >= BEDROCK_VOID_FLOOR_UPPER_Y) {
-                                // Work around there being a floor at Y -40 and teleport the player below it
+                            boolean overworld = session.getChunkCache().isExtendedHeight();
+                            if (floorY <= (overworld ? BEDROCK_OVERWORLD_VOID_FLOOR_LOWER_Y : -38)
+                                    && floorY >= (overworld ? BEDROCK_OVERWORLD_VOID_FLOOR_UPPER_Y : -40)) {
+                                // Work around there being a floor at Y -40 (Y - and teleport the player below it
                                 // Moving from below Y -40 to above the void floor works fine
-                                //TODO: This will need to be changed for 1.17
                                 entity.setPosition(entity.getPosition().sub(0, 4f, 0));
                                 MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
                                 movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
