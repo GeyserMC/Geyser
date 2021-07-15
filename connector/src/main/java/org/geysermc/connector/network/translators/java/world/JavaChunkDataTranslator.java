@@ -100,6 +100,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                             BiomeUtils.toNewBedrockBiome(column.getBiomeData(), i).writeToNetwork(byteBuf);
                         }
 
+                        // As of 1.17.10, Bedrock hardcodes to always read 32 biome sections
                         int remainingEmptyBiomes = 32 - sectionCount;
                         for (int i = 0; i < remainingEmptyBiomes; i++) {
                             byteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
