@@ -93,8 +93,13 @@ public class BlockStateValues {
             return;
         }
 
-        if (javaId.contains("potted_") || javaId.contains("flower_pot")) {
-            FLOWER_POT_VALUES.put(javaBlockState, javaId.replace("potted_", ""));
+        if (javaId.startsWith("minecraft:potted_") || javaId.equals("minecraft:flower_pot")) {
+            String name = javaId.replace("potted_", "");
+            if (name.contains("azalea")) {
+                // Exception to the rule
+                name = name.replace("_bush", "");
+            }
+            FLOWER_POT_VALUES.put(javaBlockState, name);
             return;
         }
 
