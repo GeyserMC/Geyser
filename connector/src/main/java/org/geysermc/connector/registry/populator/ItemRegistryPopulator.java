@@ -49,6 +49,7 @@ import org.geysermc.connector.network.translators.item.StoredItemMappings;
 import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.*;
+import org.geysermc.connector.utils.BlockUtils;
 import org.geysermc.connector.utils.FileUtils;
 
 import java.io.ByteArrayInputStream;
@@ -282,7 +283,8 @@ public class ItemRegistryPopulator {
                             String correctBedrockIdentifier = blockMappings.getBedrockBlockStates().get(aValidBedrockBlockId).getString("name");
                             boolean firstPass = true;
                             for (Map.Entry<String, Integer> blockEntry : BlockRegistries.JAVA_IDENTIFIERS.get().entrySet()) {
-                                if (blockEntry.getKey().split("\\[")[0].equals(javaBlockIdentifier)) {
+                                String aBlockIdentifier = BlockUtils.getCleanIdentifier(blockEntry.getKey());
+                                if (aBlockIdentifier.equals(javaBlockIdentifier)) {
                                     int bedrockBlockRuntimeId = blockMappings.getBedrockBlockId(blockEntry.getValue());
                                     NbtMap blockTag = blockMappings.getBedrockBlockStates().get(bedrockBlockRuntimeId);
                                     String bedrockName = blockTag.getString("name");

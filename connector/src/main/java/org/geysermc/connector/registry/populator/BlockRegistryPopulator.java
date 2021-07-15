@@ -42,6 +42,7 @@ import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
 import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.registry.type.BlockMapping;
 import org.geysermc.connector.registry.type.BlockMappings;
+import org.geysermc.connector.utils.BlockUtils;
 import org.geysermc.connector.utils.FileUtils;
 
 import java.io.DataInputStream;
@@ -165,7 +166,7 @@ public class BlockRegistryPopulator {
                     bedrockToJavaBlockMap.putIfAbsent(bedrockRuntimeId, javaRuntimeId);
                 }
 
-                String cleanJavaIdentifier = entry.getKey().split("\\[")[0];
+                String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(entry.getKey());
 
                 // Get the tag needed for non-empty flower pots
                 if (entry.getValue().get("pottable") != null) {

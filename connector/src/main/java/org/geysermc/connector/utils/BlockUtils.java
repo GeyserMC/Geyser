@@ -225,6 +225,25 @@ public class BlockUtils {
         return blockPos;
     }
 
+    /**
+     * Taking in a complete Java block state identifier, output just the block ID of this block state without the states.
+     * Examples:
+     * minecraft:oak_log[axis=x] -> minecraft:oak_log
+     * minecraft:stone_brick_wall[east=low,north=tall,south=none,up=true,waterlogged=false,west=tall] -> minecraft:stone_brick_wall
+     * minecraft:stone -> minecraft:stone
+     *
+     * @param fullJavaIdentifier a full Java block identifier, with possible block states.
+     * @return a clean identifier in the format of minecraft:block
+     */
+    public static String getCleanIdentifier(String fullJavaIdentifier) {
+        int stateIndex = fullJavaIdentifier.indexOf('[');
+        if (stateIndex == -1) {
+            // Identical to its clean variation
+            return fullJavaIdentifier;
+        }
+        return fullJavaIdentifier.substring(0, stateIndex);
+    }
+
     // Note: these reuse classes, so don't try to store more than once instance or coordinates will get overwritten
     public static BlockCollision getCollision(int blockId, int x, int y, int z) {
         BlockCollision collision = Registries.COLLISIONS.get(blockId);

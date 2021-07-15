@@ -36,20 +36,12 @@ import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 import org.geysermc.connector.network.translators.effect.Effect;
 import org.geysermc.connector.network.translators.sound.SoundHandler;
 import org.geysermc.connector.network.translators.sound.SoundInteractionHandler;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
-import org.geysermc.connector.registry.loader.BlockEntityRegistryLoader;
-import org.geysermc.connector.registry.loader.CollisionRegistryLoader;
-import org.geysermc.connector.registry.loader.ParticleTypesRegistryLoader;
-import org.geysermc.connector.registry.loader.PotionMixRegistryLoader;
-import org.geysermc.connector.registry.loader.RegistryLoaders;
-import org.geysermc.connector.registry.loader.SoundEffectsRegistryLoader;
-import org.geysermc.connector.registry.loader.SoundHandlerRegistryLoader;
-import org.geysermc.connector.registry.loader.SoundRegistryLoader;
+import org.geysermc.connector.registry.loader.*;
 import org.geysermc.connector.registry.populator.ItemRegistryPopulator;
 import org.geysermc.connector.registry.populator.RecipeRegistryPopulator;
 import org.geysermc.connector.registry.type.ItemMappings;
@@ -67,7 +59,7 @@ public class Registries {
 
     public static final SimpleMappedRegistry<Integer, BlockCollision> COLLISIONS = SimpleMappedRegistry.create(Pair.of("org.geysermc.connector.network.translators.collision.translators", "mappings/collision.json"), CollisionRegistryLoader::new);
 
-    public static final VersionedRegistry<Map<RecipeType, List<CraftingData>>> CRAFTING_DATA = VersionedRegistry.create(RegistryLoaders.empty(Object2ObjectLinkedOpenHashMap::new));
+    public static final VersionedRegistry<Map<RecipeType, List<CraftingData>>> CRAFTING_DATA = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
     public static final SimpleRegistry<NbtMap> ENTITY_IDENTIFIERS = SimpleRegistry.create("bedrock/entity_identifiers.dat", RegistryLoaders.NBT);
 
