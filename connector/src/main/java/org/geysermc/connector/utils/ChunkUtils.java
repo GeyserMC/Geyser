@@ -85,27 +85,32 @@ public class ChunkUtils {
     public static final byte[] EMPTY_BIOME_DATA;
 
     static {
-        ByteBuf byteBuf = Unpooled.buffer();
-        try {
-            BlockStorage blockStorage = new BlockStorage(0);
-            blockStorage.writeToNetwork(byteBuf);
+        if (GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
+            ByteBuf byteBuf = Unpooled.buffer();
+            try {
+                BlockStorage blockStorage = new BlockStorage(0);
+                blockStorage.writeToNetwork(byteBuf);
 
-            EMPTY_BIOME_DATA = new byte[byteBuf.readableBytes()];
-            byteBuf.readBytes(EMPTY_BIOME_DATA);
-        } finally {
-            byteBuf.release();
-        }
-
-        byteBuf = Unpooled.buffer();
-        try {
-            for (int i = 0; i < 32; i++) {
-                byteBuf.writeBytes(EMPTY_BIOME_DATA);
+                EMPTY_BIOME_DATA = new byte[byteBuf.readableBytes()];
+                byteBuf.readBytes(EMPTY_BIOME_DATA);
+            } finally {
+                byteBuf.release();
             }
 
-            EMPTY_CHUNK_DATA = new byte[byteBuf.readableBytes()];
-            byteBuf.readBytes(EMPTY_CHUNK_DATA);
-        } finally {
-            byteBuf.release();
+            byteBuf = Unpooled.buffer();
+            try {
+                for (int i = 0; i < 32; i++) {
+                    byteBuf.writeBytes(EMPTY_BIOME_DATA);
+                }
+
+                EMPTY_CHUNK_DATA = new byte[byteBuf.readableBytes()];
+                byteBuf.readBytes(EMPTY_CHUNK_DATA);
+            } finally {
+                byteBuf.release();
+            }
+        } else {
+            EMPTY_BIOME_DATA = null; // Unused
+            EMPTY_CHUNK_DATA = new byte[257]; // 256 bytes for biomes, one for borders
         }
     }
 
