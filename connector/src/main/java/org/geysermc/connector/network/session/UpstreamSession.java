@@ -41,7 +41,6 @@ public class UpstreamSession {
     private boolean initialized = false;
 
     public void sendPacket(@NonNull BedrockPacket packet) {
-        System.out.println(packet);
         if (!isClosed()) {
             session.sendPacket(packet);
         }

@@ -74,19 +74,19 @@ public class ChunkCache {
             return;
         }
 
-        if (y < minY || (y >> 4) > column.getChunks().length - 1) {
+        if (y < minY || ((y - minY) >> 4) > column.getChunks().length - 1) {
             // Y likely goes above or below the height limit of this world
             return;
         }
 
-        Chunk chunk = column.getChunks()[(y >> 4) - getChunkMinY()];
+        Chunk chunk = column.getChunks()[(y - minY) >> 4];
         if (chunk == null) {
             if (block != BlockStateValues.JAVA_AIR_ID) {
                 // A previously empty chunk, which is no longer empty as a block has been added to it
                 chunk = new Chunk();
                 // Fixes the chunk assuming that all blocks is the `block` variable we are updating. /shrug
                 chunk.getPalette().stateToId(BlockStateValues.JAVA_AIR_ID);
-                column.getChunks()[(y >> 4) - getChunkMinY()] = chunk;
+                column.getChunks()[(y - minY) >> 4] = chunk;
             } else {
                 // Nothing to update
                 return;
@@ -106,12 +106,12 @@ public class ChunkCache {
             return BlockStateValues.JAVA_AIR_ID;
         }
 
-        if (y < minY || (y >> 4) > column.getChunks().length - 1) {
+        if (y < minY || ((y - minY) >> 4) > column.getChunks().length - 1) {
             // Y likely goes above or below the height limit of this world
             return BlockStateValues.JAVA_AIR_ID;
         }
 
-        Chunk chunk = column.getChunks()[(y >> 4) - getChunkMinY()];
+        Chunk chunk = column.getChunks()[(y - minY) >> 4];
         if (chunk != null) {
             return chunk.get(x & 0xF, y & 0xF, z & 0xF);
         }

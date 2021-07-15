@@ -41,6 +41,8 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.Data;
@@ -71,11 +73,41 @@ public class ChunkUtils {
     /**
      * The minimum height Bedrock Edition will accept.
      */
-    private static final int MINIMUM_ACCEPTED_HEIGHT = GeyserConnector.getInstance().getConfig().isExtendedWorldHeight() ? -64 : 0;
+    private static final int MINIMUM_ACCEPTED_HEIGHT = 0;
+    private static final int MINIMUM_ACCEPTED_HEIGHT_OVERWORLD = GeyserConnector.getInstance().getConfig().isExtendedWorldHeight() ? -64 : MINIMUM_ACCEPTED_HEIGHT;
     /**
      * The maximum chunk height Bedrock Edition will accept, from the lowest point to the highest.
      */
-    private static final int MAXIMUM_ACCEPTED_HEIGHT = GeyserConnector.getInstance().getConfig().isExtendedWorldHeight() ? 380 : 256;
+    private static final int MAXIMUM_ACCEPTED_HEIGHT = 256;
+    private static final int MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD = GeyserConnector.getInstance().getConfig().isExtendedWorldHeight() ? 384 : MAXIMUM_ACCEPTED_HEIGHT;
+
+    private static final byte[] EMPTY_CHUNK_DATA;
+    public static final byte[] EMPTY_BIOME_DATA;
+
+    static {
+        ByteBuf byteBuf = Unpooled.buffer();
+        try {
+            BlockStorage blockStorage = new BlockStorage(0);
+            blockStorage.writeToNetwork(byteBuf);
+
+            EMPTY_BIOME_DATA = new byte[byteBuf.readableBytes()];
+            byteBuf.readBytes(EMPTY_BIOME_DATA);
+        } finally {
+            byteBuf.release();
+        }
+
+        byteBuf = Unpooled.buffer();
+        try {
+            for (int i = 0; i < 32; i++) {
+                byteBuf.writeBytes(EMPTY_BIOME_DATA);
+            }
+
+            EMPTY_CHUNK_DATA = new byte[byteBuf.readableBytes()];
+            byteBuf.readBytes(EMPTY_CHUNK_DATA);
+        } finally {
+            byteBuf.release();
+        }
+    }
 
     private static int indexYZXtoXZY(int yzx) {
         return (yzx >> 8) | (yzx & 0x0F0) | ((yzx & 0x00F) << 8);
@@ -91,8 +123,10 @@ public class ChunkUtils {
         BitSet waterloggedPaletteIds = new BitSet();
         BitSet pistonOrFlowerPaletteIds = new BitSet();
 
+        boolean overworld = session.getDimension().equals(DimensionUtils.OVERWORLD);
+
         for (int sectionY = 0; sectionY < javaSections.length; sectionY++) {
-            if (yOffset < MINIMUM_ACCEPTED_HEIGHT && sectionY < -yOffset) {
+            if (yOffset < ((overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4) && sectionY < -yOffset) {
                 // Ignore this chunk since it goes below the accepted height limit
                 continue;
             }
@@ -128,7 +162,7 @@ public class ChunkUtils {
                         ));
                     }
                 }
-                sections[sectionY + yOffset] = section;
+                sections[sectionY + (yOffset - ((overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4))] = section;
                 continue;
             }
 
@@ -201,7 +235,7 @@ public class ChunkUtils {
                 layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
             }
 
-            sections[sectionY + yOffset] = new ChunkSection(layers);
+            sections[sectionY + (yOffset - ((overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4))] = new ChunkSection(layers);
         }
 
         CompoundTag[] blockEntities = column.getTileEntities();
@@ -383,7 +417,7 @@ public class ChunkUtils {
                 data.setChunkX(chunkX + x);
                 data.setChunkZ(chunkZ + z);
                 data.setSubChunksLength(0);
-                data.setData(new byte[0]);
+                data.setData(EMPTY_CHUNK_DATA);
                 data.setCachingEnabled(false);
                 session.sendUpstreamPacket(data);
 
