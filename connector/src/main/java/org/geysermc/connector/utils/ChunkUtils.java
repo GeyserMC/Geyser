@@ -105,7 +105,6 @@ public class ChunkUtils {
 
                 EMPTY_CHUNK_DATA = new byte[byteBuf.readableBytes()];
                 byteBuf.readBytes(EMPTY_CHUNK_DATA);
-                System.out.println(EMPTY_CHUNK_DATA.length);
             } finally {
                 byteBuf.release();
             }
