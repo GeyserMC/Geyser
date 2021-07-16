@@ -82,7 +82,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                     size += (section != null ? section : session.getBlockMappings().getEmptyChunkSection()).estimateNetworkSize();
                 }
                 if (NEW_BIOME_WRITE) {
-                    size += session.getBlockMappings().getEmptyChunkSection().estimateNetworkSize() * 32;
+                    size += ChunkUtils.EMPTY_CHUNK_DATA.length; // Consists only of biome data
                 } else {
                     size += 256; // Biomes pre-1.18
                 }

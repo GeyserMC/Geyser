@@ -81,7 +81,7 @@ public class ChunkUtils {
     private static final int MAXIMUM_ACCEPTED_HEIGHT = 256;
     private static final int MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD = GeyserConnector.getInstance().getConfig().isExtendedWorldHeight() ? 384 : MAXIMUM_ACCEPTED_HEIGHT;
 
-    private static final byte[] EMPTY_CHUNK_DATA;
+    public static final byte[] EMPTY_CHUNK_DATA;
     public static final byte[] EMPTY_BIOME_DATA;
 
     static {
@@ -105,6 +105,7 @@ public class ChunkUtils {
 
                 EMPTY_CHUNK_DATA = new byte[byteBuf.readableBytes()];
                 byteBuf.readBytes(EMPTY_CHUNK_DATA);
+                System.out.println(EMPTY_CHUNK_DATA.length);
             } finally {
                 byteBuf.release();
             }
