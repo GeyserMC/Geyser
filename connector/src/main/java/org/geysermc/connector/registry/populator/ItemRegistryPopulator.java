@@ -235,9 +235,12 @@ public class ItemRegistryPopulator {
             Set<String> javaOnlyItems = new ObjectOpenHashSet<>();
             Collections.addAll(javaOnlyItems, "minecraft:spectral_arrow", "minecraft:debug_stick",
                     "minecraft:knowledge_book", "minecraft:tipped_arrow", "minecraft:trader_llama_spawn_egg",
-                    "minecraft:bundle", "minecraft:sculk_sensor");
+                    "minecraft:bundle");
             if (!usingFurnaceMinecart) {
                 javaOnlyItems.add("minecraft:furnace_minecart");
+            }
+            if (!GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
+                javaOnlyItems.add("minecraft:sculk_sensor");
             }
             // Java-only items for this version
             javaOnlyItems.addAll(palette.getValue().getAdditionalTranslatedItems().keySet());
@@ -250,6 +253,9 @@ public class ItemRegistryPopulator {
                 } else {
                     // This items has a mapping specifically for this version of the game
                     mappingItem = entry.getValue();
+                }
+                if (entry.getKey().equals("minecraft:sculk_sensor") && GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
+                    mappingItem.setBedrockIdentifier("minecraft:sculk_sensor");
                 }
 
                 if (usingFurnaceMinecart && entry.getKey().equals("minecraft:furnace_minecart")) {
