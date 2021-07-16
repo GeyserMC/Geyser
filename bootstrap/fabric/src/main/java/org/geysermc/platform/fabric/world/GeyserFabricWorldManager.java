@@ -66,11 +66,10 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
             PlayerEntity player = server.getPlayerManager().getPlayer(session.getPlayerEntity().getUuid());
             if (player != null) {
                 BlockEntity blockEntity = player.world.getBlockEntity(new BlockPos(x, y, z));
-                if (!(blockEntity instanceof LecternBlockEntity)) {
+                if (!(blockEntity instanceof LecternBlockEntity lectern)) {
                     return;
                 }
 
-                LecternBlockEntity lectern = (LecternBlockEntity) blockEntity;
                 if (!lectern.hasBook()) {
                     if (!isChunkLoad) {
                         BlockEntityUtils.updateBlockEntity(session, LecternInventoryTranslator.getBaseLecternTag(x, y, z, 0).build(), Vector3i.from(x, y, z));
@@ -88,8 +87,8 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
                         .putShort("Damage", (short) 0)
                         .putString("Name", "minecraft:writable_book");
                 List<NbtMap> pages = new ArrayList<>(hasBookPages ? pageCount : 1);
-                if (hasBookPages && WritableBookItem.isValid(book.getTag())) {
-                    NbtList listTag = book.getTag().getList("pages", 8);
+                if (hasBookPages && WritableBookItem.isValid(book.getNbt())) {
+                    NbtList listTag = book.getNbt().getList("pages", 8);
 
                     for (int i = 0; i < listTag.size(); i++) {
                         String page = listTag.getString(i);
