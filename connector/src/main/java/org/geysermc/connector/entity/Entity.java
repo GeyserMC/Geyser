@@ -335,12 +335,12 @@ public class Entity {
     }
 
     /**
-     * x = Pitch, y = HeadYaw, z = Yaw
+     * x = Pitch, y = Yaw, z = HeadYaw
      *
      * @return the bedrock rotation
      */
     public Vector3f getBedrockRotation() {
-        return Vector3f.from(rotation.getY(), rotation.getZ(), rotation.getX());
+        return Vector3f.from(rotation.getY(), rotation.getX(), rotation.getZ());
     }
 
     @SuppressWarnings("unchecked")
