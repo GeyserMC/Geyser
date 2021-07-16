@@ -296,14 +296,11 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
 
                     if (isCraftingGrid(swapAction.getDestination())) {
                         int sourceSlot = bedrockSlotToJava(swapAction.getSource());
-                        int destSlot = bedrockSlotToJava(swapAction.getDestination());
 
                         inventory.setItem(sourceSlot, GeyserItemStack.EMPTY, session);
-                        inventory.setItem(destSlot, GeyserItemStack.from(ItemTranslator.translateToJava(UNUSUABLE_CRAFTING_SPACE_BLOCK)), session);
                         playerInv.setCursor(playerInv.getCursor().copy(0), session);
 
                         affectedSlots.add(sourceSlot);
-                        affectedSlots.add(destSlot);
 
                         updateCraftingGrid(session, inventory);
                     } else if (isCursor(swapAction.getDestination())) {
