@@ -23,6 +23,13 @@
             <version>1.16-R0.5-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+        <!-- Used for better working with internals without reflection -->
+        <dependency>
+            <groupId>net.md-5</groupId>
+            <artifactId>bungeecord-proxy</artifactId>
+            <version>1.16-R0.5-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
     <build>
         <finalName>${outputName}-BungeeCord</finalName>

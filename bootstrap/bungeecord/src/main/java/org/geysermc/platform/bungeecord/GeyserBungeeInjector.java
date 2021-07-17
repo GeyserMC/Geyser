@@ -33,8 +33,10 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.local.LocalAddress;
 import io.netty.util.AttributeKey;
+import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ListenerInfo;
+import net.md_5.bungee.netty.PipelineUtils;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.common.GeyserInjector;
 
@@ -42,13 +44,16 @@ import java.lang.reflect.Method;
 
 public class GeyserBungeeInjector extends GeyserInjector {
     private final ProxyServer proxy;
+    /**
+     * Set as a variable so it is only set after the proxy has finished initializing
+     */
+    private ChannelInitializer<Channel> channelInitializer = null;
 
     public GeyserBungeeInjector(ProxyServer proxy) {
         this.proxy = proxy;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception {
         // TODO - allow Geyser to specify its own listener info properties
         if (proxy.getConfig().getListeners().size() != 1) {
@@ -56,9 +61,6 @@ public class GeyserBungeeInjector extends GeyserInjector {
                     "Please reach out to us on our Discord so we can hear feedback on your setup.");
         }
         ListenerInfo listenerInfo = proxy.getConfig().getListeners().stream().findFirst().orElseThrow(IllegalStateException::new);
-
-        Class<?> pipelineUtils = Class.forName("net.md_5.bungee.netty.PipelineUtils");
-        ChannelInitializer<Channel> channelInitializer = (ChannelInitializer<Channel>) pipelineUtils.getField("SERVER_CHILD").get(null);
 
         Class<? extends ProxyServer> proxyClass = proxy.getClass();
         // Using the specified EventLoop is required, or else an error will be thrown
@@ -79,7 +81,7 @@ public class GeyserBungeeInjector extends GeyserInjector {
         }
 
         // Is currently just AttributeKey.valueOf("ListerInfo") but we might as well copy the value itself.
-        AttributeKey<ListenerInfo> listener = (AttributeKey<ListenerInfo>) pipelineUtils.getField("LISTENER").get(null);
+        AttributeKey<ListenerInfo> listener = PipelineUtils.LISTENER;
         listenerInfo = new ListenerInfo(
                 listenerInfo.getSocketAddress(),
                 listenerInfo.getMotd(),
@@ -97,12 +99,23 @@ public class GeyserBungeeInjector extends GeyserInjector {
         );
 
         // This method is what initializes the connection in Java Edition, after Netty is all set.
-        Method initChannel = channelInitializer.getClass().getDeclaredMethod("initChannel", Channel.class);
+        Method initChannel = ChannelInitializer.class.getDeclaredMethod("initChannel", Channel.class);
         initChannel.setAccessible(true);
 
         ChannelFuture channelFuture = (new ServerBootstrap().channel(LocalServerChannelWrapper.class).childHandler(new ChannelInitializer<Channel>() {
             @Override
             protected void initChannel(Channel ch) throws Exception {
+                if (!((BungeeCord) proxy).isRunning) {
+                    // Proxy hasn't finished; yeet
+                    ch.close();
+                    return;
+                }
+
+                if (channelInitializer == null) {
+                    // Proxy has finished initializing; we can safely grab this variable without fear of plugins modifying it
+                    // (ViaVersion replaces this to inject)
+                    channelInitializer = PipelineUtils.SERVER_CHILD;
+                }
                 initChannel.invoke(channelInitializer, ch);
             }
         }).childAttr(listener, listenerInfo).group(bossGroup, workerGroup).localAddress(LocalAddress.ANY)).bind().syncUninterruptibly();
