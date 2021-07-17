@@ -39,6 +39,7 @@ import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.registry.BlockRegistries;
+import org.geysermc.connector.utils.BlockUtils;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -62,10 +63,10 @@ public class BlockInventoryHolder extends InventoryHolder {
         if (validBlocks != null) {
             Set<String> validBlocksTemp = new HashSet<>(validBlocks.length + 1);
             Collections.addAll(validBlocksTemp, validBlocks);
-            validBlocksTemp.add(javaBlockIdentifier.split("\\[")[0]);
+            validBlocksTemp.add(BlockUtils.getCleanIdentifier(javaBlockIdentifier));
             this.validBlocks = ImmutableSet.copyOf(validBlocksTemp);
         } else {
-            this.validBlocks = Collections.singleton(javaBlockIdentifier.split("\\[")[0]);
+            this.validBlocks = Collections.singleton(BlockUtils.getCleanIdentifier(javaBlockIdentifier));
         }
     }
 
