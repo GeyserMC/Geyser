@@ -34,6 +34,7 @@ import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.utils.SoundUtils;
 import org.geysermc.connector.registry.Registries;
@@ -85,7 +86,8 @@ public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayB
             soundPacket.setExtraData(soundMapping.getExtraData() + (int)(Math.round((Math.log10(packet.getPitch()) / Math.log10(2)) * 12)) + 12);
         } else if (sound == SoundEvent.PLACE && soundMapping.getExtraData() == -1) {
             if (!soundMapping.getIdentifier().equals(":")) {
-                soundPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(BlockRegistries.JAVA_IDENTIFIERS.get(soundMapping.getIdentifier())));
+                soundPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(
+                        BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(soundMapping.getIdentifier(), BlockStateValues.JAVA_AIR_ID)));
             } else {
                 session.getConnector().getLogger().debug("PLACE sound mapping identifier was invalid! Please report: " + packet.toString());
             }

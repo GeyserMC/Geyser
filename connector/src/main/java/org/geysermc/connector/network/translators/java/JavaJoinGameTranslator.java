@@ -55,8 +55,6 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         PlayerEntity entity = session.getPlayerEntity();
         entity.setEntityId(packet.getEntityId());
 
-        ChunkUtils.applyDimensionHeight(session, packet.getDimension());
-
         // If the player is already initialized and a join game packet is sent, they
         // are swapping servers
         String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
@@ -113,5 +111,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         if (!newDimension.equals(session.getDimension())) {
             DimensionUtils.switchDimension(session, newDimension);
         }
+
+        ChunkUtils.applyDimensionHeight(session, packet.getDimension());
     }
 }

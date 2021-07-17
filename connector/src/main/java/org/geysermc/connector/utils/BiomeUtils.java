@@ -25,6 +25,8 @@
 
 package org.geysermc.connector.utils;
 
+import org.geysermc.connector.network.translators.world.chunk.BlockStorage;
+
 import java.util.Arrays;
 
 // Based off of ProtocolSupport's LegacyBiomeData.java:
@@ -40,7 +42,7 @@ public class BiomeUtils {
         for (int y = 0; y < 16; y += 4) {
             for (int z = 0; z < 16; z += 4) {
                 for (int x = 0; x < 16; x += 4) {
-                    byte biomeId = biomeID(biomeData, x, y, z);
+                    byte biomeId = (byte) biomeID(biomeData, x, y, z);
                     int offset = ((z + (y / 4)) << 4) | x;
                     Arrays.fill(bedrockData, offset, offset + 4, biomeId);
                 }
@@ -49,7 +51,25 @@ public class BiomeUtils {
         return bedrockData;
     }
 
-    private static byte biomeID(int[] biomeData, int x, int y, int z) {
+    public static BlockStorage toNewBedrockBiome(int[] biomeData, int ySection) {
+        BlockStorage storage = new BlockStorage(0);
+        int blockY = ySection << 4;
+        int i = 0;
+        // Iterate over biomes like a chunk, grab the biome from Java, and add it to Bedrock's biome palette
+        // Might be able to be optimized by iterating over Java's biome data section?? Unsure.
+        for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+                for (int y = blockY; y < (blockY + 16); y++) {
+                    int biomeId = biomeID(biomeData, x, y, z);
+                    storage.setFullBlock(i, biomeId);
+                    i++;
+                }
+            }
+        }
+        return storage;
+    }
+
+    private static int biomeID(int[] biomeData, int x, int y, int z) {
         int biomeId = biomeData[((y >> 2) & 63) << 4 | ((z >> 2) & 3) << 2 | ((x >> 2) & 3)];
         if (biomeId == 0) {
             biomeId = 42; // Ocean
@@ -58,6 +78,6 @@ public class BiomeUtils {
         } else if (biomeId >= 170) { // Nether biomes. Dunno why it's like this :microjang:
             biomeId += 8;
         }
-        return (byte) biomeId;
+        return biomeId;
     }
 }

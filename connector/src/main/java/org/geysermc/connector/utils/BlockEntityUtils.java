@@ -30,16 +30,15 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.entity.BedrockOnlyBlockEntity;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
+import org.geysermc.connector.network.translators.world.block.entity.FlowerPotBlockEntityTranslator;
 import org.geysermc.connector.registry.Registries;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.annotation.Nonnull;
 
 public class BlockEntityUtils {
     /**
@@ -65,15 +64,9 @@ public class BlockEntityUtils {
     private static final BlockEntityTranslator EMPTY_TRANSLATOR = Registries.BLOCK_ENTITIES.get("Empty");
 
     static {
-        for (BlockEntityTranslator translator : Registries.BLOCK_ENTITIES.get().values()) {
-            if (!(translator instanceof BedrockOnlyBlockEntity)) {
-                continue;
-            }
-
-            GeyserConnector.getInstance().getLogger().debug("Found Bedrock-only block entity: " + translator.getClass().getCanonicalName());
-            BedrockOnlyBlockEntity bedrockOnlyBlockEntity = (BedrockOnlyBlockEntity) translator;
-            BEDROCK_ONLY_BLOCK_ENTITIES.add(bedrockOnlyBlockEntity);
-        }
+        // Seeing as there are only two - and, hopefully, will only ever be two - we can hardcode this
+        BEDROCK_ONLY_BLOCK_ENTITIES.add((BedrockOnlyBlockEntity) Registries.BLOCK_ENTITIES.get().get("Chest"));
+        BEDROCK_ONLY_BLOCK_ENTITIES.add(new FlowerPotBlockEntityTranslator());
     }
 
     public static String getBedrockBlockEntityId(String id) {

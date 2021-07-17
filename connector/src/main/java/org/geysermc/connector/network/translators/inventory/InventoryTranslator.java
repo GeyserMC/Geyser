@@ -550,6 +550,7 @@ public abstract class InventoryTranslator {
             switch (action.getType()) {
                 case CRAFT_RECIPE_AUTO: {
                     AutoCraftRecipeStackRequestActionData autoCraftAction = (AutoCraftRecipeStackRequestActionData) action;
+                    // TODO autoCraftAction#getTimesCrafted 1.17.10 ???
                     if (craftState != CraftState.START) {
                         return rejectRequest(request);
                     }
