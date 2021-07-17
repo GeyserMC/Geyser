@@ -17,17 +17,11 @@
             <version>1.4.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
+        <!-- Used for better working with internals without reflection -->
         <dependency>
             <groupId>com.github.SpigotMC.BungeeCord</groupId>
             <artifactId>bungeecord-proxy</artifactId>
             <version>a7c6ede</version>
-            <scope>provided</scope>
-        </dependency>
-        <!-- Used for better working with internals without reflection -->
-        <dependency>
-            <groupId>net.md-5</groupId>
-            <artifactId>bungeecord-proxy</artifactId>
-            <version>1.16-R0.5-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
