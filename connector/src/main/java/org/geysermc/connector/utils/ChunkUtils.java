@@ -462,6 +462,8 @@ public class ChunkUtils {
         boolean extendedHeight = dimension == 0 && session.getConnector().getConfig().isExtendedWorldHeight();
         session.getChunkCache().setExtendedHeight(extendedHeight);
 
+        // Yell in the console if the world height is too height in the current scenario
+        // The constraints change depending on if the player is in the overworld or not, and if experimental height is enabled
         if (minY < (extendedHeight ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT)
                 || maxY > (extendedHeight ? MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD : MAXIMUM_ACCEPTED_HEIGHT)) {
             if (minY >= CAVES_AND_CLIFFS_MINIMUM_HEIGHT && maxY <= CAVES_AND_CLIFFS_MAXIMUM_HEIGHT && dimension == 0 && !session.getConnector().getConfig().isExtendedWorldHeight()) {

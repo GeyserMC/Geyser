@@ -62,7 +62,6 @@ public class ItemRegistryPopulator {
     static {
         PALETTE_VERSIONS = new Object2ObjectOpenHashMap<>();
         if (GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
-            // Required to send the full palette or else the client crashes
             PALETTE_VERSIONS.put("1_17_10.caves_and_cliffs", new PaletteVersion(Bedrock_v448.V448_CODEC.getProtocolVersion(), Collections.emptyMap()));
         } else {
             PALETTE_VERSIONS.put("1_17_0", new PaletteVersion(Bedrock_v440.V440_CODEC.getProtocolVersion(), new Object2ObjectOpenHashMap<String, String>() {
