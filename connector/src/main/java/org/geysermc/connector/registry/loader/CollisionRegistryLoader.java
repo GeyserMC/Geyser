@@ -40,7 +40,6 @@ import org.geysermc.connector.network.translators.collision.translators.OtherCol
 import org.geysermc.connector.network.translators.collision.translators.SolidCollision;
 import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.utils.FileUtils;
-import org.reflections.Reflections;
 
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -55,8 +54,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
         Int2ObjectMap<BlockCollision> collisions = new Int2ObjectOpenHashMap<>();
 
         Map<Class<?>, CollisionInfo> annotationMap = new HashMap<>();
-        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections(input.key()) : new Reflections(input.key());
-        for (Class<?> clazz : ref.getTypesAnnotatedWith(CollisionRemapper.class)) {
+        for (Class<?> clazz : FileUtils.getGeneratedClassesForAnnotation(CollisionRemapper.class.getName())) {
             GeyserConnector.getInstance().getLogger().debug("Found annotated collision translator: " + clazz.getCanonicalName());
 
             CollisionRemapper collisionRemapper = clazz.getAnnotation(CollisionRemapper.class);

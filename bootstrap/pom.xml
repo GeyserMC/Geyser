@@ -29,6 +29,16 @@
             <url>https://repo.velocitypowered.com/snapshots/</url>
         </repository>
     </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.geysermc</groupId>
+            <artifactId>ap</artifactId>
+            <version>1.4.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
     <modules>
         <module>bungeecord</module>
         <module>spigot</module>

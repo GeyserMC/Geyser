@@ -23,34 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.registry.loader;
+package org.geysermc.processor;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import org.geysermc.connector.utils.FileUtils;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.SourceVersion;
 
-import java.lang.annotation.Annotation;
-import java.util.Map;
-import java.util.function.Function;
-
-public class AnnotatedRegistryLoader<R, A extends Annotation, V> implements RegistryLoader<String, Map<R, V>> {
-    private final Class<A> annotation;
-    private final Function<A, R> mapper;
-
-    public AnnotatedRegistryLoader(Class<A> annotation, Function<A, R> mapper) {
-        this.annotation = annotation;
-        this.mapper = mapper;
-    }
-
-    @Override
-    public Map<R, V> load(String input) {
-        Map<R, V> entries = new Object2ObjectOpenHashMap<>();
-        for (Class<?> clazz : FileUtils.getGeneratedClassesForAnnotation(input)) {
-            try {
-                entries.put(this.mapper.apply(clazz.getAnnotation(this.annotation)), (V) clazz.newInstance());
-            } catch (InstantiationException | IllegalAccessException ex) {
-                ex.printStackTrace();
-            }
-        }
-        return entries;
+@SupportedAnnotationTypes("org.geysermc.connector.network.translators.collision.CollisionRemapper")
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
+public class CollisionRemapperProcessor extends ClassProcessor {
+    public CollisionRemapperProcessor() {
+        super("org.geysermc.connector.network.translators.collision.CollisionRemapper");
     }
 }
