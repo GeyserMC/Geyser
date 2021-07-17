@@ -270,12 +270,6 @@ public class BlockRegistryPopulator {
                 builder.pickItem(pickItemNode.textValue());
             }
 
-            builder.javaIdentifier(javaId);
-            builder.javaBlockId(uniqueJavaId);
-
-            BlockRegistries.JAVA_IDENTIFIERS.register(javaId, javaRuntimeId);
-            BlockRegistries.JAVA_BLOCKS.register(javaRuntimeId, builder.build());
-
             BlockStateValues.storeBlockStateValues(entry.getKey(), javaRuntimeId, entry.getValue());
 
             String cleanJavaIdentifier = entry.getKey().split("\\[")[0];
@@ -285,6 +279,12 @@ public class BlockRegistryPopulator {
                 uniqueJavaId++;
                 BlockRegistries.JAVA_CLEAN_IDENTIFIERS.register(uniqueJavaId, cleanJavaIdentifier);
             }
+
+            builder.javaIdentifier(javaId);
+            builder.javaBlockId(uniqueJavaId);
+
+            BlockRegistries.JAVA_IDENTIFIERS.register(javaId, javaRuntimeId);
+            BlockRegistries.JAVA_BLOCKS.register(javaRuntimeId, builder.build());
 
             // Keeping this here since this is currently unchanged between versions
             if (!cleanJavaIdentifier.equals(bedrockIdentifier)) {
