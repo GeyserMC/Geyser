@@ -45,6 +45,8 @@ public interface GeyserConfiguration {
 
     Map<String, ? extends IUserAuthenticationInfo> getUserAuths();
 
+    boolean isExtendedWorldHeight();
+
     boolean isCommandSuggestions();
 
     @JsonIgnore

@@ -25,23 +25,23 @@
 
 package org.geysermc.connector.registry;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.geysermc.connector.registry.loader.RegistryLoader;
 
-import java.util.Map;
 import java.util.function.Supplier;
 
-public class VersionedRegistry<V> extends AbstractMappedRegistry<Integer, V, Map<Integer, V>> {
-    protected <I> VersionedRegistry(I input, RegistryLoader<I, Map<Integer, V>> registryLoader) {
+public class VersionedRegistry<V> extends AbstractMappedRegistry<Integer, V, Int2ObjectMap<V>> {
+    protected <I> VersionedRegistry(I input, RegistryLoader<I, Int2ObjectMap<V>> registryLoader) {
         super(input, registryLoader);
     }
 
     public V forVersion(int version) {
         V value = null;
-        for (Map.Entry<Integer, V> entry : this.mappings.entrySet()) {
-            if (version < entry.getKey()) {
+        for (Int2ObjectMap.Entry<V> entry : this.mappings.int2ObjectEntrySet()) {
+            if (version < entry.getIntKey()) {
                 continue;
             }
-            if (version == entry.getKey()) {
+            if (version == entry.getIntKey()) {
                 return entry.getValue();
             }
             value = entry.getValue();
@@ -49,19 +49,19 @@ public class VersionedRegistry<V> extends AbstractMappedRegistry<Integer, V, Map
         return value;
     }
 
-    public static <I, V> VersionedRegistry<V> create(RegistryLoader<I, Map<Integer, V>> registryLoader) {
+    public static <I, V> VersionedRegistry<V> create(RegistryLoader<I, Int2ObjectMap<V>> registryLoader) {
         return new VersionedRegistry<>(null, registryLoader);
     }
 
-    public static <I, V> VersionedRegistry<V> create(I input, RegistryLoader<I, Map<Integer, V>> registryLoader) {
+    public static <I, V> VersionedRegistry<V> create(I input, RegistryLoader<I, Int2ObjectMap<V>> registryLoader) {
         return new VersionedRegistry<>(input, registryLoader);
     }
 
-    public static <I, V> VersionedRegistry< V> create(Supplier<RegistryLoader<I, Map<Integer, V>>> registryLoader) {
+    public static <I, V> VersionedRegistry< V> create(Supplier<RegistryLoader<I, Int2ObjectMap<V>>> registryLoader) {
         return new VersionedRegistry<>(null, registryLoader.get());
     }
 
-    public static <I, V> VersionedRegistry< V> create(I input, Supplier<RegistryLoader<I, Map<Integer, V>>> registryLoader) {
+    public static <I, V> VersionedRegistry< V> create(I input, Supplier<RegistryLoader<I, Int2ObjectMap<V>>> registryLoader) {
         return new VersionedRegistry<>(input, registryLoader.get());
     }
 }

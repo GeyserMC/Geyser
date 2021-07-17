@@ -39,8 +39,6 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki/Setup) for how to set
 - Some Entity Flags
 - Structure block UI
 
-Extended height features can be "supported", but require additional work.
-
 ## What can't be fixed
 There are a few things Geyser is unable to support due to various differences between Minecraft Bedrock and Java. For a list of these limitations, see the [Current Limitations](https://github.com/GeyserMC/Geyser/wiki/Current-Limitations) page.
 

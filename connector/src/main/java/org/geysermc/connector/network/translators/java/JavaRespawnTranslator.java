@@ -78,8 +78,6 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
             session.setThunder(false);
         }
 
-        ChunkUtils.applyDimensionHeight(session, packet.getDimension());
-
         String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
         if (!session.getDimension().equals(newDimension) || !packet.getWorldName().equals(session.getWorldName())) {
             // Switching to a new world (based off the world name change); send a fake dimension change
@@ -93,5 +91,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
             session.setWorldName(packet.getWorldName());
             DimensionUtils.switchDimension(session, newDimension);
         }
+
+        ChunkUtils.applyDimensionHeight(session, packet.getDimension());
     }
 }

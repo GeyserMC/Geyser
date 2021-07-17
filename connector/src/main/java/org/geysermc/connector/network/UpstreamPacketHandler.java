@@ -137,6 +137,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
                 }
 
+                if (session.getConnector().getConfig().isExtendedWorldHeight()) {
+                    // Allow extended world height in the overworld to work
+                    stackPacket.getExperiments().add(new ExperimentData("caves_and_cliffs", true));
+                }
+
                 session.sendUpstreamPacket(stackPacket);
                 break;
 
