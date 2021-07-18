@@ -25,8 +25,6 @@
 
 package org.geysermc.connector.registry;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -35,6 +33,7 @@ import org.geysermc.connector.registry.loader.RegistryLoaders;
 import org.geysermc.connector.registry.populator.BlockRegistryPopulator;
 import org.geysermc.connector.registry.type.BlockMapping;
 import org.geysermc.connector.registry.type.BlockMappings;
+import org.geysermc.connector.utils.Object2IntBiMap;
 
 public class BlockRegistries {
     public static final VersionedRegistry<BlockMappings> BLOCKS = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
@@ -43,7 +42,7 @@ public class BlockRegistries {
 
     public static final SimpleMappedRegistry<Integer, BlockMapping> JAVA_BLOCKS = SimpleMappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
-    public static final MappedRegistry<String, Integer, BiMap<String, Integer>> JAVA_IDENTIFIERS = MappedRegistry.create(RegistryLoaders.empty(HashBiMap::create));
+    public static final MappedRegistry<String, Integer, Object2IntBiMap<String>> JAVA_IDENTIFIERS = MappedRegistry.create(RegistryLoaders.empty(Object2IntBiMap::new));
 
     public static final SimpleMappedRegistry<Integer, String> JAVA_CLEAN_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 

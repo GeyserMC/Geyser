@@ -77,7 +77,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         if (checkInteractionPosition(session)) {
             // Then, check to see if the interacted block is valid for this inventory by ensuring the block state identifier is valid
             int javaBlockId = session.getConnector().getWorldManager().getBlockAt(session, session.getLastInteractionBlockPosition());
-            String[] javaBlockString = BlockRegistries.JAVA_IDENTIFIERS.get().inverse().getOrDefault(javaBlockId, "minecraft:air").split("\\[");
+            String[] javaBlockString = BlockRegistries.JAVA_IDENTIFIERS.get().getOrDefault(javaBlockId, "minecraft:air").split("\\[");
             if (isValidBlock(javaBlockString)) {
                 // We can safely use this block
                 inventory.setHolderPosition(session.getLastInteractionBlockPosition());

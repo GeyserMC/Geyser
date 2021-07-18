@@ -26,10 +26,10 @@
 package org.geysermc.connector.registry.loader;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.common.collect.BiMap;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.AllArgsConstructor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
@@ -40,6 +40,7 @@ import org.geysermc.connector.network.translators.collision.translators.OtherCol
 import org.geysermc.connector.network.translators.collision.translators.SolidCollision;
 import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.connector.utils.Object2IntBiMap;
 
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -71,16 +72,16 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
             throw new AssertionError("Unable to load collision data", e);
         }
 
-        BiMap<String, Integer> javaIdBlockMap = BlockRegistries.JAVA_IDENTIFIERS.get();
+        Object2IntBiMap<String> javaIdBlockMap = BlockRegistries.JAVA_IDENTIFIERS.get();
 
         // Map of classes that don't change based on parameters that have already been created
         Map<Class<?>, BlockCollision> instantiatedCollision = new HashMap<>();
-        for (Map.Entry<String, Integer> entry : javaIdBlockMap.entrySet()) {
-            BlockCollision newCollision = instantiateCollision(entry.getKey(), entry.getValue(), annotationMap, instantiatedCollision, collisionList);
+        for (Object2IntMap.Entry<String> entry : javaIdBlockMap.object2IntEntrySet()) {
+            BlockCollision newCollision = instantiateCollision(entry.getKey(), entry.getIntValue(), annotationMap, instantiatedCollision, collisionList);
             if (newCollision != null) {
                 instantiatedCollision.put(newCollision.getClass(), newCollision);
             }
-            collisions.put(entry.getValue().intValue(), newCollision);
+            collisions.put(entry.getIntValue(), newCollision);
         }
         return collisions;
     }

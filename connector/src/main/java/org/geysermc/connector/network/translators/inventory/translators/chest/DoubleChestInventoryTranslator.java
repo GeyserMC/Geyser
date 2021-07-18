@@ -54,7 +54,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         // See BlockInventoryHolder - same concept there except we're also dealing with a specific block state
         if (session.getLastInteractionPlayerPosition().equals(session.getPlayerEntity().getPosition())) {
             int javaBlockId = session.getConnector().getWorldManager().getBlockAt(session, session.getLastInteractionBlockPosition());
-            String[] javaBlockString = BlockRegistries.JAVA_IDENTIFIERS.get().inverse().getOrDefault(javaBlockId, "minecraft:air").split("\\[");
+            String[] javaBlockString = BlockRegistries.JAVA_IDENTIFIERS.get().getOrDefault(javaBlockId, "minecraft:air").split("\\[");
             if (javaBlockString.length > 1 && (javaBlockString[0].equals("minecraft:chest") || javaBlockString[0].equals("minecraft:trapped_chest"))
                     && !javaBlockString[1].contains("type=single")) {
                 inventory.setHolderPosition(session.getLastInteractionBlockPosition());
