@@ -36,11 +36,11 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 public class PacketTranslatorRegistry<T> {
-    private final Map<Class<? extends T>, PacketTranslator<? extends T>> translators = new HashMap<>();
+    private final Map<Class<? extends T>, PacketTranslator<? extends T>> translators = new IdentityHashMap<>();
 
     public static final PacketTranslatorRegistry<Packet> JAVA_TRANSLATOR = new PacketTranslatorRegistry<>();
     public static final PacketTranslatorRegistry<BedrockPacket> BEDROCK_TRANSLATOR = new PacketTranslatorRegistry<>();

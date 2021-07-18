@@ -44,7 +44,7 @@ import org.geysermc.connector.utils.Object2IntBiMap;
 
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -54,7 +54,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
     public Map<Integer, BlockCollision> load(Pair<String, String> input) {
         Int2ObjectMap<BlockCollision> collisions = new Int2ObjectOpenHashMap<>();
 
-        Map<Class<?>, CollisionInfo> annotationMap = new HashMap<>();
+        Map<Class<?>, CollisionInfo> annotationMap = new IdentityHashMap<>();
         for (Class<?> clazz : FileUtils.getGeneratedClassesForAnnotation(CollisionRemapper.class.getName())) {
             GeyserConnector.getInstance().getLogger().debug("Found annotated collision translator: " + clazz.getCanonicalName());
 
@@ -75,7 +75,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
         Object2IntBiMap<String> javaIdBlockMap = BlockRegistries.JAVA_IDENTIFIERS.get();
 
         // Map of classes that don't change based on parameters that have already been created
-        Map<Class<?>, BlockCollision> instantiatedCollision = new HashMap<>();
+        Map<Class<?>, BlockCollision> instantiatedCollision = new IdentityHashMap<>();
         for (Object2IntMap.Entry<String> entry : javaIdBlockMap.object2IntEntrySet()) {
             BlockCollision newCollision = instantiateCollision(entry.getKey(), entry.getIntValue(), annotationMap, instantiatedCollision, collisionList);
             if (newCollision != null) {
