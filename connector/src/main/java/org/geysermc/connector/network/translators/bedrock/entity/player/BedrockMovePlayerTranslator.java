@@ -123,7 +123,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                         if (floorY <= (extendedWorld ? BEDROCK_OVERWORLD_VOID_FLOOR_LOWER_Y : -38)
                                 && floorY >= (extendedWorld ? BEDROCK_OVERWORLD_VOID_FLOOR_UPPER_Y : -40)) {
                             // Work around there being a floor at the bottom of the world and teleport the player below it
-                            // Moving from below  to above the void floor works fine
+                            // Moving from below to above the void floor works fine
 
                             entity.setPosition(entity.getPosition().sub(0, 4f, 0));
                             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
