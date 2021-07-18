@@ -120,6 +120,7 @@ public class ItemRegistryPopulator {
 
             // Used to get the Bedrock namespaced ID (in instances where there are small differences)
             Object2IntMap<String> bedrockIdentifierToId = new Object2IntOpenHashMap<>();
+            bedrockIdentifierToId.defaultReturnValue(Short.MIN_VALUE);
 
             List<String> itemNames = new ArrayList<>();
 
@@ -264,8 +265,8 @@ public class ItemRegistryPopulator {
                 }
                 String bedrockIdentifier = mappingItem.getBedrockIdentifier();
                 int bedrockId = bedrockIdentifierToId.getInt(bedrockIdentifier);
-                if (bedrockIdentifier == null) {
-                    throw new RuntimeException("Missing Bedrock ID in mappings!: " + bedrockId);
+                if (bedrockId == Short.MIN_VALUE) {
+                    throw new RuntimeException("Missing Bedrock ID in mappings: " + bedrockIdentifier);
                 }
                 int stackSize = mappingItem.getStackSize();
 
