@@ -155,10 +155,6 @@ public class PlayerEntity extends LivingEntity {
         setRotation(rotation);
         this.position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
 
-        // If this is the player logged in through this Geyser session
-        if (geyserId == 1) {
-            session.getCollisionManager().updatePlayerBoundingBox(position);
-        }
         setOnGround(isOnGround);
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
@@ -230,18 +226,7 @@ public class PlayerEntity extends LivingEntity {
 
     @Override
     public void setPosition(Vector3f position) {
-        setPosition(position, true);
-    }
-
-    /**
-     * Set the player position and specify if the entity type's offset should be added. Set to false when the player
-     * sends us a move packet where the offset is already added
-     *
-     * @param position the new position of the Bedrock player
-     * @param includeOffset whether to include the offset
-     */
-    public void setPosition(Vector3f position, boolean includeOffset) {
-        this.position = includeOffset ? position.add(0, entityType.getOffset(), 0) : position;
+        super.setPosition(position.add(0, entityType.getOffset(), 0));
     }
 
     @Override
