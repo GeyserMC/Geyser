@@ -26,10 +26,67 @@
 package org.geysermc.connector.entity.living;
 
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
-public class SquidEntity extends WaterEntity {
+public class SquidEntity extends WaterEntity implements Tickable {
+
+    private float pitch;
+    private float yaw;
+
+    private float targetPitch;
+    private float targetYaw;
+
+    private boolean inWater;
+
     public SquidEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
+        this.yaw = rotation.getX();
+    }
+
+    @Override
+    public void tick(GeyserSession session) {
+        checkInWater(session);
+        if (inWater) {
+            pitch += (targetPitch - pitch) * 0.1f;
+            yaw += (targetYaw - yaw) * 0.1f;
+        } else {
+            pitch += (-90 - pitch) * 0.02f;
+        }
+        moveAbsolute(session, position, Vector3f.from(yaw, 0, yaw), onGround, false);
+    }
+
+    @Override
+    public void setRotation(Vector3f rotation) {
+        // Let the Java server control yaw when the squid is out of water
+        if (!inWater) {
+            yaw = rotation.getX();
+        }
+    }
+
+    @Override
+    public void setMotion(Vector3f motion) {
+        super.setMotion(motion);
+
+        double horizontalSpeed = Math.sqrt(motion.getX() * motion.getX() + motion.getZ() * motion.getZ());
+        targetPitch = (float) Math.toDegrees(-Math.atan2(horizontalSpeed, motion.getY()));
+        targetYaw = (float) Math.toDegrees(-Math.atan2(motion.getX(), motion.getZ()));
+    }
+
+    @Override
+    public Vector3f getBedrockRotation() {
+        return Vector3f.from(pitch, yaw, yaw);
+    }
+
+    private void checkInWater(GeyserSession session) {
+        if (getMetadata().getFlags().getFlag(EntityFlag.RIDING)) {
+            inWater = false;
+        } else {
+            int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
+            inWater = BlockStateValues.getWaterLevel(block) != -1;
+        }
     }
 }
