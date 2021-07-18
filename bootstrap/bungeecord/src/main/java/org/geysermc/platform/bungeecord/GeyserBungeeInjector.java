@@ -33,7 +33,6 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.local.LocalAddress;
 import io.netty.util.AttributeKey;
-import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.netty.PipelineUtils;
@@ -105,8 +104,10 @@ public class GeyserBungeeInjector extends GeyserInjector {
         ChannelFuture channelFuture = (new ServerBootstrap().channel(LocalServerChannelWrapper.class).childHandler(new ChannelInitializer<Channel>() {
             @Override
             protected void initChannel(Channel ch) throws Exception {
-                if (!((BungeeCord) proxy).isRunning) {
-                    // Proxy hasn't finished; yeet
+                if (proxy.getConfig().getServers() == null) {
+                    // Proxy hasn't finished loading all plugins - it loads the config after all plugins
+                    // Probably doesn't need to be translatable?
+                    bootstrap.getGeyserLogger().info("Disconnecting player as Bungee has not finished loading");
                     ch.close();
                     return;
                 }
