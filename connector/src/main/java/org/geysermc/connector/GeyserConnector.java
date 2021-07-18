@@ -126,7 +126,7 @@ public class GeyserConnector {
     private Metrics metrics;
 
     private GeyserConnector(PlatformType platformType, GeyserBootstrap bootstrap) {
-        if (System.getProperty("io.netty.leakDetection.level") == null) {
+        if (platformType == PlatformType.STANDALONE && System.getProperty("io.netty.leakDetection.level") == null) {
             ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED); // Can eat performance
         }
 

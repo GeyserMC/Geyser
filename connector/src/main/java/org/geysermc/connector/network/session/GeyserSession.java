@@ -609,10 +609,8 @@ public class GeyserSession implements CommandSender {
         }
 
         loggingIn = true;
-
-        // Use a future to prevent timeouts as all the authentication is handled sync
-        // This will be changed with the new protocol library.
-        CompletableFuture.supplyAsync(() -> {
+        // new thread so clients don't timeout
+        new Thread(() -> {
             try {
                 MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserConnector.OAUTH_CLIENT_ID);
 
@@ -632,8 +630,7 @@ public class GeyserSession implements CommandSender {
             } catch (RequestException ex) {
                 ex.printStackTrace();
             }
-            return null;
-        }).whenComplete((aVoid, ex) -> connectDownstream());
+        }).start();
     }
 
     /**
@@ -650,7 +647,7 @@ public class GeyserSession implements CommandSender {
             connectDownstream();
         } catch (RequestException e) {
             if (!(e instanceof AuthPendingException)) {
-                e.printStackTrace();
+                throw new RuntimeException("Failed to log in with Microsoft code!", e);
             } else {
                 // Wait one second before trying again
                 connector.getGeneralThreadPool().schedule(() -> attemptCodeAuthentication(msaAuthenticationService), 1, TimeUnit.SECONDS);
