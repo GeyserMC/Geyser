@@ -34,6 +34,7 @@ import com.nukkitx.network.util.EventLoops;
 import com.nukkitx.protocol.bedrock.BedrockServer;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.kqueue.KQueue;
+import io.netty.util.ResourceLeakDetector;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.PlatformType;
@@ -125,6 +126,10 @@ public class GeyserConnector {
     private Metrics metrics;
 
     private GeyserConnector(PlatformType platformType, GeyserBootstrap bootstrap) {
+        if (System.getProperty("io.netty.leakDetection.level") == null) {
+            ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED); // Can eat performance
+        }
+
         long startupTime = System.currentTimeMillis();
 
         instance = this;
