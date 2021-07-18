@@ -560,8 +560,10 @@ public class GeyserSession implements CommandSender {
         }
 
         loggingIn = true;
-        // new thread so clients don't timeout
-        new Thread(() -> {
+
+        // Use a future to prevent timeouts as all the authentication is handled sync
+        // This will be changed with the new protocol library.
+        CompletableFuture.supplyAsync(() -> {
             try {
                 if (password != null && !password.isEmpty()) {
                     AuthenticationService authenticationService;
@@ -587,15 +589,14 @@ public class GeyserSession implements CommandSender {
 
                     protocol = new MinecraftProtocol(validUsername);
                 }
-
-                connectDownstream();
             } catch (InvalidCredentialsException | IllegalArgumentException e) {
                 connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.invalid", username));
                 disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
             } catch (RequestException ex) {
                 ex.printStackTrace();
             }
-        }).start();
+            return null;
+        }).whenComplete((aVoid, ex) -> connectDownstream());
     }
 
     /**
@@ -608,8 +609,10 @@ public class GeyserSession implements CommandSender {
         }
 
         loggingIn = true;
-        // new thread so clients don't timeout
-        new Thread(() -> {
+
+        // Use a future to prevent timeouts as all the authentication is handled sync
+        // This will be changed with the new protocol library.
+        CompletableFuture.supplyAsync(() -> {
             try {
                 MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserConnector.OAUTH_CLIENT_ID);
 
@@ -629,7 +632,8 @@ public class GeyserSession implements CommandSender {
             } catch (RequestException ex) {
                 ex.printStackTrace();
             }
-        }).start();
+            return null;
+        }).whenComplete((aVoid, ex) -> connectDownstream());
     }
 
     /**
