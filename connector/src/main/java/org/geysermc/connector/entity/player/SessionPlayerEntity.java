@@ -32,6 +32,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -104,6 +105,10 @@ public class SessionPlayerEntity extends PlayerEntity {
         if (entityMetadata.getId() == 0) {
             session.setSwimmingInWater((((byte) entityMetadata.getValue()) & 0x10) == 0x10 && metadata.getFlags().getFlag(EntityFlag.SPRINTING));
             refreshSpeed = true;
+        } else if (entityMetadata.getId() == 1) { // Air/bubbles
+            if ((int) entityMetadata.getValue() == 300) {
+                metadata.put(EntityData.AIR_SUPPLY, (short) 0); // Otherwise the bubble counter remains in the UI
+            }
         } else if (entityMetadata.getId() == 6) {
             session.setPose((Pose) entityMetadata.getValue());
             refreshSpeed = true;

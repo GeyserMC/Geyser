@@ -34,6 +34,6 @@ public class WaterEntity extends CreatureEntity {
     public WaterEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
 
-        metadata.put(EntityData.AIR_SUPPLY, (short) 400);
+        metadata.put(EntityData.AIR_SUPPLY, (short) 300);
     }
 }

@@ -255,11 +255,7 @@ public class Entity {
                 }
                 break;
             case 1: // Air/bubbles
-                if ((int) entityMetadata.getValue() == 300) {
-                    metadata.put(EntityData.AIR_SUPPLY, (short) 0); // Otherwise the bubble counter remains in the UI
-                } else {
-                    metadata.put(EntityData.AIR_SUPPLY, (short) (int) entityMetadata.getValue());
-                }
+                metadata.put(EntityData.AIR_SUPPLY, (short) (int) entityMetadata.getValue());
                 break;
             case 2: // custom name
                 if (entityMetadata.getValue() instanceof Component) {
