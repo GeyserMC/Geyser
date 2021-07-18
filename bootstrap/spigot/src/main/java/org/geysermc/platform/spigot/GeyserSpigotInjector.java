@@ -102,6 +102,27 @@ public class GeyserSpigotInjector extends GeyserInjector {
             throw new RuntimeException("Unable to find listening channel!");
         }
 
+        // Making this a function prevents childHandler from being treated as a non-final variable
+        ChannelInitializer<Channel> childHandler = getChildHandler(bootstrap, listeningChannel);
+        // This method is what initializes the connection in Java Edition, after Netty is all set.
+        Method initChannel = childHandler.getClass().getDeclaredMethod("initChannel", Channel.class);
+        initChannel.setAccessible(true);
+
+        ChannelFuture channelFuture = (new ServerBootstrap().channel(LocalServerChannelWrapper.class).childHandler(new ChannelInitializer<Channel>() {
+            @Override
+            protected void initChannel(Channel ch) throws Exception {
+                initChannel.invoke(childHandler, ch);
+            }
+        }).group(new DefaultEventLoopGroup()).localAddress(LocalAddress.ANY)).bind().syncUninterruptibly();
+        // We don't need to add to the list, but plugins like ProtocolSupport and ProtocolLib that add to the main pipeline
+        // will work when we add to the list.
+        allServerChannels.add(channelFuture);
+        this.localChannel = channelFuture;
+        this.serverSocketAddress = channelFuture.channel().localAddress();
+    }
+
+    @SuppressWarnings("unchecked")
+    private ChannelInitializer<Channel> getChildHandler(GeyserBootstrap bootstrap, ChannelFuture listeningChannel) {
         List<String> names = listeningChannel.channel().pipeline().names();
         ChannelInitializer<Channel> childHandler = null;
         for (String name : names) {
@@ -124,23 +145,7 @@ public class GeyserSpigotInjector extends GeyserInjector {
         if (childHandler == null) {
             throw new RuntimeException();
         }
-
-        // This method is what initializes the connection in Java Edition, after Netty is all set.
-        Method initChannel = childHandler.getClass().getDeclaredMethod("initChannel", Channel.class);
-        initChannel.setAccessible(true);
-
-        ChannelInitializer<Channel> finalChildHandler = childHandler;
-        ChannelFuture channelFuture = (new ServerBootstrap().channel(LocalServerChannelWrapper.class).childHandler(new ChannelInitializer<Channel>() {
-            @Override
-            protected void initChannel(Channel ch) throws Exception {
-                initChannel.invoke(finalChildHandler, ch);
-            }
-        }).group(new DefaultEventLoopGroup()).localAddress(LocalAddress.ANY)).bind().syncUninterruptibly();
-        // We don't need to add to the list, but plugins like ProtocolSupport and ProtocolLib that add to the main pipeline
-        // will work when we add to the list.
-        allServerChannels.add(channelFuture);
-        this.localChannel = channelFuture;
-        this.serverSocketAddress = channelFuture.channel().localAddress();
+        return childHandler;
     }
 
     @Override
