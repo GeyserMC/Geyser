@@ -31,13 +31,13 @@ import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
-import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 @ItemRemapper(priority = 1)
 public class EnchantedBookTranslator extends NbtItemStackTranslator {
 
     @Override
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
         if (!itemTag.contains("StoredEnchantments")) {
             return;
         }
@@ -50,7 +50,7 @@ public class EnchantedBookTranslator extends NbtItemStackTranslator {
     }
 
     @Override
-    public void translateToJava(CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToJava(CompoundTag itemTag, ItemMapping mapping) {
         if (!itemTag.contains("Enchantments")) {
             return;
         }
@@ -63,7 +63,7 @@ public class EnchantedBookTranslator extends NbtItemStackTranslator {
     }
 
     @Override
-    public boolean acceptItem(ItemEntry itemEntry) {
-        return "minecraft:enchanted_book".equals(itemEntry.getJavaIdentifier());
+    public boolean acceptItem(ItemMapping mapping) {
+        return "minecraft:enchanted_book".equals(mapping.getJavaIdentifier());
     }
 }

@@ -45,6 +45,8 @@ public interface GeyserConfiguration {
 
     Map<String, ? extends IUserAuthenticationInfo> getUserAuths();
 
+    boolean isExtendedWorldHeight();
+
     boolean isCommandSuggestions();
 
     @JsonIgnore
@@ -86,8 +88,6 @@ public interface GeyserConfiguration {
     boolean isAddNonBedrockItems();
 
     boolean isAboveBedrockNetherBuilding();
-
-    boolean isCacheChunks();
 
     boolean isForceResourcePacks();
 

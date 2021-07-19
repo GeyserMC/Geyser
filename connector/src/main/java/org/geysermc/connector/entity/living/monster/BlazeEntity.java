@@ -39,7 +39,7 @@ public class BlazeEntity extends MonsterEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 15) {
+        if (entityMetadata.getId() == 16) {
             byte xd = (byte) entityMetadata.getValue();
             metadata.getFlags().setFlag(EntityFlag.ON_FIRE, (xd & 0x01) == 0x01);
         }

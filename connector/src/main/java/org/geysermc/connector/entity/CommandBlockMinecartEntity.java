@@ -46,10 +46,10 @@ public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 13) {
+        if (entityMetadata.getId() == 14) {
             metadata.put(EntityData.COMMAND_BLOCK_COMMAND, entityMetadata.getValue());
         }
-        if (entityMetadata.getId() == 14) {
+        if (entityMetadata.getId() == 15) {
             metadata.put(EntityData.COMMAND_BLOCK_LAST_OUTPUT, MessageTranslator.convertMessage((Component) entityMetadata.getValue()));
         }
         super.updateBedrockMetadata(entityMetadata, session);
@@ -60,7 +60,7 @@ public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
      */
     @Override
     public void updateDefaultBlockMetadata(GeyserSession session) {
-        metadata.put(EntityData.DISPLAY_ITEM, session.getBlockTranslator().getBedrockRuntimeCommandBlockId());
+        metadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getCommandBlockRuntimeId());
         metadata.put(EntityData.DISPLAY_OFFSET, 6);
     }
 }

@@ -31,21 +31,22 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.SettingsUtils;
+import org.geysermc.cumulus.CustomForm;
 
 import java.util.concurrent.TimeUnit;
 
 @Translator(packet = ServerSettingsRequestPacket.class)
 public class BedrockServerSettingsRequestTranslator extends PacketTranslator<ServerSettingsRequestPacket> {
-
     @Override
     public void translate(ServerSettingsRequestPacket packet, GeyserSession session) {
-        SettingsUtils.buildForm(session);
+        CustomForm window = SettingsUtils.buildForm(session);
+        int windowId = session.getFormCache().addForm(window);
 
         // Fixes https://bugs.mojang.com/browse/MCPE-94012 because of the delay
         session.getConnector().getGeneralThreadPool().schedule(() -> {
             ServerSettingsResponsePacket serverSettingsResponsePacket = new ServerSettingsResponsePacket();
-            serverSettingsResponsePacket.setFormData(session.getSettingsForm().getJSONData());
-            serverSettingsResponsePacket.setFormId(SettingsUtils.SETTINGS_FORM_ID);
+            serverSettingsResponsePacket.setFormData(window.getJsonData());
+            serverSettingsResponsePacket.setFormId(windowId);
             session.sendUpstreamPacket(serverSettingsResponsePacket);
         }, 1, TimeUnit.SECONDS);
     }

@@ -25,25 +25,20 @@
 
 package org.geysermc.connector.command.defaults;
 
-import org.geysermc.common.window.SimpleFormWindow;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.cache.AdvancementsCache;
 
 public class AdvancementsCommand extends GeyserCommand {
-
-    public AdvancementsCommand(GeyserConnector connector, String name, String description, String permission) {
+    public AdvancementsCommand(String name, String description, String permission) {
         super(name, description, permission);
     }
 
     @Override
     public void execute(GeyserSession session, CommandSender sender, String[] args) {
-        if (session == null) return;
-
-        SimpleFormWindow window = session.getAdvancementsCache().buildMenuForm();
-        session.sendForm(window, AdvancementsCache.ADVANCEMENTS_MENU_FORM_ID);
+        if (session != null) {
+            session.getAdvancementsCache().buildAndShowMenuForm();
+        }
     }
 
     @Override

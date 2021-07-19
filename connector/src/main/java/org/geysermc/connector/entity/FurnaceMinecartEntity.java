@@ -30,7 +30,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
 public class FurnaceMinecartEntity extends DefaultBlockMinecartEntity {
 
@@ -42,7 +42,7 @@ public class FurnaceMinecartEntity extends DefaultBlockMinecartEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 13 && !showCustomBlock) {
+        if (entityMetadata.getId() == 14 && !showCustomBlock) {
             hasFuel = (boolean) entityMetadata.getValue();
             updateDefaultBlockMetadata(session);
         }
@@ -52,7 +52,7 @@ public class FurnaceMinecartEntity extends DefaultBlockMinecartEntity {
 
     @Override
     public void updateDefaultBlockMetadata(GeyserSession session) {
-        metadata.put(EntityData.DISPLAY_ITEM, session.getBlockTranslator().getBedrockBlockId(hasFuel ? BlockTranslator.JAVA_RUNTIME_FURNACE_LIT_ID : BlockTranslator.JAVA_RUNTIME_FURNACE_ID));
+        metadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId(hasFuel ? BlockStateValues.JAVA_FURNACE_LIT_ID : BlockStateValues.JAVA_FURNACE_ID));
         metadata.put(EntityData.DISPLAY_OFFSET, 6);
     }
 }

@@ -29,6 +29,7 @@ import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.registry.Registries;
 
 import java.util.Map;
 
@@ -49,7 +50,7 @@ public interface EntitySoundInteractionHandler extends SoundInteractionHandler<E
         // If we need to get the hand identifier, only get it once and save it to a variable
         String handIdentifier = null;
 
-        for (Map.Entry<SoundHandler, SoundInteractionHandler<?>> interactionEntry : SoundHandlerRegistry.INTERACTION_HANDLERS.entrySet()) {
+        for (Map.Entry<SoundHandler, SoundInteractionHandler<?>> interactionEntry : Registries.SOUND_HANDLERS.get().entrySet()) {
             if (!(interactionEntry.getValue() instanceof EntitySoundInteractionHandler)) {
                 continue;
             }
@@ -70,7 +71,7 @@ public interface EntitySoundInteractionHandler extends SoundInteractionHandler<E
                 }
                 if (handIdentifier == null) {
                     // Don't get the identifier unless we need it
-                    handIdentifier = itemInHand.getItemEntry().getJavaIdentifier();
+                    handIdentifier = itemInHand.getMapping(session).getJavaIdentifier();
                 }
                 boolean contains = false;
                 for (String itemIdentifier : interactionEntry.getKey().items()) {

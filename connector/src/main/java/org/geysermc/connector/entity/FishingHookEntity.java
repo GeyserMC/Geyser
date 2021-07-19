@@ -36,10 +36,10 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionManager;
-import org.geysermc.connector.network.translators.collision.CollisionTranslator;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.registry.BlockRegistries;
+import org.geysermc.connector.utils.BlockUtils;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -67,7 +67,7 @@ public class FishingHookEntity extends ThrowableEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 7) { // Hooked entity
+        if (entityMetadata.getId() == 8) { // Hooked entity
             int hookedEntityId = (int) entityMetadata.getValue() - 1;
             Entity entity = session.getEntityCache().getEntityByJavaId(hookedEntityId);
             if (entity == null && session.getPlayerEntity().getEntityId() == hookedEntityId) {
@@ -97,14 +97,14 @@ public class FishingHookEntity extends ThrowableEntity {
         boolean collided = false;
         for (Vector3i blockPos : collidableBlocks) {
             int blockID = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
-            BlockCollision blockCollision = CollisionTranslator.getCollision(blockID, blockPos.getX(), blockPos.getY(), blockPos.getZ());
+            BlockCollision blockCollision = BlockUtils.getCollision(blockID, blockPos.getX(), blockPos.getY(), blockPos.getZ());
             if (blockCollision != null && blockCollision.checkIntersection(boundingBox)) {
                 // TODO Push bounding box out of collision to improve movement
                 collided = true;
             }
 
             int waterLevel = BlockStateValues.getWaterLevel(blockID);
-            if (BlockTranslator.isWaterlogged(blockID)) {
+            if (BlockRegistries.WATERLOGGED.get().contains(blockID)) {
                 waterLevel = 0;
             }
             if (waterLevel >= 0) {
@@ -174,11 +174,8 @@ public class FishingHookEntity extends ThrowableEntity {
      * @return true if this entity is currently in air.
      */
     protected boolean isInAir(GeyserSession session) {
-        if (session.getConnector().getConfig().isCacheChunks()) {
-            int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
-            return block == BlockTranslator.JAVA_AIR_ID;
-        }
-        return false;
+        int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
+        return block == BlockStateValues.JAVA_AIR_ID;
     }
 
     @Override

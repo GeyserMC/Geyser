@@ -40,7 +40,7 @@ public class SheepEntity extends AnimalEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 17) {
             byte xd = (byte) entityMetadata.getValue();
             metadata.getFlags().setFlag(EntityFlag.SHEARED, (xd & 0x10) == 0x10);
             metadata.put(EntityData.COLOR, xd);

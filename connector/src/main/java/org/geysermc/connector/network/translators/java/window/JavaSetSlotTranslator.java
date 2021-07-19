@@ -72,6 +72,8 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
             if (inventory == null)
                 return;
 
+            inventory.setStateId(packet.getStateId());
+
             InventoryTranslator translator = session.getInventoryTranslator();
             if (translator != null) {
                 if (session.getCraftingGridFuture() != null) {

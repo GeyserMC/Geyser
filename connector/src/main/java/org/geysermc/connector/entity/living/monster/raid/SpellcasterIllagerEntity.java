@@ -45,7 +45,7 @@ public class SpellcasterIllagerEntity extends AbstractIllagerEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 17) {
             int spellType = (int) (byte) entityMetadata.getValue();
             // Summon vex, attack, or wololo
             metadata.getFlags().setFlag(EntityFlag.CASTING, spellType == 1 || spellType == 2 || spellType == 3);

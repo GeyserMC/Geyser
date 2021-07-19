@@ -29,15 +29,49 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.world.block.entity.BedrockOnlyBlockEntity;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
+import org.geysermc.connector.network.translators.world.block.entity.FlowerPotBlockEntityTranslator;
+import org.geysermc.connector.registry.Registries;
+
+import javax.annotation.Nonnull;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BlockEntityUtils {
-    private static final BlockEntityTranslator EMPTY_TRANSLATOR = BlockEntityTranslator.BLOCK_ENTITY_TRANSLATORS.get("Empty");
+    /**
+     * A list of all block entities that require the Java block state in order to fill out their block entity information.
+     * This list will be smaller with cache chunks on as we don't need to double-cache data
+     */
+    public static final ObjectArrayList<BedrockOnlyBlockEntity> BEDROCK_ONLY_BLOCK_ENTITIES = new ObjectArrayList<>();
+
+    /**
+     * Contains a list of irregular block entity name translations that can't be fit into the regex
+     */
+    public static final Map<String, String> BLOCK_ENTITY_TRANSLATIONS = new HashMap<String, String>() {
+        {
+            // Bedrock/Java differences
+            put("minecraft:enchanting_table", "EnchantTable");
+            put("minecraft:jigsaw", "JigsawBlock");
+            put("minecraft:piston_head", "PistonArm");
+            put("minecraft:trapped_chest", "Chest");
+            // There are some legacy IDs sent but as far as I can tell they are not needed for things to work properly
+        }
+    };
+
+    private static final BlockEntityTranslator EMPTY_TRANSLATOR = Registries.BLOCK_ENTITIES.get("Empty");
+
+    static {
+        // Seeing as there are only two - and, hopefully, will only ever be two - we can hardcode this
+        BEDROCK_ONLY_BLOCK_ENTITIES.add((BedrockOnlyBlockEntity) Registries.BLOCK_ENTITIES.get().get("Chest"));
+        BEDROCK_ONLY_BLOCK_ENTITIES.add(new FlowerPotBlockEntityTranslator());
+    }
 
     public static String getBedrockBlockEntityId(String id) {
         // These are the only exceptions when it comes to block entity ids
-        String value = BlockEntityTranslator.BLOCK_ENTITY_TRANSLATIONS.get(id);
+        String value = BLOCK_ENTITY_TRANSLATIONS.get(id);
         if (value != null) {
             return value;
         }
@@ -59,18 +93,18 @@ public class BlockEntityUtils {
     }
 
     public static BlockEntityTranslator getBlockEntityTranslator(String name) {
-        BlockEntityTranslator blockEntityTranslator = BlockEntityTranslator.BLOCK_ENTITY_TRANSLATORS.get(name);
+        BlockEntityTranslator blockEntityTranslator = Registries.BLOCK_ENTITIES.get(name);
         if (blockEntityTranslator != null) {
             return blockEntityTranslator;
         }
         return EMPTY_TRANSLATOR;
     }
 
-    public static void updateBlockEntity(GeyserSession session, NbtMap blockEntity, Position position) {
+    public static void updateBlockEntity(GeyserSession session, @Nonnull NbtMap blockEntity, Position position) {
         updateBlockEntity(session, blockEntity, Vector3i.from(position.getX(), position.getY(), position.getZ()));
     }
 
-    public static void updateBlockEntity(GeyserSession session, NbtMap blockEntity, Vector3i position) {
+    public static void updateBlockEntity(GeyserSession session, @Nonnull NbtMap blockEntity, Vector3i position) {
         BlockEntityDataPacket blockEntityPacket = new BlockEntityDataPacket();
         blockEntityPacket.setBlockPosition(position);
         blockEntityPacket.setData(blockEntity);

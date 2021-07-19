@@ -31,13 +31,13 @@ import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
-import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 @ItemRemapper
 public class FireworkStarTranslator extends FireworkBaseTranslator {
 
     @Override
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
         Tag explosion = itemTag.get("Explosion");
         if (explosion instanceof CompoundTag) {
             CompoundTag newExplosion = translateExplosionToBedrock((CompoundTag) explosion, "FireworksItem");
@@ -78,7 +78,7 @@ public class FireworkStarTranslator extends FireworkBaseTranslator {
     }
 
     @Override
-    public void translateToJava(CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToJava(CompoundTag itemTag, ItemMapping mapping) {
         Tag explosion = itemTag.get("FireworksItem");
         if (explosion instanceof CompoundTag) {
             CompoundTag newExplosion = translateExplosionToJava((CompoundTag) explosion, "Explosion");
@@ -90,7 +90,7 @@ public class FireworkStarTranslator extends FireworkBaseTranslator {
     }
 
     @Override
-    public boolean acceptItem(ItemEntry itemEntry) {
-        return "minecraft:firework_star".equals(itemEntry.getJavaIdentifier());
+    public boolean acceptItem(ItemMapping mapping) {
+        return "minecraft:firework_star".equals(mapping.getJavaIdentifier());
     }
 }

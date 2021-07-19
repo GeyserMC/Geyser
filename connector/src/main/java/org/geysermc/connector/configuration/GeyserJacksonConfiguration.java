@@ -55,6 +55,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private BedrockConfiguration bedrock = new BedrockConfiguration();
     private RemoteConfiguration remote = new RemoteConfiguration();
 
+    @JsonProperty("extended-world-height")
+    private boolean extendedWorldHeight = false;
+
     @JsonProperty("floodgate-key-file")
     private String floodgateKeyFile = "public-key.pem";
 
@@ -111,9 +114,6 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("default-locale")
     private String defaultLocale = null; // is null by default so system language takes priority
 
-    @JsonProperty("cache-chunks")
-    private boolean cacheChunks = false;
-
     @JsonProperty("cache-images")
     private int cacheImages = 0;
 
@@ -137,7 +137,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @Getter
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class BedrockConfiguration implements IBedrockConfiguration {
-        @AsteriskSerializer.Asterisk(sensitive = true)
+        @AsteriskSerializer.Asterisk(isIp = true)
         private String address = "0.0.0.0";
 
         @Setter
@@ -187,7 +187,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class RemoteConfiguration implements IRemoteConfiguration {
         @Setter
-        @AsteriskSerializer.Asterisk(sensitive = true)
+        @AsteriskSerializer.Asterisk(isIp = true)
         private String address = "auto";
 
         @Setter

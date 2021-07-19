@@ -33,13 +33,15 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
+import com.nukkitx.protocol.bedrock.v448.Bedrock_v448;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import org.geysermc.connector.utils.BlockUtils;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -52,7 +54,7 @@ public class CollisionManager {
     private final GeyserSession session;
 
     @Getter
-    private BoundingBox playerBoundingBox;
+    private final BoundingBox playerBoundingBox;
 
     /**
      * Whether the player is inside scaffolding
@@ -103,26 +105,16 @@ public class CollisionManager {
     }
 
     /**
-     * Updates the stored bounding box without passing a position, which currently just changes the height depending on if the player is sneaking.
+     * Updates the height of the stored bounding box
      */
     public void updatePlayerBoundingBox() {
-        if (playerBoundingBox == null) {
-            Vector3f playerPosition;
-            if (session.getPlayerEntity() == null) {
-                // Temporary position to prevent NullPointerException
-                playerPosition = Vector3f.ZERO;
-            } else {
-                playerPosition = session.getPlayerEntity().getPosition();
-            }
-            playerBoundingBox = new BoundingBox(playerPosition.getX(), playerPosition.getY() + 0.9, playerPosition.getZ(),
-                    EntityType.PLAYER.getWidth(), EntityType.PLAYER.getHeight(), EntityType.PLAYER.getLength());
-        } else {
-            // According to the Minecraft Wiki, when sneaking:
-            // - In Bedrock Edition, the height becomes 1.65 blocks, allowing movement through spaces as small as 1.75 (2 - 1⁄4) blocks high.
-            // - In Java Edition, the height becomes 1.5 blocks.
-            // Other instances have the player's bounding box become as small as 0.6 or 0.2.
-            playerBoundingBox.setSizeY(session.getPlayerEntity().getMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT));
-        }
+        // According to the Minecraft Wiki, when sneaking:
+        // - In Bedrock Edition, the height becomes 1.65 blocks, allowing movement through spaces as small as 1.75 (2 - 1⁄4) blocks high.
+        // - In Java Edition, the height becomes 1.5 blocks.
+        // Other instances have the player's bounding box become as small as 0.6 or 0.2.
+        double playerHeight = session.getPlayerEntity().getMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT);
+        playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() - (playerBoundingBox.getSizeY() / 2.0) + (playerHeight / 2.0));
+        playerBoundingBox.setSizeY(playerHeight);
     }
 
     /**
@@ -141,32 +133,22 @@ public class CollisionManager {
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY,
                 Double.parseDouble(Float.toString(bedrockPosition.getZ())));
 
-        if (session.getConnector().getConfig().isCacheChunks()) {
-            // With chunk caching, we can do some proper collision checks
-            updatePlayerBoundingBox(position);
+        updatePlayerBoundingBox(position);
 
-            // Correct player position
-            if (!correctPlayerPosition()) {
-                // Cancel the movement if it needs to be cancelled
-                recalculatePosition();
-                return null;
-            }
+        // Correct player position
+        if (!correctPlayerPosition()) {
+            // Cancel the movement if it needs to be cancelled
+            recalculatePosition();
+            return null;
+        }
 
-            position = Vector3d.from(playerBoundingBox.getMiddleX(),
-                    playerBoundingBox.getMiddleY() - (playerBoundingBox.getSizeY() / 2),
-                    playerBoundingBox.getMiddleZ());
+        position = Vector3d.from(playerBoundingBox.getMiddleX(),
+                playerBoundingBox.getMiddleY() - (playerBoundingBox.getSizeY() / 2),
+                playerBoundingBox.getMiddleZ());
 
-            if (!onGround) {
-                // Trim the position to prevent rounding errors that make Java think we are clipping into a block
-                position = Vector3d.from(position.getX(), Double.parseDouble(DECIMAL_FORMAT.format(position.getY())), position.getZ());
-            }
-        } else {
-            // When chunk caching is off, we have to rely on this
-            // It rounds the Y position up to the nearest 0.5
-            // This snaps players to snap to the top of stairs and slabs like on Java Edition
-            // However, it causes issues such as the player floating on carpets
-            if (onGround) javaY = Math.ceil(javaY * 2) / 2;
-            position = position.up(javaY - position.getY());
+        if (!onGround) {
+            // Trim the position to prevent rounding errors that make Java think we are clipping into a block
+            position = Vector3d.from(position.getX(), Double.parseDouble(DECIMAL_FORMAT.format(position.getY())), position.getZ());
         }
 
         return position;
@@ -238,7 +220,7 @@ public class CollisionManager {
 
         // Used when correction code needs to be run before the main correction
         for (Vector3i blockPos : collidableBlocks) {
-            BlockCollision blockCollision = CollisionTranslator.getCollisionAt(
+            BlockCollision blockCollision = BlockUtils.getCollisionAt(
                     session, blockPos.getX(), blockPos.getY(), blockPos.getZ()
             );
             if (blockCollision != null) {
@@ -248,7 +230,7 @@ public class CollisionManager {
 
         // Main correction code
         for (Vector3i blockPos : collidableBlocks) {
-            BlockCollision blockCollision = CollisionTranslator.getCollisionAt(
+            BlockCollision blockCollision = BlockUtils.getCollisionAt(
                     session, blockPos.getX(), blockPos.getY(), blockPos.getZ()
             );
             if (blockCollision != null) {
@@ -268,18 +250,20 @@ public class CollisionManager {
      * were they not sneaking
      */
     public boolean isUnderSlab() {
-        if (!session.getConnector().getConfig().isCacheChunks()) {
-            // We can't reliably determine this
-            return false;
-        }
         Vector3i position = session.getPlayerEntity().getPosition().toInt();
-        BlockCollision collision = CollisionTranslator.getCollisionAt(session, position.getX(), position.getY(), position.getZ());
+        BlockCollision collision = BlockUtils.getCollisionAt(session, position.getX(), position.getY(), position.getZ());
         if (collision != null) {
             // Determine, if the player's bounding box *were* at full height, if it would intersect with the block
             // at the current location.
+            double originalY = playerBoundingBox.getMiddleY();
+            double originalHeight = playerBoundingBox.getSizeY();
+            double standingY = originalY - (originalHeight / 2.0) + (EntityType.PLAYER.getHeight() / 2.0);
+
             playerBoundingBox.setSizeY(EntityType.PLAYER.getHeight());
+            playerBoundingBox.setMiddleY(standingY);
             boolean result = collision.checkIntersection(playerBoundingBox);
-            playerBoundingBox.setSizeY(session.getPlayerEntity().getMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT));
+            playerBoundingBox.setSizeY(originalHeight);
+            playerBoundingBox.setMiddleY(originalY);
             return result;
         }
         return false;
@@ -289,8 +273,7 @@ public class CollisionManager {
      * @return if the player is currently in a water block
      */
     public boolean isPlayerInWater() {
-        return session.getConnector().getConfig().isCacheChunks()
-                && session.getConnector().getWorldManager().getBlockAt(session, session.getPlayerEntity().getPosition().toInt()) == BlockTranslator.JAVA_WATER_ID;
+        return session.getConnector().getWorldManager().getBlockAt(session, session.getPlayerEntity().getPosition().toInt()) == BlockStateValues.JAVA_WATER_ID;
     }
 
     /**
@@ -304,14 +287,16 @@ public class CollisionManager {
         boolean flagsChanged;
         boolean isSneakingWithScaffolding = (touchingScaffolding || onScaffolding) && session.isSneaking();
 
-        flagsChanged = flags.getFlag(EntityFlag.FALL_THROUGH_SCAFFOLDING) != isSneakingWithScaffolding;
-        flagsChanged |= flags.getFlag(EntityFlag.OVER_SCAFFOLDING) != isSneakingWithScaffolding;
+        if (session.getUpstream().getProtocolVersion() < Bedrock_v448.V448_CODEC.getProtocolVersion()) {
+            // Now no longer sent with BDS as of 1.17.10
+            flagsChanged = flags.setFlag(EntityFlag.FALL_THROUGH_SCAFFOLDING, isSneakingWithScaffolding);
+        } else {
+            flagsChanged = flags.setFlag(EntityFlag.OVER_DESCENDABLE_BLOCK, onScaffolding);
+            flagsChanged |= flags.setFlag(EntityFlag.IN_ASCENDABLE_BLOCK, touchingScaffolding);
+        }
+        flagsChanged |= flags.setFlag(EntityFlag.OVER_SCAFFOLDING, isSneakingWithScaffolding);
 
-        flags.setFlag(EntityFlag.FALL_THROUGH_SCAFFOLDING, isSneakingWithScaffolding);
-        flags.setFlag(EntityFlag.OVER_SCAFFOLDING, isSneakingWithScaffolding);
-
-        flagsChanged |= flags.getFlag(EntityFlag.IN_SCAFFOLDING) != touchingScaffolding;
-        flags.setFlag(EntityFlag.IN_SCAFFOLDING, touchingScaffolding);
+        flagsChanged |= flags.setFlag(EntityFlag.IN_SCAFFOLDING, touchingScaffolding);
 
         if (flagsChanged && updateMetadata) {
             session.getPlayerEntity().updateBedrockMetadata(session);

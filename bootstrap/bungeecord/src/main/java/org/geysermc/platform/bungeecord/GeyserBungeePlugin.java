@@ -94,10 +94,16 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         this.geyserLogger = new GeyserBungeeLogger(getLogger(), geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
-        if (geyserConfig.getRemote().getAuthType().equals("floodgate") && getProxy().getPluginManager().getPlugin("floodgate-bungee") == null) {
+        // Remove this in like a year
+        if (getProxy().getPluginManager().getPlugin("floodgate-bungee") != null) {
+            geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/"));
+            return;
+        }
+
+        if (geyserConfig.getRemote().getAuthType().equals("floodgate") && getProxy().getPluginManager().getPlugin("floodgate") == null) {
             geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             return;
-        } else if (geyserConfig.isAutoconfiguredRemote() && getProxy().getPluginManager().getPlugin("floodgate-bungee") != null) {
+        } else if (geyserConfig.isAutoconfiguredRemote() && getProxy().getPluginManager().getPlugin("floodgate") != null) {
             // Floodgate installed means that the user wants Floodgate authentication
             geyserLogger.debug("Auto-setting to Floodgate authentication.");
             geyserConfig.getRemote().setAuthType("floodgate");

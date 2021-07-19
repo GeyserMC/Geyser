@@ -37,7 +37,6 @@ import net.md_5.bungee.protocol.ProtocolConstants;
 import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 
-import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Arrays;
@@ -64,9 +63,8 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
                 new GeyserPingInfo.Version(response.getVersion().getName(), response.getVersion().getProtocol())
         );
         if (event.getResponse().getPlayers().getSample() != null) {
-            Arrays.stream(event.getResponse().getPlayers().getSample()).forEach(proxiedPlayer -> {
-                geyserPingInfo.getPlayerList().add(proxiedPlayer.getName());
-            });
+            Arrays.stream(event.getResponse().getPlayers().getSample()).forEach(proxiedPlayer ->
+                    geyserPingInfo.getPlayerList().add(proxiedPlayer.getName()));
         }
         return geyserPingInfo;
     }

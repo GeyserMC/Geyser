@@ -25,23 +25,19 @@
 
 package org.geysermc.platform.spigot.world.manager;
 
-import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
+import com.viaversion.viaversion.api.Via;
+import com.viaversion.viaversion.api.data.MappingData;
+import com.viaversion.viaversion.api.minecraft.Position;
+import com.viaversion.viaversion.api.protocol.ProtocolPathEntry;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import com.viaversion.viaversion.protocols.protocol1_13to1_12_2.Protocol1_13To1_12_2;
+import com.viaversion.viaversion.protocols.protocol1_13to1_12_2.storage.BlockStorage;
 import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import us.myles.ViaVersion.api.Pair;
-import us.myles.ViaVersion.api.Via;
-import us.myles.ViaVersion.api.data.MappingData;
-import us.myles.ViaVersion.api.minecraft.Position;
-import us.myles.ViaVersion.api.protocol.Protocol;
-import us.myles.ViaVersion.api.protocol.ProtocolRegistry;
-import us.myles.ViaVersion.api.protocol.ProtocolVersion;
-import us.myles.ViaVersion.protocols.protocol1_13to1_12_2.Protocol1_13To1_12_2;
-import us.myles.ViaVersion.protocols.protocol1_13to1_12_2.storage.BlockStorage;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
 import java.util.List;
 
@@ -60,12 +56,12 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
     /**
      * The list of all protocols from the client's version to 1.13.
      */
-    private final List<Pair<Integer, Protocol>> protocolList;
+    private final List<ProtocolPathEntry> protocolList;
 
     public GeyserSpigot1_12WorldManager(Plugin plugin) {
-        super(plugin, false);
-        this.mappingData1_12to1_13 = ProtocolRegistry.getProtocol(Protocol1_13To1_12_2.class).getMappingData();
-        this.protocolList = ProtocolRegistry.getProtocolPath(CLIENT_PROTOCOL_VERSION,
+        super(plugin);
+        this.mappingData1_12to1_13 = Via.getManager().getProtocolManager().getProtocol(Protocol1_13To1_12_2.class).getMappingData();
+        this.protocolList = Via.getManager().getProtocolManager().getProtocolPath(CLIENT_PROTOCOL_VERSION,
                 ProtocolVersion.v1_13.getVersion());
     }
 
@@ -74,14 +70,14 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
         Player player = Bukkit.getPlayer(session.getPlayerEntity().getUsername());
         if (player == null) {
-            return BlockTranslator.JAVA_AIR_ID;
+            return BlockStateValues.JAVA_AIR_ID;
         }
         if (!player.getWorld().isChunkLoaded(x >> 4, z >> 4)) {
             // Prevent nasty async errors if a player is loading in
-            return BlockTranslator.JAVA_AIR_ID;
+            return BlockStateValues.JAVA_AIR_ID;
         }
         // Get block entity storage
-        BlockStorage storage = Via.getManager().getConnection(player.getUniqueId()).get(BlockStorage.class);
+        BlockStorage storage = Via.getManager().getConnectionManager().getConnectedClient(player.getUniqueId()).get(BlockStorage.class);
         Block block = player.getWorld().getBlockAt(x, y, z);
         // Black magic that gets the old block state ID
         int blockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
@@ -97,7 +93,6 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
      * @param z Z coordinate of block
      * @return the block state updated to the latest Minecraft version
      */
-    @SuppressWarnings("deprecation")
     public int getLegacyBlock(BlockStorage storage, int blockId, int x, int y, int z) {
         // Convert block state from old version (1.12.2) -> 1.13 -> 1.13.1 -> 1.14 -> 1.15 -> 1.16 -> 1.16.2
         blockId = mappingData1_12to1_13.getNewBlockId(blockId);
@@ -109,34 +104,12 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
             }
         }
         for (int i = protocolList.size() - 1; i >= 0; i--) {
-            MappingData mappingData = protocolList.get(i).getValue().getMappingData();
+            MappingData mappingData = protocolList.get(i).getProtocol().getMappingData();
             if (mappingData != null) {
                 blockId = mappingData.getNewBlockStateId(blockId);
             }
         }
         return blockId;
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public void getBlocksInSection(GeyserSession session, int x, int y, int z, Chunk chunk) {
-        Player player = Bukkit.getPlayer(session.getPlayerEntity().getUsername());
-        if (player == null) {
-            return;
-        }
-        World world = player.getWorld();
-        // Get block entity storage
-        BlockStorage storage = Via.getManager().getConnection(player.getUniqueId()).get(BlockStorage.class);
-        for (int blockY = 0; blockY < 16; blockY++) { // Cache-friendly iteration order
-            for (int blockZ = 0; blockZ < 16; blockZ++) {
-                for (int blockX = 0; blockX < 16; blockX++) {
-                    Block block = world.getBlockAt((x << 4) + blockX, (y << 4) + blockY, (z << 4) + blockZ);
-                    // Black magic that gets the old block state ID
-                    int blockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
-                    chunk.set(blockX, blockY, blockZ, getLegacyBlock(storage, blockId, (x << 4) + blockX, (y << 4) + blockY, (z << 4) + blockZ));
-                }
-            }
-        }
     }
 
     @Override

@@ -27,8 +27,8 @@ package org.geysermc.connector.registry.type;
 
 import lombok.Builder;
 import lombok.Value;
+import org.geysermc.connector.utils.BlockUtils;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 @Builder
@@ -45,7 +45,6 @@ public class BlockMapping {
 
     double hardness;
     boolean canBreakWithHand;
-    @Nonnull String toolType;
     /**
      * The index of this collision in collision.json
      */
@@ -56,7 +55,7 @@ public class BlockMapping {
      * @return the identifier without the additional block states
      */
     public String getCleanJavaIdentifier() {
-        return javaIdentifier.split("\\[")[0];
+        return BlockUtils.getCleanIdentifier(javaIdentifier);
     }
 
     /**

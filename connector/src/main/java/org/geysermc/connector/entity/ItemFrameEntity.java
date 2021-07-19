@@ -38,9 +38,8 @@ import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import lombok.Getter;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 import java.util.concurrent.TimeUnit;
 
@@ -84,13 +83,13 @@ public class ItemFrameEntity extends Entity {
     @Override
     public void spawnEntity(GeyserSession session) {
         NbtMapBuilder blockBuilder = NbtMap.builder()
-                .putString("name", "minecraft:frame")
-                .putInt("version", session.getBlockTranslator().getBlockStateVersion());
+                .putString("name", this.entityType == EntityType.GLOW_ITEM_FRAME ? "minecraft:glow_frame" : "minecraft:frame")
+                .putInt("version", session.getBlockMappings().getBlockStateVersion());
         blockBuilder.put("states", NbtMap.builder()
                 .putInt("facing_direction", direction.ordinal())
                 .putByte("item_frame_map_bit", (byte) 0)
                 .build());
-        bedrockRuntimeId = session.getBlockTranslator().getItemFrame(blockBuilder.build());
+        bedrockRuntimeId = session.getBlockMappings().getItemFrame(blockBuilder.build());
         bedrockPosition = Vector3i.from(position.getFloorX(), position.getFloorY(), position.getFloorZ());
 
         session.getItemFrameCache().put(bedrockPosition, this);
@@ -105,10 +104,10 @@ public class ItemFrameEntity extends Entity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 7 && entityMetadata.getValue() != null) {
+        if (entityMetadata.getId() == 8 && entityMetadata.getValue() != null) {
             this.heldItem = (ItemStack) entityMetadata.getValue();
             ItemData itemData = ItemTranslator.translateToBedrock(session, heldItem);
-            ItemEntry itemEntry = ItemRegistry.getItem((ItemStack) entityMetadata.getValue());
+            ItemMapping mapping = session.getItemMappings().getMapping((ItemStack) entityMetadata.getValue());
             NbtMapBuilder builder = NbtMap.builder();
 
             builder.putByte("Count", (byte) itemData.getCount());
@@ -116,7 +115,7 @@ public class ItemFrameEntity extends Entity {
                 builder.put("tag", itemData.getTag());
             }
             builder.putShort("Damage", (short) itemData.getDamage());
-            builder.putString("Name", itemEntry.getBedrockIdentifier());
+            builder.putString("Name", mapping.getBedrockIdentifier());
             NbtMapBuilder tag = getDefaultTag().toBuilder();
             tag.put("Item", builder.build());
             tag.putFloat("ItemDropChance", 1.0f);
@@ -124,11 +123,11 @@ public class ItemFrameEntity extends Entity {
             cachedTag = tag.build();
             updateBlock(session);
         }
-        else if (entityMetadata.getId() == 7 && entityMetadata.getValue() == null && cachedTag != null) {
+        else if (entityMetadata.getId() == 8 && entityMetadata.getValue() == null && cachedTag != null) {
             cachedTag = getDefaultTag();
             updateBlock(session);
         }
-        else if (entityMetadata.getId() == 8) {
+        else if (entityMetadata.getId() == 9) {
             rotation = ((int) entityMetadata.getValue()) * 45;
             if (cachedTag == null) {
                 updateBlock(session);
@@ -149,7 +148,7 @@ public class ItemFrameEntity extends Entity {
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setBlockPosition(bedrockPosition);
-        updateBlockPacket.setRuntimeId(session.getBlockTranslator().getBedrockAirId());
+        updateBlockPacket.setRuntimeId(session.getBlockMappings().getBedrockAirId());
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
@@ -167,7 +166,7 @@ public class ItemFrameEntity extends Entity {
         builder.putInt("y", bedrockPosition.getY());
         builder.putInt("z", bedrockPosition.getZ());
         builder.putByte("isMovable", (byte) 1);
-        builder.putString("id", "ItemFrame");
+        builder.putString("id", this.entityType == EntityType.GLOW_ITEM_FRAME ? "GlowItemFrame" : "ItemFrame");
         return builder.build();
     }
 

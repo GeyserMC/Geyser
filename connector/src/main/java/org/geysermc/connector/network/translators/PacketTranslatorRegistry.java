@@ -68,10 +68,10 @@ public class PacketTranslatorRegistry<T> {
 
                     BEDROCK_TRANSLATOR.translators.put(targetPacket, translator);
                 } else {
-                    GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.invalid_target", clazz.getCanonicalName()));
+                    GeyserConnector.getInstance().getLogger().error("Class " + clazz.getCanonicalName() + " is annotated as a translator but has an invalid target packet.");
                 }
             } catch (InstantiationException | IllegalAccessException e) {
-                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.failed", clazz.getCanonicalName()));
+                GeyserConnector.getInstance().getLogger().error("Could not instantiate annotated translator " + clazz.getCanonicalName());
             }
         }
 

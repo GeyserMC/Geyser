@@ -34,10 +34,12 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePack
 import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.*;
+import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.PluginMessageUtils;
 
@@ -52,6 +54,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
     public void translate(ServerJoinGamePacket packet, GeyserSession session) {
         PlayerEntity entity = session.getPlayerEntity();
         entity.setEntityId(packet.getEntityId());
+
         // If the player is already initialized and a join game packet is sent, they
         // are swapping servers
         String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
@@ -95,13 +98,20 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
 
         // We need to send our skin parts to the server otherwise java sees us with no hat, jacket etc
         String locale = session.getLocale();
-        ClientSettingsPacket clientSettingsPacket = new ClientSettingsPacket(locale, (byte) session.getRenderDistance(), ChatVisibility.FULL, true, SKIN_PART_VALUES, HandPreference.RIGHT_HAND);
+        ClientSettingsPacket clientSettingsPacket = new ClientSettingsPacket(locale, (byte) session.getRenderDistance(), ChatVisibility.FULL, true, SKIN_PART_VALUES, HandPreference.RIGHT_HAND, false);
         session.sendDownstreamPacket(clientSettingsPacket);
 
         session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:brand", PluginMessageUtils.getGeyserBrandData()));
 
+        // register the plugin messaging channels used in Floodgate
+        if (session.getConnector().getDefaultAuthType() == AuthType.FLOODGATE) {
+            session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:register", PluginMessageUtils.getFloodgateRegisterData()));
+        }
+
         if (!newDimension.equals(session.getDimension())) {
             DimensionUtils.switchDimension(session, newDimension);
         }
+
+        ChunkUtils.applyDimensionHeight(session, packet.getDimension());
     }
 }

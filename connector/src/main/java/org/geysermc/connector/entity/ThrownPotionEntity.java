@@ -36,9 +36,8 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.Potion;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 import java.util.EnumSet;
 
@@ -51,10 +50,10 @@ public class ThrownPotionEntity extends ThrowableEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 7 && entityMetadata.getType() == MetadataType.ITEM) {
+        if (entityMetadata.getId() == 8 && entityMetadata.getType() == MetadataType.ITEM) {
             ItemStack itemStack = (ItemStack) entityMetadata.getValue();
-            ItemEntry itemEntry = ItemRegistry.getItem(itemStack);
-            if (itemEntry.getJavaIdentifier().endsWith("potion") && itemStack.getNbt() != null) {
+            ItemMapping mapping = session.getItemMappings().getMapping(itemStack);
+            if (mapping.getJavaIdentifier().endsWith("potion") && itemStack.getNbt() != null) {
                 Tag potionTag = itemStack.getNbt().get("Potion");
                 if (potionTag instanceof StringTag) {
                     Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
@@ -67,7 +66,7 @@ public class ThrownPotionEntity extends ThrowableEntity {
                     }
                 }
 
-                boolean isLingering = itemEntry.getJavaIdentifier().equals("minecraft:lingering_potion");
+                boolean isLingering = mapping.getJavaIdentifier().equals("minecraft:lingering_potion");
                 metadata.getFlags().setFlag(EntityFlag.LINGERING, isLingering);
             }
         }

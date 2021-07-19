@@ -30,7 +30,6 @@ import org.geysermc.connector.utils.LanguageUtils;
 
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Paths;
 
 public class LoopbackUtil {
@@ -54,7 +53,7 @@ public class LoopbackUtil {
                 String result = sb.toString();
 
                 if (!result.contains("minecraftuwp")) {
-                    Files.write(Paths.get(System.getenv("temp") + "/loopback_minecraft.bat"), loopbackCommand.getBytes(), new OpenOption[0]);
+                    Files.write(Paths.get(System.getenv("temp") + "/loopback_minecraft.bat"), loopbackCommand.getBytes());
                     Runtime.getRuntime().exec(startScript);
 
                     geyserLogger.info(ChatColor.AQUA + LanguageUtils.getLocaleStringLog("geyser.bootstrap.loopback.added"));

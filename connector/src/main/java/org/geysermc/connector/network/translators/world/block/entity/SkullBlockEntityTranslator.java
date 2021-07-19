@@ -51,11 +51,6 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     public static boolean ALLOW_CUSTOM_SKULLS;
 
     @Override
-    public boolean isBlock(int blockState) {
-        return BlockStateValues.getSkullVariant(blockState) != -1;
-    }
-
-    @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
         byte skullVariant = BlockStateValues.getSkullVariant(blockState);
         float rotation = BlockStateValues.getSkullRotation(blockState) * 22.5f;

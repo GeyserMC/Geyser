@@ -112,7 +112,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         }
 
         // Reject the item if Bedrock is attempting to put in a dye that is not a dye in Java Edition
-        return !itemStack.getItemEntry().getJavaIdentifier().endsWith("_dye");
+        return !itemStack.getMapping(session).getJavaIdentifier().endsWith("_dye");
     }
 
     @Override

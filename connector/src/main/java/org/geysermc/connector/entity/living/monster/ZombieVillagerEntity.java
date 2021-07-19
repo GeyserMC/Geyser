@@ -35,6 +35,7 @@ import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
 public class ZombieVillagerEntity extends ZombieEntity {
+    private boolean isTransforming;
 
     public ZombieVillagerEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
@@ -42,15 +43,23 @@ public class ZombieVillagerEntity extends ZombieEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 18) {
-            metadata.getFlags().setFlag(EntityFlag.IS_TRANSFORMING, (boolean) entityMetadata.getValue());
-            metadata.getFlags().setFlag(EntityFlag.SHAKING, (boolean) entityMetadata.getValue());
-        }
         if (entityMetadata.getId() == 19) {
+            isTransforming = (boolean) entityMetadata.getValue();
+            metadata.getFlags().setFlag(EntityFlag.IS_TRANSFORMING, (boolean) entityMetadata.getValue());
+            metadata.getFlags().setFlag(EntityFlag.SHAKING, isShaking(session));
+        }
+        if (entityMetadata.getId() == 20) {
             VillagerData villagerData = (VillagerData) entityMetadata.getValue();
-            // Region - only one used on Bedrock
+            metadata.put(EntityData.VARIANT, VillagerEntity.VILLAGER_PROFESSIONS.get(villagerData.getProfession())); // Actually works properly with the OptionalPack
             metadata.put(EntityData.MARK_VARIANT, VillagerEntity.VILLAGER_REGIONS.get(villagerData.getType()));
+            // Used with the OptionalPack
+            metadata.put(EntityData.TRADE_TIER, villagerData.getLevel() - 1);
         }
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    protected boolean isShaking(GeyserSession session) {
+        return isTransforming || super.isShaking(session);
     }
 }
