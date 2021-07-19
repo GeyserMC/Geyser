@@ -334,9 +334,13 @@ public class Entity {
         metadata.put(EntityData.FREEZING_EFFECT_STRENGTH, amount);
     }
 
-    public void setRotation(float yaw, float pitch) {
+    public static Vector3f formatRotation(float yaw, float pitch) {
         // see rotation field for documentation
-        rotation = Vector3f.from(yaw, pitch, yaw);
+        return Vector3f.from(yaw, pitch, yaw);
+    }
+
+    public void setRotation(float yaw, float pitch) {
+        setRotation(formatRotation(yaw, pitch));
     }
 
     public float getYaw() {

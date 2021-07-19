@@ -35,6 +35,7 @@ import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.ChatColor;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -76,39 +77,39 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityType.PLAYER.getOffset(), 0));
         // head yaw
         float yaw = packet.getRotation().getY();
-            float pitch = packet.getRotation().getX();
-            Vector3f rotation = Vector3f.from(yaw, pitch, yaw);
+        float pitch = packet.getRotation().getX();
+        Vector3f rotation = Entity.formatRotation(yaw, pitch);
 
         boolean positionChanged = !entity.getPosition().equals(packet.getPosition());
         boolean rotationChanged = !entity.getRotation().equals(rotation);
 
-            // If only the pitch and yaw changed
-            // This isn't needed, but it makes the packets closer to vanilla
-            // It also means you can't "lag back" while only looking, in theory
-            if (!positionChanged && rotationChanged) {
-                ClientPlayerRotationPacket playerRotationPacket = new ClientPlayerRotationPacket(packet.isOnGround(), yaw, pitch);
+        // If only the pitch and yaw changed
+        // This isn't needed, but it makes the packets closer to vanilla
+        // It also means you can't "lag back" while only looking, in theory
+        if (!positionChanged && rotationChanged) {
+            ClientPlayerRotationPacket playerRotationPacket = new ClientPlayerRotationPacket(packet.isOnGround(), yaw, pitch);
 
             entity.setRotation(rotation);
             entity.setOnGround(packet.isOnGround());
 
-                session.sendDownstreamPacket(playerRotationPacket);
-            } else {
-                Vector3d position = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), packet.isOnGround());
-                if (position != null) { // A null return value cancels the packet
-                    if (isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
-                        Packet movePacket;
-                        if (rotationChanged) {
-                            // Send rotation updates as well
-                            movePacket = new ClientPlayerPositionRotationPacket(
-                                    packet.isOnGround(),
-                                    position.getX(), position.getY(), position.getZ(),
-                                    yaw, pitch
-                            );
-                            entity.setRotation(rotation);
-                        } else {
-                            // Rotation did not change; don't send an update with rotation
-                            movePacket = new ClientPlayerPositionPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ());
-                        }
+            session.sendDownstreamPacket(playerRotationPacket);
+        } else {
+            Vector3d position = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), packet.isOnGround());
+            if (position != null) { // A null return value cancels the packet
+                if (isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
+                    Packet movePacket;
+                    if (rotationChanged) {
+                        // Send rotation updates as well
+                        movePacket = new ClientPlayerPositionRotationPacket(
+                                packet.isOnGround(),
+                                position.getX(), position.getY(), position.getZ(),
+                                yaw, pitch
+                        );
+                        entity.setRotation(rotation);
+                    } else {
+                        // Rotation did not change; don't send an update with rotation
+                        movePacket = new ClientPlayerPositionPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ());
+                    }
 
                     // Compare positions here for void floor fix below before the player's position variable is set to the packet position
                     boolean notMovingUp = entity.getPosition().getY() >= packet.getPosition().getY();
