@@ -146,8 +146,11 @@ public final class Objective {
         }
     }
 
-    public void deactivate() {
-        active = false;
+    /**
+     * The objective will be removed on the next update
+     */
+    public void pendingRemove() {
+        updateType = UpdateType.REMOVE;
     }
 
     public ScoreboardPosition getPositionCategory() {
