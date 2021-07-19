@@ -23,24 +23,35 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.entity;
+package org.geysermc.connector.network.translators.world.chunk;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerRemoveEntityPacket;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
+import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
+import com.github.steveice10.mc.protocol.data.game.chunk.Column;
+import lombok.Getter;
+import org.geysermc.connector.network.session.cache.ChunkCache;
 
-@Translator(packet = ServerRemoveEntityPacket.class)
-public class JavaRemoveEntityTranslator extends PacketTranslator<ServerRemoveEntityPacket> {
+/**
+ * Acts as a lightweight version of {@link Column} that doesn't store
+ * biomes or heightmaps.
+ */
+public class GeyserColumn {
+    @Getter
+    private final Chunk[] chunks;
 
-    @Override
-    public void translate(ServerRemoveEntityPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+    private GeyserColumn(Chunk[] chunks) {
+        this.chunks = chunks;
+    }
 
-        if (entity != null) {
-            session.getEntityCache().removeEntity(entity, false);
+    public static GeyserColumn from(ChunkCache chunkCache, Column column) {
+        int chunkHeightY = chunkCache.getChunkHeightY();
+        Chunk[] chunks;
+        if (chunkHeightY < column.getChunks().length) {
+            chunks = new Chunk[chunkHeightY];
+            // TODO addresses https://github.com/Steveice10/MCProtocolLib/pull/598#issuecomment-862782392
+            System.arraycopy(column.getChunks(), 0, chunks, 0, chunks.length);
+        } else {
+            chunks = column.getChunks();
         }
+        return new GeyserColumn(chunks);
     }
 }
-

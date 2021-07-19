@@ -34,7 +34,7 @@ import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.entity.living.animal.horse.HorseEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -43,11 +43,12 @@ public class InteractiveTagManager {
     /**
      * All entity types that can be leashed on Java Edition
      */
-    private static final Set<EntityType> LEASHABLE_MOB_TYPES = EnumSet.of(EntityType.BEE, EntityType.CAT, EntityType.CHICKEN,
-            EntityType.COW, EntityType.DOLPHIN, EntityType.DONKEY, EntityType.FOX, EntityType.HOGLIN, EntityType.HORSE, EntityType.SKELETON_HORSE,
-            EntityType.ZOMBIE_HORSE, EntityType.IRON_GOLEM, EntityType.LLAMA, EntityType.TRADER_LLAMA, EntityType.MOOSHROOM,
-            EntityType.MULE, EntityType.OCELOT, EntityType.PARROT, EntityType.PIG, EntityType.POLAR_BEAR, EntityType.RABBIT,
-            EntityType.SHEEP, EntityType.SNOW_GOLEM, EntityType.STRIDER, EntityType.WOLF, EntityType.ZOGLIN);
+    private static final Set<EntityType> LEASHABLE_MOB_TYPES = EnumSet.of(EntityType.AXOLOTL, EntityType.BEE, EntityType.CAT, EntityType.CHICKEN,
+            EntityType.COW, EntityType.DOLPHIN, EntityType.DONKEY, EntityType.FOX, EntityType.GOAT, EntityType.GLOW_SQUID, EntityType.HOGLIN,
+            EntityType.HORSE, EntityType.SKELETON_HORSE, EntityType.ZOMBIE_HORSE, EntityType.IRON_GOLEM, EntityType.LLAMA,
+            EntityType.TRADER_LLAMA, EntityType.MOOSHROOM, EntityType.MULE, EntityType.OCELOT, EntityType.PARROT, EntityType.PIG,
+            EntityType.POLAR_BEAR, EntityType.RABBIT, EntityType.SHEEP, EntityType.SNOW_GOLEM, EntityType.SQUID, EntityType.STRIDER,
+            EntityType.WOLF, EntityType.ZOGLIN);
 
     private static final Set<EntityType> SADDLEABLE_WHEN_TAMED_MOB_TYPES = EnumSet.of(EntityType.DONKEY, EntityType.HORSE,
             EntityType.ZOMBIE_HORSE, EntityType.MULE);
@@ -60,8 +61,8 @@ public class InteractiveTagManager {
      */
     public static void updateTag(GeyserSession session, Entity interactEntity) {
         EntityDataMap entityMetadata = interactEntity.getMetadata();
-        ItemEntry itemEntry = session.getPlayerInventory().getItemInHand().getItemEntry();
-        String javaIdentifierStripped = itemEntry.getJavaIdentifier().replace("minecraft:", "");
+        ItemMapping mapping = session.getPlayerInventory().getItemInHand().getMapping(session);
+        String javaIdentifierStripped = mapping.getJavaIdentifier().replace("minecraft:", "");
 
         InteractiveTag interactiveTag = InteractiveTag.NONE;
 
@@ -82,7 +83,7 @@ public class InteractiveTagManager {
             // Holding a leash and the mob is leashable for sure
             // (Plugins can change this behavior so that's something to look into in the far far future)
             interactiveTag = InteractiveTag.LEASH;
-        } else if (interactEntity instanceof AnimalEntity && ((AnimalEntity) interactEntity).canEat(session, javaIdentifierStripped, itemEntry)) {
+        } else if (interactEntity instanceof AnimalEntity && ((AnimalEntity) interactEntity).canEat(session, javaIdentifierStripped, mapping)) {
             // This animal can be fed
             interactiveTag = InteractiveTag.FEED;
         } else {
@@ -147,7 +148,7 @@ public class InteractiveTagManager {
                         // Can't ride a baby
                         if (tamed) {
                             interactiveTag = InteractiveTag.RIDE_HORSE;
-                        } else if (itemEntry.getJavaId() == 0) {
+                        } else if (mapping.getJavaId() == 0) {
                             // Can't hide an untamed entity without having your hand empty
                             interactiveTag = InteractiveTag.MOUNT;
                         }

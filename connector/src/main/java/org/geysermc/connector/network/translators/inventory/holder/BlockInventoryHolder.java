@@ -38,7 +38,8 @@ import org.geysermc.connector.inventory.Container;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.registry.BlockRegistries;
+import org.geysermc.connector.utils.BlockUtils;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -57,15 +58,15 @@ public class BlockInventoryHolder extends InventoryHolder {
     private final Set<String> validBlocks;
 
     public BlockInventoryHolder(String javaBlockIdentifier, ContainerType containerType, String... validBlocks) {
-        this.defaultJavaBlockState = BlockTranslator.getJavaBlockState(javaBlockIdentifier);
+        this.defaultJavaBlockState = BlockRegistries.JAVA_IDENTIFIERS.get(javaBlockIdentifier);
         this.containerType = containerType;
         if (validBlocks != null) {
             Set<String> validBlocksTemp = new HashSet<>(validBlocks.length + 1);
             Collections.addAll(validBlocksTemp, validBlocks);
-            validBlocksTemp.add(javaBlockIdentifier.split("\\[")[0]);
+            validBlocksTemp.add(BlockUtils.getCleanIdentifier(javaBlockIdentifier));
             this.validBlocks = ImmutableSet.copyOf(validBlocksTemp);
         } else {
-            this.validBlocks = Collections.singleton(javaBlockIdentifier.split("\\[")[0]);
+            this.validBlocks = Collections.singleton(BlockUtils.getCleanIdentifier(javaBlockIdentifier));
         }
     }
 
@@ -77,7 +78,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         if (checkInteractionPosition(session)) {
             // Then, check to see if the interacted block is valid for this inventory by ensuring the block state identifier is valid
             int javaBlockId = session.getConnector().getWorldManager().getBlockAt(session, session.getLastInteractionBlockPosition());
-            String[] javaBlockString = BlockTranslator.getJavaIdBlockMap().inverse().getOrDefault(javaBlockId, "minecraft:air").split("\\[");
+            String[] javaBlockString = BlockRegistries.JAVA_IDENTIFIERS.get().inverse().getOrDefault(javaBlockId, "minecraft:air").split("\\[");
             if (isValidBlock(javaBlockString)) {
                 // We can safely use this block
                 inventory.setHolderPosition(session.getLastInteractionBlockPosition());
@@ -93,7 +94,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
-        blockPacket.setRuntimeId(session.getBlockTranslator().getBedrockBlockId(defaultJavaBlockState));
+        blockPacket.setRuntimeId(session.getBlockMappings().getBedrockBlockId(defaultJavaBlockState));
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
         inventory.setHolderPosition(position);
@@ -158,7 +159,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
-        blockPacket.setRuntimeId(session.getBlockTranslator().getBedrockBlockId(realBlock));
+        blockPacket.setRuntimeId(session.getBlockMappings().getBedrockBlockId(realBlock));
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
     }

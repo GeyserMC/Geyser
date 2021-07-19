@@ -33,7 +33,7 @@ import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.utils.ChunkUtils;
 
 @Translator(packet = ServerPlayerActionAckPacket.class)
@@ -47,7 +47,7 @@ public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayer
             stopBreak.setType(LevelEventType.BLOCK_STOP_BREAK);
             stopBreak.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
             stopBreak.setData(0);
-            session.setBreakingBlock(BlockTranslator.JAVA_AIR_ID);
+            session.setBreakingBlock(BlockStateValues.JAVA_AIR_ID);
             session.sendUpstreamPacket(stopBreak);
         }
     }

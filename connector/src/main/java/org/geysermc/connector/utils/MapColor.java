@@ -287,6 +287,6 @@ public enum MapColor {
         return ((alpha & 0xFF) << 24) |
                ((blue & 0xFF) << 16) |
                ((green & 0xFF) << 8) |
-               ((red & 0xFF) << 0);
+               (red & 0xFF);
     }
 }

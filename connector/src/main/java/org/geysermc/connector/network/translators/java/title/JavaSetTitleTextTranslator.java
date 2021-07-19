@@ -47,6 +47,8 @@ public class JavaSetTitleTextTranslator extends PacketTranslator<ServerSetTitleT
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.TITLE);
         titlePacket.setText(text);
+        titlePacket.setXuid("");
+        titlePacket.setPlatformOnlineId("");
         session.sendUpstreamPacket(titlePacket);
     }
 }

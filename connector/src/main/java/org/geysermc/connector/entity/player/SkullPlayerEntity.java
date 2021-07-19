@@ -75,7 +75,7 @@ public class SkullPlayerEntity extends PlayerEntity {
         addPlayerPacket.setUsername(getUsername());
         addPlayerPacket.setRuntimeEntityId(geyserId);
         addPlayerPacket.setUniqueEntityId(geyserId);
-        addPlayerPacket.setPosition(position.clone().sub(0, EntityType.PLAYER.getOffset(), 0));
+        addPlayerPacket.setPosition(position.sub(0, EntityType.PLAYER.getOffset(), 0));
         addPlayerPacket.setRotation(getBedrockRotation());
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(hand);
@@ -87,9 +87,6 @@ public class SkullPlayerEntity extends PlayerEntity {
 
         valid = true;
         session.sendUpstreamPacket(addPlayerPacket);
-
-        updateAllEquipment(session);
-        updateBedrockAttributes(session);
     }
 
     public void despawnEntity(GeyserSession session, Vector3i position) {

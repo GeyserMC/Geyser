@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>geyser-parent</artifactId>
-        <version>1.4.0-SNAPSHOT</version>
+        <version>1.4.1-SNAPSHOT</version>
     </parent>
     <artifactId>connector</artifactId>
 
@@ -21,7 +21,7 @@
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>common</artifactId>
-            <version>1.4.0-SNAPSHOT</version>
+            <version>1.4.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <!-- Jackson JSON and YAML serialization -->
@@ -57,8 +57,8 @@
         </dependency>
         <dependency>
             <groupId>com.github.CloudburstMC.Protocol</groupId>
-            <artifactId>bedrock-v440</artifactId>
-            <version>1656151</version>
+            <artifactId>bedrock-v448</artifactId>
+            <version>690a545d</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -87,31 +87,13 @@
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
-            <artifactId>fastutil-int-float-maps</artifactId>
-            <version>${fastutil.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-long-long-maps</artifactId>
             <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
-            <artifactId>fastutil-object-long-maps</artifactId>
-            <version>${fastutil.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-byte-maps</artifactId>
-            <version>${fastutil.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.nukkitx.fastutil</groupId>
-            <artifactId>fastutil-int-double-maps</artifactId>
             <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
@@ -124,12 +106,6 @@
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-object-int-maps</artifactId>
-            <version>${fastutil.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.nukkitx.fastutil</groupId>
-            <artifactId>fastutil-object-byte-maps</artifactId>
             <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
@@ -154,7 +130,7 @@
         <dependency>
             <groupId>com.github.GeyserMC</groupId>
             <artifactId>MCProtocolLib</artifactId>
-            <version>dd606b4</version>
+            <version>e427237</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>

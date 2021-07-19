@@ -38,8 +38,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class HelpCommand extends GeyserCommand {
-
-    public GeyserConnector connector;
+    private final GeyserConnector connector;
 
     public HelpCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);

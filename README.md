@@ -1,6 +1,6 @@
 <img src="https://geysermc.org/img/geyser-1760-860.png" alt="Geyser" width="600"/>
 
-[![forthebadge made-with-java](https://ForTheBadge.com/images/badges/made-with-java.svg)](https://java.com/)
+[![forthebadge made-with-java](https://forthebadge.com/images/badges/made-with-java.svg)](https://java.com/)
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Build Status](https://ci.opencollab.dev/job/Geyser/job/master/badge/icon)](https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/master/)
@@ -18,7 +18,7 @@ The ultimate goal of this project is to allow Minecraft: Bedrock Edition users t
 
 Special thanks to the DragonProxy project for being a trailblazer in protocol translation and for all the team members who have joined us here!
 
-### Currently supporting Minecraft Bedrock 1.17 and Minecraft Java 1.17.
+### Currently supporting Minecraft Bedrock 1.17.0 - 1.17.10 and Minecraft Java 1.17.1.
 
 ## Setting Up
 Take a look [here](https://github.com/GeyserMC/Geyser/wiki/Setup) for how to set up Geyser.
@@ -38,8 +38,6 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki/Setup) for how to set
 - Resource pack conversion/CustomModelData
 - Some Entity Flags
 - Structure block UI
-
-Extended height features can be "supported", but require additional work.
 
 ## What can't be fixed
 There are a few things Geyser is unable to support due to various differences between Minecraft Bedrock and Java. For a list of these limitations, see the [Current Limitations](https://github.com/GeyserMC/Geyser/wiki/Current-Limitations) page.

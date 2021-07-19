@@ -28,8 +28,8 @@ package org.geysermc.connector.network.session.cache;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareTagsPacket;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
-import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.registry.type.BlockMapping;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 import java.util.Map;
 
@@ -99,16 +99,16 @@ public class TagCache {
         this.piglinLoved = IntLists.emptyList();
     }
 
-    public boolean isFlower(ItemEntry itemEntry) {
-        return flowers.contains(itemEntry.getJavaId());
+    public boolean isFlower(ItemMapping mapping) {
+        return flowers.contains(mapping.getJavaId());
     }
 
-    public boolean isFoxFood(ItemEntry itemEntry) {
-        return foxFood.contains(itemEntry.getJavaId());
+    public boolean isFoxFood(ItemMapping mapping) {
+        return foxFood.contains(mapping.getJavaId());
     }
 
-    public boolean shouldPiglinAdmire(ItemEntry itemEntry) {
-        return piglinLoved.contains(itemEntry.getJavaId());
+    public boolean shouldPiglinAdmire(ItemMapping mapping) {
+        return piglinLoved.contains(mapping.getJavaId());
     }
 
     public boolean isAxeEffective(BlockMapping blockMapping) {

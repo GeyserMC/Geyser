@@ -46,18 +46,13 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.LivingEntity;
-import org.geysermc.connector.entity.attribute.Attribute;
-import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.living.animal.tameable.ParrotEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.scoreboard.Team;
-import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
+import org.geysermc.connector.scoreboard.Team;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -95,7 +90,7 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.setUsername(username);
         addPlayerPacket.setRuntimeEntityId(geyserId);
         addPlayerPacket.setUniqueEntityId(geyserId);
-        addPlayerPacket.setPosition(position.clone().sub(0, EntityType.PLAYER.getOffset(), 0));
+        addPlayerPacket.setPosition(position.sub(0, EntityType.PLAYER.getOffset(), 0));
         addPlayerPacket.setRotation(getBedrockRotation());
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(hand);
@@ -115,9 +110,6 @@ public class PlayerEntity extends LivingEntity {
 
         valid = true;
         session.sendUpstreamPacket(addPlayerPacket);
-
-        updateAllEquipment(session);
-        updateBedrockAttributes(session);
     }
 
     public void sendPlayer(GeyserSession session) {
@@ -163,10 +155,6 @@ public class PlayerEntity extends LivingEntity {
         setRotation(rotation);
         this.position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
 
-        // If this is the player logged in through this Geyser session
-        if (geyserId == 1) {
-            session.getCollisionManager().updatePlayerBoundingBox(position);
-        }
         setOnGround(isOnGround);
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
@@ -238,18 +226,7 @@ public class PlayerEntity extends LivingEntity {
 
     @Override
     public void setPosition(Vector3f position) {
-        setPosition(position, true);
-    }
-
-    /**
-     * Set the player position and specify if the entity type's offset should be added. Set to false when the player
-     * sends us a move packet where the offset is already added
-     *
-     * @param position the new position of the Bedrock player
-     * @param includeOffset whether to include the offset
-     */
-    public void setPosition(Vector3f position, boolean includeOffset) {
-        this.position = includeOffset ? position.add(0, entityType.getOffset(), 0) : position;
+        super.setPosition(position.add(0, entityType.getOffset(), 0));
     }
 
     @Override
@@ -277,10 +254,9 @@ public class PlayerEntity extends LivingEntity {
         if (entityMetadata.getId() == 15) {
             UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
             attributesPacket.setRuntimeEntityId(geyserId);
-            List<AttributeData> attributes = new ArrayList<>();
             // Setting to a higher maximum since plugins/datapacks can probably extend the Bedrock soft limit
-            attributes.add(new AttributeData("minecraft:absorption", 0.0f, 1024f, (float) entityMetadata.getValue(), 0.0f));
-            attributesPacket.setAttributes(attributes);
+            attributesPacket.setAttributes(Collections.singletonList(
+                    new AttributeData("minecraft:absorption", 0.0f, 1024f, (float) entityMetadata.getValue(), 0.0f)));
             session.sendUpstreamPacket(attributesPacket);
         }
 
@@ -353,23 +329,5 @@ public class PlayerEntity extends LivingEntity {
         }
         metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
         metadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
-    }
-
-    @Override
-    public void updateBedrockAttributes(GeyserSession session) { // TODO: Don't use duplicated code
-        if (!valid) return;
-
-        List<AttributeData> attributes = new ArrayList<>();
-        for (Map.Entry<AttributeType, Attribute> entry : this.attributes.entrySet()) {
-            if (!entry.getValue().getType().isBedrockAttribute())
-                continue;
-
-            attributes.add(AttributeUtils.getBedrockAttribute(entry.getValue()));
-        }
-
-        UpdateAttributesPacket updateAttributesPacket = new UpdateAttributesPacket();
-        updateAttributesPacket.setRuntimeEntityId(geyserId);
-        updateAttributesPacket.setAttributes(attributes);
-        session.sendUpstreamPacket(updateAttributesPacket);
     }
 }

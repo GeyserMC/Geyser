@@ -29,11 +29,14 @@ import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3i;
+import org.geysermc.connector.inventory.GeyserItemStack;
+import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ToolItemEntry;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.BlockMapping;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 public class BlockUtils {
     /**
@@ -54,7 +57,7 @@ public class BlockUtils {
             case "shovel":
                 return session.getTagCache().isShovelEffective(blockMapping);
             case "sword":
-                return blockMapping.getJavaBlockId() == BlockTranslator.JAVA_COBWEB_BLOCK_ID;
+                return blockMapping.getJavaBlockId() == BlockStateValues.JAVA_COBWEB_ID;
             default:
                 session.getConnector().getLogger().warning("Unknown tool type: " + itemToolType);
                 return false;
@@ -144,17 +147,16 @@ public class BlockUtils {
         return 1.0 / speed;
     }
 
-    public static double getBreakTime(GeyserSession session, BlockMapping blockMapping, ItemEntry item, CompoundTag nbtData, boolean isSessionPlayer) {
+    public static double getBreakTime(GeyserSession session, BlockMapping blockMapping, ItemMapping item, CompoundTag nbtData, boolean isSessionPlayer) {
         boolean isShearsEffective = session.getTagCache().isShearsEffective(blockMapping); //TODO called twice
         boolean canHarvestWithHand = blockMapping.isCanBreakWithHand();
         String toolType = "";
         String toolTier = "";
         boolean correctTool = false;
         boolean toolCanBreak = false;
-        if (item instanceof ToolItemEntry) {
-            ToolItemEntry toolItem = (ToolItemEntry) item;
-            toolType = toolItem.getToolType();
-            toolTier = toolItem.getToolTier();
+        if (item.isTool()) {
+            toolType = item.getToolType();
+            toolTier = item.getToolTier();
             correctTool = correctTool(session, blockMapping, toolType);
             toolCanBreak = canToolTierBreakBlock(session, blockMapping, toolTier);
         }
@@ -184,6 +186,21 @@ public class BlockUtils {
                 outOfWaterButNotOnGround, insideWaterNotOnGround);
     }
 
+    public static double getSessionBreakTime(GeyserSession session, BlockMapping blockMapping) {
+        PlayerInventory inventory = session.getPlayerInventory();
+        GeyserItemStack item = inventory.getItemInHand();
+        ItemMapping mapping;
+        CompoundTag nbtData;
+        if (item != null) {
+            mapping = item.getMapping(session);
+            nbtData = item.getNbt();
+        } else {
+            mapping = ItemMapping.AIR;
+            nbtData = new CompoundTag("");
+        }
+        return getBreakTime(session, blockMapping, mapping, nbtData, true);
+    }
+
     /**
      * Given a position, return the position if a block were located on the specified block face.
      * @param blockPos the block position
@@ -208,4 +225,35 @@ public class BlockUtils {
         return blockPos;
     }
 
+    /**
+     * Taking in a complete Java block state identifier, output just the block ID of this block state without the states.
+     * Examples:
+     * minecraft:oak_log[axis=x] = minecraft:oak_log
+     * minecraft:stone_brick_wall[east=low,north=tall,south=none,up=true,waterlogged=false,west=tall] = minecraft:stone_brick_wall
+     * minecraft:stone = minecraft:stone
+     *
+     * @param fullJavaIdentifier a full Java block identifier, with possible block states.
+     * @return a clean identifier in the format of minecraft:block
+     */
+    public static String getCleanIdentifier(String fullJavaIdentifier) {
+        int stateIndex = fullJavaIdentifier.indexOf('[');
+        if (stateIndex == -1) {
+            // Identical to its clean variation
+            return fullJavaIdentifier;
+        }
+        return fullJavaIdentifier.substring(0, stateIndex);
+    }
+
+    // Note: these reuse classes, so don't try to store more than once instance or coordinates will get overwritten
+    public static BlockCollision getCollision(int blockId, int x, int y, int z) {
+        BlockCollision collision = Registries.COLLISIONS.get(blockId);
+        if (collision != null) {
+            collision.setPosition(x, y, z);
+        }
+        return collision;
+    }
+
+    public static BlockCollision getCollisionAt(GeyserSession session, int x, int y, int z) {
+        return getCollision(session.getConnector().getWorldManager().getBlockAt(session, x, y, z), x, y, z);
+    }
 }

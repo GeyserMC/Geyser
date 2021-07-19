@@ -44,21 +44,13 @@ import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.BiomeTranslator;
-import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
+import org.geysermc.connector.registry.BlockRegistries;
+import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
-import org.geysermc.connector.network.translators.collision.CollisionTranslator;
-import org.geysermc.connector.network.translators.effect.EffectRegistry;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.geysermc.connector.network.translators.item.PotionMixRegistry;
-import org.geysermc.connector.network.translators.item.RecipeRegistry;
-import org.geysermc.connector.network.translators.sound.SoundHandlerRegistry;
-import org.geysermc.connector.network.translators.sound.SoundRegistry;
 import org.geysermc.connector.network.translators.world.WorldManager;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
+import org.geysermc.connector.scoreboard.ScoreboardUpdater;
 import org.geysermc.connector.scoreboard.ScoreboardUpdater;
 import org.geysermc.connector.skin.FloodgateSkinUploader;
 import org.geysermc.connector.utils.*;
@@ -159,19 +151,11 @@ public class GeyserConnector {
         PacketTranslatorRegistry.init();
 
         /* Initialize translators and registries */
-        BiomeTranslator.init();
-        BlockTranslator.init();
-        BlockEntityTranslator.init();
-        EffectRegistry.init();
-        EntityIdentifierRegistry.init();
-        ItemRegistry.init();
+        BlockRegistries.init();
+        Registries.init();
+
         ItemTranslator.init();
-        CollisionTranslator.init();
         LocaleUtils.init();
-        PotionMixRegistry.init();
-        RecipeRegistry.init();
-        SoundRegistry.init();
-        SoundHandlerRegistry.init();
         ScoreboardUpdater.init();
 
         ResourcePack.loadPacks();

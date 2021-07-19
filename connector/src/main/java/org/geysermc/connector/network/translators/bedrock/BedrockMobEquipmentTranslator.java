@@ -33,7 +33,6 @@ import com.nukkitx.protocol.bedrock.packet.MobEquipmentPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.utils.CooldownUtils;
 import org.geysermc.connector.utils.InteractiveTagManager;
 
@@ -58,7 +57,7 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
         ClientPlayerChangeHeldItemPacket changeHeldItemPacket = new ClientPlayerChangeHeldItemPacket(packet.getHotbarSlot());
         session.sendDownstreamPacket(changeHeldItemPacket);
 
-        if (session.isSneaking() && session.getPlayerInventory().getItemInHand().getJavaId() == ItemRegistry.SHIELD.getJavaId()) {
+        if (session.isSneaking() && session.getPlayerInventory().getItemInHand().getJavaId() == session.getItemMappings().getStoredItems().shield().getJavaId()) {
             // Activate shield since we are already sneaking
             // (No need to send a release item packet - Java doesn't do this when swapping items)
             // Required to do it a tick later or else it doesn't register

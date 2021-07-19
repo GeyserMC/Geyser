@@ -29,29 +29,23 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
-import com.nukkitx.protocol.bedrock.packet.*;
+import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
+import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import org.geysermc.connector.entity.attribute.Attribute;
-import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.living.ArmorStandEntity;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
-import org.geysermc.connector.utils.AttributeUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Getter
 @Setter
@@ -72,14 +66,11 @@ public class Entity {
      */
     protected boolean onGround;
 
-    protected float scale = 1;
-
     protected EntityType entityType;
 
     protected boolean valid;
 
     protected LongOpenHashSet passengers = new LongOpenHashSet();
-    protected Map<AttributeType, Attribute> attributes = new HashMap<>();
     protected EntityDataMap metadata = new EntityDataMap();
 
     public Entity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
@@ -118,11 +109,19 @@ public class Entity {
         addEntityPacket.setRotation(getBedrockRotation());
         addEntityPacket.setEntityType(entityType.getType());
         addEntityPacket.getMetadata().putAll(metadata);
+        addAdditionalSpawnData(addEntityPacket);
 
         valid = true;
         session.sendUpstreamPacket(addEntityPacket);
 
         session.getConnector().getLogger().debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
+    }
+
+    /**
+     * To be overridden in other entity classes, if additional things need to be done to the spawn entity packet.
+     */
+    public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
+
     }
 
     /**
@@ -233,23 +232,6 @@ public class Entity {
         updatePositionAndRotation(session, 0, 0, 0, yaw, pitch, isOnGround);
     }
 
-    public void updateBedrockAttributes(GeyserSession session) {
-        if (!valid) return;
-
-        List<AttributeData> attributes = new ArrayList<>();
-        for (Map.Entry<AttributeType, Attribute> entry : this.attributes.entrySet()) {
-            if (!entry.getValue().getType().isBedrockAttribute())
-                continue;
-
-            attributes.add(AttributeUtils.getBedrockAttribute(entry.getValue()));
-        }
-
-        UpdateAttributesPacket updateAttributesPacket = new UpdateAttributesPacket();
-        updateAttributesPacket.setRuntimeEntityId(geyserId);
-        updateAttributesPacket.setAttributes(attributes);
-        session.sendUpstreamPacket(updateAttributesPacket);
-    }
-
     /**
      * Applies the Java metadata to the local Bedrock metadata copy
      * @param entityMetadata the Java entity metadata
@@ -309,7 +291,7 @@ public class Entity {
                 // The value that Java edition gives us is in ticks, but Bedrock uses a float percentage of the strength 0.0 -> 1.0
                 // The Java client caps its freezing tick percentage at 140
                 int freezingTicks = Math.min((int) entityMetadata.getValue(), 140);
-                metadata.put(EntityData.FREEZING_EFFECT_STRENGTH, (freezingTicks / 140f));
+                setFreezing(session, freezingTicks / 140f);
                 break;
         }
     }
@@ -328,12 +310,28 @@ public class Entity {
     }
 
     /**
+     * If true, the entity should be shaking on the client's end.
+     *
+     * @return whether {@link EntityFlag#SHAKING} should be set to true.
+     */
+    protected boolean isShaking(GeyserSession session) {
+        return false;
+    }
+
+    /**
      * Set the height and width of the entity's bounding box
      */
     protected void setDimensions(Pose pose) {
         // No flexibility options for basic entities
         metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
         metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
+    }
+
+    /**
+     * Set a float from 0-1 - how strong the "frozen" overlay should be on screen.
+     */
+    protected void setFreezing(GeyserSession session, float amount) {
+        metadata.put(EntityData.FREEZING_EFFECT_STRENGTH, amount);
     }
 
     /**

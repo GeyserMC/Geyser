@@ -32,7 +32,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.effect.EffectRegistry;
+import org.geysermc.connector.utils.EffectUtils;
 
 public class AreaEffectCloudEntity extends Entity {
 
@@ -59,7 +59,7 @@ public class AreaEffectCloudEntity extends Entity {
             metadata.put(EntityData.EFFECT_COLOR, entityMetadata.getValue());
         } else if (entityMetadata.getId() == 11) {
             Particle particle = (Particle) entityMetadata.getValue();
-            int particleId = EffectRegistry.getParticleId(session, particle.getType());
+            int particleId = EffectUtils.getParticleId(session, particle.getType());
             if (particleId != -1) {
                 metadata.put(EntityData.AREA_EFFECT_CLOUD_PARTICLE_ID, particleId);
             }

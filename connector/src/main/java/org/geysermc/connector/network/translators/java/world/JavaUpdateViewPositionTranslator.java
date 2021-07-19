@@ -32,7 +32,6 @@ import org.geysermc.connector.utils.ChunkUtils;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateViewPositionPacket;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 
 @Translator(packet = ServerUpdateViewPositionPacket.class)
 public class JavaUpdateViewPositionTranslator extends PacketTranslator<ServerUpdateViewPositionPacket> {

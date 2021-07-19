@@ -55,6 +55,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private BedrockConfiguration bedrock = new BedrockConfiguration();
     private RemoteConfiguration remote = new RemoteConfiguration();
 
+    @JsonProperty("extended-world-height")
+    private boolean extendedWorldHeight = false;
+
     @JsonProperty("floodgate-key-file")
     private String floodgateKeyFile = "public-key.pem";
 

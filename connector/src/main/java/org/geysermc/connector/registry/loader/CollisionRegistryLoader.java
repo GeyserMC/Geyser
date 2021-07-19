@@ -23,45 +23,48 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.collision;
+package org.geysermc.connector.registry.loader;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.BiMap;
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import lombok.AllArgsConstructor;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.collision.BoundingBox;
+import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 import org.geysermc.connector.network.translators.collision.translators.EmptyCollision;
 import org.geysermc.connector.network.translators.collision.translators.OtherCollision;
 import org.geysermc.connector.network.translators.collision.translators.SolidCollision;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.utils.FileUtils;
 import org.reflections.Reflections;
 
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
-public class CollisionTranslator {
-    private static final Int2ObjectMap<BlockCollision> COLLISION_MAP = new Int2ObjectOpenHashMap<>();
+public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String, Map<Integer, BlockCollision>> {
 
-    public static void init() {
-        List<Class<?>> collisionTypes = new ArrayList<>();
+    @Override
+    public Map<Integer, BlockCollision> load(Pair<String, String> input) {
+        Int2ObjectMap<BlockCollision> collisions = new Int2ObjectOpenHashMap<>();
 
-        Map<Class<?>, CollisionRemapper> annotationMap = new HashMap<>();
-
-        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators.collision.translators") : new Reflections("org.geysermc.connector.network.translators.collision.translators");
+        Map<Class<?>, CollisionInfo> annotationMap = new HashMap<>();
+        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections(input.key()) : new Reflections(input.key());
         for (Class<?> clazz : ref.getTypesAnnotatedWith(CollisionRemapper.class)) {
             GeyserConnector.getInstance().getLogger().debug("Found annotated collision translator: " + clazz.getCanonicalName());
 
-            collisionTypes.add(clazz);
-            annotationMap.put(clazz, clazz.getAnnotation(CollisionRemapper.class));
+            CollisionRemapper collisionRemapper = clazz.getAnnotation(CollisionRemapper.class);
+            annotationMap.put(clazz, new CollisionInfo(collisionRemapper, Pattern.compile(collisionRemapper.regex()), Pattern.compile(collisionRemapper.paramRegex())));
         }
 
         // Load collision mappings file
-        InputStream stream = FileUtils.getResource("mappings/collision.json");
+        InputStream stream = FileUtils.getResource(input.value());
 
         ArrayNode collisionList;
         try {
@@ -70,36 +73,35 @@ public class CollisionTranslator {
             throw new AssertionError("Unable to load collision data", e);
         }
 
-        BiMap<String, Integer> javaIdBlockMap = BlockTranslator.getJavaIdBlockMap();
+        BiMap<String, Integer> javaIdBlockMap = BlockRegistries.JAVA_IDENTIFIERS.get();
 
         // Map of classes that don't change based on parameters that have already been created
         Map<Class<?>, BlockCollision> instantiatedCollision = new HashMap<>();
-
         for (Map.Entry<String, Integer> entry : javaIdBlockMap.entrySet()) {
-            BlockCollision newCollision = instantiateCollision(entry.getKey(), entry.getValue(), collisionTypes, annotationMap, instantiatedCollision, collisionList);
+            BlockCollision newCollision = instantiateCollision(entry.getKey(), entry.getValue(), annotationMap, instantiatedCollision, collisionList);
             if (newCollision != null) {
                 instantiatedCollision.put(newCollision.getClass(), newCollision);
             }
-            COLLISION_MAP.put(entry.getValue().intValue(), newCollision);
+            collisions.put(entry.getValue().intValue(), newCollision);
         }
+        return collisions;
     }
 
-    private static BlockCollision instantiateCollision(String blockID, int numericBlockID, List<Class<?>> collisionTypes, Map<Class<?>, CollisionRemapper> annotationMap, Map<Class<?>, BlockCollision> instantiatedCollision, ArrayNode collisionList) {
-
-        String blockName = blockID.split("\\[")[0].replace("minecraft:", "");
+    private BlockCollision instantiateCollision(String blockID, int numericBlockID, Map<Class<?>, CollisionInfo> annotationMap, Map<Class<?>, BlockCollision> instantiatedCollision, ArrayNode collisionList) {
+        String[] blockIdParts = blockID.split("\\[");
+        String blockName = blockIdParts[0].replace("minecraft:", "");
         String params = "";
         if (blockID.contains("[")) {
-            params = "[" + blockID.split("\\[")[1];
+            params = "[" + blockIdParts[1];
         }
-        int collisionIndex = BlockTranslator.getBlockMapping(numericBlockID).getCollisionIndex();
+        int collisionIndex = BlockRegistries.JAVA_BLOCKS.get(numericBlockID).getCollisionIndex();
 
-        for (Class<?> type : collisionTypes) {
-            CollisionRemapper annotation = annotationMap.get(type);
+        for (Map.Entry<Class<?>, CollisionInfo> collisionRemappers : annotationMap.entrySet()) {
+            Class<?> type = collisionRemappers.getKey();
+            CollisionInfo collisionInfo = collisionRemappers.getValue();
+            CollisionRemapper annotation = collisionInfo.collisionRemapper;
 
-            Pattern pattern = Pattern.compile(annotation.regex());
-            Pattern paramsPattern = Pattern.compile(annotation.paramRegex());
-
-            if (pattern.matcher(blockName).find() && paramsPattern.matcher(params).find()) {
+            if (collisionInfo.pattern.matcher(blockName).find() && collisionInfo.paramsPattern.matcher(params).find()) {
                 try {
                     if (!annotation.usesParams() && instantiatedCollision.containsKey(type)) {
                         return instantiatedCollision.get(type);
@@ -164,24 +166,13 @@ public class CollisionTranslator {
         return collision;
     }
 
-    // Note: these reuse classes, so don't try to store more than once instance or coordinates will get overwritten
-
-    public static BlockCollision getCollision(int blockID, int x, int y, int z) {
-        BlockCollision collision = COLLISION_MAP.get(blockID);
-        if (collision != null) {
-            collision.setPosition(x, y, z);
-        }
-        return collision;
+    /**
+     * Used to prevent patterns from being compiled more than needed
+     */
+    @AllArgsConstructor
+    public static class CollisionInfo {
+        private final CollisionRemapper collisionRemapper;
+        private final Pattern pattern;
+        private final Pattern paramsPattern;
     }
-
-
-    public static BlockCollision getCollisionAt(GeyserSession session, int x, int y, int z) {
-        try {
-            return getCollision(session.getConnector().getWorldManager().getBlockAt(session, x, y, z), x, y, z);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            // Block out of world
-            return null;
-        }
-    }
-
 }

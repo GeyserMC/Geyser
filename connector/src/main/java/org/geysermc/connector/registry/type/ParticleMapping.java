@@ -23,22 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.attribute;
+package org.geysermc.connector.registry.type;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import lombok.Value;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@ToString
-public class Attribute {
+import javax.annotation.ParametersAreNullableByDefault;
 
-    private AttributeType type;
-    private float minimum;
-    private float maximum;
-    private float value;
-    private float defaultValue;
+@Value
+@ParametersAreNullableByDefault
+public class ParticleMapping {
+    LevelEventType levelEventType;
+    String identifier;
+    int id;
 }

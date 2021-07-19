@@ -27,8 +27,10 @@ package org.geysermc.floodgate.news.data;
 
 import com.google.gson.JsonObject;
 
-public class CheckAfterData implements ItemData {
+public final class CheckAfterData implements ItemData {
     private long checkAfter;
+
+    private CheckAfterData() {}
 
     public static CheckAfterData read(JsonObject data) {
         CheckAfterData checkAfterData = new CheckAfterData();

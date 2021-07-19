@@ -23,21 +23,15 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.world.block;
+package org.geysermc.connector.registry.loader;
 
-public class BlockTranslator1_17_0 extends BlockTranslator {
-    public static final BlockTranslator1_17_0 INSTANCE = new BlockTranslator1_17_0();
+import org.geysermc.connector.network.translators.sound.SoundHandler;
+import org.geysermc.connector.network.translators.sound.SoundInteractionHandler;
 
-    public BlockTranslator1_17_0() {
-        super("bedrock/block_palette.1_17_0.nbt");
-    }
+import java.util.function.Function;
 
-    @Override
-    public int getBlockStateVersion() {
-        return 17879555;
-    }
-
-    public static void init() {
-        // no-op
+public class SoundHandlerRegistryLoader extends AnnotatedRegistryLoader<SoundHandler, SoundHandler, SoundInteractionHandler<?>> {
+    public SoundHandlerRegistryLoader() {
+        super(SoundHandler.class, Function.identity());
     }
 }

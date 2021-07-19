@@ -38,7 +38,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.effect.Effect;
-import org.geysermc.connector.network.translators.effect.EffectRegistry;
+import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.utils.LocaleUtils;
 
 import java.util.Collections;
@@ -52,7 +52,7 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
         // Separate case since each RecordEffectData in Java is an individual track in Bedrock
         if (packet.getEffect() == SoundEffect.RECORD) {
             RecordEffectData recordEffectData = (RecordEffectData) packet.getData();
-            SoundEvent soundEvent = EffectRegistry.RECORDS.getOrDefault(recordEffectData.getRecordId(), SoundEvent.STOP_RECORD);
+            SoundEvent soundEvent = Registries.RECORDS.getOrDefault(recordEffectData.getRecordId(), SoundEvent.STOP_RECORD);
             Vector3f pos = Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()).add(0.5f, 0.5f, 0.5f);
 
             LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
@@ -82,7 +82,7 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
 
         if (packet.getEffect() instanceof SoundEffect) {
             SoundEffect soundEffect = (SoundEffect) packet.getEffect();
-            Effect geyserEffect = EffectRegistry.SOUND_EFFECTS.get(soundEffect);
+            Effect geyserEffect = Registries.SOUND_EFFECTS.get(soundEffect);
             if (geyserEffect != null) {
                 geyserEffect.handleEffectPacket(session, packet);
                 return;
@@ -200,7 +200,7 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     effectPacket.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
 
                     BreakBlockEffectData breakBlockEffectData = (BreakBlockEffectData) packet.getData();
-                    effectPacket.setData(session.getBlockTranslator().getBedrockBlockId(breakBlockEffectData.getBlockState()));
+                    effectPacket.setData(session.getBlockMappings().getBedrockBlockId(breakBlockEffectData.getBlockState()));
                     break;
                 }
                 case BREAK_SPLASH_POTION: {
@@ -228,6 +228,7 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     effectPacket.setType(LevelEventType.PARTICLE_MOB_BLOCK_SPAWN); // TODO: Check, but I don't think I really verified this ever went into effect on Java
                     break;
                 }
+                case BONEMEAL_GROW_WITH_SOUND: // Note that there is no particle without sound in Bedrock. If you wanted to implement the sound, send a PlaySoundPacket with "item.bone_meal.use" and volume and pitch at 1.0F
                 case BONEMEAL_GROW: {
                     effectPacket.setType(LevelEventType.PARTICLE_CROP_GROWTH);
 
@@ -272,6 +273,10 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     soundEventPacket.setBabySound(false);
                     soundEventPacket.setRelativeVolumeDisabled(false);
                     session.sendUpstreamPacket(soundEventPacket);
+                    break;
+                }
+                case DRIPSTONE_DRIP: {
+                    effectPacket.setType(LevelEventType.PARTICLE_DRIPSTONE_DRIP);
                     break;
                 }
                 case ELECTRIC_SPARK: {
