@@ -46,6 +46,7 @@ import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
+import org.geysermc.connector.utils.MathUtils;
 
 @Getter
 @Setter
@@ -83,11 +84,11 @@ public class Entity {
         this.valid = false;
 
         setPosition(position);
+        setAir(getMaxAir());
 
         metadata.put(EntityData.SCALE, 1f);
         metadata.put(EntityData.COLOR, 0);
-        metadata.put(EntityData.MAX_AIR_SUPPLY, (short) 300);
-        metadata.put(EntityData.AIR_SUPPLY, (short) 0);
+        metadata.put(EntityData.MAX_AIR_SUPPLY, getMaxAir());
         metadata.put(EntityData.LEASH_HOLDER_EID, -1L);
         metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
         metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
@@ -255,7 +256,7 @@ public class Entity {
                 }
                 break;
             case 1: // Air/bubbles
-                metadata.put(EntityData.AIR_SUPPLY, (short) (int) entityMetadata.getValue());
+                setAir((int) entityMetadata.getValue());
                 break;
             case 2: // custom name
                 if (entityMetadata.getValue() instanceof Component) {
@@ -328,6 +329,18 @@ public class Entity {
      */
     protected void setFreezing(GeyserSession session, float amount) {
         metadata.put(EntityData.FREEZING_EFFECT_STRENGTH, amount);
+    }
+
+    /**
+     * Set an int from 0 - this entity's maximum air - (air / maxAir) represents the percentage of bubbles left
+     * @param amount the amount of air
+     */
+    protected void setAir(int amount) {
+        metadata.put(EntityData.AIR_SUPPLY, (short) MathUtils.constrain(amount, 0, getMaxAir()));
+    }
+
+    protected int getMaxAir() {
+        return 300;
     }
 
     /**

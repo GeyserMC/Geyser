@@ -105,10 +105,6 @@ public class SessionPlayerEntity extends PlayerEntity {
         if (entityMetadata.getId() == 0) {
             session.setSwimmingInWater((((byte) entityMetadata.getValue()) & 0x10) == 0x10 && metadata.getFlags().getFlag(EntityFlag.SPRINTING));
             refreshSpeed = true;
-        } else if (entityMetadata.getId() == 1) { // Air/bubbles
-            if ((int) entityMetadata.getValue() == 300) {
-                metadata.put(EntityData.AIR_SUPPLY, (short) 0); // Otherwise the bubble counter remains in the UI
-            }
         } else if (entityMetadata.getId() == 6) {
             session.setPose((Pose) entityMetadata.getValue());
             refreshSpeed = true;
@@ -122,6 +118,15 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public void setHealth(float health) {
         super.setHealth(health);
+    }
+
+    @Override
+    protected void setAir(int amount) {
+        if (amount == getMaxAir()) {
+            super.setAir(0); // Hide the bubble counter from the UI for the player
+        } else {
+            super.setAir(amount);
+        }
     }
 
     @Override
