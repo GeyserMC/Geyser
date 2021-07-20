@@ -26,7 +26,6 @@
 package org.geysermc.connector.entity.living;
 
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
 
 public class WaterEntity extends CreatureEntity {
