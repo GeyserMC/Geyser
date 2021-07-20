@@ -150,7 +150,7 @@
         <dependency>
             <groupId>com.github.GeyserMC</groupId>
             <artifactId>PacketLib</artifactId>
-            <version>de9e083</version>
+            <version>25eb4c4</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>

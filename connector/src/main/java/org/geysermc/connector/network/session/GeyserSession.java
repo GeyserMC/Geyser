@@ -71,6 +71,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
@@ -837,6 +838,14 @@ public class GeyserSession implements CommandSender {
         boolean internalConnect = false;
         if (connector.getBootstrap().getSocketAddress() != null) {
             try {
+                // Only affects Waterfall, but there is no sure way to differentiate between a proxy with this patch and a proxy without this patch
+                // Patch causing the issue: https://github.com/PaperMC/Waterfall/blob/7e6af4cef64d5d377a6ffd00a534379e6efa94cf/BungeeCord-Patches/0045-Don-t-use-a-bytebuf-for-packet-decoding.patch
+                // If native compression is enabled, then this line is tripped up if a heap buffer is sent over in such a situation
+                // as a new direct buffer is not created with that patch (HeapByteBufs throw an UnsupportedOperationException here):
+                // https://github.com/SpigotMC/BungeeCord/blob/a283aaf724d4c9a815540cd32f3aafaa72df9e05/native/src/main/java/net/md_5/bungee/jni/zlib/NativeZlib.java#L43
+                // This issue could be mitigated down the line by preventing Bungee from setting compression
+                downstream.setFlag(BuiltinFlags.USE_ONLY_DIRECT_BUFFERS, connector.getPlatformType() == PlatformType.BUNGEECORD);
+
                 downstream.connectInternal(connector.getBootstrap().getSocketAddress(), upstream.getAddress().getAddress().getHostAddress(), true);
                 internalConnect = true;
             } catch (Exception e) {
