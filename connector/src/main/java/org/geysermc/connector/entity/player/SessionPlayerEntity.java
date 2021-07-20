@@ -120,6 +120,15 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
+    protected void setAir(int amount) {
+        if (amount == getMaxAir()) {
+            super.setAir(0); // Hide the bubble counter from the UI for the player
+        } else {
+            super.setAir(amount);
+        }
+    }
+
+    @Override
     public AttributeData createHealthAttribute() {
         // Max health must be divisible by two in bedrock
         if ((maxHealth % 2) == 1) {
