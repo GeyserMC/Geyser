@@ -42,6 +42,7 @@ public class MathUtils {
 
     /**
      * If number is greater than the max, set it to max, and if number is lower than low, set it to low.
+     *
      * @param num number to calculate
      * @param min the lowest value the number can be
      * @param max the greatest value the number can be
@@ -53,6 +54,7 @@ public class MathUtils {
         if (num > max) {
             num = max;
         }
+
         if (num < min) {
             num = min;
         }
@@ -62,6 +64,7 @@ public class MathUtils {
 
     /**
      * If number is greater than the max, set it to max, and if number is lower than low, set it to low.
+     *
      * @param num number to calculate
      * @param min the lowest value the number can be
      * @param max the greatest value the number can be
@@ -73,6 +76,7 @@ public class MathUtils {
         if (num > max) {
             num = max;
         }
+
         if (num < min) {
             num = min;
         }
