@@ -27,6 +27,7 @@ package org.geysermc.connector.entity.living;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -49,13 +50,35 @@ public class SquidEntity extends WaterEntity implements Tickable {
 
     @Override
     public void tick(GeyserSession session) {
+        boolean pitchChanged;
+        boolean yawChanged;
+        float oldPitch = pitch;
         if (inWater) {
+            float oldYaw = yaw;
             pitch += (targetPitch - pitch) * 0.1f;
             yaw += (targetYaw - yaw) * 0.1f;
+            yawChanged = oldYaw != yaw;
         } else {
             pitch += (-90 - pitch) * 0.02f;
+            yawChanged = false;
         }
-        super.moveAbsolute(session, position, Vector3f.from(yaw, 0, yaw), onGround, false);
+        pitchChanged = oldPitch != pitch;
+
+        if (pitchChanged || yawChanged) {
+            MoveEntityDeltaPacket packet = new MoveEntityDeltaPacket();
+            packet.setRuntimeEntityId(geyserId);
+
+            if (pitchChanged) {
+                packet.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
+                packet.setPitch(pitch);
+            }
+            if (yawChanged) {
+                packet.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+                packet.setYaw(yaw);
+            }
+
+            session.sendUpstreamPacket(packet);
+        }
     }
 
     @Override
