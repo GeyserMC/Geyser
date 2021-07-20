@@ -49,14 +49,25 @@ public class SquidEntity extends WaterEntity implements Tickable {
 
     @Override
     public void tick(GeyserSession session) {
-        checkInWater(session);
         if (inWater) {
             pitch += (targetPitch - pitch) * 0.1f;
             yaw += (targetYaw - yaw) * 0.1f;
         } else {
             pitch += (-90 - pitch) * 0.02f;
         }
-        moveAbsolute(session, position, Vector3f.from(yaw, 0, yaw), onGround, false);
+        super.moveAbsolute(session, position, Vector3f.from(yaw, 0, yaw), onGround, false);
+    }
+
+    @Override
+    public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
+        super.moveRelative(session, relX, relY, relZ, rotation, isOnGround);
+        checkInWater(session);
+    }
+
+    @Override
+    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+        super.moveAbsolute(session, position, rotation, isOnGround, teleported);
+        checkInWater(session);
     }
 
     @Override
