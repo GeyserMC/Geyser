@@ -26,14 +26,11 @@
 package org.geysermc.connector.entity.living;
 
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.connector.entity.type.EntityType;
 
 public class WaterEntity extends CreatureEntity {
 
     public WaterEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
-
-        metadata.put(EntityData.AIR_SUPPLY, (short) 400);
     }
 }

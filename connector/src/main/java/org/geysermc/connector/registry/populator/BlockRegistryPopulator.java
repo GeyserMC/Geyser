@@ -272,7 +272,7 @@ public class BlockRegistryPopulator {
 
             BlockStateValues.storeBlockStateValues(entry.getKey(), javaRuntimeId, entry.getValue());
 
-            String cleanJavaIdentifier = entry.getKey().split("\\[")[0];
+            String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(entry.getKey());
             String bedrockIdentifier = entry.getValue().get("bedrock_identifier").asText();
 
             if (!BlockRegistries.JAVA_CLEAN_IDENTIFIERS.get().containsValue(cleanJavaIdentifier)) {

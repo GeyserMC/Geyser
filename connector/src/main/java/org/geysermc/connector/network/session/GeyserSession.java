@@ -1166,9 +1166,9 @@ public class GeyserSession implements CommandSender {
         }
     }
 
-    public boolean confirmTeleport(Vector3d position) {
+    public void confirmTeleport(Vector3d position) {
         if (teleportMap.size() == 0) {
-            return true;
+            return;
         }
         int teleportID = -1;
 
@@ -1219,8 +1219,6 @@ public class GeyserSession implements CommandSender {
                         teleport.getYaw(), teleport.getPitch(), playerEntity.isOnGround(), true);
             }
         }
-
-        return true;
     }
 
     /**
