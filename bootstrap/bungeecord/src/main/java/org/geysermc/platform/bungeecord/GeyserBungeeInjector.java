@@ -101,25 +101,32 @@ public class GeyserBungeeInjector extends GeyserInjector {
         Method initChannel = ChannelInitializer.class.getDeclaredMethod("initChannel", Channel.class);
         initChannel.setAccessible(true);
 
-        ChannelFuture channelFuture = (new ServerBootstrap().channel(LocalServerChannelWrapper.class).childHandler(new ChannelInitializer<Channel>() {
-            @Override
-            protected void initChannel(Channel ch) throws Exception {
-                if (proxy.getConfig().getServers() == null) {
-                    // Proxy hasn't finished loading all plugins - it loads the config after all plugins
-                    // Probably doesn't need to be translatable?
-                    bootstrap.getGeyserLogger().info("Disconnecting player as Bungee has not finished loading");
-                    ch.close();
-                    return;
-                }
+        ChannelFuture channelFuture = (new ServerBootstrap()
+                .channel(LocalServerChannelWrapper.class)
+                .childHandler(new ChannelInitializer<Channel>() {
+                    @Override
+                    protected void initChannel(Channel ch) throws Exception {
+                        if (proxy.getConfig().getServers() == null) {
+                            // Proxy hasn't finished loading all plugins - it loads the config after all plugins
+                            // Probably doesn't need to be translatable?
+                            bootstrap.getGeyserLogger().info("Disconnecting player as Bungee has not finished loading");
+                            ch.close();
+                            return;
+                        }
 
-                if (channelInitializer == null) {
-                    // Proxy has finished initializing; we can safely grab this variable without fear of plugins modifying it
-                    // (ViaVersion replaces this to inject)
-                    channelInitializer = PipelineUtils.SERVER_CHILD;
-                }
-                initChannel.invoke(channelInitializer, ch);
-            }
-        }).childAttr(listener, listenerInfo).group(bossGroup, workerGroup).localAddress(LocalAddress.ANY)).bind().syncUninterruptibly();
+                        if (channelInitializer == null) {
+                            // Proxy has finished initializing; we can safely grab this variable without fear of plugins modifying it
+                            // (ViaVersion replaces this to inject)
+                            channelInitializer = PipelineUtils.SERVER_CHILD;
+                        }
+                        initChannel.invoke(channelInitializer, ch);
+                    }
+                })
+                .childAttr(listener, listenerInfo)
+                .group(bossGroup, workerGroup)
+                .localAddress(LocalAddress.ANY))
+                .bind()
+                .syncUninterruptibly();
 
         this.localChannel = channelFuture;
         this.serverSocketAddress = channelFuture.channel().localAddress();

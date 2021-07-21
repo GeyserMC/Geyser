@@ -108,12 +108,18 @@ public class GeyserSpigotInjector extends GeyserInjector {
         Method initChannel = childHandler.getClass().getDeclaredMethod("initChannel", Channel.class);
         initChannel.setAccessible(true);
 
-        ChannelFuture channelFuture = (new ServerBootstrap().channel(LocalServerChannelWrapper.class).childHandler(new ChannelInitializer<Channel>() {
-            @Override
-            protected void initChannel(Channel ch) throws Exception {
-                initChannel.invoke(childHandler, ch);
-            }
-        }).group(new DefaultEventLoopGroup()).localAddress(LocalAddress.ANY)).bind().syncUninterruptibly();
+        ChannelFuture channelFuture = (new ServerBootstrap()
+                .channel(LocalServerChannelWrapper.class)
+                .childHandler(new ChannelInitializer<Channel>() {
+                    @Override
+                    protected void initChannel(Channel ch) throws Exception {
+                        initChannel.invoke(childHandler, ch);
+                    }
+                })
+                .group(new DefaultEventLoopGroup())
+                .localAddress(LocalAddress.ANY))
+                .bind()
+                .syncUninterruptibly();
         // We don't need to add to the list, but plugins like ProtocolSupport and ProtocolLib that add to the main pipeline
         // will work when we add to the list.
         allServerChannels.add(channelFuture);

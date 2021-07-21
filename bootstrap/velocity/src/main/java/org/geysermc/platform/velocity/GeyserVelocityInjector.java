@@ -72,13 +72,19 @@ public class GeyserVelocityInjector extends GeyserInjector {
         Method initChannel = channelInitializer.getClass().getDeclaredMethod("initChannel", Channel.class);
         initChannel.setAccessible(true);
 
-        ChannelFuture channelFuture = (new ServerBootstrap().channel(LocalServerChannelWrapper.class).childHandler(new ChannelInitializer<Channel>() {
-            @Override
-            protected void initChannel(Channel ch) throws Exception {
-                initChannel.invoke(channelInitializer, ch);
-            }
-        }).group(bossGroup, workerGroup).childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, serverWriteMark)
-                .localAddress(LocalAddress.ANY)).bind().syncUninterruptibly(); // Cannot be DefaultEventLoopGroup
+        ChannelFuture channelFuture = (new ServerBootstrap()
+                .channel(LocalServerChannelWrapper.class)
+                .childHandler(new ChannelInitializer<Channel>() {
+                    @Override
+                    protected void initChannel(Channel ch) throws Exception {
+                        initChannel.invoke(channelInitializer, ch);
+                    }
+                })
+                .group(bossGroup, workerGroup) // Cannot be DefaultEventLoopGroup
+                .childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, serverWriteMark) // Required or else rare network freezes can occur
+                .localAddress(LocalAddress.ANY))
+                .bind()
+                .syncUninterruptibly();
 
         this.localChannel = channelFuture;
         this.serverSocketAddress = channelFuture.channel().localAddress();
