@@ -53,16 +53,20 @@ public class ItemEntity extends ThrowableEntity {
         valid = true;
         AddItemEntityPacket itemPacket = new AddItemEntityPacket();
         itemPacket.setRuntimeEntityId(geyserId);
+        itemPacket.setUniqueEntityId(geyserId);
         itemPacket.setPosition(position.add(0d, this.entityType.getOffset(), 0d));
         itemPacket.setMotion(motion);
-        itemPacket.setUniqueEntityId(geyserId);
         itemPacket.setFromFishing(false);
         itemPacket.setItemInHand(item);
+        itemPacket.getMetadata().putAll(metadata);
         session.sendUpstreamPacket(itemPacket);
     }
 
     @Override
     public void tick(GeyserSession session) {
+        if (isInWater(session)) {
+            return;
+        }
         if (!onGround || (motion.getX() * motion.getX() + motion.getZ() * motion.getZ()) > 0.00001) {
             float gravity = getGravity(session);
             motion = motion.down(gravity);
@@ -74,7 +78,12 @@ public class ItemEntity extends ThrowableEntity {
 
     @Override
     protected void moveAbsoluteImmediate(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
-        super.moveAbsoluteImmediate(session, position.up(entityType.getOffset()), Vector3f.ZERO, isOnGround, teleported);
+        float offset = entityType.getOffset();
+        if (inFullWater(session)) {
+            // Move the item entity down so it doesn't float above the water
+            offset = -entityType.getOffset();
+        }
+        super.moveAbsoluteImmediate(session, position.add(0, offset, 0), Vector3f.ZERO, isOnGround, teleported);
         this.position = position;
     }
 
@@ -107,5 +116,10 @@ public class ItemEntity extends ThrowableEntity {
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    private boolean inFullWater(GeyserSession session) {
+        int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
+        return BlockStateValues.getWaterLevel(block) == 0;
     }
 }
