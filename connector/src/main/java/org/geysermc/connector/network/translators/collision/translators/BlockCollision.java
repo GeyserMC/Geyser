@@ -103,47 +103,32 @@ public class BlockCollision {
                         playerCollision.getMiddleY() - y,
                         playerCollision.getMiddleZ() - z);
 
-                Vector3d northFacePos = Vector3d.from(b.getMiddleX(),
-                        b.getMiddleY(),
-                        b.getMiddleZ() - (b.getSizeZ() / 2));
-
-                Vector3d southFacePos = Vector3d.from(b.getMiddleX(),
-                        b.getMiddleY(),
-                        b.getMiddleZ() + (b.getSizeZ() / 2));
-
-                Vector3d eastFacePos = Vector3d.from(b.getMiddleX()  + (b.getSizeX() / 2),
-                        b.getMiddleY(),
-                        b.getMiddleZ());
-
-                Vector3d westFacePos = Vector3d.from(b.getMiddleX()  - (b.getSizeX() / 2),
-                        b.getMiddleY(),
-                        b.getMiddleZ());
-
-                Vector3d bottomFacePos = Vector3d.from(b.getMiddleX(),
-                        b.getMiddleY()  - (b.getSizeY() / 2),
-                        b.getMiddleZ());
-
-                double translateDistance = northFacePos.getZ() - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
-                if (Math.abs(translateDistance) < pushAwayTolerance) {
-                    playerCollision.translate(0, 0, translateDistance);
-                }
-                
-                translateDistance = southFacePos.getZ() - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
+                double northFaceZPos = b.getMiddleZ() - (b.getSizeZ() / 2);
+                double translateDistance = northFaceZPos - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
                 if (Math.abs(translateDistance) < pushAwayTolerance) {
                     playerCollision.translate(0, 0, translateDistance);
                 }
 
-                translateDistance = eastFacePos.getX() - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
+                double southFaceZPos = b.getMiddleZ() + (b.getSizeZ() / 2);
+                translateDistance = southFaceZPos - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
+                if (Math.abs(translateDistance) < pushAwayTolerance) {
+                    playerCollision.translate(0, 0, translateDistance);
+                }
+
+                double eastFaceXPos = b.getMiddleX() + (b.getSizeX() / 2);
+                translateDistance = eastFaceXPos - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
                 if (Math.abs(translateDistance) < pushAwayTolerance) {
                     playerCollision.translate(translateDistance, 0, 0);
                 }
 
-                translateDistance = westFacePos.getX() - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
+                double westFaceXPos = b.getMiddleX() - (b.getSizeX() / 2);
+                translateDistance = westFaceXPos - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
                 if (Math.abs(translateDistance) < pushAwayTolerance) {
                     playerCollision.translate(translateDistance, 0, 0);
                 }
 
-                translateDistance = bottomFacePos.getY() - relativePlayerPosition.getY() - (playerCollision.getSizeY() / 2);
+                double bottomFaceYPos = b.getMiddleY() - (b.getSizeY() / 2);
+                translateDistance = bottomFaceYPos - relativePlayerPosition.getY() - (playerCollision.getSizeY() / 2);
                 if (Math.abs(translateDistance) < pushAwayTolerance) {
                     playerCollision.translate(0, translateDistance, 0);
                 }
