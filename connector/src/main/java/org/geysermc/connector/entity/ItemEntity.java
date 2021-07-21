@@ -41,6 +41,8 @@ public class ItemEntity extends ThrowableEntity {
 
     protected ItemData item;
 
+    private int waterLevel = -1;
+
     public ItemEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
     }
@@ -79,12 +81,15 @@ public class ItemEntity extends ThrowableEntity {
     @Override
     protected void moveAbsoluteImmediate(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
         float offset = entityType.getOffset();
-        if (inFullWater(session)) {
+        if (waterLevel == 0) { // Item is in a full block of water
             // Move the item entity down so it doesn't float above the water
             offset = -entityType.getOffset();
         }
         super.moveAbsoluteImmediate(session, position.add(0, offset, 0), Vector3f.ZERO, isOnGround, teleported);
         this.position = position;
+
+        int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
+        waterLevel = BlockStateValues.getWaterLevel(block);
     }
 
     @Override
@@ -118,8 +123,8 @@ public class ItemEntity extends ThrowableEntity {
         super.updateBedrockMetadata(entityMetadata, session);
     }
 
-    private boolean inFullWater(GeyserSession session) {
-        int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
-        return BlockStateValues.getWaterLevel(block) == 0;
+    @Override
+    protected boolean isInWater(GeyserSession session) {
+        return waterLevel != -1;
     }
 }
