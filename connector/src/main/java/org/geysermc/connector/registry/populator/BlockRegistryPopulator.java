@@ -47,10 +47,10 @@ import org.geysermc.connector.utils.FileUtils;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.zip.GZIPInputStream;
 
@@ -237,7 +237,7 @@ public class BlockRegistryPopulator {
             throw new AssertionError("Unable to load Java block mappings", e);
         }
 
-        List<String> cleanIdentifiers = new ArrayList<>();
+        Set<String> cleanIdentifiers = new HashSet<>();
 
         int javaRuntimeId = -1;
         int bellBlockId = -1;
