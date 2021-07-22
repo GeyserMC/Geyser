@@ -44,6 +44,7 @@ import org.geysermc.connector.registry.type.ItemMappings;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -125,6 +126,7 @@ public abstract class ItemTranslator {
         return itemStack;
     }
 
+    @Nonnull
     public static ItemData translateToBedrock(GeyserSession session, ItemStack stack) {
         if (stack == null) {
             return ItemData.AIR;

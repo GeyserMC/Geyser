@@ -29,9 +29,11 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.AddItemEntityPacket;
+import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
@@ -115,9 +117,26 @@ public class ItemEntity extends ThrowableEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 8) {
-            item = ItemTranslator.translateToBedrock(session, (ItemStack) entityMetadata.getValue());
-            despawnEntity(session);
-            spawnEntity(session);
+            ItemData item = ItemTranslator.translateToBedrock(session, (ItemStack) entityMetadata.getValue());
+            if (this.item == null) {
+                this.item = item;
+                spawnEntity(session);
+            } else if (item.equals(this.item, false, true, true)) {
+                // Don't bother respawning the entity if items are equal
+                if (this.item.getCount() != item.getCount()) {
+                    // Just item count updated; let's make this easy
+                    this.item = item;
+                    EntityEventPacket packet = new EntityEventPacket();
+                    packet.setRuntimeEntityId(geyserId);
+                    packet.setType(EntityEventType.UPDATE_ITEM_STACK_SIZE);
+                    packet.setData(this.item.getCount());
+                    session.sendUpstreamPacket(packet);
+                }
+            } else {
+                this.item = item;
+                despawnEntity(session);
+                spawnEntity(session);
+            }
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
