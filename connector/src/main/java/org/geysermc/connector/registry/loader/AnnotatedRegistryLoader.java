@@ -26,9 +26,7 @@
 package org.geysermc.connector.registry.loader;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.utils.FileUtils;
-import org.reflections.Reflections;
 
 import java.lang.annotation.Annotation;
 import java.util.Map;
@@ -66,8 +64,7 @@ public class AnnotatedRegistryLoader<R, A extends Annotation, V> implements Regi
     @Override
     public Map<R, V> load(String input) {
         Map<R, V> entries = new Object2ObjectOpenHashMap<>();
-        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections(input) : new Reflections(input);
-        for (Class<?> clazz : ref.getTypesAnnotatedWith(this.annotation)) {
+        for (Class<?> clazz : FileUtils.getGeneratedClassesForAnnotation(input)) {
             try {
                 entries.put(this.mapper.apply(clazz.getAnnotation(this.annotation)), (V) clazz.newInstance());
             } catch (InstantiationException | IllegalAccessException ex) {

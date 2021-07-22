@@ -31,6 +31,7 @@
     </scm>
 
     <modules>
+        <module>ap</module>
         <module>bootstrap</module>
         <module>common</module>
         <module>connector</module>

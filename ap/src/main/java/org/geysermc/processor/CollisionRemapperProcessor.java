@@ -23,21 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.registry.type;
+package org.geysermc.processor;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.SourceVersion;
 
-/**
- * Represents Geyser's own serialized item information before being processed per-version
- */
-@Data
-public class GeyserMappingItem {
-    @JsonProperty("bedrock_identifier") String bedrockIdentifier;
-    @JsonProperty("bedrock_data") int bedrockData;
-    Integer firstBlockRuntimeId;
-    Integer lastBlockRuntimeId;
-    @JsonProperty("stack_size") int stackSize = 64;
-    @JsonProperty("tool_type") String toolType;
-    @JsonProperty("tool_tier") String toolTier;
+@SupportedAnnotationTypes("org.geysermc.connector.network.translators.collision.CollisionRemapper")
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
+public class CollisionRemapperProcessor extends ClassProcessor {
+    public CollisionRemapperProcessor() {
+        super("org.geysermc.connector.network.translators.collision.CollisionRemapper");
+    }
 }

@@ -58,9 +58,9 @@ import java.util.Set;
 public class Registries {
     public static final SimpleRegistry<NbtMap> BIOMES = SimpleRegistry.create("bedrock/biome_definitions.dat", RegistryLoaders.NBT);
 
-    public static final SimpleMappedRegistry<String, BlockEntityTranslator> BLOCK_ENTITIES = SimpleMappedRegistry.create("org.geysermc.connector.network.translators.world.block.entity", BlockEntityRegistryLoader::new);
+    public static final SimpleMappedRegistry<String, BlockEntityTranslator> BLOCK_ENTITIES = SimpleMappedRegistry.create("org.geysermc.connector.network.translators.world.block.entity.BlockEntity", BlockEntityRegistryLoader::new);
 
-    public static final SimpleMappedRegistry<Integer, BlockCollision> COLLISIONS = SimpleMappedRegistry.create(Pair.of("org.geysermc.connector.network.translators.collision.translators", "mappings/collision.json"), CollisionRegistryLoader::new);
+    public static final SimpleMappedRegistry<Integer, BlockCollision> COLLISIONS = SimpleMappedRegistry.create(Pair.of("org.geysermc.connector.network.translators.collision.translators.Translator", "mappings/collision.json"), CollisionRegistryLoader::new);
 
     public static final VersionedRegistry<Map<RecipeType, List<CraftingData>>> CRAFTING_DATA = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
@@ -80,7 +80,7 @@ public class Registries {
 
     public static final SimpleMappedRegistry<SoundEffect, Effect> SOUND_EFFECTS = SimpleMappedRegistry.create("mappings/effects.json", SoundEffectsRegistryLoader::new);
 
-    public static final SimpleMappedRegistry<SoundHandler, SoundInteractionHandler<?>> SOUND_HANDLERS = SimpleMappedRegistry.create("org.geysermc.connector.network.translators.sound", SoundHandlerRegistryLoader::new);
+    public static final SimpleMappedRegistry<SoundHandler, SoundInteractionHandler<?>> SOUND_HANDLERS = SimpleMappedRegistry.create("org.geysermc.connector.network.translators.sound.SoundHandler", SoundHandlerRegistryLoader::new);
 
     public static void init() {
         // no-op

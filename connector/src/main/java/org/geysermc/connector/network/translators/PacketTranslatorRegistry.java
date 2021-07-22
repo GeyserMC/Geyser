@@ -35,13 +35,12 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
-import org.reflections.Reflections;
 
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 public class PacketTranslatorRegistry<T> {
-    private final Map<Class<? extends T>, PacketTranslator<? extends T>> translators = new HashMap<>();
+    private final Map<Class<? extends T>, PacketTranslator<? extends T>> translators = new IdentityHashMap<>();
 
     public static final PacketTranslatorRegistry<Packet> JAVA_TRANSLATOR = new PacketTranslatorRegistry<>();
     public static final PacketTranslatorRegistry<BedrockPacket> BEDROCK_TRANSLATOR = new PacketTranslatorRegistry<>();
@@ -49,9 +48,7 @@ public class PacketTranslatorRegistry<T> {
     private static final ObjectArrayList<Class<?>> IGNORED_PACKETS = new ObjectArrayList<>();
 
     static {
-        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators") : new Reflections("org.geysermc.connector.network.translators");
-
-        for (Class<?> clazz : ref.getTypesAnnotatedWith(Translator.class)) {
+        for (Class<?> clazz : FileUtils.getGeneratedClassesForAnnotation(Translator.class)) {
             Class<?> packet = clazz.getAnnotation(Translator.class).packet();
 
             GeyserConnector.getInstance().getLogger().debug("Found annotated translator: " + clazz.getCanonicalName() + " : " + packet.getSimpleName());

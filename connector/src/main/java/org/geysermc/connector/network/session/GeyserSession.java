@@ -560,8 +560,10 @@ public class GeyserSession implements CommandSender {
         }
 
         loggingIn = true;
-        // new thread so clients don't timeout
-        new Thread(() -> {
+
+        // Use a future to prevent timeouts as all the authentication is handled sync
+        // This will be changed with the new protocol library.
+        CompletableFuture.supplyAsync(() -> {
             try {
                 if (password != null && !password.isEmpty()) {
                     AuthenticationService authenticationService;
@@ -587,15 +589,14 @@ public class GeyserSession implements CommandSender {
 
                     protocol = new MinecraftProtocol(validUsername);
                 }
-
-                connectDownstream();
             } catch (InvalidCredentialsException | IllegalArgumentException e) {
                 connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.invalid", username));
                 disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
             } catch (RequestException ex) {
                 ex.printStackTrace();
             }
-        }).start();
+            return null;
+        }).whenComplete((aVoid, ex) -> connectDownstream());
     }
 
     /**
@@ -608,28 +609,31 @@ public class GeyserSession implements CommandSender {
         }
 
         loggingIn = true;
+
+        // This just looks cool
+        SetTimePacket packet = new SetTimePacket();
+        packet.setTime(16000);
+        sendUpstreamPacket(packet);
+
         // new thread so clients don't timeout
-        new Thread(() -> {
+        MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserConnector.OAUTH_CLIENT_ID);
+
+        // Use a future to prevent timeouts as all the authentication is handled sync
+        // This will be changed with the new protocol library.
+        CompletableFuture.supplyAsync(() -> {
             try {
-                MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserConnector.OAUTH_CLIENT_ID);
-
-                MsaAuthenticationService.MsCodeResponse response = msaAuthenticationService.getAuthCode();
-                LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
-
-                // This just looks cool
-                SetTimePacket packet = new SetTimePacket();
-                packet.setTime(16000);
-                sendUpstreamPacket(packet);
-
-                // Wait for the code to validate
-                attemptCodeAuthentication(msaAuthenticationService);
-            } catch (InvalidCredentialsException | IllegalArgumentException e) {
-                connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.invalid", getAuthData().getName()));
-                disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
-            } catch (RequestException ex) {
-                ex.printStackTrace();
+                return msaAuthenticationService.getAuthCode();
+            } catch (RequestException e) {
+                throw new CompletionException(e);
             }
-        }).start();
+        }).whenComplete((response, ex) -> {
+            if (ex != null) {
+                ex.printStackTrace();
+                return;
+            }
+            LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
+            attemptCodeAuthentication(msaAuthenticationService);
+        });
     }
 
     /**
@@ -646,7 +650,7 @@ public class GeyserSession implements CommandSender {
             connectDownstream();
         } catch (RequestException e) {
             if (!(e instanceof AuthPendingException)) {
-                e.printStackTrace();
+                throw new RuntimeException("Failed to log in with Microsoft code!", e);
             } else {
                 // Wait one second before trying again
                 connector.getGeneralThreadPool().schedule(() -> attemptCodeAuthentication(msaAuthenticationService), 1, TimeUnit.SECONDS);

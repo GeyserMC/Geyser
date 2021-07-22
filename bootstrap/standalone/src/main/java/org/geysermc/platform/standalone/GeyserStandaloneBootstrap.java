@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.AnnotatedField;
 import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
+import io.netty.util.ResourceLeakDetector;
 import lombok.Getter;
 import net.minecrell.terminalconsole.TerminalConsoleAppender;
 import org.apache.logging.log4j.Level;
@@ -80,6 +81,10 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     private static final Map<String, String> argsConfigKeys = new HashMap<>();
 
     public static void main(String[] args) {
+        if (System.getProperty("io.netty.leakDetection.level") == null) {
+            ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED); // Can eat performance
+        }
+
         GeyserStandaloneBootstrap bootstrap = new GeyserStandaloneBootstrap();
         // Set defaults
         boolean useGuiOpts = bootstrap.useGui;

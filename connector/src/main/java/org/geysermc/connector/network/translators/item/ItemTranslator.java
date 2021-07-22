@@ -43,7 +43,6 @@ import org.geysermc.connector.registry.type.ItemMapping;
 import org.geysermc.connector.registry.type.ItemMappings;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LocaleUtils;
-import org.reflections.Reflections;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -61,10 +60,8 @@ public abstract class ItemTranslator {
 
     static {
         /* Load item translators */
-        Reflections ref = GeyserConnector.getInstance().useXmlReflections() ? FileUtils.getReflections("org.geysermc.connector.network.translators.item") : new Reflections("org.geysermc.connector.network.translators.item");
-
         Map<NbtItemStackTranslator, Integer> loadedNbtItemTranslators = new HashMap<>();
-        for (Class<?> clazz : ref.getTypesAnnotatedWith(ItemRemapper.class)) {
+        for (Class<?> clazz : FileUtils.getGeneratedClassesForAnnotation(ItemRemapper.class)) {
             int priority = clazz.getAnnotation(ItemRemapper.class).priority();
 
             GeyserConnector.getInstance().getLogger().debug("Found annotated item translator: " + clazz.getCanonicalName());

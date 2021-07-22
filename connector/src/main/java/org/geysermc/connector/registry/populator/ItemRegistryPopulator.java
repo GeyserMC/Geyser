@@ -49,7 +49,6 @@ import org.geysermc.connector.network.translators.item.StoredItemMappings;
 import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.*;
-import org.geysermc.connector.utils.BlockUtils;
 import org.geysermc.connector.utils.FileUtils;
 
 import java.io.ByteArrayInputStream;
@@ -124,6 +123,7 @@ public class ItemRegistryPopulator {
 
             // Used to get the Bedrock namespaced ID (in instances where there are small differences)
             Object2IntMap<String> bedrockIdentifierToId = new Object2IntOpenHashMap<>();
+            bedrockIdentifierToId.defaultReturnValue(Short.MIN_VALUE);
 
             List<String> itemNames = new ArrayList<>();
 
@@ -268,14 +268,14 @@ public class ItemRegistryPopulator {
                 }
                 String bedrockIdentifier = mappingItem.getBedrockIdentifier();
                 int bedrockId = bedrockIdentifierToId.getInt(bedrockIdentifier);
-                if (bedrockIdentifier == null) {
-                    throw new RuntimeException("Missing Bedrock ID in mappings!: " + bedrockId);
+                if (bedrockId == Short.MIN_VALUE) {
+                    throw new RuntimeException("Missing Bedrock ID in mappings: " + bedrockIdentifier);
                 }
-                int stackSize = mappingItem.getStackSize() == null ? 64 : mappingItem.getStackSize();
+                int stackSize = mappingItem.getStackSize();
 
                 int bedrockBlockId = -1;
-                Integer blockRuntimeIdNode = entry.getValue().getBlockRuntimeId();
-                if (blockRuntimeIdNode != null) {
+                Integer firstBlockRuntimeId = entry.getValue().getFirstBlockRuntimeId();
+                if (firstBlockRuntimeId != null) {
                     int blockIdOverride = bedrockBlockIdOverrides.getOrDefault(bedrockIdentifier, -1);
                     if (blockIdOverride != -1) {
                         // Straight from BDS is our best chance of getting an item that doesn't run into issues
@@ -285,52 +285,51 @@ public class ItemRegistryPopulator {
                         int aValidBedrockBlockId = blacklistedIdentifiers.getOrDefault(bedrockIdentifier, -1);
                         if (aValidBedrockBlockId == -1) {
                             // Fallback
-                            bedrockBlockId = blockMappings.getBedrockBlockId(blockRuntimeIdNode);
+                            bedrockBlockId = blockMappings.getBedrockBlockId(firstBlockRuntimeId);
                         } else {
                             // As of 1.16.220, every item requires a block runtime ID attached to it.
                             // This is mostly for identifying different blocks with the same item ID - wool, slabs, some walls.
                             // However, in order for some visuals and crafting to work, we need to send the first matching block state
                             // as indexed by Bedrock's block palette
                             // There are exceptions! But, ideally, the block ID override should take care of those.
-                            String javaBlockIdentifier = BlockRegistries.JAVA_BLOCKS.get(blockRuntimeIdNode).getCleanJavaIdentifier();
                             NbtMapBuilder requiredBlockStatesBuilder = NbtMap.builder();
                             String correctBedrockIdentifier = blockMappings.getBedrockBlockStates().get(aValidBedrockBlockId).getString("name");
                             boolean firstPass = true;
-                            for (Map.Entry<String, Integer> blockEntry : BlockRegistries.JAVA_IDENTIFIERS.get().entrySet()) {
-                                String aBlockIdentifier = BlockUtils.getCleanIdentifier(blockEntry.getKey());
-                                if (aBlockIdentifier.equals(javaBlockIdentifier)) {
-                                    int bedrockBlockRuntimeId = blockMappings.getBedrockBlockId(blockEntry.getValue());
-                                    NbtMap blockTag = blockMappings.getBedrockBlockStates().get(bedrockBlockRuntimeId);
-                                    String bedrockName = blockTag.getString("name");
-                                    if (!bedrockName.equals(correctBedrockIdentifier)) {
-                                        continue;
-                                    }
-                                    NbtMap states = blockTag.getCompound("states");
+                            // Block states are all grouped together. In the mappings, we store the first block runtime ID in order,
+                            // and the last, if relevant. We then iterate over all those values and get their Bedrock equivalents
+                            Integer lastBlockRuntimeId = entry.getValue().getLastBlockRuntimeId() == null ? firstBlockRuntimeId : entry.getValue().getLastBlockRuntimeId();
+                            for (int i = firstBlockRuntimeId; i <= lastBlockRuntimeId; i++) {
+                                int bedrockBlockRuntimeId = blockMappings.getBedrockBlockId(i);
+                                NbtMap blockTag = blockMappings.getBedrockBlockStates().get(bedrockBlockRuntimeId);
+                                String bedrockName = blockTag.getString("name");
+                                if (!bedrockName.equals(correctBedrockIdentifier)) {
+                                    continue;
+                                }
+                                NbtMap states = blockTag.getCompound("states");
 
-                                    if (firstPass) {
-                                        firstPass = false;
-                                        if (states.size() == 0) {
-                                            // No need to iterate and find all block states - this is the one, as there can't be any others
-                                            bedrockBlockId = bedrockBlockRuntimeId;
-                                            break;
-                                        }
-                                        requiredBlockStatesBuilder.putAll(states);
-                                        continue;
-                                    }
-                                    for (Map.Entry<String, Object> nbtEntry : states.entrySet()) {
-                                        Object value = requiredBlockStatesBuilder.get(nbtEntry.getKey());
-                                        if (value != null && !nbtEntry.getValue().equals(value)) { // Null means this value has already been removed/deemed as unneeded
-                                            // This state can change between different block states, and therefore is not required
-                                            // to build a successful block state of this
-                                            requiredBlockStatesBuilder.remove(nbtEntry.getKey());
-                                        }
-                                    }
-                                    if (requiredBlockStatesBuilder.size() == 0) {
-                                        // There are no required block states
-                                        // E.G. there was only a direction property that is no longer in play
-                                        // (States that are important include color for glass)
+                                if (firstPass) {
+                                    firstPass = false;
+                                    if (states.size() == 0) {
+                                        // No need to iterate and find all block states - this is the one, as there can't be any others
+                                        bedrockBlockId = bedrockBlockRuntimeId;
                                         break;
                                     }
+                                    requiredBlockStatesBuilder.putAll(states);
+                                    continue;
+                                }
+                                for (Map.Entry<String, Object> nbtEntry : states.entrySet()) {
+                                    Object value = requiredBlockStatesBuilder.get(nbtEntry.getKey());
+                                    if (value != null && !nbtEntry.getValue().equals(value)) { // Null means this value has already been removed/deemed as unneeded
+                                        // This state can change between different block states, and therefore is not required
+                                        // to build a successful block state of this
+                                        requiredBlockStatesBuilder.remove(nbtEntry.getKey());
+                                    }
+                                }
+                                if (requiredBlockStatesBuilder.size() == 0) {
+                                    // There are no required block states
+                                    // E.G. there was only a direction property that is no longer in play
+                                    // (States that are important include color for glass)
+                                    break;
                                 }
                             }
 

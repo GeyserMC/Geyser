@@ -1,0 +1,5 @@
+org.geysermc.processor.BlockEntityProcessor
+org.geysermc.processor.CollisionRemapperProcessor
+org.geysermc.processor.ItemRemapperProcessor
+org.geysermc.processor.PacketTranslatorProcessor
+org.geysermc.processor.SoundHandlerProcessor
