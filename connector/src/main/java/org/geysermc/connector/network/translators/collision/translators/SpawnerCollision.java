@@ -25,8 +25,6 @@
 
 package org.geysermc.connector.network.translators.collision.translators;
 
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 
 @CollisionRemapper(regex = "^spawner$")
@@ -35,10 +33,5 @@ public class SpawnerCollision extends SolidCollision {
         super(params);
         // Increase pushAwayTolerance to work around https://bugs.mojang.com/browse/MCPE-41996
         pushAwayTolerance = 0.0002;
-    }
-
-    @Override
-    public boolean correctPosition(GeyserSession session, BoundingBox playerCollision) {
-        return super.correctPosition(session, playerCollision);
     }
 }
