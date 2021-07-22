@@ -54,6 +54,9 @@ import java.util.*;
 
 import static org.geysermc.connector.utils.InventoryUtils.LAST_RECIPE_NET_ID;
 
+/**
+ * Populates the recipe registry.
+ */
 public class RecipeRegistryPopulator {
 
     public static void populate() {

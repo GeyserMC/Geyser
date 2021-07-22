@@ -36,6 +36,9 @@ import org.geysermc.connector.registry.populator.BlockRegistryPopulator;
 import org.geysermc.connector.registry.type.BlockMapping;
 import org.geysermc.connector.registry.type.BlockMappings;
 
+/**
+ * Holds all the block registries in Geyser.
+ */
 public class BlockRegistries {
     public static final VersionedRegistry<BlockMappings> BLOCKS = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 

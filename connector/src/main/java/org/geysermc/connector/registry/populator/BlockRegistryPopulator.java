@@ -52,6 +52,9 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.zip.GZIPInputStream;
 
+/**
+ * Populates the block registries.
+ */
 public class BlockRegistryPopulator {
     private static final ImmutableMap<String, BiFunction<String, NbtMapBuilder, String>> STATE_MAPPER;
 

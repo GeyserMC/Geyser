@@ -34,6 +34,26 @@ import java.lang.annotation.Annotation;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * A mapped registry loader which takes in a {@link String} and returns a transformed
+ * {@link Annotation} as the value. The {@link R} represents the final result as mapped
+ * by the {@link A}, the annotation. This function exists in this registry loader for
+ * the purpose of annotations not often being used as a map key. The {@link V} generic
+ * represents the actual map value of what is expected. The function transformation done
+ * is used for transforming the key, however the value is not expected to be transformed.
+ *
+ * <p>
+ * Keep in mind that this annotation transforming does NOT need to be done, and can be
+ * replaced with a simple <code>Function.identity()</code> if not desired.
+ *
+ * <p>
+ * See {@link BlockEntityRegistryLoader} and {@link SoundHandlerRegistryLoader} as a
+ * good example of these registry loaders in use.
+ *
+ * @param <R> the final result as transformed by the function
+ * @param <A> the raw annotation itself can be transformed
+ * @param <V> the value
+ */
 public class AnnotatedRegistryLoader<R, A extends Annotation, V> implements RegistryLoader<String, Map<R, V>> {
     private final Class<A> annotation;
     private final Function<A, R> mapper;

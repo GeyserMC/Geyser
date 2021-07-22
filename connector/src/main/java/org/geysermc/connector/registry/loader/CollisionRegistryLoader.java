@@ -48,6 +48,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+/**
+ * Loads collision data from the given resource path.
+ */
 public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String, Map<Integer, BlockCollision>> {
 
     @Override

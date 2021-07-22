@@ -52,6 +52,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Holds all the common registries in Geyser.
+ */
 public class Registries {
     public static final SimpleRegistry<NbtMap> BIOMES = SimpleRegistry.create("bedrock/biome_definitions.dat", RegistryLoaders.NBT);
 

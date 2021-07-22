@@ -57,6 +57,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
+/**
+ * Populates the item registries.
+ */
 public class ItemRegistryPopulator {
     private static final Map<String, PaletteVersion> PALETTE_VERSIONS;
 

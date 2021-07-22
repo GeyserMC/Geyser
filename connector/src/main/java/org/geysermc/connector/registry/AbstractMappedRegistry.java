@@ -27,21 +27,54 @@ package org.geysermc.connector.registry;
 
 import org.geysermc.connector.registry.loader.RegistryLoader;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
-public abstract class AbstractMappedRegistry<K, V, C extends Map<K, V>> extends Registry<C> {
-    protected <I> AbstractMappedRegistry(I input, RegistryLoader<I, C> registryLoader) {
+/**
+ * An abstract registry holding a map of various registrations as defined by {@link M}.
+ * The M represents the map class, which can be anything that extends {@link Map}. The
+ * {@link K} and {@link V} generics are the key and value respectively.
+ *
+ * @param <K> the key
+ * @param <V> the value
+ * @param <M> the map
+ */
+public abstract class AbstractMappedRegistry<K, V, M extends Map<K, V>> extends Registry<M> {
+    protected <I> AbstractMappedRegistry(I input, RegistryLoader<I, M> registryLoader) {
         super(input, registryLoader);
     }
 
+    /**
+     * Returns the value registered by the given key.
+     *
+     * @param key the key
+     * @return the value registered by the given key.
+     */
+    @Nullable
     public V get(K key) {
         return this.mappings.get(key);
     }
 
+    /**
+     * Returns the value registered by the given key or the default value
+     * specified if null.
+     *
+     * @param key the key
+     * @param defaultValue the default value
+     * @return the value registered by the given key or the default value
+     *         specified if null.
+     */
     public V getOrDefault(K key, V defaultValue) {
         return this.mappings.getOrDefault(key, defaultValue);
     }
 
+    /**
+     * Registers a new value into this registry with the given key.
+     *
+     * @param key the key
+     * @param value the value
+     * @return a new value into this registry with the given key.
+     */
     public V register(K key, V value) {
         return this.mappings.put(key, value);
     }
