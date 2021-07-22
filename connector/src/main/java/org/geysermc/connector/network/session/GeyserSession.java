@@ -609,28 +609,31 @@ public class GeyserSession implements CommandSender {
         }
 
         loggingIn = true;
+
+        // This just looks cool
+        SetTimePacket packet = new SetTimePacket();
+        packet.setTime(16000);
+        sendUpstreamPacket(packet);
+
         // new thread so clients don't timeout
-        new Thread(() -> {
+        MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserConnector.OAUTH_CLIENT_ID);
+
+        // Use a future to prevent timeouts as all the authentication is handled sync
+        // This will be changed with the new protocol library.
+        CompletableFuture.supplyAsync(() -> {
             try {
-                MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserConnector.OAUTH_CLIENT_ID);
-
-                MsaAuthenticationService.MsCodeResponse response = msaAuthenticationService.getAuthCode();
-                LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
-
-                // This just looks cool
-                SetTimePacket packet = new SetTimePacket();
-                packet.setTime(16000);
-                sendUpstreamPacket(packet);
-
-                // Wait for the code to validate
-                attemptCodeAuthentication(msaAuthenticationService);
-            } catch (InvalidCredentialsException | IllegalArgumentException e) {
-                connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.invalid", getAuthData().getName()));
-                disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
-            } catch (RequestException ex) {
-                ex.printStackTrace();
+                return msaAuthenticationService.getAuthCode();
+            } catch (RequestException e) {
+                throw new CompletionException(e);
             }
-        }).start();
+        }).whenComplete((response, ex) -> {
+            if (ex != null) {
+                ex.printStackTrace();
+                return;
+            }
+            LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
+            attemptCodeAuthentication(msaAuthenticationService);
+        });
     }
 
     /**
