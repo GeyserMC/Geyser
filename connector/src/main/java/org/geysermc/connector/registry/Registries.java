@@ -56,30 +56,72 @@ import java.util.Set;
  * Holds all the common registries in Geyser.
  */
 public class Registries {
+    /**
+     * A registry holding a CompoundTag of all the known biomes.
+     */
     public static final SimpleRegistry<NbtMap> BIOMES = SimpleRegistry.create("bedrock/biome_definitions.dat", RegistryLoaders.NBT);
 
+    /**
+     * A mapped registry which stores a block entity identifier to its {@link BlockEntityTranslator}.
+     */
     public static final SimpleMappedRegistry<String, BlockEntityTranslator> BLOCK_ENTITIES = SimpleMappedRegistry.create("org.geysermc.connector.network.translators.world.block.entity.BlockEntity", BlockEntityRegistryLoader::new);
 
+    /**
+     * A mapped registry containing which holds block IDs to its {@link BlockCollision}.
+     */
     public static final SimpleMappedRegistry<Integer, BlockCollision> COLLISIONS = SimpleMappedRegistry.create(Pair.of("org.geysermc.connector.network.translators.collision.translators.Translator", "mappings/collision.json"), CollisionRegistryLoader::new);
 
+    /**
+     * A versioned registry which holds a {@link RecipeType} to a corresponding list of {@link CraftingData}.
+     */
     public static final VersionedRegistry<Map<RecipeType, List<CraftingData>>> CRAFTING_DATA = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
+    /**
+     * A registry holding a CompoundTag of the known entity identifiers.
+     */
     public static final SimpleRegistry<NbtMap> ENTITY_IDENTIFIERS = SimpleRegistry.create("bedrock/entity_identifiers.dat", RegistryLoaders.NBT);
 
+    /**
+     * A versioned registry which holds {@link ItemMappings} for each version. These item mappings contain
+     * primarily Bedrock version-specific data.
+     */
     public static final VersionedRegistry<ItemMappings> ITEMS = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
+    /**
+     * A mapped registry holding the {@link ParticleType} to a corresponding {@link ParticleMapping}, containing various pieces of
+     * data primarily for how Bedrock should handle the particle.
+     */
     public static final SimpleMappedRegistry<ParticleType, ParticleMapping> PARTICLES = SimpleMappedRegistry.create("mappings/particles.json", ParticleTypesRegistryLoader::new);
 
+    /**
+     * A registry holding all the potion mixes.
+     */
     public static final SimpleRegistry<Set<PotionMixData>> POTION_MIXES;
 
+    /**
+     * A versioned registry holding all the recipes, with the net ID being the key, and {@link Recipe} as the value.
+     */
     public static final VersionedRegistry<Int2ObjectMap<Recipe>> RECIPES = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
+    /**
+     * A mapped registry holding the available records, with the ID of the record being the key, and the {@link SoundEvent}
+     * as the value.
+     */
     public static final SimpleMappedRegistry<Integer, SoundEvent> RECORDS = SimpleMappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
+    /**
+     * A mapped registry holding sound identifiers to their corresponding {@link SoundMapping}.
+     */
     public static final SimpleMappedRegistry<String, SoundMapping> SOUNDS = SimpleMappedRegistry.create("mappings/sounds.json", SoundRegistryLoader::new);
 
+    /**
+     * A mapped registry holding {@link SoundEffect}s to their corresponding {@link Effect}.
+     */
     public static final SimpleMappedRegistry<SoundEffect, Effect> SOUND_EFFECTS = SimpleMappedRegistry.create("mappings/effects.json", SoundEffectsRegistryLoader::new);
 
+    /**
+     * A mapped registry holding {@link SoundHandler}s to their corresponding {@link SoundInteractionHandler}.
+     */
     public static final SimpleMappedRegistry<SoundHandler, SoundInteractionHandler<?>> SOUND_HANDLERS = SimpleMappedRegistry.create("org.geysermc.connector.network.translators.sound.SoundHandler", SoundHandlerRegistryLoader::new);
 
     public static void init() {

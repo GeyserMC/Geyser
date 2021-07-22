@@ -39,16 +39,31 @@ import org.geysermc.connector.utils.Object2IntBiMap;
  * Holds all the block registries in Geyser.
  */
 public class BlockRegistries {
+    /**
+     * A versioned registry which holds {@link BlockMappings} for each version. These block mappings contain
+     * primarily Bedrock version-specific data.
+     */
     public static final VersionedRegistry<BlockMappings> BLOCKS = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
+    /**
+     * A mapped registry which stores Java to Bedrock block identifiers.
+     */
     public static final SimpleMappedRegistry<String, String> JAVA_TO_BEDROCK_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
+    /**
+     * A mapped registry which stores Java IDs to {@link BlockMapping}, containing miscellaneous information about
+     * blocks and their behavior in many cases.
+     */
     public static final SimpleMappedRegistry<Integer, BlockMapping> JAVA_BLOCKS = SimpleMappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
+    /**
+     * A (bi)mapped registry containing the Java IDs to identifiers.
+     */
     public static final MappedRegistry<String, Integer, Object2IntBiMap<String>> JAVA_IDENTIFIERS = MappedRegistry.create(RegistryLoaders.empty(Object2IntBiMap::new));
 
-    public static final SimpleMappedRegistry<Integer, String> JAVA_CLEAN_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
-
+    /**
+     * A registry containing all the waterlogged blockstates.
+     */
     public static final SimpleRegistry<IntSet> WATERLOGGED = SimpleRegistry.create(RegistryLoaders.empty(IntOpenHashSet::new));
 
     static {

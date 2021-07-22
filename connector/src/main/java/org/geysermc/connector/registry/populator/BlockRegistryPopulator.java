@@ -47,7 +47,9 @@ import org.geysermc.connector.utils.FileUtils;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.zip.GZIPInputStream;
@@ -235,6 +237,8 @@ public class BlockRegistryPopulator {
             throw new AssertionError("Unable to load Java block mappings", e);
         }
 
+        List<String> cleanIdentifiers = new ArrayList<>();
+
         int javaRuntimeId = -1;
         int bellBlockId = -1;
         int cobwebBlockId = -1;
@@ -278,9 +282,9 @@ public class BlockRegistryPopulator {
             String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(entry.getKey());
             String bedrockIdentifier = entry.getValue().get("bedrock_identifier").asText();
 
-            if (!BlockRegistries.JAVA_CLEAN_IDENTIFIERS.get().containsValue(cleanJavaIdentifier)) {
+            if (!cleanIdentifiers.contains(cleanJavaIdentifier)) {
                 uniqueJavaId++;
-                BlockRegistries.JAVA_CLEAN_IDENTIFIERS.register(uniqueJavaId, cleanJavaIdentifier);
+                cleanIdentifiers.add(cleanJavaIdentifier);
             }
 
             builder.javaIdentifier(javaId);
