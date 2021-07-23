@@ -192,7 +192,7 @@ public class GeyserConnector {
             }
         }
 
-        defaultAuthType = AuthType.getByName(config.getRemote().getAuthType());
+        defaultAuthType = config.getRemote().getAuthType();
 
         TimeSyncer timeSyncer = null;
         if (defaultAuthType == AuthType.FLOODGATE) {
@@ -273,7 +273,7 @@ public class GeyserConnector {
             metrics = new Metrics(this, "GeyserMC", config.getMetrics().getUniqueId(), false, java.util.logging.Logger.getLogger(""));
             metrics.addCustomChart(new Metrics.SingleLineChart("players", players::size));
             // Prevent unwanted words best we can
-            metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> AuthType.getByName(config.getRemote().getAuthType()).toString().toLowerCase()));
+            metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> config.getRemote().getAuthType().toString().toLowerCase()));
             metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::getPlatformName));
             metrics.addCustomChart(new Metrics.SimplePie("defaultLocale", LanguageUtils::getDefaultLocale));
             metrics.addCustomChart(new Metrics.SimplePie("version", () -> GeyserConnector.VERSION));

@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.common.serializer.AsteriskSerializer;
 import org.geysermc.connector.network.CIDRMatcher;
 
@@ -59,7 +60,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private boolean extendedWorldHeight = false;
 
     @JsonProperty("floodgate-key-file")
-    private String floodgateKeyFile = "public-key.pem";
+    private String floodgateKeyFile = "key.pem";
 
     public abstract Path getFloodgateKeyPath();
 
@@ -183,26 +184,30 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         }
     }
 
-    @Getter
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class RemoteConfiguration implements IRemoteConfiguration {
-        @Setter
+        @Getter @Setter
         @AsteriskSerializer.Asterisk(isIp = true)
         private String address = "auto";
 
-        @Setter
+        @Getter @Setter
         private int port = 25565;
 
-        @Setter
         @JsonProperty("auth-type")
-        private String authType = "online";
+        private String authTypeName = "online";
 
+        @Getter @Setter
+        private AuthType authType = AuthType.getByName(authTypeName);
+
+        @Getter
         @JsonProperty("allow-password-authentication")
         private boolean passwordAuthentication = true;
 
+        @Getter
         @JsonProperty("use-proxy-protocol")
         private boolean useProxyProtocol = false;
 
+        @Getter
         @JsonProperty("forward-hostname")
         private boolean forwardHost = false;
     }

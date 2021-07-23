@@ -40,7 +40,7 @@ public enum AuthType {
     }
 
     /**
-     * Convert the AuthType string (from config) to the enum, OFFLINE on fail
+     * Convert the AuthType string (from config) to the enum, ONLINE on fail
      *
      * @param name AuthType string
      *
@@ -53,6 +53,6 @@ public enum AuthType {
                 return type;
             }
         }
-        return OFFLINE;
+        return ONLINE;
     }
 }
