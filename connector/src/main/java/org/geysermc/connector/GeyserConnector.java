@@ -379,7 +379,38 @@ public class GeyserConnector {
             logger.warning(LanguageUtils.getLocaleStringLog("geyser.core.movement_warn"));
         }
 
+        checkForOutdatedJava();
+
         newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
+    }
+
+    private void checkForOutdatedJava() {
+        final int supportedJavaVersion = 16;
+        // Taken from Paper
+        String javaVersion = System.getProperty("java.version");
+        Matcher matcher = Pattern.compile("(?:1\\.)?(\\d+)").matcher(javaVersion);
+        if (!matcher.find()) {
+            getLogger().debug("Could not parse Java version string " + javaVersion);
+            return;
+        }
+
+        String version = matcher.group(1);
+        int majorVersion;
+        try {
+            majorVersion = Integer.parseInt(version);
+        } catch (NumberFormatException e) {
+            getLogger().debug("Could not format as an int: " + version);
+            return;
+        }
+
+        if (majorVersion < supportedJavaVersion) {
+            getLogger().warning("*********************************************");
+            getLogger().warning("");
+            getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.unsupported_java.header"));
+            getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.unsupported_java.message", supportedJavaVersion, javaVersion));
+            getLogger().warning("");
+            getLogger().warning("*********************************************");
+        }
     }
 
     public void shutdown() {
