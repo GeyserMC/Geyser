@@ -184,30 +184,27 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         }
     }
 
+    @Getter
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class RemoteConfiguration implements IRemoteConfiguration {
-        @Getter @Setter
+        @Setter
         @AsteriskSerializer.Asterisk(isIp = true)
         private String address = "auto";
 
-        @Getter @Setter
+        @Setter
         private int port = 25565;
 
+        @Setter
+        @JsonDeserialize(using = AuthType.Deserializer.class)
         @JsonProperty("auth-type")
-        private String authTypeName = "online";
+        private AuthType authType = AuthType.ONLINE;
 
-        @Getter @Setter
-        private AuthType authType = AuthType.getByName(authTypeName);
-
-        @Getter
         @JsonProperty("allow-password-authentication")
         private boolean passwordAuthentication = true;
 
-        @Getter
         @JsonProperty("use-proxy-protocol")
         private boolean useProxyProtocol = false;
 
-        @Getter
         @JsonProperty("forward-hostname")
         private boolean forwardHost = false;
     }
