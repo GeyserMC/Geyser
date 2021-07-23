@@ -100,37 +100,36 @@ public class VillagerEntity extends AbstractMerchantEntity {
 
     @Override
     public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
-        if (!metadata.getFlags().getFlag(EntityFlag.SLEEPING)) {
+        if (!metadata.getFlags().getFlag(EntityFlag.SLEEPING) || metadata.getPos(EntityData.BED_POSITION, null) == null) {
             // No need to worry about extra processing to compensate for sleeping
             super.moveRelative(session, relX, relY, relZ, rotation, isOnGround);
             return;
         }
 
+        // Get the bed block
+        Vector3i bedPosition = metadata.getPos(EntityData.BED_POSITION, null);
+        int blockId = session.getConnector().getWorldManager().getBlockAt(session, bedPosition);
+        String fullIdentifier = BlockRegistries.JAVA_IDENTIFIERS.get().get(blockId);
+
+        // Set the correct position offset and rotation when sleeping
         int bedRotation = 0;
         float xOffset = 0;
         float zOffset = 0;
-        Vector3i bedPosition = metadata.getPos(EntityData.BED_POSITION, null);
-        if (bedPosition != null) {
-            int blockId = session.getConnector().getWorldManager().getBlockAt(session, bedPosition);
-            String fullIdentifier = BlockRegistries.JAVA_IDENTIFIERS.get().get(blockId);
-
-            //Sets Villager position and rotation when sleeping
-            if (fullIdentifier.contains("facing=south")) {
-                //bed is facing south
-                bedRotation = 180;
-                zOffset = -.5f;
-            } else if (fullIdentifier.contains("facing=east")) {
-                //bed is facing east
-                bedRotation = 90;
-                xOffset = -.5f;
-            } else if (fullIdentifier.contains("facing=west")) {
-                //bed is facing west
-                bedRotation = 270;
-                xOffset = .5f;
-            } else if (fullIdentifier.contains("facing=north")) {
-                //rotation does not change because north is 0
-                zOffset = .5f;
-            }
+        if (fullIdentifier.contains("facing=south")) {
+            // bed is facing south
+            bedRotation = 180;
+            zOffset = -.5f;
+        } else if (fullIdentifier.contains("facing=east")) {
+            // bed is facing east
+            bedRotation = 90;
+            xOffset = -.5f;
+        } else if (fullIdentifier.contains("facing=west")) {
+            // bed is facing west
+            bedRotation = 270;
+            xOffset = .5f;
+        } else if (fullIdentifier.contains("facing=north")) {
+            // rotation does not change because north is 0
+            zOffset = .5f;
         }
 
         setRotation(rotation);
