@@ -27,6 +27,7 @@ package org.geysermc.connector.network.translators.world.block;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import it.unimi.dsi.fastutil.ints.*;
+import org.geysermc.connector.registry.BlockRegistries;
 
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -300,5 +301,26 @@ public class BlockStateValues {
      */
     public static int getWaterLevel(int state) {
         return WATER_LEVEL.getOrDefault(state, -1);
+    }
+
+    /**
+     * Get the slipperiness of a block.
+     * This is used in ItemEntity to calculate the friction on an item as it slides across the ground
+     *
+     * @param state BlockState of the block
+     * @return The block's slipperiness
+     */
+    public static float getSlipperiness(int state) {
+        String blockIdentifier = BlockRegistries.JAVA_BLOCKS.get(state).getJavaIdentifier();
+        switch (blockIdentifier) {
+            case "minecraft:slime_block":
+                return 0.8f;
+            case "minecraft:ice":
+            case "minecraft:packed_ice":
+                return 0.98f;
+            case "minecraft:blue_ice":
+                return 0.989f;
+        }
+        return 0.6f;
     }
 }

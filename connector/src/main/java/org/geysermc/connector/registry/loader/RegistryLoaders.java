@@ -27,10 +27,24 @@ package org.geysermc.connector.registry.loader;
 
 import java.util.function.Supplier;
 
+/**
+ * Holds common {@link RegistryLoader}s or utility methods surrounding them.
+ */
 public class RegistryLoaders {
+    /**
+     * The {@link RegistryLoader} responsible for loading NBT.
+     */
     public static NbtRegistryLoader NBT = new NbtRegistryLoader();
 
-    public static <V> RegistryLoader<Object, V> empty(Supplier<V> value) {
-        return input -> value.get();
+    /**
+     * Wraps the surrounding {@link Supplier} in a {@link RegistryLoader} which does
+     * not take in any input value.
+     *
+     * @param supplier the supplier
+     * @param <V> the value
+     * @return a RegistryLoader wrapping the given Supplier
+     */
+    public static <V> RegistryLoader<Object, V> empty(Supplier<V> supplier) {
+        return input -> supplier.get();
     }
 }

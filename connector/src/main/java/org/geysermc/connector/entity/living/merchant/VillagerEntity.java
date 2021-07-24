@@ -114,7 +114,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
         if (bedPosition != null) {
             bedId = session.getConnector().getWorldManager().getBlockAt(session, bedPosition);
         }
-        String bedRotationZ = BlockRegistries.JAVA_IDENTIFIERS.get().inverse().get(bedId);
+        String bedRotationZ = BlockRegistries.JAVA_IDENTIFIERS.get().get(bedId);
         setRotation(rotation);
         setOnGround(isOnGround);
         this.position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);

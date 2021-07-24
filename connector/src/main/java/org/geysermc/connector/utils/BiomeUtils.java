@@ -71,12 +71,14 @@ public class BiomeUtils {
 
     private static int biomeID(int[] biomeData, int x, int y, int z) {
         int biomeId = biomeData[((y >> 2) & 63) << 4 | ((z >> 2) & 3) << 2 | ((x >> 2) & 3)];
-        if (biomeId == 0) {
-            biomeId = 42; // Ocean
-        } else if (biomeId >= 40 && biomeId <= 43) { // Java has multiple End dimensions that Bedrock doesn't recognize
+        if (biomeId >= 40 && biomeId <= 43) { // Java has multiple End dimensions that Bedrock doesn't recognize
             biomeId = 9;
-        } else if (biomeId >= 170) { // Nether biomes. Dunno why it's like this :microjang:
+        } else if (biomeId >= 170 && biomeId <= 173) { // 1.16 nether biomes. Dunno why it's like this :microjang:
             biomeId += 8;
+        } else if (biomeId == 168) { // Bamboo jungle
+            biomeId = 48;
+        } else if (biomeId == 169) { // Bamboo jungle hills
+            biomeId = 49;
         }
         return biomeId;
     }

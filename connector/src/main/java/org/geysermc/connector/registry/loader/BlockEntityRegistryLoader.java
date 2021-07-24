@@ -28,6 +28,9 @@ package org.geysermc.connector.registry.loader;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntity;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 
+/**
+ * Loads block entities from the given classpath.
+ */
 public class BlockEntityRegistryLoader extends AnnotatedRegistryLoader<String, BlockEntity, BlockEntityTranslator> {
     public BlockEntityRegistryLoader() {
         super(BlockEntity.class, BlockEntity::name);

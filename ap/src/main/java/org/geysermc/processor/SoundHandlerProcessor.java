@@ -23,38 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.registry.loader;
+package org.geysermc.processor;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.utils.FileUtils;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.SourceVersion;
 
-import java.io.InputStream;
-import java.util.Map;
-import java.util.WeakHashMap;
-
-/**
- * An abstract registry loader for loading effects from a resource path.
- *
- * @param <T> the value
- */
-public abstract class EffectRegistryLoader<T> implements RegistryLoader<String, T> {
-    private static final Map<String, JsonNode> loadedFiles = new WeakHashMap<>();
-
-    public void loadFile(String input) {
-        if (!loadedFiles.containsKey(input)) {
-            InputStream effectsStream = FileUtils.getResource(input);
-            JsonNode effects;
-            try {
-                effects = GeyserConnector.JSON_MAPPER.readTree(effectsStream);
-            } catch (Exception e) {
-                throw new AssertionError("Unable to load registrations for " + input, e);
-            }
-            loadedFiles.put(input, effects);
-        }
-    }
-
-    public JsonNode get(String input) {
-        return loadedFiles.get(input);
+@SupportedAnnotationTypes("org.geysermc.connector.network.translators.sound.SoundHandler")
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
+public class SoundHandlerProcessor extends ClassProcessor {
+    public SoundHandlerProcessor() {
+        super("org.geysermc.connector.network.translators.sound.SoundHandler");
     }
 }

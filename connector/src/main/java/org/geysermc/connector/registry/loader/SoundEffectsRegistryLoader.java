@@ -39,6 +39,9 @@ import org.geysermc.connector.network.translators.effect.SoundLevelEffect;
 import java.util.Iterator;
 import java.util.Map;
 
+/**
+ * Loads sound effects from the given resource path.
+ */
 public class SoundEffectsRegistryLoader extends EffectRegistryLoader<Map<SoundEffect, Effect>> {
 
     @Override

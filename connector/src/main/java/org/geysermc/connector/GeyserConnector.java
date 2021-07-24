@@ -379,7 +379,38 @@ public class GeyserConnector {
             logger.warning(LanguageUtils.getLocaleStringLog("geyser.core.movement_warn"));
         }
 
+        checkForOutdatedJava();
+
         newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
+    }
+
+    private void checkForOutdatedJava() {
+        final int supportedJavaVersion = 16;
+        // Taken from Paper
+        String javaVersion = System.getProperty("java.version");
+        Matcher matcher = Pattern.compile("(?:1\\.)?(\\d+)").matcher(javaVersion);
+        if (!matcher.find()) {
+            getLogger().debug("Could not parse Java version string " + javaVersion);
+            return;
+        }
+
+        String version = matcher.group(1);
+        int majorVersion;
+        try {
+            majorVersion = Integer.parseInt(version);
+        } catch (NumberFormatException e) {
+            getLogger().debug("Could not format as an int: " + version);
+            return;
+        }
+
+        if (majorVersion < supportedJavaVersion) {
+            getLogger().warning("*********************************************");
+            getLogger().warning("");
+            getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.unsupported_java.header"));
+            getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.unsupported_java.message", supportedJavaVersion, javaVersion));
+            getLogger().warning("");
+            getLogger().warning("*********************************************");
+        }
     }
 
     public void shutdown() {
@@ -522,18 +553,6 @@ public class GeyserConnector {
     public boolean isProductionEnvironment() {
         //noinspection ConstantConditions - changes in production
         return !"DEV".equals(GeyserConnector.VERSION);
-    }
-
-    /**
-     * Whether to use XML reflections in the jar or manually find the reflections.
-     * Will return true if in production and the platform is not Fabric.
-     * On Fabric - it complains about being unable to create a default XMLReader.
-     * On other platforms this should only be true in compiled jars.
-     *
-     * @return whether to use XML reflections
-     */
-    public boolean useXmlReflections() {
-        return !this.getPlatformType().equals(PlatformType.FABRIC) && isProductionEnvironment();
     }
 
     public static GeyserConnector getInstance() {
