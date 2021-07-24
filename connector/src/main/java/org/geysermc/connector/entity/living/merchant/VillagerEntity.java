@@ -100,14 +100,14 @@ public class VillagerEntity extends AbstractMerchantEntity {
 
     @Override
     public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
-        if (!metadata.getFlags().getFlag(EntityFlag.SLEEPING) || metadata.getPos(EntityData.BED_POSITION, null) == null) {
+        // Get the bed block if it exists
+        Vector3i bedPosition = metadata.getPos(EntityData.BED_POSITION, null);
+        if (!metadata.getFlags().getFlag(EntityFlag.SLEEPING) || bedPosition == null) {
             // No need to worry about extra processing to compensate for sleeping
             super.moveRelative(session, relX, relY, relZ, rotation, isOnGround);
             return;
         }
 
-        // Get the bed block
-        Vector3i bedPosition = metadata.getPos(EntityData.BED_POSITION, null);
         int blockId = session.getConnector().getWorldManager().getBlockAt(session, bedPosition);
         String fullIdentifier = BlockRegistries.JAVA_IDENTIFIERS.get().get(blockId);
 
