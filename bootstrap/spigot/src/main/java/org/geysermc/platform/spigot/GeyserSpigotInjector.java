@@ -71,7 +71,8 @@ public class GeyserSpigotInjector extends GeyserInjector {
         // Find the class that manages network IO
         for (Method m : serverClazz.getDeclaredMethods()) {
             if (m.getReturnType() != null) {
-                if (m.getReturnType().getSimpleName().equals("ServerConnection")) {
+                // First is Spigot-mapped name, second is Mojang-mapped name which is implemented as future-proofing
+                if (m.getReturnType().getSimpleName().equals("ServerConnection") || m.getReturnType().getSimpleName().equals("ServerConnectionListener")) {
                     if (m.getParameterTypes().length == 0) {
                         connection = m.invoke(server);
                     }
