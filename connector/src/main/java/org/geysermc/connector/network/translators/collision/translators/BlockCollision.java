@@ -54,6 +54,11 @@ public class BlockCollision {
     @EqualsAndHashCode.Exclude
     protected double pushUpTolerance = 1;
 
+    /**
+     * This is used to control the maximum distance a face of a bounding box can push the player away
+     */
+    protected double pushAwayTolerance = CollisionManager.COLLISION_TOLERANCE * 1.1;
+
     public void setPosition(int x, int y, int z) {
         this.x = x;
         this.y = y;
@@ -95,43 +100,37 @@ public class BlockCollision {
             // This check doesn't allow players right up against the block, so they must be pushed slightly away
             if (b.checkIntersection(x, y, z, playerCollision)) {
                 Vector3d relativePlayerPosition = Vector3d.from(playerCollision.getMiddleX() - x,
-                        playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2) - y,
+                        playerCollision.getMiddleY() - y,
                         playerCollision.getMiddleZ() - z);
 
-                Vector3d northFacePos = Vector3d.from(b.getMiddleX(),
-                        b.getMiddleY(),
-                        b.getMiddleZ() - (b.getSizeZ() / 2));
-
-                Vector3d southFacePos = Vector3d.from(b.getMiddleX(),
-                        b.getMiddleY(),
-                        b.getMiddleZ() + (b.getSizeZ() / 2));
-
-                Vector3d eastFacePos = Vector3d.from(b.getMiddleX()  + (b.getSizeX() / 2),
-                        b.getMiddleY(),
-                        b.getMiddleZ());
-
-                Vector3d westFacePos = Vector3d.from(b.getMiddleX()  - (b.getSizeX() / 2),
-                        b.getMiddleY(),
-                        b.getMiddleZ());
-
-                double translateDistance = northFacePos.getZ() - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
-                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 1.1) {
-                    playerCollision.translate(0, 0, translateDistance);
-                }
-                
-                translateDistance = southFacePos.getZ() - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
-                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 1.1) {
+                double northFaceZPos = b.getMiddleZ() - (b.getSizeZ() / 2);
+                double translateDistance = northFaceZPos - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
+                if (Math.abs(translateDistance) < pushAwayTolerance) {
                     playerCollision.translate(0, 0, translateDistance);
                 }
 
-                translateDistance = eastFacePos.getX() - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
-                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 1.1) {
+                double southFaceZPos = b.getMiddleZ() + (b.getSizeZ() / 2);
+                translateDistance = southFaceZPos - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
+                if (Math.abs(translateDistance) < pushAwayTolerance) {
+                    playerCollision.translate(0, 0, translateDistance);
+                }
+
+                double eastFaceXPos = b.getMiddleX() + (b.getSizeX() / 2);
+                translateDistance = eastFaceXPos - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
+                if (Math.abs(translateDistance) < pushAwayTolerance) {
                     playerCollision.translate(translateDistance, 0, 0);
                 }
 
-                translateDistance = westFacePos.getX() - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
-                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 1.1) {
+                double westFaceXPos = b.getMiddleX() - (b.getSizeX() / 2);
+                translateDistance = westFaceXPos - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
+                if (Math.abs(translateDistance) < pushAwayTolerance) {
                     playerCollision.translate(translateDistance, 0, 0);
+                }
+
+                double bottomFaceYPos = b.getMiddleY() - (b.getSizeY() / 2);
+                translateDistance = bottomFaceYPos - relativePlayerPosition.getY() - (playerCollision.getSizeY() / 2);
+                if (Math.abs(translateDistance) < pushAwayTolerance) {
+                    playerCollision.translate(0, translateDistance, 0);
                 }
             }
 
