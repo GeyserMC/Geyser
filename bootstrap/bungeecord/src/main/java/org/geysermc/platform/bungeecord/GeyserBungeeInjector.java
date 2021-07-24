@@ -56,8 +56,8 @@ public class GeyserBungeeInjector extends GeyserInjector {
     protected void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception {
         // TODO - allow Geyser to specify its own listener info properties
         if (proxy.getConfig().getListeners().size() != 1) {
-            throw new UnsupportedOperationException("We currently do not support multiple listeners with injection! " +
-                    "Please reach out to us on our Discord so we can hear feedback on your setup.");
+            throw new UnsupportedOperationException("Geyser does not currently support multiple listeners with injection! " +
+                    "Please reach out to us on our Discord at https://discord.gg/GeyserMC so we can hear feedback on your setup.");
         }
         ListenerInfo listenerInfo = proxy.getConfig().getListeners().stream().findFirst().orElseThrow(IllegalStateException::new);
 
