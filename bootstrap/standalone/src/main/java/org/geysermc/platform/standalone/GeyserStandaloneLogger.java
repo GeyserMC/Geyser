@@ -36,7 +36,6 @@ import org.geysermc.connector.common.ChatColor;
 
 @Log4j2
 public class GeyserStandaloneLogger extends SimpleTerminalConsole implements GeyserLogger, CommandSender {
-    private boolean colored = true;
 
     @Override
     protected boolean isRunning() {
@@ -55,41 +54,37 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements Gey
 
     @Override
     public void severe(String message) {
-        log.fatal(printConsole(ChatColor.DARK_RED + message, colored));
+        log.fatal(ChatColor.DARK_RED + message);
     }
 
     @Override
     public void severe(String message, Throwable error) {
-        log.fatal(printConsole(ChatColor.DARK_RED + message, colored), error);
+        log.fatal(ChatColor.DARK_RED + message, error);
     }
 
     @Override
     public void error(String message) {
-        log.error(printConsole(ChatColor.RED + message, colored));
+        log.error(ChatColor.RED + message);
     }
 
     @Override
     public void error(String message, Throwable error) {
-        log.error(printConsole(ChatColor.RED + message, colored), error);
+        log.error(ChatColor.RED + message, error);
     }
 
     @Override
     public void warning(String message) {
-        log.warn(printConsole(ChatColor.YELLOW + message, colored));
+        log.warn(ChatColor.YELLOW + message);
     }
 
     @Override
     public void info(String message) {
-        log.info(printConsole(ChatColor.RESET + ChatColor.BOLD + message, colored));
+        log.info(ChatColor.RESET + message);
     }
 
     @Override
     public void debug(String message) {
-        log.debug(printConsole(ChatColor.GRAY + message, colored));
-    }
-
-    public static String printConsole(String message, boolean colors) {
-        return colors ? ChatColor.toANSI(message + ChatColor.RESET) : ChatColor.stripColors(message + ChatColor.RESET);
+        log.debug(ChatColor.GRAY + message);
     }
 
     @Override
