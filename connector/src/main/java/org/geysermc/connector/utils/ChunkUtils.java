@@ -107,6 +107,8 @@ public class ChunkUtils {
                     byteBuf.writeBytes(EMPTY_BIOME_DATA);
                 }
 
+                byteBuf.writeByte(0); // Border
+
                 EMPTY_CHUNK_DATA = new byte[byteBuf.readableBytes()];
                 byteBuf.readBytes(EMPTY_CHUNK_DATA);
             } finally {
