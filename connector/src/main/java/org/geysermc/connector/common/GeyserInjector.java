@@ -57,7 +57,7 @@ public abstract class GeyserInjector {
         }
 
         if (this.localChannel != null) {
-            bootstrap.getGeyserLogger().warning("Attempted to inject twice!");
+            bootstrap.getGeyserLogger().warning("Geyser attempted to inject into the server connection handler twice! Please ensure you aren't using /reload or any plugin that (re)loads Geyser after the server has started.");
             return;
         }
 
