@@ -34,7 +34,6 @@ import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.common.GeyserInjector;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.function.Supplier;
 
 public class GeyserVelocityInjector extends GeyserInjector {
@@ -68,18 +67,9 @@ public class GeyserVelocityInjector extends GeyserInjector {
         workerGroupField.setAccessible(true);
         EventLoopGroup workerGroup = (EventLoopGroup) workerGroupField.get(connectionManager);
 
-        // This method is what initializes the connection in Java Edition, after Netty is all set.
-        Method initChannel = channelInitializer.getClass().getDeclaredMethod("initChannel", Channel.class);
-        initChannel.setAccessible(true);
-
         ChannelFuture channelFuture = (new ServerBootstrap()
                 .channel(LocalServerChannelWrapper.class)
-                .childHandler(new ChannelInitializer<Channel>() {
-                    @Override
-                    protected void initChannel(Channel ch) throws Exception {
-                        initChannel.invoke(channelInitializer, ch);
-                    }
-                })
+                .childHandler(channelInitializer)
                 .group(bossGroup, workerGroup) // Cannot be DefaultEventLoopGroup
                 .childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, serverWriteMark) // Required or else rare network freezes can occur
                 .localAddress(LocalAddress.ANY))
