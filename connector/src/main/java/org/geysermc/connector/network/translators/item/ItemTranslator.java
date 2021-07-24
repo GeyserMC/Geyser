@@ -202,7 +202,7 @@ public abstract class ItemTranslator {
                 if (!block.startsWith("minecraft:")) block = "minecraft:" + block;
                 // Get the Bedrock identifier of the item and replace it.
                 // This will unfortunately be limited - for example, beds and banners will be translated weirdly
-                canModifyBedrock[i] = BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.get(block).replace("minecraft:", "");
+                canModifyBedrock[i] = BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.getOrDefault(block, block).replace("minecraft:", "");
             }
         }
         return canModifyBedrock;
