@@ -35,13 +35,14 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -50,7 +51,7 @@ public class ClassProcessor extends AbstractProcessor {
 
     private Path outputPath;
 
-    private final List<String> locations = new ArrayList<>();
+    private final Set<String> locations = new HashSet<>();
 
     public ClassProcessor(String annotationClassName) {
         this.annotationClassName = annotationClassName;
@@ -94,7 +95,7 @@ public class ClassProcessor extends AbstractProcessor {
             TypeElement typeElement = (TypeElement) element;
             this.locations.add(typeElement.getQualifiedName().toString());
         }
-        return true;
+        return false;
     }
 
     public boolean contains(Collection<? extends TypeElement> elements, String className) {
@@ -126,6 +127,22 @@ public class ClassProcessor extends AbstractProcessor {
     }
 
     public void complete() {
+        // Read existing annotation list and verify each class still has this annotation
+        try (BufferedReader reader = this.createReader()){
+            if (reader != null) {
+                reader.lines().forEach(canonicalName -> {
+                    if (!locations.contains(canonicalName)) {
+                        TypeElement element = this.processingEnv.getElementUtils().getTypeElement(canonicalName);
+                        if (element != null && element.getKind() == ElementKind.CLASS && contains(element.getAnnotationMirrors(), this.annotationClassName)) {
+                            locations.add(canonicalName);
+                        }
+                    }
+                });
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         try (BufferedWriter writer = this.createWriter()) {
             for (String location : this.locations) {
                 writer.write(location);
@@ -136,6 +153,19 @@ public class ClassProcessor extends AbstractProcessor {
         }
 
         this.processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Completed processing for " + this.annotationClassName);
+    }
+
+    private BufferedReader createReader() throws IOException {
+        if (this.outputPath != null) {
+            this.processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Reading existing " + this.annotationClassName + " list from " + this.outputPath);
+            return Files.newBufferedReader(this.outputPath);
+        }
+        FileObject obj = this.processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, "", this.annotationClassName);
+        if (obj != null) {
+            this.processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Reading existing " + this.annotationClassName + " list from " + obj.toUri());
+            return new BufferedReader(obj.openReader(false));
+        }
+        return null;
     }
 
     private BufferedWriter createWriter() throws IOException {
