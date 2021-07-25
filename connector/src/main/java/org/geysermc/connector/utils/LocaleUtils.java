@@ -98,6 +98,11 @@ public class LocaleUtils {
                 Iterator<Map.Entry<String, JsonNode>> assetIterator = assets.fields();
                 while (assetIterator.hasNext()) {
                     Map.Entry<String, JsonNode> entry = assetIterator.next();
+                    if (!entry.getKey().startsWith("minecraft/lang/")) {
+                        // No need to cache non-language assets as we don't use them
+                        continue;
+                    }
+
                     Asset asset = GeyserConnector.JSON_MAPPER.treeToValue(entry.getValue(), Asset.class);
                     ASSET_MAP.put(entry.getKey(), asset);
                 }
