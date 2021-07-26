@@ -143,15 +143,18 @@ public class ClassProcessor extends AbstractProcessor {
             e.printStackTrace();
         }
 
-        try (BufferedWriter writer = this.createWriter()) {
-            for (String location : this.locations) {
-                writer.write(location);
-                writer.newLine();
+        if (!locations.isEmpty()) {
+            try (BufferedWriter writer = this.createWriter()) {
+                for (String location : this.locations) {
+                    writer.write(location);
+                    writer.newLine();
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
             }
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        } else {
+            this.processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Did not find any classes annotated with " + this.annotationClassName);
         }
-
         this.processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Completed processing for " + this.annotationClassName);
     }
 
