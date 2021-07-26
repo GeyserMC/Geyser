@@ -128,7 +128,7 @@ public class ClassProcessor extends AbstractProcessor {
 
     public void complete() {
         // Read existing annotation list and verify each class still has this annotation
-        try (BufferedReader reader = this.createReader()){
+        try (BufferedReader reader = this.createReader()) {
             if (reader != null) {
                 reader.lines().forEach(canonicalName -> {
                     if (!locations.contains(canonicalName)) {
