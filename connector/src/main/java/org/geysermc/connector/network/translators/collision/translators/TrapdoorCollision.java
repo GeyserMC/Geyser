@@ -25,11 +25,13 @@
 
 package org.geysermc.connector.network.translators.collision.translators;
 
+import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 
+@EqualsAndHashCode(callSuper = true)
 @CollisionRemapper(regex = "_trapdoor$", usesParams = true, passDefaultBoxes = true)
 public class TrapdoorCollision extends BlockCollision {
     /**
@@ -43,8 +45,7 @@ public class TrapdoorCollision extends BlockCollision {
     private int facing;
 
     public TrapdoorCollision(String params, BoundingBox[] defaultBoxes) {
-        super();
-        boundingBoxes = defaultBoxes;
+        super(defaultBoxes);
         if (params.contains("open=true")) {
             if (params.contains("facing=north")) {
                 facing = 1;

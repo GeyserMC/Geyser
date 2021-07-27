@@ -36,7 +36,7 @@ import org.geysermc.connector.network.translators.collision.BoundingBox;
 public class BlockCollision {
 
     @Getter
-    protected BoundingBox[] boundingBoxes;
+    protected final BoundingBox[] boundingBoxes;
 
     protected int x;
     protected int y;
@@ -51,13 +51,16 @@ public class BlockCollision {
      * I didn't just set it for beds because other collision may also be slightly raised off the ground.
      * If this causes any problems, change this back to 0 and add an exception for beds.
      */
-    @EqualsAndHashCode.Exclude
     protected double pushUpTolerance = 1;
 
     /**
      * This is used to control the maximum distance a face of a bounding box can push the player away
      */
     protected double pushAwayTolerance = CollisionManager.COLLISION_TOLERANCE * 1.1;
+
+    protected BlockCollision(BoundingBox[] boxes) {
+        this.boundingBoxes = boxes;
+    }
 
     public void setPosition(int x, int y, int z) {
         this.x = x;

@@ -25,14 +25,15 @@
 
 package org.geysermc.connector.network.translators.collision.translators;
 
+import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 
+@EqualsAndHashCode(callSuper = true)
 @CollisionRemapper(regex = "^grass_path$", passDefaultBoxes = true)
 public class GrassPathCollision extends BlockCollision {
     public GrassPathCollision(String params, BoundingBox[] defaultBoxes) {
-        super();
-        boundingBoxes = defaultBoxes;
+        super(defaultBoxes);
     }
 
     // Needs to run before the main correction code or it can move the player into blocks

@@ -25,10 +25,12 @@
 
 package org.geysermc.connector.network.translators.collision.translators;
 
+import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 
+@EqualsAndHashCode(callSuper = true)
 @CollisionRemapper(regex = "_door$", usesParams = true, passDefaultBoxes = true)
 public class DoorCollision extends BlockCollision {
     /**
@@ -40,8 +42,7 @@ public class DoorCollision extends BlockCollision {
     private int facing;
 
     public DoorCollision(String params, BoundingBox[] defaultBoxes) {
-        super();
-        boundingBoxes = defaultBoxes;
+        super(defaultBoxes);
         if (params.contains("facing=north")) {
             facing = 1;
         } else if (params.contains("facing=east")) {

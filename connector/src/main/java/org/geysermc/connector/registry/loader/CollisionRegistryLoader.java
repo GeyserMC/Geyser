@@ -35,7 +35,6 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
-import org.geysermc.connector.network.translators.collision.translators.EmptyCollision;
 import org.geysermc.connector.network.translators.collision.translators.OtherCollision;
 import org.geysermc.connector.network.translators.collision.translators.SolidCollision;
 import org.geysermc.connector.registry.BlockRegistries;
@@ -44,6 +43,8 @@ import org.geysermc.connector.utils.Object2IntBiMap;
 
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -109,15 +110,10 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
                         return instantiatedCollision.get(type);
                     }
 
-                    // Return null when empty to save unnecessary checks
-                    if (type == EmptyCollision.class) {
-                        return null;
-                    }
-
                     BlockCollision collision;
                     if (annotation.passDefaultBoxes()) {
                         // Create an OtherCollision instance and get the bounding boxes
-                        BoundingBox[] defaultBoxes = new OtherCollision((ArrayNode) collisionList.get(collisionIndex)).getBoundingBoxes();
+                        BoundingBox[] defaultBoxes = createBoundingBoxes((ArrayNode) collisionList.get(collisionIndex));
                         collision = (BlockCollision) type.getDeclaredConstructor(String.class, BoundingBox[].class).newInstance(params, defaultBoxes);
                     } else {
                         collision = (BlockCollision) type.getDeclaredConstructor(String.class).newInstance(params);
@@ -140,11 +136,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
 
         // Unless some of the low IDs are changed, which is unlikely, the first item should always be empty collision
         if (collisionIndex == 0) {
-            if (instantiatedCollision.containsKey(EmptyCollision.class)) {
-                return instantiatedCollision.get(EmptyCollision.class);
-            } else {
-                return new EmptyCollision(params);
-            }
+            return null;
         }
 
         // Unless some of the low IDs are changed, which is unlikely, the second item should always be full collision
@@ -156,7 +148,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
             }
         }
 
-        BlockCollision collision = new OtherCollision((ArrayNode) collisionList.get(collisionIndex));
+        BlockCollision collision = new OtherCollision(createBoundingBoxes((ArrayNode) collisionList.get(collisionIndex)));
         // If there's an existing instance equal to this one, use that instead
         for (Map.Entry<Class<?>, BlockCollision> entry : instantiatedCollision.entrySet()) {
             if (entry.getValue().equals(collision)) {
@@ -166,6 +158,24 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
         }
 
         return collision;
+    }
+
+    private BoundingBox[] createBoundingBoxes(ArrayNode collisionList) {
+        BoundingBox[] boundingBoxes = new BoundingBox[collisionList.size()];
+
+        for (int i = 0; i < collisionList.size(); i++) {
+            ArrayNode collisionBoxArray = (ArrayNode) collisionList.get(i);
+            boundingBoxes[i] = new BoundingBox(collisionBoxArray.get(0).asDouble(),
+                    collisionBoxArray.get(1).asDouble(),
+                    collisionBoxArray.get(2).asDouble(),
+                    collisionBoxArray.get(3).asDouble(),
+                    collisionBoxArray.get(4).asDouble(),
+                    collisionBoxArray.get(5).asDouble());
+        }
+
+        // Sorting by lowest Y first fixes some bugs
+        Arrays.sort(boundingBoxes, Comparator.comparingDouble(BoundingBox::getMiddleY));
+        return boundingBoxes;
     }
 
     /**

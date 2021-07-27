@@ -25,37 +25,21 @@
 
 package org.geysermc.connector.network.translators.collision.translators;
 
+import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
-
-@CollisionRemapper(regex = "^snow$", usesParams = true)
+@EqualsAndHashCode(callSuper = true)
+@CollisionRemapper(regex = "^snow$", passDefaultBoxes = true, usesParams = true)
 public class SnowCollision extends BlockCollision {
     private final int layers;
 
-    public SnowCollision(String params) {
-        super();
-        Pattern layersPattern = Pattern.compile("layers=([0-8])");
-        Matcher matcher = layersPattern.matcher(params);
-        //noinspection ResultOfMethodCallIgnored
-        matcher.find();
-
+    public SnowCollision(String params, BoundingBox[] defaultBoxes) {
+        super(defaultBoxes);
+        int layerCharIndex = params.indexOf("=") + 1;
         // Hitbox is 1 layer less (you sink in 1 layer)
-        layers = Integer.parseInt(matcher.group(1));
-
-        if (layers > 1) {
-            boundingBoxes = new BoundingBox[] {
-                    // Take away 1 because you can go 1 layer into snow layers
-                    new BoundingBox(0.5, ((layers - 1) * 0.125) / 2, 0.5,
-                            1, (layers - 1) * 0.125, 1)
-            };
-        } else {
-            // Single layers have no collision
-            boundingBoxes = new BoundingBox[0];
-        }
+        layers = Integer.parseInt(params.substring(layerCharIndex, layerCharIndex + 1));
 
         pushUpTolerance = 0.125;
     }
