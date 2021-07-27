@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.AllArgsConstructor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
@@ -38,8 +38,8 @@ import org.geysermc.connector.network.translators.collision.translators.BlockCol
 import org.geysermc.connector.network.translators.collision.translators.OtherCollision;
 import org.geysermc.connector.network.translators.collision.translators.SolidCollision;
 import org.geysermc.connector.registry.BlockRegistries;
+import org.geysermc.connector.registry.type.BlockMapping;
 import org.geysermc.connector.utils.FileUtils;
-import org.geysermc.connector.utils.Object2IntBiMap;
 
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -76,28 +76,36 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
             throw new AssertionError("Unable to load collision data", e);
         }
 
-        Object2IntBiMap<String> javaIdBlockMap = BlockRegistries.JAVA_IDENTIFIERS.get();
+        Int2ObjectMap<BlockMapping> blockMap = BlockRegistries.JAVA_BLOCKS.get();
 
-        // Map of classes that don't change based on parameters that have already been created
-        Map<Class<?>, BlockCollision> instantiatedCollision = new IdentityHashMap<>();
-        for (Object2IntMap.Entry<String> entry : javaIdBlockMap.object2IntEntrySet()) {
-            BlockCollision newCollision = instantiateCollision(entry.getKey(), entry.getIntValue(), annotationMap, instantiatedCollision, collisionList);
+        // Map of unique collisions to its instance
+        Map<BlockCollision, BlockCollision> collisionInstances = new Object2ObjectOpenHashMap<>();
+        for (Int2ObjectMap.Entry<BlockMapping> entry : blockMap.int2ObjectEntrySet()) {
+            BlockCollision newCollision = instantiateCollision(entry.getValue(), annotationMap, collisionList);
+
             if (newCollision != null) {
-                instantiatedCollision.put(newCollision.getClass(), newCollision);
+                // If there's an existing instance equal to this one, use that instead
+                BlockCollision existingInstance = collisionInstances.get(newCollision);
+                if (existingInstance != null) {
+                    newCollision = existingInstance;
+                } else {
+                    collisionInstances.put(newCollision, newCollision);
+                }
             }
-            collisions.put(entry.getIntValue(), newCollision);
+
+            collisions.put(entry.getIntKey(), newCollision);
         }
         return collisions;
     }
 
-    private BlockCollision instantiateCollision(String blockID, int numericBlockID, Map<Class<?>, CollisionInfo> annotationMap, Map<Class<?>, BlockCollision> instantiatedCollision, ArrayNode collisionList) {
-        String[] blockIdParts = blockID.split("\\[");
+    private BlockCollision instantiateCollision(BlockMapping mapping, Map<Class<?>, CollisionInfo> annotationMap, ArrayNode collisionList) {
+        String[] blockIdParts = mapping.getJavaIdentifier().split("\\[");
         String blockName = blockIdParts[0].replace("minecraft:", "");
         String params = "";
-        if (blockID.contains("[")) {
+        if (blockIdParts.length == 2) {
             params = "[" + blockIdParts[1];
         }
-        int collisionIndex = BlockRegistries.JAVA_BLOCKS.get(numericBlockID).getCollisionIndex();
+        int collisionIndex = mapping.getCollisionIndex();
 
         for (Map.Entry<Class<?>, CollisionInfo> collisionRemappers : annotationMap.entrySet()) {
             Class<?> type = collisionRemappers.getKey();
@@ -106,30 +114,15 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
 
             if (collisionInfo.pattern.matcher(blockName).find() && collisionInfo.paramsPattern.matcher(params).find()) {
                 try {
-                    if (!annotation.usesParams() && instantiatedCollision.containsKey(type)) {
-                        return instantiatedCollision.get(type);
-                    }
-
-                    BlockCollision collision;
                     if (annotation.passDefaultBoxes()) {
                         // Create an OtherCollision instance and get the bounding boxes
                         BoundingBox[] defaultBoxes = createBoundingBoxes((ArrayNode) collisionList.get(collisionIndex));
-                        collision = (BlockCollision) type.getDeclaredConstructor(String.class, BoundingBox[].class).newInstance(params, defaultBoxes);
+                        return (BlockCollision) type.getDeclaredConstructor(String.class, BoundingBox[].class).newInstance(params, defaultBoxes);
                     } else {
-                        collision = (BlockCollision) type.getDeclaredConstructor(String.class).newInstance(params);
+                        return (BlockCollision) type.getDeclaredConstructor(String.class).newInstance(params);
                     }
-
-                    // If there's an existing instance equal to this one, use that instead
-                    for (Map.Entry<Class<?>, BlockCollision> entry : instantiatedCollision.entrySet()) {
-                        if (entry.getValue().equals(collision)) {
-                            collision = entry.getValue();
-                            break;
-                        }
-                    }
-                    return collision;
                 } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
-                    e.printStackTrace();
-                    return null;
+                    throw new RuntimeException(e);
                 }
             }
         }
@@ -141,23 +134,9 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
 
         // Unless some of the low IDs are changed, which is unlikely, the second item should always be full collision
         if (collisionIndex == 1) {
-            if (instantiatedCollision.containsKey(SolidCollision.class)) {
-                return instantiatedCollision.get(SolidCollision.class);
-            } else {
-                return new SolidCollision(params);
-            }
+            return new SolidCollision(params);
         }
-
-        BlockCollision collision = new OtherCollision(createBoundingBoxes((ArrayNode) collisionList.get(collisionIndex)));
-        // If there's an existing instance equal to this one, use that instead
-        for (Map.Entry<Class<?>, BlockCollision> entry : instantiatedCollision.entrySet()) {
-            if (entry.getValue().equals(collision)) {
-                collision = entry.getValue();
-                break;
-            }
-        }
-
-        return collision;
+        return new OtherCollision(createBoundingBoxes((ArrayNode) collisionList.get(collisionIndex)));
     }
 
     private BoundingBox[] createBoundingBoxes(ArrayNode collisionList) {
