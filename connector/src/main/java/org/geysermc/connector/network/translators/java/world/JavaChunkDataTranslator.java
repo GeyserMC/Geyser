@@ -40,7 +40,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
-import org.geysermc.connector.utils.BiomeUtils;
+import org.geysermc.connector.network.translators.world.BiomeTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 
 @Translator(packet = ServerChunkDataPacket.class)
@@ -101,7 +101,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
 
                     if (NEW_BIOME_WRITE) {
                         for (int i = 0; i < sectionCount; i++) {
-                            BiomeUtils.toNewBedrockBiome(column.getBiomeData(), i).writeToNetwork(byteBuf);
+                            BiomeTranslator.toNewBedrockBiome(session, column.getBiomeData(), i).writeToNetwork(byteBuf);
                         }
 
                         // As of 1.17.10, Bedrock hardcodes to always read 32 biome sections
@@ -110,7 +110,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                             byteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
                         }
                     } else {
-                        byteBuf.writeBytes(BiomeUtils.toBedrockBiome(column.getBiomeData())); // Biomes - 256 bytes
+                        byteBuf.writeBytes(BiomeTranslator.toBedrockBiome(session, column.getBiomeData())); // Biomes - 256 bytes
                     }
                     byteBuf.writeByte(0); // Border blocks - Edu edition only
                     VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now

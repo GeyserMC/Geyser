@@ -58,9 +58,7 @@ import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -143,6 +141,7 @@ public class GeyserSession implements CommandSender {
     private final PreferencesCache preferencesCache;
     private final TagCache tagCache;
     private WorldCache worldCache;
+
     private final Int2ObjectMap<TeleportCache> teleportMap = new Int2ObjectOpenHashMap<>();
 
     private final PlayerInventory playerInventory;
@@ -187,6 +186,13 @@ public class GeyserSession implements CommandSender {
 
     private final Map<Vector3i, SkullPlayerEntity> skullCache = new ConcurrentHashMap<>();
     private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
+
+    /**
+     * Stores the differences between Java and Bedrock biome network IDs.
+     * If Java's ocean biome is 0, and Bedrock's is 0, it will not be in the list.
+     * If Java's bamboo biome is 42, and Bedrock's is 48, it will be in this list.
+     */
+    private final Int2IntMap biomeTranslations = new Int2IntOpenHashMap();
 
     /**
      * A map of Vector3i positions to Java entities.
@@ -503,7 +509,7 @@ public class GeyserSession implements CommandSender {
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-        biomeDefinitionListPacket.setDefinitions(Registries.BIOMES.get());
+        biomeDefinitionListPacket.setDefinitions(Registries.BIOMES_NBT.get());
         upstream.sendPacket(biomeDefinitionListPacket);
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
