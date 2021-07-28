@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.AllArgsConstructor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
@@ -43,10 +44,7 @@ import org.geysermc.connector.utils.FileUtils;
 
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.IdentityHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -69,9 +67,10 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
         // Load collision mappings file
         InputStream stream = FileUtils.getResource(input.value());
 
-        ArrayNode collisionList;
+        List<BoundingBox[]> collisionList;
         try {
-            collisionList = (ArrayNode) GeyserConnector.JSON_MAPPER.readTree(stream);
+            ArrayNode collisionNode = (ArrayNode) GeyserConnector.JSON_MAPPER.readTree(stream);
+            collisionList = loadBoundingBoxes(collisionNode);
         } catch (Exception e) {
             throw new AssertionError("Unable to load collision data", e);
         }
@@ -98,7 +97,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
         return collisions;
     }
 
-    private BlockCollision instantiateCollision(BlockMapping mapping, Map<Class<?>, CollisionInfo> annotationMap, ArrayNode collisionList) {
+    private BlockCollision instantiateCollision(BlockMapping mapping, Map<Class<?>, CollisionInfo> annotationMap, List<BoundingBox[]> collisionList) {
         String[] blockIdParts = mapping.getJavaIdentifier().split("\\[");
         String blockName = blockIdParts[0].replace("minecraft:", "");
         String params = "";
@@ -116,7 +115,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
                 try {
                     if (annotation.passDefaultBoxes()) {
                         // Create an OtherCollision instance and get the bounding boxes
-                        BoundingBox[] defaultBoxes = createBoundingBoxes((ArrayNode) collisionList.get(collisionIndex));
+                        BoundingBox[] defaultBoxes = collisionList.get(collisionIndex);
                         return (BlockCollision) type.getDeclaredConstructor(String.class, BoundingBox[].class).newInstance(params, defaultBoxes);
                     } else {
                         return (BlockCollision) type.getDeclaredConstructor(String.class).newInstance(params);
@@ -136,25 +135,30 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
         if (collisionIndex == 1) {
             return new SolidCollision(params);
         }
-        return new OtherCollision(createBoundingBoxes((ArrayNode) collisionList.get(collisionIndex)));
+        return new OtherCollision(collisionList.get(collisionIndex));
     }
 
-    private BoundingBox[] createBoundingBoxes(ArrayNode collisionList) {
-        BoundingBox[] boundingBoxes = new BoundingBox[collisionList.size()];
+    private List<BoundingBox[]> loadBoundingBoxes(ArrayNode collisionNode) {
+        List<BoundingBox[]> collisions = new ObjectArrayList<>();
+        for (int collisionIndex = 0; collisionIndex < collisionNode.size(); collisionIndex++) {
+            ArrayNode boundingBoxArray = (ArrayNode) collisionNode.get(collisionIndex);
 
-        for (int i = 0; i < collisionList.size(); i++) {
-            ArrayNode collisionBoxArray = (ArrayNode) collisionList.get(i);
-            boundingBoxes[i] = new BoundingBox(collisionBoxArray.get(0).asDouble(),
-                    collisionBoxArray.get(1).asDouble(),
-                    collisionBoxArray.get(2).asDouble(),
-                    collisionBoxArray.get(3).asDouble(),
-                    collisionBoxArray.get(4).asDouble(),
-                    collisionBoxArray.get(5).asDouble());
+            BoundingBox[] boundingBoxes = new BoundingBox[boundingBoxArray.size()];
+            for (int i = 0; i < boundingBoxArray.size(); i++) {
+                ArrayNode boxProperties = (ArrayNode) boundingBoxArray.get(i);
+                boundingBoxes[i] = new BoundingBox(boxProperties.get(0).asDouble(),
+                        boxProperties.get(1).asDouble(),
+                        boxProperties.get(2).asDouble(),
+                        boxProperties.get(3).asDouble(),
+                        boxProperties.get(4).asDouble(),
+                        boxProperties.get(5).asDouble());
+            }
+
+            // Sorting by lowest Y first fixes some bugs
+            Arrays.sort(boundingBoxes, Comparator.comparingDouble(BoundingBox::getMiddleY));
+            collisions.add(boundingBoxes);
         }
-
-        // Sorting by lowest Y first fixes some bugs
-        Arrays.sort(boundingBoxes, Comparator.comparingDouble(BoundingBox::getMiddleY));
-        return boundingBoxes;
+        return collisions;
     }
 
     /**
