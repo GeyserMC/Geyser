@@ -40,6 +40,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerAbilitiesPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
@@ -380,18 +381,6 @@ public class GeyserSession implements CommandSender {
      * If the current player is flying
      */
     private boolean flying = false;
-
-    /**
-     * If the current player is in noclip
-     */
-    @Setter
-    private boolean noClip = false;
-
-    /**
-     * If the current player can not interact with the world
-     */
-    @Setter
-    private boolean worldImmutable = false;
 
     /**
      * Caches current rain status.
@@ -1282,15 +1271,21 @@ public class GeyserSession implements CommandSender {
         adventureSettingsPacket.setPlayerPermission(opPermissionLevel >= 2 ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER);
 
         // Update the noClip and worldImmutable values based on the current gamemode
-        noClip = gameMode == GameMode.SPECTATOR;
-        worldImmutable = gameMode == GameMode.ADVENTURE || gameMode == GameMode.SPECTATOR;
+        boolean spectator = gameMode == GameMode.SPECTATOR;
+        boolean worldImmutable = gameMode == GameMode.ADVENTURE || spectator;
 
         Set<AdventureSetting> flags = adventureSettingsPacket.getSettings();
-        if (canFly) {
+        if (canFly || spectator) {
             flags.add(AdventureSetting.MAY_FLY);
         }
 
-        if (flying) {
+        if (flying || spectator) {
+            if (spectator && !flying) {
+                // We're "flying locked" in this gamemode
+                flying = true;
+                ClientPlayerAbilitiesPacket abilitiesPacket = new ClientPlayerAbilitiesPacket(true);
+                sendDownstreamPacket(abilitiesPacket);
+            }
             flags.add(AdventureSetting.FLYING);
         }
 
@@ -1298,7 +1293,7 @@ public class GeyserSession implements CommandSender {
             flags.add(AdventureSetting.WORLD_IMMUTABLE);
         }
 
-        if (noClip) {
+        if (spectator) {
             flags.add(AdventureSetting.NO_CLIP);
         }
 
