@@ -104,7 +104,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:brand", PluginMessageUtils.getGeyserBrandData()));
 
         // register the plugin messaging channels used in Floodgate
-        if (session.getConnector().getDefaultAuthType() == AuthType.FLOODGATE) {
+        if (session.getRemoteAuthType() == AuthType.FLOODGATE) {
             session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:register", PluginMessageUtils.getFloodgateRegisterData()));
         }
 

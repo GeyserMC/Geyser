@@ -106,9 +106,6 @@ public class GeyserConnector {
     @Setter
     private static boolean shouldStartListener = true;
 
-    @Setter
-    private AuthType defaultAuthType;
-
     private final TimeSyncer timeSyncer;
     private FloodgateCipher cipher;
     private FloodgateSkinUploader skinUploader;
@@ -192,10 +189,8 @@ public class GeyserConnector {
             }
         }
 
-        defaultAuthType = config.getRemote().getAuthType();
-
         TimeSyncer timeSyncer = null;
-        if (defaultAuthType == AuthType.FLOODGATE) {
+        if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
             timeSyncer = new TimeSyncer(Constants.NTP_SERVER);
             try {
                 Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
@@ -432,7 +427,6 @@ public class GeyserConnector {
         }
         newsHandler.shutdown();
         players.clear();
-        defaultAuthType = null;
         this.getCommandManager().getCommands().clear();
 
         bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.done"));
@@ -522,6 +516,15 @@ public class GeyserConnector {
     public boolean isProductionEnvironment() {
         //noinspection ConstantConditions - changes in production
         return !"DEV".equals(GeyserConnector.VERSION);
+    }
+
+    /**
+     * Deprecated. Get the AuthType from the GeyserConfiguration through {@link GeyserConnector#getConfig()}
+     * @return The
+     */
+    @Deprecated
+    public AuthType getDefaultAuthType() {
+        return getConfig().getRemote().getAuthType();
     }
 
     public static GeyserConnector getInstance() {

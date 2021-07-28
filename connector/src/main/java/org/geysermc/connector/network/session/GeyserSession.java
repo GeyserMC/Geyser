@@ -489,7 +489,7 @@ public class GeyserSession implements CommandSender {
         startGame();
         this.remoteAddress = connector.getConfig().getRemote().getAddress();
         this.remotePort = connector.getConfig().getRemote().getPort();
-        this.remoteAuthType = connector.getDefaultAuthType();
+        this.remoteAuthType = connector.getConfig().getRemote().getAuthType();
 
         // Set the hardcoded shield ID to the ID we just defined in StartGamePacket
         upstream.getSession().getHardcodedBlockingId().set(this.itemMappings.getStoredItems().shield().getBedrockId());
