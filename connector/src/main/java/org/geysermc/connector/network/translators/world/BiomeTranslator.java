@@ -64,6 +64,9 @@ public class BiomeTranslator {
                     case "icy":
                         replacementBiome = "minecraft:ice_spikes";
                         break;
+                    case "mesa":
+                        replacementBiome = "minecraft:badlands";
+                        break;
                     case "mushroom":
                         replacementBiome = "minecraft:mushroom_fields";
                         break;
@@ -75,7 +78,6 @@ public class BiomeTranslator {
                         break;
                     case "taiga":
                     case "jungle":
-                    case "mesa":
                     case "plains":
                     case "savanna":
                     case "the_end":
