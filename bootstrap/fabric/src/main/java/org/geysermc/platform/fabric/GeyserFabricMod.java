@@ -40,6 +40,7 @@ import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.network.translators.world.WorldManager;
@@ -145,13 +146,13 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
         Optional<ModContainer> floodgate = FabricLoader.getInstance().getModContainer("floodgate");
         boolean floodgatePresent = floodgate.isPresent();
-        if (geyserConfig.getRemote().getAuthType().equals("floodgate") && !floodgatePresent) {
+        if (geyserConfig.getRemote().getAuthType() == AuthType.FLOODGATE && !floodgatePresent) {
             geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             return;
         } else if (geyserConfig.isAutoconfiguredRemote() && floodgatePresent) {
             // Floodgate installed means that the user wants Floodgate authentication
             geyserLogger.debug("Auto-setting to Floodgate authentication.");
-            geyserConfig.getRemote().setAuthType("floodgate");
+            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
         }
 
         geyserConfig.loadFloodgate(this, floodgate.orElse(null));

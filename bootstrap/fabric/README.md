@@ -1,6 +1,6 @@
 # Geyser-Fabric
 
-[![forthebadge made-with-java](https://ForTheBadge.com/images/badges/made-with-java.svg)](https://java.com/)
+[![forthebadge made-with-java](https://forthebadge.com/images/badges/made-with-java.svg)](https://java.com/)
 
 Download: [![Build Status](https://ci.nukkitx.com/job/GeyserMC/job/Geyser-Fabric/job/java-1.17/badge/icon)](https://ci.opencollab.dev//job/GeyserMC/job/Geyser-Fabric/job/java-1.17/)
 
