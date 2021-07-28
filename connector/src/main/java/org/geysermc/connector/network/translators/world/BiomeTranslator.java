@@ -50,8 +50,45 @@ public class BiomeTranslator {
             CompoundTag biomeTag = (CompoundTag) tag;
 
             String javaIdentifier = ((StringTag) biomeTag.get("name")).getValue();
-            int bedrockId = Registries.BIOME_IDENTIFIERS.get().getOrDefault(javaIdentifier, 0);
+            int bedrockId = Registries.BIOME_IDENTIFIERS.get().getOrDefault(javaIdentifier, -1);
             int javaId = ((IntTag) biomeTag.get("id")).getValue();
+
+            if (bedrockId == -1) {
+                // There is no matching Bedrock variation for this biome; let's set the closest match based on biome category
+                String category = ((StringTag) ((CompoundTag) biomeTag.get("element")).get("category")).getValue();
+                String replacementBiome;
+                switch (category) {
+                    case "extreme_hills":
+                        replacementBiome = "minecraft:mountains";
+                        break;
+                    case "icy":
+                        replacementBiome = "minecraft:ice_spikes";
+                        break;
+                    case "mushroom":
+                        replacementBiome = "minecraft:mushroom_fields";
+                        break;
+                    case "nether":
+                        replacementBiome = "minecraft:nether_wastes";
+                        break;
+                    default:
+                        replacementBiome = "minecraft:ocean"; // Typically ID 0 so a good default
+                        break;
+                    case "taiga":
+                    case "jungle":
+                    case "mesa":
+                    case "plains":
+                    case "savanna":
+                    case "the_end":
+                    case "beach":
+                    case "ocean":
+                    case "desert":
+                    case "river":
+                    case "swamp":
+                        replacementBiome = "minecraft:" + category;
+                        break;
+                }
+                bedrockId = Registries.BIOME_IDENTIFIERS.get().getInt(replacementBiome);
+            }
 
             if (javaId != bedrockId) {
                 // When we see the Java ID, we should instead apply the Bedrock ID
