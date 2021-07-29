@@ -27,12 +27,13 @@ package org.geysermc.connector.network.translators.collision.translators;
 
 import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
+import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 
 @EqualsAndHashCode(callSuper = true)
-@CollisionRemapper(regex = "^grass_path$", passDefaultBoxes = true)
-public class GrassPathCollision extends BlockCollision {
-    public GrassPathCollision(String params, BoundingBox[] defaultBoxes) {
+@CollisionRemapper(regex = "^dirt_path$", passDefaultBoxes = true)
+public class DirtPathCollision extends BlockCollision {
+    public DirtPathCollision(String params, BoundingBox[] defaultBoxes) {
         super(defaultBoxes);
     }
 
@@ -40,10 +41,10 @@ public class GrassPathCollision extends BlockCollision {
     // This is counteracted by the main collision code pushing them out
     @Override
     public void beforeCorrectPosition(BoundingBox playerCollision) {
-        // In Bedrock, grass paths are small blocks so the player must be pushed down
+        // In Bedrock, dirt paths are solid blocks, so the player must be pushed down.
         double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
-        // If the player is in the buggy area, push them down
-        if (playerMinY == y + 1) {
+        double blockMaxY = y + 1;
+        if (Math.abs(blockMaxY - playerMinY) <= CollisionManager.COLLISION_TOLERANCE) {
             playerCollision.translate(0, -0.0625, 0);
         }
     }
