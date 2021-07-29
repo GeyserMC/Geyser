@@ -43,6 +43,9 @@ import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
 import org.geysermc.connector.network.translators.world.BiomeTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 
+import static org.geysermc.connector.utils.ChunkUtils.MINIMUM_ACCEPTED_HEIGHT;
+import static org.geysermc.connector.utils.ChunkUtils.MINIMUM_ACCEPTED_HEIGHT_OVERWORLD;
+
 @Translator(packet = ServerChunkDataPacket.class)
 public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
     // Caves and cliffs supports 3D biomes by implementing a very similar palette system to blocks
@@ -100,8 +103,17 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                     }
 
                     if (NEW_BIOME_WRITE) {
+                        // At this point we're dealing with Bedrock chunk sections
+                        boolean overworld = session.getChunkCache().isExtendedHeight();
+                        int dimensionOffset = (overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4;
                         for (int i = 0; i < sectionCount; i++) {
-                            BiomeTranslator.toNewBedrockBiome(session, column.getBiomeData(), i).writeToNetwork(byteBuf);
+                            int biomeYOffset = dimensionOffset + i;
+                            if (biomeYOffset < yOffset) {
+                                // Ignore this biome section since it goes below the height of the Java world
+                                byteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
+                                continue;
+                            }
+                            BiomeTranslator.toNewBedrockBiome(session, column.getBiomeData(), i + (dimensionOffset - yOffset)).writeToNetwork(byteBuf);
                         }
 
                         // As of 1.17.10, Bedrock hardcodes to always read 32 biome sections
