@@ -40,6 +40,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerAbilitiesPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
@@ -58,9 +59,7 @@ import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -143,6 +142,7 @@ public class GeyserSession implements CommandSender {
     private final PreferencesCache preferencesCache;
     private final TagCache tagCache;
     private WorldCache worldCache;
+
     private final Int2ObjectMap<TeleportCache> teleportMap = new Int2ObjectOpenHashMap<>();
 
     private final PlayerInventory playerInventory;
@@ -187,6 +187,13 @@ public class GeyserSession implements CommandSender {
 
     private final Map<Vector3i, SkullPlayerEntity> skullCache = new ConcurrentHashMap<>();
     private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
+
+    /**
+     * Stores the differences between Java and Bedrock biome network IDs.
+     * If Java's ocean biome is 0, and Bedrock's is 0, it will not be in the list.
+     * If Java's bamboo biome is 42, and Bedrock's is 48, it will be in this list.
+     */
+    private final Int2IntMap biomeTranslations = new Int2IntOpenHashMap();
 
     /**
      * A map of Vector3i positions to Java entities.
@@ -382,18 +389,6 @@ public class GeyserSession implements CommandSender {
     private boolean flying = false;
 
     /**
-     * If the current player is in noclip
-     */
-    @Setter
-    private boolean noClip = false;
-
-    /**
-     * If the current player can not interact with the world
-     */
-    @Setter
-    private boolean worldImmutable = false;
-
-    /**
      * Caches current rain status.
      */
     @Setter
@@ -489,7 +484,7 @@ public class GeyserSession implements CommandSender {
         startGame();
         this.remoteAddress = connector.getConfig().getRemote().getAddress();
         this.remotePort = connector.getConfig().getRemote().getPort();
-        this.remoteAuthType = connector.getDefaultAuthType();
+        this.remoteAuthType = connector.getConfig().getRemote().getAuthType();
 
         // Set the hardcoded shield ID to the ID we just defined in StartGamePacket
         upstream.getSession().getHardcodedBlockingId().set(this.itemMappings.getStoredItems().shield().getBedrockId());
@@ -503,7 +498,7 @@ public class GeyserSession implements CommandSender {
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-        biomeDefinitionListPacket.setDefinitions(Registries.BIOMES.get());
+        biomeDefinitionListPacket.setDefinitions(Registries.BIOMES_NBT.get());
         upstream.sendPacket(biomeDefinitionListPacket);
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
@@ -1282,15 +1277,21 @@ public class GeyserSession implements CommandSender {
         adventureSettingsPacket.setPlayerPermission(opPermissionLevel >= 2 ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER);
 
         // Update the noClip and worldImmutable values based on the current gamemode
-        noClip = gameMode == GameMode.SPECTATOR;
-        worldImmutable = gameMode == GameMode.ADVENTURE || gameMode == GameMode.SPECTATOR;
+        boolean spectator = gameMode == GameMode.SPECTATOR;
+        boolean worldImmutable = gameMode == GameMode.ADVENTURE || spectator;
 
         Set<AdventureSetting> flags = adventureSettingsPacket.getSettings();
-        if (canFly) {
+        if (canFly || spectator) {
             flags.add(AdventureSetting.MAY_FLY);
         }
 
-        if (flying) {
+        if (flying || spectator) {
+            if (spectator && !flying) {
+                // We're "flying locked" in this gamemode
+                flying = true;
+                ClientPlayerAbilitiesPacket abilitiesPacket = new ClientPlayerAbilitiesPacket(true);
+                sendDownstreamPacket(abilitiesPacket);
+            }
             flags.add(AdventureSetting.FLYING);
         }
 
@@ -1298,7 +1299,7 @@ public class GeyserSession implements CommandSender {
             flags.add(AdventureSetting.WORLD_IMMUTABLE);
         }
 
-        if (noClip) {
+        if (spectator) {
             flags.add(AdventureSetting.NO_CLIP);
         }
 

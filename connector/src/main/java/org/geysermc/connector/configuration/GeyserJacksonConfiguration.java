@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.common.serializer.AsteriskSerializer;
 import org.geysermc.connector.network.CIDRMatcher;
 
@@ -59,7 +60,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private boolean extendedWorldHeight = false;
 
     @JsonProperty("floodgate-key-file")
-    private String floodgateKeyFile = "public-key.pem";
+    private String floodgateKeyFile = "key.pem";
 
     public abstract Path getFloodgateKeyPath();
 
@@ -194,8 +195,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         private int port = 25565;
 
         @Setter
+        @JsonDeserialize(using = AuthType.Deserializer.class)
         @JsonProperty("auth-type")
-        private String authType = "online";
+        private AuthType authType = AuthType.ONLINE;
 
         @JsonProperty("allow-password-authentication")
         private boolean passwordAuthentication = true;
