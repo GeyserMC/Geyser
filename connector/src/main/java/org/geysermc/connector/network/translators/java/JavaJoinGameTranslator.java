@@ -39,6 +39,7 @@ import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.world.BiomeTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.PluginMessageUtils;
@@ -66,6 +67,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         }
         session.setWorldName(packet.getWorldName());
 
+        BiomeTranslator.loadServerBiomes(session, packet.getDimensionCodec());
         session.getTagCache().clear();
 
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();

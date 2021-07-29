@@ -36,6 +36,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 import org.geysermc.connector.network.translators.effect.Effect;
 import org.geysermc.connector.network.translators.sound.SoundHandler;
@@ -59,7 +60,12 @@ public class Registries {
     /**
      * A registry holding a CompoundTag of all the known biomes.
      */
-    public static final SimpleRegistry<NbtMap> BIOMES = SimpleRegistry.create("bedrock/biome_definitions.dat", RegistryLoaders.NBT);
+    public static final SimpleRegistry<NbtMap> BIOMES_NBT = SimpleRegistry.create("bedrock/biome_definitions.dat", RegistryLoaders.NBT);
+
+    /**
+     * A mapped registry which stores Java biome identifiers and their Bedrock biome identifier.
+     */
+    public static final SimpleRegistry<Object2IntMap<String>> BIOME_IDENTIFIERS = SimpleRegistry.create("mappings/biomes.json", BiomeIdentifierRegistryLoader::new);
 
     /**
      * A mapped registry which stores a block entity identifier to its {@link BlockEntityTranslator}.
