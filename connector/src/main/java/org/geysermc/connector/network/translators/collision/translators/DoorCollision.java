@@ -71,16 +71,16 @@ public class DoorCollision extends BlockCollision {
         if (this.checkIntersection(playerCollision)) {
             switch (facing) {
                 case 1: // North
-                    playerCollision.setMiddleZ(Math.floor(playerCollision.getMiddleZ()) + 0.5125);
+                    playerCollision.setMiddleZ(z + 0.5125);
                     break;
                 case 2: // East
-                    playerCollision.setMiddleX(Math.floor(playerCollision.getMiddleX()) + 0.5125);
+                    playerCollision.setMiddleX(x + 0.5125);
                     break;
                 case 3: // South
-                    playerCollision.setMiddleZ(Math.floor(playerCollision.getMiddleZ()) + 0.4875);
+                    playerCollision.setMiddleZ(z + 0.4875);
                     break;
                 case 4: // West
-                    playerCollision.setMiddleX(Math.floor(playerCollision.getMiddleX()) + 0.4875);
+                    playerCollision.setMiddleX(x + 0.4875);
                     break;
             }
         }
