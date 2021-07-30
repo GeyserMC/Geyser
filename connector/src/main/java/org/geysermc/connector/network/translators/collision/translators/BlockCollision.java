@@ -106,27 +106,34 @@ public class BlockCollision {
                         playerCollision.getMiddleY() - y,
                         playerCollision.getMiddleZ() - z);
 
+                // The ULP should give an upper bound on the floating point error
+                double xULP = Math.ulp((float) Math.max(Math.abs(playerCollision.getMiddleX()) + playerCollision.getSizeX() / 2.0, Math.abs(x) + 1));
+                double zULP = Math.ulp((float) Math.max(Math.abs(playerCollision.getMiddleZ()) + playerCollision.getSizeZ() / 2.0, Math.abs(z) + 1));
+
+                double xPushAwayTolerance = Math.max(pushAwayTolerance, xULP);
+                double zPushAwayTolerance = Math.max(pushAwayTolerance, zULP);
+
                 double northFaceZPos = b.getMiddleZ() - (b.getSizeZ() / 2);
                 double translateDistance = northFaceZPos - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
-                if (Math.abs(translateDistance) < pushAwayTolerance) {
+                if (Math.abs(translateDistance) < zPushAwayTolerance) {
                     playerCollision.translate(0, 0, translateDistance);
                 }
 
                 double southFaceZPos = b.getMiddleZ() + (b.getSizeZ() / 2);
                 translateDistance = southFaceZPos - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
-                if (Math.abs(translateDistance) < pushAwayTolerance) {
+                if (Math.abs(translateDistance) < zPushAwayTolerance) {
                     playerCollision.translate(0, 0, translateDistance);
                 }
 
                 double eastFaceXPos = b.getMiddleX() + (b.getSizeX() / 2);
                 translateDistance = eastFaceXPos - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
-                if (Math.abs(translateDistance) < pushAwayTolerance) {
+                if (Math.abs(translateDistance) < xPushAwayTolerance) {
                     playerCollision.translate(translateDistance, 0, 0);
                 }
 
                 double westFaceXPos = b.getMiddleX() - (b.getSizeX() / 2);
                 translateDistance = westFaceXPos - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
-                if (Math.abs(translateDistance) < pushAwayTolerance) {
+                if (Math.abs(translateDistance) < xPushAwayTolerance) {
                     playerCollision.translate(translateDistance, 0, 0);
                 }
 
