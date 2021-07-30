@@ -53,7 +53,7 @@ public class SnowCollision extends BlockCollision {
         // pushed down
         if (layers == 4 || layers == 8) {
             double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
-            double boxMaxY = (boundingBoxes[0].getMiddleY() + y) + (boundingBoxes[0].getSizeY() / 2);
+            double boxMaxY = (boundingBoxes[0].getMiddleY() + position.get().getY()) + (boundingBoxes[0].getSizeY() / 2);
             // If the player is in the buggy area, push them down
             if (playerMinY > boxMaxY &&
                     playerMinY <= (boxMaxY + 0.125)) {
@@ -71,7 +71,7 @@ public class SnowCollision extends BlockCollision {
 
         if (this.checkIntersection(playerCollision)) {
             double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
-            double boxMaxY = (boundingBoxes[0].getMiddleY() + y) + (boundingBoxes[0].getSizeY() / 2);
+            double boxMaxY = (boundingBoxes[0].getMiddleY() + position.get().getY()) + (boundingBoxes[0].getSizeY() / 2);
             // If the player actually can't step onto it (they can step onto it from other snow layers)
             if ((boxMaxY - playerMinY) > 0.5) {
                 // Cancel the movement

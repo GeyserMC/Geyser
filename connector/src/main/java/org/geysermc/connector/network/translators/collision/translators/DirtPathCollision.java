@@ -43,7 +43,7 @@ public class DirtPathCollision extends BlockCollision {
     public void beforeCorrectPosition(BoundingBox playerCollision) {
         // In Bedrock, dirt paths are solid blocks, so the player must be pushed down.
         double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
-        double blockMaxY = y + 1;
+        double blockMaxY = position.get().getY() + 1;
         if (Math.abs(blockMaxY - playerMinY) <= CollisionManager.COLLISION_TOLERANCE) {
             playerCollision.translate(0, -0.0625, 0);
         }

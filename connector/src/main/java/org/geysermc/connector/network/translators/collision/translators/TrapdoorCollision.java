@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.collision.translators;
 
+import com.nukkitx.math.vector.Vector3i;
 import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
@@ -72,6 +73,11 @@ public class TrapdoorCollision extends BlockCollision {
         boolean result = super.correctPosition(session, playerCollision);
         // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
         if (this.checkIntersection(playerCollision)) {
+            Vector3i blockPos = this.position.get();
+            int x = blockPos.getX();
+            int y = blockPos.getY();
+            int z = blockPos.getZ();
+
             switch (facing) {
                 case 1: // North
                     playerCollision.setMiddleZ(z + 0.5125);

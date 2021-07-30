@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.collision.translators;
 
 import com.nukkitx.math.vector.Vector3d;
+import com.nukkitx.math.vector.Vector3i;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -38,9 +39,8 @@ public class BlockCollision {
     @Getter
     protected final BoundingBox[] boundingBoxes;
 
-    protected int x;
-    protected int y;
-    protected int z;
+    @EqualsAndHashCode.Exclude
+    protected final ThreadLocal<Vector3i> position;
 
     /**
      * This is used for the step up logic.
@@ -60,12 +60,11 @@ public class BlockCollision {
 
     protected BlockCollision(BoundingBox[] boxes) {
         this.boundingBoxes = boxes;
+        this.position = new ThreadLocal<>();
     }
 
-    public void setPosition(int x, int y, int z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+    public void setPosition(Vector3i newPosition) {
+        this.position.set(newPosition);
     }
 
     /**
@@ -81,6 +80,11 @@ public class BlockCollision {
      * This functionality is currently only used in 6 or 7 layer snow
      */
     public boolean correctPosition(GeyserSession session, BoundingBox playerCollision) {
+        Vector3i blockPos = this.position.get();
+        int x = blockPos.getX();
+        int y = blockPos.getY();
+        int z = blockPos.getZ();
+
         double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
         for (BoundingBox b : this.boundingBoxes) {
             double boxMinY = (b.getMiddleY() + y) - (b.getSizeY() / 2);
@@ -153,6 +157,11 @@ public class BlockCollision {
     }
 
     public boolean checkIntersection(BoundingBox playerCollision) {
+        Vector3i blockPos = this.position.get();
+        int x = blockPos.getX();
+        int y = blockPos.getY();
+        int z = blockPos.getZ();
+
         for (BoundingBox b : boundingBoxes) {
             if (b.checkIntersection(x, y, z, playerCollision)) {
                 return true;

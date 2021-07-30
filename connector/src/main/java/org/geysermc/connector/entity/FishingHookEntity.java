@@ -97,10 +97,13 @@ public class FishingHookEntity extends ThrowableEntity {
         boolean collided = false;
         for (Vector3i blockPos : collidableBlocks) {
             int blockID = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
-            BlockCollision blockCollision = BlockUtils.getCollision(blockID, blockPos.getX(), blockPos.getY(), blockPos.getZ());
-            if (blockCollision != null && blockCollision.checkIntersection(boundingBox)) {
-                // TODO Push bounding box out of collision to improve movement
-                collided = true;
+            BlockCollision blockCollision = BlockUtils.getCollision(blockID, blockPos);
+            if (blockCollision != null) {
+                if (blockCollision.checkIntersection(boundingBox)) {
+                    // TODO Push bounding box out of collision to improve movement
+                    collided = true;
+                }
+                blockCollision.setPosition(null);
             }
 
             int waterLevel = BlockStateValues.getWaterLevel(blockID);
