@@ -38,7 +38,6 @@ public class SnowCollision extends BlockCollision {
     public SnowCollision(String params, BoundingBox[] defaultBoxes) {
         super(defaultBoxes);
         int layerCharIndex = params.indexOf("=") + 1;
-        // Hitbox is 1 layer less (you sink in 1 layer)
         layers = Integer.parseInt(params.substring(layerCharIndex, layerCharIndex + 1));
 
         pushUpTolerance = 0.125;
@@ -64,6 +63,10 @@ public class SnowCollision extends BlockCollision {
 
     @Override
     public boolean correctPosition(GeyserSession session, BoundingBox playerCollision) {
+        if (layers == 1) {
+            // 1 layer of snow does not have collision
+            return true;
+        }
         // Hack to prevent false positives
         playerCollision.setSizeX(playerCollision.getSizeX() - 0.0001);
         playerCollision.setSizeY(playerCollision.getSizeY() - 0.0001);
