@@ -156,10 +156,10 @@
         <dependency>
             <groupId>com.github.GeyserMC</groupId>
             <artifactId>PacketLib</artifactId>
-            <version>0b75570</version>
+            <version>25eb4c4</version>
             <scope>compile</scope>
             <exclusions>
-                <exclusion> <!-- Move this exclusion back to MCProtocolLib it gets the latest PacketLib -->
+                <exclusion>
                     <groupId>io.netty</groupId>
                     <artifactId>netty-all</artifactId>
                 </exclusion>

@@ -54,6 +54,7 @@ import org.geysermc.platform.spigot.world.manager.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
@@ -62,6 +63,7 @@ import java.util.logging.Level;
 public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     private GeyserSpigotCommandManager geyserCommandManager;
     private GeyserSpigotConfiguration geyserConfig;
+    private GeyserSpigotInjector geyserInjector;
     private GeyserSpigotLogger geyserLogger;
     private IGeyserPingPassthrough geyserSpigotPingPassthrough;
     private GeyserSpigotWorldManager geyserWorldManager;
@@ -176,6 +178,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         // Set if we need to use a different method for getting a player's locale
         SpigotCommandSender.setUseLegacyLocaleMethod(isPre1_12);
 
+        // We want to do this late in the server startup process to allow plugins such as ViaVersion and ProtocolLib
+        // To do their job injecting, then connect into *that*
+        this.geyserInjector = new GeyserSpigotInjector(isViaVersion);
+        this.geyserInjector.initializeLocalChannel(this);
+
         if (connector.getConfig().isUseAdapters()) {
             try {
                 String name = Bukkit.getServer().getClass().getPackage().getName();
@@ -233,6 +240,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         if (connector != null) {
             connector.shutdown();
         }
+        if (geyserInjector != null) {
+            geyserInjector.shutdown();
+        }
     }
 
     @Override
@@ -273,6 +283,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     @Override
     public String getMinecraftServerVersion() {
         return this.minecraftVersion;
+    }
+
+    @Override
+    public SocketAddress getSocketAddress() {
+        return this.geyserInjector.getServerSocketAddress();
     }
 
     public boolean isCompatible(String version, String whichVersion) {

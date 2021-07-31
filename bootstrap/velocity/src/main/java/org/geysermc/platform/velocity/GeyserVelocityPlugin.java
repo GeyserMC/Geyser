@@ -28,6 +28,7 @@ package org.geysermc.platform.velocity;
 import com.google.inject.Inject;
 import com.velocitypowered.api.command.CommandManager;
 import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
@@ -45,11 +46,13 @@ import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.velocity.command.GeyserVelocityCommandExecutor;
 import org.geysermc.platform.velocity.command.GeyserVelocityCommandManager;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
@@ -68,6 +71,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     private GeyserVelocityCommandManager geyserCommandManager;
     private GeyserVelocityConfiguration geyserConfig;
+    private GeyserVelocityInjector geyserInjector;
     private GeyserVelocityLogger geyserLogger;
     private IGeyserPingPassthrough geyserPingPassthrough;
 
@@ -130,6 +134,9 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
         this.connector = GeyserConnector.start(PlatformType.VELOCITY, this);
 
+        this.geyserInjector = new GeyserVelocityInjector(proxyServer);
+        // Will be initialized after the proxy has been bound
+
         this.geyserCommandManager = new GeyserVelocityCommandManager(connector);
         this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(connector));
         if (geyserConfig.isLegacyPingPassthrough()) {
@@ -141,7 +148,12 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Override
     public void onDisable() {
-        connector.shutdown();
+        if (connector != null) {
+            connector.shutdown();
+        }
+        if (geyserInjector != null) {
+            geyserInjector.shutdown();
+        }
     }
 
     @Override
@@ -174,8 +186,20 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         onDisable();
     }
 
+    @Subscribe
+    public void onProxyBound(ListenerBoundEvent event) {
+        // After this bound, we know that the channel initializer cannot change without it being ineffective for Velocity, too
+        geyserInjector.initializeLocalChannel(this);
+    }
+
     @Override
     public BootstrapDumpInfo getDumpInfo() {
         return new GeyserVelocityDumpInfo(proxyServer);
+    }
+
+    @Nullable
+    @Override
+    public SocketAddress getSocketAddress() {
+        return this.geyserInjector.getServerSocketAddress();
     }
 }

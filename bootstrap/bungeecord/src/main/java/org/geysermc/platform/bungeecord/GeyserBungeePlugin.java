@@ -40,10 +40,12 @@ import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandExecutor;
 import org.geysermc.platform.bungeecord.command.GeyserBungeeCommandManager;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -52,6 +54,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     private GeyserBungeeCommandManager geyserCommandManager;
     private GeyserBungeeConfiguration geyserConfig;
+    private GeyserBungeeInjector geyserInjector;
     private GeyserBungeeLogger geyserLogger;
     private IGeyserPingPassthrough geyserBungeePingPassthrough;
 
@@ -114,6 +117,9 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
         this.connector = GeyserConnector.start(PlatformType.BUNGEECORD, this);
 
+        this.geyserInjector = new GeyserBungeeInjector(getProxy());
+        this.geyserInjector.initializeLocalChannel(this);
+
         this.geyserCommandManager = new GeyserBungeeCommandManager(connector);
 
         if (geyserConfig.isLegacyPingPassthrough()) {
@@ -127,7 +133,12 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @Override
     public void onDisable() {
-        connector.shutdown();
+        if (connector != null) {
+            connector.shutdown();
+        }
+        if (geyserInjector != null) {
+            geyserInjector.shutdown();
+        }
     }
 
     @Override
@@ -158,5 +169,11 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     @Override
     public BootstrapDumpInfo getDumpInfo() {
         return new GeyserBungeeDumpInfo(getProxy());
+    }
+
+    @Nullable
+    @Override
+    public SocketAddress getSocketAddress() {
+        return this.geyserInjector.getServerSocketAddress();
     }
 }
