@@ -201,7 +201,8 @@ use-adapters: true
 
 # Whether to connect directly into the Java server without creating a TCP connection.
 # This should only be disabled if a plugin that interfaces with packets or the network does not work correctly with Geyser.
-# If enabled, the address and port are ignored
+# If enabled on plugin versions, the remote address and port sections are ignored
+# If disabled on plugin versions, expect performance decrease and latency increase
 use-direct-connection: true
 
 config-version: 4
