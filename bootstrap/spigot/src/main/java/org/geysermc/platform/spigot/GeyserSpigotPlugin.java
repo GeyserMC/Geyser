@@ -183,7 +183,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         this.geyserInjector = new GeyserSpigotInjector(isViaVersion);
         this.geyserInjector.initializeLocalChannel(this);
 
-        if (connector.getConfig().isUseAdapters()) {
+        if (Boolean.parseBoolean(System.getProperty("Geyser.UseDirectAdapters", "true"))) {
             try {
                 String name = Bukkit.getServer().getClass().getPackage().getName();
                 String nmsVersion = name.substring(name.lastIndexOf('.') + 1);
@@ -208,7 +208,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 }
             }
         } else {
-            geyserLogger.debug("Not using NMS adapter as it is disabled in the config.");
+            geyserLogger.debug("Not using NMS adapter as it is disabled via system property.");
         }
         if (this.geyserWorldManager == null) {
             // No NMS adapter

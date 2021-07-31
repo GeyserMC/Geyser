@@ -247,9 +247,6 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("mtu")
     private int mtu = 1400;
 
-    @JsonProperty("use-adapters")
-    private boolean useAdapters = true;
-
     @JsonProperty("use-direct-connection")
     private boolean useDirectConnection = true;
 

@@ -171,8 +171,6 @@ public interface GeyserConfiguration {
 
     int getMtu();
 
-    boolean isUseAdapters();
-
     boolean isUseDirectConnection();
 
     int getConfigVersion();
