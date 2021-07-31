@@ -25,15 +25,16 @@
 
 package org.geysermc.connector.network.translators.collision.translators;
 
+import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 
+@EqualsAndHashCode(callSuper = true)
 @CollisionRemapper(regex = "shulker_box$") // These have no collision in the mappings as it depends on the NBT data
 public class SolidCollision extends BlockCollision {
     public SolidCollision(String params) {
-        super();
-        boundingBoxes = new BoundingBox[]{
-                new BoundingBox(0.5, 0.5, 0.5, 1, 1, 1)
-        };
+        super(new BoundingBox[] {
+            new BoundingBox(0.5, 0.5, 0.5, 1, 1, 1)
+        });
     }
 }

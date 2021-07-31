@@ -244,16 +244,15 @@ public class BlockUtils {
         return fullJavaIdentifier.substring(0, stateIndex);
     }
 
-    // Note: these reuse classes, so don't try to store more than once instance or coordinates will get overwritten
-    public static BlockCollision getCollision(int blockId, int x, int y, int z) {
+    public static BlockCollision getCollision(int blockId, Vector3i blockPos) {
         BlockCollision collision = Registries.COLLISIONS.get(blockId);
         if (collision != null) {
-            collision.setPosition(x, y, z);
+            collision.setPosition(blockPos);
         }
         return collision;
     }
 
-    public static BlockCollision getCollisionAt(GeyserSession session, int x, int y, int z) {
-        return getCollision(session.getConnector().getWorldManager().getBlockAt(session, x, y, z), x, y, z);
+    public static BlockCollision getCollisionAt(GeyserSession session, Vector3i blockPos) {
+        return getCollision(session.getConnector().getWorldManager().getBlockAt(session, blockPos), blockPos);
     }
 }

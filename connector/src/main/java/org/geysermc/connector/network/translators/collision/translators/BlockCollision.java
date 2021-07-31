@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.collision.translators;
 
 import com.nukkitx.math.vector.Vector3d;
+import com.nukkitx.math.vector.Vector3i;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -36,11 +37,10 @@ import org.geysermc.connector.network.translators.collision.BoundingBox;
 public class BlockCollision {
 
     @Getter
-    protected BoundingBox[] boundingBoxes;
+    protected final BoundingBox[] boundingBoxes;
 
-    protected int x;
-    protected int y;
-    protected int z;
+    @EqualsAndHashCode.Exclude
+    protected final ThreadLocal<Vector3i> position;
 
     /**
      * This is used for the step up logic.
@@ -51,7 +51,6 @@ public class BlockCollision {
      * I didn't just set it for beds because other collision may also be slightly raised off the ground.
      * If this causes any problems, change this back to 0 and add an exception for beds.
      */
-    @EqualsAndHashCode.Exclude
     protected double pushUpTolerance = 1;
 
     /**
@@ -59,10 +58,13 @@ public class BlockCollision {
      */
     protected double pushAwayTolerance = CollisionManager.COLLISION_TOLERANCE * 1.1;
 
-    public void setPosition(int x, int y, int z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+    protected BlockCollision(BoundingBox[] boxes) {
+        this.boundingBoxes = boxes;
+        this.position = new ThreadLocal<>();
+    }
+
+    public void setPosition(Vector3i newPosition) {
+        this.position.set(newPosition);
     }
 
     /**
@@ -78,6 +80,11 @@ public class BlockCollision {
      * This functionality is currently only used in 6 or 7 layer snow
      */
     public boolean correctPosition(GeyserSession session, BoundingBox playerCollision) {
+        Vector3i blockPos = this.position.get();
+        int x = blockPos.getX();
+        int y = blockPos.getY();
+        int z = blockPos.getZ();
+
         double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
         for (BoundingBox b : this.boundingBoxes) {
             double boxMinY = (b.getMiddleY() + y) - (b.getSizeY() / 2);
@@ -103,27 +110,34 @@ public class BlockCollision {
                         playerCollision.getMiddleY() - y,
                         playerCollision.getMiddleZ() - z);
 
+                // The ULP should give an upper bound on the floating point error
+                double xULP = Math.ulp((float) Math.max(Math.abs(playerCollision.getMiddleX()) + playerCollision.getSizeX() / 2.0, Math.abs(x) + 1));
+                double zULP = Math.ulp((float) Math.max(Math.abs(playerCollision.getMiddleZ()) + playerCollision.getSizeZ() / 2.0, Math.abs(z) + 1));
+
+                double xPushAwayTolerance = Math.max(pushAwayTolerance, xULP);
+                double zPushAwayTolerance = Math.max(pushAwayTolerance, zULP);
+
                 double northFaceZPos = b.getMiddleZ() - (b.getSizeZ() / 2);
                 double translateDistance = northFaceZPos - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
-                if (Math.abs(translateDistance) < pushAwayTolerance) {
+                if (Math.abs(translateDistance) < zPushAwayTolerance) {
                     playerCollision.translate(0, 0, translateDistance);
                 }
 
                 double southFaceZPos = b.getMiddleZ() + (b.getSizeZ() / 2);
                 translateDistance = southFaceZPos - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
-                if (Math.abs(translateDistance) < pushAwayTolerance) {
+                if (Math.abs(translateDistance) < zPushAwayTolerance) {
                     playerCollision.translate(0, 0, translateDistance);
                 }
 
                 double eastFaceXPos = b.getMiddleX() + (b.getSizeX() / 2);
                 translateDistance = eastFaceXPos - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
-                if (Math.abs(translateDistance) < pushAwayTolerance) {
+                if (Math.abs(translateDistance) < xPushAwayTolerance) {
                     playerCollision.translate(translateDistance, 0, 0);
                 }
 
                 double westFaceXPos = b.getMiddleX() - (b.getSizeX() / 2);
                 translateDistance = westFaceXPos - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
-                if (Math.abs(translateDistance) < pushAwayTolerance) {
+                if (Math.abs(translateDistance) < xPushAwayTolerance) {
                     playerCollision.translate(translateDistance, 0, 0);
                 }
 
@@ -143,6 +157,11 @@ public class BlockCollision {
     }
 
     public boolean checkIntersection(BoundingBox playerCollision) {
+        Vector3i blockPos = this.position.get();
+        int x = blockPos.getX();
+        int y = blockPos.getY();
+        int z = blockPos.getZ();
+
         for (BoundingBox b : boundingBoxes) {
             if (b.checkIntersection(x, y, z, playerCollision)) {
                 return true;

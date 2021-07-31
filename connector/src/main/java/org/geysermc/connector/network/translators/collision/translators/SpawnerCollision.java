@@ -25,8 +25,10 @@
 
 package org.geysermc.connector.network.translators.collision.translators;
 
+import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 
+@EqualsAndHashCode(callSuper = true)
 @CollisionRemapper(regex = "^spawner$")
 public class SpawnerCollision extends SolidCollision {
     public SpawnerCollision(String params) {

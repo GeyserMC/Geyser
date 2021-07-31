@@ -220,23 +220,21 @@ public class CollisionManager {
 
         // Used when correction code needs to be run before the main correction
         for (Vector3i blockPos : collidableBlocks) {
-            BlockCollision blockCollision = BlockUtils.getCollisionAt(
-                    session, blockPos.getX(), blockPos.getY(), blockPos.getZ()
-            );
+            BlockCollision blockCollision = BlockUtils.getCollisionAt(session, blockPos);
             if (blockCollision != null) {
                 blockCollision.beforeCorrectPosition(playerBoundingBox);
+                blockCollision.setPosition(null);
             }
         }
 
         // Main correction code
         for (Vector3i blockPos : collidableBlocks) {
-            BlockCollision blockCollision = BlockUtils.getCollisionAt(
-                    session, blockPos.getX(), blockPos.getY(), blockPos.getZ()
-            );
+            BlockCollision blockCollision = BlockUtils.getCollisionAt(session, blockPos);
             if (blockCollision != null) {
                 if (!blockCollision.correctPosition(session, playerBoundingBox)) {
                     return false;
                 }
+                blockCollision.setPosition(null);
             }
         }
 
@@ -251,7 +249,7 @@ public class CollisionManager {
      */
     public boolean isUnderSlab() {
         Vector3i position = session.getPlayerEntity().getPosition().toInt();
-        BlockCollision collision = BlockUtils.getCollisionAt(session, position.getX(), position.getY(), position.getZ());
+        BlockCollision collision = BlockUtils.getCollisionAt(session, position);
         if (collision != null) {
             // Determine, if the player's bounding box *were* at full height, if it would intersect with the block
             // at the current location.
@@ -262,6 +260,7 @@ public class CollisionManager {
             playerBoundingBox.setSizeY(EntityType.PLAYER.getHeight());
             playerBoundingBox.setMiddleY(standingY);
             boolean result = collision.checkIntersection(playerBoundingBox);
+            collision.setPosition(null);
             playerBoundingBox.setSizeY(originalHeight);
             playerBoundingBox.setMiddleY(originalY);
             return result;
