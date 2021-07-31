@@ -43,7 +43,7 @@ remote:
   # For plugin versions, if address has been set to "auto", the port will also follow the server's listening port.
   port: 25565
   # Authentication type. Can be offline, online, or floodgate (see https://github.com/GeyserMC/Geyser/wiki/Floodgate).
-  # It's recommended to keep the `address` field to "auto" so Floodgate support is automatically configured.
+  # For plugin versions, it's recommended to keep the `address` field to "auto" so Floodgate support is automatically configured.
   auth-type: online
   # Allow for password-based authentication methods through Geyser. Only useful in online mode.
   # If this is false, users must authenticate to Microsoft using a code provided by Geyser on their desktop.
