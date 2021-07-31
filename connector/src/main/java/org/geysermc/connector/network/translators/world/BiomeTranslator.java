@@ -92,9 +92,12 @@ public class BiomeTranslator {
                 bedrockId = Registries.BIOME_IDENTIFIERS.get().getInt(replacementBiome);
             }
 
-            if (javaId != bedrockId) {
-                // When we see the Java ID, we should instead apply the Bedrock ID
-                biomeTranslations.put(javaId, bedrockId);
+            // When we see the Java ID, we should instead apply the Bedrock ID
+            biomeTranslations.put(javaId, bedrockId);
+
+            if (javaId == 0) {
+                // Matches Java behavior when it sees an invalid biome - it just replaces it with ID 0
+                biomeTranslations.defaultReturnValue(bedrockId);
             }
         }
     }
@@ -132,8 +135,8 @@ public class BiomeTranslator {
             int x = i & 3;
             int y = (i >> 4) & 3;
             int z = (i >> 2) & 3;
-            // Get the Bedrock biome ID override, or this ID if it's the same
-            int biomeId = biomeTranslations.getOrDefault(javaId, javaId);
+            // Get the Bedrock biome ID override
+            int biomeId = biomeTranslations.get(javaId);
             int idx = storage.idFor(biomeId);
             // Convert biome coordinates into block coordinates
             // Bedrock expects a full 4096 blocks
