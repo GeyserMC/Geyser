@@ -30,13 +30,13 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.geysermc.connector.entity.living.animal.TropicalFishEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
 import org.geysermc.connector.registry.type.ItemMapping;
 import org.geysermc.connector.utils.LocaleUtils;
-import org.geysermc.connector.utils.TropicalFishUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,20 +63,20 @@ public class TropicalFishBucketTranslator extends NbtItemStackTranslator {
             List<Tag> lore = new ArrayList<>();
 
             int varNumber = ((IntTag) bucketVariantTag).getValue();
-            int predefinedVariantId = TropicalFishUtils.getPredefinedId(varNumber);
+            int predefinedVariantId = TropicalFishEntity.getPredefinedId(varNumber);
             if (predefinedVariantId != -1) {
                 Component tooltip = Component.translatable("entity.minecraft.tropical_fish.predefined." + predefinedVariantId, LORE_STYLE);
                 lore.add(0, new StringTag("", MessageTranslator.convertMessage(tooltip, session.getLocale())));
             } else {
-                Component typeTooltip = Component.translatable("entity.minecraft.tropical_fish.type." + TropicalFishUtils.getVariantName(varNumber), LORE_STYLE);
+                Component typeTooltip = Component.translatable("entity.minecraft.tropical_fish.type." + TropicalFishEntity.getVariantName(varNumber), LORE_STYLE);
                 lore.add(0, new StringTag("", MessageTranslator.convertMessage(typeTooltip, session.getLocale())));
 
-                byte baseColor = TropicalFishUtils.getBaseColor(varNumber);
-                byte patternColor = TropicalFishUtils.getPatternColor(varNumber);
-                Component colorTooltip = Component.translatable("color.minecraft." + TropicalFishUtils.getColorName(baseColor), LORE_STYLE);
+                byte baseColor = TropicalFishEntity.getBaseColor(varNumber);
+                byte patternColor = TropicalFishEntity.getPatternColor(varNumber);
+                Component colorTooltip = Component.translatable("color.minecraft." + TropicalFishEntity.getColorName(baseColor), LORE_STYLE);
                 if (baseColor != patternColor) {
                     colorTooltip = colorTooltip.append(Component.text(", ", LORE_STYLE))
-                            .append(Component.translatable("color.minecraft." + TropicalFishUtils.getColorName(patternColor), LORE_STYLE));
+                            .append(Component.translatable("color.minecraft." + TropicalFishEntity.getColorName(patternColor), LORE_STYLE));
                 }
                 lore.add(1, new StringTag("", MessageTranslator.convertMessage(colorTooltip, session.getLocale())));
             }
