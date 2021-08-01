@@ -60,6 +60,8 @@ public class BucketSoundInteractionHandler implements BlockSoundInteractionHandl
                 soundEvent = SoundEvent.BUCKET_EMPTY_LAVA;
                 break;
             case "minecraft:axolotl_bucket":
+            case "minecraft:cod_bucket":
+            case "minecraft:salmon_bucket":
             case "minecraft:pufferfish_bucket":
             case "minecraft:tropical_fish_bucket":
                 soundEvent = SoundEvent.BUCKET_EMPTY_FISH;
