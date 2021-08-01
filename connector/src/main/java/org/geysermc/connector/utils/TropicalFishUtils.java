@@ -28,8 +28,13 @@ package org.geysermc.connector.utils;
 import com.google.common.collect.ImmutableList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
+import java.util.List;
+
 public class TropicalFishUtils {
     private static final IntList PREDEFINED_VARIANTS = IntList.of(117506305, 117899265, 185008129, 117441793, 118161664, 65536, 50726144, 67764993, 234882305, 67110144, 117441025, 16778497, 101253888, 50660352, 918529, 235340288, 918273, 67108865, 917504, 459008, 67699456, 67371009);
+
+    private static final List<String> VARIANT_NAMES = ImmutableList.of("kob", "sunstreak", "snooper", "dasher", "brinely", "spotty", "flopper", "stripey", "glitter", "blockfish", "betty", "clayfish");
+    private static final List<String> COLOR_NAMES = ImmutableList.of("white", "orange", "magenta", "light_blue", "yellow", "lime", "pink", "gray", "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black");
 
     public static int getShape(int variant) {
         return Math.min(variant & 0xFF, 1);
@@ -57,11 +62,11 @@ public class TropicalFishUtils {
 
     public static String getVariantName(int variant) {
         int id = 6 * getShape(variant) + getPattern(variant);
-        return ImmutableList.of("kob", "sunstreak", "snooper", "dasher", "brinely", "spotty", "flopper", "stripey", "glitter", "blockfish", "betty", "clayfish").get(id);
+        return VARIANT_NAMES.get(id);
     }
 
     public static String getColorName(byte colorId) {
-        return ImmutableList.of("white", "orange", "magenta", "light_blue", "yellow", "lime", "pink", "gray", "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black").get(colorId);
+        return COLOR_NAMES.get(colorId);
     }
 
     public static int getPredefinedId(int variant) {
