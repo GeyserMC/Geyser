@@ -31,6 +31,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.connector.entity.living.AbstractFishEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.utils.TropicalFishUtils;
 
 public class TropicalFishEntity extends AbstractFishEntity {
 
@@ -43,10 +44,10 @@ public class TropicalFishEntity extends AbstractFishEntity {
         if (entityMetadata.getId() == 17) {
             int varNumber = (int) entityMetadata.getValue();
 
-            metadata.put(EntityData.VARIANT, varNumber & 0xFF); // Shape 0-1
-            metadata.put(EntityData.MARK_VARIANT, (varNumber >> 8) & 0xFF); // Pattern 0-5
-            metadata.put(EntityData.COLOR, (byte) ((varNumber >> 16) & 0xFF)); // Base color 0-15
-            metadata.put(EntityData.COLOR_2, (byte) ((varNumber >> 24) & 0xFF)); // Pattern color 0-15
+            metadata.put(EntityData.VARIANT, TropicalFishUtils.getShape(varNumber)); // Shape 0-1
+            metadata.put(EntityData.MARK_VARIANT, TropicalFishUtils.getPattern(varNumber)); // Pattern 0-5
+            metadata.put(EntityData.COLOR, TropicalFishUtils.getBaseColor(varNumber)); // Base color 0-15
+            metadata.put(EntityData.COLOR_2, TropicalFishUtils.getPatternColor(varNumber)); // Pattern color 0-15
         }
         super.updateBedrockMetadata(entityMetadata, session);
     }
