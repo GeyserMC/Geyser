@@ -32,7 +32,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHandler;
 import org.geysermc.connector.network.translators.sound.SoundHandler;
 
-@SoundHandler(items = "bucket")
+@SoundHandler(items = "bucket", ignoreSneakingWhileHolding = true)
 public class BucketSoundInteractionHandler implements BlockSoundInteractionHandler {
 
     @Override

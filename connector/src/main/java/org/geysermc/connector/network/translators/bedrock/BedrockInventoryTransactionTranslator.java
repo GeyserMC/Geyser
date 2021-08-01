@@ -38,7 +38,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
 import com.nukkitx.protocol.bedrock.data.inventory.*;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.CommandBlockMinecartEntity;
@@ -149,7 +148,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                          */
                         // CraftBukkit+ check - see https://github.com/PaperMC/Paper/blob/458db6206daae76327a64f4e2a17b67a7e38b426/Spigot-Server-Patches/0532-Move-range-check-for-block-placing-up.patch
                         Vector3f playerPosition = session.getPlayerEntity().getPosition();
-                        EntityFlags flags = session.getPlayerEntity().getMetadata().getFlags();
 
                         // Adjust position for current eye height
                         switch (session.getPose()) {
@@ -217,14 +215,22 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 slotPacket.setSlot(packet.getHotbarSlot());
                                 slotPacket.setItem(packet.getItemInHand());
                                 session.sendUpstreamPacket(slotPacket);
-                                // Powder snow buckets does not send ClientPlayerUseItemPackets
+                                // Don't send ClientPlayerUseItemPacket for powder snow buckets
                                 if (packet.getItemInHand().getId() != session.getItemMappings().getStoredItems().powderSnowBucket().getBedrockId()) {
-                                    // Delay the interaction in case the client doesn't intend to actually use the bucket
-                                    // See BedrockActionTranslator.java
-                                    session.setBucketScheduledFuture(session.getConnector().getGeneralThreadPool().schedule(() -> {
-                                        ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
-                                        session.sendDownstreamPacket(itemPacket);
-                                    }, 5, TimeUnit.MILLISECONDS));
+                                    // Special check for crafting tables since clients don't send BLOCK_INTERACT when interacting
+                                    int blockState = session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition());
+                                    if (!session.isSneaking() && blockState == BlockRegistries.JAVA_IDENTIFIERS.get("minecraft:crafting_table")) {
+                                        session.setBucketScheduledFuture(null);
+                                    } else {
+                                        // Delay the interaction in case the client doesn't intend to actually use the bucket
+                                        // See BedrockActionTranslator.java
+                                        session.setLastInteractionBlockPosition(blockPos);
+                                        session.setBucketScheduledFuture(session.getConnector().getGeneralThreadPool().schedule(() -> {
+                                            ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
+                                            session.sendDownstreamPacket(itemPacket);
+                                        }, 5, TimeUnit.MILLISECONDS));
+                                    }
+
                                 }
                             }
                         }
