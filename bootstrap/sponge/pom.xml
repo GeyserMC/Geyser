@@ -70,20 +70,12 @@
                                     <shadedPattern>org.geysermc.platform.sponge.shaded.fastutil</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.reflections</pattern>
-                                    <shadedPattern>org.geysermc.platform.sponge.shaded.reflections</shadedPattern>
-                                </relocation>
-                                <relocation>
                                     <pattern>com.google.common</pattern>
                                     <shadedPattern>org.geysermc.platform.sponge.shaded.google.common</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.guava</pattern>
                                     <shadedPattern>org.geysermc.platform.sponge.shaded.google.guava</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.dom4j</pattern>
-                                    <shadedPattern>org.geysermc.platform.sponge.shaded.dom4j</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>net.kyori</pattern>

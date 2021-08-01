@@ -30,6 +30,9 @@ import org.geysermc.connector.network.translators.sound.SoundInteractionHandler;
 
 import java.util.function.Function;
 
+/**
+ * Loads sound handlers from the given classpath.
+ */
 public class SoundHandlerRegistryLoader extends AnnotatedRegistryLoader<SoundHandler, SoundHandler, SoundInteractionHandler<?>> {
     public SoundHandlerRegistryLoader() {
         super(SoundHandler.class, Function.identity());

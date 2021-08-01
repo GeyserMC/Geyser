@@ -101,7 +101,7 @@ public class BlockStorage {
         this.bitArray = newBitArray;
     }
 
-    private int idFor(int runtimeId) {
+    public int idFor(int runtimeId) { // Set to public so we can reuse the palette ID for biomes
         int index = this.palette.indexOf(runtimeId);
         if (index != -1) {
             return index;

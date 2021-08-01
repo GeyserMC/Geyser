@@ -271,8 +271,9 @@ public class PlayerEntity extends LivingEntity {
         // Parrot occupying shoulder
         if (entityMetadata.getId() == 19 || entityMetadata.getId() == 20) {
             CompoundTag tag = (CompoundTag) entityMetadata.getValue();
+            boolean isLeft = entityMetadata.getId() == 19;
             if (tag != null && !tag.isEmpty()) {
-                if ((entityMetadata.getId() == 19 && leftParrot != null) || (entityMetadata.getId() == 20 && rightParrot != null)) {
+                if ((isLeft && leftParrot != null) || (!isLeft && rightParrot != null)) {
                     // No need to update a parrot's data when it already exists
                     return;
                 }
@@ -282,26 +283,26 @@ public class PlayerEntity extends LivingEntity {
                 parrot.spawnEntity(session);
                 parrot.getMetadata().put(EntityData.VARIANT, tag.get("Variant").getValue());
                 // Different position whether the parrot is left or right
-                float offset = (entityMetadata.getId() == 18) ? 0.4f : -0.4f;
+                float offset = isLeft ? 0.4f : -0.4f;
                 parrot.getMetadata().put(EntityData.RIDER_SEAT_POSITION, Vector3f.from(offset, -0.22, -0.1));
                 parrot.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, 1);
                 parrot.updateBedrockMetadata(session);
                 SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
-                EntityLinkData.Type type = (entityMetadata.getId() == 18) ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;
-                linkPacket.setEntityLink(new EntityLinkData(geyserId, parrot.getGeyserId(), type, false));
+                EntityLinkData.Type type = isLeft ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;
+                linkPacket.setEntityLink(new EntityLinkData(geyserId, parrot.getGeyserId(), type, false, false));
                 // Delay, or else spawned-in players won't get the link
                 // TODO: Find a better solution. This problem also exists with item frames
                 session.getConnector().getGeneralThreadPool().schedule(() -> session.sendUpstreamPacket(linkPacket), 500, TimeUnit.MILLISECONDS);
-                if (entityMetadata.getId() == 18) {
+                if (isLeft) {
                     leftParrot = parrot;
                 } else {
                     rightParrot = parrot;
                 }
             } else {
-                Entity parrot = (entityMetadata.getId() == 19 ? leftParrot : rightParrot);
+                Entity parrot = isLeft ? leftParrot : rightParrot;
                 if (parrot != null) {
                     parrot.despawnEntity(session);
-                    if (entityMetadata.getId() == 19) {
+                    if (isLeft) {
                         leftParrot = null;
                     } else {
                         rightParrot = null;

@@ -43,7 +43,7 @@ public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMe
     @Override
     public void translate(ServerPluginMessagePacket packet, GeyserSession session) {
         // The only plugin messages it has to listen for are Floodgate plugin messages
-        if (session.getConnector().getDefaultAuthType() != AuthType.FLOODGATE) {
+        if (session.getRemoteAuthType() != AuthType.FLOODGATE) {
             return;
         }
 

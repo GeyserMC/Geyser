@@ -40,8 +40,11 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
-import org.geysermc.connector.utils.BiomeUtils;
+import org.geysermc.connector.network.translators.world.BiomeTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
+
+import static org.geysermc.connector.utils.ChunkUtils.MINIMUM_ACCEPTED_HEIGHT;
+import static org.geysermc.connector.utils.ChunkUtils.MINIMUM_ACCEPTED_HEIGHT_OVERWORLD;
 
 @Translator(packet = ServerChunkDataPacket.class)
 public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
@@ -100,8 +103,17 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                     }
 
                     if (NEW_BIOME_WRITE) {
+                        // At this point we're dealing with Bedrock chunk sections
+                        boolean overworld = session.getChunkCache().isExtendedHeight();
+                        int dimensionOffset = (overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4;
                         for (int i = 0; i < sectionCount; i++) {
-                            BiomeUtils.toNewBedrockBiome(column.getBiomeData(), i).writeToNetwork(byteBuf);
+                            int biomeYOffset = dimensionOffset + i;
+                            if (biomeYOffset < yOffset) {
+                                // Ignore this biome section since it goes below the height of the Java world
+                                byteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
+                                continue;
+                            }
+                            BiomeTranslator.toNewBedrockBiome(session, column.getBiomeData(), i + (dimensionOffset - yOffset)).writeToNetwork(byteBuf);
                         }
 
                         // As of 1.17.10, Bedrock hardcodes to always read 32 biome sections
@@ -110,7 +122,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                             byteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
                         }
                     } else {
-                        byteBuf.writeBytes(BiomeUtils.toBedrockBiome(column.getBiomeData())); // Biomes - 256 bytes
+                        byteBuf.writeBytes(BiomeTranslator.toBedrockBiome(session, column.getBiomeData())); // Biomes - 256 bytes
                     }
                     byteBuf.writeByte(0); // Border blocks - Edu edition only
                     VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now

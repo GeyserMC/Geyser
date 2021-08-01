@@ -62,4 +62,9 @@ public class AxolotlEntity extends AnimalEntity {
     public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemMapping mapping) {
         return javaIdentifierStripped.equals("tropical_fish_bucket");
     }
+
+    @Override
+    protected int getMaxAir() {
+        return 6000;
+    }
 }

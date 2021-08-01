@@ -32,6 +32,9 @@ import org.geysermc.connector.utils.FileUtils;
 
 import java.io.InputStream;
 
+/**
+ * Loads NBT data from the given resource path.
+ */
 public class NbtRegistryLoader implements RegistryLoader<String, NbtMap> {
 
     @Override

@@ -54,6 +54,9 @@ import java.util.*;
 
 import static org.geysermc.connector.utils.InventoryUtils.LAST_RECIPE_NET_ID;
 
+/**
+ * Populates the recipe registry.
+ */
 public class RecipeRegistryPopulator {
 
     public static void populate() {
@@ -67,7 +70,7 @@ public class RecipeRegistryPopulator {
         }
 
         int currentRecipeId = LAST_RECIPE_NET_ID;
-        for (Map.Entry<Integer, ItemMappings> version : Registries.ITEMS.get().entrySet()) {
+        for (Int2ObjectMap.Entry<ItemMappings> version : Registries.ITEMS.get().int2ObjectEntrySet()) {
             // Make a bit of an assumption here that the last recipe net ID will be equivalent between all versions
             LAST_RECIPE_NET_ID = currentRecipeId;
             Map<RecipeType, List<CraftingData>> craftingData = new EnumMap<>(RecipeType.class);
@@ -113,8 +116,8 @@ public class RecipeRegistryPopulator {
                         c -> new ObjectArrayList<>()).add(getCraftingDataFromJsonNode(entry, recipes, version.getValue()));
             }
 
-            Registries.CRAFTING_DATA.register(version.getKey(), craftingData);
-            Registries.RECIPES.register(version.getKey(), recipes);
+            Registries.CRAFTING_DATA.register(version.getIntKey(), craftingData);
+            Registries.RECIPES.register(version.getIntKey(), recipes);
         }
     }
 

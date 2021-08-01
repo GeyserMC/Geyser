@@ -35,8 +35,9 @@ import lombok.Data;
 public class GeyserMappingItem {
     @JsonProperty("bedrock_identifier") String bedrockIdentifier;
     @JsonProperty("bedrock_data") int bedrockData;
-    Integer blockRuntimeId;
-    @JsonProperty("stack_size") Integer stackSize;
+    Integer firstBlockRuntimeId;
+    Integer lastBlockRuntimeId;
+    @JsonProperty("stack_size") int stackSize = 64;
     @JsonProperty("tool_type") String toolType;
     @JsonProperty("tool_tier") String toolTier;
 }

@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.zip.ZipFile;
 
 public class LocaleUtils {
@@ -56,53 +57,60 @@ public class LocaleUtils {
         localesFolder.mkdir();
 
         // Download the latest asset list and cache it
-        generateAssetCache();
-        downloadAndLoadLocale(LanguageUtils.getDefaultLocale());
+        generateAssetCache().whenComplete((aVoid, ex) -> downloadAndLoadLocale(LanguageUtils.getDefaultLocale()));
     }
 
     /**
      * Fetch the latest versions asset cache from Mojang so we can grab the locale files later
      */
-    private static void generateAssetCache() {
-        try {
-            // Get the version manifest from Mojang
-            VersionManifest versionManifest = GeyserConnector.JSON_MAPPER.readValue(WebUtils.getBody("https://launchermeta.mojang.com/mc/game/version_manifest.json"), VersionManifest.class);
+    private static CompletableFuture<Void> generateAssetCache() {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                // Get the version manifest from Mojang
+                VersionManifest versionManifest = GeyserConnector.JSON_MAPPER.readValue(WebUtils.getBody("https://launchermeta.mojang.com/mc/game/version_manifest.json"), VersionManifest.class);
 
-            // Get the url for the latest version of the games manifest
-            String latestInfoURL = "";
-            for (Version version : versionManifest.getVersions()) {
-                if (version.getId().equals(MinecraftConstants.GAME_VERSION)) {
-                    latestInfoURL = version.getUrl();
-                    break;
+                // Get the url for the latest version of the games manifest
+                String latestInfoURL = "";
+                for (Version version : versionManifest.getVersions()) {
+                    if (version.getId().equals(MinecraftConstants.GAME_VERSION)) {
+                        latestInfoURL = version.getUrl();
+                        break;
+                    }
                 }
+
+                // Make sure we definitely got a version
+                if (latestInfoURL.isEmpty()) {
+                    throw new Exception(LanguageUtils.getLocaleStringLog("geyser.locale.fail.latest_version"));
+                }
+
+                // Get the individual version manifest
+                VersionInfo versionInfo = GeyserConnector.JSON_MAPPER.readValue(WebUtils.getBody(latestInfoURL), VersionInfo.class);
+
+                // Get the client jar for use when downloading the en_us locale
+                GeyserConnector.getInstance().getLogger().debug(GeyserConnector.JSON_MAPPER.writeValueAsString(versionInfo.getDownloads()));
+                clientJarInfo = versionInfo.getDownloads().get("client");
+                GeyserConnector.getInstance().getLogger().debug(GeyserConnector.JSON_MAPPER.writeValueAsString(clientJarInfo));
+
+                // Get the assets list
+                JsonNode assets = GeyserConnector.JSON_MAPPER.readTree(WebUtils.getBody(versionInfo.getAssetIndex().getUrl())).get("objects");
+
+                // Put each asset into an array for use later
+                Iterator<Map.Entry<String, JsonNode>> assetIterator = assets.fields();
+                while (assetIterator.hasNext()) {
+                    Map.Entry<String, JsonNode> entry = assetIterator.next();
+                    if (!entry.getKey().startsWith("minecraft/lang/")) {
+                        // No need to cache non-language assets as we don't use them
+                        continue;
+                    }
+
+                    Asset asset = GeyserConnector.JSON_MAPPER.treeToValue(entry.getValue(), Asset.class);
+                    ASSET_MAP.put(entry.getKey(), asset);
+                }
+            } catch (Exception e) {
+                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.locale.fail.asset_cache", (!e.getMessage().isEmpty() ? e.getMessage() : e.getStackTrace())));
             }
-
-            // Make sure we definitely got a version
-            if (latestInfoURL.isEmpty()) {
-                throw new Exception(LanguageUtils.getLocaleStringLog("geyser.locale.fail.latest_version"));
-            }
-
-            // Get the individual version manifest
-            VersionInfo versionInfo = GeyserConnector.JSON_MAPPER.readValue(WebUtils.getBody(latestInfoURL), VersionInfo.class);
-
-            // Get the client jar for use when downloading the en_us locale
-            GeyserConnector.getInstance().getLogger().debug(GeyserConnector.JSON_MAPPER.writeValueAsString(versionInfo.getDownloads()));
-            clientJarInfo = versionInfo.getDownloads().get("client");
-            GeyserConnector.getInstance().getLogger().debug(GeyserConnector.JSON_MAPPER.writeValueAsString(clientJarInfo));
-
-            // Get the assets list
-            JsonNode assets = GeyserConnector.JSON_MAPPER.readTree(WebUtils.getBody(versionInfo.getAssetIndex().getUrl())).get("objects");
-
-            // Put each asset into an array for use later
-            Iterator<Map.Entry<String, JsonNode>> assetIterator = assets.fields();
-            while (assetIterator.hasNext()) {
-                Map.Entry<String, JsonNode> entry = assetIterator.next();
-                Asset asset = GeyserConnector.JSON_MAPPER.treeToValue(entry.getValue(), Asset.class);
-                ASSET_MAP.put(entry.getKey(), asset);
-            }
-        } catch (Exception e) {
-            GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.locale.fail.asset_cache", (!e.getMessage().isEmpty() ? e.getMessage() : e.getStackTrace())));
-        }
+            return null;
+        });
     }
 
     /**
@@ -311,107 +319,107 @@ public class LocaleUtils {
     public static void init() {
         // no-op
     }
-}
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Getter
-class VersionManifest {
-    @JsonProperty("latest")
-    private LatestVersion latestVersion;
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @Getter
+    static class VersionManifest {
+        @JsonProperty("latest")
+        private LatestVersion latestVersion;
 
-    @JsonProperty("versions")
-    private List<Version> versions;
-}
+        @JsonProperty("versions")
+        private List<Version> versions;
+    }
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Getter
-class LatestVersion {
-    @JsonProperty("release")
-    private String release;
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @Getter
+    static class LatestVersion {
+        @JsonProperty("release")
+        private String release;
 
-    @JsonProperty("snapshot")
-    private String snapshot;
-}
+        @JsonProperty("snapshot")
+        private String snapshot;
+    }
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Getter
-class Version {
-    @JsonProperty("id")
-    private String id;
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @Getter
+    static class Version {
+        @JsonProperty("id")
+        private String id;
 
-    @JsonProperty("type")
-    private String type;
+        @JsonProperty("type")
+        private String type;
 
-    @JsonProperty("url")
-    private String url;
+        @JsonProperty("url")
+        private String url;
 
-    @JsonProperty("time")
-    private String time;
+        @JsonProperty("time")
+        private String time;
 
-    @JsonProperty("releaseTime")
-    private String releaseTime;
-}
+        @JsonProperty("releaseTime")
+        private String releaseTime;
+    }
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Getter
-class VersionInfo {
-    @JsonProperty("id")
-    private String id;
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @Getter
+    static class VersionInfo {
+        @JsonProperty("id")
+        private String id;
 
-    @JsonProperty("type")
-    private String type;
+        @JsonProperty("type")
+        private String type;
 
-    @JsonProperty("time")
-    private String time;
+        @JsonProperty("time")
+        private String time;
 
-    @JsonProperty("releaseTime")
-    private String releaseTime;
+        @JsonProperty("releaseTime")
+        private String releaseTime;
 
-    @JsonProperty("assetIndex")
-    private AssetIndex assetIndex;
+        @JsonProperty("assetIndex")
+        private AssetIndex assetIndex;
 
-    @JsonProperty("downloads")
-    private Map<String, VersionDownload> downloads;
-}
+        @JsonProperty("downloads")
+        private Map<String, VersionDownload> downloads;
+    }
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Getter
-class VersionDownload {
-    @JsonProperty("sha1")
-    private String sha1;
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @Getter
+    static class VersionDownload {
+        @JsonProperty("sha1")
+        private String sha1;
 
-    @JsonProperty("size")
-    private int size;
+        @JsonProperty("size")
+        private int size;
 
-    @JsonProperty("url")
-    private String url;
-}
+        @JsonProperty("url")
+        private String url;
+    }
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Getter
-class AssetIndex {
-    @JsonProperty("id")
-    private String id;
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @Getter
+    static class AssetIndex {
+        @JsonProperty("id")
+        private String id;
 
-    @JsonProperty("sha1")
-    private String sha1;
+        @JsonProperty("sha1")
+        private String sha1;
 
-    @JsonProperty("size")
-    private int size;
+        @JsonProperty("size")
+        private int size;
 
-    @JsonProperty("totalSize")
-    private int totalSize;
+        @JsonProperty("totalSize")
+        private int totalSize;
 
-    @JsonProperty("url")
-    private String url;
-}
+        @JsonProperty("url")
+        private String url;
+    }
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Getter
-class Asset {
-    @JsonProperty("hash")
-    private String hash;
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    @Getter
+    static class Asset {
+        @JsonProperty("hash")
+        private String hash;
 
-    @JsonProperty("size")
-    private int size;
+        @JsonProperty("size")
+        private int size;
+    }
 }

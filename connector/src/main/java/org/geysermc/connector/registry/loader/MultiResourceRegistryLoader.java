@@ -27,5 +27,11 @@ package org.geysermc.connector.registry.loader;
 
 import it.unimi.dsi.fastutil.Pair;
 
+/**
+ * A RegistryLoader that loads data from two different locations, yet with the same input type.
+ *
+ * @param <I> the input type
+ * @param <V> the value
+ */
 public abstract class MultiResourceRegistryLoader<I, V> implements RegistryLoader<Pair<I, I>, V> {
 }

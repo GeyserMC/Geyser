@@ -32,6 +32,7 @@ import org.geysermc.connector.GeyserConnector;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
 /**
  * Contains information about the supported Bedrock protocols in Geyser.
@@ -49,7 +50,9 @@ public class BedrockProtocol {
 
     static {
         if (!GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
-            SUPPORTED_BEDROCK_CODECS.add(Bedrock_v440.V440_CODEC);
+            SUPPORTED_BEDROCK_CODECS.add(Bedrock_v440.V440_CODEC.toBuilder()
+                    .minecraftVersion("1.17.0/1.17.1/1.17.2")
+                    .build());
         }
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
     }
@@ -66,5 +69,17 @@ public class BedrockProtocol {
             }
         }
         return null;
+    }
+
+    /**
+     * @return a string showing all supported versions for this Geyser instance
+     */
+    public static String getAllSupportedVersions() {
+        StringJoiner joiner = new StringJoiner(", ");
+        for (BedrockPacketCodec packetCodec : SUPPORTED_BEDROCK_CODECS) {
+            joiner.add(packetCodec.getMinecraftVersion());
+        }
+
+        return joiner.toString();
     }
 }

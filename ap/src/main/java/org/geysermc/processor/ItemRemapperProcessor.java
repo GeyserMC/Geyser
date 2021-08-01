@@ -23,27 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.collision.translators;
+package org.geysermc.processor;
 
-import org.geysermc.connector.network.translators.collision.BoundingBox;
-import org.geysermc.connector.network.translators.collision.CollisionRemapper;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.SourceVersion;
 
-@CollisionRemapper(regex = "^grass_path$", passDefaultBoxes = true)
-public class GrassPathCollision extends BlockCollision {
-    public GrassPathCollision(String params, BoundingBox[] defaultBoxes) {
-        super();
-        boundingBoxes = defaultBoxes;
-    }
-
-    // Needs to run before the main correction code or it can move the player into blocks
-    // This is counteracted by the main collision code pushing them out
-    @Override
-    public void beforeCorrectPosition(BoundingBox playerCollision) {
-        // In Bedrock, grass paths are small blocks so the player must be pushed down
-        double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
-        // If the player is in the buggy area, push them down
-        if (playerMinY == y + 1) {
-            playerCollision.translate(0, -0.0625, 0);
-        }
+@SupportedAnnotationTypes("*")
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
+public class ItemRemapperProcessor extends ClassProcessor {
+    public ItemRemapperProcessor() {
+        super("org.geysermc.connector.network.translators.ItemRemapper");
     }
 }

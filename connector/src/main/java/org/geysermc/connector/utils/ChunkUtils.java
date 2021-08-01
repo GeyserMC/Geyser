@@ -73,9 +73,9 @@ public class ChunkUtils {
     /**
      * The minimum height Bedrock Edition will accept.
      */
-    private static final int MINIMUM_ACCEPTED_HEIGHT = 0;
+    public static final int MINIMUM_ACCEPTED_HEIGHT = 0;
     private static final int CAVES_AND_CLIFFS_MINIMUM_HEIGHT = -64;
-    private static final int MINIMUM_ACCEPTED_HEIGHT_OVERWORLD = GeyserConnector.getInstance().getConfig().isExtendedWorldHeight() ?
+    public static final int MINIMUM_ACCEPTED_HEIGHT_OVERWORLD = GeyserConnector.getInstance().getConfig().isExtendedWorldHeight() ?
             CAVES_AND_CLIFFS_MINIMUM_HEIGHT  : MINIMUM_ACCEPTED_HEIGHT;
     /**
      * The maximum chunk height Bedrock Edition will accept, from the lowest point to the highest.
@@ -106,6 +106,8 @@ public class ChunkUtils {
                 for (int i = 0; i < 32; i++) {
                     byteBuf.writeBytes(EMPTY_BIOME_DATA);
                 }
+
+                byteBuf.writeByte(0); // Border
 
                 EMPTY_CHUNK_DATA = new byte[byteBuf.readableBytes()];
                 byteBuf.readBytes(EMPTY_CHUNK_DATA);
