@@ -78,6 +78,7 @@ public class BucketSoundInteractionHandler implements BlockSoundInteractionHandl
         if (soundEvent != null) {
             soundEventPacket.setSound(soundEvent);
             session.sendUpstreamPacket(soundEventPacket);
+            session.setBucketScheduledFuture(null);
         }
     }
 }

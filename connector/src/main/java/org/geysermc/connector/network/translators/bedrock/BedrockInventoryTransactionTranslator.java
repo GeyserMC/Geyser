@@ -219,12 +219,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 if (packet.getItemInHand().getId() != session.getItemMappings().getStoredItems().powderSnowBucket().getBedrockId()) {
                                     // Special check for crafting tables since clients don't send BLOCK_INTERACT when interacting
                                     int blockState = session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition());
-                                    if (!session.isSneaking() && blockState == BlockRegistries.JAVA_IDENTIFIERS.get("minecraft:crafting_table")) {
-                                        session.setBucketScheduledFuture(null);
-                                    } else {
+                                    if (session.isSneaking() || blockState != BlockRegistries.JAVA_IDENTIFIERS.get("minecraft:crafting_table")) {
                                         // Delay the interaction in case the client doesn't intend to actually use the bucket
                                         // See BedrockActionTranslator.java
-                                        session.setLastInteractionBlockPosition(blockPos);
                                         session.setBucketScheduledFuture(session.getConnector().getGeneralThreadPool().schedule(() -> {
                                             ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                                             session.sendDownstreamPacket(itemPacket);
