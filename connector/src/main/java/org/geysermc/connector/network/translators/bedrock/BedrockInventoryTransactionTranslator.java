@@ -230,7 +230,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                             session.sendDownstreamPacket(itemPacket);
                                         }, 5, TimeUnit.MILLISECONDS));
                                     }
-
                                 }
                             }
                         }
