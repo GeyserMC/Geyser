@@ -40,7 +40,7 @@ public class HorseEntity extends AbstractHorseEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         if (entityMetadata.getId() == 19) {
-            metadata.put(EntityData.VARIANT, entityMetadata.getValue());
+            metadata.put(EntityData.VARIANT, ((int) entityMetadata.getValue()) & 255);
             metadata.put(EntityData.MARK_VARIANT, (((int) entityMetadata.getValue()) >> 8) % 5);
         }
         super.updateBedrockMetadata(entityMetadata, session);
