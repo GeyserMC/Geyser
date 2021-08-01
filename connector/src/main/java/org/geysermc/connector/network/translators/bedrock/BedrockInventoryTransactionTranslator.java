@@ -210,21 +210,22 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             if (session.getItemMappings().getBoatIds().contains(packet.getItemInHand().getId())) {
                                 ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                                 session.sendDownstreamPacket(itemPacket);
-                            }
-                            // Check actions, otherwise buckets may be activated when block inventories are accessed
-                            else if (session.getItemMappings().getBucketIds().contains(packet.getItemInHand().getId())) {
+                            } else if (session.getItemMappings().getBucketIds().contains(packet.getItemInHand().getId())) {
                                 // Let the server decide if the bucket item should change, not the client, and revert the changes the client made
                                 InventorySlotPacket slotPacket = new InventorySlotPacket();
                                 slotPacket.setContainerId(ContainerId.INVENTORY);
                                 slotPacket.setSlot(packet.getHotbarSlot());
                                 slotPacket.setItem(packet.getItemInHand());
                                 session.sendUpstreamPacket(slotPacket);
-                                // Delay the interaction in case the client doesn't intend to actually use the bucket
-                                // See BedrockActionTranslator.java
-                                session.setBucketScheduledFuture(session.getConnector().getGeneralThreadPool().schedule(() -> {
-                                    ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
-                                    session.sendDownstreamPacket(itemPacket);
-                                }, 5, TimeUnit.MILLISECONDS));
+                                // Powder snow buckets does not send ClientPlayerUseItemPackets
+                                if (packet.getItemInHand().getId() != session.getItemMappings().getStoredItems().powderSnowBucket().getBedrockId()) {
+                                    // Delay the interaction in case the client doesn't intend to actually use the bucket
+                                    // See BedrockActionTranslator.java
+                                    session.setBucketScheduledFuture(session.getConnector().getGeneralThreadPool().schedule(() -> {
+                                        ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
+                                        session.sendDownstreamPacket(itemPacket);
+                                    }, 5, TimeUnit.MILLISECONDS));
+                                }
                             }
                         }
 

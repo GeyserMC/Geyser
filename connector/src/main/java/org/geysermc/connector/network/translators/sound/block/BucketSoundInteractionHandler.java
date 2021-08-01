@@ -52,6 +52,8 @@ public class BucketSoundInteractionHandler implements BlockSoundInteractionHandl
                     soundEvent = SoundEvent.BUCKET_FILL_WATER;
                 } else if (identifier.contains("lava[")) {
                     soundEvent = SoundEvent.BUCKET_FILL_LAVA;
+                } else if (identifier.contains("powder_snow")) {
+                    soundEvent = SoundEvent.BUCKET_FILL_POWDER_SNOW;
                 }
                 break;
             case "minecraft:lava_bucket":
@@ -65,11 +67,13 @@ public class BucketSoundInteractionHandler implements BlockSoundInteractionHandl
             case "minecraft:water_bucket":
                 soundEvent = SoundEvent.BUCKET_EMPTY_WATER;
                 break;
+            case "minecraft:powder_snow_bucket":
+                soundEvent = SoundEvent.BUCKET_EMPTY_POWDER_SNOW;
+                break;
         }
         if (soundEvent != null) {
             soundEventPacket.setSound(soundEvent);
             session.sendUpstreamPacket(soundEventPacket);
         }
-        session.setBucketScheduledFuture(null);
     }
 }
