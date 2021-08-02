@@ -170,7 +170,7 @@ public class ChunkUtils {
                     // Check if block is piston or flower to see if we'll need to create additional block entities, as they're only block entities in Bedrock
                     if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId)) {
                         bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(session,
-                                Vector3i.from((column.getX() << 4) + (yzx & 0xF), (sectionY << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
+                                Vector3i.from((column.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
                                 javaId
                         ));
                     }
@@ -206,7 +206,7 @@ public class ChunkUtils {
                     int paletteId = javaData.get(yzx);
                     if (pistonOrFlowerPaletteIds.get(paletteId)) {
                         bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(session,
-                                Vector3i.from((column.getX() << 4) + (yzx & 0xF), (sectionY << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
+                                Vector3i.from((column.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
                                 javaPalette.idToState(paletteId)
                         ));
                     }
