@@ -357,7 +357,7 @@ public class CollisionManager {
             if (checkWorld) {
                 int blockId = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
                 BlockCollision blockCollision = BlockUtils.getCollision(blockId, blockPos);
-                if (!(blockCollision instanceof ScaffoldingCollision)) {
+                if (blockCollision != null && !(blockCollision instanceof ScaffoldingCollision)) {
                     offset = blockCollision.computeCollisionOffset(boundingBox, axis, offset);
                 }
             }
