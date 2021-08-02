@@ -43,6 +43,7 @@ import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.registry.BlockRegistries;
+import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.BlockMapping;
 import org.geysermc.connector.utils.*;
 
@@ -92,7 +93,10 @@ public class PistonBlockEntity {
 
     static {
         // Create a ~1 x ~0.5 x ~1 bounding box above the honey block
-        BlockCollision blockCollision = BlockUtils.getCollision(BlockStateValues.JAVA_HONEY_BLOCK_ID, 0, 0, 0);
+        BlockCollision blockCollision = Registries.COLLISIONS.get(BlockStateValues.JAVA_HONEY_BLOCK_ID);
+        if (blockCollision == null) {
+            throw new RuntimeException("Failed to find honey block collision");
+        }
         BoundingBox blockBoundingBox = blockCollision.getBoundingBoxes()[0];
 
         double honeyHeight = blockBoundingBox.getMax().getY();
@@ -489,7 +493,7 @@ public class PistonBlockEntity {
             pistonCache.displacePlayer(movement.mul(delta));
         } else {
             // Move the player out of collision
-            BlockCollision blockCollision = BlockUtils.getCollision(javaId, 0, 0, 0);
+            BlockCollision blockCollision = Registries.COLLISIONS.get(javaId);
             if (blockCollision != null) {
                 Vector3d extend = movement.mul(Math.min(1 - blockMovement, 0.5));
                 Direction movementDirection = orientation;
@@ -525,11 +529,11 @@ public class PistonBlockEntity {
             if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
                 movementProgress = 1f - progress;
             }
+            blockPos = blockPos.sub(getMovement());
             Vector3d offset = getMovement().toDouble().mul(movementProgress);
-            Vector3d offsetBlockPos = blockPos.sub(getMovement()).toDouble().add(offset);
-            BlockCollision blockCollision = BlockUtils.getCollision(blockId, 0, 0, 0);
+            BlockCollision blockCollision = BlockUtils.getCollision(blockId, blockPos, offset);
             if (blockCollision != null) {
-                double adjustedMovement = blockCollision.computeCollisionOffset(offsetBlockPos, boundingBox, axis, movement);
+                double adjustedMovement = blockCollision.computeCollisionOffset(boundingBox, axis, movement);
                 if (blockId == BlockStateValues.JAVA_SLIME_BLOCK_ID && adjustedMovement != movement) {
                     session.getPistonCache().setPlayerSlimeCollision(true);
                 }
@@ -547,11 +551,11 @@ public class PistonBlockEntity {
             if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
                 movementProgress = 1f - progress;
             }
+            blockPos = blockPos.sub(getMovement());
             Vector3d offset = getMovement().toDouble().mul(movementProgress);
-            Vector3d offsetBlockPos = blockPos.sub(getMovement()).toDouble().add(offset);
-            BlockCollision blockCollision = BlockUtils.getCollision(blockId, 0, 0, 0);
+            BlockCollision blockCollision = BlockUtils.getCollision(blockId, blockPos, offset);
             if (blockCollision != null) {
-                return blockCollision.checkIntersection(offsetBlockPos, boundingBox);
+                return blockCollision.checkIntersection(boundingBox);
             }
         }
         return false;

@@ -43,6 +43,9 @@ public class BlockCollision {
     @EqualsAndHashCode.Exclude
     protected final ThreadLocal<Vector3i> position;
 
+    @EqualsAndHashCode.Exclude
+    protected final ThreadLocal<Vector3d> positionOffset;
+
     /**
      * This is used for the step up logic.
      * Usually, the player can only step up a block if they are on the same Y level as its bottom face or higher
@@ -62,10 +65,15 @@ public class BlockCollision {
     protected BlockCollision(BoundingBox[] boxes) {
         this.boundingBoxes = boxes;
         this.position = new ThreadLocal<>();
+        this.positionOffset = new ThreadLocal<>();
     }
 
     public void setPosition(Vector3i newPosition) {
         this.position.set(newPosition);
+    }
+
+    public void setPositionOffset(Vector3d newOffset) {
+        this.positionOffset.set(newOffset);
     }
 
     /**
@@ -157,21 +165,17 @@ public class BlockCollision {
         return true;
     }
 
-    public boolean checkIntersection(BoundingBox playerCollision) {
+    private Vector3d getFullPos() {
         Vector3i blockPos = this.position.get();
-        int x = blockPos.getX();
-        int y = blockPos.getY();
-        int z = blockPos.getZ();
-
-        for (BoundingBox b : boundingBoxes) {
-            if (b.checkIntersection(x, y, z, playerCollision)) {
-                return true;
-            }
+        Vector3d blockOffset = this.positionOffset.get();
+        if (blockOffset != null && blockOffset != Vector3d.ZERO) {
+            return blockOffset.add(blockPos.getX(), blockPos.getY(), blockPos.getZ());
         }
-        return false;
+        return blockPos.toDouble();
     }
 
-    public boolean checkIntersection(Vector3d blockPos, BoundingBox playerCollision) {
+    public boolean checkIntersection(BoundingBox playerCollision) {
+        Vector3d blockPos = getFullPos();
         for (BoundingBox b : boundingBoxes) {
             if (b.checkIntersection(blockPos, playerCollision)) {
                 return true;
@@ -180,9 +184,10 @@ public class BlockCollision {
         return false;
     }
 
-    public double computeCollisionOffset(Vector3d blockPos, BoundingBox boundingBox, Axis axis, double offset) {
+    public double computeCollisionOffset(BoundingBox boundingBox, Axis axis, double offset) {
+        Vector3d blockPos = getFullPos();
         for (BoundingBox b : boundingBoxes) {
-            offset = b.getMaxOffset(blockPos.getX(), blockPos.getY(), blockPos.getZ(), boundingBox, axis, offset);
+            offset = b.getMaxOffset(blockPos, boundingBox, axis, offset);
             if (Math.abs(offset) < CollisionManager.COLLISION_TOLERANCE) {
                 return 0;
             }
