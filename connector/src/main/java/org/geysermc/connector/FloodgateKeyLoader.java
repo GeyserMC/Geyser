@@ -25,6 +25,7 @@
 
 package org.geysermc.connector;
 
+import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.GeyserJacksonConfiguration;
 import org.geysermc.connector.utils.LanguageUtils;
 
@@ -33,7 +34,7 @@ import java.nio.file.Path;
 
 public class FloodgateKeyLoader {
     public static Path getKeyPath(GeyserJacksonConfiguration config, Object floodgate, Path floodgateDataFolder, Path geyserDataFolder, GeyserLogger logger) {
-        if (!config.getRemote().getAuthType().equals("floodgate")) {
+        if (config.getRemote().getAuthType() != AuthType.FLOODGATE) {
             return geyserDataFolder.resolve(config.getFloodgateKeyFile());
         }
 

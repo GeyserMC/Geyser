@@ -34,6 +34,9 @@ import org.geysermc.connector.registry.type.ParticleMapping;
 import java.util.Iterator;
 import java.util.Map;
 
+/**
+ * Loads particle types from the given resource path.
+ */
 public class ParticleTypesRegistryLoader extends EffectRegistryLoader<Map<ParticleType, ParticleMapping>> {
 
     @Override

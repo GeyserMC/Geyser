@@ -178,7 +178,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 // Account for fire - the client likes to hit the block behind.
                 Vector3i fireBlockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getFace());
                 int blockUp = session.getConnector().getWorldManager().getBlockAt(session, fireBlockPos);
-                String identifier = BlockRegistries.JAVA_IDENTIFIERS.get().inverse().get(blockUp);
+                String identifier = BlockRegistries.JAVA_IDENTIFIERS.get().get(blockUp);
                 if (identifier.startsWith("minecraft:fire") || identifier.startsWith("minecraft:soul_fire")) {
                     ClientPlayerActionPacket startBreakingPacket = new ClientPlayerActionPacket(PlayerAction.START_DIGGING, new Position(fireBlockPos.getX(),
                             fireBlockPos.getY(), fireBlockPos.getZ()), BlockFace.values()[packet.getFace()]);

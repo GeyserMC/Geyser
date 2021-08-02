@@ -40,6 +40,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerAbilitiesPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
@@ -58,9 +59,7 @@ import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -71,6 +70,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
@@ -144,6 +144,7 @@ public class GeyserSession implements CommandSender {
     private final PreferencesCache preferencesCache;
     private final TagCache tagCache;
     private WorldCache worldCache;
+
     private final Int2ObjectMap<TeleportCache> teleportMap = new Int2ObjectOpenHashMap<>();
 
     private final PlayerInventory playerInventory;
@@ -188,6 +189,13 @@ public class GeyserSession implements CommandSender {
 
     private final Map<Vector3i, SkullPlayerEntity> skullCache = new ConcurrentHashMap<>();
     private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
+
+    /**
+     * Stores the differences between Java and Bedrock biome network IDs.
+     * If Java's ocean biome is 0, and Bedrock's is 0, it will not be in the list.
+     * If Java's bamboo biome is 42, and Bedrock's is 48, it will be in this list.
+     */
+    private final Int2IntMap biomeTranslations = new Int2IntOpenHashMap();
 
     /**
      * A map of Vector3i positions to Java entities.
@@ -383,18 +391,6 @@ public class GeyserSession implements CommandSender {
     private boolean flying = false;
 
     /**
-     * If the current player is in noclip
-     */
-    @Setter
-    private boolean noClip = false;
-
-    /**
-     * If the current player can not interact with the world
-     */
-    @Setter
-    private boolean worldImmutable = false;
-
-    /**
      * Caches current rain status.
      */
     @Setter
@@ -491,7 +487,7 @@ public class GeyserSession implements CommandSender {
         startGame();
         this.remoteAddress = connector.getConfig().getRemote().getAddress();
         this.remotePort = connector.getConfig().getRemote().getPort();
-        this.remoteAuthType = connector.getDefaultAuthType();
+        this.remoteAuthType = connector.getConfig().getRemote().getAuthType();
 
         // Set the hardcoded shield ID to the ID we just defined in StartGamePacket
         upstream.getSession().getHardcodedBlockingId().set(this.itemMappings.getStoredItems().shield().getBedrockId());
@@ -505,7 +501,7 @@ public class GeyserSession implements CommandSender {
         ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-        biomeDefinitionListPacket.setDefinitions(Registries.BIOMES.get());
+        biomeDefinitionListPacket.setDefinitions(Registries.BIOMES_NBT.get());
         upstream.sendPacket(biomeDefinitionListPacket);
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
@@ -562,8 +558,10 @@ public class GeyserSession implements CommandSender {
         }
 
         loggingIn = true;
-        // new thread so clients don't timeout
-        new Thread(() -> {
+
+        // Use a future to prevent timeouts as all the authentication is handled sync
+        // This will be changed with the new protocol library.
+        CompletableFuture.supplyAsync(() -> {
             try {
                 if (password != null && !password.isEmpty()) {
                     AuthenticationService authenticationService;
@@ -589,15 +587,14 @@ public class GeyserSession implements CommandSender {
 
                     protocol = new MinecraftProtocol(validUsername);
                 }
-
-                connectDownstream();
             } catch (InvalidCredentialsException | IllegalArgumentException e) {
                 connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.invalid", username));
                 disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
             } catch (RequestException ex) {
                 ex.printStackTrace();
             }
-        }).start();
+            return null;
+        }).whenComplete((aVoid, ex) -> connectDownstream());
     }
 
     /**
@@ -610,28 +607,31 @@ public class GeyserSession implements CommandSender {
         }
 
         loggingIn = true;
+
+        // This just looks cool
+        SetTimePacket packet = new SetTimePacket();
+        packet.setTime(16000);
+        sendUpstreamPacket(packet);
+
         // new thread so clients don't timeout
-        new Thread(() -> {
+        MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserConnector.OAUTH_CLIENT_ID);
+
+        // Use a future to prevent timeouts as all the authentication is handled sync
+        // This will be changed with the new protocol library.
+        CompletableFuture.supplyAsync(() -> {
             try {
-                MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserConnector.OAUTH_CLIENT_ID);
-
-                MsaAuthenticationService.MsCodeResponse response = msaAuthenticationService.getAuthCode();
-                LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
-
-                // This just looks cool
-                SetTimePacket packet = new SetTimePacket();
-                packet.setTime(16000);
-                sendUpstreamPacket(packet);
-
-                // Wait for the code to validate
-                attemptCodeAuthentication(msaAuthenticationService);
-            } catch (InvalidCredentialsException | IllegalArgumentException e) {
-                connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.invalid", getAuthData().getName()));
-                disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
-            } catch (RequestException ex) {
-                ex.printStackTrace();
+                return msaAuthenticationService.getAuthCode();
+            } catch (RequestException e) {
+                throw new CompletionException(e);
             }
-        }).start();
+        }).whenComplete((response, ex) -> {
+            if (ex != null) {
+                ex.printStackTrace();
+                return;
+            }
+            LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
+            attemptCodeAuthentication(msaAuthenticationService);
+        });
     }
 
     /**
@@ -648,7 +648,7 @@ public class GeyserSession implements CommandSender {
             connectDownstream();
         } catch (RequestException e) {
             if (!(e instanceof AuthPendingException)) {
-                e.printStackTrace();
+                throw new RuntimeException("Failed to log in with Microsoft code!", e);
             } else {
                 // Wait one second before trying again
                 connector.getGeneralThreadPool().schedule(() -> attemptCodeAuthentication(msaAuthenticationService), 1, TimeUnit.SECONDS);
@@ -747,7 +747,17 @@ public class GeyserSession implements CommandSender {
                     disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.remote.invalid_account", clientData.getLanguageCode()));
                     return;
                 }
-                connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.connect", authData.getName(), protocol.getProfile().getName(), remoteAddress));
+
+                if (downstream.isInternallyConnecting()) {
+                    // Connected directly to the server
+                    connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.connect_internal",
+                            authData.getName(), protocol.getProfile().getName()));
+                } else {
+                    // Connected to an IP address
+                    connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.connect",
+                            authData.getName(), protocol.getProfile().getName(), remoteAddress));
+                }
+
                 UUID uuid = protocol.getProfile().getId();
                 if (uuid == null) {
                     // Set what our UUID *probably* is going to be
@@ -777,7 +787,11 @@ public class GeyserSession implements CommandSender {
             public void disconnected(DisconnectedEvent event) {
                 loggingIn = false;
                 loggedIn = false;
-                connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.disconnect", authData.getName(), remoteAddress, event.getReason()));
+                if (downstream != null && downstream.isInternallyConnecting()) {
+                    connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.disconnect_internal", authData.getName(), event.getReason()));
+                } else {
+                    connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.disconnect", authData.getName(), remoteAddress, event.getReason()));
+                }
                 if (event.getCause() != null) {
                     event.getCause().printStackTrace();
                 }
@@ -822,7 +836,26 @@ public class GeyserSession implements CommandSender {
         if (!daylightCycle) {
             setDaylightCycle(true);
         }
-        downstream.connect();
+        boolean internalConnect = false;
+        if (connector.getBootstrap().getSocketAddress() != null) {
+            try {
+                // Only affects Waterfall, but there is no sure way to differentiate between a proxy with this patch and a proxy without this patch
+                // Patch causing the issue: https://github.com/PaperMC/Waterfall/blob/7e6af4cef64d5d377a6ffd00a534379e6efa94cf/BungeeCord-Patches/0045-Don-t-use-a-bytebuf-for-packet-decoding.patch
+                // If native compression is enabled, then this line is tripped up if a heap buffer is sent over in such a situation
+                // as a new direct buffer is not created with that patch (HeapByteBufs throw an UnsupportedOperationException here):
+                // https://github.com/SpigotMC/BungeeCord/blob/a283aaf724d4c9a815540cd32f3aafaa72df9e05/native/src/main/java/net/md_5/bungee/jni/zlib/NativeZlib.java#L43
+                // This issue could be mitigated down the line by preventing Bungee from setting compression
+                downstream.setFlag(BuiltinFlags.USE_ONLY_DIRECT_BUFFERS, connector.getPlatformType() == PlatformType.BUNGEECORD);
+
+                downstream.connectInternal(connector.getBootstrap().getSocketAddress(), upstream.getAddress().getAddress().getHostAddress(), true);
+                internalConnect = true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (!internalConnect) {
+            downstream.connect();
+        }
         connector.addPlayer(this);
     }
 
@@ -1073,6 +1106,10 @@ public class GeyserSession implements CommandSender {
         settings.setServerAuthoritativeBlockBreaking(false);
         startGamePacket.setPlayerMovementSettings(settings);
 
+        if (connector.getConfig().isExtendedWorldHeight()) {
+            startGamePacket.getExperiments().add(new ExperimentData("caves_and_cliffs", true));
+        }
+
         upstream.sendPacket(startGamePacket);
     }
 
@@ -1131,9 +1168,9 @@ public class GeyserSession implements CommandSender {
         }
     }
 
-    public boolean confirmTeleport(Vector3d position) {
+    public void confirmTeleport(Vector3d position) {
         if (teleportMap.size() == 0) {
-            return true;
+            return;
         }
         int teleportID = -1;
 
@@ -1184,8 +1221,6 @@ public class GeyserSession implements CommandSender {
                         teleport.getYaw(), teleport.getPitch(), playerEntity.isOnGround(), true);
             }
         }
-
-        return true;
     }
 
     /**
@@ -1194,11 +1229,7 @@ public class GeyserSession implements CommandSender {
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacket(BedrockPacket packet) {
-        if (upstream != null) {
-            upstream.sendPacket(packet);
-        } else {
-            connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " but the session was null");
-        }
+        upstream.sendPacket(packet);
     }
 
     /**
@@ -1207,11 +1238,7 @@ public class GeyserSession implements CommandSender {
      * @param packet the bedrock packet from the NukkitX protocol lib
      */
     public void sendUpstreamPacketImmediately(BedrockPacket packet) {
-        if (upstream != null) {
-            upstream.sendPacketImmediately(packet);
-        } else {
-            connector.getLogger().debug("Tried to send upstream packet " + packet.getClass().getSimpleName() + " immediately but the session was null");
-        }
+        upstream.sendPacketImmediately(packet);
     }
 
     /**
@@ -1287,15 +1314,21 @@ public class GeyserSession implements CommandSender {
         adventureSettingsPacket.setPlayerPermission(opPermissionLevel >= 2 ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER);
 
         // Update the noClip and worldImmutable values based on the current gamemode
-        noClip = gameMode == GameMode.SPECTATOR;
-        worldImmutable = gameMode == GameMode.ADVENTURE || gameMode == GameMode.SPECTATOR;
+        boolean spectator = gameMode == GameMode.SPECTATOR;
+        boolean worldImmutable = gameMode == GameMode.ADVENTURE || spectator;
 
         Set<AdventureSetting> flags = adventureSettingsPacket.getSettings();
-        if (canFly) {
+        if (canFly || spectator) {
             flags.add(AdventureSetting.MAY_FLY);
         }
 
-        if (flying) {
+        if (flying || spectator) {
+            if (spectator && !flying) {
+                // We're "flying locked" in this gamemode
+                flying = true;
+                ClientPlayerAbilitiesPacket abilitiesPacket = new ClientPlayerAbilitiesPacket(true);
+                sendDownstreamPacket(abilitiesPacket);
+            }
             flags.add(AdventureSetting.FLYING);
         }
 
@@ -1303,7 +1336,7 @@ public class GeyserSession implements CommandSender {
             flags.add(AdventureSetting.WORLD_IMMUTABLE);
         }
 
-        if (noClip) {
+        if (spectator) {
             flags.add(AdventureSetting.NO_CLIP);
         }
 

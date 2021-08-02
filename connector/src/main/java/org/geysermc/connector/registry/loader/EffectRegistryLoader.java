@@ -33,6 +33,11 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+/**
+ * An abstract registry loader for loading effects from a resource path.
+ *
+ * @param <T> the value
+ */
 public abstract class EffectRegistryLoader<T> implements RegistryLoader<String, T> {
     private static final Map<String, JsonNode> loadedFiles = new WeakHashMap<>();
 

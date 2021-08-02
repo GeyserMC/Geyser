@@ -34,6 +34,7 @@ import org.geysermc.connector.network.translators.world.GeyserWorldManager;
 import org.geysermc.connector.network.translators.world.WorldManager;
 
 import javax.annotation.Nullable;
+import java.net.SocketAddress;
 import java.nio.file.Path;
 
 public interface GeyserBootstrap {
@@ -112,6 +113,11 @@ public interface GeyserBootstrap {
      */
     @Nullable
     default String getMinecraftServerVersion() {
+        return null;
+    }
+
+    @Nullable
+    default SocketAddress getSocketAddress() {
         return null;
     }
 }

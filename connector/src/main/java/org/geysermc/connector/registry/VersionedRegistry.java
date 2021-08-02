@@ -25,23 +25,42 @@
 
 package org.geysermc.connector.registry;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.geysermc.connector.registry.loader.RegistryLoader;
 
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class VersionedRegistry<V> extends AbstractMappedRegistry<Integer, V, Map<Integer, V>> {
-    protected <I> VersionedRegistry(I input, RegistryLoader<I, Map<Integer, V>> registryLoader) {
+/**
+ * A versioned, mapped registry. Like {@link SimpleMappedRegistry}, the {@link Map} interface is
+ * not able to be specified here, but unlike it, it does not have support for specialized
+ * instances, and ONLY supports {@link Int2ObjectMap} for optimal performance to prevent boxing
+ * of integers.
+ *
+ * @param <V> the value
+ */
+public class VersionedRegistry<V> extends AbstractMappedRegistry<Integer, V, Int2ObjectMap<V>> {
+    protected <I> VersionedRegistry(I input, RegistryLoader<I, Int2ObjectMap<V>> registryLoader) {
         super(input, registryLoader);
     }
 
+    /**
+     * Gets the closest value for the specified version. Only
+     * returns versions higher up than the specified if one
+     * does not exist for the given one. Useful in the event
+     * that you want to get a resource which is guaranteed for
+     * older versions, but not on newer ones.
+     *
+     * @param version the version
+     * @return the closest value for the specified version
+     */
     public V forVersion(int version) {
         V value = null;
-        for (Map.Entry<Integer, V> entry : this.mappings.entrySet()) {
-            if (version < entry.getKey()) {
+        for (Int2ObjectMap.Entry<V> entry : this.mappings.int2ObjectEntrySet()) {
+            if (version < entry.getIntKey()) {
                 continue;
             }
-            if (version == entry.getKey()) {
+            if (version == entry.getIntKey()) {
                 return entry.getValue();
             }
             value = entry.getValue();
@@ -49,19 +68,55 @@ public class VersionedRegistry<V> extends AbstractMappedRegistry<Integer, V, Map
         return value;
     }
 
-    public static <I, V> VersionedRegistry<V> create(RegistryLoader<I, Map<Integer, V>> registryLoader) {
+    /**
+     * Creates a new versioned registry with the given {@link RegistryLoader}. The
+     * input type is not specified here, meaning the loader return type is either
+     * predefined, or the registry is populated at a later point.
+     *
+     * @param registryLoader the registry loader
+     * @param <I> the input
+     * @param <V> the map value
+     * @return a new registry with the given RegistryLoader
+     */
+    public static <I, V> VersionedRegistry<V> create(RegistryLoader<I, Int2ObjectMap<V>> registryLoader) {
         return new VersionedRegistry<>(null, registryLoader);
     }
 
-    public static <I, V> VersionedRegistry<V> create(I input, RegistryLoader<I, Map<Integer, V>> registryLoader) {
+    /**
+     * Creates a new versioned registry with the given {@link RegistryLoader} and input.
+     *
+     * @param registryLoader the registry loader
+     * @param <I> the input
+     * @param <V> the map value
+     * @return a new registry with the given RegistryLoader
+     */
+    public static <I, V> VersionedRegistry<V> create(I input, RegistryLoader<I, Int2ObjectMap<V>> registryLoader) {
         return new VersionedRegistry<>(input, registryLoader);
     }
 
-    public static <I, V> VersionedRegistry< V> create(Supplier<RegistryLoader<I, Map<Integer, V>>> registryLoader) {
+    /**
+     * Creates a new versioned registry with the given {@link RegistryLoader} supplier.
+     * The input type is not specified here, meaning the loader return type is either
+     * predefined, or the registry is populated at a later point.
+     *
+     * @param registryLoader the registry loader
+     * @param <I> the input
+     * @param <V> the map value
+     * @return a new registry with the given RegistryLoader supplier
+     */
+    public static <I, V> VersionedRegistry< V> create(Supplier<RegistryLoader<I, Int2ObjectMap<V>>> registryLoader) {
         return new VersionedRegistry<>(null, registryLoader.get());
     }
 
-    public static <I, V> VersionedRegistry< V> create(I input, Supplier<RegistryLoader<I, Map<Integer, V>>> registryLoader) {
+    /**
+     * Creates a new versioned registry with the given {@link RegistryLoader} supplier and input.
+     *
+     * @param registryLoader the registry loader
+     * @param <I> the input
+     * @param <V> the map value
+     * @return a new registry with the given RegistryLoader supplier
+     */
+    public static <I, V> VersionedRegistry< V> create(I input, Supplier<RegistryLoader<I, Int2ObjectMap<V>>> registryLoader) {
         return new VersionedRegistry<>(input, registryLoader.get());
     }
 }

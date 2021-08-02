@@ -51,8 +51,6 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
     @Override
     public void translate(ServerNotifyClientPacket packet, GeyserSession session) {
         PlayerEntity entity = session.getPlayerEntity();
-        if (entity == null)
-            return;
 
         switch (packet.getNotification()) {
             case START_RAIN:
@@ -109,6 +107,18 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
                 session.setGameMode(gameMode);
 
                 session.sendAdventureSettings();
+
+                if (session.getPlayerEntity().isOnGround() && gameMode == GameMode.SPECTATOR) {
+                    // Fix a bug where the player has glitched movement and thinks they are still on the ground
+                    MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+                    movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
+                    movePlayerPacket.setPosition(entity.getPosition());
+                    movePlayerPacket.setRotation(entity.getBedrockRotation());
+                    movePlayerPacket.setOnGround(false);
+                    movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
+                    movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);
+                    session.sendUpstreamPacket(movePlayerPacket);
+                }
 
                 // Update the crafting grid to add/remove barriers for creative inventory
                 PlayerInventoryTranslator.updateCraftingGrid(session, session.getPlayerInventory());

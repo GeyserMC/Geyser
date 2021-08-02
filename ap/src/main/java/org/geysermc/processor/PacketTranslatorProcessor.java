@@ -23,13 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.collision.translators;
+package org.geysermc.processor;
 
-import org.geysermc.connector.network.translators.collision.BoundingBox;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.SourceVersion;
 
-public class EmptyCollision extends BlockCollision {
-    public EmptyCollision(String params) {
-        super();
-        boundingBoxes = new BoundingBox[0];
+@SupportedAnnotationTypes("*")
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
+public class PacketTranslatorProcessor extends ClassProcessor {
+    public PacketTranslatorProcessor() {
+        super("org.geysermc.connector.network.translators.Translator");
     }
 }

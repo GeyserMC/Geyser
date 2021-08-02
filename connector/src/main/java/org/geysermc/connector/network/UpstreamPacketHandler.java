@@ -56,14 +56,15 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     public boolean handle(LoginPacket loginPacket) {
         BedrockPacketCodec packetCodec = BedrockProtocol.getBedrockCodec(loginPacket.getProtocolVersion());
         if (packetCodec == null) {
+            String supportedVersions = BedrockProtocol.getAllSupportedVersions();
             if (loginPacket.getProtocolVersion() > BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
                 // Too early to determine session locale
-                session.getConnector().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.outdated.server", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
-                session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.server", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
+                session.getConnector().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
+                session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
                 return true;
             } else if (loginPacket.getProtocolVersion() < BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
-                session.getConnector().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.outdated.client", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
-                session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.client", BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()));
+                session.getConnector().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
+                session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
                 return true;
             }
         }
@@ -135,6 +136,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 if (session.getItemMappings().getFurnaceMinecartData() != null) {
                     // Allow custom items to work
                     stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
+                }
+
+                if (session.getConnector().getConfig().isExtendedWorldHeight()) {
+                    // Allow extended world height in the overworld to work
+                    stackPacket.getExperiments().add(new ExperimentData("caves_and_cliffs", true));
                 }
 
                 session.sendUpstreamPacket(stackPacket);

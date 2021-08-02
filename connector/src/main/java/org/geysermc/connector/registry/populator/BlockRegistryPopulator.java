@@ -42,18 +42,31 @@ import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
 import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.registry.type.BlockMapping;
 import org.geysermc.connector.registry.type.BlockMappings;
+import org.geysermc.connector.utils.BlockUtils;
 import org.geysermc.connector.utils.FileUtils;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.zip.GZIPInputStream;
 
+/**
+ * Populates the block registries.
+ */
 public class BlockRegistryPopulator {
-    private static final ImmutableMap<String, BiFunction<String, NbtMapBuilder, String>> STATE_MAPPER = ImmutableMap.<String, BiFunction<String, NbtMapBuilder, String>>builder()
-            .put("1_17_0", (bedrockIdentifier, statesBuilder) -> {
+    private static final ImmutableMap<String, BiFunction<String, NbtMapBuilder, String>> STATE_MAPPER;
+
+    private static final Object2IntMap<String> PALETTE_VERSIONS;
+
+    static {
+        ImmutableMap.Builder<String, BiFunction<String, NbtMapBuilder, String>> stateMapperBuilder = ImmutableMap.<String, BiFunction<String, NbtMapBuilder, String>>builder()
+                .put("1_17_10", (bedrockIdentifier, statesBuilder) -> null);
+        if (!GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
+            stateMapperBuilder.put("1_17_0", (bedrockIdentifier, statesBuilder) -> {
                 if (bedrockIdentifier.contains("candle")) {
                     // Replace candles with sea pickles or cake
                     if (bedrockIdentifier.contains("cake")) {
@@ -67,16 +80,16 @@ public class BlockRegistryPopulator {
                     }
                 }
                 return null;
-            })
-            .put("1_17_10", (bedrockIdentifier, statesBuilder) -> null)
-            .build();
-
-    private static final Object2IntMap<String> PALETTE_VERSIONS = new Object2IntOpenHashMap<String>() {
-        {
-            put("1_17_0", Bedrock_v440.V440_CODEC.getProtocolVersion());
-            put("1_17_10", Bedrock_v448.V448_CODEC.getProtocolVersion());
+            });
         }
-    };
+        STATE_MAPPER = stateMapperBuilder.build();
+
+        PALETTE_VERSIONS = new Object2IntOpenHashMap<>();
+        if (!GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
+            PALETTE_VERSIONS.put("1_17_0", Bedrock_v440.V440_CODEC.getProtocolVersion());
+        }
+        PALETTE_VERSIONS.put("1_17_10", Bedrock_v448.V448_CODEC.getProtocolVersion());
+    }
 
     /**
      * Stores the raw blocks JSON until it is no longer needed.
@@ -168,7 +181,7 @@ public class BlockRegistryPopulator {
                     bedrockToJavaBlockMap.putIfAbsent(bedrockRuntimeId, javaRuntimeId);
                 }
 
-                String cleanJavaIdentifier = entry.getKey().split("\\[")[0];
+                String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(entry.getKey());
 
                 // Get the tag needed for non-empty flower pots
                 if (entry.getValue().get("pottable") != null) {
@@ -232,6 +245,8 @@ public class BlockRegistryPopulator {
             throw new AssertionError("Unable to load Java block mappings", e);
         }
 
+        Set<String> cleanIdentifiers = new HashSet<>();
+
         int javaRuntimeId = -1;
         int bellBlockId = -1;
         int cobwebBlockId = -1;
@@ -286,21 +301,21 @@ public class BlockRegistryPopulator {
                 builder.isBlockEntity(false);
             }
 
+            BlockStateValues.storeBlockStateValues(entry.getKey(), javaRuntimeId, entry.getValue());
+
+            String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(entry.getKey());
+            String bedrockIdentifier = entry.getValue().get("bedrock_identifier").asText();
+
+            if (!cleanIdentifiers.contains(cleanJavaIdentifier)) {
+                uniqueJavaId++;
+                cleanIdentifiers.add(cleanJavaIdentifier);
+            }
+
             builder.javaIdentifier(javaId);
             builder.javaBlockId(uniqueJavaId);
 
             BlockRegistries.JAVA_IDENTIFIERS.register(javaId, javaRuntimeId);
             BlockRegistries.JAVA_BLOCKS.register(javaRuntimeId, builder.build());
-
-            BlockStateValues.storeBlockStateValues(entry.getKey(), javaRuntimeId, entry.getValue());
-
-            String cleanJavaIdentifier = entry.getKey().split("\\[")[0];
-            String bedrockIdentifier = entry.getValue().get("bedrock_identifier").asText();
-
-            if (!BlockRegistries.JAVA_CLEAN_IDENTIFIERS.get().containsValue(cleanJavaIdentifier)) {
-                uniqueJavaId++;
-                BlockRegistries.JAVA_CLEAN_IDENTIFIERS.register(uniqueJavaId, cleanJavaIdentifier);
-            }
 
             // Keeping this here since this is currently unchanged between versions
             if (!cleanJavaIdentifier.equals(bedrockIdentifier)) {
