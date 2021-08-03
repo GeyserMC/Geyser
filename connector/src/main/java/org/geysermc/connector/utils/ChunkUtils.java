@@ -135,10 +135,12 @@ public class ChunkUtils {
         BitSet pistonOrFlowerPaletteIds = new BitSet();
 
         boolean overworld = session.getChunkCache().isExtendedHeight();
+        int maxBedrockSectionY = ((overworld ? MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD : MAXIMUM_ACCEPTED_HEIGHT) >> 4) - 1;
 
         for (int sectionY = 0; sectionY < javaSections.length; sectionY++) {
-            if (yOffset < ((overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4) && sectionY < -yOffset) {
-                // Ignore this chunk since it goes below the accepted height limit
+            int bedrockSectionY = sectionY + (yOffset - ((overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4));
+            if (bedrockSectionY < 0 || maxBedrockSectionY < bedrockSectionY) {
+                // Ignore this chunk section since it goes outside the bounds accepted by the Bedrock client
                 continue;
             }
 
@@ -168,12 +170,12 @@ public class ChunkUtils {
                     // Check if block is piston or flower to see if we'll need to create additional block entities, as they're only block entities in Bedrock
                     if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId)) {
                         bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(session,
-                                Vector3i.from((column.getX() << 4) + (yzx & 0xF), (sectionY << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
+                                Vector3i.from((column.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
                                 javaId
                         ));
                     }
                 }
-                sections[sectionY + (yOffset - ((overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4))] = section;
+                sections[bedrockSectionY] = section;
                 continue;
             }
 
@@ -204,7 +206,7 @@ public class ChunkUtils {
                     int paletteId = javaData.get(yzx);
                     if (pistonOrFlowerPaletteIds.get(paletteId)) {
                         bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(session,
-                                Vector3i.from((column.getX() << 4) + (yzx & 0xF), (sectionY << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
+                                Vector3i.from((column.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
                                 javaPalette.idToState(paletteId)
                         ));
                     }
@@ -246,7 +248,7 @@ public class ChunkUtils {
                 layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
             }
 
-            sections[sectionY + (yOffset - ((overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4))] = new ChunkSection(layers);
+            sections[bedrockSectionY] = new ChunkSection(layers);
         }
 
         CompoundTag[] blockEntities = column.getTileEntities();
