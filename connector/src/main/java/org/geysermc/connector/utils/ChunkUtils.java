@@ -135,11 +135,11 @@ public class ChunkUtils {
         BitSet pistonOrFlowerPaletteIds = new BitSet();
 
         boolean overworld = session.getChunkCache().isExtendedHeight();
-        int maxBedrockSectionY = (overworld ? MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD : MAXIMUM_ACCEPTED_HEIGHT) >> 4;
+        int maxBedrockSectionY = ((overworld ? MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD : MAXIMUM_ACCEPTED_HEIGHT) >> 4) - 1;
 
         for (int sectionY = 0; sectionY < javaSections.length; sectionY++) {
             int bedrockSectionY = sectionY + (yOffset - ((overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4));
-            if (!(0 <= bedrockSectionY && bedrockSectionY < maxBedrockSectionY)) {
+            if (bedrockSectionY < 0 || maxBedrockSectionY < bedrockSectionY) {
                 // Ignore this chunk section since it goes outside the bounds accepted by the Bedrock client
                 continue;
             }
