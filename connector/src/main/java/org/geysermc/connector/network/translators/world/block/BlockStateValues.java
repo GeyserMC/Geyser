@@ -31,6 +31,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.utils.Direction;
+import org.geysermc.connector.utils.PistonBehavior;
 
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -122,28 +123,27 @@ public class BlockStateValues {
             return;
         }
 
-        if (javaId.contains("piston")) {
+        if (javaId.contains("piston[")) {
             // True if extended, false if not
             PISTON_VALUES.put(javaBlockState, javaId.contains("extended=true"));
             IS_STICKY_PISTON.put(javaBlockState, javaId.contains("sticky"));
-
-            if (javaId.contains("head") && javaId.contains("short=false")) {
-                if (javaId.contains("down")) {
-                    PISTON_HEADS.put(Direction.DOWN, javaBlockState);
-                } else if (javaId.contains("up")) {
-                    PISTON_HEADS.put(Direction.UP, javaBlockState);
-                } else if (javaId.contains("south")) {
-                    PISTON_HEADS.put(Direction.SOUTH, javaBlockState);
-                } else if (javaId.contains("west")) {
-                    PISTON_HEADS.put(Direction.WEST, javaBlockState);
-                } else if (javaId.contains("north")) {
-                    PISTON_HEADS.put(Direction.NORTH, javaBlockState);
-                } else if (javaId.contains("east")) {
-                    PISTON_HEADS.put(Direction.EAST, javaBlockState);
-                }
-            } else if (javaId.contains("moving_piston")) {
-                MOVING_PISTONS.add(javaBlockState);
+            return;
+        } else if (javaId.startsWith("minecraft:piston_head") && javaId.contains("short=false")) {
+            if (javaId.contains("down")) {
+                PISTON_HEADS.put(Direction.DOWN, javaBlockState);
+            } else if (javaId.contains("up")) {
+                PISTON_HEADS.put(Direction.UP, javaBlockState);
+            } else if (javaId.contains("south")) {
+                PISTON_HEADS.put(Direction.SOUTH, javaBlockState);
+            } else if (javaId.contains("west")) {
+                PISTON_HEADS.put(Direction.WEST, javaBlockState);
+            } else if (javaId.contains("north")) {
+                PISTON_HEADS.put(Direction.NORTH, javaBlockState);
+            } else if (javaId.contains("east")) {
+                PISTON_HEADS.put(Direction.EAST, javaBlockState);
             }
+        } else if (javaId.startsWith("minecraft:moving_piston")) {
+            MOVING_PISTONS.add(javaBlockState);
             return;
         }
 
@@ -336,7 +336,7 @@ public class BlockStateValues {
      * @return true if a piston can break the block
      */
     public static boolean canPistonDestroyBlock(int state)  {
-        return !BlockRegistries.JAVA_BLOCKS.get(state).getPistonBehavior().equals("destroy");
+        return BlockRegistries.JAVA_BLOCKS.get(state).getPistonBehavior() != PistonBehavior.DESTROY;
     }
 
     /**

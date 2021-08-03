@@ -302,10 +302,10 @@ public class PistonBlockEntity {
             return false;
         }
         switch (block.getPistonBehavior()) {
-            case "block":
-            case "destroy":
+            case BLOCK:
+            case DESTROY:
                 return false;
-            case "push_only": // Glazed terracotta can only be pushed
+            case PUSH_ONLY: // Glazed terracotta can only be pushed
                 return isPushing;
         }
         // Pistons can't move block entities

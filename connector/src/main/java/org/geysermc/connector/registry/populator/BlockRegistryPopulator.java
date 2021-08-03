@@ -44,6 +44,7 @@ import org.geysermc.connector.registry.type.BlockMapping;
 import org.geysermc.connector.registry.type.BlockMappings;
 import org.geysermc.connector.utils.BlockUtils;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.connector.utils.PistonBehavior;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
@@ -287,11 +288,15 @@ public class BlockRegistryPopulator {
                 builder.pickItem(pickItemNode.textValue());
             }
 
-            JsonNode pistonBehaviorNode = entry.getValue().get("piston_behavior");
-            if (pistonBehaviorNode != null) {
-                builder.pistonBehavior(pistonBehaviorNode.textValue());
+            if (javaId.equals("minecraft:obsidian") || javaId.equals("minecraft:crying_obsidian") || javaId.startsWith("minecraft:respawn_anchor")) {
+                builder.pistonBehavior(PistonBehavior.BLOCK);
             } else {
-                builder.pistonBehavior("normal");
+                JsonNode pistonBehaviorNode = entry.getValue().get("piston_behavior");
+                if (pistonBehaviorNode != null) {
+                    builder.pistonBehavior(PistonBehavior.getByName(pistonBehaviorNode.textValue()));
+                } else {
+                    builder.pistonBehavior(PistonBehavior.NORMAL);
+                }
             }
 
             JsonNode hasBlockEntityNode = entry.getValue().get("has_block_entity");

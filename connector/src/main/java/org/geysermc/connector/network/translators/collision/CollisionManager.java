@@ -355,8 +355,7 @@ public class CollisionManager {
     private double computeCollisionOffset(BoundingBox boundingBox, Axis axis, double offset, List<Vector3i> collidableBlocks, boolean checkWorld) {
         for (Vector3i blockPos : collidableBlocks) {
             if (checkWorld) {
-                int blockId = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
-                BlockCollision blockCollision = BlockUtils.getCollision(blockId, blockPos);
+                BlockCollision blockCollision = BlockUtils.getCollisionAt(session, blockPos);
                 if (blockCollision != null && !(blockCollision instanceof ScaffoldingCollision)) {
                     offset = blockCollision.computeCollisionOffset(boundingBox, axis, offset);
                 }
