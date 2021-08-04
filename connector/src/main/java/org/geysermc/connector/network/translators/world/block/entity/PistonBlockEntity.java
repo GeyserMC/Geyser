@@ -525,11 +525,11 @@ public class PistonBlockEntity {
     public double computeCollisionOffset(Vector3i blockPos, BoundingBox boundingBox, Axis axis, double movement) {
         int blockId = getAttachedBlockId(blockPos);
         if (blockId != BlockStateValues.JAVA_AIR_ID) {
+            blockPos = blockPos.sub(getMovement());
             double movementProgress = progress;
             if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
                 movementProgress = 1f - progress;
             }
-            blockPos = blockPos.sub(getMovement());
             Vector3d offset = getMovement().toDouble().mul(movementProgress);
             BlockCollision blockCollision = BlockUtils.getCollision(blockId, blockPos, offset);
             if (blockCollision != null) {
@@ -547,11 +547,11 @@ public class PistonBlockEntity {
     public boolean checkCollision(Vector3i blockPos, BoundingBox boundingBox) {
         int blockId = getAttachedBlockId(blockPos);
         if (blockId != BlockStateValues.JAVA_AIR_ID) {
+            blockPos = blockPos.sub(getMovement());
             double movementProgress = progress;
             if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
                 movementProgress = 1f - progress;
             }
-            blockPos = blockPos.sub(getMovement());
             Vector3d offset = getMovement().toDouble().mul(movementProgress);
             BlockCollision blockCollision = BlockUtils.getCollision(blockId, blockPos, offset);
             if (blockCollision != null) {
@@ -575,46 +575,36 @@ public class PistonBlockEntity {
      * Create moving block entities for each attached block
      */
     private void createMovingBlocks() {
-        boolean enableMovingBlocks = false;
-        // Currently as of 1.17 movingBlocks are always white
-        // https://bugs.mojang.com/browse/MCPE-66250
-        if (enableMovingBlocks) {
-            Vector3i movement = getMovement();
-            BoundingBox playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox().clone();
-            if (orientation == Direction.UP) {
-                // Extend the bounding box down, to catch collisions when the player is falling down
-                playerBoundingBox.extend(0, -256, 0);
-            }
-            attachedBlocks.forEach((blockPos, javaId) -> {
-                Vector3i newPos = blockPos.add(movement);
-                if (SOLID_BOUNDING_BOX.checkIntersection(blockPos.toDouble(), playerBoundingBox) ||
-                    SOLID_BOUNDING_BOX.checkIntersection(newPos.toDouble(), playerBoundingBox)) {
-                    return;
-                }
-                // Place a moving block at the new location of the block
-                UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-                updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-                updateBlockPacket.setBlockPosition(newPos);
-                updateBlockPacket.setRuntimeId(session.getBlockMappings().getBedrockMovingBlockId());
-                updateBlockPacket.setDataLayer(0);
-                session.sendUpstreamPacket(updateBlockPacket);
-                // Update moving block with correct details
-                BlockEntityUtils.updateBlockEntity(session, buildMovingBlockTag(newPos, javaId, position), newPos);
-            });
-        }
-
         Vector3i movement = getMovement();
-        BoundingBox playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox();
+        BoundingBox playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox().clone();
+        if (orientation == Direction.UP) {
+            // Extend the bounding box down, to catch collisions when the player is falling down
+            playerBoundingBox.extend(0, -256, 0);
+            playerBoundingBox.setSizeX(playerBoundingBox.getSizeX() + 0.5);
+            playerBoundingBox.setSizeZ(playerBoundingBox.getSizeZ() + 0.5);
+        }
         attachedBlocks.forEach((blockPos, javaId) -> {
             Vector3i newPos = blockPos.add(movement);
-            if (SOLID_BOUNDING_BOX.checkIntersection(newPos.toDouble(), playerBoundingBox) ||
-                SOLID_BOUNDING_BOX.checkIntersection(blockPos.toDouble(), playerBoundingBox)) {
+            if (SOLID_BOUNDING_BOX.checkIntersection(blockPos.toDouble(), playerBoundingBox) ||
+                    SOLID_BOUNDING_BOX.checkIntersection(newPos.toDouble(), playerBoundingBox)) {
                 session.getPistonCache().setPlayerCollided(true);
                 if (javaId == BlockStateValues.JAVA_SLIME_BLOCK_ID) {
                     session.getPistonCache().setPlayerSlimeCollision(true);
                 }
+                // Don't place moving blocks that collide with the player
+                // because of https://bugs.mojang.com/browse/MCPE-96035
+                return;
             }
+            // Place a moving block at the new location of the block
+            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+            updateBlockPacket.setBlockPosition(newPos);
+            updateBlockPacket.setRuntimeId(session.getBlockMappings().getBedrockMovingBlockId());
+            updateBlockPacket.setDataLayer(0);
+            session.sendUpstreamPacket(updateBlockPacket);
+            // Update moving block with correct details
+            BlockEntityUtils.updateBlockEntity(session, buildMovingBlockTag(newPos, javaId, position), newPos);
         });
     }
 
