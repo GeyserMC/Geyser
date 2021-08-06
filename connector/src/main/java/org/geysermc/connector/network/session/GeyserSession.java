@@ -912,8 +912,12 @@ public class GeyserSession implements CommandSender {
             lastMovementTimestamp = System.currentTimeMillis();
         }
 
-        for (Tickable entity : entityCache.getTickableEntities()) {
-            entity.tick(this);
+        try {
+            for (Tickable entity : entityCache.getTickableEntities()) {
+                entity.tick(this);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
