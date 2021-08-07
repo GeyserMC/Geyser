@@ -34,8 +34,6 @@ import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.common.serializer.AsteriskSerializer;
 import org.geysermc.connector.dump.DumpInfo;
-import org.geysermc.connector.logs.APIResponse;
-import org.geysermc.connector.logs.MclogsAPI;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.WebUtils;
@@ -50,7 +48,7 @@ public class DumpCommand extends GeyserCommand {
     private final GeyserConnector connector;
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String DUMP_URL = "https://dump.geysermc.org/";
-    public static String logs;
+    public static boolean logsDump;
 
     public DumpCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);
@@ -68,7 +66,6 @@ public class DumpCommand extends GeyserCommand {
 
         boolean showSensitive = false;
         boolean offlineDump = false;
-        boolean logsDump = false;
         if (args.length >= 1) {
             for (String arg : args) {
                 switch (arg) {
@@ -122,13 +119,6 @@ public class DumpCommand extends GeyserCommand {
             String response;
             JsonNode responseNode;
             try {
-                if (logsDump) {
-                    String file = "latest.log";
-                    APIResponse apiresponse = MclogsAPI.share("logs/", file);
-                    if (apiresponse.success) {
-                        logs = "https://mclo.gs/" + apiresponse.id;
-                    }
-                }
                 response = WebUtils.post(DUMP_URL + "documents", dumpData);
                 responseNode = MAPPER.readTree(response);
             } catch (IOException e) {

@@ -38,6 +38,8 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.defaults.DumpCommand;
 import org.geysermc.connector.common.serializer.AsteriskSerializer;
 import org.geysermc.connector.configuration.GeyserConfiguration;
+import org.geysermc.connector.logs.APIResponse;
+import org.geysermc.connector.logs.MclogsAPI;
 import org.geysermc.connector.network.BedrockProtocol;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.DockerCheck;
@@ -193,10 +195,23 @@ public class DumpInfo {
 
     @Getter
     public static class LogsInfo {
-        private final String logs;
+        private String logs;
 
         public LogsInfo() {
-            this.logs = DumpCommand.logs;
+            try {
+                if (DumpCommand.logsDump) {
+                    String file = "latest.log";
+                    APIResponse apiresponse = MclogsAPI.share("logs/", file);
+                    if (apiresponse.success) {
+
+                        this.logs = "https://mclo.gs/" + apiresponse.id;
+                    } else {
+                        this.logs = "No log file was uploaded.";
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
