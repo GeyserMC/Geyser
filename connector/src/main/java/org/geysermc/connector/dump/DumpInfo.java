@@ -35,6 +35,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.command.defaults.DumpCommand;
 import org.geysermc.connector.common.serializer.AsteriskSerializer;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.BedrockProtocol;
@@ -56,6 +57,7 @@ import java.util.Properties;
 public class DumpInfo {
     @JsonIgnore
     private static final long MEGABYTE = 1024L * 1024L;
+    public static String LogsInfo;
 
     private final DumpInfo.VersionInfo versionInfo;
     private Properties gitInfo;
@@ -65,6 +67,7 @@ public class DumpInfo {
     private final HashInfo hashInfo;
     private final RamInfo ramInfo;
     private final BootstrapDumpInfo bootstrapInfo;
+    private final LogsInfo logsInfo;
 
     public DumpInfo() {
         this.versionInfo = new VersionInfo();
@@ -77,6 +80,7 @@ public class DumpInfo {
 
         this.config = GeyserConnector.getInstance().getConfig();
         this.floodgate = new Floodgate();
+        this.logsInfo = new LogsInfo();
 
         String md5Hash = "unknown";
         String sha256Hash = "unknown";
@@ -104,7 +108,6 @@ public class DumpInfo {
             DeviceOs device = session.getClientData().getDeviceOs();
             userPlatforms.put(device, userPlatforms.getOrDefault(device, 0) + 1);
         }
-
         this.bootstrapInfo = GeyserConnector.getInstance().getBootstrap().getDumpInfo();
     }
 
@@ -185,6 +188,15 @@ public class DumpInfo {
         Floodgate() {
             this.gitInfo = FloodgateInfoHolder.getGitProperties();
             this.config = FloodgateInfoHolder.getConfig();
+        }
+    }
+
+    @Getter
+    public static class LogsInfo {
+        private final String logs;
+
+        public LogsInfo() {
+            this.logs = DumpCommand.logs;
         }
     }
 
