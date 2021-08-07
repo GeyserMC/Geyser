@@ -244,6 +244,11 @@
             <version>4.13.1</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.aternosorg</groupId>
+            <artifactId>mclogs-java</artifactId>
+            <version>0d9d86bc89</version>
+        </dependency>
     </dependencies>
 
     <build>

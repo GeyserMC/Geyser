@@ -30,6 +30,8 @@ import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
+import gs.mclo.java.APIResponse;
+import gs.mclo.java.MclogsAPI;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AllArgsConstructor;
@@ -38,8 +40,6 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.defaults.DumpCommand;
 import org.geysermc.connector.common.serializer.AsteriskSerializer;
 import org.geysermc.connector.configuration.GeyserConfiguration;
-import org.geysermc.connector.logs.APIResponse;
-import org.geysermc.connector.logs.MclogsAPI;
 import org.geysermc.connector.network.BedrockProtocol;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.DockerCheck;
@@ -68,8 +68,8 @@ public class DumpInfo {
     private final Object2IntMap<DeviceOs> userPlatforms;
     private final HashInfo hashInfo;
     private final RamInfo ramInfo;
-    private final BootstrapDumpInfo bootstrapInfo;
     private final LogsInfo logsInfo;
+    private final BootstrapDumpInfo bootstrapInfo;
 
     public DumpInfo() {
         this.versionInfo = new VersionInfo();
@@ -205,8 +205,6 @@ public class DumpInfo {
                     if (apiresponse.success) {
 
                         this.logs = "https://mclo.gs/" + apiresponse.id;
-                    } else {
-                        this.logs = "No log file was uploaded.";
                     }
                 }
             } catch (IOException e) {
