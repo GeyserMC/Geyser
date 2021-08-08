@@ -25,22 +25,20 @@
 
 package org.geysermc.connector.bootstrap;
 
-import org.geysermc.connector.dump.BootstrapDumpInfo;
-import org.geysermc.connector.ping.IGeyserPingPassthrough;
-import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.configuration.GeyserConfiguration;
+import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.network.translators.world.GeyserWorldManager;
 import org.geysermc.connector.network.translators.world.WorldManager;
+import org.geysermc.connector.ping.IGeyserPingPassthrough;
 
 import javax.annotation.Nullable;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 
 public interface GeyserBootstrap {
-
     GeyserWorldManager DEFAULT_CHUNK_MANAGER = new GeyserWorldManager();
-
     /**
      * Called when the GeyserBootstrap is enabled
      */
@@ -89,10 +87,11 @@ public interface GeyserBootstrap {
     }
 
     /**
-     * Return the data folder where files get stored
+     * Return the logs path
      *
-     * @return Path location of data folder
+     * @return Path location of log file
      */
+
     Path getConfigFolder();
 
     /**
@@ -120,4 +119,10 @@ public interface GeyserBootstrap {
     default SocketAddress getSocketAddress() {
         return null;
     }
+
+    default String[] logsPath() {
+        return new String[]{"logs/", "latest.log"
+        };
+    }
+
 }

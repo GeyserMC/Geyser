@@ -197,6 +197,11 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         return new GeyserVelocityDumpInfo(proxyServer);
     }
 
+    @Override
+    public String[] logsPath() {
+        return new String[]{"logs/", "latest.log"};
+    }
+
     @Nullable
     @Override
     public SocketAddress getSocketAddress() {

@@ -283,6 +283,12 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         return new GeyserStandaloneDumpInfo(this);
     }
 
+    @Override
+    public String[] logsPath() {
+        return new String[]{"logs/", "latest.log"};
+    }
+
+
     /**
      * Get the {@link BeanPropertyDefinition}s for the given class
      *

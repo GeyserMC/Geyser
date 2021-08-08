@@ -48,7 +48,7 @@ public class DumpCommand extends GeyserCommand {
     private final GeyserConnector connector;
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String DUMP_URL = "https://dump.geysermc.org/";
-    public static boolean logsDump;
+    public static boolean logsDump = false;
 
     public DumpCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);

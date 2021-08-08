@@ -200,10 +200,9 @@ public class DumpInfo {
         public LogsInfo() {
             try {
                 if (DumpCommand.logsDump) {
-                    String file = "latest.log";
-                    APIResponse apiresponse = MclogsAPI.share("logs/", file);
+                    String[] path = GeyserConnector.getInstance().getBootstrap().logsPath();
+                    APIResponse apiresponse = MclogsAPI.share(path[0], path[1]);
                     if (apiresponse.success) {
-
                         this.logs = "https://mclo.gs/" + apiresponse.id;
                     }
                 }
