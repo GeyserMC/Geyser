@@ -30,7 +30,7 @@ Take a look [here](https://github.com/GeyserMC/Geyser/wiki/Setup) for how to set
 - Docs: https://github.com/GeyserMC/Geyser/wiki
 - Download: https://ci.geysermc.org
 - Discord: https://discord.gg/geysermc
-- ~~Donate: https://patreon.com/GeyserMC~~ Currently disabled.
+- Donate: https://opencollective.com/geysermc
 - Test Server: `test.geysermc.org` port `25565` for Java and `19132` for Bedrock
 
 ## What's Left to be Added/Fixed
