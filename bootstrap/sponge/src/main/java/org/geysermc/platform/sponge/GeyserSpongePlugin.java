@@ -168,4 +168,9 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     public String getMinecraftServerVersion() {
         return Sponge.getPlatform().getMinecraftVersion().getName();
     }
+
+    @Override
+    public String logsPath() {
+        return "logs/latest.log";
+    }
 }

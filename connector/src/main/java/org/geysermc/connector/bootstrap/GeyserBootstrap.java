@@ -120,9 +120,7 @@ public interface GeyserBootstrap {
         return null;
     }
 
-    default String[] logsPath() {
-        return new String[]{"logs/", "latest.log"
-        };
+    default String logsPath() {
+        return "logs/latest.log";
     }
-
 }

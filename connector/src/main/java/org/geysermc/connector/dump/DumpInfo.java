@@ -53,6 +53,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 @Getter
@@ -200,8 +202,8 @@ public class DumpInfo {
         public LogsInfo() {
             try {
                 if (DumpCommand.logsDump) {
-                    String[] path = GeyserConnector.getInstance().getBootstrap().logsPath();
-                    APIResponse apiresponse = MclogsAPI.share(path[0], path[1]);
+                    Path logsPath = Paths.get(GeyserConnector.getInstance().getBootstrap().logsPath());
+                    APIResponse apiresponse = MclogsAPI.share(logsPath);
                     if (apiresponse.success) {
                         this.logs = "https://mclo.gs/" + apiresponse.id;
                     }

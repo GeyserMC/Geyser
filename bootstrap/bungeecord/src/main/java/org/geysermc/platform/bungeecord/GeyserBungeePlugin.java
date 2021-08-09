@@ -172,12 +172,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     }
 
     @Override
-    public String[] logsPath() {
-        String getPathAb = new File(".").getAbsolutePath().replace(".", "");
-        System.out.println(getPathAb);
-        //getting server
-        System.out.println(getPathAb);
-        return new String[]{getPathAb, "proxy.log.0"};
+    public String logsPath() {
+        return "proxy.log.0";
     }
 
     @Nullable

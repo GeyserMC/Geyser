@@ -284,8 +284,8 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     }
 
     @Override
-    public String[] logsPath() {
-        return new String[]{"logs/", "latest.log"};
+    public String logsPath() {
+        return "logs/latest.log";
     }
 
 
