@@ -247,7 +247,7 @@
         <dependency>
             <groupId>com.github.aternosorg</groupId>
             <artifactId>mclogs-java</artifactId>
-            <version>706c1c4164</version>
+            <version>3b50129618</version>
         </dependency>
     </dependencies>
 

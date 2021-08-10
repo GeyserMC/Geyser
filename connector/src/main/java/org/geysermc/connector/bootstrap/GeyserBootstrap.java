@@ -36,6 +36,7 @@ import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import javax.annotation.Nullable;
 import java.net.SocketAddress;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public interface GeyserBootstrap {
     GeyserWorldManager DEFAULT_CHUNK_MANAGER = new GeyserWorldManager();
@@ -119,7 +120,8 @@ public interface GeyserBootstrap {
         return null;
     }
 
-    default String logsPath() {
-        return "logs/latest.log";
+    default Path getLogsPath() {
+
+        return Paths.get("logs/latest.log");
     }
 }

@@ -52,8 +52,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Properties;
 
 @Getter
@@ -72,9 +70,6 @@ public class DumpInfo {
     private final BootstrapDumpInfo bootstrapInfo;
 
     public DumpInfo(boolean addLog) {
-        if (addLog) {
-            this.logsInfo = new LogsInfo(addLog);
-        }
         this.versionInfo = new VersionInfo();
 
         try {
@@ -106,6 +101,10 @@ public class DumpInfo {
         this.hashInfo = new HashInfo(md5Hash, sha256Hash);
 
         this.ramInfo = new DumpInfo.RamInfo();
+
+        if (addLog) {
+            this.logsInfo = new LogsInfo(addLog);
+        }
 
         this.userPlatforms = new Object2IntOpenHashMap<>();
         for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
@@ -203,8 +202,7 @@ public class DumpInfo {
 
             try {
                 if (addLog) {
-                    Path logsPath = Paths.get(GeyserConnector.getInstance().getBootstrap().logsPath());
-                    APIResponse apiresponse = MclogsAPI.share(logsPath);
+                    APIResponse apiresponse = MclogsAPI.share(GeyserConnector.getInstance().getBootstrap().getLogsPath());
                     if (apiresponse.success) {
                         this.Link = "https://mclo.gs/" + apiresponse.id;
                     }
