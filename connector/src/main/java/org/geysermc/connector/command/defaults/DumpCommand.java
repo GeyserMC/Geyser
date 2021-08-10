@@ -76,6 +76,7 @@ public class DumpCommand extends GeyserCommand {
                         offlineDump = true;
                         break;
                     case "logs":
+                    case "log":
                         addLog = true;
                         break;
                 }
