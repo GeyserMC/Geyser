@@ -173,7 +173,12 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @Override
     public String logsPath() {
-        return "proxy.log.0";
+        String getFork = "proxy.log.0";
+        boolean isBungeeCord = getProxy().getName().equals("BungeeCord");
+        if (!isBungeeCord) {
+            getFork = "logs/latest.log";
+        }
+        return getFork;
     }
 
     @Nullable

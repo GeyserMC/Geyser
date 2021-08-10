@@ -87,11 +87,10 @@ public interface GeyserBootstrap {
     }
 
     /**
-     * Return the logs path
+     * Return the data folder where files get stored
      *
-     * @return Path location of log file
+     * @return Path location of data folder
      */
-
     Path getConfigFolder();
 
     /**

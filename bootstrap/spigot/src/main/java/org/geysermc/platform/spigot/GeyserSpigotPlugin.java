@@ -281,11 +281,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     }
 
     @Override
-    public String logsPath() {
-        return "logs/latest.log";
-    }
-
-    @Override
     public String getMinecraftServerVersion() {
         return this.minecraftVersion;
     }

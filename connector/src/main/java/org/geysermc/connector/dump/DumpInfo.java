@@ -37,7 +37,6 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.command.defaults.DumpCommand;
 import org.geysermc.connector.common.serializer.AsteriskSerializer;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.BedrockProtocol;
@@ -61,7 +60,6 @@ import java.util.Properties;
 public class DumpInfo {
     @JsonIgnore
     private static final long MEGABYTE = 1024L * 1024L;
-    public static String LogsInfo;
 
     private final DumpInfo.VersionInfo versionInfo;
     private Properties gitInfo;
@@ -70,10 +68,13 @@ public class DumpInfo {
     private final Object2IntMap<DeviceOs> userPlatforms;
     private final HashInfo hashInfo;
     private final RamInfo ramInfo;
-    private final LogsInfo logsInfo;
+    private LogsInfo logsInfo;
     private final BootstrapDumpInfo bootstrapInfo;
 
-    public DumpInfo() {
+    public DumpInfo(boolean addLog) {
+        if (addLog) {
+            this.logsInfo = new LogsInfo(addLog);
+        }
         this.versionInfo = new VersionInfo();
 
         try {
@@ -84,7 +85,6 @@ public class DumpInfo {
 
         this.config = GeyserConnector.getInstance().getConfig();
         this.floodgate = new Floodgate();
-        this.logsInfo = new LogsInfo();
 
         String md5Hash = "unknown";
         String sha256Hash = "unknown";
@@ -197,15 +197,16 @@ public class DumpInfo {
 
     @Getter
     public static class LogsInfo {
-        private String logs;
+        private String Link;
 
-        public LogsInfo() {
+        public LogsInfo(Boolean addLog) {
+
             try {
-                if (DumpCommand.logsDump) {
+                if (addLog) {
                     Path logsPath = Paths.get(GeyserConnector.getInstance().getBootstrap().logsPath());
                     APIResponse apiresponse = MclogsAPI.share(logsPath);
                     if (apiresponse.success) {
-                        this.logs = "https://mclo.gs/" + apiresponse.id;
+                        this.Link = "https://mclo.gs/" + apiresponse.id;
                     }
                 }
             } catch (IOException e) {

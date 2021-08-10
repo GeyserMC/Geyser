@@ -48,7 +48,6 @@ public class DumpCommand extends GeyserCommand {
     private final GeyserConnector connector;
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String DUMP_URL = "https://dump.geysermc.org/";
-    public static boolean logsDump = false;
 
     public DumpCommand(GeyserConnector connector, String name, String description, String permission) {
         super(name, description, permission);
@@ -66,6 +65,7 @@ public class DumpCommand extends GeyserCommand {
 
         boolean showSensitive = false;
         boolean offlineDump = false;
+        boolean addLog = false;
         if (args.length >= 1) {
             for (String arg : args) {
                 switch (arg) {
@@ -76,7 +76,8 @@ public class DumpCommand extends GeyserCommand {
                         offlineDump = true;
                         break;
                     case "logs":
-                        logsDump = true;
+                        addLog = true;
+                        break;
                 }
             }
         }
@@ -87,9 +88,9 @@ public class DumpCommand extends GeyserCommand {
         String dumpData = "";
         try {
             if (offlineDump) {
-                dumpData = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(new DumpInfo());
+                dumpData = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(new DumpInfo(addLog));
             } else {
-                dumpData = MAPPER.writeValueAsString(new DumpInfo());
+                dumpData = MAPPER.writeValueAsString(new DumpInfo(addLog));
             }
         } catch (IOException e) {
             sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.commands.dump.collect_error", sender.getLocale()));
