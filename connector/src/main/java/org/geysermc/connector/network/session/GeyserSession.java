@@ -590,9 +590,17 @@ public class GeyserSession implements CommandSender {
                 disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
             } catch (RequestException ex) {
                 ex.printStackTrace();
+                disconnect(ex.getMessage());
             }
             return null;
-        }).whenComplete((aVoid, ex) -> connectDownstream());
+        }).whenComplete((aVoid, ex) -> {
+            if (this.closed) {
+                // Client disconnected during the authentication attempt
+                return;
+            }
+
+            connectDownstream();
+        });
     }
 
     /**
