@@ -50,7 +50,7 @@ public class ThrowableItemEntity extends ThrowableEntity {
         if (invisible != metadata.getFlags().getFlag(EntityFlag.INVISIBLE)) {
             if (!invisible) {
                 Vector3f playerPos = session.getPlayerEntity().getPosition();
-                if (age >= 4 || position.distanceSquared(playerPos.getX(), playerPos.getY(), playerPos.getZ()) > 16) {
+                if (age >= 4 || position.distanceSquared(playerPos) > 16) {
                     metadata.getFlags().setFlag(EntityFlag.INVISIBLE, false);
                     updateBedrockMetadata(session);
                 }

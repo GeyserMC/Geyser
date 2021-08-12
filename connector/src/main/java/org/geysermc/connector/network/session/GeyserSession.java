@@ -913,8 +913,10 @@ public class GeyserSession implements CommandSender {
         }
 
         try {
-            for (Tickable entity : entityCache.getTickableEntities()) {
-                entity.tick(this);
+            synchronized (entityCache.getTickableEntities()) {
+                for (Tickable entity : entityCache.getTickableEntities()) {
+                    entity.tick(this);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
