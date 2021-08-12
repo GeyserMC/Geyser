@@ -41,6 +41,7 @@ import java.nio.file.Paths;
 public interface GeyserBootstrap {
 
     GeyserWorldManager DEFAULT_CHUNK_MANAGER = new GeyserWorldManager();
+
     /**
      * Called when the GeyserBootstrap is enabled
      */
