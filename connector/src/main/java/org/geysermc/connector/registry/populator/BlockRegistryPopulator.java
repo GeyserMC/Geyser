@@ -107,7 +107,7 @@ public class BlockRegistryPopulator {
         for (Map.Entry<String, BiFunction<String, NbtMapBuilder, String>> palette : STATE_MAPPER.entrySet()) {
             InputStream stream = FileUtils.getResource(String.format("bedrock/block_palette.%s.nbt", palette.getKey()));
             NbtList<NbtMap> blocksTag;
-            try (NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)))) {
+            try (NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)), true, true)) {
                 NbtMap blockPalette = (NbtMap) nbtInputStream.readTag();
                 blocksTag = (NbtList<NbtMap>) blockPalette.getList("blocks", NbtType.COMPOUND);
             } catch (Exception e) {
@@ -149,10 +149,10 @@ public class BlockRegistryPopulator {
                 Map.Entry<String, JsonNode> entry = blocksIterator.next();
                 String javaId = entry.getKey();
 
-                NbtMap blockTag = buildBedrockState(entry.getValue(), stateVersion, stateMapper);
-                int bedrockRuntimeId = blockStateOrderedMap.getOrDefault(blockTag, -1);
+                int bedrockRuntimeId = blockStateOrderedMap.getOrDefault(buildBedrockState(entry.getValue(), stateVersion, stateMapper), -1);
                 if (bedrockRuntimeId == -1) {
-                    throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Built compound tag: \n" + blockTag);
+                    throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Built NBT tag: \n" +
+                            buildBedrockState(entry.getValue(), stateVersion, stateMapper));
                 }
 
                 switch (javaId) {
@@ -182,11 +182,11 @@ public class BlockRegistryPopulator {
 
                 // Get the tag needed for non-empty flower pots
                 if (entry.getValue().get("pottable") != null) {
-                    flowerPotBlocks.put(cleanJavaIdentifier, blockTag);
+                    flowerPotBlocks.put(cleanJavaIdentifier.intern(), blocksTag.get(bedrockRuntimeId));
                 }
 
                 if (!cleanJavaIdentifier.equals(entry.getValue().get("bedrock_identifier").asText())) {
-                    javaIdentifierToBedrockTag.put(cleanJavaIdentifier, blockTag);
+                    javaIdentifierToBedrockTag.put(cleanJavaIdentifier.intern(), blocksTag.get(bedrockRuntimeId));
                 }
 
                 javaToBedrockBlockMap.put(javaRuntimeId, bedrockRuntimeId);
@@ -274,7 +274,7 @@ public class BlockRegistryPopulator {
 
             JsonNode pickItemNode = entry.getValue().get("pick_item");
             if (pickItemNode != null) {
-                builder.pickItem(pickItemNode.textValue());
+                builder.pickItem(pickItemNode.textValue().intern());
             }
 
             BlockStateValues.storeBlockStateValues(entry.getKey(), javaRuntimeId, entry.getValue());
@@ -284,7 +284,7 @@ public class BlockRegistryPopulator {
 
             if (!cleanIdentifiers.contains(cleanJavaIdentifier)) {
                 uniqueJavaId++;
-                cleanIdentifiers.add(cleanJavaIdentifier);
+                cleanIdentifiers.add(cleanJavaIdentifier.intern());
             }
 
             builder.javaIdentifier(javaId);
@@ -295,7 +295,7 @@ public class BlockRegistryPopulator {
 
             // Keeping this here since this is currently unchanged between versions
             if (!cleanJavaIdentifier.equals(bedrockIdentifier)) {
-                BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.register(cleanJavaIdentifier, bedrockIdentifier);
+                BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.register(cleanJavaIdentifier.intern(), bedrockIdentifier.intern());
             }
 
             if (javaId.startsWith("minecraft:bell[")) {
