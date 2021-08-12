@@ -168,5 +168,4 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     public String getMinecraftServerVersion() {
         return Sponge.getPlatform().getMinecraftVersion().getName();
     }
-
 }

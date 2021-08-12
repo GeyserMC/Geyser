@@ -103,7 +103,7 @@ public class DumpInfo {
         this.ramInfo = new DumpInfo.RamInfo();
 
         if (addLog) {
-            this.logsInfo = new LogsInfo(addLog);
+            this.logsInfo = new LogsInfo();
         }
 
         this.userPlatforms = new Object2IntOpenHashMap<>();
@@ -111,6 +111,7 @@ public class DumpInfo {
             DeviceOs device = session.getClientData().getDeviceOs();
             userPlatforms.put(device, userPlatforms.getOrDefault(device, 0) + 1);
         }
+
         this.bootstrapInfo = GeyserConnector.getInstance().getBootstrap().getDumpInfo();
     }
 
@@ -196,16 +197,14 @@ public class DumpInfo {
 
     @Getter
     public static class LogsInfo {
-        private String Link;
+        private String link;
 
-        public LogsInfo(Boolean addLog) {
+        public LogsInfo() {
 
             try {
-                if (addLog) {
-                    APIResponse apiresponse = MclogsAPI.share(GeyserConnector.getInstance().getBootstrap().getLogsPath());
-                    if (apiresponse.success) {
-                        this.Link = "https://mclo.gs/" + apiresponse.id;
-                    }
+                APIResponse apiresponse = MclogsAPI.share(GeyserConnector.getInstance().getBootstrap().getLogsPath());
+                if (apiresponse.success) {
+                    this.link = "https://mclo.gs/" + apiresponse.id;
                 }
             } catch (IOException e) {
                 e.printStackTrace();

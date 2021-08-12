@@ -39,6 +39,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public interface GeyserBootstrap {
+
     GeyserWorldManager DEFAULT_CHUNK_MANAGER = new GeyserWorldManager();
     /**
      * Called when the GeyserBootstrap is enabled
@@ -121,7 +122,6 @@ public interface GeyserBootstrap {
     }
 
     default Path getLogsPath() {
-
         return Paths.get("logs/latest.log");
     }
 }
