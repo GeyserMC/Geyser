@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>geyser-parent</artifactId>
@@ -63,6 +63,13 @@
         </dependency>
         <!-- fastutil maps -->
         <dependency>
+            <groupId>com.nukkitx</groupId>
+            <artifactId>nbt</artifactId>
+            <!-- Used for key/value interning -->
+            <version>2.1.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
             <artifactId>fastutil-int-int-maps</artifactId>
             <version>${fastutil.version}</version>
@@ -114,6 +121,10 @@
                 <exclusion>
                     <groupId>com.nukkitx.network</groupId>
                     <artifactId>raknet</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.nukkitx</groupId>
+                    <artifactId>nbt</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
