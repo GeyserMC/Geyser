@@ -60,7 +60,7 @@ public class VersionCommand extends GeyserCommand {
         if (supportedCodecs.size() > 1) {
             bedrockVersions = supportedCodecs.get(0).getMinecraftVersion() + " - " + supportedCodecs.get(supportedCodecs.size() - 1).getMinecraftVersion();
         } else {
-            bedrockVersions = BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion();
+            bedrockVersions = BedrockProtocol.SUPPORTED_BEDROCK_CODECS.get(0).getMinecraftVersion();
         }
 
         sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.version", sender.getLocale(),
