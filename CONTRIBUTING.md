@@ -48,4 +48,4 @@ Make sure to comment your code where possible.
 
 The nature of our software requires a lot of arrays and maps to be stored - where possible, use Fastutil's specialized maps. For example, if you're storing block state translations, use an `Int2IntMap`.
 
-We have a rundown of all the tools you need to develop over on our [wiki](https://github.com/GeyserMC/Geyser/wiki/Developer-Guide). If you have any questions, please feel free to reach out to our [Discord](https://discord.gg/geysermc)!
+We have a rundown of all the tools you need to develop over on our [wiki]!(https://github.com/GeyserMC/Geyser/wiki/Developer-Guide). If you have any questions, please feel free to reach out to our [Discord](https://discord.gg/geysermc)!
