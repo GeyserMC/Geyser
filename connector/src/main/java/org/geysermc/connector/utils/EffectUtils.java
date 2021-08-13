@@ -27,9 +27,11 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.world.particle.ParticleType;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import lombok.NonNull;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.registry.Registries;
+import org.geysermc.connector.registry.type.ParticleMapping;
+
+import javax.annotation.Nonnull;
 
 /**
  * Util for particles and effects.
@@ -42,8 +44,13 @@ public class EffectUtils {
      * @param type the Java particle to search for
      * @return the Bedrock integer ID of the particle, or -1 if it does not exist
      */
-    public static int getParticleId(GeyserSession session, @NonNull ParticleType type) {
-        LevelEventType levelEventType = Registries.PARTICLES.get(type).getLevelEventType();
+    public static int getParticleId(GeyserSession session, @Nonnull ParticleType type) {
+        ParticleMapping mapping = Registries.PARTICLES.get(type);
+        if (mapping == null) {
+            return -1;
+        }
+
+        LevelEventType levelEventType = mapping.getLevelEventType();
         if (levelEventType == null) {
             return -1;
         }
