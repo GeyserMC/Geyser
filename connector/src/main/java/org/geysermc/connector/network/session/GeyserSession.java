@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.session;
 
-import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.AuthPendingException;
 import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
@@ -45,7 +44,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.packet.login.client.LoginPluginResponsePacket;
-import com.github.steveice10.mc.protocol.packet.login.server.LoginSuccessPacket;
 import com.github.steveice10.packetlib.BuiltinFlags;
 import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
@@ -94,7 +92,6 @@ import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.BlockMappings;
 import org.geysermc.connector.registry.type.ItemMappings;
 import org.geysermc.connector.skin.FloodgateSkinUploader;
-import org.geysermc.connector.skin.SkinManager;
 import org.geysermc.connector.utils.*;
 import org.geysermc.cumulus.Form;
 import org.geysermc.cumulus.util.FormBuilder;
@@ -808,24 +805,6 @@ public class GeyserSession implements CommandSender {
             @Override
             public void packetReceived(PacketReceivedEvent event) {
                 if (!closed) {
-                    // Required, or else Floodgate players break with Bukkit chunk caching
-                    if (event.getPacket() instanceof LoginSuccessPacket) {
-                        GameProfile profile = ((LoginSuccessPacket) event.getPacket()).getProfile();
-                        playerEntity.setUsername(profile.getName());
-                        playerEntity.setUuid(profile.getId());
-
-                        // Check if they are not using a linked account
-                        if (remoteAuthType == AuthType.OFFLINE || playerEntity.getUuid().getMostSignificantBits() == 0) {
-                            SkinManager.handleBedrockSkin(playerEntity, clientData);
-                        }
-
-                        if (remoteAuthType == AuthType.FLOODGATE) {
-                            // We'll send the skin upload a bit after the handshake packet (aka this packet),
-                            // because otherwise the global server returns the data too fast.
-                            getAuthData().upload(connector);
-                        }
-                    }
-
                     PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
                 }
             }
