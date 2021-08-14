@@ -77,6 +77,7 @@ import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
+import org.geysermc.connector.entity.ThrowableEntity;
 import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.attribute.GeyserAttributeType;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
@@ -899,22 +900,28 @@ public class GeyserSession implements CommandSender {
      * Called every 50 milliseconds - one Minecraft tick.
      */
     protected void tick() {
-        // Check to see if the player's position needs updating - a position update should be sent once every 3 seconds
-        if (spawned && (System.currentTimeMillis() - lastMovementTimestamp) > 3000) {
-            // Recalculate in case something else changed position
-            Vector3d position = collisionManager.adjustBedrockPosition(playerEntity.getPosition(), playerEntity.isOnGround());
-            // A null return value cancels the packet
-            if (position != null) {
-                ClientPlayerPositionPacket packet = new ClientPlayerPositionPacket(playerEntity.isOnGround(),
-                        position.getX(), position.getY(), position.getZ());
-                sendDownstreamPacket(packet);
+        try {
+            // Check to see if the player's position needs updating - a position update should be sent once every 3 seconds
+            if (spawned && (System.currentTimeMillis() - lastMovementTimestamp) > 3000) {
+                // Recalculate in case something else changed position
+                Vector3d position = collisionManager.adjustBedrockPosition(playerEntity.getPosition(), playerEntity.isOnGround());
+                // A null return value cancels the packet
+                if (position != null) {
+                    ClientPlayerPositionPacket packet = new ClientPlayerPositionPacket(playerEntity.isOnGround(),
+                            position.getX(), position.getY(), position.getZ());
+                    sendDownstreamPacket(packet);
+                }
+                lastMovementTimestamp = System.currentTimeMillis();
             }
-            lastMovementTimestamp = System.currentTimeMillis();
-        }
 
-        synchronized (entityCache.getTickableEntities()) {
-            for (Tickable entity : entityCache.getTickableEntities()) {
-                entity.tick(this);
+            synchronized (entityCache.getTickableEntities()) {
+                for (Tickable entity : entityCache.getTickableEntities()) {
+                    entity.tick(this);
+                }
+            }
+        } catch (Throwable throwable) {
+            if (connector.getConfig().isDebugMode()) {
+                throwable.printStackTrace();
             }
         }
     }
