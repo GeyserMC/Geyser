@@ -89,7 +89,11 @@ public class PacketTranslatorRegistry<T> {
             try {
                 PacketTranslator<P> translator = (PacketTranslator<P>) translators.get(clazz);
                 if (translator != null) {
-                    session.getEventLoop().execute(() -> translator.translate(packet, session));
+                    if (session.getEventLoop().inEventLoop()) {
+                        translator.translate(packet, session);
+                    } else {
+                        session.getEventLoop().execute(() -> translator.translate(packet, session));
+                    }
                     return true;
                 } else {
                     if ((GeyserConnector.getInstance().getPlatformType() != PlatformType.STANDALONE || !(packet instanceof BedrockPacket)) && !IGNORED_PACKETS.contains(clazz)) {

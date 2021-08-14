@@ -1201,13 +1201,19 @@ public class GeyserSession implements CommandSender {
      */
     public void sendDownstreamPacket(Packet packet) {
         if (!closed && this.downstream != null) {
-            this.downstream.getChannel().eventLoop().execute(() -> {
+            EventLoop eventLoop = this.downstream.getChannel().eventLoop();
+            final Runnable packetSend = () -> {
                 if (protocol.getSubProtocol().equals(SubProtocol.GAME) || packet.getClass() == LoginPluginResponsePacket.class) {
                     downstream.send(packet);
                 } else {
                     connector.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
                 }
-            });
+            };
+            if (eventLoop.inEventLoop()) {
+                packetSend.run();
+            } else {
+                eventLoop.execute(packetSend);
+            }
         }
     }
 
