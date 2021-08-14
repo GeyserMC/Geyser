@@ -920,9 +920,7 @@ public class GeyserSession implements CommandSender {
                 }
             }
         } catch (Throwable throwable) {
-            if (connector.getConfig().isDebugMode()) {
-                throwable.printStackTrace();
-            }
+            throwable.printStackTrace();
         }
     }
 
