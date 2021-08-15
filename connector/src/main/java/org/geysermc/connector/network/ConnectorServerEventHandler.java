@@ -32,6 +32,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.socket.DatagramPacket;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.configuration.GeyserConfiguration;
@@ -57,7 +58,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     private static final int MAGIC_RAKNET_LENGTH = 338;
 
     private final GeyserConnector connector;
-    private final DefaultEventLoopGroup eventLoopGroup = new DefaultEventLoopGroup();
+    private final DefaultEventLoopGroup eventLoopGroup = new DefaultEventLoopGroup(new DefaultThreadFactory("Geyser player thread"));
 
     public ConnectorServerEventHandler(GeyserConnector connector) {
         this.connector = connector;
