@@ -187,9 +187,7 @@ public class GeyserSession implements CommandSender {
     private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
 
     /**
-     * Stores the differences between Java and Bedrock biome network IDs.
-     * If Java's ocean biome is 0, and Bedrock's is 0, it will not be in the list.
-     * If Java's bamboo biome is 42, and Bedrock's is 48, it will be in this list.
+     * Stores the map between Java and Bedrock biome network IDs.
      */
     private final Int2IntMap biomeTranslations = new Int2IntOpenHashMap();
 
@@ -1166,9 +1164,9 @@ public class GeyserSession implements CommandSender {
             }
         }
 
-        ObjectIterator<Int2ObjectMap.Entry<TeleportCache>> it = teleportMap.int2ObjectEntrySet().iterator();
-
         if (teleportID != -1) {
+            ObjectIterator<Int2ObjectMap.Entry<TeleportCache>> it = teleportMap.int2ObjectEntrySet().iterator();
+
             // Confirm the current teleport and any earlier ones
             while (it.hasNext()) {
                 TeleportCache entry = it.next().getValue();
