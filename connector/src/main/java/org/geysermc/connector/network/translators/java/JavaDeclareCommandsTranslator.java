@@ -295,6 +295,11 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             for (int paramID : paramNode.getChildIndices()) {
                 CommandNode paramNode = allNodes[paramID];
 
+                if (paramNode == this.paramNode) {
+                    // Fixes a StackOverflowError when an argument has itself as a child
+                    continue;
+                }
+
                 if (paramNode.getParser() == null) {
                     boolean foundCompatible = false;
                     for (int i = 0; i < children.size(); i++) {

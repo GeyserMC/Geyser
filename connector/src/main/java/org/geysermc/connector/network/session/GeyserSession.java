@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.session;
 
-import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.AuthPendingException;
 import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
@@ -45,7 +44,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.packet.login.client.LoginPluginResponsePacket;
-import com.github.steveice10.mc.protocol.packet.login.server.LoginSuccessPacket;
 import com.github.steveice10.packetlib.BuiltinFlags;
 import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
@@ -94,7 +92,6 @@ import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.BlockMappings;
 import org.geysermc.connector.registry.type.ItemMappings;
 import org.geysermc.connector.skin.FloodgateSkinUploader;
-import org.geysermc.connector.skin.SkinManager;
 import org.geysermc.connector.utils.*;
 import org.geysermc.cumulus.Form;
 import org.geysermc.cumulus.util.FormBuilder;
@@ -190,9 +187,7 @@ public class GeyserSession implements CommandSender {
     private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
 
     /**
-     * Stores the differences between Java and Bedrock biome network IDs.
-     * If Java's ocean biome is 0, and Bedrock's is 0, it will not be in the list.
-     * If Java's bamboo biome is 42, and Bedrock's is 48, it will be in this list.
+     * Stores the map between Java and Bedrock biome network IDs.
      */
     private final Int2IntMap biomeTranslations = new Int2IntOpenHashMap();
 
@@ -590,9 +585,17 @@ public class GeyserSession implements CommandSender {
                 disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
             } catch (RequestException ex) {
                 ex.printStackTrace();
+                disconnect(ex.getMessage());
             }
             return null;
-        }).whenComplete((aVoid, ex) -> connectDownstream());
+        }).whenComplete((aVoid, ex) -> {
+            if (this.closed) {
+                // Client disconnected during the authentication attempt
+                return;
+            }
+
+            connectDownstream();
+        });
     }
 
     /**
@@ -800,24 +803,6 @@ public class GeyserSession implements CommandSender {
             @Override
             public void packetReceived(PacketReceivedEvent event) {
                 if (!closed) {
-                    // Required, or else Floodgate players break with Bukkit chunk caching
-                    if (event.getPacket() instanceof LoginSuccessPacket) {
-                        GameProfile profile = ((LoginSuccessPacket) event.getPacket()).getProfile();
-                        playerEntity.setUsername(profile.getName());
-                        playerEntity.setUuid(profile.getId());
-
-                        // Check if they are not using a linked account
-                        if (remoteAuthType == AuthType.OFFLINE || playerEntity.getUuid().getMostSignificantBits() == 0) {
-                            SkinManager.handleBedrockSkin(playerEntity, clientData);
-                        }
-
-                        if (remoteAuthType == AuthType.FLOODGATE) {
-                            // We'll send the skin upload a bit after the handshake packet (aka this packet),
-                            // because otherwise the global server returns the data too fast.
-                            getAuthData().upload(connector);
-                        }
-                    }
-
                     PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
                 }
             }
@@ -1179,9 +1164,9 @@ public class GeyserSession implements CommandSender {
             }
         }
 
-        ObjectIterator<Int2ObjectMap.Entry<TeleportCache>> it = teleportMap.int2ObjectEntrySet().iterator();
-
         if (teleportID != -1) {
+            ObjectIterator<Int2ObjectMap.Entry<TeleportCache>> it = teleportMap.int2ObjectEntrySet().iterator();
+
             // Confirm the current teleport and any earlier ones
             while (it.hasNext()) {
                 TeleportCache entry = it.next().getValue();

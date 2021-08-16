@@ -28,6 +28,7 @@ package org.geysermc.connector.network;
 import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.DatagramPacket;
 import org.geysermc.connector.GeyserConnector;
@@ -38,6 +39,7 @@ import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.LanguageUtils;
 
+import javax.annotation.Nonnull;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -166,7 +168,10 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     }
 
     @Override
-    public void onUnhandledDatagram(ChannelHandlerContext ctx, DatagramPacket packet) {
-        new QueryPacketHandler(connector, packet.sender(), packet.content());
+    public void onUnhandledDatagram(@Nonnull ChannelHandlerContext ctx, DatagramPacket packet) {
+        ByteBuf content = packet.content();
+        if (QueryPacketHandler.isQueryPacket(content)) {
+            new QueryPacketHandler(connector, packet.sender(), content);
+        }
     }
 }

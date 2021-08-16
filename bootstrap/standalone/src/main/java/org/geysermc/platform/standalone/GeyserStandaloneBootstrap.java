@@ -315,6 +315,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
      * @param parentObject The object to alter
      * @param value The new value of the property
      */
+    @SuppressWarnings("unchecked") // Required for enum usage
     private static void setConfigOption(BeanPropertyDefinition property, Object parentObject, Object value) {
         Object parsedValue = value;
 
@@ -323,6 +324,8 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             parsedValue = Integer.valueOf((String) parsedValue);
         } else if (boolean.class.equals(property.getRawPrimaryType())) {
             parsedValue = Boolean.valueOf((String) parsedValue);
+        } else if (Enum.class.isAssignableFrom(property.getRawPrimaryType())) {
+            parsedValue = Enum.valueOf((Class<? extends Enum>) property.getRawPrimaryType(), ((String) parsedValue).toUpperCase(Locale.ROOT));
         }
 
         // Force the value to be set
