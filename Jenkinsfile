@@ -10,6 +10,7 @@ pipeline {
     stages {
         stage ('Build') {
             steps {
+                sh 'rm /var/lib/jenkins/.m2/repository/org/geysermc/bootstrap-standalone/1.4.1-SNAPSHOT/maven-metadata-local.xml'
                 sh 'git submodule update --init --recursive'
                 sh 'mvn clean package'
             }
