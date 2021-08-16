@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPlayerListDa
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateLightPacket;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
+import io.netty.channel.EventLoop;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
@@ -89,10 +90,11 @@ public class PacketTranslatorRegistry<T> {
             try {
                 PacketTranslator<P> translator = (PacketTranslator<P>) translators.get(clazz);
                 if (translator != null) {
-                    if (session.getEventLoop().inEventLoop()) {
+                    EventLoop eventLoop = session.getEventLoop();
+                    if (eventLoop.inEventLoop()) {
                         translator.translate(packet, session);
                     } else {
-                        session.getEventLoop().execute(() -> translator.translate(packet, session));
+                        eventLoop.execute(() -> translator.translate(packet, session));
                     }
                     return true;
                 } else {
