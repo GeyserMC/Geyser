@@ -211,6 +211,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                 return CommandParam.FLOAT;
 
             case INTEGER:
+            case LONG:
                 return CommandParam.INT;
 
             case ENTITY:
