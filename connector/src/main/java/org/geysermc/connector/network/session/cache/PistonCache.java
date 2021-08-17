@@ -87,7 +87,7 @@ public class PistonCache {
         this.session = session;
     }
 
-    public synchronized void tick() {
+    public void tick() {
         resetPlayerMovement();
         pistons.values().forEach(PistonBlockEntity::updateMovement);
         sendPlayerMovement();
@@ -173,7 +173,7 @@ public class PistonCache {
         return offset;
     }
 
-    public synchronized boolean checkCollision(Vector3i blockPos, BoundingBox boundingBox) {
+    public boolean checkCollision(Vector3i blockPos, BoundingBox boundingBox) {
         PistonBlockEntity piston = movingBlocksMap.get(blockPos);
         if (piston != null) {
             return piston.checkCollision(blockPos, boundingBox);
@@ -189,7 +189,7 @@ public class PistonCache {
         pistons.put(pistonBlockEntity.getPosition(), pistonBlockEntity);
     }
 
-    public synchronized void clear() {
+    public void clear() {
         pistons.clear();
         movingBlocksMap.clear();
     }

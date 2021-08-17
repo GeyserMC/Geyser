@@ -128,54 +128,52 @@ public class CollisionManager {
      * @return the position to send to the Java server, or null to cancel sending the packet
      */
     public Vector3d adjustBedrockPosition(Vector3f bedrockPosition, boolean onGround) {
-        synchronized (session.getPistonCache()) {
-            PistonCache pistonCache = session.getPistonCache();
-            // Bedrock clients tend to fall off of honey blocks, so we need to teleport them to the new position
-            if (pistonCache.isPlayerAttachedToHoney()) {
-                recalculatePosition();
-                return null;
-            }
-            // We need to parse the float as a string since casting a float to a double causes us to
-            // lose precision and thus, causes players to get stuck when walking near walls
-            double javaY = bedrockPosition.getY() - EntityType.PLAYER.getOffset();
-
-            Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY,
-                    Double.parseDouble(Float.toString(bedrockPosition.getZ())));
-
-            Vector3d startingPos = playerBoundingBox.getBottomCenter();
-            Vector3d movement = position.sub(startingPos);
-            Vector3d adjustedMovement = correctPlayerMovement(movement, false);
-            playerBoundingBox.translate(adjustedMovement.getX(), adjustedMovement.getY(), adjustedMovement.getZ());
-            // Correct player position
-            if (!correctPlayerPosition()) {
-                // Cancel the movement if it needs to be cancelled
-                recalculatePosition();
-                return null;
-            }
-            // The server can't complain about our movement if we never send it
-            // TODO get rid of this and handle teleports smoothly
-            if (pistonCache.isPlayerCollided()) {
-                return null;
-            }
-
-            position = playerBoundingBox.getBottomCenter();
-
-            boolean newOnGround = adjustedMovement.getY() != movement.getY() && movement.getY() < 0 || onGround;
-            // Send corrected position to Bedrock if they differ by too much to prevent de-syncs
-            if (onGround != newOnGround || movement.distanceSquared(adjustedMovement) > 0.08) {
-                PlayerEntity playerEntity = session.getPlayerEntity();
-                if (pistonCache.getPlayerMotion().equals(Vector3f.ZERO) && !pistonCache.isPlayerSlimeCollision()) {
-                    playerEntity.moveAbsolute(session, position.toFloat(), playerEntity.getRotation(), newOnGround, true);
-                }
-            }
-
-            if (!onGround) {
-                // Trim the position to prevent rounding errors that make Java think we are clipping into a block
-                position = Vector3d.from(position.getX(), Double.parseDouble(DECIMAL_FORMAT.format(position.getY())), position.getZ());
-            }
-
-            return position;
+        PistonCache pistonCache = session.getPistonCache();
+        // Bedrock clients tend to fall off of honey blocks, so we need to teleport them to the new position
+        if (pistonCache.isPlayerAttachedToHoney()) {
+            recalculatePosition();
+            return null;
         }
+        // We need to parse the float as a string since casting a float to a double causes us to
+        // lose precision and thus, causes players to get stuck when walking near walls
+        double javaY = bedrockPosition.getY() - EntityType.PLAYER.getOffset();
+
+        Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY,
+                Double.parseDouble(Float.toString(bedrockPosition.getZ())));
+
+        Vector3d startingPos = playerBoundingBox.getBottomCenter();
+        Vector3d movement = position.sub(startingPos);
+        Vector3d adjustedMovement = correctPlayerMovement(movement, false);
+        playerBoundingBox.translate(adjustedMovement.getX(), adjustedMovement.getY(), adjustedMovement.getZ());
+        // Correct player position
+        if (!correctPlayerPosition()) {
+            // Cancel the movement if it needs to be cancelled
+            recalculatePosition();
+            return null;
+        }
+        // The server can't complain about our movement if we never send it
+        // TODO get rid of this and handle teleports smoothly
+        if (pistonCache.isPlayerCollided()) {
+            return null;
+        }
+
+        position = playerBoundingBox.getBottomCenter();
+
+        boolean newOnGround = adjustedMovement.getY() != movement.getY() && movement.getY() < 0 || onGround;
+        // Send corrected position to Bedrock if they differ by too much to prevent de-syncs
+        if (onGround != newOnGround || movement.distanceSquared(adjustedMovement) > 0.08) {
+            PlayerEntity playerEntity = session.getPlayerEntity();
+            if (pistonCache.getPlayerMotion().equals(Vector3f.ZERO) && !pistonCache.isPlayerSlimeCollision()) {
+                playerEntity.moveAbsolute(session, position.toFloat(), playerEntity.getRotation(), newOnGround, true);
+            }
+        }
+
+        if (!onGround) {
+            // Trim the position to prevent rounding errors that make Java think we are clipping into a block
+            position = Vector3d.from(position.getX(), Double.parseDouble(DECIMAL_FORMAT.format(position.getY())), position.getZ());
+        }
+
+        return position;
     }
 
     // TODO: This makes the player look upwards for some reason, rotation values must be wrong
@@ -275,45 +273,43 @@ public class CollisionManager {
     }
 
     public Vector3d correctMovement(Vector3d movement, BoundingBox boundingBox, boolean onGround, double stepUp, boolean checkWorld) {
-        synchronized (session.getPistonCache()) {
-            Vector3d adjustedMovement = movement;
-            if (!movement.equals(Vector3d.ZERO)) {
-                adjustedMovement = correctMovementForCollisions(movement, boundingBox, checkWorld);
-            }
-
-            boolean verticalCollision = adjustedMovement.getY() != movement.getY();
-            boolean horizontalCollision = adjustedMovement.getX() != movement.getX() || adjustedMovement.getZ() != movement.getZ();
-            boolean falling = movement.getY() < 0;
-            onGround = onGround || (verticalCollision && falling);
-            if (onGround && horizontalCollision) {
-                Vector3d horizontalMovement = Vector3d.from(movement.getX(), 0, movement.getZ());
-                Vector3d stepUpMovement = correctMovementForCollisions(horizontalMovement.up(stepUp), boundingBox, checkWorld);
-
-                BoundingBox stretchedBoundingBox = boundingBox.clone();
-                stretchedBoundingBox.extend(horizontalMovement);
-                double maxStepUp = correctMovementForCollisions(Vector3d.from(0, stepUp, 0), stretchedBoundingBox, checkWorld).getY();
-                if (maxStepUp < stepUp) { // The player collided with a block above them
-                    boundingBox.translate(0, maxStepUp, 0);
-                    Vector3d adjustedStepUpMovement = correctMovementForCollisions(horizontalMovement, boundingBox, checkWorld);
-                    boundingBox.translate(0, -maxStepUp, 0);
-
-                    if (squaredHorizontalLength(adjustedStepUpMovement) > squaredHorizontalLength(stepUpMovement)) {
-                        stepUpMovement = adjustedStepUpMovement.up(maxStepUp);
-                    }
-                }
-
-                if (squaredHorizontalLength(stepUpMovement) > squaredHorizontalLength(adjustedMovement)) {
-                    boundingBox.translate(stepUpMovement.getX(), stepUpMovement.getY(), stepUpMovement.getZ());
-                    // Apply the player's remaining vertical movement
-                    double verticalMovement = correctMovementForCollisions(Vector3d.from(0, movement.getY() - stepUpMovement.getY(), 0), boundingBox, checkWorld).getY();
-                    boundingBox.translate(-stepUpMovement.getX(), -stepUpMovement.getY(), -stepUpMovement.getZ());
-
-                    stepUpMovement = stepUpMovement.up(verticalMovement);
-                    adjustedMovement = stepUpMovement;
-                }
-            }
-            return adjustedMovement;
+        Vector3d adjustedMovement = movement;
+        if (!movement.equals(Vector3d.ZERO)) {
+            adjustedMovement = correctMovementForCollisions(movement, boundingBox, checkWorld);
         }
+
+        boolean verticalCollision = adjustedMovement.getY() != movement.getY();
+        boolean horizontalCollision = adjustedMovement.getX() != movement.getX() || adjustedMovement.getZ() != movement.getZ();
+        boolean falling = movement.getY() < 0;
+        onGround = onGround || (verticalCollision && falling);
+        if (onGround && horizontalCollision) {
+            Vector3d horizontalMovement = Vector3d.from(movement.getX(), 0, movement.getZ());
+            Vector3d stepUpMovement = correctMovementForCollisions(horizontalMovement.up(stepUp), boundingBox, checkWorld);
+
+            BoundingBox stretchedBoundingBox = boundingBox.clone();
+            stretchedBoundingBox.extend(horizontalMovement);
+            double maxStepUp = correctMovementForCollisions(Vector3d.from(0, stepUp, 0), stretchedBoundingBox, checkWorld).getY();
+            if (maxStepUp < stepUp) { // The player collided with a block above them
+                boundingBox.translate(0, maxStepUp, 0);
+                Vector3d adjustedStepUpMovement = correctMovementForCollisions(horizontalMovement, boundingBox, checkWorld);
+                boundingBox.translate(0, -maxStepUp, 0);
+
+                if (squaredHorizontalLength(adjustedStepUpMovement) > squaredHorizontalLength(stepUpMovement)) {
+                    stepUpMovement = adjustedStepUpMovement.up(maxStepUp);
+                }
+            }
+
+            if (squaredHorizontalLength(stepUpMovement) > squaredHorizontalLength(adjustedMovement)) {
+                boundingBox.translate(stepUpMovement.getX(), stepUpMovement.getY(), stepUpMovement.getZ());
+                // Apply the player's remaining vertical movement
+                double verticalMovement = correctMovementForCollisions(Vector3d.from(0, movement.getY() - stepUpMovement.getY(), 0), boundingBox, checkWorld).getY();
+                boundingBox.translate(-stepUpMovement.getX(), -stepUpMovement.getY(), -stepUpMovement.getZ());
+
+                stepUpMovement = stepUpMovement.up(verticalMovement);
+                adjustedMovement = stepUpMovement;
+            }
+        }
+        return adjustedMovement;
     }
 
     private double squaredHorizontalLength(Vector3d vector) {

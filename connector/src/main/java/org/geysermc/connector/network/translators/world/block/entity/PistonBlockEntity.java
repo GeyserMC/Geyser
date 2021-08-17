@@ -52,10 +52,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
-/**
- * Anything that interacts with pistons should be synchronized with
- * the PistonCache object in GeyserSession.
- */
 public class PistonBlockEntity {
     private final GeyserSession session;
     @Getter
