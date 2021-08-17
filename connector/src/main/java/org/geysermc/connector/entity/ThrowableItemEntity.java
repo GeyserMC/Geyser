@@ -60,13 +60,13 @@ public class ThrowableItemEntity extends ThrowableEntity {
                 updateBedrockMetadata(session);
             }
         }
+        age++;
     }
 
     @Override
     public void tick(GeyserSession session) {
         checkVisibility(session);
         super.tick(session);
-        age++;
     }
 
     @Override
