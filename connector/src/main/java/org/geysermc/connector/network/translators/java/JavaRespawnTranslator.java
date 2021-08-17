@@ -49,11 +49,9 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
         entity.setHealth(entity.getMaxHealth());
         entity.getAttributes().put(GeyserAttributeType.HEALTH, entity.createHealthAttribute());
 
-        session.addInventoryTask(() -> {
-            session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
-            session.setOpenInventory(null);
-            session.setClosingInventory(false);
-        });
+        session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
+        session.setOpenInventory(null);
+        session.setClosingInventory(false);
 
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         playerGameTypePacket.setGamemode(packet.getGamemode().ordinal());

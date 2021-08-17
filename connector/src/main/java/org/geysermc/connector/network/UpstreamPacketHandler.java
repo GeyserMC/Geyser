@@ -53,6 +53,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     @Override
+    boolean defaultHandler(BedrockPacket packet) {
+        return translateAndDefault(packet);
+    }
+
+    @Override
     public boolean handle(LoginPacket loginPacket) {
         BedrockPacketCodec packetCodec = BedrockProtocol.getBedrockCodec(loginPacket.getProtocolVersion());
         if (packetCodec == null) {
@@ -156,7 +161,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
-        session.getFormCache().handleResponse(packet);
+        session.getEventLoop().execute(() -> session.getFormCache().handleResponse(packet));
         return true;
     }
 
@@ -206,11 +211,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             session.sendUpstreamPacket(titlePacket);
         }
 
-        return translateAndDefault(packet);
-    }
-
-    @Override
-    boolean defaultHandler(BedrockPacket packet) {
         return translateAndDefault(packet);
     }
 
