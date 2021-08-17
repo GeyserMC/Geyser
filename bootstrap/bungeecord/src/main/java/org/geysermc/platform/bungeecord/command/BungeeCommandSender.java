@@ -57,8 +57,7 @@ public class BungeeCommandSender implements CommandSender {
 
     @Override
     public String getLocale() {
-        if (handle instanceof ProxiedPlayer) {
-            ProxiedPlayer player = (ProxiedPlayer) handle;
+        if (handle instanceof ProxiedPlayer player) {
             String locale = player.getLocale().getLanguage() + "_" + player.getLocale().getCountry();
             return LanguageUtils.formatLocale(locale);
         }

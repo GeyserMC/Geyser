@@ -58,22 +58,20 @@ public class SoundEffectsRegistryLoader extends EffectRegistryLoader<Map<SoundEf
                 SoundEffect javaEffect = null;
                 Effect effect = null;
                 switch (type) {
-                    case "soundLevel": {
+                    case "soundLevel" -> {
                         javaEffect = SoundEffect.valueOf(entry.getKey());
                         LevelEventType levelEventType = LevelEventType.valueOf(node.get("name").asText());
                         int data = node.has("data") ? node.get("data").intValue() : 0;
                         effect = new SoundLevelEffect(levelEventType, data);
-                        break;
                     }
-                    case "soundEvent": {
+                    case "soundEvent" -> {
                         javaEffect = SoundEffect.valueOf(entry.getKey());
                         SoundEvent soundEvent = SoundEvent.valueOf(node.get("name").asText());
                         String identifier = node.has("identifier") ? node.get("identifier").asText() : "";
                         int extraData = node.has("extraData") ? node.get("extraData").intValue() : -1;
                         effect = new SoundEventEffect(soundEvent, identifier, extraData);
-                        break;
                     }
-                    case "playSound": {
+                    case "playSound" -> {
                         javaEffect = SoundEffect.valueOf(entry.getKey());
                         String name = node.get("name").asText();
                         float volume = node.has("volume") ? node.get("volume").floatValue() : 1.0f;
@@ -82,7 +80,6 @@ public class SoundEffectsRegistryLoader extends EffectRegistryLoader<Map<SoundEf
                         float pitchAdd = node.has("pitch_add") ? node.get("pitch_add").floatValue() : 0.0f;
                         boolean relative = !node.has("relative") || node.get("relative").booleanValue();
                         effect = new PlaySoundEffect(name, volume, pitchSub, pitchMul, pitchAdd, relative);
-                        break;
                     }
                 }
                 if (javaEffect != null) {

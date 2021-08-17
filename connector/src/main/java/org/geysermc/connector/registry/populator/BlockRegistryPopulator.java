@@ -135,15 +135,9 @@ public class BlockRegistryPopulator {
                 }
 
                 switch (javaId) {
-                    case "minecraft:air":
-                        airRuntimeId = bedrockRuntimeId;
-                        break;
-                    case "minecraft:water[level=0]":
-                        waterRuntimeId = bedrockRuntimeId;
-                        break;
-                    case "minecraft:command_block[conditional=false,facing=north]":
-                        commandBlockRuntimeId = bedrockRuntimeId;
-                        break;
+                    case "minecraft:air" -> airRuntimeId = bedrockRuntimeId;
+                    case "minecraft:water[level=0]" -> waterRuntimeId = bedrockRuntimeId;
+                    case "minecraft:command_block[conditional=false,facing=north]" -> commandBlockRuntimeId = bedrockRuntimeId;
                 }
 
                 boolean waterlogged = entry.getKey().contains("waterlogged=true")
@@ -346,14 +340,9 @@ public class BlockRegistryPopulator {
                 Map.Entry<String, JsonNode> stateEntry = statesIterator.next();
                 JsonNode stateValue = stateEntry.getValue();
                 switch (stateValue.getNodeType()) {
-                    case BOOLEAN:
-                        statesBuilder.putBoolean(stateEntry.getKey(), stateValue.booleanValue());
-                        continue;
-                    case STRING:
-                        statesBuilder.putString(stateEntry.getKey(), stateValue.textValue());
-                        continue;
-                    case NUMBER:
-                        statesBuilder.putInt(stateEntry.getKey(), stateValue.intValue());
+                    case BOOLEAN -> statesBuilder.putBoolean(stateEntry.getKey(), stateValue.booleanValue());
+                    case STRING -> statesBuilder.putString(stateEntry.getKey(), stateValue.textValue());
+                    case NUMBER -> statesBuilder.putInt(stateEntry.getKey(), stateValue.intValue());
                 }
             }
         }

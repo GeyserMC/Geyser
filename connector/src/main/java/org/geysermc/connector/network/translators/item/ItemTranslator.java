@@ -299,8 +299,7 @@ public abstract class ItemTranslator {
             return ((StringTag) tag).getValue();
         }
 
-        if (tag instanceof ListTag) {
-            ListTag listTag = (ListTag) tag;
+        if (tag instanceof ListTag listTag) {
 
             List<Object> tagList = new ArrayList<>();
             for (Tag value : listTag) {
@@ -313,8 +312,7 @@ public abstract class ItemTranslator {
             return new NbtList(type, tagList);
         }
 
-        if (tag instanceof CompoundTag) {
-            CompoundTag compoundTag = (CompoundTag) tag;
+        if (tag instanceof CompoundTag compoundTag) {
             return translateNbtToBedrock(compoundTag);
         }
 
@@ -390,8 +388,7 @@ public abstract class ItemTranslator {
             return new ListTag(name, tags);
         }
 
-        if (object instanceof NbtMap) {
-            NbtMap map = (NbtMap) object;
+        if (object instanceof NbtMap map) {
             return translateToJavaNBT(name, map);
         }
 

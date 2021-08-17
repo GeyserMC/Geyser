@@ -49,7 +49,7 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
 
         for (PlayerListEntry entry : packet.getEntries()) {
             switch (packet.getAction()) {
-                case ADD_PLAYER:
+                case ADD_PLAYER -> {
                     PlayerEntity playerEntity;
                     boolean self = entry.getProfile().getId().equals(session.getPlayerEntity().getUuid());
 
@@ -90,8 +90,8 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
 
                         translate.getEntries().add(playerListEntry);
                     }
-                    break;
-                case REMOVE_PLAYER:
+                }
+                case REMOVE_PLAYER -> {
                     // As the player entity is no longer present, we can remove the entry
                     PlayerEntity entity = session.getEntityCache().removePlayerEntity(entry.getProfile().getId());
                     if (entity != null) {
@@ -105,7 +105,7 @@ public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayer
                     } else {
                         translate.getEntries().add(new PlayerListPacket.Entry(entry.getProfile().getId()));
                     }
-                    break;
+                }
             }
         }
 

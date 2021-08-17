@@ -49,10 +49,8 @@ public class BookPagesTranslator extends NbtItemStackTranslator {
         List<Tag> pages = new ArrayList<>();
         ListTag pagesTag = itemTag.get("pages");
         for (Tag tag : pagesTag.getValue()) {
-            if (!(tag instanceof StringTag))
+            if (!(tag instanceof StringTag textTag))
                 continue;
-
-            StringTag textTag = (StringTag) tag;
 
             CompoundTag pageTag = new CompoundTag("");
             pageTag.put(new StringTag("photoname", ""));
@@ -72,10 +70,8 @@ public class BookPagesTranslator extends NbtItemStackTranslator {
         List<Tag> pages = new ArrayList<>();
         ListTag pagesTag = itemTag.get("pages");
         for (Tag tag : pagesTag.getValue()) {
-            if (!(tag instanceof CompoundTag))
+            if (!(tag instanceof CompoundTag pageTag))
                 continue;
-
-            CompoundTag pageTag = (CompoundTag) tag;
 
             StringTag textTag = pageTag.get("text");
             pages.add(new StringTag("", textTag.getValue()));

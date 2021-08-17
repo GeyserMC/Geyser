@@ -106,14 +106,11 @@ public class DimensionUtils {
      * @return Converted Bedrock edition dimension ID
      */
     public static int javaToBedrock(String javaDimension) {
-        switch (javaDimension) {
-            case NETHER:
-                return BEDROCK_NETHER_ID;
-            case THE_END:
-                return 2;
-            default:
-                return 0;
-        }
+        return switch (javaDimension) {
+            case NETHER -> BEDROCK_NETHER_ID;
+            case THE_END -> 2;
+            default -> 0;
+        };
     }
 
     /**

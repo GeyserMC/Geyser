@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.world.block;
 import com.fasterxml.jackson.databind.JsonNode;
 import it.unimi.dsi.fastutil.ints.*;
 import org.geysermc.connector.registry.BlockRegistries;
+import org.geysermc.connector.registry.type.BlockMapping;
 
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -134,21 +135,12 @@ public class BlockStateValues {
 
         if (javaId.contains("wall_skull") || javaId.contains("wall_head")) {
             String direction = javaId.substring(javaId.lastIndexOf("facing=") + 7);
-            int rotation = 0;
-            switch (direction.substring(0, direction.length() - 1)) {
-                case "north":
-                    rotation = 180;
-                    break;
-                case "south":
-                    rotation = 0;
-                    break;
-                case "west":
-                    rotation = 90;
-                    break;
-                case "east":
-                    rotation = 270;
-                    break;
-            }
+            int rotation = switch (direction.substring(0, direction.length() - 1)) {
+                case "north" -> 180;
+                case "west" -> 90;
+                case "east" -> 270;
+                default -> 0; // Also south
+            };
             SKULL_WALL_DIRECTIONS.put(javaBlockState, rotation);
         }
 
@@ -311,16 +303,12 @@ public class BlockStateValues {
      * @return The block's slipperiness
      */
     public static float getSlipperiness(int state) {
-        String blockIdentifier = BlockRegistries.JAVA_BLOCKS.get(state).getJavaIdentifier();
-        switch (blockIdentifier) {
-            case "minecraft:slime_block":
-                return 0.8f;
-            case "minecraft:ice":
-            case "minecraft:packed_ice":
-                return 0.98f;
-            case "minecraft:blue_ice":
-                return 0.989f;
-        }
-        return 0.6f;
+        String blockIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.AIR).getJavaIdentifier();
+        return switch (blockIdentifier) {
+            case "minecraft:slime_block" -> 0.8f;
+            case "minecraft:ice", "minecraft:packed_ice" -> 0.98f;
+            case "minecraft:blue_ice" -> 0.989f;
+            default -> 0.6f;
+        };
     }
 }

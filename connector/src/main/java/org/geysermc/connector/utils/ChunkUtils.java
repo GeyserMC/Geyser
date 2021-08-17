@@ -263,8 +263,7 @@ public class ChunkUtils {
                 tagName = "Empty";
                 // Sometimes legacy tags have their ID be a StringTag with empty value
                 for (Tag subTag : tag) {
-                    if (subTag instanceof StringTag) {
-                        StringTag stringTag = (StringTag) subTag;
+                    if (subTag instanceof StringTag stringTag) {
                         if (stringTag.getValue().isEmpty()) {
                             tagName = stringTag.getName();
                             break;

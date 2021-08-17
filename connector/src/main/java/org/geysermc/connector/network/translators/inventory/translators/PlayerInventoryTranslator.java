@@ -218,8 +218,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         IntSet affectedSlots = new IntOpenHashSet();
         for (StackRequestActionData action : request.getActions()) {
             switch (action.getType()) {
-                case TAKE:
-                case PLACE: {
+                case TAKE, PLACE -> {
                     TransferStackRequestActionData transferAction = (TransferStackRequestActionData) action;
                     if (!(checkNetId(session, inventory, transferAction.getSource()) && checkNetId(session, inventory, transferAction.getDestination()))) {
                         return rejectRequest(request);
@@ -265,9 +264,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         affectedSlots.add(sourceSlot);
                         affectedSlots.add(destSlot);
                     }
-                    break;
                 }
-                case SWAP: {
+                case SWAP -> {
                     SwapStackRequestActionData swapAction = (SwapStackRequestActionData) action;
                     if (!(checkNetId(session, inventory, swapAction.getSource()) && checkNetId(session, inventory, swapAction.getDestination()))) {
                         return rejectRequest(request);
@@ -306,9 +304,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         affectedSlots.add(sourceSlot);
                         affectedSlots.add(destSlot);
                     }
-                    break;
                 }
-                case DROP: {
+                case DROP -> {
                     DropStackRequestActionData dropAction = (DropStackRequestActionData) action;
                     if (!checkNetId(session, inventory, dropAction.getSource())) {
                         return rejectRequest(request);
@@ -334,9 +331,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     session.sendDownstreamPacket(creativeDropPacket);
 
                     sourceItem.sub(dropAction.getCount());
-                    break;
                 }
-                case DESTROY: {
+                case DESTROY -> {
                     // Only called when a creative client wants to destroy an item... I think - Camotoy
                     DestroyStackRequestActionData destroyAction = (DestroyStackRequestActionData) action;
                     if (!checkNetId(session, inventory, destroyAction.getSource())) {
@@ -356,11 +352,11 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         // Just sync up the item on our end, since the server doesn't care what's in our cursor
                         playerInv.getCursor().sub(destroyAction.getCount());
                     }
-                    break;
                 }
-                default:
+                default -> {
                     session.getConnector().getLogger().error("Unknown crafting state induced by " + session.getName());
                     return rejectRequest(request);
+                }
             }
         }
         for (int slot : affectedSlots) {

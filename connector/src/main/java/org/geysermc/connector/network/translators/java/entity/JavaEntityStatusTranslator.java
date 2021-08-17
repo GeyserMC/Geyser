@@ -202,8 +202,7 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 session.sendUpstreamPacket(equipmentBreakPacket);
                 return;
             case PLAYER_SWAP_SAME_ITEM: // Not just used for players
-                if (entity instanceof LivingEntity) {
-                    LivingEntity livingEntity = (LivingEntity) entity;
+                if (entity instanceof LivingEntity livingEntity) {
                     ItemData newMainHand = livingEntity.getOffHand();
                     livingEntity.setOffHand(livingEntity.getHand());
                     livingEntity.setHand(newMainHand);

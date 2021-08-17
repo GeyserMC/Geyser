@@ -41,20 +41,12 @@ public class JavaChatTranslator extends PacketTranslator<ServerChatPacket> {
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");
         textPacket.setXuid(session.getAuthData().getXboxUUID());
-        switch (packet.getType()) {
-            case CHAT:
-                textPacket.setType(TextPacket.Type.CHAT);
-                break;
-            case SYSTEM:
-                textPacket.setType(TextPacket.Type.SYSTEM);
-                break;
-            case NOTIFICATION:
-                textPacket.setType(TextPacket.Type.TIP);
-                break;
-            default:
-                textPacket.setType(TextPacket.Type.RAW);
-                break;
-        }
+        textPacket.setType(switch (packet.getType()) {
+            case CHAT -> TextPacket.Type.CHAT;
+            case SYSTEM -> TextPacket.Type.SYSTEM;
+            case NOTIFICATION -> TextPacket.Type.TIP;
+            default -> TextPacket.Type.RAW;
+        });
 
         textPacket.setNeedsTranslation(false);
         textPacket.setMessage(MessageTranslator.convertMessage(packet.getMessage(), session.getLocale()));

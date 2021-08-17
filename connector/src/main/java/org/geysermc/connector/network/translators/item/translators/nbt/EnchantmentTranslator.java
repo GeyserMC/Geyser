@@ -82,10 +82,9 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
         List<Tag> enchantments = new ArrayList<>();
         List<Tag> storedEnchantments = new ArrayList<>();
         for (Tag value : enchantmentTag.getValue()) {
-            if (!(value instanceof CompoundTag))
+            if (!(value instanceof CompoundTag tagValue))
                 continue;
 
-            CompoundTag tagValue = (CompoundTag) value;
             ShortTag bedrockId = tagValue.get("id");
             if (bedrockId == null) continue;
 

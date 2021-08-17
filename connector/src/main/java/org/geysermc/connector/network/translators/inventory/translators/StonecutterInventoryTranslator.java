@@ -61,10 +61,9 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
     public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         // TODO: Also surely to change in the future
         StackRequestActionData data = request.getActions()[1];
-        if (!(data instanceof CraftResultsDeprecatedStackRequestActionData)) {
+        if (!(data instanceof CraftResultsDeprecatedStackRequestActionData craftData)) {
             return rejectRequest(request);
         }
-        CraftResultsDeprecatedStackRequestActionData craftData = (CraftResultsDeprecatedStackRequestActionData) data;
 
         StonecutterContainer container = (StonecutterContainer) inventory;
         // Get the ID of the item we are cutting
@@ -94,14 +93,11 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
 
     @Override
     public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
-        switch (slotInfoData.getContainer()) {
-            case STONECUTTER_INPUT:
-                return 0;
-            case STONECUTTER_RESULT:
-            case CREATIVE_OUTPUT:
-                return 1;
-        }
-        return super.bedrockSlotToJava(slotInfoData);
+        return switch (slotInfoData.getContainer()) {
+            case STONECUTTER_INPUT -> 0;
+            case STONECUTTER_RESULT, CREATIVE_OUTPUT -> 1;
+            default -> super.bedrockSlotToJava(slotInfoData);
+        };
     }
 
     @Override

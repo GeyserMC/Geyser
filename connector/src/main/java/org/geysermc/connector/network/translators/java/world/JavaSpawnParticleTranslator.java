@@ -81,7 +81,7 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
      */
     private Function<Vector3f, BedrockPacket> createParticle(GeyserSession session, Particle particle) {
         switch (particle.getType()) {
-            case BLOCK: {
+            case BLOCK -> {
                 int blockState = session.getBlockMappings().getBedrockBlockId(((BlockParticleData) particle.getData()).getBlockState());
                 return (position) -> {
                     LevelEventPacket packet = new LevelEventPacket();
@@ -91,7 +91,7 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                     return packet;
                 };
             }
-            case FALLING_DUST: {
+            case FALLING_DUST -> {
                 int blockState = session.getBlockMappings().getBedrockBlockId(((FallingDustParticleData) particle.getData()).getBlockState());
                 return (position) -> {
                     LevelEventPacket packet = new LevelEventPacket();
@@ -103,7 +103,7 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                     return packet;
                 };
             }
-            case ITEM: {
+            case ITEM -> {
                 ItemStack javaItem = ((ItemParticleData) particle.getData()).getItemStack();
                 ItemData bedrockItem = ItemTranslator.translateToBedrock(session, javaItem);
                 int data = bedrockItem.getId() << 16 | bedrockItem.getDamage();
@@ -115,8 +115,7 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                     return packet;
                 };
             }
-            case DUST:
-            case DUST_COLOR_TRANSITION: { //TODO
+            case DUST, DUST_COLOR_TRANSITION -> { //TODO
                 DustParticleData data = (DustParticleData) particle.getData();
                 int r = (int) (data.getRed() * 255);
                 int g = (int) (data.getGreen() * 255);
@@ -130,7 +129,7 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                     return packet;
                 };
             }
-            default: {
+            default -> {
                 ParticleMapping particleMapping = Registries.PARTICLES.get(particle.getType());
                 if (particleMapping == null) { //TODO ensure no particle can be null
                     return null;

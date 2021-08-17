@@ -15,8 +15,8 @@
         <outputName>Geyser</outputName>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>16</maven.compiler.source>
+        <maven.compiler.target>16</maven.compiler.target>
     </properties>
 
     <organization>
@@ -36,6 +36,14 @@
         <module>common</module>
         <module>connector</module>
     </modules>
+
+    <pluginRepositories>
+        <!-- Remove once maven-shade-plugin gets a stable release that supports Java 16 -->
+        <pluginRepository>
+            <id>apache.snapshots</id>
+            <url>https://repository.apache.org/snapshots/</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <repositories>
         <repository>

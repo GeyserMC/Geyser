@@ -75,18 +75,10 @@ public class DoorCollision extends BlockCollision {
             int z = blockPos.getZ();
 
             switch (facing) {
-                case 1: // North
-                    playerCollision.setMiddleZ(z + 0.5125);
-                    break;
-                case 2: // East
-                    playerCollision.setMiddleX(x + 0.5125);
-                    break;
-                case 3: // South
-                    playerCollision.setMiddleZ(z + 0.4875);
-                    break;
-                case 4: // West
-                    playerCollision.setMiddleX(x + 0.4875);
-                    break;
+                case 1 -> playerCollision.setMiddleZ(z + 0.5125); // North
+                case 2 -> playerCollision.setMiddleX(x + 0.5125); // East
+                case 3 -> playerCollision.setMiddleZ(z + 0.4875); // South
+                case 4 -> playerCollision.setMiddleX(x + 0.4875); // West
             }
         }
 

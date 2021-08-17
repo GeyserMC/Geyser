@@ -109,8 +109,7 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
             if (output == null || output.getId() == 0) continue; // If items make air we don't want that
 
             boolean isNotAllAir = false; // Check for all-air recipes
-            if (recipe instanceof ShapedRecipe) {
-                ShapedRecipe shapedRecipe = (ShapedRecipe) recipe;
+            if (recipe instanceof ShapedRecipe shapedRecipe) {
                 int size = shapedRecipe.getShape().length * shapedRecipe.getShape()[0].length();
                 Ingredient[] ingredients = new Ingredient[size];
                 ItemData[] input = new ItemData[size];
@@ -134,8 +133,7 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
                 craftingDataPacket.getCraftingData().add(CraftingData.fromShaped(uuid.toString(),
                         shapedRecipe.getShape()[0].length(), shapedRecipe.getShape().length, Arrays.asList(input),
                         Collections.singletonList(output), uuid, "crafting_table", 0, netId++));
-            } else if (recipe instanceof ShapelessRecipe) {
-                ShapelessRecipe shapelessRecipe = (ShapelessRecipe) recipe;
+            } else if (recipe instanceof ShapelessRecipe shapelessRecipe) {
                 Ingredient[] ingredients = new Ingredient[shapelessRecipe.getIngredientList().size()];
                 ItemData[] input = new ItemData[shapelessRecipe.getIngredientList().size()];
 

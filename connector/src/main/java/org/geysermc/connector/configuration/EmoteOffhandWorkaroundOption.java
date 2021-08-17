@@ -40,14 +40,11 @@ public enum EmoteOffhandWorkaroundOption {
         @Override
         public EmoteOffhandWorkaroundOption deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
             String value = p.getValueAsString();
-            switch (value) {
-                case "no-emotes":
-                    return NO_EMOTES;
-                case "emotes-and-offhand":
-                    return EMOTES_AND_OFFHAND;
-                default:
-                    return DISABLED;
-            }
+            return switch (value) {
+                case "no-emotes" -> NO_EMOTES;
+                case "emotes-and-offhand" -> EMOTES_AND_OFFHAND;
+                default -> DISABLED;
+            };
         }
     }
 }

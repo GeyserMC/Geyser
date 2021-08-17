@@ -48,8 +48,7 @@ public class EnderCrystalEntity extends Entity {
         // Show beam
         // Usually performed client-side on Bedrock except for Ender Dragon respawn event
         if (entityMetadata.getId() == 8) {
-            if (entityMetadata.getValue() instanceof Position) {
-                Position pos = (Position) entityMetadata.getValue();
+            if (entityMetadata.getValue() instanceof Position pos) {
                 metadata.put(EntityData.BLOCK_TARGET, Vector3i.from(pos.getX(), pos.getY(), pos.getZ()));
             } else {
                 metadata.put(EntityData.BLOCK_TARGET, Vector3i.ZERO);

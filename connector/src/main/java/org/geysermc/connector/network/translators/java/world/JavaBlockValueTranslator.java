@@ -49,8 +49,7 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
         BlockEventPacket blockEventPacket = new BlockEventPacket();
         blockEventPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(),
                 packet.getPosition().getY(), packet.getPosition().getZ()));
-        if (packet.getValue() instanceof ChestValue) {
-            ChestValue value = (ChestValue) packet.getValue() ;
+        if (packet.getValue() instanceof ChestValue value) {
             blockEventPacket.setEventType(1);
             blockEventPacket.setEventData(value.getViewers() > 0 ? 1 : 0);
             session.sendUpstreamPacket(blockEventPacket);
@@ -76,9 +75,8 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
         } else if (packet.getValue() instanceof EndGatewayValue) {
             blockEventPacket.setEventType(1);
             session.sendUpstreamPacket(blockEventPacket);
-        } else if (packet.getValue() instanceof GenericBlockValue && packet.getBlockId() == BlockStateValues.JAVA_BELL_ID) {
+        } else if (packet.getValue() instanceof GenericBlockValue bellValue && packet.getBlockId() == BlockStateValues.JAVA_BELL_ID) {
             // Bells - needed to show ring from other players
-            GenericBlockValue bellValue = (GenericBlockValue) packet.getValue();
             Position position = packet.getPosition();
 
             BlockEntityDataPacket blockEntityPacket = new BlockEntityDataPacket();
@@ -89,20 +87,12 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             builder.putInt("y", position.getY());
             builder.putInt("z", position.getZ());
             builder.putString("id", "Bell");
-            int bedrockRingDirection;
-            switch (bellValue.getValue()) {
-                case 3: // north
-                    bedrockRingDirection = 0;
-                    break;
-                case 4: // east
-                    bedrockRingDirection = 1;
-                    break;
-                case 5: // west
-                    bedrockRingDirection = 3;
-                    break;
-                default: // south (2) is identical
-                    bedrockRingDirection = bellValue.getValue();
-            }
+            int bedrockRingDirection = switch (bellValue.getValue()) {
+                case 3 -> 0; // north
+                case 4 -> 1; // east
+                case 5 -> 3;// west
+                default -> bellValue.getValue(); // south (2) is identical
+            };
             builder.putInt("Direction", bedrockRingDirection);
             builder.putByte("Ringing", (byte) 1);
             builder.putInt("Ticks", 0);
