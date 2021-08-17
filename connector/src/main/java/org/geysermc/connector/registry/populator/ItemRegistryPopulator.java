@@ -249,24 +249,25 @@ public class ItemRegistryPopulator {
             javaOnlyItems.addAll(palette.getValue().getAdditionalTranslatedItems().keySet());
 
             for (Map.Entry<String, GeyserMappingItem> entry : items.entrySet()) {
+                String javaIdentifier = entry.getKey().intern();
                 GeyserMappingItem mappingItem;
-                String replacementItem = palette.getValue().getAdditionalTranslatedItems().get(entry.getKey());
+                String replacementItem = palette.getValue().getAdditionalTranslatedItems().get(javaIdentifier);
                 if (replacementItem != null) {
                     mappingItem = items.get(replacementItem);
                 } else {
                     // This items has a mapping specifically for this version of the game
                     mappingItem = entry.getValue();
                 }
-                if (entry.getKey().equals("minecraft:sculk_sensor") && GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
+                if (javaIdentifier.equals("minecraft:sculk_sensor") && GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
                     mappingItem.setBedrockIdentifier("minecraft:sculk_sensor");
                 }
 
-                if (usingFurnaceMinecart && entry.getKey().equals("minecraft:furnace_minecart")) {
+                if (usingFurnaceMinecart && javaIdentifier.equals("minecraft:furnace_minecart")) {
                     javaFurnaceMinecartId = itemIndex;
                     itemIndex++;
                     continue;
                 }
-                String bedrockIdentifier = mappingItem.getBedrockIdentifier();
+                String bedrockIdentifier = mappingItem.getBedrockIdentifier().intern();
                 int bedrockId = bedrockIdentifierToId.getInt(bedrockIdentifier);
                 if (bedrockId == Short.MIN_VALUE) {
                     throw new RuntimeException("Missing Bedrock ID in mappings: " + bedrockIdentifier);
@@ -389,7 +390,7 @@ public class ItemRegistryPopulator {
                 }
 
                 ItemMapping.ItemMappingBuilder mappingBuilder = ItemMapping.builder()
-                        .javaIdentifier(entry.getKey())
+                        .javaIdentifier(javaIdentifier)
                         .javaId(itemIndex)
                         .bedrockIdentifier(bedrockIdentifier)
                         .bedrockId(bedrockId)
@@ -399,14 +400,14 @@ public class ItemRegistryPopulator {
 
                 if (mappingItem.getToolType() != null) {
                     if (mappingItem.getToolTier() != null) {
-                        mappingBuilder = mappingBuilder.toolType(mappingItem.getToolType())
-                                .toolTier(mappingItem.getToolTier());
+                        mappingBuilder = mappingBuilder.toolType(mappingItem.getToolType().intern())
+                                .toolTier(mappingItem.getToolTier().intern());
                     } else {
-                        mappingBuilder = mappingBuilder.toolType(mappingItem.getToolType())
+                        mappingBuilder = mappingBuilder.toolType(mappingItem.getToolType().intern())
                                 .toolTier("");
                     }
                 }
-                if (javaOnlyItems.contains(entry.getKey())) {
+                if (javaOnlyItems.contains(javaIdentifier)) {
                     // These items don't exist on Bedrock, so set up a variable that indicates they should have custom names
                     mappingBuilder = mappingBuilder.translationString((bedrockBlockId != -1 ? "block." : "item.") + entry.getKey().replace(":", "."));
                     GeyserConnector.getInstance().getLogger().debug("Adding " + entry.getKey() + " as an item that needs to be translated.");
@@ -414,11 +415,11 @@ public class ItemRegistryPopulator {
 
                 ItemMapping mapping = mappingBuilder.build();
 
-                if (entry.getKey().contains("boat")) {
+                if (javaIdentifier.contains("boat")) {
                     boats.add(bedrockId);
-                } else if (entry.getKey().contains("bucket") && !entry.getKey().contains("milk")) {
+                } else if (javaIdentifier.contains("bucket") && !javaIdentifier.contains("milk")) {
                     buckets.add(bedrockId);
-                } else if (entry.getKey().contains("_carpet") && !entry.getKey().contains("moss")) {
+                } else if (javaIdentifier.contains("_carpet") && !javaIdentifier.contains("moss")) {
                     // This should be the numerical order Java sends as an integer value for llamas
                     carpets.add(ItemData.builder()
                             .id(mapping.getBedrockId())
@@ -426,18 +427,18 @@ public class ItemRegistryPopulator {
                             .count(1)
                             .blockRuntimeId(mapping.getBedrockBlockId())
                             .build());
-                } else if (entry.getKey().startsWith("minecraft:music_disc_")) {
+                } else if (javaIdentifier.startsWith("minecraft:music_disc_")) {
                     // The Java record level event uses the item ID as the "key" to play the record
                     Registries.RECORDS.register(itemIndex, SoundEvent.valueOf("RECORD_" +
-                            entry.getKey().replace("minecraft:music_disc_", "").toUpperCase(Locale.ENGLISH)));
-                } else if (entry.getKey().endsWith("_spawn_egg")) {
+                            javaIdentifier.replace("minecraft:music_disc_", "").toUpperCase(Locale.ENGLISH).intern()));
+                } else if (javaIdentifier.endsWith("_spawn_egg")) {
                     spawnEggs.add(mapping.getBedrockId());
                 }
 
                 mappings.put(itemIndex, mapping);
-                identifierToMapping.put(entry.getKey(), mapping);
+                identifierToMapping.put(javaIdentifier, mapping);
 
-                itemNames.add(entry.getKey());
+                itemNames.add(javaIdentifier);
 
                 itemIndex++;
             }

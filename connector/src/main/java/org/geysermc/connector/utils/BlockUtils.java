@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.utils;
 
-import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3d;
@@ -172,8 +171,8 @@ public class BlockUtils {
                     false, false);
         }
 
-        hasteLevel = Math.max(session.getEffectCache().getEffectLevel(Effect.FASTER_DIG), session.getEffectCache().getEffectLevel(Effect.CONDUIT_POWER));
-        miningFatigueLevel = session.getEffectCache().getEffectLevel(Effect.SLOWER_DIG);
+        hasteLevel = Math.max(session.getEffectCache().getHaste(), session.getEffectCache().getConduitPower());
+        miningFatigueLevel = session.getEffectCache().getMiningFatigue();
 
         boolean isInWater = session.getCollisionManager().isPlayerInWater();
 

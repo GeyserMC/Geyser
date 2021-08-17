@@ -211,6 +211,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                 return CommandParam.FLOAT;
 
             case INTEGER:
+            case LONG:
                 return CommandParam.INT;
 
             case ENTITY:
@@ -294,6 +295,11 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
         public void buildChildren(GeyserSession session, CommandNode[] allNodes) {
             for (int paramID : paramNode.getChildIndices()) {
                 CommandNode paramNode = allNodes[paramID];
+
+                if (paramNode == this.paramNode) {
+                    // Fixes a StackOverflowError when an argument has itself as a child
+                    continue;
+                }
 
                 if (paramNode.getParser() == null) {
                     boolean foundCompatible = false;

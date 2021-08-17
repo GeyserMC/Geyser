@@ -13,8 +13,8 @@
     <properties>
         <adventure.version>4.8.0</adventure.version>
         <fastutil.version>8.5.2</fastutil.version>
-        <jackson.version>2.10.2</jackson.version>
-        <netty.version>4.1.59.Final</netty.version>
+        <jackson.version>2.12.4</jackson.version>
+        <netty.version>4.1.66.Final</netty.version>
     </properties>
 
     <dependencies>
@@ -71,6 +71,10 @@
                     <groupId>com.nukkitx.network</groupId>
                     <artifactId>raknet</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.nukkitx</groupId>
+                    <artifactId>nbt</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -84,6 +88,13 @@
                     <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx</groupId>
+            <artifactId>nbt</artifactId>
+            <!-- Used for key/value interning -->
+            <version>2.1.0</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
@@ -136,7 +147,7 @@
         <dependency>
             <groupId>com.github.GeyserMC</groupId>
             <artifactId>MCProtocolLib</artifactId>
-            <version>e427237</version>
+            <version>e17787a</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -156,7 +167,7 @@
         <dependency>
             <groupId>com.github.GeyserMC</groupId>
             <artifactId>PacketLib</artifactId>
-            <version>25eb4c4</version>
+            <version>86c9c38</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
