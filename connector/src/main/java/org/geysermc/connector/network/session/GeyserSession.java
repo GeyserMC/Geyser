@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.network.session;
 
-import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.AuthPendingException;
 import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
@@ -45,7 +44,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlaye
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
 import com.github.steveice10.mc.protocol.packet.login.client.LoginPluginResponsePacket;
-import com.github.steveice10.mc.protocol.packet.login.server.LoginSuccessPacket;
 import com.github.steveice10.packetlib.BuiltinFlags;
 import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
@@ -59,9 +57,9 @@ import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
+import io.netty.channel.EventLoop;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -95,7 +93,6 @@ import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.BlockMappings;
 import org.geysermc.connector.registry.type.ItemMappings;
 import org.geysermc.connector.skin.FloodgateSkinUploader;
-import org.geysermc.connector.skin.SkinManager;
 import org.geysermc.connector.utils.*;
 import org.geysermc.cumulus.Form;
 import org.geysermc.cumulus.util.FormBuilder;
@@ -106,7 +103,10 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
@@ -114,6 +114,10 @@ public class GeyserSession implements CommandSender {
 
     private final GeyserConnector connector;
     private final UpstreamSession upstream;
+    /**
+     * The loop where all packets and ticking is processed to prevent concurrency issues.
+     */
+    private final EventLoop eventLoop;
     private TcpClientSession downstream;
     @Setter
     private AuthData authData;
@@ -162,11 +166,6 @@ public class GeyserSession implements CommandSender {
     @Getter(AccessLevel.NONE)
     private final AtomicInteger itemNetId = new AtomicInteger(2);
 
-    @Getter(AccessLevel.NONE)
-    private final Object inventoryLock = new Object();
-    @Getter(AccessLevel.NONE)
-    private CompletableFuture<Void> inventoryFuture;
-
     @Setter
     private ScheduledFuture<?> craftingGridFuture;
 
@@ -187,13 +186,11 @@ public class GeyserSession implements CommandSender {
     @Setter
     private ItemMappings itemMappings;
 
-    private final Map<Vector3i, SkullPlayerEntity> skullCache = new ConcurrentHashMap<>();
-    private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
+    private final Map<Vector3i, SkullPlayerEntity> skullCache = new Object2ObjectOpenHashMap<>();
+    private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = new Long2ObjectOpenHashMap<>();
 
     /**
-     * Stores the differences between Java and Bedrock biome network IDs.
-     * If Java's ocean biome is 0, and Bedrock's is 0, it will not be in the list.
-     * If Java's bamboo biome is 42, and Bedrock's is 48, it will be in this list.
+     * Stores the map between Java and Bedrock biome network IDs.
      */
     private final Int2IntMap biomeTranslations = new Int2IntOpenHashMap();
 
@@ -432,9 +429,10 @@ public class GeyserSession implements CommandSender {
 
     private MinecraftProtocol protocol;
 
-    public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
+    public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession, EventLoop eventLoop) {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);
+        this.eventLoop = eventLoop;
 
         this.advancementsCache = new AdvancementsCache(this);
         this.bookEditCache = new BookEditCache(this);
@@ -453,7 +451,6 @@ public class GeyserSession implements CommandSender {
 
         this.playerInventory = new PlayerInventory();
         this.openInventory = null;
-        this.inventoryFuture = CompletableFuture.completedFuture(null);
         this.craftingRecipes = new Int2ObjectOpenHashMap<>();
         this.unlockedRecipes = new ObjectOpenHashSet<>();
         this.lastRecipeNetId = new AtomicInteger(1);
@@ -670,7 +667,7 @@ public class GeyserSession implements CommandSender {
         boolean floodgate = this.remoteAuthType == AuthType.FLOODGATE;
 
         // Start ticking
-        tickThread = connector.getGeneralThreadPool().scheduleAtFixedRate(this::tick, 50, 50, TimeUnit.MILLISECONDS);
+        tickThread = eventLoop.scheduleAtFixedRate(this::tick, 50, 50, TimeUnit.MILLISECONDS);
 
         downstream = new TcpClientSession(this.remoteAddress, this.remotePort, protocol);
         disableSrvResolving();
@@ -809,24 +806,6 @@ public class GeyserSession implements CommandSender {
             @Override
             public void packetReceived(PacketReceivedEvent event) {
                 if (!closed) {
-                    // Required, or else Floodgate players break with Bukkit chunk caching
-                    if (event.getPacket() instanceof LoginSuccessPacket) {
-                        GameProfile profile = ((LoginSuccessPacket) event.getPacket()).getProfile();
-                        playerEntity.setUsername(profile.getName());
-                        playerEntity.setUuid(profile.getId());
-
-                        // Check if they are not using a linked account
-                        if (remoteAuthType == AuthType.OFFLINE || playerEntity.getUuid().getMostSignificantBits() == 0) {
-                            SkinManager.handleBedrockSkin(playerEntity, clientData);
-                        }
-
-                        if (remoteAuthType == AuthType.FLOODGATE) {
-                            // We'll send the skin upload a bit after the handshake packet (aka this packet),
-                            // because otherwise the global server returns the data too fast.
-                            getAuthData().upload(connector);
-                        }
-                    }
-
                     PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
                 }
             }
@@ -1126,39 +1105,6 @@ public class GeyserSession implements CommandSender {
     }
 
     /**
-     * Adds a new inventory task.
-     * Inventory tasks are executed one at a time, in order.
-     *
-     * @param task the task to run
-     */
-    public void addInventoryTask(Runnable task) {
-        synchronized (inventoryLock) {
-            inventoryFuture = inventoryFuture.thenRun(task).exceptionally(throwable -> {
-                GeyserConnector.getInstance().getLogger().error("Error processing inventory task", throwable.getCause());
-                return null;
-            });
-        }
-    }
-
-    /**
-     * Adds a new inventory task with a delay.
-     * The delay is achieved by scheduling with the Geyser general thread pool.
-     * Inventory tasks are executed one at a time, in order.
-     *
-     * @param task the delayed task to run
-     * @param delayMillis delay in milliseconds
-     */
-    public void addInventoryTask(Runnable task, long delayMillis) {
-        synchronized (inventoryLock) {
-            Executor delayedExecutor = command -> GeyserConnector.getInstance().getGeneralThreadPool().schedule(command, delayMillis, TimeUnit.MILLISECONDS);
-            inventoryFuture = inventoryFuture.thenRunAsync(task, delayedExecutor).exceptionally(throwable -> {
-                GeyserConnector.getInstance().getLogger().error("Error processing inventory task", throwable.getCause());
-                return null;
-            });
-        }
-    }
-
-    /**
      * @return the next Bedrock item network ID to use for a new item
      */
     public int getNextItemNetId() {
@@ -1194,9 +1140,9 @@ public class GeyserSession implements CommandSender {
             }
         }
 
-        ObjectIterator<Int2ObjectMap.Entry<TeleportCache>> it = teleportMap.int2ObjectEntrySet().iterator();
-
         if (teleportID != -1) {
+            ObjectIterator<Int2ObjectMap.Entry<TeleportCache>> it = teleportMap.int2ObjectEntrySet().iterator();
+
             // Confirm the current teleport and any earlier ones
             while (it.hasNext()) {
                 TeleportCache entry = it.next().getValue();
@@ -1259,7 +1205,18 @@ public class GeyserSession implements CommandSender {
      * @param packet the java edition packet from MCProtocolLib
      */
     public void sendDownstreamPacket(Packet packet) {
-        if (downstream != null && (protocol.getSubProtocol().equals(SubProtocol.GAME) || packet.getClass() == LoginPluginResponsePacket.class)) {
+        if (!closed && this.downstream != null) {
+            EventLoop eventLoop = this.downstream.getChannel().eventLoop();
+            if (eventLoop.inEventLoop()) {
+                sendDownstreamPacket0(packet);
+            } else {
+                eventLoop.execute(() -> sendDownstreamPacket0(packet));
+            }
+        }
+    }
+
+    private void sendDownstreamPacket0(Packet packet) {
+        if (protocol.getSubProtocol().equals(SubProtocol.GAME) || packet.getClass() == LoginPluginResponsePacket.class) {
             downstream.send(packet);
         } else {
             connector.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
