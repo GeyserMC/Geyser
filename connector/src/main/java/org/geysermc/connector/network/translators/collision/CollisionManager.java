@@ -33,7 +33,6 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
-import com.nukkitx.protocol.bedrock.v448.Bedrock_v448;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.entity.player.PlayerEntity;
@@ -286,13 +285,8 @@ public class CollisionManager {
         boolean flagsChanged;
         boolean isSneakingWithScaffolding = (touchingScaffolding || onScaffolding) && session.isSneaking();
 
-        if (session.getUpstream().getProtocolVersion() < Bedrock_v448.V448_CODEC.getProtocolVersion()) {
-            // Now no longer sent with BDS as of 1.17.10
-            flagsChanged = flags.setFlag(EntityFlag.FALL_THROUGH_SCAFFOLDING, isSneakingWithScaffolding);
-        } else {
-            flagsChanged = flags.setFlag(EntityFlag.OVER_DESCENDABLE_BLOCK, onScaffolding);
-            flagsChanged |= flags.setFlag(EntityFlag.IN_ASCENDABLE_BLOCK, touchingScaffolding);
-        }
+        flagsChanged = flags.setFlag(EntityFlag.OVER_DESCENDABLE_BLOCK, onScaffolding);
+        flagsChanged |= flags.setFlag(EntityFlag.IN_ASCENDABLE_BLOCK, touchingScaffolding);
         flagsChanged |= flags.setFlag(EntityFlag.OVER_SCAFFOLDING, isSneakingWithScaffolding);
 
         flagsChanged |= flags.setFlag(EntityFlag.IN_SCAFFOLDING, touchingScaffolding);

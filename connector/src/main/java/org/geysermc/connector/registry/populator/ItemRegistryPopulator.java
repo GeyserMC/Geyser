@@ -35,7 +35,6 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import com.nukkitx.protocol.bedrock.v440.Bedrock_v440;
 import com.nukkitx.protocol.bedrock.v448.Bedrock_v448;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -67,27 +66,6 @@ public class ItemRegistryPopulator {
         if (GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
             PALETTE_VERSIONS.put("1_17_10.caves_and_cliffs", new PaletteVersion(Bedrock_v448.V448_CODEC.getProtocolVersion(), Collections.emptyMap()));
         } else {
-            PALETTE_VERSIONS.put("1_17_0", new PaletteVersion(Bedrock_v440.V440_CODEC.getProtocolVersion(), new Object2ObjectOpenHashMap<String, String>() {
-                {
-                    put("minecraft:candle", "minecraft:sea_pickle");
-                    put("minecraft:white_candle", "minecraft:sea_pickle");
-                    put("minecraft:orange_candle", "minecraft:sea_pickle");
-                    put("minecraft:magenta_candle", "minecraft:sea_pickle");
-                    put("minecraft:light_blue_candle", "minecraft:sea_pickle");
-                    put("minecraft:yellow_candle", "minecraft:sea_pickle");
-                    put("minecraft:lime_candle", "minecraft:sea_pickle");
-                    put("minecraft:pink_candle", "minecraft:sea_pickle");
-                    put("minecraft:gray_candle", "minecraft:sea_pickle");
-                    put("minecraft:light_gray_candle", "minecraft:sea_pickle");
-                    put("minecraft:cyan_candle", "minecraft:sea_pickle");
-                    put("minecraft:purple_candle", "minecraft:sea_pickle");
-                    put("minecraft:blue_candle", "minecraft:sea_pickle");
-                    put("minecraft:brown_candle", "minecraft:sea_pickle");
-                    put("minecraft:green_candle", "minecraft:sea_pickle");
-                    put("minecraft:red_candle", "minecraft:sea_pickle");
-                    put("minecraft:black_candle", "minecraft:sea_pickle");
-                }
-            }));
             PALETTE_VERSIONS.put("1_17_10", new PaletteVersion(Bedrock_v448.V448_CODEC.getProtocolVersion(), Collections.emptyMap()));
         }
     }

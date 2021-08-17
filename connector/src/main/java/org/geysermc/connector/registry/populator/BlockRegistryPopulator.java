@@ -28,7 +28,6 @@ package org.geysermc.connector.registry.populator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import com.nukkitx.nbt.*;
-import com.nukkitx.protocol.bedrock.v440.Bedrock_v440;
 import com.nukkitx.protocol.bedrock.v448.Bedrock_v448;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
@@ -65,29 +64,9 @@ public class BlockRegistryPopulator {
     static {
         ImmutableMap.Builder<String, BiFunction<String, NbtMapBuilder, String>> stateMapperBuilder = ImmutableMap.<String, BiFunction<String, NbtMapBuilder, String>>builder()
                 .put("1_17_10", (bedrockIdentifier, statesBuilder) -> null);
-        if (!GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
-            stateMapperBuilder.put("1_17_0", (bedrockIdentifier, statesBuilder) -> {
-                if (bedrockIdentifier.contains("candle")) {
-                    // Replace candles with sea pickles or cake
-                    if (bedrockIdentifier.contains("cake")) {
-                        statesBuilder.remove("lit");
-                        statesBuilder.putInt("bite_counter", 0);
-                        return "minecraft:cake";
-                    } else {
-                        statesBuilder.put("cluster_count", statesBuilder.remove("candles"));
-                        statesBuilder.putBoolean("dead_bit", ((byte) (statesBuilder.remove("lit"))) != 0);
-                        return "minecraft:sea_pickle";
-                    }
-                }
-                return null;
-            });
-        }
         STATE_MAPPER = stateMapperBuilder.build();
 
         PALETTE_VERSIONS = new Object2IntOpenHashMap<>();
-        if (!GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
-            PALETTE_VERSIONS.put("1_17_0", Bedrock_v440.V440_CODEC.getProtocolVersion());
-        }
         PALETTE_VERSIONS.put("1_17_10", Bedrock_v448.V448_CODEC.getProtocolVersion());
     }
 
