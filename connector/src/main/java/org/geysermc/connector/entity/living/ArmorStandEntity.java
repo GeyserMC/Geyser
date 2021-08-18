@@ -116,15 +116,7 @@ public class ArmorStandEntity extends LivingEntity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         super.updateBedrockMetadata(entityMetadata, session);
-        if (entityMetadata.getId() == 0 && entityMetadata.getType() == MetadataType.BYTE) {
-            byte xd = (byte) entityMetadata.getValue();
-
-            // Check if the armour stand is invisible and store accordingly
-            if (primaryEntity) {
-                isInvisible = (xd & 0x20) == 0x20;
-                updateSecondEntityStatus(false);
-            }
-        } else if (entityMetadata.getId() == 2) {
+        if (entityMetadata.getId() == 2) {
             updateSecondEntityStatus(false);
         } else if (entityMetadata.getId() == 15 && entityMetadata.getType() == MetadataType.BYTE) {
             byte xd = (byte) entityMetadata.getValue();
@@ -239,6 +231,15 @@ public class ArmorStandEntity extends LivingEntity {
         if (positionUpdateRequired) {
             positionUpdateRequired = false;
             updatePosition();
+        }
+    }
+
+    @Override
+    protected void setInvisible(GeyserSession session, boolean value) {
+        // Check if the armour stand is invisible and store accordingly
+        if (primaryEntity) {
+            isInvisible = value;
+            updateSecondEntityStatus(false);
         }
     }
 

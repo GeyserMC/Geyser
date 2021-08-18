@@ -75,6 +75,7 @@ import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
+import org.geysermc.connector.entity.ThrowableEntity;
 import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.attribute.GeyserAttributeType;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
@@ -115,6 +116,7 @@ public class GeyserSession implements CommandSender {
     private final UpstreamSession upstream;
     /**
      * The loop where all packets and ticking is processed to prevent concurrency issues.
+     * If this is manually called, ensure that any exceptions are properly handled.
      */
     private final EventLoop eventLoop;
     private TcpClientSession downstream;
@@ -806,9 +808,8 @@ public class GeyserSession implements CommandSender {
 
             @Override
             public void packetReceived(PacketReceivedEvent event) {
-                if (!closed) {
-                    PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
-                }
+                Packet packet = event.getPacket();
+                PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(packet.getClass(), packet, GeyserSession.this);
             }
 
             @Override
@@ -877,25 +878,55 @@ public class GeyserSession implements CommandSender {
     }
 
     /**
+     * Executes a task and prints a stack trace if an error occurs.
+     */
+    public void executeInEventLoop(Runnable runnable) {
+        eventLoop.execute(() -> {
+            try {
+                runnable.run();
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    /**
+     * Schedules a task and prints a stack trace if an error occurs.
+     */
+    public ScheduledFuture<?> scheduleInEventLoop(Runnable runnable, long duration, TimeUnit timeUnit) {
+        return eventLoop.schedule(() -> {
+            try {
+                runnable.run();
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }, duration, timeUnit);
+    }
+
+    /**
      * Called every 50 milliseconds - one Minecraft tick.
      */
     protected void tick() {
-        pistonCache.tick();
-        // Check to see if the player's position needs updating - a position update should be sent once every 3 seconds
-        if (spawned && (System.currentTimeMillis() - lastMovementTimestamp) > 3000) {
-            // Recalculate in case something else changed position
-            Vector3d position = collisionManager.adjustBedrockPosition(playerEntity.getPosition(), playerEntity.isOnGround());
-            // A null return value cancels the packet
-            if (position != null) {
-                ClientPlayerPositionPacket packet = new ClientPlayerPositionPacket(playerEntity.isOnGround(),
-                        position.getX(), position.getY(), position.getZ());
-                sendDownstreamPacket(packet);
+        try {
+            pistonCache.tick();
+            // Check to see if the player's position needs updating - a position update should be sent once every 3 seconds
+            if (spawned && (System.currentTimeMillis() - lastMovementTimestamp) > 3000) {
+                // Recalculate in case something else changed position
+                Vector3d position = collisionManager.adjustBedrockPosition(playerEntity.getPosition(), playerEntity.isOnGround());
+                // A null return value cancels the packet
+                if (position != null) {
+                    ClientPlayerPositionPacket packet = new ClientPlayerPositionPacket(playerEntity.isOnGround(),
+                            position.getX(), position.getY(), position.getZ());
+                    sendDownstreamPacket(packet);
+                }
+                lastMovementTimestamp = System.currentTimeMillis();
             }
-            lastMovementTimestamp = System.currentTimeMillis();
-        }
 
-        for (Tickable entity : entityCache.getTickableEntities()) {
-            entity.tick(this);
+            for (Tickable entity : entityCache.getTickableEntities()) {
+                entity.tick(this);
+            }
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
         }
     }
 

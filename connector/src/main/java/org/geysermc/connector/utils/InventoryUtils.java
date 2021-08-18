@@ -79,7 +79,7 @@ public class InventoryUtils {
         if (translator != null) {
             translator.prepareInventory(session, inventory);
             if (translator instanceof DoubleChestInventoryTranslator && !((Container) inventory).isUsingRealBlock()) {
-                session.getEventLoop().schedule(() -> {
+                session.scheduleInEventLoop(() -> {
                     Inventory openInv = session.getOpenInventory();
                     if (openInv != null && openInv.getId() == inventory.getId()) {
                         translator.openInventory(session, inventory);
