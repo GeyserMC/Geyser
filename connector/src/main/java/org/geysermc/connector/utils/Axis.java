@@ -30,6 +30,8 @@ import com.nukkitx.math.vector.Vector3d;
 public enum Axis {
     X, Y, Z;
 
+    public static final Axis[] VALUES = values();
+
     public double choose(Vector3d vector) {
         switch (this) {
             case X:

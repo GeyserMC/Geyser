@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.connector.registry.BlockRegistries;
+import org.geysermc.connector.registry.type.BlockMapping;
 import org.geysermc.connector.utils.Direction;
 import org.geysermc.connector.utils.PistonBehavior;
 
@@ -275,7 +276,7 @@ public class BlockStateValues {
     }
 
     public static boolean isPistonHead(int state) {
-        String javaId = BlockRegistries.JAVA_BLOCKS.get(state).getJavaIdentifier();
+        String javaId = BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.AIR).getJavaIdentifier();
         return javaId.startsWith("minecraft:piston_head");
     }
 
@@ -336,7 +337,7 @@ public class BlockStateValues {
      * @return true if a piston can break the block
      */
     public static boolean canPistonDestroyBlock(int state)  {
-        return BlockRegistries.JAVA_BLOCKS.get(state).getPistonBehavior() != PistonBehavior.DESTROY;
+        return BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.AIR).getPistonBehavior() != PistonBehavior.DESTROY;
     }
 
     /**

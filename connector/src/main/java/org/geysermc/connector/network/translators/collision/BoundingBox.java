@@ -112,7 +112,7 @@ public class BoundingBox implements Cloneable {
      */
     public double getMaxOffset(Vector3d boxOffset, BoundingBox otherBoundingBox, Axis axis, double offset) {
         // Make sure that the bounding box overlaps in the other axes
-        for (Axis a : Axis.values()) {
+        for (Axis a : Axis.VALUES) {
             if (a != axis && !checkOverlapInAxis(boxOffset, otherBoundingBox, a)) {
                 return offset;
             }

@@ -47,13 +47,13 @@ public class PistonCache {
     /**
      * Maps the position of a piston to its block entity
      */
-    private final Map<Vector3i, PistonBlockEntity> pistons = Object2ObjectMaps.synchronize(new Object2ObjectOpenHashMap<>());
+    private final Map<Vector3i, PistonBlockEntity> pistons = new Object2ObjectOpenHashMap<>();
 
     /**
      * Maps the position of a moving block to the piston moving it
      */
     @Getter
-    private final Map<Vector3i, PistonBlockEntity> movingBlocksMap = Object2ObjectMaps.synchronize(new Object2ObjectOpenHashMap<>());
+    private final Map<Vector3i, PistonBlockEntity> movingBlocksMap = new Object2ObjectOpenHashMap<>();
 
     @Getter
     private Vector3d playerDisplacement = Vector3d.ZERO;
@@ -89,20 +89,22 @@ public class PistonCache {
 
     public void tick() {
         resetPlayerMovement();
-        pistons.values().forEach(PistonBlockEntity::updateMovement);
-        sendPlayerMovement();
-        sendPlayerMotion();
-        // Update blocks after movement, so that players don't get stuck inside blocks
-        pistons.values().forEach(PistonBlockEntity::updateBlocks);
+        if (!pistons.isEmpty()) {
+            pistons.values().forEach(PistonBlockEntity::updateMovement);
+            sendPlayerMovement();
+            sendPlayerMotion();
+            // Update blocks after movement, so that players don't get stuck inside blocks
+            pistons.values().forEach(PistonBlockEntity::updateBlocks);
 
-        pistons.entrySet().removeIf((entry) -> entry.getValue().canBeRemoved());
+            pistons.entrySet().removeIf((entry) -> entry.getValue().canBeRemoved());
 
-        if (pistons.isEmpty() && !movingBlocksMap.isEmpty()) {
-            session.getConnector().getLogger().error("The moving block map has de-synced!");
-            for (Map.Entry<Vector3i, PistonBlockEntity> entry : movingBlocksMap.entrySet()) {
-                Vector3i position = entry.getKey();
-                PistonBlockEntity pistonBlockEntity = entry.getValue();
-                session.getConnector().getLogger().error("Moving Block at " + position + " was previously owned by the piston at " + pistonBlockEntity.getPosition());
+            if (pistons.isEmpty() && !movingBlocksMap.isEmpty()) {
+                session.getConnector().getLogger().error("The moving block map has de-synced!");
+                for (Map.Entry<Vector3i, PistonBlockEntity> entry : movingBlocksMap.entrySet()) {
+                    Vector3i position = entry.getKey();
+                    PistonBlockEntity pistonBlockEntity = entry.getValue();
+                    session.getConnector().getLogger().error("Moving Block at " + position + " was previously owned by the piston at " + pistonBlockEntity.getPosition());
+                }
             }
         }
     }
