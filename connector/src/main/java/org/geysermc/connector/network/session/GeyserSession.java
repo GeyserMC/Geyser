@@ -115,6 +115,7 @@ public class GeyserSession implements CommandSender {
     private final UpstreamSession upstream;
     /**
      * The loop where all packets and ticking is processed to prevent concurrency issues.
+     * If this is manually called, ensure that any exceptions are properly handled.
      */
     private final EventLoop eventLoop;
     private TcpClientSession downstream;
@@ -804,9 +805,8 @@ public class GeyserSession implements CommandSender {
 
             @Override
             public void packetReceived(PacketReceivedEvent event) {
-                if (!closed) {
-                    PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
-                }
+                Packet packet = event.getPacket();
+                PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(packet.getClass(), packet, GeyserSession.this);
             }
 
             @Override
@@ -872,6 +872,32 @@ public class GeyserSession implements CommandSender {
 
     public void close() {
         disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.close", getClientData().getLanguageCode()));
+    }
+
+    /**
+     * Executes a task and prints a stack trace if an error occurs.
+     */
+    public void executeInEventLoop(Runnable runnable) {
+        eventLoop.execute(() -> {
+            try {
+                runnable.run();
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    /**
+     * Schedules a task and prints a stack trace if an error occurs.
+     */
+    public ScheduledFuture<?> scheduleInEventLoop(Runnable runnable, long duration, TimeUnit timeUnit) {
+        return eventLoop.schedule(() -> {
+            try {
+                runnable.run();
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }, duration, timeUnit);
     }
 
     /**

@@ -161,7 +161,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
-        session.getEventLoop().execute(() -> session.getFormCache().handleResponse(packet));
+        session.executeInEventLoop(() -> session.getFormCache().handleResponse(packet));
         return true;
     }
 

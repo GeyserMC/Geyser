@@ -48,8 +48,8 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
         switch (packet.getAction()) {
             case SWING_ARM ->
                 // Delay so entity damage can be processed first
-                session.getEventLoop().schedule(() ->
-                                session.sendDownstreamPacket(new ClientPlayerSwingArmPacket(Hand.MAIN_HAND)),
+                session.scheduleInEventLoop(() ->
+                        session.sendDownstreamPacket(new ClientPlayerSwingArmPacket(Hand.MAIN_HAND)),
                         25,
                         TimeUnit.MILLISECONDS
                 );

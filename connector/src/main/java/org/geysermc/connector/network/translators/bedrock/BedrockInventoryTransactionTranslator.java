@@ -213,7 +213,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                     if (session.isSneaking() || blockState != BlockRegistries.JAVA_IDENTIFIERS.get("minecraft:crafting_table")) {
                                         // Delay the interaction in case the client doesn't intend to actually use the bucket
                                         // See BedrockActionTranslator.java
-                                        session.setBucketScheduledFuture(session.getEventLoop().schedule(() -> {
+                                        session.setBucketScheduledFuture(session.scheduleInEventLoop(() -> {
                                             ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                                             session.sendDownstreamPacket(itemPacket);
                                         }, 5, TimeUnit.MILLISECONDS));
