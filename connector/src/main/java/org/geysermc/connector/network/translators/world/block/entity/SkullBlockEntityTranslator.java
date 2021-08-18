@@ -147,7 +147,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
             if (session.getUpstream().isInitialized()) {
                 player.spawnEntity(session);
 
-                SkullSkinManager.requestAndHandleSkin(player, session, (skin -> session.getEventLoop().schedule(() -> {
+                SkullSkinManager.requestAndHandleSkin(player, session, (skin -> session.scheduleInEventLoop(() -> {
                     // Delay to minimize split-second "player" pop-in
                     player.getMetadata().getFlags().setFlag(EntityFlag.INVISIBLE, false);
                     player.updateBedrockMetadata(session);

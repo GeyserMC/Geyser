@@ -78,7 +78,7 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
             if (session.getCraftingGridFuture() != null) {
                 session.getCraftingGridFuture().cancel(false);
             }
-            session.setCraftingGridFuture(session.getEventLoop().schedule(() -> updateCraftingGrid(session, packet, inventory, translator), 150, TimeUnit.MILLISECONDS));
+            session.setCraftingGridFuture(session.scheduleInEventLoop(() -> updateCraftingGrid(session, packet, inventory, translator), 150, TimeUnit.MILLISECONDS));
 
             GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
             if (packet.getWindowId() == 0 && !(translator instanceof PlayerInventoryTranslator)) {

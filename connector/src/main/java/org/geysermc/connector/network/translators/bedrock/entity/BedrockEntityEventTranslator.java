@@ -53,7 +53,7 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
                 ClientSelectTradePacket selectTradePacket = new ClientSelectTradePacket(packet.getData());
                 session.sendDownstreamPacket(selectTradePacket);
 
-                session.getEventLoop().schedule(() -> {
+                session.scheduleInEventLoop(() -> {
                     Entity villager = session.getPlayerEntity();
                     Inventory openInventory = session.getOpenInventory();
                     if (openInventory instanceof MerchantContainer) {
