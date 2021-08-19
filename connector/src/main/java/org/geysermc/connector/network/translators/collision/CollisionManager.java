@@ -213,9 +213,7 @@ public class CollisionManager {
         int minCollisionZ = (int) Math.floor(position.getZ() - ((box.getSizeZ() / 2) + COLLISION_TOLERANCE + 0.5));
         int maxCollisionZ = (int) Math.floor(position.getZ() + (box.getSizeZ() / 2) + COLLISION_TOLERANCE + 0.5);
 
-        // Blocks are checked from top to bottom to prevent players from being pushed up
-        // onto slabs that you can't stand on
-        for (int y = maxCollisionY; y >= minCollisionY; y--) {
+        for (int y = minCollisionY; y < maxCollisionY + 1; y++) {
             for (int x = minCollisionX; x < maxCollisionX + 1; x++) {
                 for (int z = minCollisionZ; z < maxCollisionZ + 1; z++) {
                     blocks.add(Vector3i.from(x, y, z));
