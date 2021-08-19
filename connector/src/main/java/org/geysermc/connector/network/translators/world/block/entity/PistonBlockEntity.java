@@ -217,10 +217,9 @@ public class PistonBlockEntity {
         while (!blocksToCheck.isEmpty() && attachedBlocks.size() <= 12) {
             Vector3i blockPos = blocksToCheck.remove();
             // Skip blocks we've already checked
-            if (blocksChecked.contains(blockPos)) {
+            if (!blocksChecked.add(blockPos)) {
                 continue;
             }
-            blocksChecked.add(blockPos);
             int blockId = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
             if (blockId == BlockStateValues.JAVA_AIR_ID) {
                 continue;
@@ -229,7 +228,7 @@ public class PistonBlockEntity {
                 attachedBlocks.put(blockPos, blockId);
                 if (BlockStateValues.isBlockSticky(blockId)) {
                     // For honey blocks and slime blocks check the blocks adjacent to it
-                    for (Direction direction : Direction.values()) {
+                    for (Direction direction : Direction.VALUES) {
                         Vector3i offset = direction.getUnitVector();
                         // Only check blocks that aren't being pushed by the current block
                         if (offset.equals(movement)) {
@@ -259,7 +258,7 @@ public class PistonBlockEntity {
                 }
                 // Check next block in line
                 blocksToCheck.add(blockPos.add(movement));
-            } else if (BlockStateValues.canPistonDestroyBlock(blockId)) {
+            } else if (!BlockStateValues.canPistonDestroyBlock(blockId)) {
                 // Block can't be moved or destroyed, so it blocks all block movement
                 moveBlocks = false;
                 break;
@@ -292,7 +291,7 @@ public class PistonBlockEntity {
         if (PistonBlockEntityTranslator.isBlock(javaId) && !BlockStateValues.isPistonHead(javaId)) {
             return !BlockStateValues.getPistonValues().get(javaId);
         }
-        BlockMapping block = BlockRegistries.JAVA_BLOCKS.get(javaId);
+        BlockMapping block = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.AIR);
         // Bedrock, End portal frames, etc. can't be moved
         if (block.getHardness() == -1.0d) {
             return false;

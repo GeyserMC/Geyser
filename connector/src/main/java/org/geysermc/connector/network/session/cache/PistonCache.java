@@ -29,7 +29,6 @@ import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
@@ -47,7 +46,8 @@ public class PistonCache {
     /**
      * Maps the position of a piston to its block entity
      */
-    private final Map<Vector3i, PistonBlockEntity> pistons = new Object2ObjectOpenHashMap<>();
+    @Getter
+    public final Map<Vector3i, PistonBlockEntity> pistons = new Object2ObjectOpenHashMap<>();
 
     /**
      * Maps the position of a moving block to the piston moving it
@@ -181,14 +181,6 @@ public class PistonCache {
             return piston.checkCollision(blockPos, boundingBox);
         }
         return false;
-    }
-
-    public PistonBlockEntity getPistonAt(Vector3i position) {
-        return pistons.get(position);
-    }
-
-    public void putPiston(PistonBlockEntity pistonBlockEntity) {
-        pistons.put(pistonBlockEntity.getPosition(), pistonBlockEntity);
     }
 
     public void clear() {

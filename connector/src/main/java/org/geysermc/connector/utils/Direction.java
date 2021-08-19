@@ -37,7 +37,7 @@ public enum Direction {
     WEST(5, Vector3i.from(-1, 0, 0), Axis.X, PistonValue.WEST),
     EAST(4, Vector3i.from(1, 0, 0), Axis.X, PistonValue.EAST);
 
-    private static final Direction[] VALUES = values();
+    public static final Direction[] VALUES = values();
 
     private final int reversedId;
     @Getter
