@@ -103,7 +103,7 @@ public class FishingHookEntity extends ThrowableEntity {
                     // TODO Push bounding box out of collision to improve movement
                     collided = true;
                 }
-                blockCollision.setPosition(null);
+                blockCollision.reset();
             }
 
             int waterLevel = BlockStateValues.getWaterLevel(blockID);

@@ -76,6 +76,11 @@ public class BlockCollision {
         this.positionOffset.set(newOffset);
     }
 
+    public void reset() {
+        this.position.set(null);
+        this.positionOffset.set(null);
+    }
+
     /**
      * Overridden in classes like SnowCollision and GrassPathCollision when correction code needs to be run before the
      * main correction

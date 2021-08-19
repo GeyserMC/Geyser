@@ -248,7 +248,7 @@ public class CollisionManager {
             BlockCollision blockCollision = BlockUtils.getCollisionAt(session, blockPos);
             if (blockCollision != null) {
                 blockCollision.beforeCorrectPosition(playerBoundingBox);
-                blockCollision.setPosition(null);
+                blockCollision.reset();
             }
         }
 
@@ -259,7 +259,7 @@ public class CollisionManager {
                 if (!blockCollision.correctPosition(session, playerBoundingBox)) {
                     return false;
                 }
-                blockCollision.setPosition(null);
+                blockCollision.reset();
             }
         }
 
@@ -354,6 +354,7 @@ public class CollisionManager {
                 BlockCollision blockCollision = BlockUtils.getCollisionAt(session, blockPos);
                 if (blockCollision != null && !(blockCollision instanceof ScaffoldingCollision)) {
                     offset = blockCollision.computeCollisionOffset(boundingBox, axis, offset);
+                    blockCollision.reset();
                 }
             }
             offset = session.getPistonCache().computeCollisionOffset(blockPos, boundingBox, axis, offset);
@@ -382,7 +383,7 @@ public class CollisionManager {
             playerBoundingBox.setMiddleY(standingY);
             boolean result = collision.checkIntersection(playerBoundingBox);
             result |= session.getPistonCache().checkCollision(position, playerBoundingBox);
-            collision.setPosition(null);
+            collision.reset();
             playerBoundingBox.setSizeY(originalHeight);
             playerBoundingBox.setMiddleY(originalY);
             return result;

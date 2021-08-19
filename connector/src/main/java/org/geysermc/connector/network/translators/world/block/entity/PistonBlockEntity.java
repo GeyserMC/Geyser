@@ -532,6 +532,7 @@ public class PistonBlockEntity {
                 if (blockId == BlockStateValues.JAVA_SLIME_BLOCK_ID && adjustedMovement != movement) {
                     session.getPistonCache().setPlayerSlimeCollision(true);
                 }
+                blockCollision.reset();
                 return adjustedMovement;
             }
         }
@@ -550,7 +551,9 @@ public class PistonBlockEntity {
             Vector3d offset = getMovement().toDouble().mul(movementProgress);
             BlockCollision blockCollision = BlockUtils.getCollision(blockId, blockPos, offset);
             if (blockCollision != null) {
-                return blockCollision.checkIntersection(boundingBox);
+                boolean result = blockCollision.checkIntersection(boundingBox);
+                blockCollision.reset();
+                return result;
             }
         }
         return false;
