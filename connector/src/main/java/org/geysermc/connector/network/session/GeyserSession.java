@@ -57,6 +57,7 @@ import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
+import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -75,7 +76,6 @@ import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
-import org.geysermc.connector.entity.ThrowableEntity;
 import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.attribute.GeyserAttributeType;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
@@ -1230,7 +1230,14 @@ public class GeyserSession implements CommandSender {
      */
     public void sendDownstreamPacket(Packet packet) {
         if (!closed && this.downstream != null) {
-            EventLoop eventLoop = this.downstream.getChannel().eventLoop();
+            Channel channel = this.downstream.getChannel();
+            if (channel == null) {
+                // Channel is set to null when downstream is disconnected - there is a short window for this to happen
+                // as downstream doesn't call GeyserSession#disconnect
+                return;
+            }
+
+            EventLoop eventLoop = channel.eventLoop();
             if (eventLoop.inEventLoop()) {
                 sendDownstreamPacket0(packet);
             } else {
