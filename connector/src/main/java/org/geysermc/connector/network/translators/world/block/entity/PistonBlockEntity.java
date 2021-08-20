@@ -498,9 +498,11 @@ public class PistonBlockEntity {
 
                 double intersection = getBlockIntersection(blockCollision, blockPos, extend, playerBoundingBox, movementDirection);
                 if (intersection > 0) {
+                    pistonCache.setPlayerCollided(true);
                     pistonCache.displacePlayer(movement.mul(intersection + 0.01d));
 
                     if (javaId == BlockStateValues.JAVA_SLIME_BLOCK_ID) {
+                        pistonCache.setPlayerSlimeCollision(true);
                         applySlimeBlockMotion(blockPos, Vector3d.from(playerBoundingBox.getMiddleX(), playerBoundingBox.getMiddleY(), playerBoundingBox.getMiddleZ()));
                     }
                 }

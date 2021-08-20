@@ -131,7 +131,6 @@ public class CollisionManager {
         PistonCache pistonCache = session.getPistonCache();
         // Bedrock clients tend to fall off of honey blocks, so we need to teleport them to the new position
         if (pistonCache.isPlayerAttachedToHoney()) {
-            recalculatePosition();
             return null;
         }
         // We need to parse the float as a string since casting a float to a double causes us to
@@ -145,6 +144,7 @@ public class CollisionManager {
         Vector3d movement = position.sub(startingPos);
         Vector3d adjustedMovement = correctPlayerMovement(movement, false);
         playerBoundingBox.translate(adjustedMovement.getX(), adjustedMovement.getY(), adjustedMovement.getZ());
+        playerBoundingBox.translate(pistonCache.getPlayerMotion().getX(), pistonCache.getPlayerMotion().getY(), pistonCache.getPlayerMotion().getZ());
         // Correct player position
         if (!correctPlayerPosition()) {
             // Cancel the movement if it needs to be cancelled
