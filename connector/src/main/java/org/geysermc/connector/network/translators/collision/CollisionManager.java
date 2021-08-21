@@ -200,18 +200,20 @@ public class CollisionManager {
                 box.getMiddleY() - (box.getSizeY() / 2),
                 box.getMiddleZ());
 
-        // Loop through all blocks that could collide
         // Expand volume by 0.5 in each direction to include moving blocks
-        int minCollisionX = (int) Math.floor(position.getX() - ((box.getSizeX() / 2) + COLLISION_TOLERANCE + 0.5));
-        int maxCollisionX = (int) Math.floor(position.getX() + (box.getSizeX() / 2) + COLLISION_TOLERANCE + 0.5);
+        double pistonExpand = session.getPistonCache().getPistons().isEmpty() ? 0 : 0.5;
+
+        // Loop through all blocks that could collide
+        int minCollisionX = (int) Math.floor(position.getX() - ((box.getSizeX() / 2) + COLLISION_TOLERANCE + pistonExpand));
+        int maxCollisionX = (int) Math.floor(position.getX() + (box.getSizeX() / 2) + COLLISION_TOLERANCE + pistonExpand);
 
         // Y extends 0.5 blocks down because of fence hitboxes
         int minCollisionY = (int) Math.floor(position.getY() - 0.5 - COLLISION_TOLERANCE);
 
-        int maxCollisionY = (int) Math.floor(position.getY() + box.getSizeY() + 0.5);
+        int maxCollisionY = (int) Math.floor(position.getY() + box.getSizeY() + pistonExpand);
 
-        int minCollisionZ = (int) Math.floor(position.getZ() - ((box.getSizeZ() / 2) + COLLISION_TOLERANCE + 0.5));
-        int maxCollisionZ = (int) Math.floor(position.getZ() + (box.getSizeZ() / 2) + COLLISION_TOLERANCE + 0.5);
+        int minCollisionZ = (int) Math.floor(position.getZ() - ((box.getSizeZ() / 2) + COLLISION_TOLERANCE + pistonExpand));
+        int maxCollisionZ = (int) Math.floor(position.getZ() + (box.getSizeZ() / 2) + COLLISION_TOLERANCE + pistonExpand);
 
         for (int y = minCollisionY; y < maxCollisionY + 1; y++) {
             for (int x = minCollisionX; x < maxCollisionX + 1; x++) {
@@ -267,6 +269,9 @@ public class CollisionManager {
     }
 
     public Vector3d correctPlayerMovement(Vector3d movement, boolean checkWorld) {
+        if (!checkWorld && session.getPistonCache().getPistons().isEmpty()) { // There is nothing to check
+            return movement;
+        }
         return correctMovement(movement, playerBoundingBox, session.getPlayerEntity().isOnGround(), 0.6, checkWorld);
     }
 
