@@ -883,7 +883,7 @@ public class GeyserSession implements CommandSender {
             try {
                 runnable.run();
             } catch (Throwable e) {
-                e.printStackTrace();
+                connector.getLogger().error("Error thrown in " + getName() + "'s event loop!", e);
             }
         });
     }
@@ -896,7 +896,7 @@ public class GeyserSession implements CommandSender {
             try {
                 runnable.run();
             } catch (Throwable e) {
-                e.printStackTrace();
+                connector.getLogger().error("Error thrown in " + getName() + "'s event loop!", e);
             }
         }, duration, timeUnit);
     }
