@@ -33,6 +33,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.PistonCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -61,6 +62,10 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
         } else if (packet.getValue() instanceof NoteBlockValue) {
             NoteblockBlockEntityTranslator.translate(session, packet.getPosition());
         } else if (packet.getValue() instanceof PistonValue) {
+            if (session.getConnector().getPlatformType() == PlatformType.SPIGOT) {
+                return;
+            }
+
             PistonValueType action = (PistonValueType) packet.getType();
             PistonValue direction = (PistonValue) packet.getValue();
             Vector3i position = Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());

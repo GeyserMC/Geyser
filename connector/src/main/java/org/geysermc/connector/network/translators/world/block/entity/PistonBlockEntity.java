@@ -150,6 +150,49 @@ public class PistonBlockEntity {
         BlockEntityUtils.updateBlockEntity(session, buildPistonTag(), position);
     }
 
+    public void setAction(PistonValueType action, Object2IntMap<Vector3i> attachedBlocks) {
+        placeFinalBlocks();
+        removeMovingBlocks();
+
+        this.action = action;
+        if (action == PistonValueType.PUSHING || (action == PistonValueType.PULLING && sticky)) {
+            // Blocks only move when pushing or pulling with sticky pistons
+            if (attachedBlocks.size() <= 12) {
+                this.attachedBlocks.putAll(attachedBlocks);
+                Vector3i movement = getMovement();
+                // Map the final position of each block to this block entity
+                Map<Vector3i, PistonBlockEntity> movingBlockMap = session.getPistonCache().getMovingBlocksMap();
+                for (Vector3i position : attachedBlocks.keySet()) {
+                    position = position.add(movement);
+                    movingBlockMap.put(position, this);
+                }
+                // Add piston head
+                if (action == PistonValueType.PUSHING) {
+                    movingBlockMap.put(this.position.add(movement), this);
+                } else {
+                    movingBlockMap.put(this.position, this);
+                }
+                flattenPositions();
+            }
+            removeBlocks();
+            createMovingBlocks();
+        }
+
+        // Set progress and lastProgress to allow 0 tick pistons to animate
+        switch (action) {
+            case PUSHING:
+                progress = 0;
+                break;
+            case PULLING:
+            case CANCELLED_MID_PUSH:
+                progress = 1;
+                break;
+        }
+        lastProgress = progress;
+
+        BlockEntityUtils.updateBlockEntity(session, buildPistonTag(), position);
+    }
+
     /**
      * Update the position of the piston head, moving blocks, and players.
      */

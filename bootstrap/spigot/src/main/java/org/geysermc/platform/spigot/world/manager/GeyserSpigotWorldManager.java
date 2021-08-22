@@ -77,7 +77,11 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             return BlockStateValues.JAVA_AIR_ID;
         }
 
-        return BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(world.getBlockAt(x, y, z).getBlockData().getAsString(), BlockStateValues.JAVA_AIR_ID);
+        return getBlockNetworkId(world.getBlockAt(x, y, z));
+    }
+
+    public int getBlockNetworkId(Block block) {
+        return BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(block.getBlockData().getAsString(), BlockStateValues.JAVA_AIR_ID);
     }
 
     @Override
