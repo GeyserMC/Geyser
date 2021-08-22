@@ -63,6 +63,7 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             NoteblockBlockEntityTranslator.translate(session, packet.getPosition());
         } else if (packet.getValue() instanceof PistonValue) {
             if (session.getConnector().getPlatformType() == PlatformType.SPIGOT) {
+                // Handled in the GeyserPistonEvents class
                 return;
             }
 

@@ -59,6 +59,7 @@ public class GeyserPistonEvents implements Listener {
         this.worldManager = worldManager;
     }
 
+    // The handlers' parent class cannot be registered
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPistonExtend(BlockPistonExtendEvent event) {
         onPistonAction(event);
@@ -87,7 +88,9 @@ public class GeyserPistonEvents implements Listener {
             if (player == null || !player.getWorld().equals(world)) {
                 continue;
             }
-            
+
+            // Trying to grab the blocks from the world like other platforms would result in the moving piston block
+            // being returned instead.
             Object2IntMap<Vector3i> attachedBlocks = new Object2IntOpenHashMap<>();
             List<Block> blocks = isExtend ? ((BlockPistonExtendEvent) event).getBlocks() : ((BlockPistonRetractEvent) event).getBlocks();
             for (Block block : blocks) {

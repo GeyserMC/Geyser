@@ -48,9 +48,9 @@ import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandManager;
 import org.geysermc.platform.spigot.command.SpigotCommandSender;
+import org.geysermc.platform.spigot.world.GeyserPistonEvents;
 import org.geysermc.platform.spigot.world.GeyserSpigot1_11CraftingListener;
 import org.geysermc.platform.spigot.world.GeyserSpigotBlockPlaceListener;
-import org.geysermc.platform.spigot.world.GeyserPistonEvents;
 import org.geysermc.platform.spigot.world.manager.*;
 
 import java.io.File;
