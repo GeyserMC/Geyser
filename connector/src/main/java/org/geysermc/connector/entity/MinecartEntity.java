@@ -57,7 +57,7 @@ public class MinecartEntity extends Entity {
         if (!(this instanceof DefaultBlockMinecartEntity)) { // Handled in the DefaultBlockMinecartEntity class
             // Custom block
             if (entityMetadata.getId() == 11) {
-                metadata.put(EntityData.DISPLAY_ITEM, session.getBlockTranslator().getBedrockBlockId((int) entityMetadata.getValue()));
+                metadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId((int) entityMetadata.getValue()));
             }
 
             // Custom block offset

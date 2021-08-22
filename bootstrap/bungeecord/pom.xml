@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>bootstrap-parent</artifactId>
-        <version>1.4.0-SNAPSHOT</version>
+        <version>1.4.1-SNAPSHOT</version>
     </parent>
     <artifactId>bootstrap-bungeecord</artifactId>
 
@@ -14,13 +14,14 @@
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>connector</artifactId>
-            <version>1.4.0-SNAPSHOT</version>
+            <version>1.4.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
+        <!-- Used for better working with internals without reflection -->
         <dependency>
-            <groupId>net.md-5</groupId>
-            <artifactId>bungeecord-api</artifactId>
-            <version>1.16-R0.5-SNAPSHOT</version>
+            <groupId>com.github.SpigotMC.BungeeCord</groupId>
+            <artifactId>bungeecord-proxy</artifactId>
+            <version>a7c6ede</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -72,20 +73,12 @@
                                     <shadedPattern>org.geysermc.platform.bungeecord.shaded.io.netty.channel.kqueue</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.reflections</pattern>
-                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.reflections</shadedPattern>
-                                </relocation>
-                                <relocation>
                                     <pattern>com.google.common</pattern>
                                     <shadedPattern>org.geysermc.platform.bungeecord.shaded.google.common</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.guava</pattern>
                                     <shadedPattern>org.geysermc.platform.bungeecord.shaded.google.guava</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.dom4j</pattern>
-                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.dom4j</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>net.kyori</pattern>

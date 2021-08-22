@@ -26,23 +26,18 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityStatusPacket;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
+import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
-import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
-import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
+import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 
 @Translator(packet = ServerEntityStatusPacket.class)
 public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntityStatusPacket> {
@@ -102,7 +97,7 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 if (entity.getEntityType() == EntityType.THROWN_EGG) {
                     LevelEventPacket particlePacket = new LevelEventPacket();
                     particlePacket.setType(LevelEventType.PARTICLE_ITEM_BREAK);
-                    particlePacket.setData(ItemRegistry.EGG.getBedrockId() << 16);
+                    particlePacket.setData(session.getItemMappings().getStoredItems().egg().getBedrockId() << 16);
                     particlePacket.setPosition(entity.getPosition());
                     for (int i = 0; i < 6; i++) {
                         session.sendUpstreamPacket(particlePacket);
@@ -176,6 +171,11 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 break;
             case IRON_GOLEM_EMPTY_HAND:
                 entityEventPacket.setType(EntityEventType.GOLEM_FLOWER_WITHDRAW);
+                break;
+            case IRON_GOLEM_ATTACK:
+                if (entity.getEntityType() == EntityType.IRON_GOLEM) {
+                    entityEventPacket.setType(EntityEventType.ATTACK_START);
+                }
                 break;
             case RABBIT_JUMP_OR_MINECART_SPAWNER_DELAY_RESET:
                 if (entity.getEntityType() == EntityType.RABBIT) {

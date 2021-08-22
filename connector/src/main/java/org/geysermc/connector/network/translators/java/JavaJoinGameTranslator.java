@@ -39,6 +39,7 @@ import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.world.BiomeTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.PluginMessageUtils;
@@ -55,8 +56,6 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         PlayerEntity entity = session.getPlayerEntity();
         entity.setEntityId(packet.getEntityId());
 
-        ChunkUtils.applyDimensionHeight(session, packet.getDimension());
-
         // If the player is already initialized and a join game packet is sent, they
         // are swapping servers
         String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
@@ -68,6 +67,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         }
         session.setWorldName(packet.getWorldName());
 
+        BiomeTranslator.loadServerBiomes(session, packet.getDimensionCodec());
         session.getTagCache().clear();
 
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
@@ -106,12 +106,14 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:brand", PluginMessageUtils.getGeyserBrandData()));
 
         // register the plugin messaging channels used in Floodgate
-        if (session.getConnector().getDefaultAuthType() == AuthType.FLOODGATE) {
+        if (session.getRemoteAuthType() == AuthType.FLOODGATE) {
             session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:register", PluginMessageUtils.getFloodgateRegisterData()));
         }
 
         if (!newDimension.equals(session.getDimension())) {
             DimensionUtils.switchDimension(session, newDimension);
         }
+
+        ChunkUtils.applyDimensionHeight(session, packet.getDimension());
     }
 }

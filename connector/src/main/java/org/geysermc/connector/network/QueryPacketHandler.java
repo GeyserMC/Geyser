@@ -27,12 +27,13 @@ package org.geysermc.connector.network;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -46,27 +47,24 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class QueryPacketHandler {
-
     public static final byte HANDSHAKE = 0x09;
     public static final byte STATISTICS = 0x00;
 
-    private GeyserConnector connector;
-    private InetSocketAddress sender;
-    private byte type;
-    private int sessionId;
+    private final GeyserConnector connector;
+    private final InetSocketAddress sender;
+    private final byte type;
+    private final int sessionId;
     private byte[] token;
 
     /**
-     * The Query packet handler instance
+     * The Query packet handler instance. The unsigned short magic handshake should already be read at this point,
+     * and the packet should be verified to have enough buffer space to be a qualified query packet.
      *
      * @param connector Geyser Connector
      * @param sender The Sender IP/Port for the Query
      * @param buffer The Query data
      */
     public QueryPacketHandler(GeyserConnector connector, InetSocketAddress sender, ByteBuf buffer) {
-        if (!isQueryPacket(buffer))
-            return;
-
         this.connector = connector;
         this.sender = sender;
         this.type = buffer.readByte();
@@ -82,8 +80,9 @@ public class QueryPacketHandler {
      * @param buffer Query data
      * @return if the packet is a query packet
      */
-    private boolean isQueryPacket(ByteBuf buffer) {
-        return (buffer.readableBytes() >= 2) ? buffer.readUnsignedShort() == 0xFEFD : false;
+    public static boolean isQueryPacket(ByteBuf buffer) {
+        // 2 for magic short, 1 for type byte and 4 for session ID int
+        return buffer.readableBytes() >= (2 + 1 + 4) && buffer.readUnsignedShort() == 0xFEFD;
     }
 
     /**
@@ -115,15 +114,18 @@ public class QueryPacketHandler {
      * Sends the query data to the sender
      */
     private void sendQueryData() {
-        ByteBuf reply = ByteBufAllocator.DEFAULT.ioBuffer(64);
+        byte[] gameData = getGameData();
+        byte[] playerData = getPlayers();
+
+        ByteBuf reply = ByteBufAllocator.DEFAULT.ioBuffer(1 + 4 + gameData.length + playerData.length);
         reply.writeByte(STATISTICS);
         reply.writeInt(sessionId);
 
         // Game Info
-        reply.writeBytes(getGameData());
+        reply.writeBytes(gameData);
 
         // Players
-        reply.writeBytes(getPlayers());
+        reply.writeBytes(playerData);
 
         sendPacket(reply);
     }
@@ -164,13 +166,13 @@ public class QueryPacketHandler {
 
         // If passthrough protocol name is enabled let's get the protocol name from the ping response.
         if (connector.getConfig().isPassthroughProtocolName() && pingInfo != null) {
-            map = String.valueOf((pingInfo.getVersion().getName()));
+            map = pingInfo.getVersion().getName();
         } else {
             map = GeyserConnector.NAME;
         }
 
         // Create a hashmap of all game data needed in the query
-        Map<String, String> gameData = new HashMap<String, String>();
+        Map<String, String> gameData = new HashMap<>();
         gameData.put("hostname", motd);
         gameData.put("gametype", "SMP");
         gameData.put("game_id", "MINECRAFT");
@@ -183,18 +185,14 @@ public class QueryPacketHandler {
         gameData.put("hostip", connector.getConfig().getBedrock().getAddress());
 
         try {
-            // Blank Buffer Bytes
-            query.write("GeyserMC".getBytes());
-            query.write((byte) 0x00);
+            writeString(query, "GeyserMC");
             query.write((byte) 0x80);
             query.write((byte) 0x00);
 
             // Fills the game data
-            for(Map.Entry<String, String> entry : gameData.entrySet()) {
-                query.write(entry.getKey().getBytes());
-                query.write((byte) 0x00);
-                query.write(entry.getValue().getBytes());
-                query.write((byte) 0x00);
+            for (Map.Entry<String, String> entry : gameData.entrySet()) {
+                writeString(query, entry.getKey());
+                writeString(query, entry.getValue());
             }
 
             // Final byte to show the end of the game data
@@ -221,14 +219,13 @@ public class QueryPacketHandler {
 
         try {
             // Start the player section
-            query.write("player_".getBytes());
-            query.write(new byte[] { 0x00, 0x00 });
+            writeString(query, "player_");
+            query.write((byte) 0x00);
 
             // Fill player names
             if (pingInfo != null) {
                 for (String username : pingInfo.getPlayerList()) {
-                    query.write(username.getBytes());
-                    query.write((byte) 0x00);
+                    writeString(query, username);
                 }
             }
 
@@ -239,6 +236,18 @@ public class QueryPacketHandler {
             e.printStackTrace();
             return new byte[0];
         }
+    }
+
+    /**
+     * Partially mimics {@link java.io.DataOutputStream#writeBytes(String)} which is what the Minecraft server uses as of 1.17.1.
+     */
+    private void writeString(OutputStream stream, String value) throws IOException {
+        int length = value.length();
+        for (int i = 0; i < length; i++) {
+            stream.write((byte) value.charAt(i));
+        }
+        // Padding to indicate the end of the string
+        stream.write((byte) 0x00);
     }
 
     /**

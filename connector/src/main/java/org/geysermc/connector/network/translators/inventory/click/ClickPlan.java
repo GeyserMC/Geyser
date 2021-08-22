@@ -124,6 +124,7 @@ public class ClickPlan {
 
             ClientWindowActionPacket clickPacket = new ClientWindowActionPacket(
                     inventory.getId(),
+                    inventory.getStateId(),
                     action.slot,
                     action.click.windowAction,
                     action.click.actionParam,

@@ -28,14 +28,14 @@ package org.geysermc.connector.network.translators.item.translators.nbt;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
-import org.geysermc.connector.network.translators.item.ItemEntry;
 import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 @ItemRemapper
 public class MapItemTranslator extends NbtItemStackTranslator {
 
     @Override
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
         // Can be either an IntTag or ShortTag
         Tag mapId = itemTag.get("map");
         if (mapId == null) return;
@@ -55,7 +55,7 @@ public class MapItemTranslator extends NbtItemStackTranslator {
     }
 
     @Override
-    public void translateToJava(CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToJava(CompoundTag itemTag, ItemMapping mapping) {
         IntTag tag = itemTag.get("map_name_index");
         if (tag != null) {
             itemTag.put(new IntTag("map", tag.getValue()));
@@ -65,7 +65,7 @@ public class MapItemTranslator extends NbtItemStackTranslator {
     }
 
     @Override
-    public boolean acceptItem(ItemEntry itemEntry) {
-        return itemEntry.getJavaIdentifier().equals("minecraft:filled_map");
+    public boolean acceptItem(ItemMapping mapping) {
+        return mapping.getJavaIdentifier().equals("minecraft:filled_map");
     }
 }

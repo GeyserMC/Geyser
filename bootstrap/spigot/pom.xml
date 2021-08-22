@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>bootstrap-parent</artifactId>
-        <version>1.4.0-SNAPSHOT</version>
+        <version>1.4.1-SNAPSHOT</version>
     </parent>
     <artifactId>bootstrap-spigot</artifactId>
 
@@ -21,7 +21,7 @@
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>connector</artifactId>
-            <version>1.4.0-SNAPSHOT</version>
+            <version>1.4.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -39,7 +39,7 @@
         <dependency>
             <groupId>org.geysermc.geyser.adapters</groupId>
             <artifactId>spigot-all</artifactId>
-            <version>1.1-SNAPSHOT</version>
+            <version>1.2-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <build>
@@ -84,10 +84,6 @@
                                     <shadedPattern>org.geysermc.platform.spigot.shaded.jackson</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.reflections</pattern>
-                                    <shadedPattern>org.geysermc.platform.spigot.shaded.reflections</shadedPattern>
-                                </relocation>
-                                <relocation>
                                     <pattern>com.google.common</pattern>
                                     <shadedPattern>org.geysermc.platform.spigot.shaded.google.common</shadedPattern>
                                 </relocation>
@@ -96,12 +92,12 @@
                                     <shadedPattern>org.geysermc.platform.spigot.shaded.google.guava</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.dom4j</pattern>
-                                    <shadedPattern>org.geysermc.platform.spigot.shaded.dom4j</shadedPattern>
-                                </relocation>
-                                <relocation>
                                     <pattern>net.kyori</pattern>
                                     <shadedPattern>org.geysermc.platform.spigot.shaded.kyori</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.objectweb.asm</pattern>
+                                    <shadedPattern>org.geysermc.platform.spigot.shaded.asm</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

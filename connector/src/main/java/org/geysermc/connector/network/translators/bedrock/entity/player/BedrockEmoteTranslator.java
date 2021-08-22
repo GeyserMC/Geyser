@@ -56,13 +56,21 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
         for (GeyserSession otherSession : session.getConnector().getPlayers()) {
             if (otherSession != session) {
                 if (otherSession.isClosed()) continue;
-                Entity otherEntity = otherSession.getEntityCache().getEntityByJavaId(javaId);
-                if (otherEntity == null) continue;
-                EmotePacket otherEmotePacket = new EmotePacket();
-                otherEmotePacket.setEmoteId(packet.getEmoteId());
-                otherEmotePacket.setRuntimeEntityId(otherEntity.getGeyserId());
-                otherSession.sendUpstreamPacket(otherEmotePacket);
+                if (otherSession.getEventLoop().inEventLoop()) {
+                    playEmote(otherSession, javaId, packet.getEmoteId());
+                } else {
+                    session.executeInEventLoop(() -> playEmote(otherSession, javaId, packet.getEmoteId()));
+                }
             }
         }
+    }
+
+    private void playEmote(GeyserSession otherSession, long javaId, String emoteId) {
+        Entity otherEntity = otherSession.getEntityCache().getEntityByJavaId(javaId); // Must be ran on same thread
+        if (otherEntity == null) return;
+        EmotePacket otherEmotePacket = new EmotePacket();
+        otherEmotePacket.setEmoteId(emoteId);
+        otherEmotePacket.setRuntimeEntityId(otherEntity.getGeyserId());
+        otherSession.sendUpstreamPacket(otherEmotePacket);
     }
 }

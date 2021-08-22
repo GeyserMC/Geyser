@@ -61,6 +61,8 @@ public class CooldownUtils {
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.TITLE);
         titlePacket.setText(" ");
+        titlePacket.setXuid("");
+        titlePacket.setPlatformOnlineId("");
         session.sendUpstreamPacket(titlePacket);
         session.setLastHitTime(System.currentTimeMillis());
         long lastHitTime = session.getLastHitTime(); // Used later to prevent multiple scheduled cooldown threads
@@ -86,6 +88,8 @@ public class CooldownUtils {
         titlePacket.setFadeInTime(0);
         titlePacket.setFadeOutTime(5);
         titlePacket.setStayTime(2);
+        titlePacket.setXuid("");
+        titlePacket.setPlatformOnlineId("");
         session.sendUpstreamPacket(titlePacket);
         if (hasCooldown(session)) {
             session.getConnector().getGeneralThreadPool().schedule(() -> computeCooldown(session, sessionPreference, lastHitTime), 50, TimeUnit.MILLISECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
@@ -97,6 +101,8 @@ public class CooldownUtils {
                 removeTitlePacket.setType(SetTitlePacket.Type.SUBTITLE);
             }
             removeTitlePacket.setText(" ");
+            removeTitlePacket.setXuid("");
+            removeTitlePacket.setPlatformOnlineId("");
             session.sendUpstreamPacket(removeTitlePacket);
         }
     }

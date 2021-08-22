@@ -43,16 +43,16 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.SlotType;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.function.IntFunction;
 
 public class PlayerInventoryTranslator extends InventoryTranslator {
-    private static final ItemData UNUSUABLE_CRAFTING_SPACE_BLOCK = InventoryUtils.createUnusableSpaceBlock(LanguageUtils.getLocaleStringLog("geyser.inventory.unusable_item.creative"));
+    private static final IntFunction<ItemData> UNUSUABLE_CRAFTING_SPACE_BLOCK = InventoryUtils.createUnusableSpaceBlock(LanguageUtils.getLocaleStringLog("geyser.inventory.unusable_item.creative"));
 
     public PlayerInventoryTranslator() {
         super(46);
@@ -106,7 +106,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             slotPacket.setSlot(i + 27);
 
             if (session.getGameMode() == GameMode.CREATIVE) {
-                slotPacket.setItem(UNUSUABLE_CRAFTING_SPACE_BLOCK);
+                slotPacket.setItem(UNUSUABLE_CRAFTING_SPACE_BLOCK.apply(session.getUpstream().getProtocolVersion()));
             } else {
                 slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(i).getItemStack()));
             }
@@ -384,12 +384,13 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     craftState = CraftState.RECIPE_ID;
 
                     int creativeId = creativeAction.getCreativeItemNetworkId() - 1;
-                    if (creativeId < 0 || creativeId >= ItemRegistry.CREATIVE_ITEMS.length) {
+                    ItemData[] creativeItems = session.getItemMappings().getCreativeItems();
+                    if (creativeId < 0 || creativeId >= creativeItems.length) {
                         return rejectRequest(request);
                     }
                     // Reference the creative items list we send to the client to know what it's asking of us
-                    ItemData creativeItem = ItemRegistry.CREATIVE_ITEMS[creativeId];
-                    javaCreativeItem = ItemTranslator.translateToJava(creativeItem);
+                    ItemData creativeItem = creativeItems[creativeId];
+                    javaCreativeItem = ItemTranslator.translateToJava(creativeItem, session.getItemMappings());
                     break;
                 }
                 case CRAFT_RESULTS_DEPRECATED: {

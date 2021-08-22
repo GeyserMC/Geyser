@@ -27,6 +27,7 @@ package org.geysermc.connector.network.translators.world.block;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import it.unimi.dsi.fastutil.ints.*;
+import org.geysermc.connector.registry.BlockRegistries;
 
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -49,6 +50,15 @@ public class BlockStateValues {
     private static final Int2IntMap SKULL_WALL_DIRECTIONS = new Int2IntOpenHashMap();
     private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new Int2ByteOpenHashMap();
     private static final Int2IntMap WATER_LEVEL = new Int2IntOpenHashMap();
+
+    public static final int JAVA_AIR_ID = 0;
+
+    public static int JAVA_BELL_ID;
+    public static int JAVA_COBWEB_ID;
+    public static int JAVA_FURNACE_ID;
+    public static int JAVA_FURNACE_LIT_ID;
+    public static int JAVA_SPAWNER_ID;
+    public static int JAVA_WATER_ID;
 
     /**
      * Determines if the block state contains Bedrock block information
@@ -84,8 +94,13 @@ public class BlockStateValues {
             return;
         }
 
-        if (javaId.contains("potted_") || javaId.contains("flower_pot")) {
-            FLOWER_POT_VALUES.put(javaBlockState, javaId.replace("potted_", ""));
+        if (javaId.startsWith("minecraft:potted_") || javaId.equals("minecraft:flower_pot")) {
+            String name = javaId.replace("potted_", "");
+            if (name.contains("azalea")) {
+                // Exception to the rule
+                name = name.replace("_bush", "");
+            }
+            FLOWER_POT_VALUES.put(javaBlockState, name);
             return;
         }
 
@@ -286,5 +301,26 @@ public class BlockStateValues {
      */
     public static int getWaterLevel(int state) {
         return WATER_LEVEL.getOrDefault(state, -1);
+    }
+
+    /**
+     * Get the slipperiness of a block.
+     * This is used in ItemEntity to calculate the friction on an item as it slides across the ground
+     *
+     * @param state BlockState of the block
+     * @return The block's slipperiness
+     */
+    public static float getSlipperiness(int state) {
+        String blockIdentifier = BlockRegistries.JAVA_BLOCKS.get(state).getJavaIdentifier();
+        switch (blockIdentifier) {
+            case "minecraft:slime_block":
+                return 0.8f;
+            case "minecraft:ice":
+            case "minecraft:packed_ice":
+                return 0.98f;
+            case "minecraft:blue_ice":
+                return 0.989f;
+        }
+        return 0.6f;
     }
 }

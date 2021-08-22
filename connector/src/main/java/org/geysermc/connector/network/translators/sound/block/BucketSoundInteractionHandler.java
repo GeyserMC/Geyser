@@ -29,17 +29,18 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHandler;
 import org.geysermc.connector.network.translators.sound.SoundHandler;
 
-@SoundHandler(items = "bucket")
+@SoundHandler(items = "bucket", ignoreSneakingWhileHolding = true)
 public class BucketSoundInteractionHandler implements BlockSoundInteractionHandler {
 
     @Override
     public void handleInteraction(GeyserSession session, Vector3f position, String identifier) {
-        if (session.getBucketScheduledFuture() == null) return; // No bucket was really interacted with
-        String handItemIdentifier = session.getPlayerInventory().getItemInHand().getItemEntry().getJavaIdentifier();
+        if (session.getBucketScheduledFuture() == null) {
+            return; // No bucket was really interacted with
+        }
+        String handItemIdentifier = session.getPlayerInventory().getItemInHand().getMapping(session).getJavaIdentifier();
         LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
         soundEventPacket.setPosition(position);
         soundEventPacket.setIdentifier(":");
@@ -53,22 +54,31 @@ public class BucketSoundInteractionHandler implements BlockSoundInteractionHandl
                     soundEvent = SoundEvent.BUCKET_FILL_WATER;
                 } else if (identifier.contains("lava[")) {
                     soundEvent = SoundEvent.BUCKET_FILL_LAVA;
+                } else if (identifier.contains("powder_snow")) {
+                    soundEvent = SoundEvent.BUCKET_FILL_POWDER_SNOW;
                 }
                 break;
             case "minecraft:lava_bucket":
                 soundEvent = SoundEvent.BUCKET_EMPTY_LAVA;
                 break;
-            case "minecraft:fish_bucket":
+            case "minecraft:axolotl_bucket":
+            case "minecraft:cod_bucket":
+            case "minecraft:salmon_bucket":
+            case "minecraft:pufferfish_bucket":
+            case "minecraft:tropical_fish_bucket":
                 soundEvent = SoundEvent.BUCKET_EMPTY_FISH;
                 break;
             case "minecraft:water_bucket":
                 soundEvent = SoundEvent.BUCKET_EMPTY_WATER;
                 break;
+            case "minecraft:powder_snow_bucket":
+                soundEvent = SoundEvent.BUCKET_EMPTY_POWDER_SNOW;
+                break;
         }
         if (soundEvent != null) {
             soundEventPacket.setSound(soundEvent);
             session.sendUpstreamPacket(soundEventPacket);
+            session.setBucketScheduledFuture(null);
         }
-        session.setBucketScheduledFuture(null);
     }
 }

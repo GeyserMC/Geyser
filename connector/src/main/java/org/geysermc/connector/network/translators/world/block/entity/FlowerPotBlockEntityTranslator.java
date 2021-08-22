@@ -61,7 +61,7 @@ public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity {
         if (name != null) {
             // Get the Bedrock CompoundTag of the block.
             // This is where we need to store the *Java* name because Bedrock has six minecraft:sapling blocks with different block states.
-            NbtMap plant = session.getBlockTranslator().getFlowerPotBlocks().get(name);
+            NbtMap plant = session.getBlockMappings().getFlowerPotBlocks().get(name);
             if (plant != null) {
                 tagBuilder.put("PlantBlock", plant.toBuilder().build());
             }
@@ -80,7 +80,7 @@ public class FlowerPotBlockEntityTranslator implements BedrockOnlyBlockEntity {
         BlockEntityUtils.updateBlockEntity(session, tag, position);
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
-        updateBlockPacket.setRuntimeId(session.getBlockTranslator().getBedrockBlockId(blockState));
+        updateBlockPacket.setRuntimeId(session.getBlockMappings().getBedrockBlockId(blockState));
         updateBlockPacket.setBlockPosition(position);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);

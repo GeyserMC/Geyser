@@ -34,7 +34,6 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import lombok.Getter;
-import lombok.Setter;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -43,17 +42,16 @@ import org.geysermc.connector.network.session.GeyserSession;
  * custom player skulls in Bedrock.
  */
 public class SkullPlayerEntity extends PlayerEntity {
-
     /**
      * Stores the block state that the skull is associated with. Used to determine if the block in the skull's position
      * has changed
      */
     @Getter
-    @Setter
-    private int blockState;
+    private final int blockState;
 
-    public SkullPlayerEntity(GameProfile gameProfile, long geyserId, Vector3f position, Vector3f rotation) {
+    public SkullPlayerEntity(GameProfile gameProfile, long geyserId, Vector3f position, Vector3f rotation, int blockState) {
         super(gameProfile, 0, geyserId, position, Vector3f.ZERO, rotation);
+        this.blockState = blockState;
         setPlayerList(false);
 
         //Set bounding box to almost nothing so the skull is able to be broken and not cause entity to cast a shadow
@@ -75,7 +73,7 @@ public class SkullPlayerEntity extends PlayerEntity {
         addPlayerPacket.setUsername(getUsername());
         addPlayerPacket.setRuntimeEntityId(geyserId);
         addPlayerPacket.setUniqueEntityId(geyserId);
-        addPlayerPacket.setPosition(position.clone().sub(0, EntityType.PLAYER.getOffset(), 0));
+        addPlayerPacket.setPosition(position.sub(0, EntityType.PLAYER.getOffset(), 0));
         addPlayerPacket.setRotation(getBedrockRotation());
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(hand);
@@ -87,9 +85,6 @@ public class SkullPlayerEntity extends PlayerEntity {
 
         valid = true;
         session.sendUpstreamPacket(addPlayerPacket);
-
-        updateAllEquipment(session);
-        updateBedrockAttributes(session);
     }
 
     public void despawnEntity(GeyserSession session, Vector3i position) {

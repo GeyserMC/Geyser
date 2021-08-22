@@ -38,10 +38,12 @@ public class JavaEntityEffectTranslator extends PacketTranslator<ServerEntityEff
 
     @Override
     public void translate(ServerEntityEffectPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
-            session.getEffectCache().addEffect(packet.getEffect(), packet.getAmplifier());
+            session.getEffectCache().setEffect(packet.getEffect(), packet.getAmplifier());
+        } else {
+            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         }
         if (entity == null)
             return;
