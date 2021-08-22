@@ -94,7 +94,8 @@ public class GeyserPistonEvents implements Listener {
             Object2IntMap<Vector3i> attachedBlocks = new Object2IntOpenHashMap<>();
             List<Block> blocks = isExtend ? ((BlockPistonExtendEvent) event).getBlocks() : ((BlockPistonRetractEvent) event).getBlocks();
             for (Block block : blocks) {
-                attachedBlocks.put(getVector(block.getLocation()), worldManager.getBlockNetworkId(block));
+                Location attachedLocation = block.getLocation();
+                attachedBlocks.put(getVector(attachedLocation), worldManager.getBlockNetworkId(player, block, location.getBlockX(), location.getBlockY(), location.getBlockZ()));
             }
 
             session.executeInEventLoop(() -> {

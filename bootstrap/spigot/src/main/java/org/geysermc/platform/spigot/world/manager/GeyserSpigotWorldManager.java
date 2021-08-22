@@ -77,10 +77,10 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             return BlockStateValues.JAVA_AIR_ID;
         }
 
-        return getBlockNetworkId(world.getBlockAt(x, y, z));
+        return getBlockNetworkId(bukkitPlayer, world.getBlockAt(x, y, z), x, y, z);
     }
 
-    public int getBlockNetworkId(Block block) {
+    public int getBlockNetworkId(Player player, Block block, int x, int y, int z) {
         return BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(block.getBlockData().getAsString(), BlockStateValues.JAVA_AIR_ID);
     }
 
