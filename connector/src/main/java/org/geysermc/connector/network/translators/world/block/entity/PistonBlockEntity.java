@@ -137,9 +137,6 @@ public class PistonBlockEntity {
             removeBlocks();
             createMovingBlocks();
         }
-        if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
-            removePistonHead();
-        }
 
         // Set progress and lastProgress to allow 0 tick pistons to animate
         switch (action) {
@@ -178,9 +175,6 @@ public class PistonBlockEntity {
         if (isDone()) {
             // Update blocks only once
             if (timeSinceCompletion == 0) {
-                if (action != PistonValueType.PUSHING) { // PULLING or CANCELED_MID_PUSH
-                    removePistonHead();
-                }
                 placeFinalBlocks();
             }
             // Give a few ticks for player collisions to be fully resolved
@@ -190,9 +184,6 @@ public class PistonBlockEntity {
         }
     }
 
-    /**
-     * Removes lingering piston heads
-     */
     private void removePistonHead() {
         Vector3i blockInFront = position.add(orientation.getUnitVector());
         int blockId = session.getConnector().getWorldManager().getBlockAt(session, blockInFront);
@@ -215,7 +206,7 @@ public class PistonBlockEntity {
             blocksChecked.add(position.add(directionOffset)); // Don't check the piston head
             blocksToCheck.add(position.add(directionOffset.mul(2)));
         } else if (action == PistonValueType.PUSHING) {
-            removePistonHead();
+            removePistonHead(); // Remove lingering piston heads
             blocksToCheck.add(position.add(directionOffset));
         }
 
@@ -328,6 +319,9 @@ public class PistonBlockEntity {
     private void removeBlocks() {
         for (Vector3i blockPos : attachedBlocks.keySet()) {
             ChunkUtils.updateBlock(session, BlockStateValues.JAVA_AIR_ID, blockPos);
+        }
+        if (action != PistonValueType.PUSHING) {
+            removePistonHead();
         }
     }
 
