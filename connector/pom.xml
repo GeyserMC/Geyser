@@ -13,8 +13,8 @@
     <properties>
         <adventure.version>4.8.0</adventure.version>
         <fastutil.version>8.5.2</fastutil.version>
-        <jackson.version>2.10.2</jackson.version>
-        <netty.version>4.1.59.Final</netty.version>
+        <jackson.version>2.12.4</jackson.version>
+        <netty.version>4.1.66.Final</netty.version>
     </properties>
 
     <dependencies>
@@ -56,39 +56,12 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.java-websocket</groupId>
-            <artifactId>Java-WebSocket</artifactId>
-            <version>1.5.1</version>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>29.0-jre</version>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>com.github.CloudburstMC.Protocol</groupId>
-            <artifactId>bedrock-v448</artifactId>
-            <version>690a545d</version>
-            <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.nukkitx.network</groupId>
-                    <artifactId>raknet</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.nukkitx</groupId>
-                    <artifactId>nbt</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.nukkitx.network</groupId>
-            <artifactId>raknet</artifactId>
-            <version>1.6.26-20210217.205834-2</version>
-            <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+        <!-- fastutil maps -->
         <dependency>
             <groupId>com.nukkitx</groupId>
             <artifactId>nbt</artifactId>
@@ -132,11 +105,40 @@
             <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
+        <!-- Network libraries -->
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>29.0-jre</version>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>1.5.1</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.CloudburstMC.Protocol</groupId>
+            <artifactId>bedrock-v448</artifactId>
+            <version>690a545d</version>
+            <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.nukkitx.network</groupId>
+                    <artifactId>raknet</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.nukkitx</groupId>
+                    <artifactId>nbt</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx.network</groupId>
+            <artifactId>raknet</artifactId>
+            <version>1.6.26-20210217.205834-2</version>
+            <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.github.GeyserMC</groupId>
@@ -147,7 +149,7 @@
         <dependency>
             <groupId>com.github.GeyserMC</groupId>
             <artifactId>MCProtocolLib</artifactId>
-            <version>e427237</version>
+            <version>e17787a</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -167,7 +169,7 @@
         <dependency>
             <groupId>com.github.GeyserMC</groupId>
             <artifactId>PacketLib</artifactId>
-            <version>25eb4c4</version>
+            <version>86c9c38</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -223,7 +225,6 @@
             <scope>compile</scope>
             <classifier>osx-x86_64</classifier>
         </dependency>
-        <!-- End -->
         <!-- Adventure text serialization -->
         <dependency>
             <groupId>net.kyori</groupId>
@@ -249,6 +250,7 @@
             <version>${adventure.version}</version>
             <scope>compile</scope>
         </dependency>
+        <!-- Other -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

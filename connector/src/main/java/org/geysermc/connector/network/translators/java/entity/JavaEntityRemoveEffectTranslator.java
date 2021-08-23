@@ -38,10 +38,12 @@ public class JavaEntityRemoveEffectTranslator extends PacketTranslator<ServerEnt
 
     @Override
     public void translate(ServerEntityRemoveEffectPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
             session.getEffectCache().removeEffect(packet.getEffect());
+        } else {
+            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         }
         if (entity == null)
             return;

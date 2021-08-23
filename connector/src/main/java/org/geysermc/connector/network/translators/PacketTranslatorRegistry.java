@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPlayerListDa
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateLightPacket;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
+import io.netty.channel.EventLoop;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
@@ -86,22 +87,31 @@ public class PacketTranslatorRegistry<T> {
     @SuppressWarnings("unchecked")
     public <P extends T> boolean translate(Class<? extends P> clazz, P packet, GeyserSession session) {
         if (!session.getUpstream().isClosed() && !session.isClosed()) {
-            try {
-                PacketTranslator<P> translator = (PacketTranslator<P>) translators.get(clazz);
-                if (translator != null) {
-                    translator.translate(packet, session);
-                    return true;
+            PacketTranslator<P> translator = (PacketTranslator<P>) translators.get(clazz);
+            if (translator != null) {
+                EventLoop eventLoop = session.getEventLoop();
+                if (eventLoop.inEventLoop()) {
+                    translate0(session, translator, packet);
                 } else {
-                    if ((GeyserConnector.getInstance().getPlatformType() != PlatformType.STANDALONE || !(packet instanceof BedrockPacket)) && !IGNORED_PACKETS.contains(clazz)) {
-                        // Other debug logs already take care of Bedrock packets for us if on standalone
-                        GeyserConnector.getInstance().getLogger().debug("Could not find packet for " + (packet.toString().length() > 25 ? packet.getClass().getSimpleName() : packet));
-                    }
+                    eventLoop.execute(() -> translate0(session, translator, packet));
                 }
-            } catch (Throwable ex) {
-                GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.packet.failed", packet.getClass().getSimpleName()), ex);
-                ex.printStackTrace();
+                return true;
+            } else {
+                if ((GeyserConnector.getInstance().getPlatformType() != PlatformType.STANDALONE || !(packet instanceof BedrockPacket)) && !IGNORED_PACKETS.contains(clazz)) {
+                    // Other debug logs already take care of Bedrock packets for us if on standalone
+                    GeyserConnector.getInstance().getLogger().debug("Could not find packet for " + (packet.toString().length() > 25 ? packet.getClass().getSimpleName() : packet));
+                }
             }
         }
         return false;
+    }
+
+    private <P extends T> void translate0(GeyserSession session, PacketTranslator<P> translator, P packet) {
+        try {
+            translator.translate(packet, session);
+        } catch (Throwable ex) {
+            GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.packet.failed", packet.getClass().getSimpleName()), ex);
+            ex.printStackTrace();
+        }
     }
 }

@@ -57,9 +57,10 @@ import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
+import io.netty.channel.Channel;
+import io.netty.channel.EventLoop;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
@@ -102,7 +103,10 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
@@ -110,6 +114,11 @@ public class GeyserSession implements CommandSender {
 
     private final GeyserConnector connector;
     private final UpstreamSession upstream;
+    /**
+     * The loop where all packets and ticking is processed to prevent concurrency issues.
+     * If this is manually called, ensure that any exceptions are properly handled.
+     */
+    private final EventLoop eventLoop;
     private TcpClientSession downstream;
     @Setter
     private AuthData authData;
@@ -158,11 +167,6 @@ public class GeyserSession implements CommandSender {
     @Getter(AccessLevel.NONE)
     private final AtomicInteger itemNetId = new AtomicInteger(2);
 
-    @Getter(AccessLevel.NONE)
-    private final Object inventoryLock = new Object();
-    @Getter(AccessLevel.NONE)
-    private CompletableFuture<Void> inventoryFuture;
-
     @Setter
     private ScheduledFuture<?> craftingGridFuture;
 
@@ -183,8 +187,8 @@ public class GeyserSession implements CommandSender {
     @Setter
     private ItemMappings itemMappings;
 
-    private final Map<Vector3i, SkullPlayerEntity> skullCache = new ConcurrentHashMap<>();
-    private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
+    private final Map<Vector3i, SkullPlayerEntity> skullCache = new Object2ObjectOpenHashMap<>();
+    private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = new Long2ObjectOpenHashMap<>();
 
     /**
      * Stores the map between Java and Bedrock biome network IDs.
@@ -426,9 +430,10 @@ public class GeyserSession implements CommandSender {
 
     private MinecraftProtocol protocol;
 
-    public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession) {
+    public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession, EventLoop eventLoop) {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);
+        this.eventLoop = eventLoop;
 
         this.advancementsCache = new AdvancementsCache(this);
         this.bookEditCache = new BookEditCache(this);
@@ -447,7 +452,6 @@ public class GeyserSession implements CommandSender {
 
         this.playerInventory = new PlayerInventory();
         this.openInventory = null;
-        this.inventoryFuture = CompletableFuture.completedFuture(null);
         this.craftingRecipes = new Int2ObjectOpenHashMap<>();
         this.unlockedRecipes = new ObjectOpenHashSet<>();
         this.lastRecipeNetId = new AtomicInteger(1);
@@ -664,7 +668,7 @@ public class GeyserSession implements CommandSender {
         boolean floodgate = this.remoteAuthType == AuthType.FLOODGATE;
 
         // Start ticking
-        tickThread = connector.getGeneralThreadPool().scheduleAtFixedRate(this::tick, 50, 50, TimeUnit.MILLISECONDS);
+        tickThread = eventLoop.scheduleAtFixedRate(this::tick, 50, 50, TimeUnit.MILLISECONDS);
 
         downstream = new TcpClientSession(this.remoteAddress, this.remotePort, protocol);
         disableSrvResolving();
@@ -802,9 +806,8 @@ public class GeyserSession implements CommandSender {
 
             @Override
             public void packetReceived(PacketReceivedEvent event) {
-                if (!closed) {
-                    PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(event.getPacket().getClass(), event.getPacket(), GeyserSession.this);
-                }
+                Packet packet = event.getPacket();
+                PacketTranslatorRegistry.JAVA_TRANSLATOR.translate(packet.getClass(), packet, GeyserSession.this);
             }
 
             @Override
@@ -873,24 +876,54 @@ public class GeyserSession implements CommandSender {
     }
 
     /**
+     * Executes a task and prints a stack trace if an error occurs.
+     */
+    public void executeInEventLoop(Runnable runnable) {
+        eventLoop.execute(() -> {
+            try {
+                runnable.run();
+            } catch (Throwable e) {
+                connector.getLogger().error("Error thrown in " + getName() + "'s event loop!", e);
+            }
+        });
+    }
+
+    /**
+     * Schedules a task and prints a stack trace if an error occurs.
+     */
+    public ScheduledFuture<?> scheduleInEventLoop(Runnable runnable, long duration, TimeUnit timeUnit) {
+        return eventLoop.schedule(() -> {
+            try {
+                runnable.run();
+            } catch (Throwable e) {
+                connector.getLogger().error("Error thrown in " + getName() + "'s event loop!", e);
+            }
+        }, duration, timeUnit);
+    }
+
+    /**
      * Called every 50 milliseconds - one Minecraft tick.
      */
     protected void tick() {
-        // Check to see if the player's position needs updating - a position update should be sent once every 3 seconds
-        if (spawned && (System.currentTimeMillis() - lastMovementTimestamp) > 3000) {
-            // Recalculate in case something else changed position
-            Vector3d position = collisionManager.adjustBedrockPosition(playerEntity.getPosition(), playerEntity.isOnGround());
-            // A null return value cancels the packet
-            if (position != null) {
-                ClientPlayerPositionPacket packet = new ClientPlayerPositionPacket(playerEntity.isOnGround(),
-                        position.getX(), position.getY(), position.getZ());
-                sendDownstreamPacket(packet);
+        try {
+            // Check to see if the player's position needs updating - a position update should be sent once every 3 seconds
+            if (spawned && (System.currentTimeMillis() - lastMovementTimestamp) > 3000) {
+                // Recalculate in case something else changed position
+                Vector3d position = collisionManager.adjustBedrockPosition(playerEntity.getPosition(), playerEntity.isOnGround());
+                // A null return value cancels the packet
+                if (position != null) {
+                    ClientPlayerPositionPacket packet = new ClientPlayerPositionPacket(playerEntity.isOnGround(),
+                            position.getX(), position.getY(), position.getZ());
+                    sendDownstreamPacket(packet);
+                }
+                lastMovementTimestamp = System.currentTimeMillis();
             }
-            lastMovementTimestamp = System.currentTimeMillis();
-        }
 
-        for (Tickable entity : entityCache.getTickableEntities()) {
-            entity.tick(this);
+            for (Tickable entity : entityCache.getTickableEntities()) {
+                entity.tick(this);
+            }
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
         }
     }
 
@@ -1096,39 +1129,6 @@ public class GeyserSession implements CommandSender {
     }
 
     /**
-     * Adds a new inventory task.
-     * Inventory tasks are executed one at a time, in order.
-     *
-     * @param task the task to run
-     */
-    public void addInventoryTask(Runnable task) {
-        synchronized (inventoryLock) {
-            inventoryFuture = inventoryFuture.thenRun(task).exceptionally(throwable -> {
-                GeyserConnector.getInstance().getLogger().error("Error processing inventory task", throwable.getCause());
-                return null;
-            });
-        }
-    }
-
-    /**
-     * Adds a new inventory task with a delay.
-     * The delay is achieved by scheduling with the Geyser general thread pool.
-     * Inventory tasks are executed one at a time, in order.
-     *
-     * @param task the delayed task to run
-     * @param delayMillis delay in milliseconds
-     */
-    public void addInventoryTask(Runnable task, long delayMillis) {
-        synchronized (inventoryLock) {
-            Executor delayedExecutor = command -> GeyserConnector.getInstance().getGeneralThreadPool().schedule(command, delayMillis, TimeUnit.MILLISECONDS);
-            inventoryFuture = inventoryFuture.thenRunAsync(task, delayedExecutor).exceptionally(throwable -> {
-                GeyserConnector.getInstance().getLogger().error("Error processing inventory task", throwable.getCause());
-                return null;
-            });
-        }
-    }
-
-    /**
      * @return the next Bedrock item network ID to use for a new item
      */
     public int getNextItemNetId() {
@@ -1229,7 +1229,25 @@ public class GeyserSession implements CommandSender {
      * @param packet the java edition packet from MCProtocolLib
      */
     public void sendDownstreamPacket(Packet packet) {
-        if (downstream != null && (protocol.getSubProtocol().equals(SubProtocol.GAME) || packet.getClass() == LoginPluginResponsePacket.class)) {
+        if (!closed && this.downstream != null) {
+            Channel channel = this.downstream.getChannel();
+            if (channel == null) {
+                // Channel is set to null when downstream is disconnected - there is a short window for this to happen
+                // as downstream doesn't call GeyserSession#disconnect
+                return;
+            }
+
+            EventLoop eventLoop = channel.eventLoop();
+            if (eventLoop.inEventLoop()) {
+                sendDownstreamPacket0(packet);
+            } else {
+                eventLoop.execute(() -> sendDownstreamPacket0(packet));
+            }
+        }
+    }
+
+    private void sendDownstreamPacket0(Packet packet) {
+        if (protocol.getSubProtocol().equals(SubProtocol.GAME) || packet.getClass() == LoginPluginResponsePacket.class) {
             downstream.send(packet);
         } else {
             connector.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");

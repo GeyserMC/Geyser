@@ -2,7 +2,7 @@ pipeline {
     agent any
     tools {
         maven 'Maven 3'
-        jdk 'Java 8'
+        jdk 'Java 16'
     }
     options {
         buildDiscarder(logRotator(artifactNumToKeepStr: '20'))
@@ -20,7 +20,7 @@ pipeline {
             }
         }
 
-        stage ('Deploy') {
+        /*stage ('Deploy') {
             when {
                 branch "master"
             }
@@ -48,7 +48,7 @@ pipeline {
                         serverId: "opencollab-artifactory"
                 )
             }
-        }
+        }*/
     }
 
     post {

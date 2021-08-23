@@ -37,7 +37,6 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerHotbarPacket;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.inventory.Container;
 import org.geysermc.connector.inventory.GeyserItemStack;
@@ -80,17 +79,16 @@ public class InventoryUtils {
         if (translator != null) {
             translator.prepareInventory(session, inventory);
             if (translator instanceof DoubleChestInventoryTranslator && !((Container) inventory).isUsingRealBlock()) {
-                GeyserConnector.getInstance().getGeneralThreadPool().schedule(() ->
-                    session.addInventoryTask(() -> {
-                        Inventory openInv = session.getOpenInventory();
-                        if (openInv != null && openInv.getId() == inventory.getId()) {
-                            translator.openInventory(session, inventory);
-                            translator.updateInventory(session, inventory);
-                        } else if (openInv != null && openInv.isPending()) {
-                            // Presumably, this inventory is no longer relevant, and the client doesn't care about it
-                            displayInventory(session, openInv);
-                        }
-                }), 200, TimeUnit.MILLISECONDS);
+                session.scheduleInEventLoop(() -> {
+                    Inventory openInv = session.getOpenInventory();
+                    if (openInv != null && openInv.getId() == inventory.getId()) {
+                        translator.openInventory(session, inventory);
+                        translator.updateInventory(session, inventory);
+                    } else if (openInv != null && openInv.isPending()) {
+                        // Presumably, this inventory is no longer relevant, and the client doesn't care about it
+                        displayInventory(session, openInv);
+                    }
+                }, 200, TimeUnit.MILLISECONDS);
             } else {
                 translator.openInventory(session, inventory);
                 translator.updateInventory(session, inventory);

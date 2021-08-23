@@ -83,26 +83,24 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                     InventoryActionData containerAction = packet.getActions().get(1);
                     if (worldAction.getSource().getType() == InventorySource.Type.WORLD_INTERACTION
                             && worldAction.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
-                        session.addInventoryTask(() -> {
-                            if (session.getPlayerInventory().getHeldItemSlot() != containerAction.getSlot() ||
-                                    session.getPlayerInventory().getItemInHand().isEmpty()) {
-                                return;
-                            }
+                        if (session.getPlayerInventory().getHeldItemSlot() != containerAction.getSlot() ||
+                                session.getPlayerInventory().getItemInHand().isEmpty()) {
+                            return;
+                        }
 
-                            boolean dropAll = worldAction.getToItem().getCount() > 1;
-                            ClientPlayerActionPacket dropAllPacket = new ClientPlayerActionPacket(
-                                    dropAll ? PlayerAction.DROP_ITEM_STACK : PlayerAction.DROP_ITEM,
-                                    BlockUtils.POSITION_ZERO,
-                                    BlockFace.DOWN
-                            );
-                            session.sendDownstreamPacket(dropAllPacket);
+                        boolean dropAll = worldAction.getToItem().getCount() > 1;
+                        ClientPlayerActionPacket dropAllPacket = new ClientPlayerActionPacket(
+                                dropAll ? PlayerAction.DROP_ITEM_STACK : PlayerAction.DROP_ITEM,
+                                BlockUtils.POSITION_ZERO,
+                                BlockFace.DOWN
+                        );
+                        session.sendDownstreamPacket(dropAllPacket);
 
-                            if (dropAll) {
-                                session.getPlayerInventory().setItemInHand(GeyserItemStack.EMPTY);
-                            } else {
-                                session.getPlayerInventory().getItemInHand().sub(1);
-                            }
-                        });
+                        if (dropAll) {
+                            session.getPlayerInventory().setItemInHand(GeyserItemStack.EMPTY);
+                        } else {
+                            session.getPlayerInventory().getItemInHand().sub(1);
+                        }
                     }
                 }
                 break;
@@ -222,7 +220,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                     if (session.isSneaking() || blockState != BlockRegistries.JAVA_IDENTIFIERS.get("minecraft:crafting_table")) {
                                         // Delay the interaction in case the client doesn't intend to actually use the bucket
                                         // See BedrockActionTranslator.java
-                                        session.setBucketScheduledFuture(session.getConnector().getGeneralThreadPool().schedule(() -> {
+                                        session.setBucketScheduledFuture(session.scheduleInEventLoop(() -> {
                                             ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                                             session.sendDownstreamPacket(itemPacket);
                                         }, 5, TimeUnit.MILLISECONDS));
