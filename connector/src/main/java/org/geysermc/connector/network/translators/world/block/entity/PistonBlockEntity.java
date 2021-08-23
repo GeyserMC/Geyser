@@ -137,6 +137,9 @@ public class PistonBlockEntity {
             removeBlocks();
             createMovingBlocks();
         }
+        if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
+            removePistonHead();
+        }
 
         // Set progress and lastProgress to allow 0 tick pistons to animate
         switch (action) {
