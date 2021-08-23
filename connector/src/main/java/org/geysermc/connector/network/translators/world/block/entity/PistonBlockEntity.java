@@ -275,15 +275,12 @@ public class PistonBlockEntity {
         } else {
             // Map the final position of each block to this block entity
             Map<Vector3i, PistonBlockEntity> movingBlockMap = session.getPistonCache().getMovingBlocksMap();
-            for (Vector3i position : attachedBlocks.keySet()) {
-                position = position.add(movement);
-                movingBlockMap.put(position, this);
-            }
+            attachedBlocks.forEach((blockPos, javaId) -> movingBlockMap.put(blockPos, this));
             // Add piston head
             if (action == PistonValueType.PUSHING) {
-                movingBlockMap.put(this.position.add(movement), this);
-            } else {
                 movingBlockMap.put(this.position, this);
+            } else {
+                movingBlockMap.put(this.position.add(getMovement()), this);
             }
             flattenPositions();
         }
@@ -528,7 +525,6 @@ public class PistonBlockEntity {
     public double computeCollisionOffset(Vector3i blockPos, BoundingBox boundingBox, Axis axis, double movement) {
         int blockId = getAttachedBlockId(blockPos);
         if (blockId != BlockStateValues.JAVA_AIR_ID) {
-            blockPos = blockPos.sub(getMovement());
             double movementProgress = progress;
             if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
                 movementProgress = 1f - progress;
@@ -551,7 +547,6 @@ public class PistonBlockEntity {
     public boolean checkCollision(Vector3i blockPos, BoundingBox boundingBox) {
         int blockId = getAttachedBlockId(blockPos);
         if (blockId != BlockStateValues.JAVA_AIR_ID) {
-            blockPos = blockPos.sub(getMovement());
             double movementProgress = progress;
             if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
                 movementProgress = 1f - progress;
@@ -568,12 +563,12 @@ public class PistonBlockEntity {
     }
 
     private int getAttachedBlockId(Vector3i blockPos) {
-        if (action == PistonValueType.PULLING && blockPos.equals(position)) {
+        if (action == PistonValueType.PULLING && blockPos.equals(position.add(getMovement()))) {
             return BlockStateValues.getPistonHead(orientation);
-        } else if (action == PistonValueType.PUSHING && blockPos.equals(position.add(getMovement()))) {
+        } else if (action == PistonValueType.PUSHING && blockPos.equals(position)) {
             return BlockStateValues.getPistonHead(orientation);
         } else {
-            return attachedBlocks.getOrDefault(blockPos.sub(getMovement()), BlockStateValues.JAVA_AIR_ID);
+            return attachedBlocks.getOrDefault(blockPos, BlockStateValues.JAVA_AIR_ID);
         }
     }
 
@@ -636,19 +631,15 @@ public class PistonBlockEntity {
      * Remove moving blocks the piston cache
      */
     private void removeMovingBlocks() {
-        Vector3i movement = getMovement();
         Map<Vector3i, PistonBlockEntity> movingBlockMap = session.getPistonCache().getMovingBlocksMap();
-        attachedBlocks.forEach((blockPos, javaId) -> {
-            blockPos = blockPos.add(movement);
-            movingBlockMap.remove(blockPos);
-        });
+        attachedBlocks.forEach((blockPos, javaId) -> movingBlockMap.remove(blockPos));
+        attachedBlocks.clear();
         // Remove piston head
         if (action == PistonValueType.PUSHING) {
-            movingBlockMap.remove(this.position.add(movement));
-        } else {
             movingBlockMap.remove(this.position);
+        } else {
+            movingBlockMap.remove(this.position.add(getMovement()));
         }
-        attachedBlocks.clear();
         flattenedAttachedBlocks = new int[0];
     }
 

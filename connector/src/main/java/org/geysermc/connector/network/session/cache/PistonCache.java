@@ -51,6 +51,7 @@ public class PistonCache {
 
     /**
      * Maps the position of a moving block to the piston moving it
+     * Positions in this map represent the starting position of the block
      */
     @Getter
     private final Map<Vector3i, PistonBlockEntity> movingBlocksMap = new Object2ObjectOpenHashMap<>();
