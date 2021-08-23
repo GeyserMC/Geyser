@@ -52,6 +52,7 @@ public class BlockStateValues {
     private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
     private static final Object2IntMap<Direction> PISTON_HEADS = new Object2IntOpenHashMap<>();
     private static final IntSet MOVING_PISTONS = new IntOpenHashSet();
+    private static final IntSet ALL_PISTON_HEADS = new IntOpenHashSet();
     private static final Int2ByteMap SKULL_VARIANTS = new Int2ByteOpenHashMap();
     private static final Int2ByteMap SKULL_ROTATIONS = new Int2ByteOpenHashMap();
     private static final Int2IntMap SKULL_WALL_DIRECTIONS = new Int2IntOpenHashMap();
@@ -129,19 +130,22 @@ public class BlockStateValues {
             PISTON_VALUES.put(javaBlockState, javaId.contains("extended=true"));
             IS_STICKY_PISTON.put(javaBlockState, javaId.contains("sticky"));
             return;
-        } else if (javaId.startsWith("minecraft:piston_head") && javaId.contains("short=false")) {
-            if (javaId.contains("down")) {
-                PISTON_HEADS.put(Direction.DOWN, javaBlockState);
-            } else if (javaId.contains("up")) {
-                PISTON_HEADS.put(Direction.UP, javaBlockState);
-            } else if (javaId.contains("south")) {
-                PISTON_HEADS.put(Direction.SOUTH, javaBlockState);
-            } else if (javaId.contains("west")) {
-                PISTON_HEADS.put(Direction.WEST, javaBlockState);
-            } else if (javaId.contains("north")) {
-                PISTON_HEADS.put(Direction.NORTH, javaBlockState);
-            } else if (javaId.contains("east")) {
-                PISTON_HEADS.put(Direction.EAST, javaBlockState);
+        } else if (javaId.startsWith("minecraft:piston_head")) {
+            ALL_PISTON_HEADS.add(javaBlockState);
+            if (javaId.contains("short=false")) {
+                if (javaId.contains("down")) {
+                    PISTON_HEADS.put(Direction.DOWN, javaBlockState);
+                } else if (javaId.contains("up")) {
+                    PISTON_HEADS.put(Direction.UP, javaBlockState);
+                } else if (javaId.contains("south")) {
+                    PISTON_HEADS.put(Direction.SOUTH, javaBlockState);
+                } else if (javaId.contains("west")) {
+                    PISTON_HEADS.put(Direction.WEST, javaBlockState);
+                } else if (javaId.contains("north")) {
+                    PISTON_HEADS.put(Direction.NORTH, javaBlockState);
+                } else if (javaId.contains("east")) {
+                    PISTON_HEADS.put(Direction.EAST, javaBlockState);
+                }
             }
         } else if (javaId.startsWith("minecraft:moving_piston")) {
             MOVING_PISTONS.add(javaBlockState);
@@ -276,8 +280,7 @@ public class BlockStateValues {
     }
 
     public static boolean isPistonHead(int state) {
-        String javaId = BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.AIR).getJavaIdentifier();
-        return javaId.startsWith("minecraft:piston_head");
+        return ALL_PISTON_HEADS.contains(state);
     }
 
     /**

@@ -124,6 +124,9 @@ public class PistonBlockEntity {
      * @param action PULLING or PUSHING or CANCELED_MID_PUSH
      */
     public void setAction(PistonValueType action) {
+        if (this.action == action) {
+            return;
+        }
         placeFinalBlocks();
         removeMovingBlocks();
 

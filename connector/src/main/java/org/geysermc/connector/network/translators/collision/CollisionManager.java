@@ -200,15 +200,15 @@ public class CollisionManager {
                 box.getMiddleY() - (box.getSizeY() / 2),
                 box.getMiddleZ());
 
-        // Expand volume by 0.5 in each direction to include moving blocks
-        double pistonExpand = session.getPistonCache().getPistons().isEmpty() ? 0 : 0.5;
+        // Expand volume by 1 in each direction to include moving blocks
+        double pistonExpand = session.getPistonCache().getPistons().isEmpty() ? 0 : 1;
 
         // Loop through all blocks that could collide
         int minCollisionX = (int) Math.floor(position.getX() - ((box.getSizeX() / 2) + COLLISION_TOLERANCE + pistonExpand));
         int maxCollisionX = (int) Math.floor(position.getX() + (box.getSizeX() / 2) + COLLISION_TOLERANCE + pistonExpand);
 
         // Y extends 0.5 blocks down because of fence hitboxes
-        int minCollisionY = (int) Math.floor(position.getY() - 0.5 - COLLISION_TOLERANCE);
+        int minCollisionY = (int) Math.floor(position.getY() - 0.5 - COLLISION_TOLERANCE - pistonExpand / 2.0);
 
         int maxCollisionY = (int) Math.floor(position.getY() + box.getSizeY() + pistonExpand);
 
