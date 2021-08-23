@@ -126,9 +126,12 @@ public class BlockStateValues {
         }
 
         if (javaId.contains("piston[")) {
-            // True if extended, false if not
-            PISTON_VALUES.put(javaBlockState, javaId.contains("extended=true"));
-            IS_STICKY_PISTON.put(javaBlockState, javaId.contains("sticky"));
+            if (javaId.startsWith("minecraft:moving_piston")) {
+                MOVING_PISTONS.add(javaBlockState);
+            } else {
+                PISTON_VALUES.put(javaBlockState, javaId.contains("extended=true"));
+                IS_STICKY_PISTON.put(javaBlockState, javaId.contains("sticky"));
+            }
             return;
         } else if (javaId.startsWith("minecraft:piston_head")) {
             ALL_PISTON_HEADS.add(javaBlockState);
@@ -147,8 +150,6 @@ public class BlockStateValues {
                     PISTON_HEADS.put(Direction.EAST, javaBlockState);
                 }
             }
-        } else if (javaId.startsWith("minecraft:moving_piston")) {
-            MOVING_PISTONS.add(javaBlockState);
             return;
         }
 
