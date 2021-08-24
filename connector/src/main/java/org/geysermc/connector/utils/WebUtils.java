@@ -26,15 +26,19 @@
 package org.geysermc.connector.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.geysermc.connector.GeyserConnector;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.stream.Collectors;
 
 public class WebUtils {
 
@@ -72,7 +76,7 @@ public class WebUtils {
     /**
      * Downloads a file from the given URL and saves it to disk
      *
-     * @param reqURL File to fetch
+     * @param reqURL       File to fetch
      * @param fileLocation Location to save on disk
      */
     public static void downloadFile(String reqURL, String fileLocation) {
@@ -131,5 +135,42 @@ public class WebUtils {
         }
 
         return content.toString();
+    }
+
+    /**
+     * Get the server log file and uploads it to mclo.gs
+     *
+     * @param log File to fetch
+     */
+    public static String mcLogs(Path log) throws IOException {
+        String mcversion = "unknown";
+        String userAgent = "unknown";
+        String version = "unknown";
+        //connect to api
+        URL url = new URL("https://api.mclo.gs/1/log");
+        URLConnection con = url.openConnection();
+        HttpURLConnection http = (HttpURLConnection) con;
+        http.setRequestMethod("POST");
+        http.setDoOutput(true);
+        //convert log to application/x-www-form-urlencoded
+        String content = "content=" + new BufferedReader(new InputStreamReader(Files.newInputStream(log.toRealPath()))).lines().collect(Collectors.joining("\n"));
+        byte[] out = content.getBytes(StandardCharsets.UTF_8);
+        int length = out.length;
+
+        //send log to api
+        http.setFixedLengthStreamingMode(length);
+        http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+        http.setRequestProperty("User-Agent", userAgent + "/" + version + "/" + mcversion);
+        http.connect();
+        try (OutputStream os = http.getOutputStream()) {
+            os.write(out);
+        }
+        String br = new BufferedReader(new InputStreamReader(http.getInputStream()))
+                .lines()
+                .collect(Collectors.joining());
+        ObjectMapper om = new ObjectMapper();
+        JsonNode jn = om.readTree(br);
+        //handle response
+        return jn.get("url").textValue();
     }
 }

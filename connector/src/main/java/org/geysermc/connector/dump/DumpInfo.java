@@ -30,8 +30,6 @@ import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
-import gs.mclo.java.APIResponse;
-import gs.mclo.java.MclogsAPI;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AllArgsConstructor;
@@ -43,6 +41,7 @@ import org.geysermc.connector.network.BedrockProtocol;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.connector.utils.WebUtils;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.FloodgateInfoHolder;
 
@@ -200,14 +199,9 @@ public class DumpInfo {
         private String link;
 
         public LogsInfo() {
-
             try {
-                APIResponse apiresponse = MclogsAPI.share(GeyserConnector.getInstance().getBootstrap().getLogsPath());
-                if (apiresponse.success) {
-                    this.link = "https://mclo.gs/" + apiresponse.id;
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+                this.link = WebUtils.mcLogs(GeyserConnector.getInstance().getBootstrap().getLogsPath());
+            } catch (IOException ignored) {
             }
         }
     }
