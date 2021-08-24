@@ -119,13 +119,11 @@ public class PistonCache {
     }
 
     private void sendPlayerMovement() {
-        if (!playerDisplacement.equals(Vector3d.ZERO) || playerDisplacement.getY() > 0) {
-            if (playerMotion.equals(Vector3f.ZERO)) {
-                SessionPlayerEntity playerEntity = session.getPlayerEntity();
-                boolean isOnGround = playerDisplacement.getY() > 0 || playerEntity.isOnGround();
-                Vector3d position = session.getCollisionManager().getPlayerBoundingBox().getBottomCenter();
-                playerEntity.moveAbsolute(session, position.toFloat(), playerEntity.getRotation(), isOnGround, true);
-            }
+        if (!playerDisplacement.equals(Vector3d.ZERO) && playerMotion.equals(Vector3f.ZERO)) {
+            SessionPlayerEntity playerEntity = session.getPlayerEntity();
+            boolean isOnGround = playerDisplacement.getY() > 0 || playerEntity.isOnGround();
+            Vector3d position = session.getCollisionManager().getPlayerBoundingBox().getBottomCenter();
+            playerEntity.moveAbsolute(session, position.toFloat(), playerEntity.getRotation(), isOnGround, true);
         }
     }
 

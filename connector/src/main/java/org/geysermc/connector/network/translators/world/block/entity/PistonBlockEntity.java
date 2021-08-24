@@ -619,10 +619,16 @@ public class PistonBlockEntity {
                 ChunkUtils.updateBlock(session, javaId, blockPos);
             }
         });
+        if (action == PistonValueType.PUSHING) {
+            Vector3i pistonHeadPos = position.add(orientation.getUnitVector());
+            if (!SOLID_BOUNDING_BOX.checkIntersection(pistonHeadPos.toDouble(), session.getCollisionManager().getPlayerBoundingBox())) {
+                ChunkUtils.updateBlock(session, BlockStateValues.getPistonHead(orientation), pistonHeadPos);
+            }
+        }
     }
 
     /**
-     * Remove moving blocks the piston cache
+     * Remove moving blocks from the piston cache
      */
     private void removeMovingBlocks() {
         Map<Vector3i, PistonBlockEntity> movingBlockMap = session.getPistonCache().getMovingBlocksMap();
