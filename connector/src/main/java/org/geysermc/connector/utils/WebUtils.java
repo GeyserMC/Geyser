@@ -76,7 +76,7 @@ public class WebUtils {
     /**
      * Downloads a file from the given URL and saves it to disk
      *
-     * @param reqURL       File to fetch
+     * @param reqURL File to fetch
      * @param fileLocation Location to save on disk
      */
     public static void downloadFile(String reqURL, String fileLocation) {
