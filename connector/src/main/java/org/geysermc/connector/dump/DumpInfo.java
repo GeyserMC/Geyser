@@ -201,8 +201,7 @@ public class DumpInfo {
         public LogsInfo() {
             try {
                 this.link = WebUtils.postLogs(GeyserConnector.getInstance().getBootstrap().getLogsPath());
-            } catch (IOException ignored) {
-            }
+            } catch (IOException ignored) {}
         }
     }
 

@@ -26,13 +26,13 @@
 package org.geysermc.connector.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.geysermc.connector.GeyserConnector;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -150,7 +150,7 @@ public class WebUtils {
         http.setRequestMethod("POST");
         http.setDoOutput(true);
         // Convert log to application/x-www-form-urlencoded
-        String content = "content=" + new BufferedReader(new InputStreamReader(Files.newInputStream(log.toRealPath()))).lines().collect(Collectors.joining("\n"));
+        String content = "content=" + URLEncoder.encode(new BufferedReader(new InputStreamReader(Files.newInputStream(log.toRealPath()))).lines().collect(Collectors.joining("\n")), StandardCharsets.UTF_8.toString());
         byte[] out = content.getBytes(StandardCharsets.UTF_8);
         int length = out.length;
 
@@ -165,8 +165,7 @@ public class WebUtils {
         String is = new BufferedReader(new InputStreamReader(http.getInputStream()))
                 .lines()
                 .collect(Collectors.joining());
-        ObjectMapper om = GeyserConnector.JSON_MAPPER;
-        JsonNode jn = om.readTree(is);
+        JsonNode jn = GeyserConnector.JSON_MAPPER.readTree(is);
         // Handle response
         return jn.get("url").textValue();
     }
