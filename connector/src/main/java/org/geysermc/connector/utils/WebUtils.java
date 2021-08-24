@@ -142,25 +142,22 @@ public class WebUtils {
      *
      * @param log File to fetch
      */
-    public static String mcLogs(Path log) throws IOException {
-        String mcversion = "unknown";
-        String userAgent = "unknown";
-        String version = "unknown";
-        //connect to api
+    public static String postLogs(Path log) throws IOException {
+        // Connect to api
         URL url = new URL("https://api.mclo.gs/1/log");
         URLConnection con = url.openConnection();
         HttpURLConnection http = (HttpURLConnection) con;
         http.setRequestMethod("POST");
         http.setDoOutput(true);
-        //convert log to application/x-www-form-urlencoded
+        // Convert log to application/x-www-form-urlencoded
         String content = "content=" + new BufferedReader(new InputStreamReader(Files.newInputStream(log.toRealPath()))).lines().collect(Collectors.joining("\n"));
         byte[] out = content.getBytes(StandardCharsets.UTF_8);
         int length = out.length;
 
-        //send log to api
+        // Send log to api
         http.setFixedLengthStreamingMode(length);
         http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-        http.setRequestProperty("User-Agent", userAgent + "/" + version + "/" + mcversion);
+        http.setRequestProperty("User-Agent", "Geyser-" + GeyserConnector.getInstance().getPlatformType().toString() + "/" + GeyserConnector.VERSION);
         http.connect();
         try (OutputStream os = http.getOutputStream()) {
             os.write(out);
@@ -168,9 +165,9 @@ public class WebUtils {
         String br = new BufferedReader(new InputStreamReader(http.getInputStream()))
                 .lines()
                 .collect(Collectors.joining());
-        ObjectMapper om = new ObjectMapper();
+        ObjectMapper om = GeyserConnector.JSON_MAPPER;
         JsonNode jn = om.readTree(br);
-        //handle response
+        // Handle response
         return jn.get("url").textValue();
     }
 }
