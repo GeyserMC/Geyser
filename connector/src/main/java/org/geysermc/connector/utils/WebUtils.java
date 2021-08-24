@@ -162,11 +162,11 @@ public class WebUtils {
         try (OutputStream os = http.getOutputStream()) {
             os.write(out);
         }
-        String br = new BufferedReader(new InputStreamReader(http.getInputStream()))
+        String is = new BufferedReader(new InputStreamReader(http.getInputStream()))
                 .lines()
                 .collect(Collectors.joining());
         ObjectMapper om = GeyserConnector.JSON_MAPPER;
-        JsonNode jn = om.readTree(br);
+        JsonNode jn = om.readTree(is);
         // Handle response
         return jn.get("url").textValue();
     }
