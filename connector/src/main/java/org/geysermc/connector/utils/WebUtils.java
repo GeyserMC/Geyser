@@ -31,14 +31,12 @@ import org.geysermc.connector.GeyserConnector;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 public class WebUtils {
 
@@ -90,6 +88,14 @@ public class WebUtils {
         }
     }
 
+    /**
+     * Post a string to the given URL
+     *
+     * @param reqURL URL to post to
+     * @param postContent String data to post
+     * @return String returned by the server
+     * @throws IOException
+     */
     public static String post(String reqURL, String postContent) throws IOException {
         URL url = new URL(reqURL);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -138,35 +144,28 @@ public class WebUtils {
     }
 
     /**
-     * Get the server log file and uploads it to mclo.gs
+     * Post fields to a URL as a form
      *
-     * @param log File to fetch
+     * @param reqURL URL to post to
+     * @param fields Form data to post
+     * @return String returned by the server
+     * @throws IOException
      */
-    public static String postLogs(Path log) throws IOException {
-        // Connect to api
-        URL url = new URL("https://api.mclo.gs/1/log");
-        URLConnection con = url.openConnection();
-        HttpURLConnection http = (HttpURLConnection) con;
-        http.setRequestMethod("POST");
-        http.setDoOutput(true);
-        // Convert log to application/x-www-form-urlencoded
-        String content = "content=" + URLEncoder.encode(new BufferedReader(new InputStreamReader(Files.newInputStream(log.toRealPath()))).lines().collect(Collectors.joining("\n")), StandardCharsets.UTF_8.toString());
-        byte[] out = content.getBytes(StandardCharsets.UTF_8);
-        int length = out.length;
+    public static String postForm(String reqURL, Map<String, String> fields) throws IOException {
+        URL url = new URL(reqURL);
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        con.setRequestProperty("User-Agent", "Geyser-" + GeyserConnector.getInstance().getPlatformType().toString() + "/" + GeyserConnector.VERSION);
+        con.setDoOutput(true);
 
-        // Send log to api
-        http.setFixedLengthStreamingMode(length);
-        http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-        http.setRequestProperty("User-Agent", "Geyser-" + GeyserConnector.getInstance().getPlatformType().toString() + "/" + GeyserConnector.VERSION);
-        http.connect();
-        try (OutputStream os = http.getOutputStream()) {
-            os.write(out);
+        try (OutputStream out = con.getOutputStream()) {
+            // Write the form data to the output
+            for (Map.Entry<String, String> field : fields.entrySet()) {
+                out.write((field.getKey() + "=" + URLEncoder.encode(field.getValue(), StandardCharsets.UTF_8.toString()) + "&").getBytes(StandardCharsets.UTF_8));
+            }
         }
-        String is = new BufferedReader(new InputStreamReader(http.getInputStream()))
-                .lines()
-                .collect(Collectors.joining());
-        JsonNode jn = GeyserConnector.JSON_MAPPER.readTree(is);
-        // Handle response
-        return jn.get("url").textValue();
+
+        return connectionToString(con);
     }
 }

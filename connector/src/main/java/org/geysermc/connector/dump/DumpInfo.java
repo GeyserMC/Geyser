@@ -26,6 +26,7 @@
 package org.geysermc.connector.dump;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
@@ -47,10 +48,9 @@ import org.geysermc.floodgate.util.FloodgateInfoHolder;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 @Getter
@@ -200,8 +200,13 @@ public class DumpInfo {
 
         public LogsInfo() {
             try {
-                this.link = WebUtils.postLogs(GeyserConnector.getInstance().getBootstrap().getLogsPath());
-            } catch (IOException ignored) {}
+                Map<String, String> fields = new HashMap<>();
+                fields.put("content", String.join("\n", java.nio.file.Files.readAllLines(GeyserConnector.getInstance().getBootstrap().getLogsPath())));
+
+                JsonNode logData = GeyserConnector.JSON_MAPPER.readTree(WebUtils.postForm("https://api.mclo.gs/1/log", fields));
+
+                this.link = logData.get("url").textValue();
+            } catch (IOException ignored) { }
         }
     }
 
