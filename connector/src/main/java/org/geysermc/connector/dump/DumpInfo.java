@@ -41,6 +41,7 @@ import org.geysermc.connector.network.BedrockProtocol;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.connector.utils.WebUtils;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.FloodgateInfoHolder;
 
@@ -64,9 +65,10 @@ public class DumpInfo {
     private final Object2IntMap<DeviceOs> userPlatforms;
     private final HashInfo hashInfo;
     private final RamInfo ramInfo;
+    private LogsInfo logsInfo;
     private final BootstrapDumpInfo bootstrapInfo;
 
-    public DumpInfo() {
+    public DumpInfo(boolean addLog) {
         this.versionInfo = new VersionInfo();
 
         try {
@@ -98,6 +100,10 @@ public class DumpInfo {
         this.hashInfo = new HashInfo(md5Hash, sha256Hash);
 
         this.ramInfo = new DumpInfo.RamInfo();
+
+        if (addLog) {
+            this.logsInfo = new LogsInfo();
+        }
 
         this.userPlatforms = new Object2IntOpenHashMap<>();
         for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
@@ -185,6 +191,17 @@ public class DumpInfo {
         Floodgate() {
             this.gitInfo = FloodgateInfoHolder.getGitProperties();
             this.config = FloodgateInfoHolder.getConfig();
+        }
+    }
+
+    @Getter
+    public static class LogsInfo {
+        private String link;
+
+        public LogsInfo() {
+            try {
+                this.link = WebUtils.postLogs(GeyserConnector.getInstance().getBootstrap().getLogsPath());
+            } catch (IOException ignored) {}
         }
     }
 
