@@ -70,7 +70,7 @@ public class PistonCache {
 
     /**
      * Stores whether a player has/will collide with any slime blocks.
-     * This is used to prevent movement from being canceled when players
+     * This is used to prevent movement from being corrected when players
      * are about to hit a slime block.
      */
     @Getter @Setter
@@ -78,7 +78,7 @@ public class PistonCache {
 
     /**
      * Stores whether a player is standing on a honey block.
-     * This is used to cancel movement from Bedrock to prevent them from
+     * This is used to ignore movement from Bedrock to prevent them from
      * falling off.
      */
     @Getter @Setter

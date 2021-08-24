@@ -125,7 +125,7 @@ public class BlockStateValues {
             return;
         }
 
-        if (javaId.contains("piston[")) {
+        if (javaId.contains("piston[")) { // minecraft:moving_piston, minecraft:sticky_piston, minecraft:piston
             if (javaId.startsWith("minecraft:moving_piston")) {
                 MOVING_PISTONS.add(javaBlockState);
             } else {

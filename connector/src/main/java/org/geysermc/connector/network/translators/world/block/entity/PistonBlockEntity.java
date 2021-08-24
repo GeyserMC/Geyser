@@ -82,7 +82,7 @@ public class PistonBlockEntity {
     private static final BoundingBox HONEY_BOUNDING_BOX;
 
     /**
-     * Stores the number of ticks to wait after a piston finishes its movement before
+     * The number of ticks to wait after a piston finishes its movement before
      * it can be removed
      */
     private static final int REMOVAL_DELAY = 5;
@@ -100,22 +100,23 @@ public class PistonBlockEntity {
         HONEY_BOUNDING_BOX = new BoundingBox(0.5, honeyHeight + boundingBoxHeight / 2, 0.5, blockBoundingBox.getSizeX(), boundingBoxHeight, blockBoundingBox.getSizeZ());
     }
 
-    public PistonBlockEntity(GeyserSession session, Vector3i position, Direction orientation) {
+    public PistonBlockEntity(GeyserSession session, Vector3i position, Direction orientation, boolean extended) {
         this.session = session;
         this.position = position;
         this.orientation = orientation;
 
         int blockId = session.getConnector().getWorldManager().getBlockAt(session, position);
-        sticky = BlockStateValues.isStickyPiston(blockId);
-        boolean extended = BlockStateValues.getPistonValues().get(blockId);
+        this.sticky = BlockStateValues.isStickyPiston(blockId);
         if (extended) {
+            // Fully extended
             this.action = PistonValueType.PUSHING;
             this.progress = 1.0f;
         } else {
+            // Fully retracted
             this.action = PistonValueType.PULLING;
             this.progress = 0.0f;
         }
-        this.lastProgress = progress;
+        this.lastProgress = this.progress;
     }
 
     /**
@@ -203,7 +204,7 @@ public class PistonBlockEntity {
         Vector3i movement = getMovement();
         blocksChecked.add(position); // Don't check the piston itself
         if (action == PistonValueType.PULLING) {
-            blocksChecked.add(position.add(directionOffset)); // Don't check the piston head
+            blocksChecked.add(getPistonHeadPos()); // Don't check the piston head
             blocksToCheck.add(position.add(directionOffset.mul(2)));
         } else if (action == PistonValueType.PUSHING) {
             removePistonHead(); // Remove lingering piston heads
@@ -267,12 +268,7 @@ public class PistonBlockEntity {
             // Map the final position of each block to this block entity
             Map<Vector3i, PistonBlockEntity> movingBlockMap = session.getPistonCache().getMovingBlocksMap();
             attachedBlocks.forEach((blockPos, javaId) -> movingBlockMap.put(blockPos, this));
-            // Add piston head
-            if (action == PistonValueType.PUSHING) {
-                movingBlockMap.put(this.position, this);
-            } else {
-                movingBlockMap.put(this.position.add(getMovement()), this);
-            }
+            movingBlockMap.put(getPistonHeadPos(), this);
             flattenPositions();
         }
     }
@@ -282,7 +278,7 @@ public class PistonBlockEntity {
             return true;
         }
         // Pistons can only be moved if they aren't extended
-        if (PistonBlockEntityTranslator.isBlock(javaId) && !BlockStateValues.isPistonHead(javaId)) {
+        if (PistonBlockEntityTranslator.isBlock(javaId)) {
             return !BlockStateValues.getPistonValues().get(javaId);
         }
         BlockMapping block = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.AIR);
@@ -345,12 +341,8 @@ public class PistonBlockEntity {
         playerBoundingBox.setSizeZ(playerBoundingBox.getSizeZ() - shrink.getZ());
 
         // Resolve collision with the piston head
-        Vector3d headPos = position.toDouble();
-        if (action == PistonValueType.PULLING) {
-            headPos = headPos.add(direction.toDouble());
-        }
         int pistonHeadId = BlockStateValues.getPistonHead(orientation);
-        pushPlayerBlock(pistonHeadId, headPos, blockMovement, playerBoundingBox);
+        pushPlayerBlock(pistonHeadId, getPistonHeadPos().toDouble(), blockMovement, playerBoundingBox);
 
         // Resolve collision with any attached moving blocks, but skip slime blocks
         // This prevents players from being launched by slime blocks covered by other blocks
@@ -507,6 +499,19 @@ public class PistonBlockEntity {
         }
     }
 
+    private BlockCollision getCollision(Vector3i blockPos) {
+        int blockId = getAttachedBlockId(blockPos);
+        if (blockId != BlockStateValues.JAVA_AIR_ID) {
+            double movementProgress = progress;
+            if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
+                movementProgress = 1f - progress;
+            }
+            Vector3d offset = getMovement().toDouble().mul(movementProgress);
+            return BlockUtils.getCollision(blockId, blockPos, offset);
+        }
+        return null;
+    }
+
     /**
      * Compute the maximum movement of a bounding box that won't collide with the moving block attached to this piston
      *
@@ -517,49 +522,30 @@ public class PistonBlockEntity {
      * @return The adjusted movement
      */
     public double computeCollisionOffset(Vector3i blockPos, BoundingBox boundingBox, Axis axis, double movement) {
-        int blockId = getAttachedBlockId(blockPos);
-        if (blockId != BlockStateValues.JAVA_AIR_ID) {
-            double movementProgress = progress;
-            if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
-                movementProgress = 1f - progress;
+        BlockCollision blockCollision = getCollision(blockPos);
+        if (blockCollision != null) {
+            double adjustedMovement = blockCollision.computeCollisionOffset(boundingBox, axis, movement);
+            blockCollision.reset();
+            if (getAttachedBlockId(blockPos) == BlockStateValues.JAVA_SLIME_BLOCK_ID && adjustedMovement != movement) {
+                session.getPistonCache().setPlayerSlimeCollision(true);
             }
-            Vector3d offset = getMovement().toDouble().mul(movementProgress);
-            BlockCollision blockCollision = BlockUtils.getCollision(blockId, blockPos, offset);
-            if (blockCollision != null) {
-                double adjustedMovement = blockCollision.computeCollisionOffset(boundingBox, axis, movement);
-                if (blockId == BlockStateValues.JAVA_SLIME_BLOCK_ID && adjustedMovement != movement) {
-                    session.getPistonCache().setPlayerSlimeCollision(true);
-                }
-                blockCollision.reset();
-                return adjustedMovement;
-            }
+            return adjustedMovement;
         }
-
         return movement;
     }
 
     public boolean checkCollision(Vector3i blockPos, BoundingBox boundingBox) {
-        int blockId = getAttachedBlockId(blockPos);
-        if (blockId != BlockStateValues.JAVA_AIR_ID) {
-            double movementProgress = progress;
-            if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
-                movementProgress = 1f - progress;
-            }
-            Vector3d offset = getMovement().toDouble().mul(movementProgress);
-            BlockCollision blockCollision = BlockUtils.getCollision(blockId, blockPos, offset);
-            if (blockCollision != null) {
-                boolean result = blockCollision.checkIntersection(boundingBox);
-                blockCollision.reset();
-                return result;
-            }
+        BlockCollision blockCollision = getCollision(blockPos);
+        if (blockCollision != null) {
+            boolean result = blockCollision.checkIntersection(boundingBox);
+            blockCollision.reset();
+            return result;
         }
         return false;
     }
 
     private int getAttachedBlockId(Vector3i blockPos) {
-        if (action == PistonValueType.PULLING && blockPos.equals(position.add(getMovement()))) {
-            return BlockStateValues.getPistonHead(orientation);
-        } else if (action == PistonValueType.PUSHING && blockPos.equals(position)) {
+        if (blockPos.equals(getPistonHeadPos())) {
             return BlockStateValues.getPistonHead(orientation);
         } else {
             return attachedBlocks.getOrDefault(blockPos, BlockStateValues.JAVA_AIR_ID);
@@ -620,7 +606,7 @@ public class PistonBlockEntity {
             }
         });
         if (action == PistonValueType.PUSHING) {
-            Vector3i pistonHeadPos = position.add(orientation.getUnitVector());
+            Vector3i pistonHeadPos = getPistonHeadPos().add(movement);
             if (!SOLID_BOUNDING_BOX.checkIntersection(pistonHeadPos.toDouble(), session.getCollisionManager().getPlayerBoundingBox())) {
                 ChunkUtils.updateBlock(session, BlockStateValues.getPistonHead(orientation), pistonHeadPos);
             }
@@ -634,12 +620,7 @@ public class PistonBlockEntity {
         Map<Vector3i, PistonBlockEntity> movingBlockMap = session.getPistonCache().getMovingBlocksMap();
         attachedBlocks.forEach((blockPos, javaId) -> movingBlockMap.remove(blockPos));
         attachedBlocks.clear();
-        // Remove piston head
-        if (action == PistonValueType.PUSHING) {
-            movingBlockMap.remove(this.position);
-        } else {
-            movingBlockMap.remove(this.position.add(getMovement()));
-        }
+        movingBlockMap.remove(getPistonHeadPos());
         flattenedAttachedBlocks = new int[0];
     }
 
@@ -677,6 +658,16 @@ public class PistonBlockEntity {
     }
 
     /**
+     * @return The starting position of the piston head
+     */
+    private Vector3i getPistonHeadPos() {
+        if (action == PistonValueType.PUSHING) {
+            return position;
+        }
+        return position.add(orientation.getUnitVector());
+    }
+
+    /**
      * Update the progress or position of the piston head
      */
     private void updateProgress() {
@@ -700,7 +691,7 @@ public class PistonBlockEntity {
     }
 
     /**
-     * @return True if the piston has finished it's movement, otherwise false
+     * @return True if the piston has finished its movement, otherwise false
      */
     public boolean isDone() {
         switch (action) {
