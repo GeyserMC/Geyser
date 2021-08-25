@@ -107,6 +107,10 @@ public class PacketTranslatorRegistry<T> {
     }
 
     private <P extends T> void translate0(GeyserSession session, PacketTranslator<P> translator, P packet) {
+        if (session.isClosed()) {
+            return;
+        }
+
         try {
             translator.translate(packet, session);
         } catch (Throwable ex) {
