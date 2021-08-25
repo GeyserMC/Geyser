@@ -234,7 +234,7 @@ public class FileUtils {
      */
     public static Stream<String> readAllLines(Path path) {
         try {
-            return new BufferedReader(new InputStreamReader(java.nio.file.Files.newInputStream(path))).lines();
+            return new BufferedReader(new InputStreamReader(Files.newInputStream(path))).lines();
         } catch (IOException e) {
             throw new RuntimeException("Error while trying to read file!", e);
         }
