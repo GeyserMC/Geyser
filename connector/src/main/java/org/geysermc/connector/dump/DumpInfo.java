@@ -52,6 +52,7 @@ import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 @Getter
 public class DumpInfo {
@@ -201,7 +202,7 @@ public class DumpInfo {
         public LogsInfo() {
             try {
                 Map<String, String> fields = new HashMap<>();
-                fields.put("content", String.join("\n", java.nio.file.Files.readAllLines(GeyserConnector.getInstance().getBootstrap().getLogsPath())));
+                fields.put("content", FileUtils.readAllLines(GeyserConnector.getInstance().getBootstrap().getLogsPath()).collect(Collectors.joining("\n")));
 
                 JsonNode logData = GeyserConnector.JSON_MAPPER.readTree(WebUtils.postForm("https://api.mclo.gs/1/log", fields));
 
