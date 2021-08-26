@@ -34,10 +34,10 @@ import com.nukkitx.protocol.bedrock.packet.PlayerFogPacket;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.Collections;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class WorldBorder {
 
@@ -176,14 +176,7 @@ public class WorldBorder {
         }
     }
 
-    /**
-     * Redstone dust used to represent different colors depending on the world border state
-     */
-    private static final LevelEventType WORLD_BORDER_PARTICLE = LevelEventType.PARTICLE_FALLING_DUST;
-    private static final int RED_PARTICLE_DATA = 0xff << 16;
-    private static final int GREEN_PARTICLE_DATA = 0xff << 8;
-    private static final int BLUE_PARTICLE_DATA = 0xff;
-    private static final int WORLD_BORDER_PARTICLE_COUNT = 11;
+    private static final LevelEventType WORLD_BORDER_PARTICLE = LevelEventType.PARTICLE_DENY_BLOCK;
 
     /**
      * Draws a wall of particles where the world border resides
@@ -191,71 +184,55 @@ public class WorldBorder {
     public void drawWall() {
         Vector3f entityPosition = session.getPlayerEntity().getPosition();
         float particlePosX = entityPosition.getX();
-        float particlePosY = entityPosition.getY() + 3; // By having the particles fall, it creates a fake wall of sorts
+        float particlePosY = entityPosition.getY();
         float particlePosZ = entityPosition.getZ();
 
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-
         if (entityPosition.getX() > warningMaxX) {
-            drawWall(Vector3f.from(maxX, particlePosY, particlePosZ), true, random);
+            drawWall(Vector3f.from(maxX, particlePosY, particlePosZ), true);
         }
         if (entityPosition.getX() < warningMinX) {
-            drawWall(Vector3f.from(minX, particlePosY, particlePosZ), true, random);
+            drawWall(Vector3f.from(minX, particlePosY, particlePosZ), true);
         }
         if (entityPosition.getZ() > warningMaxZ) {
-            drawWall(Vector3f.from(particlePosX, particlePosY, maxZ), false, random);
+            drawWall(Vector3f.from(particlePosX, particlePosY, maxZ), false);
         }
         if (entityPosition.getZ() < warningMinZ) {
-            drawWall(Vector3f.from(particlePosX, particlePosY, minZ), false, random);
+            drawWall(Vector3f.from(particlePosX, particlePosY, minZ), false);
         }
     }
 
-    private void drawWall(Vector3f position, boolean drawWallX, ThreadLocalRandom random) {
-        int data;
-        if (resizing) {
-            if (this.newDiameter > this.oldDiameter) {
-                // Increasing
-                data = GREEN_PARTICLE_DATA;
-            } else {
-                // Decreasing
-                data = RED_PARTICLE_DATA;
-            }
-        } else {
-            data = BLUE_PARTICLE_DATA;
-        }
-
-        for (int i = 0; i < WORLD_BORDER_PARTICLE_COUNT; i++) {
-            Vector3f particlePosition;
-            double randomNumber = random.nextDouble(WORLD_BORDER_PARTICLE_COUNT);
-            if (i % 2 == 0) {
-                // Make some particles go to the other direction
-                randomNumber = randomNumber * -1;
-            }
-            // Cap the particles to ensure they don't pass the border corners
+    private void drawWall(Vector3f position, boolean drawWallX) {
+        float initialY = position.getY() - EntityType.PLAYER.getOffset() - 1;
+        for (float y = initialY; y < (initialY + 5); y++) {
             if (drawWallX) {
-                // X wall highlight
-                if (randomNumber + position.getZ() < minZ) {
-                    randomNumber = minZ;
+                for (float z = position.getZ() - 3; z < (position.getZ() + 3); z++) {
+                    if (z < minZ) {
+                        continue;
+                    }
+                    if (z > maxZ) {
+                        break;
+                    }
+
+                    LevelEventPacket effectPacket = new LevelEventPacket();
+                    effectPacket.setPosition(Vector3f.from(position.getX(), y, z));
+                    effectPacket.setType(WORLD_BORDER_PARTICLE);
+                    session.getUpstream().sendPacket(effectPacket);
                 }
-                if (randomNumber + position.getZ() > maxZ) {
-                    randomNumber = maxZ;
-                }
-                particlePosition = position.add(0, 0, randomNumber);
             } else {
-                // Z wall highlight
-                if (randomNumber + position.getX() < minX) {
-                    randomNumber = minX;
+                for (float x = position.getX() - 3; x < (position.getX() + 3); x++) {
+                    if (x < minX) {
+                        continue;
+                    }
+                    if (x > maxZ) {
+                        break;
+                    }
+
+                    LevelEventPacket effectPacket = new LevelEventPacket();
+                    effectPacket.setPosition(Vector3f.from(x, y, position.getZ()));
+                    effectPacket.setType(WORLD_BORDER_PARTICLE);
+                    session.getUpstream().sendPacket(effectPacket);
                 }
-                if (randomNumber + position.getX() > maxX) {
-                    randomNumber = maxX;
-                }
-                particlePosition = position.add(randomNumber, 0, 0);
             }
-            LevelEventPacket effectPacket = new LevelEventPacket();
-            effectPacket.setPosition(particlePosition.sub(0, random.nextDouble(3), 0));
-            effectPacket.setType(WORLD_BORDER_PARTICLE);
-            effectPacket.setData(data);
-            session.getUpstream().sendPacket(effectPacket);
         }
     }
 
