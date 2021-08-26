@@ -223,7 +223,7 @@ public class WorldBorder {
                     if (x < minX) {
                         continue;
                     }
-                    if (x > maxZ) {
+                    if (x > maxX) {
                         break;
                     }
 
