@@ -43,11 +43,11 @@ import org.geysermc.connector.registry.type.ParticleMapping;
 import org.geysermc.connector.utils.DimensionUtils;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 
 @Translator(packet = ServerSpawnParticlePacket.class)
 public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnParticlePacket> {
-    private final Random random = new Random();
 
     @Override
     public void translate(ServerSpawnParticlePacket packet, GeyserSession session) {
@@ -58,10 +58,11 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                 Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
                 session.sendUpstreamPacket(particleCreateFunction.apply(position));
             } else {
+                Random random = ThreadLocalRandom.current();
                 for (int i = 0; i < packet.getAmount(); i++) {
-                    double offsetX = this.random.nextGaussian() * (double) packet.getOffsetX();
-                    double offsetY = this.random.nextGaussian() * (double) packet.getOffsetY();
-                    double offsetZ = this.random.nextGaussian() * (double) packet.getOffsetZ();
+                    double offsetX = random.nextGaussian() * (double) packet.getOffsetX();
+                    double offsetY = random.nextGaussian() * (double) packet.getOffsetY();
+                    double offsetZ = random.nextGaussian() * (double) packet.getOffsetZ();
                     Vector3f position = Vector3f.from(packet.getX() + offsetX, packet.getY() + offsetY, packet.getZ() + offsetZ);
 
                     session.sendUpstreamPacket(particleCreateFunction.apply(position));
