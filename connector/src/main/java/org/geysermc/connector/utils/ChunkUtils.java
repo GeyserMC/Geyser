@@ -257,8 +257,9 @@ public class ChunkUtils {
         while (i < blockEntities.length) {
             CompoundTag tag = blockEntities[i];
             String tagName;
-            if (tag.contains("id")) {
-                tagName = (String) tag.get("id").getValue();
+            Tag idTag = tag.get("id");
+            if (idTag != null) {
+                tagName = (String) idTag.getValue();
             } else {
                 tagName = "Empty";
                 // Sometimes legacy tags have their ID be a StringTag with empty value
@@ -277,18 +278,20 @@ public class ChunkUtils {
             }
 
             String id = BlockEntityUtils.getBedrockBlockEntityId(tagName);
-            Position pos = new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue());
+            int x = (int) tag.get("x").getValue();
+            int y = (int) tag.get("y").getValue();
+            int z = (int) tag.get("z").getValue();
 
             // Get Java blockstate ID from block entity position
             int blockState = 0;
-            Chunk section = column.getChunks()[(pos.getY() >> 4) - yOffset];
+            Chunk section = column.getChunks()[(y >> 4) - yOffset];
             if (section != null) {
-                blockState = section.get(pos.getX() & 0xF, pos.getY() & 0xF, pos.getZ() & 0xF);
+                blockState = section.get(x & 0xF, y & 0xF, z & 0xF);
             }
 
             if (tagName.equals("minecraft:lectern") && BlockStateValues.getLecternBookStates().get(blockState)) {
                 // If getLecternBookStates is false, let's just treat it like a normal block entity
-                bedrockBlockEntities[i] = session.getConnector().getWorldManager().getLecternDataAt(session, pos.getX(), pos.getY(), pos.getZ(), true);
+                bedrockBlockEntities[i] = session.getConnector().getWorldManager().getLecternDataAt(session, x, y, z, true);
                 i++;
                 continue;
             }
