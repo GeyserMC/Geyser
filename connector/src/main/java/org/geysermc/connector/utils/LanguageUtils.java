@@ -130,7 +130,13 @@ public class LanguageUtils {
             return key;
         }
 
-        return MessageFormat.format(formatString.replace("'", "''").replace("&", "\u00a7"), values);
+        String message = formatString.replace("&", "\u00a7");
+        if (values == null || values.length == 0) {
+            // Nothing to replace
+            return message;
+        }
+
+        return MessageFormat.format(message.replace("'", "''"), values);
     }
 
     /**
@@ -140,12 +146,15 @@ public class LanguageUtils {
      * @return The formatted locale
      */
     public static String formatLocale(String locale) {
-        try {
-            String[] parts = locale.toLowerCase().split("_");
-            return parts[0] + "_" + parts[1].toUpperCase();
-        } catch (Exception e) {
+        // Currently, all valid Geyser locales follow the same pattern of ll_CC, where ll is the language and
+        // CC is the country
+        if (locale.length() != 5 || locale.indexOf('_') != 2) {
+            // Invalid locale
             return locale;
         }
+        String language = locale.substring(0, 2);
+        String country = locale.substring(3);
+        return language + "_" + country.toUpperCase(Locale.ENGLISH);
     }
 
     /**
