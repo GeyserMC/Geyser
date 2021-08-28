@@ -154,7 +154,7 @@ public class LanguageUtils {
         }
         String language = locale.substring(0, 2);
         String country = locale.substring(3);
-        return language + "_" + country.toUpperCase(Locale.ENGLISH);
+        return language.toLowerCase(Locale.ENGLISH) + "_" + country.toUpperCase(Locale.ENGLISH);
     }
 
     /**
