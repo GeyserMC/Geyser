@@ -202,10 +202,11 @@ public class WorldBorder {
     }
 
     private void drawWall(Vector3f position, boolean drawWallX) {
-        float initialY = position.getY() - EntityType.PLAYER.getOffset() - 1;
-        for (float y = initialY; y < (initialY + 5); y++) {
+        int initialY = (int) (position.getY() - EntityType.PLAYER.getOffset() - 1);
+        for (int y = initialY; y < (initialY + 5); y++) {
             if (drawWallX) {
-                for (float z = position.getZ() - 3; z < (position.getZ() + 3); z++) {
+                int x = (int) position.getX();
+                for (int z = (int) position.getZ() - 3; z < ((int) position.getZ() + 3); z++) {
                     if (z < minZ) {
                         continue;
                     }
@@ -213,13 +214,11 @@ public class WorldBorder {
                         break;
                     }
 
-                    LevelEventPacket effectPacket = new LevelEventPacket();
-                    effectPacket.setPosition(Vector3f.from(position.getX(), y, z));
-                    effectPacket.setType(WORLD_BORDER_PARTICLE);
-                    session.getUpstream().sendPacket(effectPacket);
+                    sendWorldBorderParticle(x, y, z);
                 }
             } else {
-                for (float x = position.getX() - 3; x < (position.getX() + 3); x++) {
+                int z = (int) position.getZ();
+                for (int x = (int) position.getX() - 3; x < ((int) position.getX() + 3); x++) {
                     if (x < minX) {
                         continue;
                     }
@@ -227,13 +226,17 @@ public class WorldBorder {
                         break;
                     }
 
-                    LevelEventPacket effectPacket = new LevelEventPacket();
-                    effectPacket.setPosition(Vector3f.from(x, y, position.getZ()));
-                    effectPacket.setType(WORLD_BORDER_PARTICLE);
-                    session.getUpstream().sendPacket(effectPacket);
+                    sendWorldBorderParticle(x, y, z);
                 }
             }
         }
+    }
+
+    private void sendWorldBorderParticle(int x, int y, int z) {
+        LevelEventPacket effectPacket = new LevelEventPacket();
+        effectPacket.setPosition(Vector3f.from(x, y, z));
+        effectPacket.setType(WORLD_BORDER_PARTICLE);
+        session.getUpstream().sendPacket(effectPacket);
     }
 
     /**
