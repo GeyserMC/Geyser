@@ -37,10 +37,8 @@ public class JavaSetBorderWarningDelayTranslator extends PacketTranslator<Server
     @Override
     public void translate(ServerSetBorderWarningDelayPacket packet, GeyserSession session) {
         WorldBorder worldBorder = session.getWorldBorder();
-        if (worldBorder != null) {
-            worldBorder.setWarningDelay(packet.getWarningDelay());
+        worldBorder.setWarningDelay(packet.getWarningDelay());
 
-            worldBorder.update();
-        }
+        worldBorder.update();
     }
 }

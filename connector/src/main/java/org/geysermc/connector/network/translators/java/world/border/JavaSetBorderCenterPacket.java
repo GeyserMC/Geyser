@@ -38,10 +38,8 @@ public class JavaSetBorderCenterPacket extends PacketTranslator<ServerSetBorderC
     @Override
     public void translate(ServerSetBorderCenterPacket packet, GeyserSession session) {
         WorldBorder worldBorder = session.getWorldBorder();
-        if (worldBorder != null) {
-            worldBorder.setCenter(Vector2f.from(packet.getNewCenterX(), packet.getNewCenterZ()));
+        worldBorder.setCenter(Vector2f.from(packet.getNewCenterX(), packet.getNewCenterZ()));
 
-            worldBorder.update();
-        }
+        worldBorder.update();
     }
 }

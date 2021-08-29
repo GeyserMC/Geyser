@@ -75,7 +75,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityType.PLAYER.getOffset(), 0));
 
-        if (session.isPassingWorldBorderBoundaries(packet.getPosition(), true)) {
+        if (session.getWorldBorder().isPassingIntoBorderBoundaries(packet.getPosition(), true)) {
             return;
         }
 

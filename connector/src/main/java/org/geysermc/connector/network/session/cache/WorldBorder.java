@@ -25,29 +25,53 @@
 
 package org.geysermc.connector.network.session.cache;
 
+import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector2f;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerFogPacket;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
+import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
+import javax.annotation.Nonnull;
 import java.util.Collections;
 
 public class WorldBorder {
+    private static final double DEFAULT_WORLD_BORDER_SIZE = 5.9999968E7D;
 
     @Getter @Setter
-    private @NonNull Vector2f center;
-    @Getter @Setter private double oldDiameter;
-    @Getter @Setter private double newDiameter;
-    @Getter @Setter private long speed;
-    @Getter @Setter private int warningDelay;
-    @Getter @Setter private int warningBlocks;
+    private @Nonnull Vector2f center = Vector2f.ZERO;
+    /**
+     * The diameter in blocks of the world border before it got changed or similar to newDiameter if not changed.
+     */
+    @Getter @Setter
+    private double oldDiameter = DEFAULT_WORLD_BORDER_SIZE;
+    /**
+     * The diameter in blocks of the new world border.
+     */
+    @Getter @Setter
+    private double newDiameter = DEFAULT_WORLD_BORDER_SIZE;
+    /**
+     * The speed to apply an expansion/shrinking of the world border.
+     * When a client joins they get the actual border oldDiameter and the time left to reach the newDiameter.
+     */
+    @Getter @Setter
+    private long speed = 0;
+    /**
+     * The time in seconds before a shrinking world border would hit a not moving player.
+     * Creates the same visual warning effect as warningBlocks.
+     */
+    @Getter @Setter
+    private int warningDelay = 15;
+    /**
+     * Block length before you reach the border to show warning particles.
+     */
+    @Getter @Setter
+    private int warningBlocks = 5;
 
     @Getter
     private boolean resizing;
@@ -77,29 +101,8 @@ public class WorldBorder {
 
     private final GeyserSession session;
 
-    /**
-     * Default constructor.
-     *
-     * @param center Vector2f of the current world border.
-     * @param oldDiameter double for the diameter in blocks of the world border before it got changed or similar to newDiameter if not changed.
-     * @param newDiameter double for the diameter in blocks of the new world border.
-     * @param speed long for the speed to apply an expansion/shrinking of the world border. When a client joins they get the actual border oldDiameter and the time left to reach the newDiameter.
-     * @param warningDelay int for the time in seconds before a shrinking world border would hit a not moving player. Creates the same visual warning effect as warningBlocks.
-     * @param warningBlocks int in blocks before you reach the border to show warning particles.
-     */
-    public WorldBorder(GeyserSession session, @NonNull Vector2f center, double oldDiameter, double newDiameter,
-                       long speed, int warningDelay, int warningBlocks) {
+    public WorldBorder(GeyserSession session) {
         this.session = session;
-
-        this.center = center;
-        this.oldDiameter = oldDiameter;
-        this.newDiameter = newDiameter;
-        this.speed = speed;
-        this.warningDelay = warningDelay;
-        this.warningBlocks = warningBlocks;
-
-        this.currentDiameter = newDiameter;
-        this.resizing = speed != 0L;
     }
 
     /**
@@ -110,14 +113,34 @@ public class WorldBorder {
         return entityPosition.getX() > minX && entityPosition.getX() < maxX && entityPosition.getZ() > minZ && entityPosition.getZ() < maxZ;
     }
 
-    public boolean isPassingIntoBorderBoundaries(Vector3f entityPosition) {
-        Vector3i flattenedEntityPosition = entityPosition.toInt();
+    /**
+     * Confirms that the entity is within world border boundaries when they move.
+     * Otherwise, if {@code adjustPosition} is true, this function will push the player back.
+     *
+     * @return if this player was indeed against the world border. Will return false if no world border was defined for us.
+     */
+    public boolean isPassingIntoBorderBoundaries(Vector3f newPosition, boolean adjustPosition) {
+        boolean isInWorldBorder = isPassingIntoBorderBoundaries(newPosition);
+        if (isInWorldBorder && adjustPosition) {
+            PlayerEntity playerEntity = session.getPlayerEntity();
+            // Move the player back, but allow gravity to take place
+            // Teleported = true makes going back better, but disconnects the player from their mounted entity
+            playerEntity.moveAbsolute(session,
+                    Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - EntityType.PLAYER.getOffset()), playerEntity.getPosition().getZ()),
+                    playerEntity.getRotation(), playerEntity.isOnGround(), session.getRidingVehicleEntity() == null);
+        }
+        return isInWorldBorder;
+    }
+
+    public boolean isPassingIntoBorderBoundaries(Vector3f newEntityPosition) {
+        int entityX = GenericMath.floor(newEntityPosition.getX());
+        int entityZ = GenericMath.floor(newEntityPosition.getZ());
         Vector3f currentEntityPosition = session.getPlayerEntity().getPosition();
         // Make sure we can't move out of the world border, but if we're out of the world border, we can move in
-        return (flattenedEntityPosition.getX() == (int) minX && currentEntityPosition.getX() > entityPosition.getX()) ||
-                (flattenedEntityPosition.getX() == (int) maxX && currentEntityPosition.getX() < entityPosition.getX()) ||
-                (flattenedEntityPosition.getZ() == (int) minZ && currentEntityPosition.getZ() > entityPosition.getZ()) ||
-                (flattenedEntityPosition.getZ() == (int) maxZ && currentEntityPosition.getZ() < entityPosition.getZ());
+        return (entityX == (int) minX && currentEntityPosition.getX() > newEntityPosition.getX()) ||
+                (entityX == (int) maxX && currentEntityPosition.getX() < newEntityPosition.getX()) ||
+                (entityZ == (int) minZ && currentEntityPosition.getZ() > newEntityPosition.getZ()) ||
+                (entityZ == (int) maxZ && currentEntityPosition.getZ() < newEntityPosition.getZ());
     }
 
     /**
@@ -205,7 +228,7 @@ public class WorldBorder {
         int initialY = (int) (position.getY() - EntityType.PLAYER.getOffset() - 1);
         for (int y = initialY; y < (initialY + 5); y++) {
             if (drawWallX) {
-                int x = (int) position.getX();
+                float x = position.getX();
                 for (int z = (int) position.getZ() - 3; z < ((int) position.getZ() + 3); z++) {
                     if (z < minZ) {
                         continue;
@@ -217,7 +240,7 @@ public class WorldBorder {
                     sendWorldBorderParticle(x, y, z);
                 }
             } else {
-                int z = (int) position.getZ();
+                float z = position.getZ();
                 for (int x = (int) position.getX() - 3; x < ((int) position.getX() + 3); x++) {
                     if (x < minX) {
                         continue;
@@ -232,7 +255,7 @@ public class WorldBorder {
         }
     }
 
-    private void sendWorldBorderParticle(int x, int y, int z) {
+    private void sendWorldBorderParticle(float x, float y, float z) {
         LevelEventPacket effectPacket = new LevelEventPacket();
         effectPacket.setPosition(Vector3f.from(x, y, z));
         effectPacket.setType(WORLD_BORDER_PARTICLE);

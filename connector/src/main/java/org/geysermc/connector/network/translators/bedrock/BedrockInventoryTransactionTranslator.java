@@ -145,7 +145,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         but how much a server will accept from the client maximum
                          */
                         // Blocks cannot be placed or destroyed outside of the world border
-                        if (!session.isWithinWorldBorderBoundaries()) {
+                        if (!session.getWorldBorder().isInsideBorderBoundaries()) {
                             restoreCorrectBlock(session, blockPos, packet);
                             return;
                         }
@@ -299,7 +299,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.setLastBlockPlacePosition(null);
 
                         // Same deal with vanilla block placing as above.
-                        if (!session.isWithinWorldBorderBoundaries()) {
+                        if (!session.getWorldBorder().isInsideBorderBoundaries()) {
                             restoreCorrectBlock(session, packet.getBlockPosition(), packet);
                             return;
                         }

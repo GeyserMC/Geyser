@@ -37,10 +37,8 @@ public class JavaSetBorderWarningDistanceTranslator extends PacketTranslator<Ser
     @Override
     public void translate(ServerSetBorderWarningDistancePacket packet, GeyserSession session) {
         WorldBorder worldBorder = session.getWorldBorder();
-        if (worldBorder != null) {
-            worldBorder.setWarningBlocks(packet.getWarningBlocks());
+        worldBorder.setWarningBlocks(packet.getWarningBlocks());
 
-            worldBorder.update();
-        }
+        worldBorder.update();
     }
 }

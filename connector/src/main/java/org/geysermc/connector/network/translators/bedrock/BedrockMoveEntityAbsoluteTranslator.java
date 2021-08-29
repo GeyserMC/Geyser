@@ -44,7 +44,7 @@ public class BedrockMoveEntityAbsoluteTranslator extends PacketTranslator<MoveEn
     public void translate(MoveEntityAbsolutePacket packet, GeyserSession session) {
         session.setLastVehicleMoveTimestamp(System.currentTimeMillis());
 
-        if (session.getRidingVehicleEntity() != null && session.isPassingWorldBorderBoundaries(packet.getPosition(), false)) {
+        if (session.getRidingVehicleEntity() != null && session.getWorldBorder().isPassingIntoBorderBoundaries(packet.getPosition(), false)) {
             Vector3f position = Vector3f.from(session.getRidingVehicleEntity().getPosition().getX(), packet.getPosition().getY(),
                     session.getRidingVehicleEntity().getPosition().getZ());
             if (session.getRidingVehicleEntity() instanceof BoatEntity) {

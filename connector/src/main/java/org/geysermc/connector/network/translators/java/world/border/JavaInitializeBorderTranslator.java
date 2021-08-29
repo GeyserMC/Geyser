@@ -37,8 +37,14 @@ public class JavaInitializeBorderTranslator extends PacketTranslator<ServerIniti
 
     @Override
     public void translate(ServerInitializeBorderPacket packet, GeyserSession session) {
-        session.setWorldBorder(new WorldBorder(session, Vector2f.from(packet.getNewCenterX(), packet.getNewCenterZ()), packet.getOldSize(), packet.getNewSize(),
-                packet.getLerpTime(), packet.getWarningTime(), packet.getWarningBlocks()));
+        WorldBorder worldBorder = session.getWorldBorder();
+        worldBorder.setCenter(Vector2f.from(packet.getNewCenterX(), packet.getNewCenterZ()));
+        worldBorder.setOldDiameter(packet.getOldSize());
+        worldBorder.setNewDiameter(packet.getNewSize());
+        worldBorder.setSpeed(packet.getLerpTime());
+        worldBorder.setWarningDelay(packet.getWarningTime());
+        worldBorder.setWarningBlocks(packet.getWarningBlocks());
+        worldBorder.setResizing(packet.getLerpTime() > 0);
 
         session.getWorldBorder().update();
     }
