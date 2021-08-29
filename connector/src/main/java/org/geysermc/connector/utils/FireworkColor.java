@@ -69,13 +69,13 @@ public enum FireworkColor {
     // The following two methods were adapted from the Adventure project:
     // https://github.com/KyoriPowered/adventure/blob/09edf74409feb52d9147a5a811910de0721acf95/api/src/main/java/net/kyori/adventure/text/format/NamedTextColor.java#L193-L237
     /**
-     * Find the named colour nearest to the provided colour.
+     * Find the firework color nearest to the provided color.
      *
-     * @param any colour to match
-     * @return nearest named colour. will always return a value
+     * @param any color to match
+     * @return nearest named color. will always return a value
      * @since 4.0.0
      */
-    public static FireworkColor nearestTo(final HSVLike any) {
+    private static FireworkColor nearestTo(final HSVLike any) {
         float matchedDistance = Float.MAX_VALUE;
         FireworkColor match = VALUES[0];
         for (final FireworkColor potential : VALUES) {
@@ -92,11 +92,11 @@ public enum FireworkColor {
     }
 
     /**
-     * Returns a distance metric to the other colour.
+     * Returns a distance metric to the other color.
      *
-     * <p>This value is unitless and should only be used to compare with other text colours.</p>
+     * <p>This value is unitless and should only be used to compare with other firework colors.</p>
      *
-     * @param other colour to compare to
+     * @param other color to compare to
      * @return distance metric
      */
     private static float distance(final HSVLike self, final HSVLike other) {
