@@ -25,76 +25,95 @@
 
 package org.geysermc.connector.utils;
 
-import lombok.Getter;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.util.HSVLike;
 
 public enum FireworkColor {
-    // Vanilla colors
-    BLACK((byte) 0, 1973019),
-    RED((byte) 1, 11743532),
-    GREEN((byte) 2, 3887386),
-    BROWN((byte) 3, 5320730),
-    BLUE((byte) 4, 2437522),
-    PURPLE((byte) 5, 8073150),
-    CYAN((byte) 6, 2651799),
-    LIGHT_GRAY((byte) 7, 11250603),
-    GRAY((byte) 8, 4408131),
-    PINK((byte) 9, 14188952),
-    LIME((byte) 10, 4312372),
-    YELLOW((byte) 11, 14602026),
-    LIGHT_BLUE((byte) 12, 6719955),
-    MAGENTA((byte) 13, 12801229),
-    ORANGE((byte) 14, 15435844),
-    WHITE((byte) 15, 15790320),
-
-    // Bukkit colors
-    // https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Color.html
-    BUKKIT_WHITE((byte) 15, 0xFFFFFF),
-    BUKKIT_SILVER((byte) 7, 0xC0C0C0),
-    BUKKIT_GRAY((byte) 8, 0x808080),
-    BUKKIT_BLACK((byte) 0, 0x000000),
-    BUKKIT_RED((byte) 1, 0xFF0000),
-    BUKKIT_MAROON((byte) 1, 0x800000), // No perfect map but this is as close as it can be
-    BUKKIT_YELLOW((byte) 11, 0xFFFF00),
-    BUKKIT_OLIVE((byte) 2, 0x808000), // No perfect map but this is as close as it can be
-    BUKKIT_LIME((byte) 10, 0x00FF00),
-    BUKKIT_GREEN((byte) 2, 0x008000),
-    BUKKIT_AQUA((byte) 12, 0x00FFFF),
-    BUKKIT_TEAL((byte) 6, 0x008080),
-    BUKKIT_BLUE((byte) 4, 0x0000FF),
-    BUKKIT_NAVY((byte) 4, 0x000080), // No perfect map but this is as close as it can be
-    BUKKIT_FUCHSIA((byte) 9, 0xFF00FF), // No perfect map but this is as close as it can be
-    BUKKIT_PURPLE((byte) 5, 0x800080),
-    BUKKIT_ORANGE((byte) 14, 0xFFA500);
+    BLACK(1973019),
+    RED(11743532),
+    GREEN(3887386),
+    BROWN(5320730),
+    BLUE(2437522),
+    PURPLE(8073150),
+    CYAN(2651799),
+    LIGHT_GRAY(11250603),
+    GRAY(4408131),
+    PINK(14188952),
+    LIME(4312372),
+    YELLOW(14602026),
+    LIGHT_BLUE(6719955),
+    MAGENTA(12801229),
+    ORANGE(15435844),
+    WHITE(15790320);
 
     private static final FireworkColor[] VALUES = values();
 
-    @Getter
-    private final byte bedrockID;
-    @Getter
-    private final int javaID;
+    private final TextColor color;
 
-    FireworkColor(byte bedrockID, int javaID) {
-        this.bedrockID = bedrockID;
-        this.javaID = javaID;
+    FireworkColor(int rgbValue) {
+        this.color = TextColor.color(rgbValue);
     }
 
-    public static FireworkColor fromJavaID(int id) {
-        for (FireworkColor color : VALUES) {
-            if (color.javaID == id) {
-                return color;
+    private static HSVLike toHSV(int rgbValue) {
+        int r = (rgbValue & (255 << 16)) >> 16;
+        int g = (rgbValue & (255 << 8)) >> 8;
+        int b = rgbValue & 255;
+        return HSVLike.fromRGB(r, g, b);
+    }
+
+    public static byte fromJavaRGB(int rgbValue) {
+        HSVLike hsv = toHSV(rgbValue);
+        return (byte) nearestTo(hsv).ordinal();
+    }
+
+    // The following two methods were adapted from the Adventure project:
+    // https://github.com/KyoriPowered/adventure/blob/09edf74409feb52d9147a5a811910de0721acf95/api/src/main/java/net/kyori/adventure/text/format/NamedTextColor.java#L193-L237
+    /**
+     * Find the named colour nearest to the provided colour.
+     *
+     * @param any colour to match
+     * @return nearest named colour. will always return a value
+     * @since 4.0.0
+     */
+    public static FireworkColor nearestTo(final HSVLike any) {
+        float matchedDistance = Float.MAX_VALUE;
+        FireworkColor match = VALUES[0];
+        for (final FireworkColor potential : VALUES) {
+            final float distance = distance(any, potential.color.asHSV());
+            if (distance < matchedDistance) {
+                match = potential;
+                matchedDistance = distance;
+            }
+            if (distance == 0) {
+                break; // same colour! whoo!
+            }
+        }
+        return match;
+    }
+
+    /**
+     * Returns a distance metric to the other colour.
+     *
+     * <p>This value is unitless and should only be used to compare with other text colours.</p>
+     *
+     * @param other colour to compare to
+     * @return distance metric
+     */
+    private static float distance(final HSVLike self, final HSVLike other) {
+        // weight hue more heavily than saturation and brightness. kind of magic numbers, but is fine for our use case of downsampling to a set of colors
+        final float hueDistance = 3 * Math.min(Math.abs(self.h() - other.h()), 1f - Math.abs(self.h() - other.h()));
+        final float saturationDiff = self.s() - other.s();
+        final float valueDiff = self.v() - other.v();
+        return hueDistance * hueDistance + saturationDiff * saturationDiff + valueDiff * valueDiff;
+    }
+
+    public static int fromBedrockId(int id) {
+        for (FireworkColor fireworkColor : VALUES) {
+            if (fireworkColor.ordinal() == id) {
+                return fireworkColor.color.value();
             }
         }
 
-        return WHITE;
-    }
-
-    public static FireworkColor fromBedrockID(int id) {
-        for (FireworkColor color : VALUES) {
-            if (color.bedrockID == id) {
-                return color;
-            }
-        }
-
-        return WHITE;
+        return WHITE.color.value();
     }
 }
