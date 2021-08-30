@@ -80,7 +80,7 @@ floodgate-key-file: key.pem
 #    microsoft-account: true # Whether the account is a Mojang or Microsoft account.
 #
 #  bluerkelp2:
-#    email: not_really_my_email_address_mr_minecrafter53267@gmail.com
+#    email: not_really_my_email_address_mr_minecrafter53267@gmail.com 
 #    password: "this isn't really my password"
 #    microsoft-account: false
 
