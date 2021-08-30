@@ -79,7 +79,7 @@ floodgate-key-file: key.pem
 #    password: javaccountpassword123 # Your Minecraft: Java Edition password
 #    microsoft-account: true # Whether the account is a Mojang or Microsoft account.
 #
-#  bluerkelp2:
+#  bluerkelp2: 
 #    email: not_really_my_email_address_mr_minecrafter53267@gmail.com 
 #    password: "this isn't really my password"
 #    microsoft-account: false
