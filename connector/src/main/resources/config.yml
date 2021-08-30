@@ -204,4 +204,4 @@ use-direct-connection: true
 # NTP server used to synchronize time
 ntp-server: time.cloudflare.com
 
-config-version: 5
+config-version: 4
