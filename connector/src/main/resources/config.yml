@@ -79,8 +79,8 @@ floodgate-key-file: key.pem
 #    password: javaccountpassword123 # Your Minecraft: Java Edition password
 #    microsoft-account: true # Whether the account is a Mojang or Microsoft account.
 #
-#  bluerkelp2: 
-#    email: not_really_my_email_address_mr_minecrafter53267@gmail.com 
+#  bluerkelp2:
+#    email: not_really_my_email_address_mr_minecrafter53267@gmail.com
 #    password: "this isn't really my password"
 #    microsoft-account: false
 
@@ -201,4 +201,7 @@ enable-proxy-connections: false
 # If disabled on plugin versions, expect performance decrease and latency increase
 use-direct-connection: true
 
-config-version: 4
+# NTP server used to synchronize time
+ntp-server: time.cloudflare.com
+
+config-version: 5

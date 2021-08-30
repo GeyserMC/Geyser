@@ -38,7 +38,7 @@ import java.util.Map;
 public interface GeyserConfiguration {
 
     // Modify this when you introduce breaking changes into the config
-    int CURRENT_CONFIG_VERSION = 4;
+    int CURRENT_CONFIG_VERSION = 5;
 
     IBedrockConfiguration getBedrock();
 
@@ -172,6 +172,8 @@ public interface GeyserConfiguration {
     int getMtu();
 
     boolean isUseDirectConnection();
+
+    String getNtpServer();
 
     int getConfigVersion();
 

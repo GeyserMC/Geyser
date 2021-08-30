@@ -191,7 +191,7 @@ public class GeyserConnector {
 
         TimeSyncer timeSyncer = null;
         if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
-            timeSyncer = new TimeSyncer(Constants.NTP_SERVER);
+            timeSyncer = new TimeSyncer(config.getNtpServer());
             try {
                 Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
                 cipher = new AesCipher(new Base64Topping());
