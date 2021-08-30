@@ -100,7 +100,7 @@ public final class Scoreboard {
 
         Objective storedObjective = objectiveSlots.get(displaySlot);
         if (storedObjective != null && storedObjective != objective) {
-            deactivateObjective(storedObjective);
+            objective.pendingRemove();
         }
         objectiveSlots.put(displaySlot, objective);
     }
@@ -132,8 +132,7 @@ public final class Scoreboard {
     public void unregisterObjective(String objectiveName) {
         Objective objective = getObjective(objectiveName);
         if (objective != null) {
-            objective.setUpdateType(REMOVE);
-            objective.deactivate();
+            objective.pendingRemove();
         }
     }
 
@@ -200,7 +199,6 @@ public final class Scoreboard {
             session.sendUpstreamPacket(setScorePacket);
         }
 
-        // prevents crashes in some cases
         for (Objective objective : removedObjectives) {
             deleteObjective(objective, true);
         }
@@ -210,24 +208,7 @@ public final class Scoreboard {
     }
 
     private void handleObjective(Objective objective, List<ScoreInfo> addScores, List<ScoreInfo> removeScores) {
-        if (objective == null) {
-            return;
-        }
-
-        // objective has been removed when scores is null
-        if (objective.getScores() == null) {
-            objectiveSlots.remove(objective.getDisplaySlot());
-            return;
-        }
-
-        if (!objective.isActive()) {
-            deactivateObjective(objective);
-            objectiveSlots.remove(objective.getDisplaySlot());
-            return;
-        }
-
-        if (objective.getUpdateType() == REMOVE) {
-            // onUpdate already added it to the removedObjectives
+        if (objective == null || objective.getUpdateType() == REMOVE) {
             return;
         }
 
@@ -296,50 +277,21 @@ public final class Scoreboard {
             displayObjectivePacket.setDisplayName(objective.getDisplayName());
             displayObjectivePacket.setCriteria("dummy");
             displayObjectivePacket.setDisplaySlot(objective.getDisplaySlotName());
-            displayObjectivePacket.setSortOrder(1); // ??
+            displayObjectivePacket.setSortOrder(1); // 0 = ascending, 1 = descending
             session.sendUpstreamPacket(displayObjectivePacket);
         }
 
         objective.setUpdateType(NOTHING);
     }
 
-    private void deactivateObjective(Objective objective) {
-        // Scoreboard has been removed already
-        if (objective.getScores() == null) {
-            return;
-        }
-
-        List<ScoreInfo> removedScores = new ArrayList<>(objective.getScores().size());
-        for (Score score : objective.getScores().values()) {
-            removedScores.add(score.getCachedInfo());
-        }
-
-        objective.deactivate();
-
-        SetScorePacket scorePacket = new SetScorePacket();
-        scorePacket.setAction(SetScorePacket.Action.REMOVE);
-        scorePacket.setInfos(removedScores);
-        session.sendUpstreamPacket(scorePacket);
-
-        RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
-        removeObjectivePacket.setObjectiveId(objective.getObjectiveName());
-        session.sendUpstreamPacket(removeObjectivePacket);
-    }
-
     /**
-     * @param remove if we should remove the objective here, or if that has been done for us.
+     * @param remove if we should remove the objective from the objectives map.
      */
     public void deleteObjective(Objective objective, boolean remove) {
         if (remove) {
             objectives.remove(objective.getObjectiveName());
         }
-
-        Objective storedSlot = objectiveSlots.get(objective.getDisplaySlot());
-        if (storedSlot != null && storedSlot.getId() == objective.getId()) {
-            deactivateObjective(objective);
-            objective.removed();
-            return;
-        }
+        objectiveSlots.remove(objective.getDisplaySlot(), objective);
 
         objective.removed();
 

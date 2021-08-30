@@ -148,7 +148,7 @@ public class GeyserSession implements CommandSender {
     private final FormCache formCache;
     private final PreferencesCache preferencesCache;
     private final TagCache tagCache;
-    private WorldCache worldCache;
+    private final WorldCache worldCache;
 
     private final Int2ObjectMap<TeleportCache> teleportMap = new Int2ObjectOpenHashMap<>();
 
