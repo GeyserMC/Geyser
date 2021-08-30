@@ -26,6 +26,8 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.ItemEntity;
+import org.geysermc.connector.entity.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -46,6 +48,18 @@ public class JavaEntityVelocityTranslator extends PacketTranslator<ServerEntityV
         if (entity == null) return;
 
         entity.setMotion(Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ()));
+
+        if (entity == session.getRidingVehicleEntity() && entity instanceof AbstractHorseEntity) {
+            // Horses for some reason teleport back when a SetEntityMotionPacket is sent while
+            // a player is riding on them. Java clients seem to ignore it anyways.
+            return;
+        }
+
+        if (entity instanceof ItemEntity) {
+            // Don't bother sending entity motion packets for items
+            // since the client doesn't seem to care
+            return;
+        }
 
         SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
         entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());

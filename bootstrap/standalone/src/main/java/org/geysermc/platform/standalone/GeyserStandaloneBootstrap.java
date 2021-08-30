@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.AnnotatedField;
 import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
+import io.netty.util.ResourceLeakDetector;
 import lombok.Getter;
 import net.minecrell.terminalconsole.TerminalConsoleAppender;
 import org.apache.logging.log4j.Level;
@@ -80,6 +81,10 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     private static final Map<String, String> argsConfigKeys = new HashMap<>();
 
     public static void main(String[] args) {
+        if (System.getProperty("io.netty.leakDetection.level") == null) {
+            ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED); // Can eat performance
+        }
+
         GeyserStandaloneBootstrap bootstrap = new GeyserStandaloneBootstrap();
         // Set defaults
         boolean useGuiOpts = bootstrap.useGui;
@@ -310,6 +315,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
      * @param parentObject The object to alter
      * @param value The new value of the property
      */
+    @SuppressWarnings("unchecked") // Required for enum usage
     private static void setConfigOption(BeanPropertyDefinition property, Object parentObject, Object value) {
         Object parsedValue = value;
 
@@ -318,6 +324,8 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             parsedValue = Integer.valueOf((String) parsedValue);
         } else if (boolean.class.equals(property.getRawPrimaryType())) {
             parsedValue = Boolean.valueOf((String) parsedValue);
+        } else if (Enum.class.isAssignableFrom(property.getRawPrimaryType())) {
+            parsedValue = Enum.valueOf((Class<? extends Enum>) property.getRawPrimaryType(), ((String) parsedValue).toUpperCase(Locale.ROOT));
         }
 
         // Force the value to be set

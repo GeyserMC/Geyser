@@ -51,6 +51,7 @@ public enum GameRule {
     DROWNINGDAMAGE("drowningDamage", Boolean.class, true),
     FALLDAMAGE("fallDamage", Boolean.class, true),
     FIREDAMAGE("fireDamage", Boolean.class, true),
+    FREEZEDAMAGE("freezeDamage", Boolean.class, true),
     FORGIVEDEADPLAYERS("forgiveDeadPlayers", Boolean.class, true), // JE only
     KEEPINVENTORY("keepInventory", Boolean.class, false),
     LOGADMINCOMMANDS("logAdminCommands", Boolean.class, true), // JE only
@@ -58,6 +59,7 @@ public enum GameRule {
     MAXENTITYCRAMMING("maxEntityCramming", Integer.class, 24), // JE only
     MOBGRIEFING("mobGriefing", Boolean.class, true),
     NATURALREGENERATION("naturalRegeneration", Boolean.class, true),
+    PLAYERSSLEEPINGPERCENTAGE("playersSleepingPercentage", Integer.class, 100), // JE only
     RANDOMTICKSPEED("randomTickSpeed", Integer.class, 3),
     REDUCEDDEBUGINFO("reducedDebugInfo", Boolean.class, false), // JE only
     SENDCOMMANDFEEDBACK("sendCommandFeedback", Boolean.class, true),
@@ -68,16 +70,16 @@ public enum GameRule {
 
     UNKNOWN("unknown", Object.class);
 
-    private static final GameRule[] VALUES = values();
+    public static final GameRule[] VALUES = values();
 
     @Getter
-    private String javaID;
+    private final String javaID;
 
     @Getter
-    private Class<?> type;
+    private final Class<?> type;
 
     @Getter
-    private Object defaultValue;
+    private final Object defaultValue;
 
     GameRule(String javaID, Class<?> type) {
         this(javaID, type, null);

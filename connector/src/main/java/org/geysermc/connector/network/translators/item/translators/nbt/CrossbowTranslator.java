@@ -30,30 +30,29 @@ import com.github.steveice10.opennbt.tag.builtin.*;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
-import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 @ItemRemapper
 public class CrossbowTranslator extends NbtItemStackTranslator {
 
     @Override
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
         if (itemTag.get("ChargedProjectiles") != null) {
             ListTag chargedProjectiles = itemTag.get("ChargedProjectiles");
             if (!chargedProjectiles.getValue().isEmpty()) {
                 CompoundTag projectile = (CompoundTag) chargedProjectiles.getValue().get(0);
 
-                ItemEntry projectileEntry = ItemRegistry.getItemEntry((String) projectile.get("id").getValue());
-                if (projectileEntry == null) return;
+                ItemMapping projectileMapping = session.getItemMappings().getMapping((String) projectile.get("id").getValue());
+                if (projectileMapping == null) return;
                 CompoundTag tag = projectile.get("tag");
-                ItemStack itemStack = new ItemStack(itemEntry.getJavaId(), (byte) projectile.get("Count").getValue(), tag);
+                ItemStack itemStack = new ItemStack(mapping.getJavaId(), (byte) projectile.get("Count").getValue(), tag);
                 ItemData itemData = ItemTranslator.translateToBedrock(session, itemStack);
 
                 CompoundTag newProjectile = new CompoundTag("chargedItem");
                 newProjectile.put(new ByteTag("Count", (byte) itemData.getCount()));
-                newProjectile.put(new StringTag("Name", projectileEntry.getBedrockIdentifier()));
+                newProjectile.put(new StringTag("Name", projectileMapping.getBedrockIdentifier()));
 
                 newProjectile.put(new ShortTag("Damage", (short) itemData.getDamage()));
 
@@ -63,7 +62,7 @@ public class CrossbowTranslator extends NbtItemStackTranslator {
     }
 
     @Override
-    public void translateToJava(CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToJava(CompoundTag itemTag, ItemMapping mapping) {
         if (itemTag.get("chargedItem") != null) {
             CompoundTag chargedItem = itemTag.get("chargedItem");
 
@@ -79,7 +78,7 @@ public class CrossbowTranslator extends NbtItemStackTranslator {
     }
 
     @Override
-    public boolean acceptItem(ItemEntry itemEntry) {
-        return "minecraft:crossbow".equals(itemEntry.getJavaIdentifier());
+    public boolean acceptItem(ItemMapping mapping) {
+        return "minecraft:crossbow".equals(mapping.getJavaIdentifier());
     }
 }

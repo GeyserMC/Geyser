@@ -37,6 +37,8 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
+import java.util.concurrent.TimeUnit;
+
 @Translator(packet = EntityEventPacket.class)
 public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPacket> {
 
@@ -48,12 +50,10 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
                 session.sendUpstreamPacket(packet);
                 return;
             case COMPLETE_TRADE:
-                session.addInventoryTask(() -> {
-                    ClientSelectTradePacket selectTradePacket = new ClientSelectTradePacket(packet.getData());
-                    session.sendDownstreamPacket(selectTradePacket);
-                });
+                ClientSelectTradePacket selectTradePacket = new ClientSelectTradePacket(packet.getData());
+                session.sendDownstreamPacket(selectTradePacket);
 
-                session.addInventoryTask(() -> {
+                session.scheduleInEventLoop(() -> {
                     Entity villager = session.getPlayerEntity();
                     Inventory openInventory = session.getOpenInventory();
                     if (openInventory instanceof MerchantContainer) {
@@ -66,7 +66,7 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
                             villager.updateBedrockMetadata(session);
                         }
                     }
-                }, 100);
+                }, 100, TimeUnit.MILLISECONDS);
                 return;
         }
         session.getConnector().getLogger().debug("Did not translate incoming EntityEventPacket: " + packet.toString());

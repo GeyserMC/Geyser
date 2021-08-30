@@ -48,8 +48,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.item.Enchantment;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.registry.BlockRegistries;
 
 import java.util.*;
 
@@ -133,7 +132,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             }
 
             // Get and parse all params
-            CommandParamData[][] params = getParams(nodes[nodeIndex], nodes);
+            CommandParamData[][] params = getParams(session, nodes[nodeIndex], nodes);
 
             // Insert the alias name into the command list
             commands.computeIfAbsent(params, index -> new HashSet<>()).add(node.getName().toLowerCase());
@@ -168,11 +167,12 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
     /**
      * Build the command parameter array for the given command
      *
+     * @param session the session
      * @param commandNode The command to build the parameters for
      * @param allNodes    Every command node
      * @return An array of parameter option arrays
      */
-    private static CommandParamData[][] getParams(CommandNode commandNode, CommandNode[] allNodes) {
+    private static CommandParamData[][] getParams(GeyserSession session, CommandNode commandNode, CommandNode[] allNodes) {
         // Check if the command is an alias and redirect it
         if (commandNode.getRedirectIndex() != -1) {
             GeyserConnector.getInstance().getLogger().debug("Redirecting command " + commandNode.getName() + " to " + allNodes[commandNode.getRedirectIndex()].getName());
@@ -182,7 +182,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
         if (commandNode.getChildIndices().length >= 1) {
             // Create the root param node and build all the children
             ParamInfo rootParam = new ParamInfo(commandNode, null);
-            rootParam.buildChildren(allNodes);
+            rootParam.buildChildren(session, allNodes);
 
             List<CommandParamData[]> treeData = rootParam.getTree();
 
@@ -195,10 +195,11 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
     /**
      * Convert Java edition command types to Bedrock edition
      *
+     * @param session the session
      * @param parser Command type to convert
      * @return Bedrock parameter data type
      */
-    private static Object mapCommandType(CommandParser parser) {
+    private static Object mapCommandType(GeyserSession session, CommandParser parser) {
         if (parser == null) {
             return CommandParam.STRING;
         }
@@ -210,6 +211,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                 return CommandParam.FLOAT;
 
             case INTEGER:
+            case LONG:
                 return CommandParam.INT;
 
             case ENTITY:
@@ -243,13 +245,13 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                 return CommandParam.OPERATOR;
 
             case BLOCK_STATE:
-                return BlockTranslator.getAllBlockIdentifiers();
+                return BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.get().keySet().toArray(new String[0]);
 
             case ITEM_STACK:
-                return ItemRegistry.ITEM_NAMES;
+                return session.getItemMappings().getItemNames();
 
             case ITEM_ENCHANTMENT:
-                return Enchantment.ALL_JAVA_IDENTIFIERS; //TODO: inventory branch use Java enums
+                return Enchantment.JavaEnchantment.ALL_JAVA_IDENTIFIERS;
 
             case ENTITY_SUMMON:
                 return EntityType.ALL_JAVA_IDENTIFIERS;
@@ -287,11 +289,17 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
         /**
          * Build the array of all the child parameters (recursive)
          *
+         * @param session the session
          * @param allNodes Every command node
          */
-        public void buildChildren(CommandNode[] allNodes) {
+        public void buildChildren(GeyserSession session, CommandNode[] allNodes) {
             for (int paramID : paramNode.getChildIndices()) {
                 CommandNode paramNode = allNodes[paramID];
+
+                if (paramNode == this.paramNode) {
+                    // Fixes a StackOverflowError when an argument has itself as a child
+                    continue;
+                }
 
                 if (paramNode.getParser() == null) {
                     boolean foundCompatible = false;
@@ -322,7 +330,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
                     }
                 } else {
                     // Put the non-enum param into the list
-                    Object mappedType = mapCommandType(paramNode.getParser());
+                    Object mappedType = mapCommandType(session, paramNode.getParser());
                     CommandEnumData enumData = null;
                     CommandParam type = null;
                     if (mappedType instanceof String[]) {
@@ -339,7 +347,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
 
             // Recursively build all child options
             for (ParamInfo child : children) {
-                child.buildChildren(allNodes);
+                child.buildChildren(session, allNodes);
             }
         }
 

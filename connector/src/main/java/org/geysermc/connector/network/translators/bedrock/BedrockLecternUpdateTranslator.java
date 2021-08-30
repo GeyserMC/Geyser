@@ -54,7 +54,7 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
             // Emulate an interact packet
             ClientPlayerPlaceBlockPacket blockPacket = new ClientPlayerPlaceBlockPacket(
                     new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()),
-                    BlockFace.values()[0],
+                    BlockFace.DOWN,
                     Hand.MAIN_HAND,
                     0, 0, 0, // Java doesn't care about these when dealing with a lectern
                     false);

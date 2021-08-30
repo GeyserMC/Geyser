@@ -29,29 +29,24 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
-import com.nukkitx.protocol.bedrock.packet.*;
+import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
+import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
+import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import org.geysermc.connector.entity.attribute.Attribute;
-import org.geysermc.connector.entity.attribute.AttributeType;
 import org.geysermc.connector.entity.living.ArmorStandEntity;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
-import org.geysermc.connector.utils.AttributeUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.geysermc.connector.utils.MathUtils;
 
 @Getter
 @Setter
@@ -72,14 +67,11 @@ public class Entity {
      */
     protected boolean onGround;
 
-    protected float scale = 1;
-
     protected EntityType entityType;
 
     protected boolean valid;
 
     protected LongOpenHashSet passengers = new LongOpenHashSet();
-    protected Map<AttributeType, Attribute> attributes = new HashMap<>();
     protected EntityDataMap metadata = new EntityDataMap();
 
     public Entity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
@@ -92,11 +84,11 @@ public class Entity {
         this.valid = false;
 
         setPosition(position);
+        setAir(getMaxAir());
 
         metadata.put(EntityData.SCALE, 1f);
         metadata.put(EntityData.COLOR, 0);
-        metadata.put(EntityData.MAX_AIR_SUPPLY, (short) 300);
-        metadata.put(EntityData.AIR_SUPPLY, (short) 0);
+        metadata.put(EntityData.MAX_AIR_SUPPLY, getMaxAir());
         metadata.put(EntityData.LEASH_HOLDER_EID, -1L);
         metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
         metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
@@ -118,11 +110,19 @@ public class Entity {
         addEntityPacket.setRotation(getBedrockRotation());
         addEntityPacket.setEntityType(entityType.getType());
         addEntityPacket.getMetadata().putAll(metadata);
+        addAdditionalSpawnData(addEntityPacket);
 
         valid = true;
         session.sendUpstreamPacket(addEntityPacket);
 
         session.getConnector().getLogger().debug("Spawned entity " + entityType + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
+    }
+
+    /**
+     * To be overridden in other entity classes, if additional things need to be done to the spawn entity packet.
+     */
+    public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
+
     }
 
     /**
@@ -233,23 +233,6 @@ public class Entity {
         updatePositionAndRotation(session, 0, 0, 0, yaw, pitch, isOnGround);
     }
 
-    public void updateBedrockAttributes(GeyserSession session) {
-        if (!valid) return;
-
-        List<AttributeData> attributes = new ArrayList<>();
-        for (Map.Entry<AttributeType, Attribute> entry : this.attributes.entrySet()) {
-            if (!entry.getValue().getType().isBedrockAttribute())
-                continue;
-
-            attributes.add(AttributeUtils.getBedrockAttribute(entry.getValue()));
-        }
-
-        UpdateAttributesPacket updateAttributesPacket = new UpdateAttributesPacket();
-        updateAttributesPacket.setRuntimeEntityId(geyserId);
-        updateAttributesPacket.setAttributes(attributes);
-        session.sendUpstreamPacket(updateAttributesPacket);
-    }
-
     /**
      * Applies the Java metadata to the local Bedrock metadata copy
      * @param entityMetadata the Java entity metadata
@@ -263,21 +246,14 @@ public class Entity {
                     metadata.getFlags().setFlag(EntityFlag.ON_FIRE, ((xd & 0x01) == 0x01) && !metadata.getFlags().getFlag(EntityFlag.FIRE_IMMUNE)); // Otherwise immune entities sometimes flicker onfire
                     metadata.getFlags().setFlag(EntityFlag.SNEAKING, (xd & 0x02) == 0x02);
                     metadata.getFlags().setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
-                    metadata.getFlags().setFlag(EntityFlag.SWIMMING, ((xd & 0x10) == 0x10) && metadata.getFlags().getFlag(EntityFlag.SPRINTING)); // Otherwise swimming is enabled on older servers
+                    // Swimming is ignored here and instead we rely on the pose
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
 
-                    // Armour stands are handled in their own class
-                    if (!this.is(ArmorStandEntity.class)) {
-                        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
-                    }
+                    setInvisible(session, (xd & 0x20) == 0x20);
                 }
                 break;
             case 1: // Air/bubbles
-                if ((int) entityMetadata.getValue() == 300) {
-                    metadata.put(EntityData.AIR_SUPPLY, (short) 0); // Otherwise the bubble counter remains in the UI
-                } else {
-                    metadata.put(EntityData.AIR_SUPPLY, (short) (int) entityMetadata.getValue());
-                }
+                setAir((int) entityMetadata.getValue());
                 break;
             case 2: // custom name
                 if (entityMetadata.getValue() instanceof Component) {
@@ -297,16 +273,19 @@ public class Entity {
             case 5: // no gravity
                 metadata.getFlags().setFlag(EntityFlag.HAS_GRAVITY, !(boolean) entityMetadata.getValue());
                 break;
-            case 6: // Pose change
-                if (entityMetadata.getValue().equals(Pose.SLEEPING)) {
-                    metadata.getFlags().setFlag(EntityFlag.SLEEPING, true);
-                    metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.2f);
-                    metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.2f);
-                } else if (metadata.getFlags().getFlag(EntityFlag.SLEEPING)) {
-                    metadata.getFlags().setFlag(EntityFlag.SLEEPING, false);
-                    metadata.put(EntityData.BOUNDING_BOX_WIDTH, getEntityType().getWidth());
-                    metadata.put(EntityData.BOUNDING_BOX_HEIGHT, getEntityType().getHeight());
-                }
+            case 6: // Pose change - typically used for bounding box and not animation
+                Pose pose = (Pose) entityMetadata.getValue();
+
+                metadata.getFlags().setFlag(EntityFlag.SLEEPING, pose.equals(Pose.SLEEPING));
+                // Triggered when crawling
+                metadata.getFlags().setFlag(EntityFlag.SWIMMING, pose.equals(Pose.SWIMMING));
+                setDimensions(pose);
+                break;
+            case 7: // Freezing ticks
+                // The value that Java edition gives us is in ticks, but Bedrock uses a float percentage of the strength 0.0 -> 1.0
+                // The Java client caps its freezing tick percentage at 140
+                int freezingTicks = Math.min((int) entityMetadata.getValue(), 140);
+                setFreezing(session, freezingTicks / 140f);
                 break;
         }
     }
@@ -322,6 +301,53 @@ public class Entity {
         entityDataPacket.setRuntimeEntityId(geyserId);
         entityDataPacket.getMetadata().putAll(metadata);
         session.sendUpstreamPacket(entityDataPacket);
+    }
+
+    /**
+     * If true, the entity should be shaking on the client's end.
+     *
+     * @return whether {@link EntityFlag#SHAKING} should be set to true.
+     */
+    protected boolean isShaking(GeyserSession session) {
+        return false;
+    }
+
+    /**
+     * Set the height and width of the entity's bounding box
+     */
+    protected void setDimensions(Pose pose) {
+        // No flexibility options for basic entities
+        metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
+        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
+    }
+
+    /**
+     * Set a float from 0-1 - how strong the "frozen" overlay should be on screen.
+     */
+    protected void setFreezing(GeyserSession session, float amount) {
+        metadata.put(EntityData.FREEZING_EFFECT_STRENGTH, amount);
+    }
+
+    /**
+     * Set an int from 0 - this entity's maximum air - (air / maxAir) represents the percentage of bubbles left
+     * @param amount the amount of air
+     */
+    protected void setAir(int amount) {
+        metadata.put(EntityData.AIR_SUPPLY, (short) MathUtils.constrain(amount, 0, getMaxAir()));
+    }
+
+    protected int getMaxAir() {
+        return 300;
+    }
+
+    /**
+     * Set a boolean - whether the entity is invisible or visible
+     *
+     * @param session the Geyser session
+     * @param value true if the entity is invisible
+     */
+    protected void setInvisible(GeyserSession session, boolean value) {
+        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, value);
     }
 
     /**

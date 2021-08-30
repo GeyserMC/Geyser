@@ -31,10 +31,12 @@ import org.geysermc.connector.GeyserConnector;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Map;
 
 public class WebUtils {
 
@@ -45,9 +47,8 @@ public class WebUtils {
      * @return Body contents or error message if the request fails
      */
     public static String getBody(String reqURL) {
-        URL url = null;
         try {
-            url = new URL(reqURL);
+            URL url = new URL(reqURL);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
             con.setRequestProperty("User-Agent", "Geyser-" + GeyserConnector.getInstance().getPlatformType().toString() + "/" + GeyserConnector.VERSION); // Otherwise Java 8 fails on checking updates
@@ -87,6 +88,14 @@ public class WebUtils {
         }
     }
 
+    /**
+     * Post a string to the given URL
+     *
+     * @param reqURL URL to post to
+     * @param postContent String data to post
+     * @return String returned by the server
+     * @throws IOException
+     */
     public static String post(String reqURL, String postContent) throws IOException {
         URL url = new URL(reqURL);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -132,5 +141,31 @@ public class WebUtils {
         }
 
         return content.toString();
+    }
+
+    /**
+     * Post fields to a URL as a form
+     *
+     * @param reqURL URL to post to
+     * @param fields Form data to post
+     * @return String returned by the server
+     * @throws IOException
+     */
+    public static String postForm(String reqURL, Map<String, String> fields) throws IOException {
+        URL url = new URL(reqURL);
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        con.setRequestProperty("User-Agent", "Geyser-" + GeyserConnector.getInstance().getPlatformType().toString() + "/" + GeyserConnector.VERSION);
+        con.setDoOutput(true);
+
+        try (OutputStream out = con.getOutputStream()) {
+            // Write the form data to the output
+            for (Map.Entry<String, String> field : fields.entrySet()) {
+                out.write((field.getKey() + "=" + URLEncoder.encode(field.getValue(), StandardCharsets.UTF_8.toString()) + "&").getBytes(StandardCharsets.UTF_8));
+            }
+        }
+
+        return connectionToString(con);
     }
 }

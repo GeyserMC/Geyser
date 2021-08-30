@@ -56,16 +56,16 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
 
         // Custom block
-        if (entityMetadata.getId() == 10) {
+        if (entityMetadata.getId() == 11) {
             customBlock = (int) entityMetadata.getValue();
 
             if (showCustomBlock) {
-                metadata.put(EntityData.DISPLAY_ITEM, session.getBlockTranslator().getBedrockBlockId(customBlock));
+                metadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId(customBlock));
             }
         }
 
         // Custom block offset
-        if (entityMetadata.getId() == 11) {
+        if (entityMetadata.getId() == 12) {
             customBlockOffset = (int) entityMetadata.getValue();
 
             if (showCustomBlock) {
@@ -74,10 +74,10 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
         }
 
         // If the custom block should be enabled
-        if (entityMetadata.getId() == 12) {
+        if (entityMetadata.getId() == 13) {
             if ((boolean) entityMetadata.getValue()) {
                 showCustomBlock = true;
-                metadata.put(EntityData.DISPLAY_ITEM, session.getBlockTranslator().getBedrockBlockId(customBlock));
+                metadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId(customBlock));
                 metadata.put(EntityData.DISPLAY_OFFSET, customBlockOffset);
             } else {
                 showCustomBlock = false;

@@ -39,29 +39,27 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
 
     @Override
     public void translate(ContainerClosePacket packet, GeyserSession session) {
-        session.addInventoryTask(() -> {
-            byte windowId = packet.getId();
+        byte windowId = packet.getId();
 
-            //Client wants close confirmation
-            session.sendUpstreamPacket(packet);
-            session.setClosingInventory(false);
+        //Client wants close confirmation
+        session.sendUpstreamPacket(packet);
+        session.setClosingInventory(false);
 
-            if (windowId == -1 && session.getOpenInventory() instanceof MerchantContainer) {
-                // 1.16.200 - window ID is always -1 sent from Bedrock
-                windowId = (byte) session.getOpenInventory().getId();
+        if (windowId == -1 && session.getOpenInventory() instanceof MerchantContainer) {
+            // 1.16.200 - window ID is always -1 sent from Bedrock
+            windowId = (byte) session.getOpenInventory().getId();
+        }
+
+        Inventory openInventory = session.getOpenInventory();
+        if (openInventory != null) {
+            if (windowId == openInventory.getId()) {
+                ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(windowId);
+                session.sendDownstreamPacket(closeWindowPacket);
+                InventoryUtils.closeInventory(session, windowId, false);
+            } else if (openInventory.isPending()) {
+                InventoryUtils.displayInventory(session, openInventory);
+                openInventory.setPending(false);
             }
-
-            Inventory openInventory = session.getOpenInventory();
-            if (openInventory != null) {
-                if (windowId == openInventory.getId()) {
-                    ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(windowId);
-                    session.sendDownstreamPacket(closeWindowPacket);
-                    InventoryUtils.closeInventory(session, windowId, false);
-                } else if (openInventory.isPending()) {
-                    InventoryUtils.displayInventory(session, openInventory);
-                    openInventory.setPending(false);
-                }
-            }
-        });
+        }
     }
 }

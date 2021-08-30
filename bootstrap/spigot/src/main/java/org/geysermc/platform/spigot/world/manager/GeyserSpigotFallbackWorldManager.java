@@ -25,10 +25,9 @@
 
 package org.geysermc.platform.spigot.world.manager;
 
-import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import org.bukkit.plugin.Plugin;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
 /**
  * Should only be used when we know {@link GeyserSpigotWorldManager#getBlockAt(GeyserSession, int, int, int)}
@@ -37,18 +36,12 @@ import org.geysermc.connector.network.translators.world.block.BlockTranslator;
  */
 public class GeyserSpigotFallbackWorldManager extends GeyserSpigotWorldManager {
     public GeyserSpigotFallbackWorldManager(Plugin plugin) {
-        // Since this is pre-1.13 (and thus pre-1.15), there will never be 3D biomes.
-        super(plugin, false);
+        super(plugin);
     }
 
     @Override
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
-        return BlockTranslator.JAVA_AIR_ID;
-    }
-
-    @Override
-    public void getBlocksInSection(GeyserSession session, int x, int y, int z, Chunk chunk) {
-        // Do nothing, since we can't do anything with the chunk
+        return BlockStateValues.JAVA_AIR_ID;
     }
 
     @Override

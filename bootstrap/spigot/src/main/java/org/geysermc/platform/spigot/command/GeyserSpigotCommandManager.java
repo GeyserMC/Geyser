@@ -30,7 +30,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandManager;
-import org.geysermc.platform.spigot.GeyserSpigotPlugin;
 
 import java.lang.reflect.Field;
 
@@ -48,12 +47,8 @@ public class GeyserSpigotCommandManager extends CommandManager {
         }
     }
 
-    private GeyserSpigotPlugin plugin;
-
-    public GeyserSpigotCommandManager(GeyserSpigotPlugin plugin, GeyserConnector connector) {
+    public GeyserSpigotCommandManager(GeyserConnector connector) {
         super(connector);
-
-        this.plugin = plugin;
     }
 
     @Override

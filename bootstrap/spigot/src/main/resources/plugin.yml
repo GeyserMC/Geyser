@@ -3,9 +3,28 @@ name: ${outputName}-Spigot
 author: ${project.organization.name}
 website: ${project.organization.url}
 version: ${project.version}
-softdepend: ["ViaVersion"]
+softdepend: ["ViaVersion", "floodgate"]
 api-version: 1.13
 commands:
   geyser:
     description: The main command for Geyser.
     usage: /geyser help
+permissions:
+  geyser.command.help:
+    description: Shows help for all registered commands.
+  geyser.command.advancement:
+    description: Shows the advancements of the player on the server.
+  geyser.command.dump:
+    description: Dumps Geyser debug information for bug reports.
+  geyser.command.list:
+    description: List all players connected through Geyser.
+  geyser.command.offhand:
+    description: Puts an items in your offhand.
+  geyser.command.reload:
+    description: Reloads the Geyser configurations. Kicks all players when used!
+  geyser.command.shutdown:
+    description: Shuts down Geyser.
+  geyser.command.statistics:
+    description: Shows the statistics of the player on the server.
+  geyser.command.version:
+    description: Shows the current Geyser version and checks for updates.

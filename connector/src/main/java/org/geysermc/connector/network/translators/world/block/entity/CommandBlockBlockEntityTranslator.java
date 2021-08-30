@@ -54,9 +54,4 @@ public class CommandBlockBlockEntityTranslator extends BlockEntityTranslator imp
             builder.put("LastExecution", (long) 0);
         }
     }
-
-    @Override
-    public boolean isBlock(int blockState) {
-        return BlockStateValues.getCommandBlockValues().containsKey(blockState);
-    }
 }

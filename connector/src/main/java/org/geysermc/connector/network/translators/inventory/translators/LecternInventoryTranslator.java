@@ -78,71 +78,81 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public void updateInventory(GeyserSession session, Inventory inventory) {
+        GeyserItemStack itemStack = inventory.getItem(0);
+        if (!itemStack.isEmpty()) {
+            updateBook(session, inventory, itemStack);
+        }
     }
 
     @Override
     public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
         this.updater.updateSlot(this, session, inventory, slot);
         if (slot == 0) {
-            LecternContainer lecternContainer = (LecternContainer) inventory;
-            if (session.isDroppingLecternBook()) {
-                // We have to enter the inventory GUI to eject the book
-                ClientClickWindowButtonPacket packet = new ClientClickWindowButtonPacket(inventory.getId(), 3);
-                session.sendDownstreamPacket(packet);
-                session.setDroppingLecternBook(false);
-                InventoryUtils.closeInventory(session, inventory.getId(), false);
-            } else if (lecternContainer.getBlockEntityTag() == null) {
-                // If the method returns true, this is already handled for us
-                GeyserItemStack geyserItemStack = inventory.getItem(0);
-                CompoundTag tag = geyserItemStack.getNbt();
-                // Position has to be the last interacted position... right?
-                Vector3i position = session.getLastInteractionBlockPosition();
-                // shouldRefresh means that we should boot out the client on our side because their lectern GUI isn't updated yet
-                boolean shouldRefresh = !session.getConnector().getWorldManager().shouldExpectLecternHandled() && !session.getLecternCache().contains(position);
+            updateBook(session, inventory, inventory.getItem(0));
+        }
+    }
 
-                NbtMap blockEntityTag;
-                if (tag != null) {
-                    int pagesSize = ((ListTag) tag.get("pages")).size();
-                    ItemData itemData = geyserItemStack.getItemData(session);
-                    NbtMapBuilder lecternTag = getBaseLecternTag(position.getX(), position.getY(), position.getZ(), pagesSize);
-                    lecternTag.putCompound("book", NbtMap.builder()
-                            .putByte("Count", (byte) itemData.getCount())
-                            .putShort("Damage", (short) 0)
-                            .putString("Name", "minecraft:written_book")
-                            .putCompound("tag", itemData.getTag())
-                            .build());
-                    lecternTag.putInt("page", lecternContainer.getCurrentBedrockPage());
-                    blockEntityTag = lecternTag.build();
-                } else {
-                    // There is *a* book here, but... no NBT.
-                    NbtMapBuilder lecternTag = getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 1);
-                    NbtMapBuilder bookTag = NbtMap.builder()
-                            .putByte("Count", (byte) 1)
-                            .putShort("Damage", (short) 0)
-                            .putString("Name", "minecraft:writable_book")
-                            .putCompound("tag", NbtMap.builder().putList("pages", NbtType.COMPOUND, Collections.singletonList(
-                                    NbtMap.builder()
+    /**
+     * Translate the data of the book in the lectern into a block entity tag.
+     */
+    private void updateBook(GeyserSession session, Inventory inventory, GeyserItemStack book) {
+        LecternContainer lecternContainer = (LecternContainer) inventory;
+        if (session.isDroppingLecternBook()) {
+            // We have to enter the inventory GUI to eject the book
+            ClientClickWindowButtonPacket packet = new ClientClickWindowButtonPacket(inventory.getId(), 3);
+            session.sendDownstreamPacket(packet);
+            session.setDroppingLecternBook(false);
+            InventoryUtils.closeInventory(session, inventory.getId(), false);
+        } else if (lecternContainer.getBlockEntityTag() == null) {
+            CompoundTag tag = book.getNbt();
+            // Position has to be the last interacted position... right?
+            Vector3i position = session.getLastInteractionBlockPosition();
+            // If shouldExpectLecternHandled returns true, this is already handled for us
+            // shouldRefresh means that we should boot out the client on our side because their lectern GUI isn't updated yet
+            boolean shouldRefresh = !session.getConnector().getWorldManager().shouldExpectLecternHandled() && !session.getLecternCache().contains(position);
+
+            NbtMap blockEntityTag;
+            if (tag != null) {
+                int pagesSize = ((ListTag) tag.get("pages")).size();
+                ItemData itemData = book.getItemData(session);
+                NbtMapBuilder lecternTag = getBaseLecternTag(position.getX(), position.getY(), position.getZ(), pagesSize);
+                lecternTag.putCompound("book", NbtMap.builder()
+                        .putByte("Count", (byte) itemData.getCount())
+                        .putShort("Damage", (short) 0)
+                        .putString("Name", "minecraft:written_book")
+                        .putCompound("tag", itemData.getTag())
+                        .build());
+                lecternTag.putInt("page", lecternContainer.getCurrentBedrockPage());
+                blockEntityTag = lecternTag.build();
+            } else {
+                // There is *a* book here, but... no NBT.
+                NbtMapBuilder lecternTag = getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 1);
+                NbtMapBuilder bookTag = NbtMap.builder()
+                        .putByte("Count", (byte) 1)
+                        .putShort("Damage", (short) 0)
+                        .putString("Name", "minecraft:writable_book")
+                        .putCompound("tag", NbtMap.builder().putList("pages", NbtType.COMPOUND, Collections.singletonList(
+                                NbtMap.builder()
                                         .putString("photoname", "")
                                         .putString("text", "")
-                                    .build()
-                            )).build());
+                                        .build()
+                        )).build());
 
-                    blockEntityTag = lecternTag.putCompound("book", bookTag.build()).build();
-                }
-                
-                // Even with serverside access to lecterns, we don't easily know which lectern this is, so we need to rebuild
-                // the block entity tag
-                lecternContainer.setBlockEntityTag(blockEntityTag);
-                lecternContainer.setPosition(position);
-                if (shouldRefresh) {
-                    // Update the lectern because it's not updated client-side
-                    BlockEntityUtils.updateBlockEntity(session, blockEntityTag, position);
-                    session.getLecternCache().add(position);
-                    // Close the window - we will reopen it once the client has this data synced
-                    ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(lecternContainer.getId());
-                    session.sendDownstreamPacket(closeWindowPacket);
-                    InventoryUtils.closeInventory(session, inventory.getId(), false);
-                }
+                blockEntityTag = lecternTag.putCompound("book", bookTag.build()).build();
+            }
+
+            // Even with serverside access to lecterns, we don't easily know which lectern this is, so we need to rebuild
+            // the block entity tag
+            lecternContainer.setBlockEntityTag(blockEntityTag);
+            lecternContainer.setPosition(position);
+            if (shouldRefresh) {
+                // Update the lectern because it's not updated client-side
+                BlockEntityUtils.updateBlockEntity(session, blockEntityTag, position);
+                session.getLecternCache().add(position);
+                // Close the window - we will reopen it once the client has this data synced
+                ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(lecternContainer.getId());
+                session.sendDownstreamPacket(closeWindowPacket);
+                InventoryUtils.closeInventory(session, inventory.getId(), false);
             }
         }
     }

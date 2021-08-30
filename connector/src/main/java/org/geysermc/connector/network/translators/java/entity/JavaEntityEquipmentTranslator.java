@@ -40,9 +40,11 @@ public class JavaEntityEquipmentTranslator extends PacketTranslator<ServerEntity
 
     @Override
     public void translate(ServerEntityEquipmentPacket packet, GeyserSession session) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
+        } else {
+            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         }
 
         if (entity == null)
@@ -54,30 +56,48 @@ public class JavaEntityEquipmentTranslator extends PacketTranslator<ServerEntity
             return;
         }
 
+        boolean armorUpdated = false;
+        boolean mainHandUpdated = false;
+        boolean offHandUpdated = false;
         LivingEntity livingEntity = (LivingEntity) entity;
         for (Equipment equipment : packet.getEquipment()) {
             ItemData item = ItemTranslator.translateToBedrock(session, equipment.getItem());
             switch (equipment.getSlot()) {
                 case HELMET:
                     livingEntity.setHelmet(item);
+                    armorUpdated = true;
                     break;
                 case CHESTPLATE:
                     livingEntity.setChestplate(item);
+                    armorUpdated = true;
                     break;
                 case LEGGINGS:
                     livingEntity.setLeggings(item);
+                    armorUpdated = true;
                     break;
                 case BOOTS:
                     livingEntity.setBoots(item);
+                    armorUpdated = true;
                     break;
                 case MAIN_HAND:
                     livingEntity.setHand(item);
+                    mainHandUpdated = true;
                     break;
                 case OFF_HAND:
                     livingEntity.setOffHand(item);
+                    offHandUpdated = true;
                     break;
             }
         }
-        livingEntity.updateEquipment(session);
+
+        if (armorUpdated) {
+            livingEntity.updateArmor(session);
+        }
+        if (mainHandUpdated) {
+            livingEntity.updateMainHand(session);
+        }
+        if (offHandUpdated) {
+            livingEntity.updateOffHand(session);
+        }
     }
 }

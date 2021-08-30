@@ -27,6 +27,7 @@ package org.geysermc.connector.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.geysermc.connector.GeyserLogger;
+import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.network.CIDRMatcher;
 import org.geysermc.connector.utils.LanguageUtils;
 
@@ -44,6 +45,8 @@ public interface GeyserConfiguration {
     IRemoteConfiguration getRemote();
 
     Map<String, ? extends IUserAuthenticationInfo> getUserAuths();
+
+    boolean isExtendedWorldHeight();
 
     boolean isCommandSuggestions();
 
@@ -77,6 +80,8 @@ public interface GeyserConfiguration {
 
     boolean isShowCoordinates();
 
+    EmoteOffhandWorkaroundOption getEmoteOffhandWorkaround();
+
     String getDefaultLocale();
 
     Path getFloodgateKeyPath();
@@ -84,8 +89,6 @@ public interface GeyserConfiguration {
     boolean isAddNonBedrockItems();
 
     boolean isAboveBedrockNetherBuilding();
-
-    boolean isCacheChunks();
 
     boolean isForceResourcePacks();
 
@@ -111,6 +114,8 @@ public interface GeyserConfiguration {
 
         String getServerName();
 
+        int getCompressionLevel();
+
         boolean isEnableProxyProtocol();
 
         List<String> getProxyProtocolWhitelistedIPs();
@@ -131,11 +136,13 @@ public interface GeyserConfiguration {
 
         void setPort(int port);
 
-        String getAuthType();
+        AuthType getAuthType();
 
         boolean isPasswordAuthentication();
 
         boolean isUseProxyProtocol();
+
+        boolean isForwardHost();
     }
 
     interface IUserAuthenticationInfo {
@@ -164,7 +171,7 @@ public interface GeyserConfiguration {
 
     int getMtu();
 
-    boolean isUseAdapters();
+    boolean isUseDirectConnection();
 
     int getConfigVersion();
 

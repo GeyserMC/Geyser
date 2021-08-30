@@ -37,7 +37,6 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerHotbarPacket;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.inventory.Container;
 import org.geysermc.connector.inventory.GeyserItemStack;
@@ -47,14 +46,21 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.translators.LecternInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.translators.chest.DoubleChestInventoryTranslator;
-import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.registry.Registries;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.function.IntFunction;
 
 public class InventoryUtils {
+    /**
+     * Stores the last used recipe network ID. Since 1.16.200 (and for server-authoritative inventories),
+     * each recipe needs a unique network ID (or else in .200 the client crashes).
+     */
+    public static int LAST_RECIPE_NET_ID;
+    
     public static final ItemStack REFRESH_ITEM = new ItemStack(1, 127, new CompoundTag(""));
 
     public static void openInventory(GeyserSession session, Inventory inventory) {
@@ -73,17 +79,16 @@ public class InventoryUtils {
         if (translator != null) {
             translator.prepareInventory(session, inventory);
             if (translator instanceof DoubleChestInventoryTranslator && !((Container) inventory).isUsingRealBlock()) {
-                GeyserConnector.getInstance().getGeneralThreadPool().schedule(() ->
-                    session.addInventoryTask(() -> {
-                        Inventory openInv = session.getOpenInventory();
-                        if (openInv != null && openInv.getId() == inventory.getId()) {
-                            translator.openInventory(session, inventory);
-                            translator.updateInventory(session, inventory);
-                        } else if (openInv != null && openInv.isPending()) {
-                            // Presumably, this inventory is no longer relevant, and the client doesn't care about it
-                            displayInventory(session, openInv);
-                        }
-                }), 200, TimeUnit.MILLISECONDS);
+                session.scheduleInEventLoop(() -> {
+                    Inventory openInv = session.getOpenInventory();
+                    if (openInv != null && openInv.getId() == inventory.getId()) {
+                        translator.openInventory(session, inventory);
+                        translator.updateInventory(session, inventory);
+                    } else if (openInv != null && openInv.isPending()) {
+                        // Presumably, this inventory is no longer relevant, and the client doesn't care about it
+                        displayInventory(session, openInv);
+                    }
+                }, 200, TimeUnit.MILLISECONDS);
             } else {
                 translator.openInventory(session, inventory);
                 translator.updateInventory(session, inventory);
@@ -155,7 +160,7 @@ public class InventoryUtils {
      * @param description the description
      * @return the unusable space block
      */
-    public static ItemData createUnusableSpaceBlock(String description) {
+    public static IntFunction<ItemData> createUnusableSpaceBlock(String description) {
         NbtMapBuilder root = NbtMap.builder();
         NbtMapBuilder display = NbtMap.builder();
 
@@ -164,10 +169,64 @@ public class InventoryUtils {
         display.putList("Lore", NbtType.STRING, Collections.singletonList(ChatColor.RESET + ChatColor.DARK_PURPLE + description));
 
         root.put("display", display.build());
-        return ItemData.builder()
-                .id(ItemRegistry.ITEM_ENTRIES.get(ItemRegistry.BARRIER_INDEX).getBedrockId())
+        return protocolVersion -> ItemData.builder()
+                .id(Registries.ITEMS.forVersion(protocolVersion).getStoredItems().barrier().getBedrockId())
                 .count(1)
                 .tag(root.build()).build();
+    }
+
+    /**
+     * See {@link #findOrCreateItem(GeyserSession, String)}. This is for finding a specified {@link ItemStack}.
+     *
+     * @param session the Bedrock client's session
+     * @param itemStack the item to try to find a match for. NBT will also be accounted for.
+     */
+    public static void findOrCreateItem(GeyserSession session, ItemStack itemStack) {
+        PlayerInventory inventory = session.getPlayerInventory();
+
+        if (itemStack == null || itemStack.getId() == 0) {
+            return;
+        }
+
+        // Check hotbar for item
+        for (int i = 36; i < 45; i++) {
+            GeyserItemStack geyserItem = inventory.getItem(i);
+            if (geyserItem.isEmpty()) {
+                continue;
+            }
+            // If this is the item we're looking for
+            if (geyserItem.getJavaId() == itemStack.getId() && Objects.equals(geyserItem.getNbt(), itemStack.getNbt())) {
+                setHotbarItem(session, i);
+                // Don't check inventory if item was in hotbar
+                return;
+            }
+        }
+
+        // Check inventory for item
+        for (int i = 9; i < 36; i++) {
+            GeyserItemStack geyserItem = inventory.getItem(i);
+            if (geyserItem.isEmpty()) {
+                continue;
+            }
+            // If this is the item we're looking for
+            if (geyserItem.getJavaId() == itemStack.getId() && Objects.equals(geyserItem.getNbt(), itemStack.getNbt())) {
+                ClientMoveItemToHotbarPacket packetToSend = new ClientMoveItemToHotbarPacket(i); // https://wiki.vg/Protocol#Pick_Item
+                session.sendDownstreamPacket(packetToSend);
+                return;
+            }
+        }
+
+        // If we still have not found the item, and we're in creative, ask for the item from the server.
+        if (session.getGameMode() == GameMode.CREATIVE) {
+            int slot = findEmptyHotbarSlot(inventory);
+
+            ClientCreativeInventoryActionPacket actionPacket = new ClientCreativeInventoryActionPacket(slot,
+                    itemStack);
+            if ((slot - 36) != inventory.getHeldItemSlot()) {
+                setHotbarItem(session, slot);
+            }
+            session.sendDownstreamPacket(actionPacket);
+        }
     }
 
     /**
@@ -196,7 +255,7 @@ public class InventoryUtils {
                 continue;
             }
             // If this isn't the item we're looking for
-            if (!geyserItem.getItemEntry().getJavaIdentifier().equals(itemName)) {
+            if (!geyserItem.getMapping(session).getJavaIdentifier().equals(itemName)) {
                 continue;
             }
 
@@ -212,7 +271,7 @@ public class InventoryUtils {
                 continue;
             }
             // If this isn't the item we're looking for
-            if (!geyserItem.getItemEntry().getJavaIdentifier().equals(itemName)) {
+            if (!geyserItem.getMapping(session).getJavaIdentifier().equals(itemName)) {
                 continue;
             }
 
@@ -223,20 +282,12 @@ public class InventoryUtils {
 
         // If we still have not found the item, and we're in creative, ask for the item from the server.
         if (session.getGameMode() == GameMode.CREATIVE) {
-            int slot = inventory.getHeldItemSlot() + 36;
-            if (!inventory.getItemInHand().isEmpty()) { // Otherwise we should just use the current slot
-                for (int i = 36; i < 45; i++) {
-                    if (inventory.getItem(i).isEmpty()) {
-                        slot = i;
-                        break;
-                    }
-                }
-            }
+            int slot = findEmptyHotbarSlot(inventory);
 
-            ItemEntry entry = ItemRegistry.getItemEntry(itemName);
-            if (entry != null) {
+            ItemMapping mapping = session.getItemMappings().getMapping(itemName);
+            if (mapping != null) {
                 ClientCreativeInventoryActionPacket actionPacket = new ClientCreativeInventoryActionPacket(slot,
-                        new ItemStack(entry.getJavaId()));
+                        new ItemStack(mapping.getJavaId()));
                 if ((slot - 36) != inventory.getHeldItemSlot()) {
                     setHotbarItem(session, slot);
                 }
@@ -245,6 +296,22 @@ public class InventoryUtils {
                 session.getConnector().getLogger().debug("Cannot find item for block " + itemName);
             }
         }
+    }
+
+    /**
+     * @return the first empty slot found in this inventory, or else the player's currently held slot.
+     */
+    private static int findEmptyHotbarSlot(PlayerInventory inventory) {
+        int slot = inventory.getHeldItemSlot() + 36;
+        if (!inventory.getItemInHand().isEmpty()) { // Otherwise we should just use the current slot
+            for (int i = 36; i < 45; i++) {
+                if (inventory.getItem(i).isEmpty()) {
+                    slot = i;
+                    break;
+                }
+            }
+        }
+        return slot;
     }
 
     /**

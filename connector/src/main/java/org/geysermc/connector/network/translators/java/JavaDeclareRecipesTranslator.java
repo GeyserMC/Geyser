@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.java;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
+import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.StoneCuttingRecipeData;
@@ -42,10 +43,15 @@ import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.item.*;
+import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.registry.Registries;
+import org.geysermc.connector.registry.type.ItemMapping;
+import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.geysermc.connector.utils.InventoryUtils.LAST_RECIPE_NET_ID;
 
 /**
  * Used to send all valid recipes from Java to Bedrock.
@@ -54,12 +60,23 @@ import java.util.stream.Collectors;
  */
 @Translator(packet = ServerDeclareRecipesPacket.class)
 public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclareRecipesPacket> {
+    /**
+     * Required to use the specified cartography table recipes
+     */
+    private static final List<CraftingData> CARTOGRAPHY_RECIPES = Arrays.asList(
+            CraftingData.fromMulti(UUID.fromString("8b36268c-1829-483c-a0f1-993b7156a8f2"), ++LAST_RECIPE_NET_ID), // Map extending
+            CraftingData.fromMulti(UUID.fromString("442d85ed-8272-4543-a6f1-418f90ded05d"), ++LAST_RECIPE_NET_ID), // Map cloning
+            CraftingData.fromMulti(UUID.fromString("98c84b38-1085-46bd-b1ce-dd38c159e6cc"), ++LAST_RECIPE_NET_ID), // Map upgrading
+            CraftingData.fromMulti(UUID.fromString("602234e4-cac1-4353-8bb7-b1ebff70024b"), ++LAST_RECIPE_NET_ID) // Map locking
+    );
 
     @Override
     public void translate(ServerDeclareRecipesPacket packet, GeyserSession session) {
+        Map<RecipeType, List<CraftingData>> recipeTypes = Registries.CRAFTING_DATA.forVersion(session.getUpstream().getProtocolVersion());
         // Get the last known network ID (first used for the pregenerated recipes) and increment from there.
-        int netId = RecipeRegistry.LAST_RECIPE_NET_ID + 1;
-        Int2ObjectMap<Recipe> recipeMap = new Int2ObjectOpenHashMap<>(RecipeRegistry.ALL_CRAFTING_RECIPES);
+        int netId = InventoryUtils.LAST_RECIPE_NET_ID + 1;
+
+        Int2ObjectMap<Recipe> recipeMap = new Int2ObjectOpenHashMap<>(Registries.RECIPES.forVersion(session.getUpstream().getProtocolVersion()));
         Int2ObjectMap<List<StoneCuttingRecipeData>> unsortedStonecutterData = new Int2ObjectOpenHashMap<>();
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
@@ -94,55 +111,6 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     }
                     break;
                 }
-
-                // These recipes are enabled by sending a special recipe
-                case CRAFTING_SPECIAL_BOOKCLONING: {
-                    craftingDataPacket.getCraftingData().add(RecipeRegistry.BOOK_CLONING_RECIPE_DATA);
-                    break;
-                }
-                case CRAFTING_SPECIAL_REPAIRITEM: {
-                    craftingDataPacket.getCraftingData().add(RecipeRegistry.TOOL_REPAIRING_RECIPE_DATA);
-                    break;
-                }
-                case CRAFTING_SPECIAL_MAPCLONING: {
-                    craftingDataPacket.getCraftingData().add(RecipeRegistry.MAP_CLONING_RECIPE_DATA);
-                    break;
-                }
-                case CRAFTING_SPECIAL_MAPEXTENDING: {
-                    craftingDataPacket.getCraftingData().add(RecipeRegistry.MAP_EXTENDING_RECIPE_DATA);
-                    break;
-                }
-                case CRAFTING_SPECIAL_BANNERDUPLICATE: {
-                    craftingDataPacket.getCraftingData().add(RecipeRegistry.BANNER_DUPLICATING_RECIPE_DATA);
-                    break;
-                }
-
-                // Java doesn't actually tell us the recipes so we need to calculate this ahead of time.
-                case CRAFTING_SPECIAL_FIREWORK_ROCKET: {
-                    craftingDataPacket.getCraftingData().addAll(RecipeRegistry.FIREWORK_ROCKET_RECIPES);
-                    break;
-                }
-                case CRAFTING_SPECIAL_FIREWORK_STAR: {
-                    craftingDataPacket.getCraftingData().addAll(RecipeRegistry.FIREWORK_STAR_RECIPES);
-                    break;
-                }
-                case CRAFTING_SPECIAL_SHULKERBOXCOLORING: {
-                    craftingDataPacket.getCraftingData().addAll(RecipeRegistry.SHULKER_BOX_DYEING_RECIPES);
-                    break;
-                }
-                case CRAFTING_SPECIAL_SUSPICIOUSSTEW: {
-                    craftingDataPacket.getCraftingData().addAll(RecipeRegistry.SUSPICIOUS_STEW_RECIPES);
-                    break;
-                }
-                case CRAFTING_SPECIAL_TIPPEDARROW: {
-                    craftingDataPacket.getCraftingData().addAll(RecipeRegistry.TIPPED_ARROW_RECIPES);
-                    break;
-                }
-                case CRAFTING_SPECIAL_ARMORDYE: {
-                    // This one's even worse since it's not actually on Bedrock, but it still works!
-                    craftingDataPacket.getCraftingData().addAll(RecipeRegistry.LEATHER_DYEING_RECIPES);
-                    break;
-                }
                 case STONECUTTING: {
                     StoneCuttingRecipeData stoneCuttingData = (StoneCuttingRecipeData) recipe.getData();
                     ItemStack ingredient = stoneCuttingData.getIngredient().getOptions()[0];
@@ -153,20 +121,26 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     }
                     data.add(stoneCuttingData);
                     // Save for processing after all recipes have been received
+                    break;
+                }
+                default: {
+                    List<CraftingData> craftingData = recipeTypes.get(recipe.getType());
+                    if (craftingData != null) {
+                        craftingDataPacket.getCraftingData().addAll(craftingData);
+                    }
+                    break;
                 }
             }
         }
-        // Add all cartography table recipe UUIDs, so we can use the cartography table
-        craftingDataPacket.getCraftingData().addAll(RecipeRegistry.CARTOGRAPHY_RECIPE_DATA);
-
-        craftingDataPacket.getPotionMixData().addAll(PotionMixRegistry.POTION_MIXES);
+        craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
+        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.get());
 
         Int2ObjectMap<IntList> stonecutterRecipeMap = new Int2ObjectOpenHashMap<>();
         for (Int2ObjectMap.Entry<List<StoneCuttingRecipeData>> data : unsortedStonecutterData.int2ObjectEntrySet()) {
             // Sort the list by each output item's Java identifier - this is how it's sorted on Java, and therefore
             // We can get the correct order for button pressing
             data.getValue().sort(Comparator.comparing((stoneCuttingRecipeData ->
-                    ItemRegistry.getItem(stoneCuttingRecipeData.getResult()).getJavaIdentifier())));
+                    session.getItemMappings().getItems().get(stoneCuttingRecipeData.getResult().getId()).getJavaIdentifier())));
 
             // Now that it's sorted, let's translate these recipes
             for (StoneCuttingRecipeData stoneCuttingData : data.getValue()) {
@@ -222,8 +196,8 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     GroupedItem groupedItem = entry.getKey();
                     int idCount = 0;
                     //not optimal
-                    for (ItemEntry itemEntry : ItemRegistry.ITEM_ENTRIES.values()) {
-                        if (itemEntry.getBedrockId() == groupedItem.id) {
+                    for (ItemMapping mapping : session.getItemMappings().getItems().values()) {
+                        if (mapping.getBedrockId() == groupedItem.id) {
                             idCount++;
                         }
                     }
@@ -244,7 +218,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
             squashedOptions.computeIfAbsent(optionSet, k -> new IntOpenHashSet()).add(i);
         }
         int totalCombinations = 1;
-        for (Set optionSet : squashedOptions.keySet()) {
+        for (Set<ItemData> optionSet : squashedOptions.keySet()) {
             totalCombinations *= optionSet.size();
         }
         if (totalCombinations > 500) {

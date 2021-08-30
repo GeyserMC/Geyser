@@ -28,9 +28,12 @@ package org.geysermc.connector;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.nukkitx.network.raknet.RakNetConstants;
 import com.nukkitx.network.util.EventLoops;
 import com.nukkitx.protocol.bedrock.BedrockServer;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.kqueue.KQueue;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.PlatformType;
@@ -41,23 +44,21 @@ import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.BiomeTranslator;
-import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
+import org.geysermc.connector.registry.BlockRegistries;
+import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
-import org.geysermc.connector.network.translators.collision.CollisionTranslator;
-import org.geysermc.connector.network.translators.effect.EffectRegistry;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.geysermc.connector.network.translators.item.PotionMixRegistry;
-import org.geysermc.connector.network.translators.item.RecipeRegistry;
-import org.geysermc.connector.network.translators.sound.SoundHandlerRegistry;
-import org.geysermc.connector.network.translators.sound.SoundRegistry;
 import org.geysermc.connector.network.translators.world.WorldManager;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.connector.scoreboard.ScoreboardUpdater;
+import org.geysermc.connector.skin.FloodgateSkinUploader;
 import org.geysermc.connector.utils.*;
+import org.geysermc.floodgate.crypto.AesCipher;
+import org.geysermc.floodgate.crypto.AesKeyProducer;
+import org.geysermc.floodgate.crypto.Base64Topping;
+import org.geysermc.floodgate.crypto.FloodgateCipher;
+import org.geysermc.floodgate.news.NewsItemAction;
+import org.geysermc.floodgate.time.TimeSyncer;
 import org.jetbrains.annotations.Contract;
 
 import javax.naming.directory.Attribute;
@@ -65,16 +66,18 @@ import javax.naming.directory.InitialDirContext;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.security.Key;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Getter
 public class GeyserConnector {
-
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper()
             .enable(JsonParser.Feature.IGNORE_UNDEFINED)
             .enable(JsonParser.Feature.ALLOW_COMMENTS)
@@ -85,7 +88,7 @@ public class GeyserConnector {
     public static final String NAME = "Geyser";
     public static final String GIT_VERSION = "DEV"; // A fallback for running in IDEs
     public static final String VERSION = "DEV"; // A fallback for running in IDEs
-    public static final String MINECRAFT_VERSION = "1.16.4 - 1.16.5";
+    public static final String MINECRAFT_VERSION = MinecraftConstants.GAME_VERSION; // Change if multiple version strings are supported
 
     /**
      * Oauth client ID for Microsoft authentication
@@ -98,14 +101,22 @@ public class GeyserConnector {
 
     private static GeyserConnector instance;
 
+    /**
+     * This is used in GeyserConnect to stop the bedrock server binding to a port
+     */
     @Setter
-    private AuthType defaultAuthType;
+    private static boolean shouldStartListener = true;
+
+    private final TimeSyncer timeSyncer;
+    private FloodgateCipher cipher;
+    private FloodgateSkinUploader skinUploader;
+    private final NewsHandler newsHandler;
 
     private boolean shuttingDown = false;
 
     private final ScheduledExecutorService generalThreadPool;
 
-    private BedrockServer bedrockServer;
+    private final BedrockServer bedrockServer;
     private final PlatformType platformType;
     private final GeyserBootstrap bootstrap;
 
@@ -136,19 +147,11 @@ public class GeyserConnector {
         PacketTranslatorRegistry.init();
 
         /* Initialize translators and registries */
-        BiomeTranslator.init();
-        BlockTranslator.init();
-        BlockEntityTranslator.init();
-        EffectRegistry.init();
-        EntityIdentifierRegistry.init();
-        ItemRegistry.init();
+        BlockRegistries.init();
+        Registries.init();
+
         ItemTranslator.init();
-        CollisionTranslator.init();
         LocaleUtils.init();
-        PotionMixRegistry.init();
-        RecipeRegistry.init();
-        SoundRegistry.init();
-        SoundHandlerRegistry.init();
         ScoreboardUpdater.init();
 
         ResourcePack.loadPacks();
@@ -162,12 +165,13 @@ public class GeyserConnector {
                 if (config.isDebugMode()) {
                     ex.printStackTrace();
                 }
+                config.getRemote().setAddress(InetAddress.getLoopbackAddress().getHostAddress());
             }
         }
         String remoteAddress = config.getRemote().getAddress();
-        int remotePort = config.getRemote().getPort();
         // Filters whether it is not an IP address or localhost, because otherwise it is not possible to find out an SRV entry.
         if (!remoteAddress.matches(IP_REGEX) && !remoteAddress.equalsIgnoreCase("localhost")) {
+            int remotePort;
             try {
                 // Searches for a server address and a port from a SRV record of the specified host name
                 InitialDirContext ctx = new InitialDirContext();
@@ -187,9 +191,41 @@ public class GeyserConnector {
             }
         }
 
-        defaultAuthType = AuthType.getByName(config.getRemote().getAuthType());
+        TimeSyncer timeSyncer = null;
+        if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
+            timeSyncer = new TimeSyncer(Constants.NTP_SERVER);
+            try {
+                Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
+                cipher = new AesCipher(new Base64Topping());
+                cipher.init(key);
+                logger.info(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
+                skinUploader = new FloodgateSkinUploader(this).start();
+            } catch (Exception exception) {
+                logger.severe(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
+            }
+        }
+        this.timeSyncer = timeSyncer;
 
-        CooldownUtils.setShowCooldown(config.getShowCooldown());
+        String branch = "unknown";
+        int buildNumber = -1;
+        if (this.isProductionEnvironment()) {
+            try {
+                Properties gitProperties = new Properties();
+                gitProperties.load(FileUtils.getResource("git.properties"));
+                branch = gitProperties.getProperty("git.branch");
+                String build = gitProperties.getProperty("git.build.number");
+                if (build != null) {
+                    buildNumber = Integer.parseInt(build);
+                }
+            } catch (Throwable e) {
+                logger.error("Failed to read git.properties", e);
+            }
+        } else {
+            logger.debug("Not getting git properties for the news handler as we are in a development environment.");
+        }
+        newsHandler = new NewsHandler(branch, buildNumber);
+
+        CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
         SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS = config.isAllowCustomSkulls();
 
@@ -204,21 +240,37 @@ public class GeyserConnector {
                 EventLoops.commonGroup(),
                 enableProxyProtocol
         );
-        bedrockServer.setHandler(new ConnectorServerEventHandler(this));
-        bedrockServer.bind().whenComplete((avoid, throwable) -> {
-            if (throwable == null) {
-                logger.info(LanguageUtils.getLocaleStringLog("geyser.core.start", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
-            } else {
-                logger.severe(LanguageUtils.getLocaleStringLog("geyser.core.fail", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
-                throwable.printStackTrace();
+
+        if (config.isDebugMode()) {
+            logger.debug("EventLoop type: " + EventLoops.getChannelType());
+            if (EventLoops.getChannelType() == EventLoops.ChannelType.NIO) {
+                if (System.getProperties().contains("disableNativeEventLoop")) {
+                    logger.debug("EventLoop type is NIO because native event loops are disabled.");
+                } else {
+                    logger.debug("Reason for no Epoll: " + Epoll.unavailabilityCause().toString());
+                    logger.debug("Reason for no KQueue: " + KQueue.unavailabilityCause().toString());
+                }
             }
-        }).join();
+        }
+
+        bedrockServer.setHandler(new ConnectorServerEventHandler(this));
+
+        if (shouldStartListener) {
+            bedrockServer.bind().whenComplete((avoid, throwable) -> {
+                if (throwable == null) {
+                    logger.info(LanguageUtils.getLocaleStringLog("geyser.core.start", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
+                } else {
+                    logger.severe(LanguageUtils.getLocaleStringLog("geyser.core.fail", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
+                    throwable.printStackTrace();
+                }
+            }).join();
+        }
 
         if (config.getMetrics().isEnabled()) {
             metrics = new Metrics(this, "GeyserMC", config.getMetrics().getUniqueId(), false, java.util.logging.Logger.getLogger(""));
             metrics.addCustomChart(new Metrics.SingleLineChart("players", players::size));
             // Prevent unwanted words best we can
-            metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> AuthType.getByName(config.getRemote().getAuthType()).toString().toLowerCase()));
+            metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> config.getRemote().getAuthType().toString().toLowerCase()));
             metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::getPlatformName));
             metrics.addCustomChart(new Metrics.SimplePie("defaultLocale", LanguageUtils::getDefaultLocale));
             metrics.addCustomChart(new Metrics.SimplePie("version", () -> GeyserConnector.VERSION));
@@ -227,7 +279,7 @@ public class GeyserConnector {
                 for (GeyserSession session : players) {
                     if (session == null) continue;
                     if (session.getClientData() == null) continue;
-                    String os = session.getClientData().getDeviceOS().toString();
+                    String os = session.getClientData().getDeviceOs().toString();
                     if (!valueMap.containsKey(os)) {
                         valueMap.put(os, 1);
                     } else {
@@ -264,6 +316,40 @@ public class GeyserConnector {
                     return versionMap;
                 }));
             }
+
+            // The following code can be attributed to the PaperMC project
+            // https://github.com/PaperMC/Paper/blob/master/Spigot-Server-Patches/0005-Paper-Metrics.patch#L614
+            metrics.addCustomChart(new Metrics.DrilldownPie("javaVersion", () -> {
+                Map<String, Map<String, Integer>> map = new HashMap<>();
+                String javaVersion = System.getProperty("java.version");
+                Map<String, Integer> entry = new HashMap<>();
+                entry.put(javaVersion, 1);
+
+                // http://openjdk.java.net/jeps/223
+                // Java decided to change their versioning scheme and in doing so modified the
+                // java.version system property to return $major[.$minor][.$security][-ea], as opposed to
+                // 1.$major.0_$identifier we can handle pre-9 by checking if the "major" is equal to "1",
+                // otherwise, 9+
+                String majorVersion = javaVersion.split("\\.")[0];
+                String release;
+
+                int indexOf = javaVersion.lastIndexOf('.');
+
+                if (majorVersion.equals("1")) {
+                    release = "Java " + javaVersion.substring(0, indexOf);
+                } else {
+                    // of course, it really wouldn't be all that simple if they didn't add a quirk, now
+                    // would it valid strings for the major may potentially include values such as -ea to
+                    // denote a pre release
+                    Matcher versionMatcher = Pattern.compile("\\d+").matcher(majorVersion);
+                    if (versionMatcher.find()) {
+                        majorVersion = versionMatcher.group(0);
+                    }
+                    release = "Java " + majorVersion;
+                }
+                map.put(release, entry);
+                return map;
+            }));
         }
 
         boolean isGui = false;
@@ -288,6 +374,39 @@ public class GeyserConnector {
 
         if (platformType == PlatformType.STANDALONE) {
             logger.warning(LanguageUtils.getLocaleStringLog("geyser.core.movement_warn"));
+        }
+
+        checkForOutdatedJava();
+
+        newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
+    }
+
+    private void checkForOutdatedJava() {
+        final int supportedJavaVersion = 16;
+        // Taken from Paper
+        String javaVersion = System.getProperty("java.version");
+        Matcher matcher = Pattern.compile("(?:1\\.)?(\\d+)").matcher(javaVersion);
+        if (!matcher.find()) {
+            getLogger().debug("Could not parse Java version string " + javaVersion);
+            return;
+        }
+
+        String version = matcher.group(1);
+        int majorVersion;
+        try {
+            majorVersion = Integer.parseInt(version);
+        } catch (NumberFormatException e) {
+            getLogger().debug("Could not format as an int: " + version);
+            return;
+        }
+
+        if (majorVersion < supportedJavaVersion) {
+            getLogger().warning("*********************************************");
+            getLogger().warning("");
+            getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.unsupported_java.header"));
+            getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.unsupported_java.message", supportedJavaVersion, javaVersion));
+            getLogger().warning("");
+            getLogger().warning("*********************************************");
         }
     }
 
@@ -333,8 +452,14 @@ public class GeyserConnector {
 
         generalThreadPool.shutdown();
         bedrockServer.close();
+        if (timeSyncer != null) {
+            timeSyncer.shutdown();
+        }
+        if (skinUploader != null) {
+            skinUploader.close();
+        }
+        newsHandler.shutdown();
         players.clear();
-        defaultAuthType = null;
         this.getCommandManager().getCommands().clear();
 
         bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.done"));
@@ -411,17 +536,28 @@ public class GeyserConnector {
         return bootstrap.getWorldManager();
     }
 
+    public TimeSyncer getTimeSyncer() {
+        return timeSyncer;
+    }
+
     /**
-     * Whether to use XML reflections in the jar or manually find the reflections.
-     * Will return true if the version number is not 'DEV' and the platform is not Fabric.
-     * On Fabric - it complains about being unable to create a default XMLReader.
-     * On other platforms this should only be true in compiled jars.
+     * Returns false if this Geyser instance is running in an IDE. This only needs to be used in cases where files
+     * expected to be in a jarfile are not present.
      *
-     * @return whether to use XML reflections
+     * @return true if the version number is not 'DEV'.
      */
-    public boolean useXmlReflections() {
-        //noinspection ConstantConditions
-        return !this.getPlatformType().equals(PlatformType.FABRIC) && !"DEV".equals(GeyserConnector.VERSION);
+    public boolean isProductionEnvironment() {
+        //noinspection ConstantConditions - changes in production
+        return !"DEV".equals(GeyserConnector.VERSION);
+    }
+
+    /**
+     * Deprecated. Get the AuthType from the GeyserConfiguration through {@link GeyserConnector#getConfig()}
+     * @return The
+     */
+    @Deprecated
+    public AuthType getDefaultAuthType() {
+        return getConfig().getRemote().getAuthType();
     }
 
     public static GeyserConnector getInstance() {

@@ -26,7 +26,15 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientSteerVehiclePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientVehicleMovePacket;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.PlayerInputPacket;
+import org.geysermc.connector.entity.BoatEntity;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.living.animal.horse.AbstractHorseEntity;
+import org.geysermc.connector.entity.living.animal.horse.LlamaEntity;
+import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -44,5 +52,42 @@ public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPa
         );
 
         session.sendDownstreamPacket(clientSteerVehiclePacket);
+
+        // Bedrock only sends movement vehicle packets while moving
+        // This allows horses to take damage while standing on magma
+        Entity vehicle = session.getRidingVehicleEntity();
+        boolean sendMovement = false;
+        if (vehicle instanceof AbstractHorseEntity && !(vehicle instanceof LlamaEntity)) {
+            sendMovement = vehicle.isOnGround();
+        } else if (vehicle instanceof BoatEntity) {
+            if (vehicle.getPassengers().size() == 1) {
+                // The player is the only rider
+                sendMovement = true;
+            } else {
+                // Check if the player is the front rider
+                Vector3f seatPos = session.getPlayerEntity().getMetadata().getVector3f(EntityData.RIDER_SEAT_POSITION, null);
+                if (seatPos != null && seatPos.getX() > 0) {
+                    sendMovement = true;
+                }
+            }
+        }
+        if (sendMovement) {
+            long timeSinceVehicleMove = System.currentTimeMillis() - session.getLastVehicleMoveTimestamp();
+            if (timeSinceVehicleMove >= 100) {
+                Vector3f vehiclePosition = vehicle.getPosition();
+                Vector3f vehicleRotation = vehicle.getRotation();
+
+                if (vehicle instanceof BoatEntity) {
+                    // Remove some Y position to prevents boats flying up
+                    vehiclePosition = vehiclePosition.down(EntityType.BOAT.getOffset());
+                }
+
+                ClientVehicleMovePacket clientVehicleMovePacket = new ClientVehicleMovePacket(
+                        vehiclePosition.getX(), vehiclePosition.getY(), vehiclePosition.getZ(),
+                        vehicleRotation.getX() - 90, vehicleRotation.getY()
+                );
+                session.sendDownstreamPacket(clientVehicleMovePacket);
+            }
+        }
     }
 }

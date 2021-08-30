@@ -37,22 +37,19 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.BiomeTranslator;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
+import org.geysermc.connector.network.translators.world.BiomeTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
+
+import static org.geysermc.connector.utils.ChunkUtils.MINIMUM_ACCEPTED_HEIGHT;
+import static org.geysermc.connector.utils.ChunkUtils.MINIMUM_ACCEPTED_HEIGHT_OVERWORLD;
 
 @Translator(packet = ServerChunkDataPacket.class)
 public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
-    /**
-     * Determines if we should process non-full chunks
-     */
-    private final boolean cacheChunks;
-
-    public JavaChunkDataTranslator() {
-        cacheChunks = GeyserConnector.getInstance().getConfig().isCacheChunks();
-    }
+    // Caves and cliffs supports 3D biomes by implementing a very similar palette system to blocks
+    private static final boolean NEW_BIOME_WRITE = GeyserConnector.getInstance().getConfig().isExtendedWorldHeight();
 
     @Override
     public void translate(ServerChunkDataPacket packet, GeyserSession session) {
@@ -60,23 +57,18 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
         }
 
-        if (packet.getColumn().getBiomeData() == null && !cacheChunks) {
-            // Non-full chunk without chunk caching
-            session.getConnector().getLogger().debug("Not sending non-full chunk because chunk caching is off.");
-            return;
-        }
+        session.getChunkCache().addToCache(packet.getColumn());
+        Column column = packet.getColumn();
 
-        // Merge received column with cache on network thread
-        Column mergedColumn = session.getChunkCache().addToCache(packet.getColumn());
-        if (mergedColumn == null) { // There were no changes?!?
-            return;
-        }
-
-        boolean isNonFullChunk = packet.getColumn().getBiomeData() == null;
+        // Ensure that, if the player is using lower world heights, the position is not offset
+        int yOffset = session.getChunkCache().getChunkMinY();
 
         GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
             try {
-                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, mergedColumn, isNonFullChunk);
+                if (session.isClosed()) {
+                    return;
+                }
+                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, column, yOffset);
                 ChunkSection[] sections = chunkData.getSections();
 
                 // Find highest section
@@ -90,9 +82,13 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 int size = 0;
                 for (int i = 0; i < sectionCount; i++) {
                     ChunkSection section = sections[i];
-                    size += (section != null ? section : session.getBlockTranslator().getEmptyChunkSection()).estimateNetworkSize();
+                    size += (section != null ? section : session.getBlockMappings().getEmptyChunkSection()).estimateNetworkSize();
                 }
-                size += 256; // Biomes
+                if (NEW_BIOME_WRITE) {
+                    size += ChunkUtils.EMPTY_CHUNK_DATA.length; // Consists only of biome data
+                } else {
+                    size += 256; // Biomes pre-1.18
+                }
                 size += 1; // Border blocks
                 size += 1; // Extra data length (always 0)
                 size += chunkData.getBlockEntities().length * 64; // Conservative estimate of 64 bytes per tile entity
@@ -103,10 +99,31 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 try {
                     for (int i = 0; i < sectionCount; i++) {
                         ChunkSection section = sections[i];
-                        (section != null ? section : session.getBlockTranslator().getEmptyChunkSection()).writeToNetwork(byteBuf);
+                        (section != null ? section : session.getBlockMappings().getEmptyChunkSection()).writeToNetwork(byteBuf);
                     }
 
-                    byteBuf.writeBytes(BiomeTranslator.toBedrockBiome(mergedColumn.getBiomeData())); // Biomes - 256 bytes
+                    if (NEW_BIOME_WRITE) {
+                        // At this point we're dealing with Bedrock chunk sections
+                        boolean overworld = session.getChunkCache().isExtendedHeight();
+                        int dimensionOffset = (overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4;
+                        for (int i = 0; i < sectionCount; i++) {
+                            int biomeYOffset = dimensionOffset + i;
+                            if (biomeYOffset < yOffset) {
+                                // Ignore this biome section since it goes below the height of the Java world
+                                byteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
+                                continue;
+                            }
+                            BiomeTranslator.toNewBedrockBiome(session, column.getBiomeData(), i + (dimensionOffset - yOffset)).writeToNetwork(byteBuf);
+                        }
+
+                        // As of 1.17.10, Bedrock hardcodes to always read 32 biome sections
+                        int remainingEmptyBiomes = 32 - sectionCount;
+                        for (int i = 0; i < remainingEmptyBiomes; i++) {
+                            byteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
+                        }
+                    } else {
+                        byteBuf.writeBytes(BiomeTranslator.toBedrockBiome(session, column.getBiomeData())); // Biomes - 256 bytes
+                    }
                     byteBuf.writeByte(0); // Border blocks - Edu edition only
                     VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now
 
@@ -125,8 +142,8 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 LevelChunkPacket levelChunkPacket = new LevelChunkPacket();
                 levelChunkPacket.setSubChunksLength(sectionCount);
                 levelChunkPacket.setCachingEnabled(false);
-                levelChunkPacket.setChunkX(mergedColumn.getX());
-                levelChunkPacket.setChunkZ(mergedColumn.getZ());
+                levelChunkPacket.setChunkX(column.getX());
+                levelChunkPacket.setChunkZ(column.getZ());
                 levelChunkPacket.setData(payload);
                 session.sendUpstreamPacket(levelChunkPacket);
             } catch (Exception ex) {

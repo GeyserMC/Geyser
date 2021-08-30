@@ -26,33 +26,61 @@
 package org.geysermc.connector.entity.living.animal.horse;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.google.common.collect.ImmutableSet;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
+import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.connector.entity.attribute.GeyserAttributeType;
 import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.registry.type.ItemMapping;
+
+import java.util.Set;
 
 public class AbstractHorseEntity extends AnimalEntity {
+    /**
+     * A list of all foods a horse/donkey can eat on Java Edition.
+     * Used to display interactive tag if needed.
+     */
+    private static final Set<String> DONKEY_AND_HORSE_FOODS = ImmutableSet.of("golden_apple", "enchanted_golden_apple",
+            "golden_carrot", "sugar", "apple", "wheat", "hay_block");
 
     public AbstractHorseEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
         super(entityId, geyserId, entityType, position, motion, rotation);
 
         // Specifies the size of the entity's inventory. Required to place slots in the entity.
         metadata.put(EntityData.CONTAINER_BASE_SIZE, 2);
+
+        metadata.getFlags().setFlag(EntityFlag.WASD_CONTROLLED, true);
+    }
+
+    @Override
+    public void spawnEntity(GeyserSession session) {
+        super.spawnEntity(session);
+
+        // Add horse jump strength attribute to allow donkeys and mules to jump, if they don't send the attribute themselves.
+        // Confirmed broken without this code by making a new donkey in vanilla 1.17.1
+        // The spawn packet does have an attributes section, but adding the jump strength property there causes the
+        // donkey to jump very high.
+        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+        attributesPacket.setRuntimeEntityId(geyserId);
+        attributesPacket.getAttributes().add(GeyserAttributeType.HORSE_JUMP_STRENGTH.getAttribute(0.5f, 2));
+        session.sendUpstreamPacket(attributesPacket);
     }
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 17) {
             byte xd = (byte) entityMetadata.getValue();
-            metadata.getFlags().setFlag(EntityFlag.TAMED, (xd & 0x02) == 0x02);
-            metadata.getFlags().setFlag(EntityFlag.SADDLED, (xd & 0x04) == 0x04);
+            boolean tamed = (xd & 0x02) == 0x02;
+            boolean saddled = (xd & 0x04) == 0x04;
+            metadata.getFlags().setFlag(EntityFlag.TAMED, tamed);
+            metadata.getFlags().setFlag(EntityFlag.SADDLED, saddled);
             metadata.getFlags().setFlag(EntityFlag.EATING, (xd & 0x10) == 0x10);
             metadata.getFlags().setFlag(EntityFlag.STANDING, (xd & 0x20) == 0x20);
 
@@ -76,18 +104,22 @@ public class AbstractHorseEntity extends AnimalEntity {
                 EntityEventPacket entityEventPacket = new EntityEventPacket();
                 entityEventPacket.setRuntimeEntityId(geyserId);
                 entityEventPacket.setType(EntityEventType.EATING_ITEM);
-                entityEventPacket.setData(ItemRegistry.WHEAT.getBedrockId() << 16);
+                entityEventPacket.setData(session.getItemMappings().getStoredItems().wheat().getBedrockId() << 16);
                 session.sendUpstreamPacket(entityEventPacket);
             }
 
             // Set container type if tamed
-            metadata.put(EntityData.CONTAINER_TYPE, ((xd & 0x02) == 0x02) ? (byte) ContainerType.HORSE.getId() : (byte) 0);
+            metadata.put(EntityData.CONTAINER_TYPE, tamed ? (byte) ContainerType.HORSE.getId() : (byte) 0);
+
+            // Shows the jump meter
+            metadata.getFlags().setFlag(EntityFlag.CAN_POWER_JUMP, saddled);
         }
 
-        // Needed to control horses
-        metadata.getFlags().setFlag(EntityFlag.CAN_POWER_JUMP, true);
-        metadata.getFlags().setFlag(EntityFlag.WASD_CONTROLLED, true);
-
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemMapping mapping) {
+        return DONKEY_AND_HORSE_FOODS.contains(javaIdentifierStripped);
     }
 }

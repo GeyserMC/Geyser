@@ -69,17 +69,7 @@ public enum Enchantment {
     QUICK_CHARGE,
     SOUL_SPEED;
 
-    /**
-     * A list of all enchantment Java identifiers for use with command suggestions.
-     */
-    public static final String[] ALL_JAVA_IDENTIFIERS;
-
-    static {
-        ALL_JAVA_IDENTIFIERS = new String[values().length];
-        for (int i = 0; i < ALL_JAVA_IDENTIFIERS.length; i++) {
-            ALL_JAVA_IDENTIFIERS[i] = values()[i].javaIdentifier;
-        }
-    }
+    private static final Enchantment[] VALUES = values();
 
     private final String javaIdentifier;
 
@@ -88,7 +78,7 @@ public enum Enchantment {
     }
 
     public static Enchantment getByJavaIdentifier(String javaIdentifier) {
-        for (Enchantment enchantment : Enchantment.values()) {
+        for (Enchantment enchantment : VALUES) {
             if (enchantment.javaIdentifier.equals(javaIdentifier) || enchantment.name().toLowerCase(Locale.ENGLISH).equalsIgnoreCase(javaIdentifier)) {
                 return enchantment;
             }
@@ -97,9 +87,71 @@ public enum Enchantment {
     }
 
     public static Enchantment getByBedrockId(int bedrockId) {
-        if (bedrockId >= 0 && bedrockId < Enchantment.values().length) {
-            return Enchantment.values()[bedrockId];
+        if (bedrockId >= 0 && bedrockId < VALUES.length) {
+            return VALUES[bedrockId];
         }
         return null;
+    }
+
+    /**
+     * Enchantments classified by their Java index
+     */
+    public enum JavaEnchantment {
+        PROTECTION,
+        FIRE_PROTECTION,
+        FEATHER_FALLING,
+        BLAST_PROTECTION,
+        PROJECTILE_PROTECTION,
+        RESPIRATION,
+        AQUA_AFFINITY,
+        THORNS,
+        DEPTH_STRIDER,
+        FROST_WALKER,
+        BINDING_CURSE,
+        SOUL_SPEED,
+        SHARPNESS,
+        SMITE,
+        BANE_OF_ARTHROPODS,
+        KNOCKBACK,
+        FIRE_ASPECT,
+        LOOTING,
+        SWEEPING,
+        EFFICIENCY,
+        SILK_TOUCH,
+        UNBREAKING,
+        FORTUNE,
+        POWER,
+        PUNCH,
+        FLAME,
+        INFINITY,
+        LUCK_OF_THE_SEA,
+        LURE,
+        LOYALTY,
+        IMPALING,
+        RIPTIDE,
+        CHANNELING,
+        MULTISHOT,
+        QUICK_CHARGE,
+        PIERCING,
+        MENDING,
+        VANISHING_CURSE;
+
+        private static final JavaEnchantment[] VALUES = JavaEnchantment.values();
+
+        public static JavaEnchantment of(int index) {
+            return VALUES[index];
+        }
+
+        /**
+         * A list of all enchantment Java identifiers for use with command suggestions.
+         */
+        public static final String[] ALL_JAVA_IDENTIFIERS;
+
+        static {
+            ALL_JAVA_IDENTIFIERS = new String[VALUES.length];
+            for (int i = 0; i < ALL_JAVA_IDENTIFIERS.length; i++) {
+                ALL_JAVA_IDENTIFIERS[i] = "minecraft:" + VALUES[i].name().toLowerCase(Locale.ENGLISH);
+            }
+        }
     }
 }

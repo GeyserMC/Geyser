@@ -35,11 +35,11 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+import lombok.Getter;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 import java.util.concurrent.TimeUnit;
 
@@ -69,6 +69,11 @@ public class ItemFrameEntity extends Entity {
      * Cached item frame's Bedrock compound tag.
      */
     private NbtMap cachedTag;
+    /**
+     * The item currently in the item frame. Used for block picking.
+     */
+    @Getter
+    private ItemStack heldItem = null;
 
     public ItemFrameEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation, HangingDirection direction) {
         super(entityId, geyserId, entityType, position, motion, rotation);
@@ -78,16 +83,17 @@ public class ItemFrameEntity extends Entity {
     @Override
     public void spawnEntity(GeyserSession session) {
         NbtMapBuilder blockBuilder = NbtMap.builder()
-                .putString("name", "minecraft:frame")
-                .putInt("version", session.getBlockTranslator().getBlockStateVersion());
+                .putString("name", this.entityType == EntityType.GLOW_ITEM_FRAME ? "minecraft:glow_frame" : "minecraft:frame")
+                .putInt("version", session.getBlockMappings().getBlockStateVersion());
         blockBuilder.put("states", NbtMap.builder()
                 .putInt("facing_direction", direction.ordinal())
                 .putByte("item_frame_map_bit", (byte) 0)
                 .build());
-        bedrockRuntimeId = session.getBlockTranslator().getItemFrame(blockBuilder.build());
+        bedrockRuntimeId = session.getBlockMappings().getItemFrame(blockBuilder.build());
         bedrockPosition = Vector3i.from(position.getFloorX(), position.getFloorY(), position.getFloorZ());
 
-        session.getItemFrameCache().put(bedrockPosition, entityId);
+        session.getItemFrameCache().put(bedrockPosition, this);
+
         // Delay is required, or else loading in frames on chunk load is sketchy at best
         session.getConnector().getGeneralThreadPool().schedule(() -> {
             updateBlock(session);
@@ -98,17 +104,18 @@ public class ItemFrameEntity extends Entity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 7 && entityMetadata.getValue() != null) {
-            ItemData itemData = ItemTranslator.translateToBedrock(session, (ItemStack) entityMetadata.getValue());
-            ItemEntry itemEntry = ItemRegistry.getItem((ItemStack) entityMetadata.getValue());
+        if (entityMetadata.getId() == 8 && entityMetadata.getValue() != null) {
+            this.heldItem = (ItemStack) entityMetadata.getValue();
+            ItemData itemData = ItemTranslator.translateToBedrock(session, heldItem);
+            ItemMapping mapping = session.getItemMappings().getMapping((ItemStack) entityMetadata.getValue());
             NbtMapBuilder builder = NbtMap.builder();
 
             builder.putByte("Count", (byte) itemData.getCount());
             if (itemData.getTag() != null) {
-                builder.put("tag", itemData.getTag().toBuilder().build());
+                builder.put("tag", itemData.getTag());
             }
             builder.putShort("Damage", (short) itemData.getDamage());
-            builder.putString("Name", itemEntry.getBedrockIdentifier());
+            builder.putString("Name", mapping.getBedrockIdentifier());
             NbtMapBuilder tag = getDefaultTag().toBuilder();
             tag.put("Item", builder.build());
             tag.putFloat("ItemDropChance", 1.0f);
@@ -116,11 +123,11 @@ public class ItemFrameEntity extends Entity {
             cachedTag = tag.build();
             updateBlock(session);
         }
-        else if (entityMetadata.getId() == 7 && entityMetadata.getValue() == null && cachedTag != null) {
+        else if (entityMetadata.getId() == 8 && entityMetadata.getValue() == null && cachedTag != null) {
             cachedTag = getDefaultTag();
             updateBlock(session);
         }
-        else if (entityMetadata.getId() == 8) {
+        else if (entityMetadata.getId() == 9) {
             rotation = ((int) entityMetadata.getValue()) * 45;
             if (cachedTag == null) {
                 updateBlock(session);
@@ -141,12 +148,14 @@ public class ItemFrameEntity extends Entity {
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setBlockPosition(bedrockPosition);
-        updateBlockPacket.setRuntimeId(session.getBlockTranslator().getBedrockAirId());
+        updateBlockPacket.setRuntimeId(session.getBlockMappings().getBedrockAirId());
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
         session.sendUpstreamPacket(updateBlockPacket);
-        session.getItemFrameCache().remove(position, entityId);
+
+        session.getItemFrameCache().remove(bedrockPosition, this);
+
         valid = false;
         return true;
     }
@@ -157,7 +166,7 @@ public class ItemFrameEntity extends Entity {
         builder.putInt("y", bedrockPosition.getY());
         builder.putInt("z", bedrockPosition.getZ());
         builder.putByte("isMovable", (byte) 1);
-        builder.putString("id", "ItemFrame");
+        builder.putString("id", this.entityType == EntityType.GLOW_ITEM_FRAME ? "GlowItemFrame" : "ItemFrame");
         return builder.build();
     }
 
@@ -192,16 +201,7 @@ public class ItemFrameEntity extends Entity {
      * @param session GeyserSession.
      * @return Java entity ID or -1 if not found.
      */
-    public static long getItemFrameEntityId(GeyserSession session, Vector3i position) {
-        return session.getItemFrameCache().getOrDefault(position, -1);
-    }
-
-    /**
-     * Force-remove from the position-to-ID map so it doesn't cause conflicts.
-     * @param session GeyserSession.
-     * @param position position of the removed item frame.
-     */
-    public static void removePosition(GeyserSession session, Vector3i position) {
-        session.getItemFrameCache().remove(position);
+    public static ItemFrameEntity getItemFrameEntity(GeyserSession session, Vector3i position) {
+        return session.getItemFrameCache().get(position);
     }
 }

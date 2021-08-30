@@ -62,10 +62,6 @@ public class BlockStorage {
         return (version.getId() << 1) | (runtime ? 1 : 0);
     }
 
-    private static BitArrayVersion getVersionFromHeader(byte header) {
-        return BitArrayVersion.get(header >> 1, true);
-    }
-
     public int getFullBlock(int index) {
         return this.palette.getInt(this.bitArray.get(index));
     }
@@ -105,7 +101,7 @@ public class BlockStorage {
         this.bitArray = newBitArray;
     }
 
-    private int idFor(int runtimeId) {
+    public int idFor(int runtimeId) { // Set to public so we can reuse the palette ID for biomes
         int index = this.palette.indexOf(runtimeId);
         if (index != -1) {
             return index;

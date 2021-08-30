@@ -44,7 +44,7 @@ public class TameableEntity extends AnimalEntity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
+        if (entityMetadata.getId() == 17) {
             byte xd = (byte) entityMetadata.getValue();
             metadata.getFlags().setFlag(EntityFlag.SITTING, (xd & 0x01) == 0x01);
             metadata.getFlags().setFlag(EntityFlag.ANGRY, (xd & 0x02) == 0x02);
@@ -52,7 +52,7 @@ public class TameableEntity extends AnimalEntity {
         }
 
         // Note: Must be set for wolf collar color to work
-        if (entityMetadata.getId() == 17) {
+        if (entityMetadata.getId() == 18) {
             if (entityMetadata.getValue() != null) {
                 // Owner UUID of entity
                 Entity entity = session.getEntityCache().getPlayerEntity((UUID) entityMetadata.getValue());

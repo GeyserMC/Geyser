@@ -63,4 +63,13 @@ public class UpstreamSession {
     public InetSocketAddress getAddress() {
         return session.getRealAddress();
     }
+
+    /**
+     * Gets the session's protocol version.
+     *
+     * @return the session's protocol version.
+     */
+    public int getProtocolVersion() {
+        return this.session.getPacketCodec().getProtocolVersion();
+    }
 }

@@ -1,5 +1,5 @@
 name: Bug report
-about: Create a report to help us improve
+description: Create a report to help us improve
 body:
 - type: markdown
   attributes:
@@ -41,11 +41,11 @@ body:
       If you're running a multi-server instance or using Geyser Standalone:
       *  Give us the exact output from `/version` on all servers involved. Saying "latest" does not help us at all.
       * Please list all plugins on all servers involved.
-      If this bug occurs on a server you do not control, please full this in to the best of your knowledge.
+      If this bug occurs on a server you do not control, please fill this in to the best of your knowledge.
 - type: input
   attributes:
     label: Geyser Dump
-    description: If Geyser starts correctly, please also include the link to a dump by using `/geyser dump`. If you're using the Standalone GUI, the option can be found under `Commands` => `Dump`. This provides us information about your server that we can use to debug your issue.
+    description: If Geyser starts correctly, please include the link to a dump using `/geyser dump`. If you're using the Standalone GUI, you can find the option under `Commands` => `Dump`. Doing this provides us information about your server that we can use to debug your issue.
 - type: input
   attributes:
     label: Geyser Version

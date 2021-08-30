@@ -59,7 +59,7 @@ public @interface SoundHandler {
      * Leave empty to ignore.
      *
      * Only applies to interaction handlers that are an
-     * instance of {@link BlockSoundInteractionHandler}.
+     * instance of {@link EntitySoundInteractionHandler}.
      *
      * @return the value the item in the player's hand must contain
      */

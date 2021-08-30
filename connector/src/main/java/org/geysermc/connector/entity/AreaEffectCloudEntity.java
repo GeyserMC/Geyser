@@ -32,7 +32,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.effect.EffectRegistry;
+import org.geysermc.connector.utils.EffectUtils;
 
 public class AreaEffectCloudEntity extends Entity {
 
@@ -52,14 +52,14 @@ public class AreaEffectCloudEntity extends Entity {
 
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 7) {
+        if (entityMetadata.getId() == 8) {
             metadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, entityMetadata.getValue());
             metadata.put(EntityData.BOUNDING_BOX_WIDTH, 2.0f * (float) entityMetadata.getValue());
-        } else if (entityMetadata.getId() == 8) {
+        } else if (entityMetadata.getId() == 9) {
             metadata.put(EntityData.EFFECT_COLOR, entityMetadata.getValue());
-        } else if (entityMetadata.getId() == 10) {
+        } else if (entityMetadata.getId() == 11) {
             Particle particle = (Particle) entityMetadata.getValue();
-            int particleId = EffectRegistry.getParticleId(particle.getType());
+            int particleId = EffectUtils.getParticleId(session, particle.getType());
             if (particleId != -1) {
                 metadata.put(EntityData.AREA_EFFECT_CLOUD_PARTICLE_ID, particleId);
             }

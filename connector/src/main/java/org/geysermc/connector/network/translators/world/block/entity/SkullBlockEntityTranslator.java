@@ -51,11 +51,6 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     public static boolean ALLOW_CUSTOM_SKULLS;
 
     @Override
-    public boolean isBlock(int blockState) {
-        return BlockStateValues.getSkullVariant(blockState) != -1;
-    }
-
-    @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
         byte skullVariant = BlockStateValues.getSkullVariant(blockState);
         float rotation = BlockStateValues.getSkullRotation(blockState) * 22.5f;
@@ -128,36 +123,45 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         Vector3i blockPosition = Vector3i.from(posX, posY, posZ);
         Vector3f entityPosition = Vector3f.from(x, y, z);
         Vector3f entityRotation = Vector3f.from(rotation, 0, rotation);
-        long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
 
         getProfile(tag).whenComplete((gameProfile, throwable) -> {
             if (gameProfile == null) {
-                session.getConnector().getLogger().debug("Custom skull with invalid SkullOwner tag: " + blockPosition.toString() + " " + tag.toString());
+                session.getConnector().getLogger().debug("Custom skull with invalid SkullOwner tag: " + blockPosition + " " + tag);
                 return;
             }
 
-            SkullPlayerEntity existingSkull = session.getSkullCache().get(blockPosition);
-            if (existingSkull != null) {
-                // Ensure that two skulls can't spawn on the same point
-                existingSkull.despawnEntity(session, blockPosition);
-            }
-
-            SkullPlayerEntity player = new SkullPlayerEntity(gameProfile, geyserId, entityPosition, entityRotation);
-            player.setBlockState(blockState);
-
-            // Cache entity
-            session.getSkullCache().put(blockPosition, player);
-
-            // Only send to session if we are initialized, otherwise it will happen then.
-            if (session.getUpstream().isInitialized()) {
-                player.spawnEntity(session);
-
-                SkullSkinManager.requestAndHandleSkin(player, session, (skin -> session.getConnector().getGeneralThreadPool().schedule(() -> {
-                    // Delay to minimize split-second "player" pop-in
-                    player.getMetadata().getFlags().setFlag(EntityFlag.INVISIBLE, false);
-                    player.updateBedrockMetadata(session);
-                }, 250, TimeUnit.MILLISECONDS)));
+            if (session.getEventLoop().inEventLoop()) {
+                spawnPlayer(session, gameProfile, blockPosition, entityPosition, entityRotation, blockState);
+            } else {
+                session.executeInEventLoop(() -> spawnPlayer(session, gameProfile, blockPosition, entityPosition, entityRotation, blockState));
             }
         });
+    }
+
+    private static void spawnPlayer(GeyserSession session, GameProfile profile, Vector3i blockPosition,
+                                    Vector3f entityPosition, Vector3f entityRotation, int blockState) {
+        long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
+
+        SkullPlayerEntity existingSkull = session.getSkullCache().get(blockPosition);
+        if (existingSkull != null) {
+            // Ensure that two skulls can't spawn on the same point
+            existingSkull.despawnEntity(session, blockPosition);
+        }
+
+        SkullPlayerEntity player = new SkullPlayerEntity(profile, geyserId, entityPosition, entityRotation, blockState);
+
+        // Cache entity
+        session.getSkullCache().put(blockPosition, player);
+
+        // Only send to session if we are initialized, otherwise it will happen then.
+        if (session.getUpstream().isInitialized()) {
+            player.spawnEntity(session);
+
+            SkullSkinManager.requestAndHandleSkin(player, session, (skin -> session.scheduleInEventLoop(() -> {
+                // Delay to minimize split-second "player" pop-in
+                player.getMetadata().getFlags().setFlag(EntityFlag.INVISIBLE, false);
+                player.updateBedrockMetadata(session);
+            }, 250, TimeUnit.MILLISECONDS)));
+        }
     }
 }

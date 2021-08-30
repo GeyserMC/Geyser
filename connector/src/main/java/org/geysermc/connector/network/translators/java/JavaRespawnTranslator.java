@@ -30,12 +30,13 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
-import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.attribute.AttributeType;
+import org.geysermc.connector.entity.attribute.GeyserAttributeType;
+import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.DimensionUtils;
 
 @Translator(packet = ServerRespawnPacket.class)
@@ -43,17 +44,14 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
 
     @Override
     public void translate(ServerRespawnPacket packet, GeyserSession session) {
-        Entity entity = session.getPlayerEntity();
+        SessionPlayerEntity entity = session.getPlayerEntity();
 
-        float maxHealth = entity.getAttributes().containsKey(AttributeType.MAX_HEALTH) ? entity.getAttributes().get(AttributeType.MAX_HEALTH).getValue() : 20f;
-        // Max health must be divisible by two in bedrock
-        entity.getAttributes().put(AttributeType.HEALTH, AttributeType.HEALTH.getAttribute(maxHealth, (maxHealth % 2 == 1 ? maxHealth + 1 : maxHealth)));
+        entity.setHealth(entity.getMaxHealth());
+        entity.getAttributes().put(GeyserAttributeType.HEALTH, entity.createHealthAttribute());
 
-        session.addInventoryTask(() -> {
-            session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
-            session.setOpenInventory(null);
-            session.setClosingInventory(false);
-        });
+        session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
+        session.setOpenInventory(null);
+        session.setClosingInventory(false);
 
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         playerGameTypePacket.setGamemode(packet.getGamemode().ordinal());
@@ -80,13 +78,18 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
 
         String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
         if (!session.getDimension().equals(newDimension) || !packet.getWorldName().equals(session.getWorldName())) {
-            if (!packet.getWorldName().equals(session.getWorldName()) && session.getDimension().equals(newDimension)) {
-                // Switching to a new world (based off the world name change); send a fake dimension change
+            // Switching to a new world (based off the world name change); send a fake dimension change
+            if (!packet.getWorldName().equals(session.getWorldName()) && (session.getDimension().equals(newDimension)
+                    // Ensure that the player never ever dimension switches to the same dimension - BAD
+                    // Can likely be removed if the Above Bedrock Nether Building option can be removed
+                    || DimensionUtils.javaToBedrock(session.getDimension()) == DimensionUtils.javaToBedrock(newDimension))) {
                 String fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), newDimension);
                 DimensionUtils.switchDimension(session, fakeDim);
             }
             session.setWorldName(packet.getWorldName());
             DimensionUtils.switchDimension(session, newDimension);
         }
+
+        ChunkUtils.applyDimensionHeight(session, packet.getDimension());
     }
 }
