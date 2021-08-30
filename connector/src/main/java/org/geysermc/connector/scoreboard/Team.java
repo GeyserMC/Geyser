@@ -60,9 +60,16 @@ public final class Team {
         entities = new ObjectOpenHashSet<>();
     }
 
-    private void checkAddedEntities(List<String> added) {
+    public Team addEntities(String... names) {
+        List<String> added = new ArrayList<>();
+        for (String name : names) {
+            if (entities.add(name)) {
+                added.add(name);
+            }
+        }
+
         if (added.size() == 0) {
-            return;
+            return this;
         }
         // we don't have to change the updateType,
         // because the scores itself need updating, not the team
@@ -74,27 +81,6 @@ public final class Team {
                 }
             }
         }
-    }
-
-    public Team addEntities(String... names) {
-        List<String> added = new ArrayList<>();
-        for (String name : names) {
-            if (entities.add(name)) {
-                added.add(name);
-            }
-        }
-        checkAddedEntities(added);
-        return this;
-    }
-
-    public Team addEntities(Set<String> names) {
-        List<String> added = new ArrayList<>();
-        for (String name : names) {
-            if (entities.add(name)) {
-                added.add(name);
-            }
-        }
-        checkAddedEntities(added);
         return this;
     }
 
@@ -205,14 +191,14 @@ public final class Team {
 
     @Getter
     public static final class TeamData {
-        protected UpdateType updateType;
-        protected long updateTime;
+        private UpdateType updateType;
+        private long updateTime;
 
-        protected String name;
-        protected String prefix;
-        protected String suffix;
+        private String name;
+        private String prefix;
+        private String suffix;
 
-        protected TeamData() {
+        private TeamData() {
             updateType = UpdateType.ADD;
         }
 

@@ -27,21 +27,19 @@ package org.geysermc.connector.network.translators.java.scoreboard;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamAction;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.scoreboard.Scoreboard;
 import org.geysermc.connector.scoreboard.ScoreboardUpdater;
 import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.scoreboard.UpdateType;
 import org.geysermc.connector.utils.LanguageUtils;
-import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
 import java.util.Arrays;
-import java.util.Set;
 
 @Translator(packet = ServerTeamPacket.class)
 public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
@@ -63,7 +61,7 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
         Team team = scoreboard.getTeam(packet.getTeamName());
         switch (packet.getAction()) {
             case CREATE:
-                scoreboard.registerNewTeam(packet.getTeamName(), toPlayerSet(packet.getPlayers()))
+                scoreboard.registerNewTeam(packet.getTeamName(), packet.getPlayers())
                         .setName(MessageTranslator.convertMessage(packet.getDisplayName()))
                         .setColor(packet.getColor())
                         .setNameTagVisibility(packet.getNameTagVisibility())
@@ -116,9 +114,5 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
         if (pps < ScoreboardUpdater.FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
             scoreboard.onUpdate();
         }
-    }
-
-    private Set<String> toPlayerSet(String[] players) {
-        return new ObjectOpenHashSet<>(players);
     }
 }

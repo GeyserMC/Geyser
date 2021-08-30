@@ -126,13 +126,13 @@ public final class Score {
 
     @Getter
     public static final class ScoreData {
-        protected UpdateType updateType;
-        protected long updateTime;
+        private UpdateType updateType;
+        private long updateTime;
 
         private Team team;
         private int score;
 
-        protected ScoreData() {
+        private ScoreData() {
             updateType = UpdateType.ADD;
         }
     }

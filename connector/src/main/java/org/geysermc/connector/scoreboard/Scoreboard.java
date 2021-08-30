@@ -86,10 +86,10 @@ public final class Scoreboard {
         return objective;
     }
 
-    public Objective displayObjective(String objectiveId, ScoreboardPosition displaySlot) {
+    public void displayObjective(String objectiveId, ScoreboardPosition displaySlot) {
         Objective objective = objectives.get(objectiveId);
         if (objective == null) {
-            return null;
+            return;
         }
 
         if (!objective.isActive()) {
@@ -103,10 +103,9 @@ public final class Scoreboard {
             deactivateObjective(storedObjective);
         }
         objectiveSlots.put(displaySlot, objective);
-        return objective;
     }
 
-    public Team registerNewTeam(String teamName, Set<String> players) {
+    public Team registerNewTeam(String teamName, String[] players) {
         Team team = teams.get(teamName);
         if (team != null) {
             logger.info(LanguageUtils.getLocaleStringLog("geyser.network.translator.team.failed_overrides", teamName));
@@ -169,9 +168,9 @@ public final class Scoreboard {
             correctSidebar = objectiveSlots.get(ScoreboardPosition.SIDEBAR);
         }
 
-        handleObjective(objectiveSlots.get(ScoreboardPosition.PLAYER_LIST), addScores, removeScores, removedObjectives);
-        handleObjective(correctSidebar, addScores, removeScores, removedObjectives);
-        handleObjective(objectiveSlots.get(ScoreboardPosition.BELOW_NAME), addScores, removeScores, removedObjectives);
+        handleObjective(objectiveSlots.get(ScoreboardPosition.PLAYER_LIST), addScores, removeScores);
+        handleObjective(correctSidebar, addScores, removeScores);
+        handleObjective(objectiveSlots.get(ScoreboardPosition.BELOW_NAME), addScores, removeScores);
 
         Iterator<Team> teamIterator = teams.values().iterator();
         while (teamIterator.hasNext()) {
@@ -210,7 +209,7 @@ public final class Scoreboard {
         lastRemoveScoreCount = removeScores.size();
     }
 
-    private void handleObjective(Objective objective, List<ScoreInfo> addScores, List<ScoreInfo> removeScores, List<Objective> removedObjectives) {
+    private void handleObjective(Objective objective, List<ScoreInfo> addScores, List<ScoreInfo> removeScores) {
         if (objective == null) {
             return;
         }
@@ -224,6 +223,11 @@ public final class Scoreboard {
         if (!objective.isActive()) {
             deactivateObjective(objective);
             objectiveSlots.remove(objective.getDisplaySlot());
+            return;
+        }
+
+        if (objective.getUpdateType() == REMOVE) {
+            // onUpdate already added it to the removedObjectives
             return;
         }
 
@@ -246,59 +250,38 @@ public final class Scoreboard {
             return;
         }
 
-        boolean objectiveUpdate = objective.getUpdateType() == UPDATE;
         boolean objectiveAdd = objective.getUpdateType() == ADD;
-        boolean objectiveRemove = objective.getUpdateType() == REMOVE;
+        boolean objectiveUpdate = objective.getUpdateType() == UPDATE;
 
         for (Score score : objective.getScores().values()) {
+            if (score.getUpdateType() == REMOVE) {
+                removeScores.add(score.getCachedInfo());
+                // score is pending to be removed, so we can remove it from the objective
+                objective.removeScore0(score.getName());
+                break;
+            }
+
             Team team = score.getTeam();
 
             boolean add = objectiveAdd || objectiveUpdate;
-            boolean remove = false;
+
             if (team != null) {
                 if (team.getUpdateType() == REMOVE || !team.hasEntity(score.getName())) {
                     score.setTeam(null);
                     add = true;
-                    remove = true;
                 }
             }
 
-            add |= score.shouldUpdate();
-            remove |= score.shouldUpdate();
-
-            if (score.getUpdateType() == REMOVE || objectiveRemove) {
-                add = false;
-            }
-
-            if (score.getUpdateType() == ADD || objectiveRemove) {
-                remove = false;
-            }
-
-            if (objectiveRemove && score.getCachedData() != null) {
-                // This score has been sent to the client and needs to be removed since the objective is being removed
-                remove = true;
-            } else if (score.shouldUpdate()) {
+            if (score.shouldUpdate()) {
                 score.update(objective.getObjectiveName());
+                add = true;
             }
 
             if (add) {
                 addScores.add(score.getCachedInfo());
             }
 
-            if (remove) {
-                removeScores.add(score.getCachedInfo());
-            }
-
-            // score is pending to be removed, so we can remove it from the objective
-            if (score.getUpdateType() == REMOVE) {
-                objective.removeScore0(score.getName());
-            }
-
             score.setUpdateType(NOTHING);
-        }
-
-        if (objectiveRemove) {
-            removedObjectives.add(objective);
         }
 
         if (objectiveUpdate) {
@@ -307,7 +290,7 @@ public final class Scoreboard {
             session.sendUpstreamPacket(removeObjectivePacket);
         }
 
-        if ((objectiveAdd || objectiveUpdate) && !objectiveRemove) {
+        if (objectiveAdd || objectiveUpdate) {
             SetDisplayObjectivePacket displayObjectivePacket = new SetDisplayObjectivePacket();
             displayObjectivePacket.setObjectiveId(objective.getObjectiveName());
             displayObjectivePacket.setDisplayName(objective.getDisplayName());
