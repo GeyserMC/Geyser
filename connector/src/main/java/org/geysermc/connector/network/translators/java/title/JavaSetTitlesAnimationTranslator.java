@@ -35,7 +35,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class JavaSetTitlesAnimationTranslator extends PacketTranslator<ServerSetTitlesAnimationPacket> {
 
     @Override
-    public void translate(ServerSetTitlesAnimationPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerSetTitlesAnimationPacket packet) {
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.TIMES);
         titlePacket.setText("");

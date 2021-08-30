@@ -38,7 +38,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class JavaKeepAliveTranslator extends PacketTranslator<ServerKeepAlivePacket> {
 
     @Override
-    public void translate(ServerKeepAlivePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerKeepAlivePacket packet) {
         if (!session.getConnector().getConfig().isForwardPlayerPing()) {
             return;
         }

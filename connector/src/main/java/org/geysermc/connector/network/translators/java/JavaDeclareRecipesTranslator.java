@@ -71,7 +71,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
     );
 
     @Override
-    public void translate(ServerDeclareRecipesPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerDeclareRecipesPacket packet) {
         Map<RecipeType, List<CraftingData>> recipeTypes = Registries.CRAFTING_DATA.forVersion(session.getUpstream().getProtocolVersion());
         // Get the last known network ID (first used for the pregenerated recipes) and increment from there.
         int netId = InventoryUtils.LAST_RECIPE_NET_ID + 1;

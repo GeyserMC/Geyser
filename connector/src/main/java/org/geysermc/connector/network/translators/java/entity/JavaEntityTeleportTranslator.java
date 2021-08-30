@@ -37,7 +37,7 @@ import com.nukkitx.math.vector.Vector3f;
 public class JavaEntityTeleportTranslator extends PacketTranslator<ServerEntityTeleportPacket> {
 
     @Override
-    public void translate(ServerEntityTeleportPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerEntityTeleportPacket packet) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();

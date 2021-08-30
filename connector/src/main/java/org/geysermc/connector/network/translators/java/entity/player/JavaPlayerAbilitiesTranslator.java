@@ -34,7 +34,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class JavaPlayerAbilitiesTranslator extends PacketTranslator<ServerPlayerAbilitiesPacket> {
 
     @Override
-    public void translate(ServerPlayerAbilitiesPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerPlayerAbilitiesPacket packet) {
         session.setCanFly(packet.isCanFly());
         session.setFlying(packet.isFlying());
         session.sendAdventureSettings();

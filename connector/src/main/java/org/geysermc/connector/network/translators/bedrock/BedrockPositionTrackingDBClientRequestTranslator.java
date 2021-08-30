@@ -42,7 +42,7 @@ import org.geysermc.connector.utils.LoadstoneTracker;
 public class BedrockPositionTrackingDBClientRequestTranslator extends PacketTranslator<PositionTrackingDBClientRequestPacket> {
 
     @Override
-    public void translate(PositionTrackingDBClientRequestPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, PositionTrackingDBClientRequestPacket packet) {
         PositionTrackingDBServerBroadcastPacket broadcastPacket = new PositionTrackingDBServerBroadcastPacket();
         broadcastPacket.setTrackingId(packet.getTrackingId());
 

@@ -40,7 +40,7 @@ import org.geysermc.connector.network.translators.chat.MessageTranslator;
 public class BedrockCommandRequestTranslator extends PacketTranslator<CommandRequestPacket> {
 
     @Override
-    public void translate(CommandRequestPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, CommandRequestPacket packet) {
         String command = packet.getCommand().replace("/", "");
         CommandManager commandManager = GeyserConnector.getInstance().getCommandManager();
         if (session.getConnector().getPlatformType() == PlatformType.STANDALONE && command.trim().startsWith("geyser ") && commandManager.getCommands().containsKey(command.split(" ")[1])) {

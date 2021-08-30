@@ -41,7 +41,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPacket> {
 
     @Override
-    public void translate(FilterTextPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, FilterTextPacket packet) {
         if (session.getOpenInventory() instanceof CartographyContainer) {
             // We don't want to be able to rename in the cartography table
             return;

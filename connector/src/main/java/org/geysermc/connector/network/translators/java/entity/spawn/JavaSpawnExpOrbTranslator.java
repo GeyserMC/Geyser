@@ -39,7 +39,7 @@ import com.nukkitx.math.vector.Vector3f;
 public class JavaSpawnExpOrbTranslator extends PacketTranslator<ServerSpawnExpOrbPacket> {
 
     @Override
-    public void translate(ServerSpawnExpOrbPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerSpawnExpOrbPacket packet) {
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
 
         Entity entity = new ExpOrbEntity(

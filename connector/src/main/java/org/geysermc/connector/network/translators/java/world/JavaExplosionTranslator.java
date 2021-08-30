@@ -43,7 +43,7 @@ import org.geysermc.connector.utils.ChunkUtils;
 public class JavaExplosionTranslator extends PacketTranslator<ServerExplosionPacket> {
 
     @Override
-    public void translate(ServerExplosionPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerExplosionPacket packet) {
         for (ExplodedBlockRecord record : packet.getExploded()) {
             Vector3f pos = Vector3f.from(packet.getX() + record.getX(), packet.getY() + record.getY(), packet.getZ() + record.getZ());
             ChunkUtils.updateBlock(session, BlockStateValues.JAVA_AIR_ID, pos.toInt());

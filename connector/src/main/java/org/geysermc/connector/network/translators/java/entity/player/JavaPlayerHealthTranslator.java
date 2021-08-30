@@ -41,7 +41,7 @@ import java.util.List;
 public class JavaPlayerHealthTranslator extends PacketTranslator<ServerPlayerHealthPacket> {
 
     @Override
-    public void translate(ServerPlayerHealthPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerPlayerHealthPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         int health = (int) Math.ceil(packet.getHealth());

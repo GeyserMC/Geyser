@@ -40,7 +40,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class BedrockMoveEntityAbsoluteTranslator extends PacketTranslator<MoveEntityAbsolutePacket> {
 
     @Override
-    public void translate(MoveEntityAbsolutePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, MoveEntityAbsolutePacket packet) {
         session.setLastVehicleMoveTimestamp(System.currentTimeMillis());
 
         float y = packet.getPosition().getY();

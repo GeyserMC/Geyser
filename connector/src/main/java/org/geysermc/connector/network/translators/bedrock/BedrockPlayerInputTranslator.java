@@ -46,7 +46,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPacket> {
 
     @Override
-    public void translate(PlayerInputPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, PlayerInputPacket packet) {
         ClientSteerVehiclePacket clientSteerVehiclePacket = new ClientSteerVehiclePacket(
                 packet.getInputMotion().getX(), packet.getInputMotion().getY(), packet.isJumping(), packet.isSneaking()
         );

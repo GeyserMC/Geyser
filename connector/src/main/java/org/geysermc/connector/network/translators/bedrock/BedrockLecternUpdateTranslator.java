@@ -45,7 +45,7 @@ import org.geysermc.connector.utils.InventoryUtils;
 public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpdatePacket> {
 
     @Override
-    public void translate(LecternUpdatePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, LecternUpdatePacket packet) {
         if (packet.isDroppingBook()) {
             // Bedrock drops the book outside of the GUI. Java drops it in the GUI
             // So, we enter the GUI and then drop it! :)

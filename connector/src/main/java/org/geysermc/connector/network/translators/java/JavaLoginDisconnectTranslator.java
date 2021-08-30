@@ -35,7 +35,7 @@ import org.geysermc.connector.network.translators.chat.MessageTranslator;
 public class JavaLoginDisconnectTranslator extends PacketTranslator<LoginDisconnectPacket> {
 
     @Override
-    public void translate(LoginDisconnectPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, LoginDisconnectPacket packet) {
         // The client doesn't manually get disconnected so we have to do it ourselves
         session.disconnect(MessageTranslator.convertMessage(packet.getReason(), session.getLocale()));
     }

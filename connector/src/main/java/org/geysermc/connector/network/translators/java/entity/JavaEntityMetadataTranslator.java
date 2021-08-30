@@ -39,7 +39,7 @@ import org.geysermc.connector.utils.LanguageUtils;
 public class JavaEntityMetadataTranslator extends PacketTranslator<ServerEntityMetadataPacket> {
 
     @Override
-    public void translate(ServerEntityMetadataPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerEntityMetadataPacket packet) {
         Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();

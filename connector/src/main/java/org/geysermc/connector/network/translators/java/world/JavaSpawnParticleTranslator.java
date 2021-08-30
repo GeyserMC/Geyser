@@ -50,7 +50,7 @@ import java.util.function.Function;
 public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnParticlePacket> {
 
     @Override
-    public void translate(ServerSpawnParticlePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerSpawnParticlePacket packet) {
         Function<Vector3f, BedrockPacket> particleCreateFunction = createParticle(session, packet.getParticle());
         if (particleCreateFunction != null) {
             if (packet.getAmount() == 0) {
