@@ -52,7 +52,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
     private static final boolean NEW_BIOME_WRITE = GeyserConnector.getInstance().getConfig().isExtendedWorldHeight();
 
     @Override
-    public void translate(ServerChunkDataPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerChunkDataPacket packet) {
         if (session.isSpawned()) {
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
         }

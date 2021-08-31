@@ -58,7 +58,7 @@ import java.util.concurrent.TimeUnit;
 public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket> {
 
     @Override
-    public void translate(ServerSetSlotPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerSetSlotPacket packet) {
         if (packet.getWindowId() == 255) { //cursor
             GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
             session.getPlayerInventory().setCursor(newItem, session);

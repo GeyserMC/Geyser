@@ -26,6 +26,7 @@
 package org.geysermc.connector.dump;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
@@ -41,16 +42,17 @@ import org.geysermc.connector.network.BedrockProtocol;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.connector.utils.WebUtils;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.FloodgateInfoHolder;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 @Getter
 public class DumpInfo {
@@ -64,9 +66,10 @@ public class DumpInfo {
     private final Object2IntMap<DeviceOs> userPlatforms;
     private final HashInfo hashInfo;
     private final RamInfo ramInfo;
+    private LogsInfo logsInfo;
     private final BootstrapDumpInfo bootstrapInfo;
 
-    public DumpInfo() {
+    public DumpInfo(boolean addLog) {
         this.versionInfo = new VersionInfo();
 
         try {
@@ -98,6 +101,10 @@ public class DumpInfo {
         this.hashInfo = new HashInfo(md5Hash, sha256Hash);
 
         this.ramInfo = new DumpInfo.RamInfo();
+
+        if (addLog) {
+            this.logsInfo = new LogsInfo();
+        }
 
         this.userPlatforms = new Object2IntOpenHashMap<>();
         for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
@@ -185,6 +192,22 @@ public class DumpInfo {
         Floodgate() {
             this.gitInfo = FloodgateInfoHolder.getGitProperties();
             this.config = FloodgateInfoHolder.getConfig();
+        }
+    }
+
+    @Getter
+    public static class LogsInfo {
+        private String link;
+
+        public LogsInfo() {
+            try {
+                Map<String, String> fields = new HashMap<>();
+                fields.put("content", FileUtils.readAllLines(GeyserConnector.getInstance().getBootstrap().getLogsPath()).collect(Collectors.joining("\n")));
+
+                JsonNode logData = GeyserConnector.JSON_MAPPER.readTree(WebUtils.postForm("https://api.mclo.gs/1/log", fields));
+
+                this.link = logData.get("url").textValue();
+            } catch (IOException ignored) { }
         }
     }
 

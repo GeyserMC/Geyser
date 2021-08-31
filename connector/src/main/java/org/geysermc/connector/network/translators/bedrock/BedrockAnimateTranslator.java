@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
 
     @Override
-    public void translate(AnimatePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, AnimatePacket packet) {
         // Stop the player sending animations before they have fully spawned into the server
         if (!session.isSpawned()) {
             return;

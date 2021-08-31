@@ -35,7 +35,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class JavaRemoveEntitiesTranslator extends PacketTranslator<ServerRemoveEntitiesPacket> {
 
     @Override
-    public void translate(ServerRemoveEntitiesPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerRemoveEntitiesPacket packet) {
         for (int entityId : packet.getEntityIds()) {
             Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
             if (entity != null) {

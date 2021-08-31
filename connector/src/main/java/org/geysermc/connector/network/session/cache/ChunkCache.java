@@ -67,7 +67,7 @@ public class ChunkCache {
         chunks.put(chunkPosition, geyserColumn);
     }
 
-    public GeyserColumn getChunk(int chunkX, int chunkZ)  {
+    public GeyserColumn getChunk(int chunkX, int chunkZ) {
         long chunkPosition = MathUtils.chunkPositionToLong(chunkX, chunkZ);
         return chunks.getOrDefault(chunkPosition, null);
     }
@@ -134,6 +134,19 @@ public class ChunkCache {
 
         long chunkPosition = MathUtils.chunkPositionToLong(chunkX, chunkZ);
         chunks.remove(chunkPosition);
+    }
+
+    /**
+     * Manually clears all entries in the chunk cache.
+     * The server is responsible for clearing chunk entries if out of render distance (for example) or switching dimensions,
+     * but it is the client that must clear chunks in the event of proxy switches.
+     */
+    public void clear() {
+        if (!cache) {
+            return;
+        }
+
+        chunks.clear();
     }
 
     public int getChunkMinY() {

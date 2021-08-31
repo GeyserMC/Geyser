@@ -32,6 +32,8 @@ import com.nukkitx.protocol.bedrock.v440.Bedrock_v440;
 import com.nukkitx.protocol.bedrock.v448.Bedrock_v448;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -137,7 +139,7 @@ public class BlockRegistryPopulator {
 
             BiFunction<String, NbtMapBuilder, String> stateMapper = STATE_MAPPER.getOrDefault(palette.getKey(), (i, s) -> null);
 
-            Int2IntMap javaToBedrockBlockMap = new Int2IntOpenHashMap();
+            IntList javaToBedrockBlockMap = new IntArrayList();
             Int2IntMap bedrockToJavaBlockMap = new Int2IntOpenHashMap();
 
             Map<String, NbtMap> flowerPotBlocks = new Object2ObjectOpenHashMap<>();
@@ -189,7 +191,7 @@ public class BlockRegistryPopulator {
                     javaIdentifierToBedrockTag.put(cleanJavaIdentifier.intern(), blocksTag.get(bedrockRuntimeId));
                 }
 
-                javaToBedrockBlockMap.put(javaRuntimeId, bedrockRuntimeId);
+                javaToBedrockBlockMap.add(bedrockRuntimeId);
             }
 
             if (commandBlockRuntimeId == -1) {
@@ -218,7 +220,7 @@ public class BlockRegistryPopulator {
 
             BlockRegistries.BLOCKS.register(PALETTE_VERSIONS.getInt(palette.getKey()), builder.blockStateVersion(stateVersion)
                     .emptyChunkSection(new ChunkSection(new BlockStorage[]{new BlockStorage(airRuntimeId)}))
-                    .javaToBedrockBlockMap(javaToBedrockBlockMap)
+                    .javaToBedrockBlockMap(javaToBedrockBlockMap.toIntArray())
                     .bedrockToJavaBlockMap(bedrockToJavaBlockMap)
                     .javaIdentifierToBedrockTag(javaIdentifierToBedrockTag)
                     .itemFrames(itemFrames)

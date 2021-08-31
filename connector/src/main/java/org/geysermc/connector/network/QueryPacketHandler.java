@@ -43,7 +43,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class QueryPacketHandler {
@@ -265,7 +264,7 @@ public class QueryPacketHandler {
     public void regenerateToken() {
         byte[] token = new byte[16];
         for (int i = 0; i < 16; i++) {
-            token[i] = (byte) new Random().nextInt(255);
+            token[i] = (byte) ThreadLocalRandom.current().nextInt(255);
         }
 
         this.token = token;

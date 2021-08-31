@@ -40,7 +40,7 @@ import org.geysermc.connector.utils.InventoryUtils;
 public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPickRequestPacket> {
 
     @Override
-    public void translate(BlockPickRequestPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, BlockPickRequestPacket packet) {
         Vector3i vector = packet.getBlockPosition();
         int blockToPick = session.getConnector().getWorldManager().getBlockAt(session, vector.getX(), vector.getY(), vector.getZ());
         

@@ -227,7 +227,10 @@ public class GeyserSession implements CommandSender {
 
     @Setter
     private boolean spawned;
-    private boolean closed;
+    /**
+     * Accessed on the initial Java and Bedrock packet processing threads
+     */
+    private volatile boolean closed;
 
     @Setter
     private GameMode gameMode = GameMode.SURVIVAL;

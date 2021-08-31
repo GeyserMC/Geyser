@@ -60,6 +60,7 @@ public class DimensionUtils {
         int bedrockDimension = javaToBedrock(javaDimension);
         Entity player = session.getPlayerEntity();
 
+        session.getChunkCache().clear();
         session.getEntityCache().removeAllEntities();
         session.getItemFrameCache().clear();
         session.getLecternCache().clear();

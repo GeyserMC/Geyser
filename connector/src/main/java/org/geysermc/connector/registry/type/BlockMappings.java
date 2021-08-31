@@ -45,7 +45,7 @@ public class BlockMappings {
 
     ChunkSection emptyChunkSection;
 
-    Int2IntMap javaToBedrockBlockMap;
+    int[] javaToBedrockBlockMap;
     Int2IntMap bedrockToJavaBlockMap;
 
     NbtList<NbtMap> bedrockBlockStates;
@@ -62,7 +62,10 @@ public class BlockMappings {
     Map<String, NbtMap> flowerPotBlocks;
 
     public int getBedrockBlockId(int state) {
-        return this.javaToBedrockBlockMap.get(state);
+        if (state >= this.javaToBedrockBlockMap.length) {
+            return bedrockAirId;
+        }
+        return this.javaToBedrockBlockMap[state];
     }
 
     public int getJavaBlockState(int bedrockId) {

@@ -70,7 +70,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     private static final float MAXIMUM_BLOCK_DESTROYING_DISTANCE = 36f;
 
     @Override
-    public void translate(InventoryTransactionPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, InventoryTransactionPacket packet) {
         // Send book updates before opening inventories
         session.getBookEditCache().checkForSend();
 

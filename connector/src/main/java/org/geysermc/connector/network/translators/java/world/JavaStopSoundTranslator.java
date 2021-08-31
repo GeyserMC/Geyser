@@ -39,7 +39,7 @@ import org.geysermc.connector.registry.type.SoundMapping;
 public class JavaStopSoundTranslator extends PacketTranslator<ServerStopSoundPacket> {
 
     @Override
-    public void translate(ServerStopSoundPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerStopSoundPacket packet) {
         // Runs if all sounds are stopped
         if (packet.getSound() == null) {
             StopSoundPacket stopPacket = new StopSoundPacket();

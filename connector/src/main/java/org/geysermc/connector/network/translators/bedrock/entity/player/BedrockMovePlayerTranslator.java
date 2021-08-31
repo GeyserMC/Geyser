@@ -53,7 +53,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
     }
 
     @Override
-    public void translate(MovePlayerPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, MovePlayerPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
         if (!session.isSpawned()) return;
 

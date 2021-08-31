@@ -35,7 +35,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdate
 public class JavaUpdateViewDistanceTranslator extends PacketTranslator<ServerUpdateViewDistancePacket> {
 
     @Override
-    public void translate(ServerUpdateViewDistancePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerUpdateViewDistancePacket packet) {
         session.setRenderDistance(packet.getViewDistance());
     }
 }

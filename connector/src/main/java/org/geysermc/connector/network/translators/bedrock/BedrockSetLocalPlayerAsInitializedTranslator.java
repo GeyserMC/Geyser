@@ -37,7 +37,7 @@ import org.geysermc.connector.skin.SkullSkinManager;
 @Translator(packet = SetLocalPlayerAsInitializedPacket.class)
 public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslator<SetLocalPlayerAsInitializedPacket> {
     @Override
-    public void translate(SetLocalPlayerAsInitializedPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, SetLocalPlayerAsInitializedPacket packet) {
         if (session.getPlayerEntity().getGeyserId() == packet.getRuntimeEntityId()) {
             if (!session.getUpstream().isInitialized()) {
                 session.getUpstream().setInitialized(true);

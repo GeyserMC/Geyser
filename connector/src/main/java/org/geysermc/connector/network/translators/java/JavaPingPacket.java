@@ -36,7 +36,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class JavaPingPacket extends PacketTranslator<ServerPingPacket> {
 
     @Override
-    public void translate(ServerPingPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerPingPacket packet) {
         session.sendDownstreamPacket(new ClientPongPacket(packet.getId()));
     }
 }
