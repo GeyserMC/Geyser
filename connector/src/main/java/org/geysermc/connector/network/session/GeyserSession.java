@@ -146,6 +146,7 @@ public class GeyserSession implements CommandSender {
     private EntityCache entityCache;
     private EntityEffectCache effectCache;
     private final FormCache formCache;
+    private final LodestoneCache lodestoneCache;
     private final PreferencesCache preferencesCache;
     private final TagCache tagCache;
     private WorldCache worldCache;
@@ -444,6 +445,7 @@ public class GeyserSession implements CommandSender {
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
         this.formCache = new FormCache(this);
+        this.lodestoneCache = new LodestoneCache();
         this.preferencesCache = new PreferencesCache(this);
         this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);

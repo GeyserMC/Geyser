@@ -30,24 +30,24 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.packet.PositionTrackingDBClientRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.PositionTrackingDBServerBroadcastPacket;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.LodestoneCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.DimensionUtils;
-import org.geysermc.connector.utils.LoadstoneTracker;
 
 @Translator(packet = PositionTrackingDBClientRequestPacket.class)
 public class BedrockPositionTrackingDBClientRequestTranslator extends PacketTranslator<PositionTrackingDBClientRequestPacket> {
 
     @Override
     public void translate(GeyserSession session, PositionTrackingDBClientRequestPacket packet) {
+        System.out.println(packet.toString());
         PositionTrackingDBServerBroadcastPacket broadcastPacket = new PositionTrackingDBServerBroadcastPacket();
         broadcastPacket.setTrackingId(packet.getTrackingId());
 
-        // Fetch the stored Loadstone
-        LoadstoneTracker.LoadstonePos pos = LoadstoneTracker.getPos(packet.getTrackingId());
+        // Fetch the stored lodestone
+        LodestoneCache.LodestonePos pos = session.getLodestoneCache().getPos(packet.getTrackingId());
+        System.out.println(pos);
 
         // If we don't have data for that ID tell the client its not found
         if (pos == null) {
@@ -58,21 +58,19 @@ public class BedrockPositionTrackingDBClientRequestTranslator extends PacketTran
 
         broadcastPacket.setAction(PositionTrackingDBServerBroadcastPacket.Action.UPDATE);
 
-        // Build the nbt data for the update
+        // Build the NBT data for the update
         NbtMapBuilder builder = NbtMap.builder();
         builder.putInt("dim", DimensionUtils.javaToBedrock(pos.getDimension()));
-        builder.putString("id", String.format("%08X", packet.getTrackingId()));
+        builder.putString("id", "0x" + String.format("%08X", packet.getTrackingId()));
 
         builder.putByte("version", (byte) 1); // Not sure what this is for
         builder.putByte("status", (byte) 0); // Not sure what this is for
 
         // Build the position for the update
-        IntList posList = new IntArrayList();
-        posList.add(pos.getX());
-        posList.add(pos.getY());
-        posList.add(pos.getZ());
-        builder.putList("pos", NbtType.INT, posList);
+        builder.putList("pos", NbtType.INT, pos.getX(), pos.getY(), pos.getZ());
         broadcastPacket.setTag(builder.build());
+
+        System.out.println(broadcastPacket);
 
         session.sendUpstreamPacket(broadcastPacket);
     }

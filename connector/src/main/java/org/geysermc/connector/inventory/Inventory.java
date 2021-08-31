@@ -26,6 +26,9 @@
 package org.geysermc.connector.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import com.github.steveice10.opennbt.tag.builtin.ByteTag;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.Getter;
 import lombok.NonNull;
@@ -93,7 +96,7 @@ public class Inventory {
 
     public GeyserItemStack getItem(int slot) {
         if (slot > this.size) {
-            GeyserConnector.getInstance().getLogger().debug("Tried to get an item out of bounds! " + this.toString());
+            GeyserConnector.getInstance().getLogger().debug("Tried to get an item out of bounds! " + this);
             return GeyserItemStack.EMPTY;
         }
         return items[slot];
@@ -101,12 +104,23 @@ public class Inventory {
 
     public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
         if (slot > this.size) {
-            session.getConnector().getLogger().debug("Tried to set an item out of bounds! " + this.toString());
+            session.getConnector().getLogger().debug("Tried to set an item out of bounds! " + this);
             return;
         }
         GeyserItemStack oldItem = items[slot];
         updateItemNetId(oldItem, newItem, session);
         items[slot] = newItem;
+
+        // Lodestone caching
+        if (newItem.getJavaId() == session.getItemMappings().getStoredItems().compass().getJavaId()) {
+            CompoundTag nbt = newItem.getNbt();
+            if (nbt != null) {
+                Tag lodestoneTag = nbt.get("LodestoneTracked");
+                if (lodestoneTag instanceof ByteTag) {
+                    session.getLodestoneCache().cacheInventoryItem(newItem);
+                }
+            }
+        }
     }
 
     protected static void updateItemNetId(GeyserItemStack oldItem, GeyserItemStack newItem, GeyserSession session) {
