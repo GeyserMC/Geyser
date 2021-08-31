@@ -41,13 +41,11 @@ public class BedrockPositionTrackingDBClientRequestTranslator extends PacketTran
 
     @Override
     public void translate(GeyserSession session, PositionTrackingDBClientRequestPacket packet) {
-        System.out.println(packet.toString());
         PositionTrackingDBServerBroadcastPacket broadcastPacket = new PositionTrackingDBServerBroadcastPacket();
         broadcastPacket.setTrackingId(packet.getTrackingId());
 
         // Fetch the stored lodestone
         LodestoneCache.LodestonePos pos = session.getLodestoneCache().getPos(packet.getTrackingId());
-        System.out.println(pos);
 
         // If we don't have data for that ID tell the client its not found
         if (pos == null) {
@@ -69,8 +67,6 @@ public class BedrockPositionTrackingDBClientRequestTranslator extends PacketTran
         // Build the position for the update
         builder.putList("pos", NbtType.INT, pos.getX(), pos.getY(), pos.getZ());
         broadcastPacket.setTag(builder.build());
-
-        System.out.println(broadcastPacket);
 
         session.sendUpstreamPacket(broadcastPacket);
     }
