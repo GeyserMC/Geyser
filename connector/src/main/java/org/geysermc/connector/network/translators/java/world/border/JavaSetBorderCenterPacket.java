@@ -36,7 +36,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class JavaSetBorderCenterPacket extends PacketTranslator<ServerSetBorderCenterPacket> {
 
     @Override
-    public void translate(ServerSetBorderCenterPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerSetBorderCenterPacket packet) {
         WorldBorder worldBorder = session.getWorldBorder();
         worldBorder.setCenter(Vector2f.from(packet.getNewCenterX(), packet.getNewCenterZ()));
 

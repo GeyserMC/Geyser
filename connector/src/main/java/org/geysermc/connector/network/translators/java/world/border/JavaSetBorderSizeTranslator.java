@@ -35,7 +35,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class JavaSetBorderSizeTranslator extends PacketTranslator<ServerSetBorderSizePacket> {
 
     @Override
-    public void translate(ServerSetBorderSizePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerSetBorderSizePacket packet) {
         WorldBorder worldBorder = session.getWorldBorder();
         worldBorder.setOldDiameter(packet.getSize());
         worldBorder.setNewDiameter(packet.getSize());

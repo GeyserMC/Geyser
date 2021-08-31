@@ -35,7 +35,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class JavaSetBorderWarningDelayTranslator extends PacketTranslator<ServerSetBorderWarningDelayPacket> {
 
     @Override
-    public void translate(ServerSetBorderWarningDelayPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerSetBorderWarningDelayPacket packet) {
         WorldBorder worldBorder = session.getWorldBorder();
         worldBorder.setWarningDelay(packet.getWarningDelay());
 

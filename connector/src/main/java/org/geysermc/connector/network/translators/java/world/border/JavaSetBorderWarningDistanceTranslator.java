@@ -35,7 +35,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class JavaSetBorderWarningDistanceTranslator extends PacketTranslator<ServerSetBorderWarningDistancePacket> {
 
     @Override
-    public void translate(ServerSetBorderWarningDistancePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerSetBorderWarningDistancePacket packet) {
         WorldBorder worldBorder = session.getWorldBorder();
         worldBorder.setWarningBlocks(packet.getWarningBlocks());
 
