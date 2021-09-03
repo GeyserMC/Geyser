@@ -100,7 +100,7 @@ public class FireworkEntity extends Entity {
 
                         int i = 0;
                         for (int color : oldColors) {
-                            colors[i++] = FireworkColor.fromJavaID(color).getBedrockID();
+                            colors[i++] = FireworkColor.fromJavaRGB(color);
                         }
 
                         effectBuilder.putByteArray("FireworkColor", colors);
@@ -112,7 +112,7 @@ public class FireworkEntity extends Entity {
 
                         int i = 0;
                         for (int color : oldColors) {
-                            colors[i++] = FireworkColor.fromJavaID(color).getBedrockID();
+                            colors[i++] = FireworkColor.fromJavaRGB(color);
                         }
 
                         effectBuilder.putByteArray("FireworkFade", colors);

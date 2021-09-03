@@ -23,24 +23,33 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.bedrock;
+package org.geysermc.connector.network.translators.item.translators.nbt;
 
+import com.github.steveice10.opennbt.tag.builtin.*;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.ItemRemapper;
+import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
+import org.geysermc.connector.registry.type.ItemMapping;
 
-import com.github.steveice10.mc.protocol.data.game.ClientRequest;
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
-import com.nukkitx.protocol.bedrock.packet.ShowCreditsPacket;
-
-@Translator(packet = ShowCreditsPacket.class)
-public class BedrockShowCreditsTranslator extends PacketTranslator<ShowCreditsPacket> {
+@ItemRemapper
+public class LodestoneCompassTranslator extends NbtItemStackTranslator {
 
     @Override
-    public void translate(GeyserSession session, ShowCreditsPacket packet) {
-        if (packet.getStatus() == ShowCreditsPacket.Status.END_CREDITS) {
-            ClientRequestPacket javaRespawnPacket = new ClientRequestPacket(ClientRequest.RESPAWN);
-            session.sendDownstreamPacket(javaRespawnPacket);
+    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
+        Tag lodestoneTag = itemTag.get("LodestoneTracked");
+        if (lodestoneTag instanceof ByteTag) {
+            int trackId = session.getLodestoneCache().store(itemTag);
+            // Set the bedrock tracking id - will return 0 if invalid
+            itemTag.put(new IntTag("trackingHandle", trackId));
         }
+    }
+
+    // NBT does not need to be translated from Bedrock Edition to Java Edition.
+    // translateToJava is called in three places: extra recipe loading, creative menu, and stonecutters
+    // Lodestone compasses cannot be touched in any of those places.
+
+    @Override
+    public boolean acceptItem(ItemMapping mapping) {
+        return mapping.getJavaIdentifier().equals("minecraft:compass");
     }
 }

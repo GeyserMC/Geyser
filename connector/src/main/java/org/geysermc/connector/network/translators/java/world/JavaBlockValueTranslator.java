@@ -46,7 +46,7 @@ import org.geysermc.connector.utils.Direction;
 public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValuePacket> {
 
     @Override
-    public void translate(ServerBlockValuePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerBlockValuePacket packet) {
         BlockEventPacket blockEventPacket = new BlockEventPacket();
         blockEventPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(),
                 packet.getPosition().getY(), packet.getPosition().getZ()));

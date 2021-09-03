@@ -118,7 +118,8 @@ public class GeyserSpigotInjector extends GeyserInjector {
                         initChannel.invoke(childHandler, ch);
                     }
                 })
-                .group(new DefaultEventLoopGroup(0, new DefaultThreadFactory("Geyser Spigot connection thread")))
+                // Set to MAX_PRIORITY as MultithreadEventLoopGroup#newDefaultThreadFactory which DefaultEventLoopGroup implements does by default
+                .group(new DefaultEventLoopGroup(0, new DefaultThreadFactory("Geyser Spigot connection thread", Thread.MAX_PRIORITY)))
                 .localAddress(LocalAddress.ANY))
                 .bind()
                 .syncUninterruptibly();

@@ -42,7 +42,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class JavaEntityAttachTranslator extends PacketTranslator<ServerEntityAttachPacket> {
 
     @Override
-    public void translate(ServerEntityAttachPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerEntityAttachPacket packet) {
 
         Entity holderId;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {

@@ -40,7 +40,7 @@ import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 public class JavaEntityVelocityTranslator extends PacketTranslator<ServerEntityVelocityPacket> {
 
     @Override
-    public void translate(ServerEntityVelocityPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerEntityVelocityPacket packet) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();

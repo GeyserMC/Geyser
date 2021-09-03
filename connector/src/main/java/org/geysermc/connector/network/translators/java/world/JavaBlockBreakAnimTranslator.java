@@ -41,7 +41,7 @@ import org.geysermc.connector.utils.BlockUtils;
 public class JavaBlockBreakAnimTranslator extends PacketTranslator<ServerBlockBreakAnimPacket> {
 
     @Override
-    public void translate(ServerBlockBreakAnimPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerBlockBreakAnimPacket packet) {
         int state = session.getConnector().getWorldManager().getBlockAt(session, packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
         int breakTime = (int) (65535 / Math.ceil(BlockUtils.getBreakTime(session, BlockRegistries.JAVA_BLOCKS.get(state), ItemMapping.AIR, new CompoundTag(""), false) * 20));
         LevelEventPacket levelEventPacket = new LevelEventPacket();

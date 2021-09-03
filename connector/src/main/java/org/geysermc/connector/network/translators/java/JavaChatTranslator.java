@@ -36,7 +36,7 @@ import org.geysermc.connector.network.translators.chat.MessageTranslator;
 public class JavaChatTranslator extends PacketTranslator<ServerChatPacket> {
 
     @Override
-    public void translate(ServerChatPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerChatPacket packet) {
         TextPacket textPacket = new TextPacket();
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");

@@ -35,7 +35,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.ServerBossBarPacke
 @Translator(packet = ServerBossBarPacket.class)
 public class JavaBossBarTranslator extends PacketTranslator<ServerBossBarPacket> {
     @Override
-    public void translate(ServerBossBarPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerBossBarPacket packet) {
         BossBar bossBar = session.getEntityCache().getBossBar(packet.getUuid());
         switch (packet.getAction()) {
             case ADD:

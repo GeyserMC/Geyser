@@ -36,7 +36,7 @@ import com.nukkitx.protocol.bedrock.packet.SetDifficultyPacket;
 public class JavaDifficultyTranslator extends PacketTranslator<ServerDifficultyPacket> {
 
     @Override
-    public void translate(ServerDifficultyPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerDifficultyPacket packet) {
         SetDifficultyPacket setDifficultyPacket = new SetDifficultyPacket();
         setDifficultyPacket.setDifficulty(packet.getDifficulty().ordinal());
         session.sendUpstreamPacket(setDifficultyPacket);

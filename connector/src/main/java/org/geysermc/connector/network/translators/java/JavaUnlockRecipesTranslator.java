@@ -40,7 +40,7 @@ import java.util.Arrays;
 public class JavaUnlockRecipesTranslator extends PacketTranslator<ServerUnlockRecipesPacket> {
 
     @Override
-    public void translate(ServerUnlockRecipesPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerUnlockRecipesPacket packet) {
         if (packet.getAction() == UnlockRecipesAction.REMOVE) {
             session.getUnlockedRecipes().removeAll(Arrays.asList(packet.getRecipes()));
         } else {

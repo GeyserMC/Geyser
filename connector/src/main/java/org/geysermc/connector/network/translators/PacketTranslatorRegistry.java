@@ -112,7 +112,7 @@ public class PacketTranslatorRegistry<T> {
         }
 
         try {
-            translator.translate(packet, session);
+            translator.translate(session, packet);
         } catch (Throwable ex) {
             GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.packet.failed", packet.getClass().getSimpleName()), ex);
             ex.printStackTrace();

@@ -41,7 +41,7 @@ import org.geysermc.connector.utils.MapColor;
 @Translator(packet = ServerMapDataPacket.class)
 public class JavaMapDataTranslator extends PacketTranslator<ServerMapDataPacket> {
     @Override
-    public void translate(ServerMapDataPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerMapDataPacket packet) {
         ClientboundMapItemDataPacket mapItemDataPacket = new ClientboundMapItemDataPacket();
         boolean shouldStore = false;
 

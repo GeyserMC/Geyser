@@ -52,7 +52,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
     private static final List<SkinPart> SKIN_PART_VALUES = Arrays.asList(SkinPart.values());
 
     @Override
-    public void translate(ServerJoinGamePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerJoinGamePacket packet) {
         PlayerEntity entity = session.getPlayerEntity();
         entity.setEntityId(packet.getEntityId());
 

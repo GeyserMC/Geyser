@@ -37,7 +37,7 @@ import org.geysermc.connector.network.translators.Translator;
 @Translator(packet = RiderJumpPacket.class)
 public class BedrockRiderJumpTranslator extends PacketTranslator<RiderJumpPacket> {
     @Override
-    public void translate(RiderJumpPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, RiderJumpPacket packet) {
         Entity vehicle = session.getRidingVehicleEntity();
         if (vehicle instanceof AbstractHorseEntity) {
             ClientPlayerStatePacket playerStatePacket = new ClientPlayerStatePacket((int) vehicle.getEntityId(),  PlayerState.START_HORSE_JUMP, packet.getJumpStrength());

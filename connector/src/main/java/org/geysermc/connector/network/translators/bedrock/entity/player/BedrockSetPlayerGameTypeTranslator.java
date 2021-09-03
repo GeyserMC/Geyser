@@ -38,7 +38,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class BedrockSetPlayerGameTypeTranslator extends PacketTranslator<SetPlayerGameTypePacket> {
 
     @Override
-    public void translate(SetPlayerGameTypePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, SetPlayerGameTypePacket packet) {
         // no
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         playerGameTypePacket.setGamemode(session.getGameMode().ordinal());

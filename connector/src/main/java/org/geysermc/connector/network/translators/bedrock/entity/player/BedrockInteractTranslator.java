@@ -46,7 +46,7 @@ import org.geysermc.connector.utils.InteractiveTagManager;
 public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> {
 
     @Override
-    public void translate(InteractPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, InteractPacket packet) {
         Entity entity;
         if (packet.getRuntimeEntityId() == session.getPlayerEntity().getGeyserId()) {
             //Player is not in entity cache

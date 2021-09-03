@@ -36,7 +36,7 @@ import org.geysermc.connector.network.translators.chat.MessageTranslator;
 public class JavaSetActionBarTextTranslator extends PacketTranslator<ServerSetActionBarTextPacket> {
 
     @Override
-    public void translate(ServerSetActionBarTextPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerSetActionBarTextPacket packet) {
         String text;
         if (packet.getText() == null) { //TODO 1.17 can this happen?
             text = " ";

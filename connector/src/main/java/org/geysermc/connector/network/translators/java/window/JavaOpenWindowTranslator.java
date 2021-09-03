@@ -40,7 +40,7 @@ import org.geysermc.connector.utils.LocaleUtils;
 public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowPacket> {
 
     @Override
-    public void translate(ServerOpenWindowPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerOpenWindowPacket packet) {
         if (packet.getWindowId() == 0) {
             return;
         }

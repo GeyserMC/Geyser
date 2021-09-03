@@ -42,7 +42,7 @@ import org.geysermc.connector.utils.ChunkUtils;
 public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChangePacket> {
 
     @Override
-    public void translate(ServerBlockChangePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerBlockChangePacket packet) {
         Position pos = packet.getRecord().getPosition();
         boolean updatePlacement = session.getConnector().getPlatformType() != PlatformType.SPIGOT && // Spigot simply listens for the block place event
                 session.getConnector().getWorldManager().getBlockAt(session, pos) != packet.getRecord().getBlock();

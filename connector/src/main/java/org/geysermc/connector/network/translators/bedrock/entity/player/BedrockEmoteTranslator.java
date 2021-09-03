@@ -40,7 +40,7 @@ import org.geysermc.connector.utils.BlockUtils;
 public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
 
     @Override
-    public void translate(EmotePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, EmotePacket packet) {
         if (session.getConnector().getConfig().getEmoteOffhandWorkaround() != EmoteOffhandWorkaroundOption.DISABLED) {
             // Activate the workaround - we should trigger the offhand now
             ClientPlayerActionPacket swapHandsPacket = new ClientPlayerActionPacket(PlayerAction.SWAP_HANDS, BlockUtils.POSITION_ZERO,

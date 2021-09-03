@@ -40,7 +40,7 @@ import java.util.Arrays;
 public class JavaPlayerSetExperienceTranslator extends PacketTranslator<ServerPlayerSetExperiencePacket> {
 
     @Override
-    public void translate(ServerPlayerSetExperiencePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerPlayerSetExperiencePacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         AttributeData experience = GeyserAttributeType.EXPERIENCE.getAttribute(packet.getExperience());

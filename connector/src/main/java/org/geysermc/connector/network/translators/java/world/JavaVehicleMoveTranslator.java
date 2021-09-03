@@ -36,7 +36,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class JavaVehicleMoveTranslator extends PacketTranslator<ServerVehicleMovePacket> {
 
     @Override
-    public void translate(ServerVehicleMovePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerVehicleMovePacket packet) {
         Entity entity = session.getRidingVehicleEntity();
         if (entity == null) return;
 
