@@ -48,6 +48,7 @@ import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandManager;
 import org.geysermc.platform.spigot.command.SpigotCommandSender;
+import org.geysermc.platform.spigot.world.GeyserPistonEvents;
 import org.geysermc.platform.spigot.world.GeyserSpigot1_11CraftingListener;
 import org.geysermc.platform.spigot.world.GeyserSpigotBlockPlaceListener;
 import org.geysermc.platform.spigot.world.manager.*;
@@ -227,6 +228,8 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(connector, this.geyserWorldManager);
         Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
 
+        Bukkit.getServer().getPluginManager().registerEvents(new GeyserPistonEvents(connector, this.geyserWorldManager), this);
+
         if (isPre1_12) {
             // Register events needed to send all recipes to the client
             Bukkit.getServer().getPluginManager().registerEvents(new GeyserSpigot1_11CraftingListener(connector), this);
@@ -267,7 +270,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public WorldManager getWorldManager() {
-        return DEFAULT_CHUNK_MANAGER;
+        return this.geyserWorldManager;
     }
 
     @Override

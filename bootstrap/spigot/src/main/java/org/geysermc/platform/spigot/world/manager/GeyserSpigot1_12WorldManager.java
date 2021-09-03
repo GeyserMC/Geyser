@@ -66,7 +66,6 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
         Player player = Bukkit.getPlayer(session.getPlayerEntity().getUsername());
         if (player == null) {
@@ -76,12 +75,19 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
             // Prevent nasty async errors if a player is loading in
             return BlockStateValues.JAVA_AIR_ID;
         }
+
+        Block block = player.getWorld().getBlockAt(x, y, z);
+        return getBlockNetworkId(player, block, x, y, z);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public int getBlockNetworkId(Player player, Block block, int x, int y, int z) {
         // Get block entity storage
         BlockStorage storage = Via.getManager().getConnectionManager().getConnectedClient(player.getUniqueId()).get(BlockStorage.class);
-        Block block = player.getWorld().getBlockAt(x, y, z);
         // Black magic that gets the old block state ID
-        int blockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
-        return getLegacyBlock(storage, blockId, x, y, z);
+        int oldBlockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
+        return getLegacyBlock(storage, oldBlockId, x, y, z);
     }
 
     /**
