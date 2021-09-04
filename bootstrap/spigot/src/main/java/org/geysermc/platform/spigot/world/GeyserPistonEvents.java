@@ -33,7 +33,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -82,6 +81,10 @@ public class GeyserPistonEvents implements Listener {
         Location location = event.getBlock().getLocation();
         Vector3i position = getVector(location);
         PistonValueType type = isExtend ? PistonValueType.PUSHING : PistonValueType.PULLING;
+        boolean sticky = event.isSticky();
+
+        Object2IntMap<Vector3i> attachedBlocks = new Object2IntOpenHashMap<>();
+        boolean blocksFilled = false;
 
         for (GeyserSession session : connector.getPlayers()) {
             Player player = Bukkit.getPlayer(session.getPlayerEntity().getUuid());
@@ -91,17 +94,21 @@ public class GeyserPistonEvents implements Listener {
 
             // Trying to grab the blocks from the world like other platforms would result in the moving piston block
             // being returned instead.
-            Object2IntMap<Vector3i> attachedBlocks = new Object2IntOpenHashMap<>();
-            List<Block> blocks = isExtend ? ((BlockPistonExtendEvent) event).getBlocks() : ((BlockPistonRetractEvent) event).getBlocks();
-            for (Block block : blocks) {
-                Location attachedLocation = block.getLocation();
-                attachedBlocks.put(getVector(attachedLocation), worldManager.getBlockNetworkId(player, block, location.getBlockX(), location.getBlockY(), location.getBlockZ()));
+            if (!blocksFilled) {
+                // Blocks currently require a player for 1.12, so let's just leech off one player to get all blocks
+                // and call it a day for the rest of the sessions (mostly to save on execution time)
+                List<Block> blocks = isExtend ? ((BlockPistonExtendEvent) event).getBlocks() : ((BlockPistonRetractEvent) event).getBlocks();
+                for (Block block : blocks) {
+                    Location attachedLocation = block.getLocation();
+                    attachedBlocks.put(getVector(attachedLocation), worldManager.getBlockNetworkId(player, block,
+                            attachedLocation.getBlockX(), attachedLocation.getBlockY(), attachedLocation.getBlockZ()));
+                }
+                blocksFilled = true;
             }
 
             int pistonBlockId = worldManager.getBlockNetworkId(player, event.getBlock(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
             // event.getDirection() is unreliable
             Direction orientation = BlockStateValues.getPistonOrientation(pistonBlockId);
-            boolean sticky = event.isSticky();
 
             session.executeInEventLoop(() -> {
                 PistonCache pistonCache = session.getPistonCache();
