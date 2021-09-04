@@ -45,7 +45,7 @@ public class BlockMappings {
 
     ChunkSection emptyChunkSection;
 
-    int[] javaToBedrockBlockMap;
+    int[] javaToBedrockBlocks;
 
     NbtList<NbtMap> bedrockBlockStates;
 
@@ -63,10 +63,10 @@ public class BlockMappings {
     IntSet jigsawStateIds;
 
     public int getBedrockBlockId(int state) {
-        if (state >= this.javaToBedrockBlockMap.length) {
+        if (state >= this.javaToBedrockBlocks.length) {
             return bedrockAirId;
         }
-        return this.javaToBedrockBlockMap[state];
+        return this.javaToBedrockBlocks[state];
     }
 
     public int getItemFrame(NbtMap tag) {
