@@ -73,8 +73,10 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
 
             PistonCache pistonCache = session.getPistonCache();
             PistonBlockEntity blockEntity = pistonCache.getPistons().computeIfAbsent(position, pos -> {
+                int blockId = session.getConnector().getWorldManager().getBlockAt(session, position);
+                boolean sticky = BlockStateValues.isStickyPiston(blockId);
                 boolean extended = action != PistonValueType.PUSHING;
-                return new PistonBlockEntity(session, pos, Direction.fromPistonValue(direction), extended);
+                return new PistonBlockEntity(session, pos, Direction.fromPistonValue(direction), sticky, extended);
             });
             blockEntity.setAction(action);
         } else if (packet.getValue() instanceof MobSpawnerValue) {

@@ -36,6 +36,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.PistonCache;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
@@ -100,13 +101,12 @@ public class PistonBlockEntity {
         HONEY_BOUNDING_BOX = new BoundingBox(0.5, honeyHeight + boundingBoxHeight / 2, 0.5, blockBoundingBox.getSizeX(), boundingBoxHeight, blockBoundingBox.getSizeZ());
     }
 
-    public PistonBlockEntity(GeyserSession session, Vector3i position, Direction orientation, boolean extended) {
+    public PistonBlockEntity(GeyserSession session, Vector3i position, Direction orientation, boolean sticky, boolean extended) {
         this.session = session;
         this.position = position;
         this.orientation = orientation;
+        this.sticky = sticky;
 
-        int blockId = session.getConnector().getWorldManager().getBlockAt(session, position);
-        this.sticky = BlockStateValues.isStickyPiston(blockId);
         if (extended) {
             // Fully extended
             this.action = PistonValueType.PUSHING;
@@ -137,6 +137,8 @@ public class PistonBlockEntity {
             findAffectedBlocks();
             removeBlocks();
             createMovingBlocks();
+        } else {
+            removePistonHead();
         }
 
         // Set progress and lastProgress to allow 0 tick pistons to animate
@@ -155,6 +157,8 @@ public class PistonBlockEntity {
     }
 
     public void setAction(PistonValueType action, Object2IntMap<Vector3i> attachedBlocks) {
+        // Don't check if this.action == action, since on some Paper versions BlockPistonRetractEvent is called multiple times
+        // with the first 1-2 events being empty.
         placeFinalBlocks();
         removeMovingBlocks();
 
@@ -163,23 +167,12 @@ public class PistonBlockEntity {
             // Blocks only move when pushing or pulling with sticky pistons
             if (attachedBlocks.size() <= 12) {
                 this.attachedBlocks.putAll(attachedBlocks);
-                Vector3i movement = getMovement();
-                // Map the final position of each block to this block entity
-                Map<Vector3i, PistonBlockEntity> movingBlockMap = session.getPistonCache().getMovingBlocksMap();
-                for (Vector3i position : attachedBlocks.keySet()) {
-                    position = position.add(movement);
-                    movingBlockMap.put(position, this);
-                }
-                // Add piston head
-                if (action == PistonValueType.PUSHING) {
-                    movingBlockMap.put(this.position.add(movement), this);
-                } else {
-                    movingBlockMap.put(this.position, this);
-                }
                 flattenPositions();
             }
             removeBlocks();
             createMovingBlocks();
+        } else {
+            removePistonHead();
         }
 
         // Set progress and lastProgress to allow 0 tick pistons to animate
@@ -232,6 +225,9 @@ public class PistonBlockEntity {
         Vector3i blockInFront = position.add(orientation.getUnitVector());
         int blockId = session.getConnector().getWorldManager().getBlockAt(session, blockInFront);
         if (BlockStateValues.isPistonHead(blockId)) {
+            ChunkUtils.updateBlock(session, BlockStateValues.JAVA_AIR_ID, blockInFront);
+        } else if (session.getConnector().getPlatformType() == PlatformType.SPIGOT && blockId == BlockStateValues.JAVA_AIR_ID) {
+            // Spigot removes the piston head from the cache, but we need to send the block update ourselves
             ChunkUtils.updateBlock(session, BlockStateValues.JAVA_AIR_ID, blockInFront);
         }
     }
@@ -308,10 +304,6 @@ public class PistonBlockEntity {
         if (!moveBlocks || attachedBlocks.size() > 12) {
             attachedBlocks.clear();
         } else {
-            // Map the final position of each block to this block entity
-            Map<Vector3i, PistonBlockEntity> movingBlockMap = session.getPistonCache().getMovingBlocksMap();
-            attachedBlocks.forEach((blockPos, javaId) -> movingBlockMap.put(blockPos, this));
-            movingBlockMap.put(getPistonHeadPos(), this);
             flattenPositions();
         }
     }
@@ -599,6 +591,11 @@ public class PistonBlockEntity {
      * Create moving block entities for each attached block
      */
     private void createMovingBlocks() {
+        // Map the final position of each block to this block entity
+        Map<Vector3i, PistonBlockEntity> movingBlockMap = session.getPistonCache().getMovingBlocksMap();
+        attachedBlocks.forEach((blockPos, javaId) -> movingBlockMap.put(blockPos, this));
+        movingBlockMap.put(getPistonHeadPos(), this);
+
         Vector3i movement = getMovement();
         BoundingBox playerBoundingBox = session.getCollisionManager().getPlayerBoundingBox().clone();
         if (orientation == Direction.UP) {

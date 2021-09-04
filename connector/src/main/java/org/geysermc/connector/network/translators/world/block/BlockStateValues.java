@@ -48,11 +48,12 @@ public class BlockStateValues {
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2BooleanMap LECTERN_BOOK_STATES = new Int2BooleanOpenHashMap();
     private static final Int2IntMap NOTEBLOCK_PITCHES = new Int2IntOpenHashMap();
-    private static final Int2BooleanMap IS_STICKY_PISTON = new Int2BooleanOpenHashMap();
     private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
+    private static final Int2BooleanMap IS_STICKY_PISTON = new Int2BooleanOpenHashMap();
     private static final Object2IntMap<Direction> PISTON_HEADS = new Object2IntOpenHashMap<>();
-    private static final IntSet MOVING_PISTONS = new IntOpenHashSet();
+    private static final Int2ObjectMap<Direction> PISTON_ORIENTATION = new Int2ObjectOpenHashMap<>();
     private static final IntSet ALL_PISTON_HEADS = new IntOpenHashSet();
+    private static final IntSet MOVING_PISTONS = new IntOpenHashSet();
     private static final Int2ByteMap SKULL_VARIANTS = new Int2ByteOpenHashMap();
     private static final Int2ByteMap SKULL_ROTATIONS = new Int2ByteOpenHashMap();
     private static final Int2IntMap SKULL_WALL_DIRECTIONS = new Int2IntOpenHashMap();
@@ -132,23 +133,12 @@ public class BlockStateValues {
                 PISTON_VALUES.put(javaBlockState, javaId.contains("extended=true"));
                 IS_STICKY_PISTON.put(javaBlockState, javaId.contains("sticky"));
             }
+            PISTON_ORIENTATION.put(javaBlockState, getBlockDirection(javaId));
             return;
         } else if (javaId.startsWith("minecraft:piston_head")) {
             ALL_PISTON_HEADS.add(javaBlockState);
             if (javaId.contains("short=false")) {
-                if (javaId.contains("down")) {
-                    PISTON_HEADS.put(Direction.DOWN, javaBlockState);
-                } else if (javaId.contains("up")) {
-                    PISTON_HEADS.put(Direction.UP, javaBlockState);
-                } else if (javaId.contains("south")) {
-                    PISTON_HEADS.put(Direction.SOUTH, javaBlockState);
-                } else if (javaId.contains("west")) {
-                    PISTON_HEADS.put(Direction.WEST, javaBlockState);
-                } else if (javaId.contains("north")) {
-                    PISTON_HEADS.put(Direction.NORTH, javaBlockState);
-                } else if (javaId.contains("east")) {
-                    PISTON_HEADS.put(Direction.EAST, javaBlockState);
-                }
+                PISTON_HEADS.put(getBlockDirection(javaId), javaBlockState);
             }
             return;
         }
@@ -308,6 +298,17 @@ public class BlockStateValues {
     }
 
     /**
+     * This is used in GeyserPistonEvents.java and accepts minecraft:piston,
+     * minecraft:sticky_piston, and minecraft:moving_piston.
+     *
+     * @param state The block state of the piston base
+     * @return The direction in which the piston faces
+     */
+    public static Direction getPistonOrientation(int state) {
+        return PISTON_ORIENTATION.get(state);
+    }
+
+    /**
      * Checks if a block sticks to other blocks
      * (Slime and honey blocks)
      *
@@ -417,5 +418,22 @@ public class BlockStateValues {
                 return 0.989f;
         }
         return 0.6f;
+    }
+
+    private static Direction getBlockDirection(String javaId) {
+        if (javaId.contains("down")) {
+            return Direction.DOWN;
+        } else if (javaId.contains("up")) {
+            return Direction.UP;
+        } else if (javaId.contains("south")) {
+            return Direction.SOUTH;
+        } else if (javaId.contains("west")) {
+            return Direction.WEST;
+        } else if (javaId.contains("north")) {
+            return Direction.NORTH;
+        } else if (javaId.contains("east")) {
+            return Direction.EAST;
+        }
+        throw new IllegalStateException();
     }
 }

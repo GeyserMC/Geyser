@@ -44,6 +44,7 @@ import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.PistonCache;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.entity.PistonBlockEntity;
 import org.geysermc.connector.utils.Direction;
 import org.geysermc.platform.spigot.world.manager.GeyserSpigotWorldManager;
@@ -78,7 +79,6 @@ public class GeyserPistonEvents implements Listener {
         World world = event.getBlock().getWorld();
         boolean isExtend = event instanceof BlockPistonExtendEvent;
 
-        Direction direction = getGeyserDirection(event.getDirection());
         Location location = event.getBlock().getLocation();
         Vector3i position = getVector(location);
         PistonValueType type = isExtend ? PistonValueType.PUSHING : PistonValueType.PULLING;
@@ -98,10 +98,15 @@ public class GeyserPistonEvents implements Listener {
                 attachedBlocks.put(getVector(attachedLocation), worldManager.getBlockNetworkId(player, block, location.getBlockX(), location.getBlockY(), location.getBlockZ()));
             }
 
+            int pistonBlockId = worldManager.getBlockNetworkId(player, event.getBlock(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
+            // event.getDirection() is unreliable
+            Direction orientation = BlockStateValues.getPistonOrientation(pistonBlockId);
+            boolean sticky = event.isSticky();
+
             session.executeInEventLoop(() -> {
                 PistonCache pistonCache = session.getPistonCache();
                 PistonBlockEntity blockEntity = pistonCache.getPistons().computeIfAbsent(position, pos ->
-                        new PistonBlockEntity(session, position, direction));
+                        new PistonBlockEntity(session, position, orientation, sticky, !isExtend));
                 blockEntity.setAction(type, attachedBlocks);
             });
         }
@@ -109,24 +114,5 @@ public class GeyserPistonEvents implements Listener {
 
     private Vector3i getVector(Location location) {
         return Vector3i.from(location.getX(), location.getY(), location.getZ());
-    }
-
-    private Direction getGeyserDirection(BlockFace blockFace) {
-        switch (blockFace) {
-            case DOWN:
-                return Direction.DOWN;
-            case UP:
-                return Direction.UP;
-            case NORTH:
-                return Direction.NORTH;
-            case SOUTH:
-                return Direction.SOUTH;
-            case WEST:
-                return Direction.WEST;
-            case EAST:
-                return Direction.EAST;
-            default:
-                throw new IllegalStateException();
-        }
     }
 }
