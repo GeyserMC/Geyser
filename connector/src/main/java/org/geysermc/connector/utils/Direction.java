@@ -32,11 +32,11 @@ import lombok.NonNull;
 
 public enum Direction {
     DOWN(1, Vector3i.from(0, -1, 0), Axis.Y, PistonValue.DOWN),
-    UP(0, Vector3i.from(0, 1, 0), Axis.Y, PistonValue.UP),
+    UP(0, Vector3i.UNIT_Y, Axis.Y, PistonValue.UP),
     NORTH(3, Vector3i.from(0, 0, -1), Axis.Z, PistonValue.NORTH),
-    SOUTH(2, Vector3i.from(0, 0, 1), Axis.Z, PistonValue.SOUTH),
+    SOUTH(2, Vector3i.UNIT_Z, Axis.Z, PistonValue.SOUTH),
     WEST(5, Vector3i.from(-1, 0, 0), Axis.X, PistonValue.WEST),
-    EAST(4, Vector3i.from(1, 0, 0), Axis.X, PistonValue.EAST);
+    EAST(4, Vector3i.UNIT_X, Axis.X, PistonValue.EAST);
 
     public static final Direction[] VALUES = values();
 

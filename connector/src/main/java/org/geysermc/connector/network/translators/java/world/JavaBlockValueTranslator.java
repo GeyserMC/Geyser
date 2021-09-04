@@ -71,7 +71,7 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             if (session.getConnector().getPlatformType() == PlatformType.SPIGOT) {
                 // Mostly handled in the GeyserPistonEvents class
                 // Retracting sticky pistons is an exception, since the event is not called on Spigot from 1.13.2 - 1.17.1
-                // See https://github.com/PaperMC/Paper/blob/master/patches/server/0304-Fire-BlockPistonRetractEvent-for-all-empty-pistons.patch
+                // See https://github.com/PaperMC/Paper/blob/6fa1983e9ce177a4a412d5b950fd978620174777/patches/server/0304-Fire-BlockPistonRetractEvent-for-all-empty-pistons.patch
                 if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
                     int pistonBlock = session.getConnector().getWorldManager().getBlockAt(session, position);
                     if (!BlockStateValues.isStickyPiston(pistonBlock)) {
