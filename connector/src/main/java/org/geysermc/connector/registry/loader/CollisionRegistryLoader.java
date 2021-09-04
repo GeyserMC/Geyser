@@ -75,12 +75,13 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
             throw new AssertionError("Unable to load collision data", e);
         }
 
-        Int2ObjectMap<BlockMapping> blockMap = BlockRegistries.JAVA_BLOCKS.get();
+        BlockMapping[] blockMappings = BlockRegistries.JAVA_BLOCKS.get();
 
         // Map of unique collisions to its instance
         Map<BlockCollision, BlockCollision> collisionInstances = new Object2ObjectOpenHashMap<>();
-        for (Int2ObjectMap.Entry<BlockMapping> entry : blockMap.int2ObjectEntrySet()) {
-            BlockCollision newCollision = instantiateCollision(entry.getValue(), annotationMap, collisionList);
+        for (int i = 0; i < blockMappings.length; i++) {
+            BlockMapping blockMapping = blockMappings[i];
+            BlockCollision newCollision = instantiateCollision(blockMapping, annotationMap, collisionList);
 
             if (newCollision != null) {
                 // If there's an existing instance equal to this one, use that instead
@@ -92,7 +93,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
                 }
             }
 
-            collisions.put(entry.getIntKey(), newCollision);
+            collisions.put(i, newCollision);
         }
         return collisions;
     }
