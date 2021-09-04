@@ -48,7 +48,7 @@ public final class Scoreboard {
     @Getter
     private final AtomicLong nextId = new AtomicLong(0);
 
-    private final Map<String, Objective> objectives = new HashMap<>();
+    private final Map<String, Objective> objectives = new ConcurrentHashMap<>();
     private final Map<ScoreboardPosition, Objective> objectiveSlots = new HashMap<>();
     private final Map<String, Team> teams = new ConcurrentHashMap<>(); // updated on multiple threads
 

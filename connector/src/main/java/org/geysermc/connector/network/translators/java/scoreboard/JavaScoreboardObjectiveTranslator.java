@@ -51,6 +51,7 @@ public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerSc
 
         Objective objective = scoreboard.getObjective(packet.getName());
         if (objective != null && objective.getUpdateType() != UpdateType.REMOVE && packet.getAction() == ObjectiveAction.ADD) {
+            // matches vanilla behaviour
             logger.warning("An objective with the same name '" + packet.getName() + "' already exists! Ignoring packet");
             return;
         }
