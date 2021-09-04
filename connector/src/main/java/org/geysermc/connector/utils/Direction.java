@@ -28,6 +28,7 @@ package org.geysermc.connector.utils;
 import com.github.steveice10.mc.protocol.data.game.world.block.value.PistonValue;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.Getter;
+import lombok.NonNull;
 
 public enum Direction {
     DOWN(1, Vector3i.from(0, -1, 0), Axis.Y, PistonValue.DOWN),
@@ -66,12 +67,13 @@ public enum Direction {
         return axis == Axis.X || axis == Axis.Z;
     }
 
+    @NonNull
     public static Direction fromPistonValue(PistonValue pistonValue) {
         for (Direction direction : VALUES) {
             if (direction.pistonValue == pistonValue) {
                 return direction;
             }
         }
-        return null;
+        throw new IllegalStateException();
     }
 }

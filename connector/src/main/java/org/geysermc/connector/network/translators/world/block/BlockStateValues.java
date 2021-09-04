@@ -131,8 +131,8 @@ public class BlockStateValues {
                 MOVING_PISTONS.add(javaBlockState);
             } else {
                 PISTON_VALUES.put(javaBlockState, javaId.contains("extended=true"));
-                IS_STICKY_PISTON.put(javaBlockState, javaId.contains("sticky"));
             }
+            IS_STICKY_PISTON.put(javaBlockState, javaId.contains("sticky"));
             PISTON_ORIENTATION.put(javaBlockState, getBlockDirection(javaId));
             return;
         } else if (javaId.startsWith("minecraft:piston_head")) {
