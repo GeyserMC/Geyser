@@ -214,7 +214,7 @@ public class GeyserSession implements CommandSender {
      * See {@link org.geysermc.connector.network.translators.world.WorldManager#getLecternDataAt(GeyserSession, int, int, int, boolean)}
      * for more information.
      */
-    private final Set<Vector3i> lecternCache = new ObjectOpenHashSet<>();
+    private final Set<Vector3i> lecternCache;
 
     @Setter
     private boolean droppingLecternBook;
@@ -474,6 +474,13 @@ public class GeyserSession implements CommandSender {
         this.spawned = false;
         this.loggedIn = false;
 
+        if (connector.getWorldManager().shouldExpectLecternHandled()) {
+            // Unneeded on these platforms
+            this.lecternCache = null;
+        } else {
+            this.lecternCache = new ObjectOpenHashSet<>();
+        }
+
         if (connector.getConfig().getEmoteOffhandWorkaround() != EmoteOffhandWorkaroundOption.NO_EMOTES) {
             this.emotes = new HashSet<>();
             // Make a copy to prevent ConcurrentModificationException
@@ -603,12 +610,15 @@ public class GeyserSession implements CommandSender {
                 connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.invalid", username));
                 disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
             } catch (RequestException ex) {
-                ex.printStackTrace();
                 disconnect(ex.getMessage());
             }
             return null;
         }).whenComplete((aVoid, ex) -> {
+            if (ex != null) {
+                disconnect(ex.toString());
+            }
             if (this.closed) {
+                connector.getLogger().error("", ex);
                 // Client disconnected during the authentication attempt
                 return;
             }

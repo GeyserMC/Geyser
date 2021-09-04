@@ -33,31 +33,31 @@ import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.registry.type.BlockMapping;
 import org.geysermc.connector.utils.Direction;
 import org.geysermc.connector.utils.PistonBehavior;
-
-import java.util.Map;
-import java.util.function.BiFunction;
+import org.geysermc.connector.utils.collections.FixedInt2ByteMap;
+import org.geysermc.connector.utils.collections.FixedInt2IntMap;
+import org.geysermc.connector.utils.collections.LecternHasBookMap;
 
 /**
  * Used for block entities if the Java block state contains Bedrock block information.
  */
 public class BlockStateValues {
-    private static final Int2IntMap BANNER_COLORS = new Int2IntOpenHashMap();
-    private static final Int2ByteMap BED_COLORS = new Int2ByteOpenHashMap();
+    private static final Int2IntMap BANNER_COLORS = new FixedInt2IntMap();
+    private static final Int2ByteMap BED_COLORS = new FixedInt2ByteMap();
     private static final Int2ByteMap COMMAND_BLOCK_VALUES = new Int2ByteOpenHashMap();
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
-    private static final Int2BooleanMap LECTERN_BOOK_STATES = new Int2BooleanOpenHashMap();
-    private static final Int2IntMap NOTEBLOCK_PITCHES = new Int2IntOpenHashMap();
+    private static final LecternHasBookMap LECTERN_BOOK_STATES = new LecternHasBookMap();
+    private static final Int2IntMap NOTEBLOCK_PITCHES = new FixedInt2IntMap();
     private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
     private static final Int2BooleanMap IS_STICKY_PISTON = new Int2BooleanOpenHashMap();
     private static final Object2IntMap<Direction> PISTON_HEADS = new Object2IntOpenHashMap<>();
     private static final Int2ObjectMap<Direction> PISTON_ORIENTATION = new Int2ObjectOpenHashMap<>();
     private static final IntSet ALL_PISTON_HEADS = new IntOpenHashSet();
     private static final IntSet MOVING_PISTONS = new IntOpenHashSet();
-    private static final Int2ByteMap SKULL_VARIANTS = new Int2ByteOpenHashMap();
+    private static final Int2ByteMap SKULL_VARIANTS = new FixedInt2ByteMap();
     private static final Int2ByteMap SKULL_ROTATIONS = new Int2ByteOpenHashMap();
     private static final Int2IntMap SKULL_WALL_DIRECTIONS = new Int2IntOpenHashMap();
-    private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new Int2ByteOpenHashMap();
+    private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new FixedInt2ByteMap();
     private static final Int2IntMap WATER_LEVEL = new Int2IntOpenHashMap();
 
     public static final int JAVA_AIR_ID = 0;
@@ -237,12 +237,9 @@ public class BlockStateValues {
     }
 
     /**
-     * This returns a Map interface so IntelliJ doesn't complain about {@link Int2BooleanMap#compute(int, BiFunction)}
-     * not returning null.
-     *
      * @return the lectern book state map pointing to book present state
      */
-    public static Map<Integer, Boolean> getLecternBookStates() {
+    public static LecternHasBookMap getLecternBookStates() {
         return LECTERN_BOOK_STATES;
     }
 
@@ -407,7 +404,7 @@ public class BlockStateValues {
      * @return The block's slipperiness
      */
     public static float getSlipperiness(int state) {
-        String blockIdentifier = BlockRegistries.JAVA_BLOCKS.get(state).getJavaIdentifier();
+        String blockIdentifier = BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.AIR).getJavaIdentifier();
         switch (blockIdentifier) {
             case "minecraft:slime_block":
                 return 0.8f;
