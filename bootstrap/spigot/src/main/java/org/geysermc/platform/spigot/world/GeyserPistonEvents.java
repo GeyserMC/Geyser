@@ -92,6 +92,13 @@ public class GeyserPistonEvents implements Listener {
                 continue;
             }
 
+            int dX = Math.abs(location.getBlockX() - player.getLocation().getBlockX()) >> 4;
+            int dZ = Math.abs(location.getBlockZ() - player.getLocation().getBlockZ()) >> 4;
+            if ((dX * dX + dZ * dZ) > session.getRenderDistance() * session.getRenderDistance()) {
+                // Ignore pistons outside the player's render distance
+                continue;
+            }
+
             // Trying to grab the blocks from the world like other platforms would result in the moving piston block
             // being returned instead.
             if (!blocksFilled) {
