@@ -56,6 +56,9 @@ public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMe
                     break;
                 case "minecraft:unregister":
                     session.unregisterDownstreamPluginChannels(StringByteUtil.bytes2strings(packet.getData()));
+                    break;
+                default:
+                    //TODO feature: Here we should have a callback for extensions to handle their own plugin messages
             }
         }
     }
