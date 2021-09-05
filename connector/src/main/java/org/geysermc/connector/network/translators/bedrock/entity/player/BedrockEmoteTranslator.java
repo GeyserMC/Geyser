@@ -43,7 +43,6 @@ import java.nio.charset.StandardCharsets;
 
 @Translator(packet = EmotePacket.class)
 public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
-    public static final String JAVA_EMOTE_CHANNEL = "geyser:emote";
 
     @Override
     public void translate(GeyserSession session, EmotePacket packet) {
@@ -58,14 +57,14 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
             }
         }
 
-        if(session.canSendDownstream(JAVA_EMOTE_CHANNEL)){
+        if(session.canSendDownstream(PluginMessageUtils.getEMOTE_CHANNEL())){
             try {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 byte[] emoteId = packet.getEmoteId().getBytes(StandardCharsets.UTF_8);
                 out.write(emoteId.length);
                 out.write(emoteId);
 
-                PluginMessageUtils.sendMessage(session, JAVA_EMOTE_CHANNEL, out.toByteArray());
+                PluginMessageUtils.sendMessage(session, PluginMessageUtils.getEMOTE_CHANNEL(), out.toByteArray());
             }catch (Exception e){
                 e.printStackTrace(); //what to do with this
             }

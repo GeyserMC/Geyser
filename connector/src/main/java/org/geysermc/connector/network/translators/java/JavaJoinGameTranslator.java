@@ -109,6 +109,8 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         if (session.getRemoteAuthType() == AuthType.FLOODGATE) {
             session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:register", PluginMessageUtils.getFloodgateRegisterData()));
         }
+        // we can always do this. vanilla will just ignore it.
+        session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:register", PluginMessageUtils.getEmoteRegisterData()));
 
         if (!newDimension.equals(session.getDimension())) {
             DimensionUtils.switchDimension(session, newDimension);
