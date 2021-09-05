@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.bedrock.entity.player;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
+import com.nukkitx.nbt.util.VarInts;
 import com.nukkitx.protocol.bedrock.packet.EmotePacket;
 import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.entity.Entity;
@@ -35,9 +36,14 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.BlockUtils;
+import org.geysermc.connector.utils.PluginMessageUtils;
+
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 
 @Translator(packet = EmotePacket.class)
 public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
+    public static final String JAVA_EMOTE_CHANNEL = "geyser:emote";
 
     @Override
     public void translate(GeyserSession session, EmotePacket packet) {
@@ -52,14 +58,28 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
             }
         }
 
-        long javaId = session.getPlayerEntity().getEntityId();
-        for (GeyserSession otherSession : session.getConnector().getPlayers()) {
-            if (otherSession != session) {
-                if (otherSession.isClosed()) continue;
-                if (otherSession.getEventLoop().inEventLoop()) {
-                    playEmote(otherSession, javaId, packet.getEmoteId());
-                } else {
-                    session.executeInEventLoop(() -> playEmote(otherSession, javaId, packet.getEmoteId()));
+        if(session.canSendDownstream(JAVA_EMOTE_CHANNEL)){
+            try {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                byte[] emoteId = packet.getEmoteId().getBytes(StandardCharsets.UTF_8);
+                out.write(emoteId.length);
+                out.write(emoteId);
+
+                PluginMessageUtils.sendMessage(session, JAVA_EMOTE_CHANNEL, out.toByteArray());
+            }catch (Exception e){
+                e.printStackTrace(); //what to do with this
+            }
+        }
+        else {
+            long javaId = session.getPlayerEntity().getEntityId();
+            for (GeyserSession otherSession : session.getConnector().getPlayers()) {
+                if (otherSession != session) {
+                    if (otherSession.isClosed()) continue;
+                    if (otherSession.getEventLoop().inEventLoop()) {
+                        playEmote(otherSession, javaId, packet.getEmoteId());
+                    } else {
+                        session.executeInEventLoop(() -> playEmote(otherSession, javaId, packet.getEmoteId()));
+                    }
                 }
             }
         }

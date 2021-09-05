@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.java;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPluginMessagePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPluginMessagePacket;
 import com.google.common.base.Charsets;
+import com.nukkitx.protocol.bedrock.packet.EmotePacket;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -37,6 +38,7 @@ import org.geysermc.cumulus.Form;
 import org.geysermc.cumulus.Forms;
 import org.geysermc.cumulus.util.FormType;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 @Translator(packet = ServerPluginMessagePacket.class)
@@ -57,10 +59,23 @@ public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMe
                 case "minecraft:unregister":
                     session.unregisterDownstreamPluginChannels(StringByteUtil.bytes2strings(packet.getData()));
                     break;
+                case "geyser:emote":
+                    handleEmote(session, packet);
+                    break;
                 default:
                     //TODO feature: Here we should have a callback for extensions to handle their own plugin messages
             }
         }
+    }
+
+    private void handleEmote(GeyserSession session, ServerPluginMessagePacket packet) {
+        EmotePacket emotePacket = new EmotePacket();
+        ByteBuffer byteBuffer = ByteBuffer.wrap(packet.getData());
+        byte[] idBytes = new byte[byteBuffer.get()];
+        byteBuffer.get(idBytes);
+        emotePacket.setEmoteId(new String(idBytes, StandardCharsets.UTF_8));
+        emotePacket.setRuntimeEntityId(session.getEntityCache().getEntityByJavaId(byteBuffer.getLong()).getEntityId());
+        session.sendUpstreamPacket(emotePacket);
     }
 
     void handleFloodgateMessage(GeyserSession session, ServerPluginMessagePacket packet) {
