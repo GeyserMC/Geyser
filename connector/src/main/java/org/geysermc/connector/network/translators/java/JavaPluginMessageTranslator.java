@@ -47,24 +47,23 @@ public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMe
     public void translate(GeyserSession session, ServerPluginMessagePacket packet) {
         // The only plugin messages it has to listen for are Floodgate plugin messages
 
-        String channel = packet.getChannel();
-
-        if (packet.getChannel().equals("floodgate:form") && session.getRemoteAuthType() == AuthType.FLOODGATE) {
-            handleFloodgateMessage(session, packet);
-        } else {
-            switch (packet.getChannel()){
-                case "minecraft:register":
-                    session.registerDownstreamPluginChannels(StringByteUtil.bytes2strings(packet.getData()));
-                    break;
-                case "minecraft:unregister":
-                    session.unregisterDownstreamPluginChannels(StringByteUtil.bytes2strings(packet.getData()));
-                    break;
-                case "geyser:emote":
-                    handleEmote(session, packet);
-                    break;
-                default:
-                    //TODO feature: Here we should have a callback for extensions to handle their own plugin messages
-            }
+        switch (packet.getChannel()) {
+            case "minecraft:register":
+                session.registerDownstreamPluginChannels(StringByteUtil.bytes2strings(packet.getData()));
+                break;
+            case "minecraft:unregister":
+                session.unregisterDownstreamPluginChannels(StringByteUtil.bytes2strings(packet.getData()));
+                break;
+            case "floodgate:form":
+                if (session.getRemoteAuthType() == AuthType.FLOODGATE) {
+                    handleFloodgateMessage(session, packet);
+                }
+                break;
+            case "geyser:emote":
+                handleEmote(session, packet);
+                break;
+            default:
+                //TODO feature: Here we should have a callback for extensions to handle their own plugin messages
         }
     }
 
