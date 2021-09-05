@@ -32,6 +32,7 @@ import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.StringByteUtil;
 import org.geysermc.cumulus.Form;
 import org.geysermc.cumulus.Forms;
 import org.geysermc.cumulus.util.FormType;
@@ -43,38 +44,47 @@ public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMe
     @Override
     public void translate(GeyserSession session, ServerPluginMessagePacket packet) {
         // The only plugin messages it has to listen for are Floodgate plugin messages
-        if (session.getRemoteAuthType() != AuthType.FLOODGATE) {
-            return;
-        }
 
         String channel = packet.getChannel();
 
-        if (channel.equals("floodgate:form")) {
-            byte[] data = packet.getData();
-
-            // receive: first byte is form type, second and third are the id, remaining is the form data
-            // respond: first and second byte id, remaining is form response data
-
-            FormType type = FormType.getByOrdinal(data[0]);
-            if (type == null) {
-                throw new NullPointerException(
-                        "Got type " + data[0] + " which isn't a valid form type!");
+        if (packet.getChannel().equals("floodgate:form") && session.getRemoteAuthType() == AuthType.FLOODGATE) {
+            handleFloodgateMessage(session, packet);
+        } else {
+            switch (packet.getChannel()){
+                case "minecraft:register":
+                    session.registerDownstreamPluginChannels(StringByteUtil.bytes2strings(packet.getData()));
+                    break;
+                case "minecraft:unregister":
+                    session.unregisterDownstreamPluginChannels(StringByteUtil.bytes2strings(packet.getData()));
             }
-
-            String dataString = new String(data, 3, data.length - 3, Charsets.UTF_8);
-
-            Form form = Forms.fromJson(dataString, type);
-            form.setResponseHandler(response -> {
-                byte[] raw = response.getBytes(StandardCharsets.UTF_8);
-                byte[] finalData = new byte[raw.length + 2];
-
-                finalData[0] = data[1];
-                finalData[1] = data[2];
-                System.arraycopy(raw, 0, finalData, 2, raw.length);
-
-                session.sendDownstreamPacket(new ClientPluginMessagePacket(channel, finalData));
-            });
-            session.sendForm(form);
         }
+    }
+
+    void handleFloodgateMessage(GeyserSession session, ServerPluginMessagePacket packet) {
+        byte[] data = packet.getData();
+
+        // receive: first byte is form type, second and third are the id, remaining is the form data
+        // respond: first and second byte id, remaining is form response data
+
+        FormType type = FormType.getByOrdinal(data[0]);
+        if (type == null) {
+            throw new NullPointerException(
+                    "Got type " + data[0] + " which isn't a valid form type!");
+        }
+
+        String dataString = new String(data, 3, data.length - 3, Charsets.UTF_8);
+
+        Form form = Forms.fromJson(dataString, type);
+        form.setResponseHandler(response -> {
+            byte[] raw = response.getBytes(StandardCharsets.UTF_8);
+            byte[] finalData = new byte[raw.length + 2];
+
+            finalData[0] = data[1];
+            finalData[1] = data[2];
+            System.arraycopy(raw, 0, finalData, 2, raw.length);
+
+            session.sendDownstreamPacket(new ClientPluginMessagePacket(packet.getChannel(), finalData));
+        });
+        session.sendForm(form);
     }
 }

@@ -125,6 +125,10 @@ public class GeyserSession implements CommandSender {
     @Setter
     private BedrockClientData clientData;
 
+    /* PluginChannels */
+    @Getter
+    private final HashSet<String> pluginChannels = new HashSet();
+
     /* Setter for GeyserConnect */
     @Setter
     private String remoteAddress;
@@ -1377,5 +1381,17 @@ public class GeyserSession implements CommandSender {
             emoteList.getPieceIds().addAll(pieces);
             player.sendUpstreamPacket(emoteList);
         }
+    }
+
+    public void registerDownstreamPluginChannels(Collection<String> channels){
+        pluginChannels.addAll(channels);
+    }
+
+    public void unregisterDownstreamPluginChannels(Collection<String> channels){
+        pluginChannels.retainAll(channels);
+    }
+
+    public boolean canSendDownstream(String pluginChannelID){
+        return pluginChannels.contains(pluginChannelID);
     }
 }
