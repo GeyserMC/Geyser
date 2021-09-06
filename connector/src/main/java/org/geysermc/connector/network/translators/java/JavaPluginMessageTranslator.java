@@ -73,7 +73,7 @@ public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMe
         byte[] idBytes = new byte[byteBuffer.get()];
         byteBuffer.get(idBytes);
         emotePacket.setEmoteId(new String(idBytes, StandardCharsets.UTF_8));
-        emotePacket.setRuntimeEntityId(session.getEntityCache().getEntityByJavaId(byteBuffer.getLong()).getEntityId());
+        emotePacket.setRuntimeEntityId(session.getEntityCache().getEntityByJavaId(byteBuffer.getLong()).getGeyserId());
         session.sendUpstreamPacket(emotePacket);
     }
 
