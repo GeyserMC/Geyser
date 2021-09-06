@@ -38,6 +38,7 @@ public class StringByteUtil {
 
     /**
      * Convert string(s) to null terminated byte array
+     *
      * @param strings string(s)
      * @return null terminated character array
      */
@@ -50,12 +51,14 @@ public class StringByteUtil {
                 bytes.write(0);
             }
             return bytes.toByteArray();
-        } catch (Exception ignore) {}
+        } catch (Exception ignore) {
+        }
         return null;
     }
 
     /**
      * Convert strings to null terminated byte array
+     *
      * @param strings strings
      * @return null terminated character array
      */
@@ -65,6 +68,7 @@ public class StringByteUtil {
 
     /**
      * Convert byte array to strings
+     *
      * @param bytes byte array
      * @return list of strings. should never be null
      */
