@@ -50,11 +50,11 @@ import org.geysermc.platform.spigot.world.manager.GeyserSpigotWorldManager;
 
 import java.util.List;
 
-public class GeyserPistonEvents implements Listener {
+public class GeyserPistonListener implements Listener {
     private final GeyserConnector connector;
     private final GeyserSpigotWorldManager worldManager;
 
-    public GeyserPistonEvents(GeyserConnector connector, GeyserSpigotWorldManager worldManager) {
+    public GeyserPistonListener(GeyserConnector connector, GeyserSpigotWorldManager worldManager) {
         this.connector = connector;
         this.worldManager = worldManager;
     }

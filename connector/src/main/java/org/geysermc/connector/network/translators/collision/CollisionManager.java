@@ -81,6 +81,14 @@ public class CollisionManager {
      */
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#####", new DecimalFormatSymbols(Locale.ENGLISH));
 
+    private static final double PLAYER_STEP_UP = 0.6;
+
+    /**
+     * The maximum squared distance between a Bedrock players' movement and our predicted movement before
+     * the player is teleported to the correct position
+     */
+    private static final double INCORRECT_MOVEMENT_THRESHOLD = 0.08;
+
     public CollisionManager(GeyserSession session) {
         this.session = session;
         this.playerBoundingBox = new BoundingBox(0, 0, 0, 0.6, 1.8, 0.6);
@@ -161,7 +169,7 @@ public class CollisionManager {
 
         boolean newOnGround = adjustedMovement.getY() != movement.getY() && movement.getY() < 0 || onGround;
         // Send corrected position to Bedrock if they differ by too much to prevent de-syncs
-        if (onGround != newOnGround || movement.distanceSquared(adjustedMovement) > 0.08) {
+        if (onGround != newOnGround || movement.distanceSquared(adjustedMovement) > INCORRECT_MOVEMENT_THRESHOLD) {
             PlayerEntity playerEntity = session.getPlayerEntity();
             if (pistonCache.getPlayerMotion().equals(Vector3f.ZERO) && !pistonCache.isPlayerSlimeCollision()) {
                 playerEntity.moveAbsolute(session, position.toFloat(), playerEntity.getRotation(), newOnGround, true);
@@ -272,7 +280,7 @@ public class CollisionManager {
         if (!checkWorld && session.getPistonCache().getPistons().isEmpty()) { // There is nothing to check
             return movement;
         }
-        return correctMovement(movement, playerBoundingBox, session.getPlayerEntity().isOnGround(), 0.6, checkWorld);
+        return correctMovement(movement, playerBoundingBox, session.getPlayerEntity().isOnGround(), PLAYER_STEP_UP, checkWorld);
     }
 
     public Vector3d correctMovement(Vector3d movement, BoundingBox boundingBox, boolean onGround, double stepUp, boolean checkWorld) {

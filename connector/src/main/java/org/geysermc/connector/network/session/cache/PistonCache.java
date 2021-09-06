@@ -30,6 +30,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
@@ -40,32 +41,31 @@ import org.geysermc.connector.utils.Axis;
 
 import java.util.Map;
 
+@Getter
 public class PistonCache {
+    @Getter(AccessLevel.PRIVATE)
     private final GeyserSession session;
 
     /**
      * Maps the position of a piston to its block entity
      */
-    @Getter
     private final Map<Vector3i, PistonBlockEntity> pistons = new Object2ObjectOpenHashMap<>();
 
     /**
      * Maps the position of a moving block to the piston moving it
      * Positions in this map represent the starting position of the block
      */
-    @Getter
     private final Map<Vector3i, PistonBlockEntity> movingBlocksMap = new Object2ObjectOpenHashMap<>();
 
-    @Getter
     private Vector3d playerDisplacement = Vector3d.ZERO;
 
-    @Getter @Setter
+    @Setter
     private Vector3f playerMotion = Vector3f.ZERO;
 
     /**
      * Stores whether a player has/will collide with any moving blocks.
      */
-    @Getter @Setter
+    @Setter
     private boolean playerCollided = false;
 
     /**
@@ -73,7 +73,7 @@ public class PistonCache {
      * This is used to prevent movement from being corrected when players
      * are about to hit a slime block.
      */
-    @Getter @Setter
+    @Setter
     private boolean playerSlimeCollision = false;
 
     /**
@@ -81,7 +81,7 @@ public class PistonCache {
      * This is used to ignore movement from Bedrock to prevent them from
      * falling off.
      */
-    @Getter @Setter
+    @Setter
     private boolean playerAttachedToHoney = false;
 
     public PistonCache(GeyserSession session) {
@@ -102,9 +102,7 @@ public class PistonCache {
             if (pistons.isEmpty() && !movingBlocksMap.isEmpty()) {
                 session.getConnector().getLogger().error("The moving block map has de-synced!");
                 for (Map.Entry<Vector3i, PistonBlockEntity> entry : movingBlocksMap.entrySet()) {
-                    Vector3i position = entry.getKey();
-                    PistonBlockEntity pistonBlockEntity = entry.getValue();
-                    session.getConnector().getLogger().error("Moving Block at " + position + " was previously owned by the piston at " + pistonBlockEntity.getPosition());
+                    session.getConnector().getLogger().error("Moving Block at " + entry.getKey() + " was previously owned by the piston at " + entry.getValue().getPosition());
                 }
             }
         }
