@@ -28,8 +28,9 @@ package org.geysermc.connector.network.translators.bedrock.entity.player;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
-import com.nukkitx.nbt.util.VarInts;
 import com.nukkitx.protocol.bedrock.packet.EmotePacket;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -57,19 +58,18 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
             }
         }
 
-        if(session.canSendDownstream(PluginMessageUtils.getEMOTE_CHANNEL())){
+        if (session.canSendDownstream(PluginMessageUtils.EMOTE_CHANNEL)) {
             try {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 byte[] emoteId = packet.getEmoteId().getBytes(StandardCharsets.UTF_8);
                 out.write(emoteId.length);
                 out.write(emoteId);
 
-                PluginMessageUtils.sendMessage(session, PluginMessageUtils.getEMOTE_CHANNEL(), out.toByteArray());
-            }catch (Exception e){
-                e.printStackTrace(); //what to do with this
+                PluginMessageUtils.sendMessage(session, PluginMessageUtils.EMOTE_CHANNEL, out.toByteArray());
+            } catch (Exception e) {
+                GeyserConnector.getInstance().getLogger().error("Failed to send emote data downstream!", e);
             }
-        }
-        else {
+        } else {
             long javaId = session.getPlayerEntity().getEntityId();
             for (GeyserSession otherSession : session.getConnector().getPlayers()) {
                 if (otherSession != session) {

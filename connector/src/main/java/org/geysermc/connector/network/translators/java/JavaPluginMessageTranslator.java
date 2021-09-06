@@ -45,14 +45,13 @@ import java.nio.charset.StandardCharsets;
 public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMessagePacket> {
     @Override
     public void translate(GeyserSession session, ServerPluginMessagePacket packet) {
-        // The only plugin messages it has to listen for are Floodgate plugin messages
-
+        // Handle plugin channels
         switch (packet.getChannel()) {
             case "minecraft:register":
-                session.registerDownstreamPluginChannels(StringByteUtil.bytes2strings(packet.getData()));
+                session.registerDownstreamPluginChannels(StringByteUtil.bytesToStrings(packet.getData()));
                 break;
             case "minecraft:unregister":
-                session.unregisterDownstreamPluginChannels(StringByteUtil.bytes2strings(packet.getData()));
+                session.unregisterDownstreamPluginChannels(StringByteUtil.bytesToStrings(packet.getData()));
                 break;
             case "floodgate:form":
                 if (session.getRemoteAuthType() == AuthType.FLOODGATE) {
@@ -69,15 +68,19 @@ public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMe
 
     private void handleEmote(GeyserSession session, ServerPluginMessagePacket packet) {
         EmotePacket emotePacket = new EmotePacket();
+
         ByteBuffer byteBuffer = ByteBuffer.wrap(packet.getData());
         byte[] idBytes = new byte[byteBuffer.get()];
         byteBuffer.get(idBytes);
+
+
         emotePacket.setEmoteId(new String(idBytes, StandardCharsets.UTF_8));
         emotePacket.setRuntimeEntityId(session.getEntityCache().getEntityByJavaId(byteBuffer.getLong()).getGeyserId());
+
         session.sendUpstreamPacket(emotePacket);
     }
 
-    void handleFloodgateMessage(GeyserSession session, ServerPluginMessagePacket packet) {
+    private void handleFloodgateMessage(GeyserSession session, ServerPluginMessagePacket packet) {
         byte[] data = packet.getData();
 
         // receive: first byte is form type, second and third are the id, remaining is the form data

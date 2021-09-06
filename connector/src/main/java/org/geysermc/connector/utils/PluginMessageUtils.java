@@ -26,8 +26,6 @@
 package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPluginMessagePacket;
-import com.google.common.base.Charsets;
-import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -36,21 +34,20 @@ import java.nio.charset.StandardCharsets;
 
 public class PluginMessageUtils {
     private static final String SKIN_CHANNEL = "floodgate:skin";
-    @Getter
-    private static final String EMOTE_CHANNEL = "geyser:emote";
+    public static final String EMOTE_CHANNEL = "geyser:emote";
     private static final byte[] GEYSER_BRAND_DATA;
     private static final byte[] FLOODGATE_REGISTER_DATA;
     private static final byte[] EMOTE_REGISTER_DATA;
 
     static {
-        byte[] data = GeyserConnector.NAME.getBytes(Charsets.UTF_8);
+        byte[] data = GeyserConnector.NAME.getBytes(StandardCharsets.UTF_8);
         GEYSER_BRAND_DATA =
                 ByteBuffer.allocate(data.length + getVarIntLength(data.length))
                         .put(writeVarInt(data.length))
                         .put(data)
                         .array();
 
-        FLOODGATE_REGISTER_DATA = (SKIN_CHANNEL + "\0floodgate:form").getBytes(Charsets.UTF_8);
+        FLOODGATE_REGISTER_DATA = (SKIN_CHANNEL + "\0floodgate:form").getBytes(StandardCharsets.UTF_8);
 
         EMOTE_REGISTER_DATA = (EMOTE_CHANNEL + "\0").getBytes(StandardCharsets.UTF_8);
     }

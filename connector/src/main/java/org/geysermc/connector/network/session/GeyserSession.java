@@ -127,7 +127,7 @@ public class GeyserSession implements CommandSender {
 
     /* PluginChannels */
     @Getter
-    private final HashSet<String> pluginChannels = new HashSet();
+    private final Set<String> pluginChannels = new HashSet<>();
 
     /* Setter for GeyserConnect */
     @Setter
