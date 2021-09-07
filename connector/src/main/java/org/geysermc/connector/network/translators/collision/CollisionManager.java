@@ -129,7 +129,7 @@ public class CollisionManager {
 
     /**
      * Adjust the Bedrock position before sending to the Java server to account for inaccuracies in movement between
-     * the two versions. Will also send corrected movement packets back to bedrock if they collide with pistons.
+     * the two versions. Will also send corrected movement packets back to Bedrock if they collide with pistons.
      *
      * @param bedrockPosition the current Bedrock position of the client
      * @param onGround whether the Bedrock player is on the ground
@@ -342,7 +342,7 @@ public class CollisionManager {
             boundingBox.translate(0, movementY, 0);
         }
         boolean checkZFirst = Math.abs(movementZ) > Math.abs(movementX);
-        if (Math.abs(movementZ) > CollisionManager.COLLISION_TOLERANCE && checkZFirst) {
+        if (checkZFirst && Math.abs(movementZ) > CollisionManager.COLLISION_TOLERANCE) {
             movementZ = computeCollisionOffset(boundingBox, Axis.Z, movementZ, collidableBlocks, checkWorld);
             boundingBox.translate(0, 0, movementZ);
         }
@@ -350,7 +350,7 @@ public class CollisionManager {
             movementX = computeCollisionOffset(boundingBox, Axis.X, movementX, collidableBlocks, checkWorld);
             boundingBox.translate(movementX, 0, 0);
         }
-        if (Math.abs(movementZ) > CollisionManager.COLLISION_TOLERANCE && !checkZFirst) {
+        if (!checkZFirst && Math.abs(movementZ) > CollisionManager.COLLISION_TOLERANCE) {
             movementZ = computeCollisionOffset(boundingBox, Axis.Z, movementZ, collidableBlocks, checkWorld);
             boundingBox.translate(0, 0, movementZ);
         }

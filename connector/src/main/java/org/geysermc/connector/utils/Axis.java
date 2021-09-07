@@ -32,6 +32,10 @@ public enum Axis {
 
     public static final Axis[] VALUES = values();
 
+    /**
+     * @param vector The vector
+     * @return The component of the vector in this axis
+     */
     public double choose(Vector3d vector) {
         switch (this) {
             case X:

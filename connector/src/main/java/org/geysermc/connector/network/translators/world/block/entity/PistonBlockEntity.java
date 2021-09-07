@@ -383,17 +383,17 @@ public class PistonBlockEntity {
         // Resolve collision with any attached moving blocks, but skip slime blocks
         // This prevents players from being launched by slime blocks covered by other blocks
         for (Object2IntMap.Entry<Vector3i> entry : attachedBlocks.object2IntEntrySet()) {
-            Vector3d blockPos = entry.getKey().toDouble();
             int blockId = entry.getIntValue();
             if (blockId != BlockStateValues.JAVA_SLIME_BLOCK_ID) {
+                Vector3d blockPos = entry.getKey().toDouble();
                 pushPlayerBlock(blockId, blockPos, blockMovement, playerBoundingBox);
             }
         }
         // Resolve collision with slime blocks
         for (Object2IntMap.Entry<Vector3i> entry : attachedBlocks.object2IntEntrySet()) {
-            Vector3d blockPos = entry.getKey().toDouble();
             int blockId = entry.getIntValue();
             if (blockId == BlockStateValues.JAVA_SLIME_BLOCK_ID) {
+                Vector3d blockPos = entry.getKey().toDouble();
                 pushPlayerBlock(blockId, blockPos, blockMovement, playerBoundingBox);
             }
         }
@@ -640,7 +640,7 @@ public class PistonBlockEntity {
         attachedBlocks.forEach((blockPos, javaId) -> {
             blockPos = blockPos.add(movement);
             // Send a final block entity packet to detach blocks
-            BlockEntityUtils.updateBlockEntity(session, buildMovingBlockTag(blockPos, javaId, Vector3i.from(0, -1, 0)), blockPos);
+            BlockEntityUtils.updateBlockEntity(session, buildMovingBlockTag(blockPos, javaId, Direction.DOWN.getUnitVector()), blockPos);
             // Don't place blocks that collide with the player
             if (!SOLID_BOUNDING_BOX.checkIntersection(blockPos.toDouble(), session.getCollisionManager().getPlayerBoundingBox())) {
                 ChunkUtils.updateBlock(session, javaId, blockPos);

@@ -25,6 +25,8 @@
 
 package org.geysermc.connector.utils;
 
+import java.util.Locale;
+
 public enum PistonBehavior {
     NORMAL,
     BLOCK,
@@ -34,7 +36,7 @@ public enum PistonBehavior {
     public static final PistonBehavior[] VALUES = values();
 
     public static PistonBehavior getByName(String name) {
-        String upperCase = name.toUpperCase();
+        String upperCase = name.toUpperCase(Locale.ROOT);
         for (PistonBehavior type : VALUES) {
             if (type.name().equals(upperCase)) {
                 return type;

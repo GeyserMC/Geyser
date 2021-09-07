@@ -43,6 +43,10 @@ public class BlockCollision {
     @EqualsAndHashCode.Exclude
     protected final ThreadLocal<Vector3i> position;
 
+    /**
+     * Store a Vector3d to allow the collision to be offset by a fractional amount
+     * This is used only in {@link #checkIntersection(BoundingBox)} and {@link #computeCollisionOffset(BoundingBox, Axis, double)}
+     */
     @EqualsAndHashCode.Exclude
     protected final ThreadLocal<Vector3d> positionOffset;
 
