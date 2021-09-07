@@ -1383,15 +1383,15 @@ public class GeyserSession implements CommandSender {
         }
     }
 
-    public void registerDownstreamPluginChannels(Collection<String> channels){
+    public void registerDownstreamPluginChannels(Collection<String> channels) {
         pluginChannels.addAll(channels);
     }
 
-    public void unregisterDownstreamPluginChannels(Collection<String> channels){
+    public void unregisterDownstreamPluginChannels(Collection<String> channels) {
         pluginChannels.retainAll(channels);
     }
 
-    public boolean canSendDownstream(String pluginChannelID){
+    public boolean canSendDownstream(String pluginChannelID) {
         return pluginChannels.contains(pluginChannelID);
     }
 }

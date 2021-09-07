@@ -30,7 +30,6 @@ import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
 import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
 import com.nukkitx.protocol.bedrock.packet.EmotePacket;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;

@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.utils;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,17 +42,7 @@ public class StringByteUtil {
      * @return null terminated character array
      */
     public static byte[] stringToBytes(String... strings) {
-        try {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            for (String s : strings) {
-                byte[] bytes1 = s.getBytes(StandardCharsets.UTF_8);
-                bytes.write(bytes1);
-                bytes.write(0);
-            }
-            return bytes.toByteArray();
-        } catch (Exception ignore) {
-        }
-        return null;
+        return String.join("\0", strings).getBytes(StandardCharsets.UTF_8);
     }
 
     /**
@@ -68,9 +57,10 @@ public class StringByteUtil {
 
     /**
      * Convert byte array to strings
+     * If there are no strings, it will return with an empty list.
      *
      * @param bytes byte array
-     * @return list of strings. should never be null
+     * @return list of strings
      */
     public static List<String> bytesToStrings(byte[] bytes) {
         int stringEnd = 0;
@@ -85,7 +75,7 @@ public class StringByteUtil {
             if (stringEnd > stringStart) {
                 strings.add(new String(bytes, stringStart, stringEnd - stringStart, StandardCharsets.UTF_8));
             }
-            stringStart = ++stringEnd; //stringEnd is on a null character. we'll start with a non-null (next)
+            stringStart = ++stringEnd; // stringEnd is on a null character. We'll start with a non-null (next).
 
             if (stringEnd >= bytes.length) return strings;
         }
