@@ -27,11 +27,10 @@ package org.geysermc.connector.network.translators.chat;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.translation.Translator;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.connector.utils.LocaleUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -42,18 +41,21 @@ import java.util.regex.Pattern;
  * Used in MessageTranslator.java as part of the KyoriPowered/Adventure library
  */
 public class MinecraftTranslationRegistry implements Translator {
+    private final Pattern stringReplacement = Pattern.compile("%s");
+    private final Pattern positionalStringReplacement = Pattern.compile("%([0-9]+)\\$s");
+
     @Override
     public @Nonnull Key name() {
         return Key.key("geyser", "minecraft_translations");
     }
 
     @Override
-    public @Nullable MessageFormat translate(@NonNull String key, @NonNull Locale locale) {
+    public @Nullable MessageFormat translate(@Nonnull String key, @Nonnull Locale locale) {
         // Get the locale string
         String localeString = LocaleUtils.getLocaleString(key, locale.toString());
 
         // Replace the `%s` with numbered inserts `{0}`
-        Pattern p = Pattern.compile("%s");
+        Pattern p = stringReplacement;
         Matcher m = p.matcher(localeString);
         StringBuffer sb = new StringBuffer();
         int i = 0;
@@ -63,7 +65,7 @@ public class MinecraftTranslationRegistry implements Translator {
         m.appendTail(sb);
 
         // Replace the `%x$s` with numbered inserts `{x}`
-        p = Pattern.compile("%([0-9]+)\\$s");
+        p = positionalStringReplacement;
         m = p.matcher(sb.toString());
         sb = new StringBuffer();
         while (m.find()) {

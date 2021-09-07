@@ -44,6 +44,7 @@ import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
@@ -150,6 +151,7 @@ public class GeyserConnector {
         Registries.init();
 
         ItemTranslator.init();
+        MessageTranslator.init();
         LocaleUtils.init();
 
         ResourcePack.loadPacks();
