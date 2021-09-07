@@ -34,7 +34,7 @@ import java.util.List;
 
 public class StringUtilTests {
 
-    final byte[] byteMsg1 = new byte[] {72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33, 0}; // Hello world!
+    final byte[] byteMsg1 = new byte[] {72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33}; // Hello world!
     final String stringMsg1 = "Hello world!";
 
     //A minecraft:register message content, last string is NOT null-terminated.
@@ -46,8 +46,6 @@ public class StringUtilTests {
     // emotecraft:emote
     final List<String> msg2 = new ArrayList<>();
 
-    byte[] byteMsg2Terminated;
-
     @Before
     public void prepMsg2() {
         msg2.clear();
@@ -55,22 +53,18 @@ public class StringUtilTests {
         msg2.add("fabric:registry/sync");
         msg2.add("fabric-screen-handler-api-v1:open_screen");
         msg2.add("emotecraft:emote");
-
-        byteMsg2Terminated = new byte[byteMsg2.length + 1];
-        System.arraycopy(byteMsg2, 0, byteMsg2Terminated, 0, byteMsg2.length);
-        byteMsg2Terminated[byteMsg2Terminated.length - 1] = 0;
     }
 
     @Test
     public void testStrings2bytes() {
         Assert.assertArrayEquals(byteMsg1, StringByteUtil.stringToBytes(stringMsg1));
-        Assert.assertArrayEquals(byteMsg2Terminated, StringByteUtil.stringToBytes(msg2));
+        Assert.assertArrayEquals(byteMsg2, StringByteUtil.stringToBytes(msg2));
     }
 
     @Test
     public void testBytes2String() {
         Assert.assertEquals(stringMsg1, StringByteUtil.bytesToStrings(byteMsg1).get(0));
-        Assert.assertEquals(msg2, StringByteUtil.bytesToStrings(byteMsg2Terminated));
+        Assert.assertEquals(msg2, StringByteUtil.bytesToStrings(byteMsg2));
         Assert.assertEquals(msg2, StringByteUtil.bytesToStrings(byteMsg2));
     }
 }
