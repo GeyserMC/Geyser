@@ -74,6 +74,7 @@ public class MinecraftTranslationRegistry implements Translator {
         }
         m.appendTail(sb);
 
-        return new MessageFormat(sb.toString(), locale);
+        // replace single quote instances which get lost in MessageFormat otherwise
+        return new MessageFormat(sb.toString().replace("'", "''"), locale);
     }
 }
