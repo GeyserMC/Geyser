@@ -105,15 +105,12 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
 
         session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:brand", PluginMessageUtils.getGeyserBrandData()));
 
-        // register the plugin messaging channels used in Floodgate
+        // Register the plugin messaging channels used in Floodgate and emotes
         if (session.getRemoteAuthType() == AuthType.FLOODGATE) {
             session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:register", PluginMessageUtils.getFloodgateRegisterData()));
         } else {
             session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:register", PluginMessageUtils.getEmoteRegisterData()));
         }
-
-        // we can always do this. vanilla will just ignore it.
-        session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:register", PluginMessageUtils.getEmoteRegisterData()));
 
         if (!newDimension.equals(session.getDimension())) {
             DimensionUtils.switchDimension(session, newDimension);
