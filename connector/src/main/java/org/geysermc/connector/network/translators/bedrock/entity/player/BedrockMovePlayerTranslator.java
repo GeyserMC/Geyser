@@ -74,7 +74,6 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         session.getBookEditCache().checkForSend();
 
         session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityType.PLAYER.getOffset(), 0));
-
         // head yaw, pitch, head yaw
         Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
 

@@ -46,6 +46,6 @@ public class JavaInitializeBorderTranslator extends PacketTranslator<ServerIniti
         worldBorder.setWarningBlocks(packet.getWarningBlocks());
         worldBorder.setResizing(packet.getLerpTime() > 0);
 
-        session.getWorldBorder().update();
+        worldBorder.update();
     }
 }
