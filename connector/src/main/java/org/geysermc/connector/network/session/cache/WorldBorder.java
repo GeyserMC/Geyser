@@ -95,6 +95,11 @@ public class WorldBorder {
     private double warningMinZ = 0.0D;
 
     /**
+     * To track when to send wall particle packets.
+     */
+    private int currentWallTick;
+
+    /**
      * If the world border is resizing, this variable saves how many ticks have progressed in the resizing
      */
     private long lastUpdatedWorldBorderTime = 0;
@@ -205,6 +210,11 @@ public class WorldBorder {
      * Draws a wall of particles where the world border resides
      */
     public void drawWall() {
+        if (currentWallTick++ != 20) {
+            // Only draw a wall once every second
+            return;
+        }
+        currentWallTick = 0;
         Vector3f entityPosition = session.getPlayerEntity().getPosition();
         float particlePosX = entityPosition.getX();
         float particlePosY = entityPosition.getY();

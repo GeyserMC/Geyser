@@ -73,7 +73,6 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
-import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
@@ -938,17 +937,6 @@ public class GeyserSession implements CommandSender {
             if (!worldBorder.isWithinWarningBoundaries()) {
                 // Show particles representing where the world border is
                 worldBorder.drawWall();
-                // Send message explaining what is going on
-                SetTitlePacket setTitlePacket = new SetTitlePacket();
-                setTitlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
-                setTitlePacket.setText(ChatColor.BOLD + ChatColor.RED +
-                        LanguageUtils.getPlayerLocaleString("geyser.network.translator.world_border.too_close", getLocale()));
-                setTitlePacket.setStayTime(1);
-                setTitlePacket.setFadeInTime(1);
-                setTitlePacket.setFadeOutTime(1);
-                setTitlePacket.setXuid("");
-                setTitlePacket.setPlatformOnlineId("");
-                sendUpstreamPacket(setTitlePacket);
                 // Set the mood
                 if (!isInWorldBorderWarningArea) {
                     isInWorldBorderWarningArea = true;
