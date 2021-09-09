@@ -662,7 +662,8 @@ public class GeyserSession implements CommandSender {
             connectDownstream();
         } catch (RequestException e) {
             if (!(e instanceof AuthPendingException)) {
-                throw new RuntimeException("Failed to log in with Microsoft code!", e);
+                connector.getLogger().error("Failed to log in with Microsoft code!", e);
+                disconnect(e.toString());
             } else {
                 // Wait one second before trying again
                 connector.getGeneralThreadPool().schedule(() -> attemptCodeAuthentication(msaAuthenticationService), 1, TimeUnit.SECONDS);
