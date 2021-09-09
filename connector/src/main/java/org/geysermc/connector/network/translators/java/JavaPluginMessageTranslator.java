@@ -33,6 +33,7 @@ import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.PluginMessageUtils;
 import org.geysermc.connector.utils.StringByteUtil;
 import org.geysermc.cumulus.Form;
 import org.geysermc.cumulus.Forms;
@@ -48,10 +49,14 @@ public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMe
         // Handle plugin channels
         switch (packet.getChannel()) {
             case "minecraft:register":
-                session.registerDownstreamPluginChannels(StringByteUtil.bytesToStrings(packet.getData()));
+                if (StringByteUtil.bytesToStrings(packet.getData()).contains(PluginMessageUtils.EMOTE_CHANNEL)) {
+                    session.setEmoteChannelOpen(true);
+                }
                 break;
             case "minecraft:unregister":
-                session.unregisterDownstreamPluginChannels(StringByteUtil.bytesToStrings(packet.getData()));
+                if (StringByteUtil.bytesToStrings(packet.getData()).contains(PluginMessageUtils.EMOTE_CHANNEL)) {
+                    session.setEmoteChannelOpen(false);
+                }
                 break;
             case "floodgate:form":
                 if (session.getRemoteAuthType() == AuthType.FLOODGATE) {

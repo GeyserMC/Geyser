@@ -57,7 +57,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
             }
         }
 
-        if (session.canSendDownstream(PluginMessageUtils.EMOTE_CHANNEL)) {
+        if (session.isEmoteChannelOpen()) {
             try {
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 byte[] emoteId = packet.getEmoteId().getBytes(StandardCharsets.UTF_8);

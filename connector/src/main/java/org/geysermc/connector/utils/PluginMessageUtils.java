@@ -47,9 +47,9 @@ public class PluginMessageUtils {
                         .put(data)
                         .array();
 
-        FLOODGATE_REGISTER_DATA = (SKIN_CHANNEL + "\0floodgate:form").getBytes(StandardCharsets.UTF_8);
+        FLOODGATE_REGISTER_DATA = (EMOTE_CHANNEL + "\0" + SKIN_CHANNEL + "\0floodgate:form").getBytes(StandardCharsets.UTF_8);
 
-        EMOTE_REGISTER_DATA = (EMOTE_CHANNEL + "\0").getBytes(StandardCharsets.UTF_8);
+        EMOTE_REGISTER_DATA = (EMOTE_CHANNEL).getBytes(StandardCharsets.UTF_8);
     }
 
     /**
@@ -64,10 +64,19 @@ public class PluginMessageUtils {
     /**
      * Get the prebuilt register data as a byte array
      *
-     * @return the register data of the Floodgate channels
+     * @return the register data of the emote channel and the Floodgate channels
      */
     public static byte[] getFloodgateRegisterData() {
         return FLOODGATE_REGISTER_DATA;
+    }
+
+    /**
+     * Get the prebuilt register data as a byte array
+     *
+     * @return the register data of only emote channel
+     */
+    public static byte[] getEmoteRegisterData() {
+        return EMOTE_REGISTER_DATA;
     }
 
     /**
@@ -107,9 +116,5 @@ public class PluginMessageUtils {
             return 4;
         }
         return 5;
-    }
-
-    public static byte[] getEmoteRegisterData() {
-        return EMOTE_REGISTER_DATA;
     }
 }
