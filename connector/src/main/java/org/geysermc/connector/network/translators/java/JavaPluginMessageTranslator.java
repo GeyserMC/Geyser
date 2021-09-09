@@ -28,6 +28,9 @@ package org.geysermc.connector.network.translators.java;
 import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPluginMessagePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPluginMessagePacket;
 import com.google.common.base.Charsets;
+import com.nukkitx.protocol.bedrock.packet.TransferPacket;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -40,6 +43,8 @@ import java.nio.charset.StandardCharsets;
 
 @Translator(packet = ServerPluginMessagePacket.class)
 public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMessagePacket> {
+    private final GeyserLogger logger = GeyserConnector.getInstance().getLogger();
+
     @Override
     public void translate(GeyserSession session, ServerPluginMessagePacket packet) {
         // The only plugin messages it has to listen for are Floodgate plugin messages
@@ -75,6 +80,27 @@ public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMe
                 session.sendDownstreamPacket(new ClientPluginMessagePacket(channel, finalData));
             });
             session.sendForm(form);
+
+        } else if (channel.equals("floodgate:transfer")) {
+            byte[] data = packet.getData();
+
+            // port, 4 bytes. remaining data, address.
+
+            if (data.length < 5) {
+                throw new NullPointerException("Transfer data should be at least 5 bytes long");
+            }
+
+            int port = data[0] << 24 | (data[1] & 0xFF) << 16 | (data[2] & 0xFF) << 8 | data[3] & 0xFF;
+            String address = new String(data, 4, data.length - 4);
+
+            if (logger.isDebug()) {
+                logger.info("Transferring client to: " + address + ":" + port);
+            }
+
+            TransferPacket transferPacket = new TransferPacket();
+            transferPacket.setAddress(address);
+            transferPacket.setPort(port);
+            session.sendUpstreamPacket(transferPacket);
         }
     }
 }
