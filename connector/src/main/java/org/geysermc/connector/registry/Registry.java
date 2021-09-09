@@ -64,7 +64,7 @@ import java.util.function.Consumer;
  * @param <M> the value being held by the registry
  */
 public abstract class Registry<M> {
-    protected final M mappings;
+    protected M mappings;
 
     /**
      * Creates a new instance of this class with the given input and
@@ -86,6 +86,17 @@ public abstract class Registry<M> {
      */
     public M get() {
         return this.mappings;
+    }
+
+    /**
+     * Sets the underlying value held by this registry.
+     * Clears any existing data associated with the previous
+     * value.
+     *
+     * @param mappings the underlying value held by this registry
+     */
+    public void set(M mappings) {
+        this.mappings = mappings;
     }
 
     /**

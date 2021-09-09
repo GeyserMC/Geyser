@@ -30,10 +30,8 @@ import com.google.common.collect.ImmutableMap;
 import com.nukkitx.nbt.*;
 import com.nukkitx.protocol.bedrock.v440.Bedrock_v440;
 import com.nukkitx.protocol.bedrock.v448.Bedrock_v448;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -139,11 +137,12 @@ public class BlockRegistryPopulator {
 
             BiFunction<String, NbtMapBuilder, String> stateMapper = STATE_MAPPER.getOrDefault(palette.getKey(), (i, s) -> null);
 
-            IntList javaToBedrockBlockMap = new IntArrayList();
-            Int2IntMap bedrockToJavaBlockMap = new Int2IntOpenHashMap();
+            int[] javaToBedrockBlocks = new int[BLOCKS_JSON.size()];
 
             Map<String, NbtMap> flowerPotBlocks = new Object2ObjectOpenHashMap<>();
             Object2IntMap<NbtMap> itemFrames = new Object2IntOpenHashMap<>();
+
+            IntSet jigsawStateIds = new IntOpenHashSet();
 
             BlockMappings.BlockMappingsBuilder builder = BlockMappings.builder();
             while (blocksIterator.hasNext()) {
@@ -169,15 +168,16 @@ public class BlockRegistryPopulator {
                         break;
                 }
 
+                if (javaId.contains("jigsaw")) {
+                    jigsawStateIds.add(bedrockRuntimeId);
+                }
+
                 boolean waterlogged = entry.getKey().contains("waterlogged=true")
                         || javaId.contains("minecraft:bubble_column") || javaId.contains("minecraft:kelp") || javaId.contains("seagrass");
 
                 if (waterlogged) {
-                    bedrockToJavaBlockMap.putIfAbsent(bedrockRuntimeId | 1 << 31, javaRuntimeId);
                     int finalJavaRuntimeId = javaRuntimeId;
                     BlockRegistries.WATERLOGGED.register(set -> set.add(finalJavaRuntimeId));
-                } else {
-                    bedrockToJavaBlockMap.putIfAbsent(bedrockRuntimeId, javaRuntimeId);
                 }
 
                 String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(entry.getKey());
@@ -191,7 +191,7 @@ public class BlockRegistryPopulator {
                     javaIdentifierToBedrockTag.put(cleanJavaIdentifier.intern(), blocksTag.get(bedrockRuntimeId));
                 }
 
-                javaToBedrockBlockMap.add(bedrockRuntimeId);
+                javaToBedrockBlocks[javaRuntimeId] = bedrockRuntimeId;
             }
 
             if (commandBlockRuntimeId == -1) {
@@ -220,11 +220,11 @@ public class BlockRegistryPopulator {
 
             BlockRegistries.BLOCKS.register(PALETTE_VERSIONS.getInt(palette.getKey()), builder.blockStateVersion(stateVersion)
                     .emptyChunkSection(new ChunkSection(new BlockStorage[]{new BlockStorage(airRuntimeId)}))
-                    .javaToBedrockBlockMap(javaToBedrockBlockMap.toIntArray())
-                    .bedrockToJavaBlockMap(bedrockToJavaBlockMap)
+                    .javaToBedrockBlocks(javaToBedrockBlocks)
                     .javaIdentifierToBedrockTag(javaIdentifierToBedrockTag)
                     .itemFrames(itemFrames)
                     .flowerPotBlocks(flowerPotBlocks)
+                    .jigsawStateIds(jigsawStateIds)
                     .build());
         }
     }
@@ -238,6 +238,8 @@ public class BlockRegistryPopulator {
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java block mappings", e);
         }
+
+        BlockRegistries.JAVA_BLOCKS.set(new BlockMapping[blocksJson.size()]); // Set array size to number of blockstates
 
         Set<String> cleanIdentifiers = new HashSet<>();
 

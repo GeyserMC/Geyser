@@ -146,6 +146,7 @@ public class GeyserSession implements CommandSender {
     private EntityCache entityCache;
     private EntityEffectCache effectCache;
     private final FormCache formCache;
+    private final LodestoneCache lodestoneCache;
     private final PreferencesCache preferencesCache;
     private final TagCache tagCache;
     private WorldCache worldCache;
@@ -450,6 +451,7 @@ public class GeyserSession implements CommandSender {
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
         this.formCache = new FormCache(this);
+        this.lodestoneCache = new LodestoneCache();
         this.preferencesCache = new PreferencesCache(this);
         this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
@@ -664,7 +666,8 @@ public class GeyserSession implements CommandSender {
             connectDownstream();
         } catch (RequestException e) {
             if (!(e instanceof AuthPendingException)) {
-                throw new RuntimeException("Failed to log in with Microsoft code!", e);
+                connector.getLogger().error("Failed to log in with Microsoft code!", e);
+                disconnect(e.toString());
             } else {
                 // Wait one second before trying again
                 connector.getGeneralThreadPool().schedule(() -> attemptCodeAuthentication(msaAuthenticationService), 1, TimeUnit.SECONDS);
@@ -844,7 +847,7 @@ public class GeyserSession implements CommandSender {
                 // This issue could be mitigated down the line by preventing Bungee from setting compression
                 downstream.setFlag(BuiltinFlags.USE_ONLY_DIRECT_BUFFERS, connector.getPlatformType() == PlatformType.BUNGEECORD);
 
-                downstream.connectInternal(connector.getBootstrap().getSocketAddress(), upstream.getAddress().getAddress().getHostAddress(), true);
+                downstream.connectInternal(connector.getBootstrap().getSocketAddress(), upstream.getAddress().getAddress().getHostAddress());
                 internalConnect = true;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -1262,8 +1265,11 @@ public class GeyserSession implements CommandSender {
         if (!closed && this.downstream != null) {
             Channel channel = this.downstream.getChannel();
             if (channel == null) {
-                // Channel is set to null when downstream is disconnected - there is a short window for this to happen
-                // as downstream doesn't call GeyserSession#disconnect
+                // Channel is only null before the connection has initialized
+                connector.getLogger().warning("Tried to send a packet to the Java server too early!");
+                if (connector.getConfig().isDebugMode()) {
+                    Thread.dumpStack();
+                }
                 return;
             }
 

@@ -57,6 +57,7 @@ import java.security.KeyPairGenerator;
 import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
+import java.util.Iterator;
 import java.util.UUID;
 
 public class LoginEncryptionUtils {
@@ -70,8 +71,10 @@ public class LoginEncryptionUtils {
         }
 
         ECPublicKey lastKey = null;
-        boolean validChain = false;
-        for (JsonNode node : data) {
+        boolean mojangSigned = false;
+        Iterator<JsonNode> iterator = data.iterator();
+        while (iterator.hasNext()) {
+            JsonNode node = iterator.next();
             JWSObject jwt = JWSObject.parse(node.asText());
 
             // x509 cert is expected in every claim
@@ -92,8 +95,12 @@ public class LoginEncryptionUtils {
                 return false;
             }
 
+            if (mojangSigned) {
+                return !iterator.hasNext();
+            }
+
             if (lastKey.equals(EncryptionUtils.getMojangPublicKey())) {
-                validChain = true;
+                mojangSigned = true;
             }
 
             Object payload = JSONValue.parse(jwt.getPayload().toString());
@@ -104,7 +111,7 @@ public class LoginEncryptionUtils {
             lastKey = EncryptionUtils.generateKey((String) identityPublicKey);
         }
 
-        return validChain;
+        return mojangSigned;
     }
 
     public static void encryptPlayerConnection(GeyserSession session, LoginPacket loginPacket) {
