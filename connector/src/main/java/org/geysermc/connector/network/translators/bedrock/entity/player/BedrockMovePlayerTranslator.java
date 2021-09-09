@@ -75,10 +75,6 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityType.PLAYER.getOffset(), 0));
 
-        if (session.getWorldBorder().isPassingIntoBorderBoundaries(packet.getPosition(), true)) {
-            return;
-        }
-
         // head yaw, pitch, head yaw
         Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
 
@@ -97,6 +93,10 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
             session.sendDownstreamPacket(playerRotationPacket);
         } else {
+            if (session.getWorldBorder().isPassingIntoBorderBoundaries(packet.getPosition(), true)) {
+                return;
+            }
+
             Vector3d position = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), packet.isOnGround());
             if (position != null) { // A null return value cancels the packet
                 if (isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
