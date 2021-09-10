@@ -322,7 +322,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             session.sendDownstreamPacket(attackPacket);
                             break;
                         }
-                        
+
                         PlayerAction action = session.getGameMode() == GameMode.CREATIVE ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING;
                         Position pos = new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());
                         ClientPlayerActionPacket breakPacket = new ClientPlayerActionPacket(action, pos, BlockFace.values()[packet.getBlockFace()]);
