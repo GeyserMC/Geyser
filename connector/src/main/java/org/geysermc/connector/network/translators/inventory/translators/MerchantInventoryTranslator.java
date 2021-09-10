@@ -56,42 +56,32 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public int javaSlotToBedrock(int slot) {
-        switch (slot) {
-            case 0:
-                return 4;
-            case 1:
-                return 5;
-            case 2:
-                return 50;
-        }
-        return super.javaSlotToBedrock(slot);
+        return switch (slot) {
+            case 0 -> 4;
+            case 1 -> 5;
+            case 2 -> 50;
+            default -> super.javaSlotToBedrock(slot);
+        };
     }
 
     @Override
     public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
-        switch (slot) {
-            case 0:
-                return new BedrockContainerSlot(ContainerSlotType.TRADE2_INGREDIENT1, 4);
-            case 1:
-                return new BedrockContainerSlot(ContainerSlotType.TRADE2_INGREDIENT2, 5);
-            case 2:
-                return new BedrockContainerSlot(ContainerSlotType.TRADE2_RESULT, 50);
-        }
-        return super.javaSlotToBedrockContainer(slot);
+        return switch (slot) {
+            case 0 -> new BedrockContainerSlot(ContainerSlotType.TRADE2_INGREDIENT1, 4);
+            case 1 -> new BedrockContainerSlot(ContainerSlotType.TRADE2_INGREDIENT2, 5);
+            case 2 -> new BedrockContainerSlot(ContainerSlotType.TRADE2_RESULT, 50);
+            default -> super.javaSlotToBedrockContainer(slot);
+        };
     }
 
     @Override
     public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
-        switch (slotInfoData.getContainer()) {
-            case TRADE2_INGREDIENT1:
-                return 0;
-            case TRADE2_INGREDIENT2:
-                return 1;
-            case TRADE2_RESULT:
-            case CREATIVE_OUTPUT:
-                return 2;
-        }
-        return super.bedrockSlotToJava(slotInfoData);
+        return switch (slotInfoData.getContainer()) {
+            case TRADE2_INGREDIENT1 -> 0;
+            case TRADE2_INGREDIENT2 -> 1;
+            case TRADE2_RESULT, CREATIVE_OUTPUT -> 2;
+            default -> super.bedrockSlotToJava(slotInfoData);
+        };
     }
 
     @Override

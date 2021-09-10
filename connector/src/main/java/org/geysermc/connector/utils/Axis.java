@@ -37,14 +37,10 @@ public enum Axis {
      * @return The component of the vector in this axis
      */
     public double choose(Vector3d vector) {
-        switch (this) {
-            case X:
-                return vector.getX();
-            case Y:
-                return vector.getY();
-            case Z:
-                return vector.getZ();
-        }
-        return -1;
+        return switch (this) {
+            case X -> vector.getX();
+            case Y -> vector.getY();
+            case Z -> vector.getZ();
+        };
     }
 }

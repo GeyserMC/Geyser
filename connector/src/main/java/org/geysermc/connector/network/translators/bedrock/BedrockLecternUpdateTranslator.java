@@ -61,12 +61,11 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
             session.sendDownstreamPacket(blockPacket);
         } else {
             // Bedrock wants to either move a page or exit
-            if (!(session.getOpenInventory() instanceof LecternContainer)) {
+            if (!(session.getOpenInventory() instanceof LecternContainer lecternContainer)) {
                 session.getConnector().getLogger().debug("Expected lectern but it wasn't open!");
                 return;
             }
 
-            LecternContainer lecternContainer = (LecternContainer) session.getOpenInventory();
             if (lecternContainer.getCurrentBedrockPage() == packet.getPage()) {
                 // The same page means Bedrock is closing the window
                 ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(lecternContainer.getId());

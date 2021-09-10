@@ -46,26 +46,25 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
         }
 
         switch (packet.getAction()) {
-            case SWING_ARM:
+            case SWING_ARM ->
                 // Delay so entity damage can be processed first
                 session.scheduleInEventLoop(() ->
                         session.sendDownstreamPacket(new ClientPlayerSwingArmPacket(Hand.MAIN_HAND)),
                         25,
                         TimeUnit.MILLISECONDS
                 );
-                break;
             // These two might need to be flipped, but my recommendation is getting moving working first
-            case ROW_LEFT:
+            case ROW_LEFT -> {
                 // Packet value is a float of how long one has been rowing, so we convert that into a boolean
                 session.setSteeringLeft(packet.getRowingTime() > 0.0);
                 ClientSteerBoatPacket steerLeftPacket = new ClientSteerBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
                 session.sendDownstreamPacket(steerLeftPacket);
-                break;
-            case ROW_RIGHT:
+            }
+            case ROW_RIGHT -> {
                 session.setSteeringRight(packet.getRowingTime() > 0.0);
                 ClientSteerBoatPacket steerRightPacket = new ClientSteerBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
                 session.sendDownstreamPacket(steerRightPacket);
-                break;
+            }
         }
     }
 }

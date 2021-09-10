@@ -44,12 +44,8 @@ public class AxolotlEntity extends AnimalEntity {
         if (entityMetadata.getId() == 17) {
             int variant = (int) entityMetadata.getValue();
             switch (variant) {
-                case 1: // Java - "Wild" (brown)
-                    variant = 3;
-                    break;
-                case 3: // Java - cyan
-                    variant = 1;
-                    break;
+                case 1 -> variant = 3; // Java - "Wild" (brown)
+                case 3 -> variant = 1; // Java - cyan
             }
             metadata.put(EntityData.VARIANT, variant);
         }

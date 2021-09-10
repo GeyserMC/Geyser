@@ -44,26 +44,15 @@ public final class EntityUtils {
      * @return The numeric ID for the Bedrock edition effect
      */
     public static int toBedrockEffectId(Effect effect) {
-        switch (effect) {
-            case GLOWING:
-            case LUCK:
-            case UNLUCK:
-            case DOLPHINS_GRACE:
-                // All Java-exclusive effects as of 1.16.2
-                return 0;
-            case LEVITATION:
-                return 24;
-            case CONDUIT_POWER:
-                return 26;
-            case SLOW_FALLING:
-                return 27;
-            case BAD_OMEN:
-                return 28;
-            case HERO_OF_THE_VILLAGE:
-                return 29;
-            default:
-                return effect.ordinal() + 1;
-        }
+        return switch (effect) {
+            case GLOWING, LUCK, UNLUCK, DOLPHINS_GRACE -> 0; // All Java-exclusive effects as of 1.16.2
+            case LEVITATION -> 24;
+            case CONDUIT_POWER -> 26;
+            case SLOW_FALLING -> 27;
+            case BAD_OMEN -> 28;
+            case HERO_OF_THE_VILLAGE -> 29;
+            default -> effect.ordinal() + 1;
+        };
     }
 
     /**
@@ -84,46 +73,20 @@ public final class EntityUtils {
         float height = mount.getMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT);
         float mountedHeightOffset = height * 0.75f;
         switch (mount.getEntityType()) {
-            case CHICKEN:
-            case SPIDER:
-                mountedHeightOffset = height * 0.5f;
-                break;
-            case DONKEY:
-            case MULE:
-                mountedHeightOffset -= 0.25f;
-                break;
-            case LLAMA:
-                mountedHeightOffset = height * 0.67f;
-                break;
-            case MINECART:
-            case MINECART_HOPPER:
-            case MINECART_TNT:
-            case MINECART_CHEST:
-            case MINECART_FURNACE:
-            case MINECART_SPAWNER:
-            case MINECART_COMMAND_BLOCK:
-                mountedHeightOffset = 0;
-                break;
-            case BOAT:
-                mountedHeightOffset = -0.1f;
-                break;
-            case HOGLIN:
-            case ZOGLIN:
+            case CHICKEN, SPIDER -> mountedHeightOffset = height * 0.5f;
+            case DONKEY, MULE -> mountedHeightOffset -= 0.25f;
+            case LLAMA -> mountedHeightOffset = height * 0.67f;
+            case MINECART, MINECART_HOPPER, MINECART_TNT, MINECART_CHEST, MINECART_FURNACE, MINECART_SPAWNER,
+                    MINECART_COMMAND_BLOCK -> mountedHeightOffset = 0;
+            case BOAT -> mountedHeightOffset = -0.1f;
+            case HOGLIN, ZOGLIN -> {
                 boolean isBaby = mount.getMetadata().getFlags().getFlag(EntityFlag.BABY);
                 mountedHeightOffset = height - (isBaby ? 0.2f : 0.15f);
-                break;
-            case PIGLIN:
-                mountedHeightOffset = height * 0.92f;
-                break;
-            case RAVAGER:
-                mountedHeightOffset = 2.1f;
-                break;
-            case SKELETON_HORSE:
-                mountedHeightOffset -= 0.1875f;
-                break;
-            case STRIDER:
-                mountedHeightOffset = height - 0.19f;
-                break;
+            }
+            case PIGLIN -> mountedHeightOffset = height * 0.92f;
+            case RAVAGER -> mountedHeightOffset = 2.1f;
+            case SKELETON_HORSE -> mountedHeightOffset -= 0.1875f;
+            case STRIDER -> mountedHeightOffset = height - 0.19f;
         }
         return mountedHeightOffset;
     }
@@ -207,15 +170,8 @@ public final class EntityUtils {
                 yOffset += EntityType.PLAYER.getOffset();
             }
             switch (mount.getEntityType()) {
-                case MINECART:
-                case MINECART_HOPPER:
-                case MINECART_TNT:
-                case MINECART_CHEST:
-                case MINECART_FURNACE:
-                case MINECART_SPAWNER:
-                case MINECART_COMMAND_BLOCK:
-                case BOAT:
-                    yOffset -= mount.getEntityType().getHeight() * 0.5f;
+                case MINECART, MINECART_HOPPER, MINECART_TNT, MINECART_CHEST, MINECART_FURNACE, MINECART_SPAWNER,
+                        MINECART_COMMAND_BLOCK, BOAT -> yOffset -= mount.getEntityType().getHeight() * 0.5f;
             }
             Vector3f offset = Vector3f.from(xOffset, yOffset, zOffset);
             passenger.getMetadata().put(EntityData.RIDER_SEAT_POSITION, offset);

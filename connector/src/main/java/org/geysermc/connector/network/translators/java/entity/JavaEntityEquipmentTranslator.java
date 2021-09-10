@@ -50,7 +50,7 @@ public class JavaEntityEquipmentTranslator extends PacketTranslator<ServerEntity
         if (entity == null)
             return;
 
-        if (!(entity instanceof LivingEntity)) {
+        if (!(entity instanceof LivingEntity livingEntity)) {
             session.getConnector().getLogger().debug("Attempted to add armor to a non-living entity type (" +
                     entity.getEntityType().name() + ").");
             return;
@@ -59,34 +59,33 @@ public class JavaEntityEquipmentTranslator extends PacketTranslator<ServerEntity
         boolean armorUpdated = false;
         boolean mainHandUpdated = false;
         boolean offHandUpdated = false;
-        LivingEntity livingEntity = (LivingEntity) entity;
         for (Equipment equipment : packet.getEquipment()) {
             ItemData item = ItemTranslator.translateToBedrock(session, equipment.getItem());
             switch (equipment.getSlot()) {
-                case HELMET:
+                case HELMET -> {
                     livingEntity.setHelmet(item);
                     armorUpdated = true;
-                    break;
-                case CHESTPLATE:
+                }
+                case CHESTPLATE -> {
                     livingEntity.setChestplate(item);
                     armorUpdated = true;
-                    break;
-                case LEGGINGS:
+                }
+                case LEGGINGS -> {
                     livingEntity.setLeggings(item);
                     armorUpdated = true;
-                    break;
-                case BOOTS:
+                }
+                case BOOTS -> {
                     livingEntity.setBoots(item);
                     armorUpdated = true;
-                    break;
-                case MAIN_HAND:
+                }
+                case MAIN_HAND -> {
                     livingEntity.setHand(item);
                     mainHandUpdated = true;
-                    break;
-                case OFF_HAND:
+                }
+                case OFF_HAND -> {
                     livingEntity.setOffHand(item);
                     offHandUpdated = true;
-                    break;
+                }
             }
         }
 

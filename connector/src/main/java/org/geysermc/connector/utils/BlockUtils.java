@@ -67,23 +67,16 @@ public class BlockUtils {
     private static double toolBreakTimeBonus(String toolType, String toolTier, boolean isShearsEffective) {
         if (toolType.equals("shears")) return isShearsEffective ? 5.0 : 15.0;
         if (toolType.equals("")) return 1.0;
-        switch (toolTier) {
+        return switch (toolTier) {
             // https://minecraft.gamepedia.com/Breaking#Speed
-            case "wooden":
-                return 2.0;
-            case "stone":
-                return 4.0;
-            case "iron":
-                return 6.0;
-            case "diamond":
-                return 8.0;
-            case "netherite":
-                return 9.0;
-            case "golden":
-                return 12.0;
-            default:
-                return 1.0;
-        }
+            case "wooden" -> 2.0;
+            case "stone" -> 4.0;
+            case "iron" -> 6.0;
+            case "diamond" -> 8.0;
+            case "netherite" -> 9.0;
+            case "golden" -> 12.0;
+            default -> 1.0;
+        };
     }
 
     private static boolean canToolTierBreakBlock(GeyserSession session, BlockMapping blockMapping, String toolTier) {
@@ -208,21 +201,15 @@ public class BlockUtils {
      * @return the block position with the block face accounted for
      */
     public static Vector3i getBlockPosition(Vector3i blockPos, int face) {
-        switch (face) {
-            case 0:
-                return blockPos.sub(0, 1, 0);
-            case 1:
-                return blockPos.add(0, 1, 0);
-            case 2:
-                return blockPos.sub(0, 0, 1);
-            case 3:
-                return blockPos.add(0, 0, 1);
-            case 4:
-                return blockPos.sub(1, 0, 0);
-            case 5:
-                return blockPos.add(1, 0, 0);
-        }
-        return blockPos;
+        return switch (face) {
+            case 0 -> blockPos.sub(0, 1, 0);
+            case 1 -> blockPos.add(0, 1, 0);
+            case 2 -> blockPos.sub(0, 0, 1);
+            case 3 -> blockPos.add(0, 0, 1);
+            case 4 -> blockPos.sub(1, 0, 0);
+            case 5 -> blockPos.add(1, 0, 0);
+            default -> blockPos;
+        };
     }
 
     /**

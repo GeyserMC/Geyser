@@ -43,42 +43,32 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
 
     @Override
     public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
-        switch (slotInfoData.getContainer()) {
-            case ANVIL_INPUT:
-                return 0;
-            case ANVIL_MATERIAL:
-                return 1;
-            case ANVIL_RESULT:
-            case CREATIVE_OUTPUT:
-                return 2;
-        }
-        return super.bedrockSlotToJava(slotInfoData);
+        return switch (slotInfoData.getContainer()) {
+            case ANVIL_INPUT -> 0;
+            case ANVIL_MATERIAL -> 1;
+            case ANVIL_RESULT, CREATIVE_OUTPUT -> 2;
+            default -> super.bedrockSlotToJava(slotInfoData);
+        };
     }
 
     @Override
     public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
-        switch (slot) {
-            case 0:
-                return new BedrockContainerSlot(ContainerSlotType.ANVIL_INPUT, 1);
-            case 1:
-                return new BedrockContainerSlot(ContainerSlotType.ANVIL_MATERIAL, 2);
-            case 2:
-                return new BedrockContainerSlot(ContainerSlotType.ANVIL_RESULT, 50);
-        }
-        return super.javaSlotToBedrockContainer(slot);
+        return switch (slot) {
+            case 0 -> new BedrockContainerSlot(ContainerSlotType.ANVIL_INPUT, 1);
+            case 1 -> new BedrockContainerSlot(ContainerSlotType.ANVIL_MATERIAL, 2);
+            case 2 -> new BedrockContainerSlot(ContainerSlotType.ANVIL_RESULT, 50);
+            default -> super.javaSlotToBedrockContainer(slot);
+        };
     }
 
     @Override
     public int javaSlotToBedrock(int slot) {
-        switch (slot) {
-            case 0:
-                return 1;
-            case 1:
-                return 2;
-            case 2:
-                return 50;
-        }
-        return super.javaSlotToBedrock(slot);
+        return switch (slot) {
+            case 0 -> 1;
+            case 1 -> 2;
+            case 2 -> 50;
+            default -> super.javaSlotToBedrock(slot);
+        };
     }
 
     @Override

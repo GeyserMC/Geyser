@@ -147,13 +147,8 @@ public class PistonBlockEntity {
 
         // Set progress and lastProgress to allow 0 tick pistons to animate
         switch (action) {
-            case PUSHING:
-                progress = 0;
-                break;
-            case PULLING:
-            case CANCELLED_MID_PUSH:
-                progress = 1;
-                break;
+            case PUSHING -> progress = 0;
+            case PULLING, CANCELLED_MID_PUSH -> progress = 1;
         }
         lastProgress = progress;
 
@@ -182,13 +177,8 @@ public class PistonBlockEntity {
 
         // Set progress and lastProgress to allow 0 tick pistons to animate
         switch (action) {
-            case PUSHING:
-                progress = 0;
-                break;
-            case PULLING:
-            case CANCELLED_MID_PUSH:
-                progress = 1;
-                break;
+            case PUSHING -> progress = 0;
+            case PULLING, CANCELLED_MID_PUSH -> progress = 1;
         }
         lastProgress = progress;
 
@@ -326,15 +316,11 @@ public class PistonBlockEntity {
         if (block.getHardness() == -1.0d) {
             return false;
         }
-        switch (block.getPistonBehavior()) {
-            case BLOCK:
-            case DESTROY:
-                return false;
-            case PUSH_ONLY: // Glazed terracotta can only be pushed
-                return isPushing;
-        }
-        // Pistons can't move block entities
-        return !block.isBlockEntity();
+        return switch (block.getPistonBehavior()) {
+            case BLOCK, DESTROY -> false;
+            case PUSH_ONLY -> isPushing; // Glazed terracotta can only be pushed
+            default -> !block.isBlockEntity(); // Pistons can't move block entities
+        };
     }
 
     /**
@@ -723,21 +709,20 @@ public class PistonBlockEntity {
      */
     private void updateProgress() {
         switch (action) {
-            case PUSHING:
+            case PUSHING -> {
                 lastProgress = progress;
                 progress += 0.5f;
                 if (progress >= 1.0f) {
                     progress = 1.0f;
                 }
-                break;
-            case CANCELLED_MID_PUSH:
-            case PULLING:
+            }
+            case CANCELLED_MID_PUSH, PULLING -> {
                 lastProgress = progress;
                 progress -= 0.5f;
                 if (progress <= 0.0f) {
                     progress = 0.0f;
                 }
-                break;
+            }
         }
     }
 
@@ -745,14 +730,10 @@ public class PistonBlockEntity {
      * @return True if the piston has finished its movement, otherwise false
      */
     public boolean isDone() {
-        switch (action) {
-            case PUSHING:
-                return progress == 1.0f && lastProgress == 1.0f;
-            case PULLING:
-            case CANCELLED_MID_PUSH:
-                return progress == 0.0f && lastProgress == 0.0f;
-        }
-        return true;
+        return switch (action) {
+            case PUSHING -> progress == 1.0f && lastProgress == 1.0f;
+            case PULLING, CANCELLED_MID_PUSH -> progress == 0.0f && lastProgress == 0.0f;
+        };
     }
 
     public boolean canBeRemoved() {

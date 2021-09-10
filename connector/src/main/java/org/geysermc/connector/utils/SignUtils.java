@@ -48,52 +48,14 @@ public class SignUtils {
      * @return width of the character
      */
     public static int getCharacterWidth(char c) {
-        switch (c) {
-            case '!':
-            case ',':
-            case '.':
-            case ':':
-            case ';':
-            case 'i':
-            case '|':
-            case '¡':
-                return 2;
-
-            case '\'':
-            case 'l':
-            case 'ì':
-            case 'í':
-                return 3;
-
-            case ' ':
-            case 'I':
-            case '[':
-            case ']':
-            case 't':
-            case '×':
-            case 'ï':
-                return 4;
-
-            case '"':
-            case '(':
-            case ')':
-            case '*':
-            case '<':
-            case '>':
-            case 'f':
-            case 'k':
-            case '{':
-            case '}':
-                return 5;
-
-            case '@':
-            case '~':
-            case '®':
-                return 7;
-
-            default:
-                return 6;
-        }
+        return switch (c) {
+            case '!', ',', '.', ':', ';', 'i', '|', '¡' -> 2;
+            case '\'', 'l', 'ì', 'í' -> 3;
+            case ' ', 'I', '[', ']', 't', '×', 'ï' -> 4;
+            case '"', '(', ')', '*', '<', '>', 'f', 'k', '{', '}' -> 5;
+            case '@', '~', '®' -> 7;
+            default -> 6;
+        };
     }
 
 }

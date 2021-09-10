@@ -90,15 +90,11 @@ public class BoundingBox implements Cloneable {
     }
 
     private boolean checkOverlapInAxis(Vector3d offset, BoundingBox otherBox, Axis axis) {
-        switch (axis) {
-            case X:
-                return Math.abs((middleX + offset.getX()) - otherBox.getMiddleX()) * 2 < (sizeX + otherBox.getSizeX());
-            case Y:
-                return Math.abs((middleY + offset.getY()) - otherBox.getMiddleY()) * 2 < (sizeY + otherBox.getSizeY());
-            case Z:
-                return Math.abs((middleZ + offset.getZ()) - otherBox.getMiddleZ()) * 2 < (sizeZ + otherBox.getSizeZ());
-        }
-        return false;
+        return switch (axis) {
+            case X -> Math.abs((middleX + offset.getX()) - otherBox.getMiddleX()) * 2 < (sizeX + otherBox.getSizeX());
+            case Y -> Math.abs((middleY + offset.getY()) - otherBox.getMiddleY()) * 2 < (sizeY + otherBox.getSizeY());
+            case Z -> Math.abs((middleZ + offset.getZ()) - otherBox.getMiddleZ()) * 2 < (sizeZ + otherBox.getSizeZ());
+        };
     }
 
     /**
@@ -141,21 +137,14 @@ public class BoundingBox implements Cloneable {
      * @return The distance to move in the direction of {@code side}
      */
     public double getIntersectionSize(BoundingBox otherBoundingBox, Direction side) {
-        switch (side) {
-            case DOWN:
-                return getMax().getY() - otherBoundingBox.getMin().getY();
-            case UP:
-                return otherBoundingBox.getMax().getY() - getMin().getY();
-            case NORTH:
-                return getMax().getZ() - otherBoundingBox.getMin().getZ();
-            case SOUTH:
-                return otherBoundingBox.getMax().getZ() - getMin().getZ();
-            case WEST:
-                return getMax().getX() - otherBoundingBox.getMin().getX();
-            case EAST:
-                return otherBoundingBox.getMax().getX() - getMin().getX();
-        }
-        return 0;
+        return switch (side) {
+            case DOWN -> getMax().getY() - otherBoundingBox.getMin().getY();
+            case UP -> otherBoundingBox.getMax().getY() - getMin().getY();
+            case NORTH -> getMax().getZ() - otherBoundingBox.getMin().getZ();
+            case SOUTH -> otherBoundingBox.getMax().getZ() - getMin().getZ();
+            case WEST -> getMax().getX() - otherBoundingBox.getMin().getX();
+            case EAST -> otherBoundingBox.getMax().getX() - getMin().getX();
+        };
     }
 
     @SneakyThrows(CloneNotSupportedException.class)

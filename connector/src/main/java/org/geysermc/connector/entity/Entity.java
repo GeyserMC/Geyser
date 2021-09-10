@@ -256,11 +256,9 @@ public class Entity {
                 setAir((int) entityMetadata.getValue());
                 break;
             case 2: // custom name
-                if (entityMetadata.getValue() instanceof Component) {
-                    Component message = (Component) entityMetadata.getValue();
-                    if (message != null)
-                        // Always translate even if it's a TextMessage since there could be translatable parameters
-                        metadata.put(EntityData.NAMETAG, MessageTranslator.convertMessage(message, session.getLocale()));
+                if (entityMetadata.getValue() instanceof Component message) {
+                    // Always translate even if it's a TextMessage since there could be translatable parameters
+                    metadata.put(EntityData.NAMETAG, MessageTranslator.convertMessage(message, session.getLocale()));
                 }
                 break;
             case 3: // is custom name visible

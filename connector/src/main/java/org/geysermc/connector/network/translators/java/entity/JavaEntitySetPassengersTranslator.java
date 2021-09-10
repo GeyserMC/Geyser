@@ -124,14 +124,10 @@ public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEn
         }
 
         switch (entity.getEntityType()) {
-            case HORSE:
-            case SKELETON_HORSE:
-            case DONKEY:
-            case MULE:
-            case RAVAGER:
+            case HORSE, SKELETON_HORSE, DONKEY, MULE, RAVAGER -> {
                 entity.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 181.0f);
                 entity.updateBedrockMetadata(session);
-                break;
+            }
         }
     }
 }

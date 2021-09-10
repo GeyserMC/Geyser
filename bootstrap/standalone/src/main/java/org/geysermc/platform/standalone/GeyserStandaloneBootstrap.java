@@ -98,32 +98,26 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             // Allows gui and nogui without options, for backwards compatibility
             String arg = args[i];
             switch (arg) {
-                case "--gui":
-                case "gui":
-                    useGuiOpts = true;
-                    break;
-                case "--nogui":
-                case "nogui":
-                    useGuiOpts = false;
-                    break;
-                case "--config":
-                case "-c":
+                case "--gui", "gui" -> useGuiOpts = true;
+                case "--nogui", "nogui" -> useGuiOpts = false;
+                case "--config", "-c" -> {
                     if (i >= args.length - 1) {
                         System.err.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.config_not_specified"), "-c"));
                         return;
                     }
-                    configFilenameOpt = args[i+1]; i++;
+                    configFilenameOpt = args[i + 1];
+                    i++;
                     System.out.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.config_specified"), configFilenameOpt));
-                    break;
-                case "--help":
-                case "-h":
+                }
+                case "--help", "-h" -> {
                     System.out.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.usage"), "[java -jar] Geyser.jar [opts]"));
                     System.out.println("  " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.options"));
                     System.out.println("    -c, --config [file]    " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.config"));
                     System.out.println("    -h, --help             " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.help"));
                     System.out.println("    --gui, --nogui         " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.gui"));
                     return;
-                default:
+                }
+                default -> {
                     // We have likely added a config option argument
                     if (arg.startsWith("--")) {
                         // Split the argument by an =
@@ -159,9 +153,9 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                             }
                         }
                     }
-
                     System.err.println(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.unrecognised", arg));
                     return;
+                }
             }
         }
         bootstrap.onEnable(useGuiOpts, configFilenameOpt);

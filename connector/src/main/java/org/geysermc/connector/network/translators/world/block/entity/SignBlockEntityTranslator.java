@@ -41,59 +41,24 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
      */
     private int getBedrockSignColor(String javaColor) {
         //TODO create a DyeColor class and combine with FireworkColor???
-        int dyeColor;
-        switch (javaColor) {
-            case "white":
-                dyeColor = 16383998;
-                break;
-            case "orange":
-                dyeColor = 16351261;
-                break;
-            case "magenta":
-                dyeColor = 13061821;
-                break;
-            case "light_blue":
-                dyeColor = 3847130;
-                break;
-            case "yellow":
-                dyeColor = 16701501;
-                break;
-            case "lime":
-                dyeColor = 8439583;
-                break;
-            case "pink":
-                dyeColor = 15961002;
-                break;
-            case "gray":
-                dyeColor = 4673362;
-                break;
-            case "light_gray":
-                dyeColor = 10329495;
-                break;
-            case "cyan":
-                dyeColor = 1481884;
-                break;
-            case "purple":
-                dyeColor = 8991416;
-                break;
-            case "blue":
-                dyeColor = 3949738;
-                break;
-            case "brown":
-                dyeColor = 8606770;
-                break;
-            case "green":
-                dyeColor = 6192150;
-                break;
-            case "red":
-                dyeColor = 11546150;
-                break;
-            case "black":
-            default:
-                // The proper Java color is 1908001, but this does not render well with glow text.
-                dyeColor = 0;
-                break;
-        }
+        int dyeColor = switch (javaColor) {
+            case "white" -> 16383998;
+            case "orange" -> 16351261;
+            case "magenta" -> 13061821;
+            case "light_blue" -> 3847130;
+            case "yellow" -> 16701501;
+            case "lime" -> 8439583;
+            case "pink" -> 15961002;
+            case "gray" -> 4673362;
+            case "light_gray" -> 10329495;
+            case "cyan" -> 1481884;
+            case "purple" -> 8991416;
+            case "blue" -> 3949738;
+            case "brown" -> 8606770;
+            case "green" -> 6192150;
+            case "red" -> 11546150;
+            default -> 0; // The proper Java color is 1908001, but this does not render well with glow text.
+        };
         // Add the transparency of the color, too.
         return dyeColor | (255 << 24);
     }

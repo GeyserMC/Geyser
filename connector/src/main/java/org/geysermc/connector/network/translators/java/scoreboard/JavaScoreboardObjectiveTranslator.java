@@ -52,14 +52,9 @@ public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerSc
         }
 
         switch (packet.getAction()) {
-            case ADD:
-            case UPDATE:
-                objective.setDisplayName(MessageTranslator.convertMessage(packet.getDisplayName()))
-                        .setType(packet.getType().ordinal());
-                break;
-            case REMOVE:
-                scoreboard.unregisterObjective(packet.getName());
-                break;
+            case ADD, UPDATE -> objective.setDisplayName(MessageTranslator.convertMessage(packet.getDisplayName()))
+                    .setType(packet.getType().ordinal());
+            case REMOVE -> scoreboard.unregisterObjective(packet.getName());
         }
 
         if (objective == null || !objective.isActive()) {

@@ -69,15 +69,9 @@ public class DumpCommand extends GeyserCommand {
         if (args.length >= 1) {
             for (String arg : args) {
                 switch (arg) {
-                    case "full":
-                        showSensitive = true;
-                        break;
-                    case "offline":
-                        offlineDump = true;
-                        break;
-                    case "logs":
-                        addLog = true;
-                        break;
+                    case "full" -> showSensitive = true;
+                    case "offline" -> offlineDump = true;
+                    case "logs" -> addLog = true;
                 }
             }
         }

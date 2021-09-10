@@ -679,11 +679,11 @@ public class SkinProvider {
         }
 
         public static String toRequestedType(CapeUrlType type, UUID uuid, String username) {
-            switch (type) {
-                case UUID: return uuid.toString().replace("-", "");
-                case UUID_DASHED: return uuid.toString();
-                default: return username;
-            }
+            return switch (type) {
+                case UUID -> uuid.toString().replace("-", "");
+                case UUID_DASHED -> uuid.toString();
+                default -> username;
+            };
         }
     }
 
@@ -715,11 +715,11 @@ public class SkinProvider {
         }
 
         public static String toRequestedType(CapeUrlType type, UUID uuid, String username) {
-            switch (type) {
-                case UUID: return uuid.toString().replace("-", "");
-                case UUID_DASHED: return uuid.toString();
-                default: return username;
-            }
+            return switch (type) {
+                case UUID -> uuid.toString().replace("-", "");
+                case UUID_DASHED -> uuid.toString();
+                default -> username;
+            };
         }
     }
 }

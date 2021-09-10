@@ -28,7 +28,6 @@ package org.geysermc.connector.registry.populator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import com.nukkitx.nbt.*;
-import com.nukkitx.protocol.bedrock.v440.Bedrock_v440;
 import com.nukkitx.protocol.bedrock.v448.Bedrock_v448;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -66,29 +65,9 @@ public class BlockRegistryPopulator {
     static {
         ImmutableMap.Builder<String, BiFunction<String, NbtMapBuilder, String>> stateMapperBuilder = ImmutableMap.<String, BiFunction<String, NbtMapBuilder, String>>builder()
                 .put("1_17_10", (bedrockIdentifier, statesBuilder) -> null);
-        if (!GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
-            stateMapperBuilder.put("1_17_0", (bedrockIdentifier, statesBuilder) -> {
-                if (bedrockIdentifier.contains("candle")) {
-                    // Replace candles with sea pickles or cake
-                    if (bedrockIdentifier.contains("cake")) {
-                        statesBuilder.remove("lit");
-                        statesBuilder.putInt("bite_counter", 0);
-                        return "minecraft:cake";
-                    } else {
-                        statesBuilder.put("cluster_count", statesBuilder.remove("candles"));
-                        statesBuilder.putBoolean("dead_bit", ((byte) (statesBuilder.remove("lit"))) != 0);
-                        return "minecraft:sea_pickle";
-                    }
-                }
-                return null;
-            });
-        }
         STATE_MAPPER = stateMapperBuilder.build();
 
         PALETTE_VERSIONS = new Object2IntOpenHashMap<>();
-        if (!GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
-            PALETTE_VERSIONS.put("1_17_0", Bedrock_v440.V440_CODEC.getProtocolVersion());
-        }
         PALETTE_VERSIONS.put("1_17_10", Bedrock_v448.V448_CODEC.getProtocolVersion());
     }
 
@@ -159,17 +138,10 @@ public class BlockRegistryPopulator {
                 }
 
                 switch (javaId) {
-                    case "minecraft:air":
-                        airRuntimeId = bedrockRuntimeId;
-                        break;
-                    case "minecraft:water[level=0]":
-                        waterRuntimeId = bedrockRuntimeId;
-                        break;
-                    case "minecraft:command_block[conditional=false,facing=north]":
-                        commandBlockRuntimeId = bedrockRuntimeId;
-                        break;
-                    case "minecraft:moving_piston[facing=north,type=normal]":
-                        movingBlockRuntimeId = bedrockRuntimeId;
+                    case "minecraft:air" -> airRuntimeId = bedrockRuntimeId;
+                    case "minecraft:water[level=0]" -> waterRuntimeId = bedrockRuntimeId;
+                    case "minecraft:command_block[conditional=false,facing=north]" -> commandBlockRuntimeId = bedrockRuntimeId;
+                    case "minecraft:moving_piston[facing=north,type=normal]" -> movingBlockRuntimeId = bedrockRuntimeId;
                 }
 
                 if (javaId.contains("jigsaw")) {
@@ -414,14 +386,9 @@ public class BlockRegistryPopulator {
                 Map.Entry<String, JsonNode> stateEntry = statesIterator.next();
                 JsonNode stateValue = stateEntry.getValue();
                 switch (stateValue.getNodeType()) {
-                    case BOOLEAN:
-                        statesBuilder.putBoolean(stateEntry.getKey(), stateValue.booleanValue());
-                        continue;
-                    case STRING:
-                        statesBuilder.putString(stateEntry.getKey(), stateValue.textValue());
-                        continue;
-                    case NUMBER:
-                        statesBuilder.putInt(stateEntry.getKey(), stateValue.intValue());
+                    case BOOLEAN -> statesBuilder.putBoolean(stateEntry.getKey(), stateValue.booleanValue());
+                    case STRING -> statesBuilder.putString(stateEntry.getKey(), stateValue.textValue());
+                    case NUMBER -> statesBuilder.putInt(stateEntry.getKey(), stateValue.intValue());
                 }
             }
         }

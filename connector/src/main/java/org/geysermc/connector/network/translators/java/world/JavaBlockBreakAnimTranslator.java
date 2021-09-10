@@ -53,40 +53,20 @@ public class JavaBlockBreakAnimTranslator extends PacketTranslator<ServerBlockBr
         levelEventPacket.setType(LevelEventType.BLOCK_START_BREAK);
 
         switch (packet.getStage()) {
-            case STAGE_1:
-                levelEventPacket.setData(breakTime);
-                break;
-            case STAGE_2:
-                levelEventPacket.setData(breakTime * 2);
-                break;
-            case STAGE_3:
-                levelEventPacket.setData(breakTime * 3);
-                break;
-            case STAGE_4:
-                levelEventPacket.setData(breakTime * 4);
-                break;
-            case STAGE_5:
-                levelEventPacket.setData(breakTime * 5);
-                break;
-            case STAGE_6:
-                levelEventPacket.setData(breakTime * 6);
-                break;
-            case STAGE_7:
-                levelEventPacket.setData(breakTime * 7);
-                break;
-            case STAGE_8:
-                levelEventPacket.setData(breakTime * 8);
-                break;
-            case STAGE_9:
-                levelEventPacket.setData(breakTime * 9);
-                break;
-            case STAGE_10:
-                levelEventPacket.setData(breakTime * 10);
-                break;
-            case RESET:
+            case STAGE_1 -> levelEventPacket.setData(breakTime);
+            case STAGE_2 -> levelEventPacket.setData(breakTime * 2);
+            case STAGE_3 -> levelEventPacket.setData(breakTime * 3);
+            case STAGE_4 -> levelEventPacket.setData(breakTime * 4);
+            case STAGE_5 -> levelEventPacket.setData(breakTime * 5);
+            case STAGE_6 -> levelEventPacket.setData(breakTime * 6);
+            case STAGE_7 -> levelEventPacket.setData(breakTime * 7);
+            case STAGE_8 -> levelEventPacket.setData(breakTime * 8);
+            case STAGE_9 -> levelEventPacket.setData(breakTime * 9);
+            case STAGE_10 -> levelEventPacket.setData(breakTime * 10);
+            case RESET -> {
                 levelEventPacket.setType(LevelEventType.BLOCK_STOP_BREAK);
                 levelEventPacket.setData(0);
-                break;
+            }
         }
         session.sendUpstreamPacket(levelEventPacket);
     }

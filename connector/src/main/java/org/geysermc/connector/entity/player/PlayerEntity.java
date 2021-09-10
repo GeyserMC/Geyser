@@ -316,17 +316,12 @@ public class PlayerEntity extends LivingEntity {
     protected void setDimensions(Pose pose) {
         float height;
         switch (pose) {
-            case SNEAKING:
-                height = 1.5f;
-                break;
-            case FALL_FLYING:
-            case SPIN_ATTACK:
-            case SWIMMING:
-                height = 0.6f;
-                break;
-            default:
+            case SNEAKING -> height = 1.5f;
+            case FALL_FLYING, SPIN_ATTACK, SWIMMING -> height = 0.6f;
+            default -> {
                 super.setDimensions(pose);
                 return;
+            }
         }
         metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
         metadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
