@@ -163,7 +163,11 @@ public class SkinProvider {
 
     public static CompletableFuture<Skin> requestSkin(UUID playerId, String textureUrl, boolean newThread) {
         if (textureUrl == null || textureUrl.isEmpty()) return CompletableFuture.completedFuture(EMPTY_SKIN);
-        if (requestedSkins.containsKey(textureUrl)) return requestedSkins.get(textureUrl); // already requested
+        CompletableFuture<Skin> requestedSkin = requestedSkins.get(textureUrl);
+        if (requestedSkin != null) {
+            // already requested
+            return requestedSkin;
+        }
 
         Skin cachedSkin = getCachedSkin(textureUrl);
         if (cachedSkin != null) {
