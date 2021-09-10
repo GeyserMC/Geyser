@@ -61,9 +61,9 @@ public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValueP
             session.sendUpstreamPacket(blockEventPacket);
         } else if (packet.getValue() instanceof NoteBlockValue) {
             NoteblockBlockEntityTranslator.translate(session, packet.getPosition());
-        } else if (packet.getValue() instanceof PistonValue) {
+        } else if (packet.getValue() instanceof PistonValue pistonValue) {
             PistonValueType action = (PistonValueType) packet.getType();
-            Direction direction = Direction.fromPistonValue((PistonValue) packet.getValue());
+            Direction direction = Direction.fromPistonValue(pistonValue);
             Vector3i position = Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
             PistonCache pistonCache = session.getPistonCache();
 
