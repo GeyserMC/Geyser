@@ -30,8 +30,9 @@ import com.nukkitx.math.vector.Vector3i;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
+import org.geysermc.connector.network.translators.collision.CollisionManager;
+import org.geysermc.connector.utils.Axis;
 
 @EqualsAndHashCode
 public class BlockCollision {
@@ -41,6 +42,13 @@ public class BlockCollision {
 
     @EqualsAndHashCode.Exclude
     protected final ThreadLocal<Vector3i> position;
+
+    /**
+     * Store a Vector3d to allow the collision to be offset by a fractional amount
+     * This is used only in {@link #checkIntersection(BoundingBox)} and {@link #computeCollisionOffset(BoundingBox, Axis, double)}
+     */
+    @EqualsAndHashCode.Exclude
+    protected final ThreadLocal<Vector3d> positionOffset;
 
     /**
      * This is used for the step up logic.
@@ -61,10 +69,20 @@ public class BlockCollision {
     protected BlockCollision(BoundingBox[] boxes) {
         this.boundingBoxes = boxes;
         this.position = new ThreadLocal<>();
+        this.positionOffset = new ThreadLocal<>();
     }
 
     public void setPosition(Vector3i newPosition) {
         this.position.set(newPosition);
+    }
+
+    public void setPositionOffset(Vector3d newOffset) {
+        this.positionOffset.set(newOffset);
+    }
+
+    public void reset() {
+        this.position.set(null);
+        this.positionOffset.set(null);
     }
 
     /**
@@ -156,17 +174,33 @@ public class BlockCollision {
         return true;
     }
 
-    public boolean checkIntersection(BoundingBox playerCollision) {
+    private Vector3d getFullPos() {
         Vector3i blockPos = this.position.get();
-        int x = blockPos.getX();
-        int y = blockPos.getY();
-        int z = blockPos.getZ();
+        Vector3d blockOffset = this.positionOffset.get();
+        if (blockOffset != null && blockOffset != Vector3d.ZERO) {
+            return blockOffset.add(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+        }
+        return blockPos.toDouble();
+    }
 
+    public boolean checkIntersection(BoundingBox playerCollision) {
+        Vector3d blockPos = getFullPos();
         for (BoundingBox b : boundingBoxes) {
-            if (b.checkIntersection(x, y, z, playerCollision)) {
+            if (b.checkIntersection(blockPos, playerCollision)) {
                 return true;
             }
         }
         return false;
+    }
+
+    public double computeCollisionOffset(BoundingBox boundingBox, Axis axis, double offset) {
+        Vector3d blockPos = getFullPos();
+        for (BoundingBox b : boundingBoxes) {
+            offset = b.getMaxOffset(blockPos, boundingBox, axis, offset);
+            if (Math.abs(offset) < CollisionManager.COLLISION_TOLERANCE) {
+                return 0;
+            }
+        }
+        return offset;
     }
 }

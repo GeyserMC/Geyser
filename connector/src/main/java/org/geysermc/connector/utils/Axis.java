@@ -23,36 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.world.block.entity;
+package org.geysermc.connector.utils;
 
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
-import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import com.nukkitx.math.vector.Vector3d;
 
-/**
- * Pistons are a special case where they are only a block entity on Bedrock.
- */
-public class PistonBlockEntityTranslator {
-    /**
-     * Used in ChunkUtils to determine if the block is a piston.
-     *
-     * @param blockState Java BlockState of block.
-     * @return if block is a piston or not.
-     */
-    public static boolean isBlock(int blockState) {
-        return BlockStateValues.getPistonValues().containsKey(blockState);
-    }
+public enum Axis {
+    X, Y, Z;
+
+    public static final Axis[] VALUES = values();
 
     /**
-     * Calculates the Nukkit CompoundTag to send to the client on chunk
-     *
-     * @param blockState Java block state of block.
-     * @param position   Bedrock position of piston.
-     * @return Bedrock tag of piston.
+     * @param vector The vector
+     * @return The component of the vector in this axis
      */
-    public static NbtMap getTag(int blockState, Vector3i position) {
-        boolean extended = BlockStateValues.getPistonValues().get(blockState);
-        boolean sticky = BlockStateValues.isStickyPiston(blockState);
-        return PistonBlockEntity.buildStaticPistonTag(position, extended, sticky);
+    public double choose(Vector3d vector) {
+        switch (this) {
+            case X:
+                return vector.getX();
+            case Y:
+                return vector.getY();
+            case Z:
+                return vector.getZ();
+        }
+        return -1;
     }
 }
