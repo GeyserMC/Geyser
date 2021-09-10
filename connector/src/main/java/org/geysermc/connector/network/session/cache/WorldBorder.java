@@ -108,6 +108,8 @@ public class WorldBorder {
 
     public WorldBorder(GeyserSession session) {
         this.session = session;
+        // Initialize all min/max/warning variables
+        update();
     }
 
     /**
