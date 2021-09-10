@@ -70,7 +70,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     private static final float MAXIMUM_BLOCK_DESTROYING_DISTANCE = 36f;
 
     @Override
-    public void translate(InventoryTransactionPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, InventoryTransactionPacket packet) {
         // Send book updates before opening inventories
         session.getBookEditCache().checkForSend();
 
@@ -143,6 +143,12 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         "Not in range" doesn't refer to how far a vanilla client goes (that's a whole other mess),
                         but how much a server will accept from the client maximum
                          */
+                        // Blocks cannot be placed or destroyed outside of the world border
+                        if (!session.getWorldBorder().isInsideBorderBoundaries()) {
+                            restoreCorrectBlock(session, blockPos, packet);
+                            return;
+                        }
+
                         // CraftBukkit+ check - see https://github.com/PaperMC/Paper/blob/458db6206daae76327a64f4e2a17b67a7e38b426/Spigot-Server-Patches/0532-Move-range-check-for-block-placing-up.patch
                         Vector3f playerPosition = session.getPlayerEntity().getPosition();
 
@@ -213,7 +219,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                     if (session.isSneaking() || blockState != BlockRegistries.JAVA_IDENTIFIERS.get("minecraft:crafting_table")) {
                                         // Delay the interaction in case the client doesn't intend to actually use the bucket
                                         // See BedrockActionTranslator.java
-                                        session.setBucketScheduledFuture(session.getEventLoop().schedule(() -> {
+                                        session.setBucketScheduledFuture(session.scheduleInEventLoop(() -> {
                                             ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                                             session.sendDownstreamPacket(itemPacket);
                                         }, 5, TimeUnit.MILLISECONDS));
@@ -224,11 +230,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         if (packet.getActions().isEmpty()) {
                             if (session.getOpPermissionLevel() >= 2 && session.getGameMode() == GameMode.CREATIVE) {
                                 // Otherwise insufficient permissions
-                                int blockState = session.getBlockMappings().getJavaBlockState(packet.getBlockRuntimeId());
-                                String blockName = BlockRegistries.JAVA_IDENTIFIERS.get().getOrDefault(blockState, "");
-                                // In the future this can be used for structure blocks too, however not all elements
-                                // are available in each GUI
-                                if (blockName.contains("jigsaw")) {
+                                if (session.getBlockMappings().getJigsawStateIds().contains(packet.getBlockRuntimeId())) {
                                     ContainerOpenPacket openPacket = new ContainerOpenPacket();
                                     openPacket.setBlockPosition(packet.getBlockPosition());
                                     openPacket.setId((byte) 1);
@@ -282,6 +284,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.setLastBlockPlacePosition(null);
 
                         // Same deal with vanilla block placing as above.
+                        if (!session.getWorldBorder().isInsideBorderBoundaries()) {
+                            restoreCorrectBlock(session, packet.getBlockPosition(), packet);
+                            return;
+                        }
+
                         // This is working out the distance using 3d Pythagoras and the extra value added to the Y is the sneaking height of a java player.
                         Vector3f playerPosition = session.getPlayerEntity().getPosition();
                         Vector3f floatBlockPosition = packet.getBlockPosition().toFloat();

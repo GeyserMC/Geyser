@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 public class BedrockMapInfoRequestTranslator extends PacketTranslator<MapInfoRequestPacket> {
 
     @Override
-    public void translate(MapInfoRequestPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, MapInfoRequestPacket packet) {
         long mapId = packet.getUniqueMapId();
 
         ClientboundMapItemDataPacket mapPacket = session.getStoredMaps().remove(mapId);

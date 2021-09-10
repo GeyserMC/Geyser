@@ -49,7 +49,7 @@ import org.geysermc.connector.utils.LocaleUtils;
 public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyClientPacket> {
 
     @Override
-    public void translate(ServerNotifyClientPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerNotifyClientPacket packet) {
         PlayerEntity entity = session.getPlayerEntity();
 
         switch (packet.getNotification()) {

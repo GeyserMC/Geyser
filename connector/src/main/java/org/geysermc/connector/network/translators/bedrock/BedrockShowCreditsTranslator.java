@@ -37,7 +37,7 @@ import com.nukkitx.protocol.bedrock.packet.ShowCreditsPacket;
 public class BedrockShowCreditsTranslator extends PacketTranslator<ShowCreditsPacket> {
 
     @Override
-    public void translate(ShowCreditsPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ShowCreditsPacket packet) {
         if (packet.getStatus() == ShowCreditsPacket.Status.END_CREDITS) {
             ClientRequestPacket javaRespawnPacket = new ClientRequestPacket(ClientRequest.RESPAWN);
             session.sendDownstreamPacket(javaRespawnPacket);

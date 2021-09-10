@@ -40,7 +40,7 @@ import org.geysermc.connector.utils.DimensionUtils;
 public class JavaEntityAnimationTranslator extends PacketTranslator<ServerEntityAnimationPacket> {
 
     @Override
-    public void translate(ServerEntityAnimationPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerEntityAnimationPacket packet) {
         Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();

@@ -38,7 +38,7 @@ import org.geysermc.connector.utils.InventoryUtils;
 public class JavaWindowItemsTranslator extends PacketTranslator<ServerWindowItemsPacket> {
 
     @Override
-    public void translate(ServerWindowItemsPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerWindowItemsPacket packet) {
         Inventory inventory = InventoryUtils.getInventory(session, packet.getWindowId());
         if (inventory == null)
             return;

@@ -37,7 +37,7 @@ import org.geysermc.connector.network.translators.Translator;
 @Translator(packet = ServerAdvancementTabPacket.class)
 public class JavaAdvancementsTabTranslator extends PacketTranslator<ServerAdvancementTabPacket> {
     @Override
-    public void translate(ServerAdvancementTabPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerAdvancementTabPacket packet) {
         AdvancementsCache advancementsCache = session.getAdvancementsCache();
         advancementsCache.setCurrentAdvancementCategoryId(packet.getTabId());
         advancementsCache.buildAndShowListForm();

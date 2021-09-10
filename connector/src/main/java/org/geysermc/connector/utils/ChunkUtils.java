@@ -51,7 +51,6 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.translators.LecternInventoryTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.entity.BedrockOnlyBlockEntity;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
@@ -257,8 +256,9 @@ public class ChunkUtils {
         while (i < blockEntities.length) {
             CompoundTag tag = blockEntities[i];
             String tagName;
-            if (tag.contains("id")) {
-                tagName = (String) tag.get("id").getValue();
+            Tag idTag = tag.get("id");
+            if (idTag != null) {
+                tagName = (String) idTag.getValue();
             } else {
                 tagName = "Empty";
                 // Sometimes legacy tags have their ID be a StringTag with empty value
@@ -276,18 +276,20 @@ public class ChunkUtils {
             }
 
             String id = BlockEntityUtils.getBedrockBlockEntityId(tagName);
-            Position pos = new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue());
+            int x = (int) tag.get("x").getValue();
+            int y = (int) tag.get("y").getValue();
+            int z = (int) tag.get("z").getValue();
 
             // Get Java blockstate ID from block entity position
             int blockState = 0;
-            Chunk section = column.getChunks()[(pos.getY() >> 4) - yOffset];
+            Chunk section = column.getChunks()[(y >> 4) - yOffset];
             if (section != null) {
-                blockState = section.get(pos.getX() & 0xF, pos.getY() & 0xF, pos.getZ() & 0xF);
+                blockState = section.get(x & 0xF, y & 0xF, z & 0xF);
             }
 
             if (tagName.equals("minecraft:lectern") && BlockStateValues.getLecternBookStates().get(blockState)) {
                 // If getLecternBookStates is false, let's just treat it like a normal block entity
-                bedrockBlockEntities[i] = session.getConnector().getWorldManager().getLecternDataAt(session, pos.getX(), pos.getY(), pos.getZ(), true);
+                bedrockBlockEntities[i] = session.getConnector().getWorldManager().getLecternDataAt(session, x, y, z, true);
                 i++;
                 continue;
             }
@@ -363,50 +365,31 @@ public class ChunkUtils {
             skull.despawnEntity(session, position);
         }
 
-        int blockId = session.getBlockMappings().getBedrockBlockId(blockState);
+        // Prevent moving_piston from being placed
+        // It's used for extending piston heads, but it isn't needed on Bedrock and causes pistons to flicker
+        if (!BlockStateValues.isMovingPiston(blockState)) {
+            int blockId = session.getBlockMappings().getBedrockBlockId(blockState);
 
-        UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-        updateBlockPacket.setDataLayer(0);
-        updateBlockPacket.setBlockPosition(position);
-        updateBlockPacket.setRuntimeId(blockId);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-        session.sendUpstreamPacket(updateBlockPacket);
+            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+            updateBlockPacket.setDataLayer(0);
+            updateBlockPacket.setBlockPosition(position);
+            updateBlockPacket.setRuntimeId(blockId);
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+            session.sendUpstreamPacket(updateBlockPacket);
 
-        UpdateBlockPacket waterPacket = new UpdateBlockPacket();
-        waterPacket.setDataLayer(1);
-        waterPacket.setBlockPosition(position);
-        if (BlockRegistries.WATERLOGGED.get().contains(blockState)) {
-            waterPacket.setRuntimeId(session.getBlockMappings().getBedrockWaterId());
-        } else {
-            waterPacket.setRuntimeId(session.getBlockMappings().getBedrockAirId());
-        }
-        session.sendUpstreamPacket(waterPacket);
-
-        BlockStateValues.getLecternBookStates().compute(blockState, (key, newLecternHasBook) -> {
-            // Determine if this block is a lectern
-            if (newLecternHasBook != null) {
-                boolean lecternCachedHasBook = session.getLecternCache().contains(position);
-                if (!session.getConnector().getWorldManager().shouldExpectLecternHandled() && lecternCachedHasBook != newLecternHasBook) {
-                    // Refresh the block entirely - it either has a book or no longer has a book
-                    NbtMap newLecternTag;
-                    if (newLecternHasBook) {
-                        newLecternTag = session.getConnector().getWorldManager().getLecternDataAt(session, position.getX(), position.getY(), position.getZ(), false);
-                    } else {
-                        session.getLecternCache().remove(position);
-                        newLecternTag = LecternInventoryTranslator.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 0).build();
-                    }
-                    BlockEntityUtils.updateBlockEntity(session, newLecternTag, position);
-                } else {
-                    // As of right now, no tag can be added asynchronously
-                    session.getConnector().getWorldManager().getLecternDataAt(session, position.getX(), position.getY(), position.getZ(), false);
-                }
+            UpdateBlockPacket waterPacket = new UpdateBlockPacket();
+            waterPacket.setDataLayer(1);
+            waterPacket.setBlockPosition(position);
+            if (BlockRegistries.WATERLOGGED.get().contains(blockState)) {
+                waterPacket.setRuntimeId(session.getBlockMappings().getBedrockWaterId());
             } else {
-                // Lectern has been destroyed, if it existed
-                session.getLecternCache().remove(position);
+                waterPacket.setRuntimeId(session.getBlockMappings().getBedrockAirId());
             }
-            return newLecternHasBook;
-        });
+            session.sendUpstreamPacket(waterPacket);
+        }
+
+        BlockStateValues.getLecternBookStates().handleBlockChange(session, blockState, position);
 
         // Iterates through all Bedrock-only block entity translators and determines if a manual block entity packet
         // needs to be sent

@@ -38,7 +38,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class BedrockCommandBlockUpdateTranslator extends PacketTranslator<CommandBlockUpdatePacket> {
 
     @Override
-    public void translate(CommandBlockUpdatePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, CommandBlockUpdatePacket packet) {
         String command = packet.getCommand();
         boolean outputTracked = packet.isOutputTracked();
         if (packet.isBlock()) {

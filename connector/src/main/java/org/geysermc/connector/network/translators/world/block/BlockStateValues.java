@@ -27,29 +27,37 @@ package org.geysermc.connector.network.translators.world.block;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.registry.type.BlockMapping;
-
-import java.util.Map;
-import java.util.function.BiFunction;
+import org.geysermc.connector.utils.Direction;
+import org.geysermc.connector.utils.PistonBehavior;
+import org.geysermc.connector.utils.collections.FixedInt2ByteMap;
+import org.geysermc.connector.utils.collections.FixedInt2IntMap;
+import org.geysermc.connector.utils.collections.LecternHasBookMap;
 
 /**
  * Used for block entities if the Java block state contains Bedrock block information.
  */
 public class BlockStateValues {
-    private static final Int2IntMap BANNER_COLORS = new Int2IntOpenHashMap();
-    private static final Int2ByteMap BED_COLORS = new Int2ByteOpenHashMap();
+    private static final Int2IntMap BANNER_COLORS = new FixedInt2IntMap();
+    private static final Int2ByteMap BED_COLORS = new FixedInt2ByteMap();
     private static final Int2ByteMap COMMAND_BLOCK_VALUES = new Int2ByteOpenHashMap();
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
-    private static final Int2BooleanMap LECTERN_BOOK_STATES = new Int2BooleanOpenHashMap();
-    private static final Int2IntMap NOTEBLOCK_PITCHES = new Int2IntOpenHashMap();
-    private static final Int2BooleanMap IS_STICKY_PISTON = new Int2BooleanOpenHashMap();
+    private static final LecternHasBookMap LECTERN_BOOK_STATES = new LecternHasBookMap();
+    private static final Int2IntMap NOTEBLOCK_PITCHES = new FixedInt2IntMap();
     private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
-    private static final Int2ByteMap SKULL_VARIANTS = new Int2ByteOpenHashMap();
+    private static final Int2BooleanMap IS_STICKY_PISTON = new Int2BooleanOpenHashMap();
+    private static final Object2IntMap<Direction> PISTON_HEADS = new Object2IntOpenHashMap<>();
+    private static final Int2ObjectMap<Direction> PISTON_ORIENTATION = new Int2ObjectOpenHashMap<>();
+    private static final IntSet ALL_PISTON_HEADS = new IntOpenHashSet();
+    private static final IntSet MOVING_PISTONS = new IntOpenHashSet();
+    private static final Int2ByteMap SKULL_VARIANTS = new FixedInt2ByteMap();
     private static final Int2ByteMap SKULL_ROTATIONS = new Int2ByteOpenHashMap();
     private static final Int2IntMap SKULL_WALL_DIRECTIONS = new Int2IntOpenHashMap();
-    private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new Int2ByteOpenHashMap();
+    private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new FixedInt2ByteMap();
     private static final Int2IntMap WATER_LEVEL = new Int2IntOpenHashMap();
 
     public static final int JAVA_AIR_ID = 0;
@@ -58,6 +66,8 @@ public class BlockStateValues {
     public static int JAVA_COBWEB_ID;
     public static int JAVA_FURNACE_ID;
     public static int JAVA_FURNACE_LIT_ID;
+    public static int JAVA_HONEY_BLOCK_ID;
+    public static int JAVA_SLIME_BLOCK_ID;
     public static int JAVA_SPAWNER_ID;
     public static int JAVA_WATER_ID;
 
@@ -116,10 +126,20 @@ public class BlockStateValues {
             return;
         }
 
-        if (javaId.contains("piston")) {
-            // True if extended, false if not
-            PISTON_VALUES.put(javaBlockState, javaId.contains("extended=true"));
+        if (javaId.contains("piston[")) { // minecraft:moving_piston, minecraft:sticky_piston, minecraft:piston
+            if (javaId.startsWith("minecraft:moving_piston")) {
+                MOVING_PISTONS.add(javaBlockState);
+            } else {
+                PISTON_VALUES.put(javaBlockState, javaId.contains("extended=true"));
+            }
             IS_STICKY_PISTON.put(javaBlockState, javaId.contains("sticky"));
+            PISTON_ORIENTATION.put(javaBlockState, getBlockDirection(javaId));
+            return;
+        } else if (javaId.startsWith("minecraft:piston_head")) {
+            ALL_PISTON_HEADS.add(javaBlockState);
+            if (javaId.contains("short=false")) {
+                PISTON_HEADS.put(getBlockDirection(javaId), javaBlockState);
+            }
             return;
         }
 
@@ -208,12 +228,9 @@ public class BlockStateValues {
     }
 
     /**
-     * This returns a Map interface so IntelliJ doesn't complain about {@link Int2BooleanMap#compute(int, BiFunction)}
-     * not returning null.
-     *
      * @return the lectern book state map pointing to book present state
      */
-    public static Map<Integer, Boolean> getLecternBookStates() {
+    public static LecternHasBookMap getLecternBookStates() {
         return LECTERN_BOOK_STATES;
     }
 
@@ -239,6 +256,81 @@ public class BlockStateValues {
 
     public static boolean isStickyPiston(int blockState) {
         return IS_STICKY_PISTON.get(blockState);
+    }
+
+    public static boolean isPistonHead(int state) {
+        return ALL_PISTON_HEADS.contains(state);
+    }
+
+    /**
+     * Get the Java Block State for a piston head for a specific direction
+     * This is used in PistonBlockEntity to get the BlockCollision for the piston head.
+     *
+     * @param direction Direction the piston head points in
+     * @return Block state for the piston head
+     */
+    public static int getPistonHead(Direction direction) {
+        return PISTON_HEADS.getOrDefault(direction, BlockStateValues.JAVA_AIR_ID);
+    }
+
+    /**
+     * Check if a block is a minecraft:moving_piston
+     * This is used in ChunkUtils to prevent them from being placed as it causes
+     * pistons to flicker and it is not needed
+     *
+     * @param state Block state of the block
+     * @return True if the block is a moving_piston
+     */
+    public static boolean isMovingPiston(int state) {
+        return MOVING_PISTONS.contains(state);
+    }
+
+    /**
+     * This is used in GeyserPistonEvents.java and accepts minecraft:piston,
+     * minecraft:sticky_piston, and minecraft:moving_piston.
+     *
+     * @param state The block state of the piston base
+     * @return The direction in which the piston faces
+     */
+    public static Direction getPistonOrientation(int state) {
+        return PISTON_ORIENTATION.get(state);
+    }
+
+    /**
+     * Checks if a block sticks to other blocks
+     * (Slime and honey blocks)
+     *
+     * @param state The block state
+     * @return True if the block sticks to adjacent blocks
+     */
+    public static boolean isBlockSticky(int state) {
+        return state == JAVA_SLIME_BLOCK_ID || state == JAVA_HONEY_BLOCK_ID;
+    }
+
+    /**
+     * Check if two blocks are attached to each other.
+     *
+     * @param stateA The block state of block a
+     * @param stateB The block state of block b
+     * @return True if the blocks are attached to each other
+     */
+    public static boolean isBlockAttached(int stateA, int stateB) {
+        boolean aSticky = isBlockSticky(stateA);
+        boolean bSticky = isBlockSticky(stateB);
+        if (aSticky && bSticky) {
+            // Only matching sticky blocks are attached together
+            // Honey + Honey & Slime + Slime
+            return stateA == stateB;
+        }
+        return aSticky || bSticky;
+    }
+
+    /**
+     * @param state The block state of the block
+     * @return true if a piston can break the block
+     */
+    public static boolean canPistonDestroyBlock(int state)  {
+        return BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.AIR).getPistonBehavior() == PistonBehavior.DESTROY;
     }
 
     /**
@@ -310,5 +402,22 @@ public class BlockStateValues {
             case "minecraft:blue_ice" -> 0.989f;
             default -> 0.6f;
         };
+    }
+
+    private static Direction getBlockDirection(String javaId) {
+        if (javaId.contains("down")) {
+            return Direction.DOWN;
+        } else if (javaId.contains("up")) {
+            return Direction.UP;
+        } else if (javaId.contains("south")) {
+            return Direction.SOUTH;
+        } else if (javaId.contains("west")) {
+            return Direction.WEST;
+        } else if (javaId.contains("north")) {
+            return Direction.NORTH;
+        } else if (javaId.contains("east")) {
+            return Direction.EAST;
+        }
+        throw new IllegalStateException();
     }
 }

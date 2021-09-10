@@ -37,7 +37,7 @@ import com.nukkitx.math.vector.Vector3i;
 public class JavaUpdateViewPositionTranslator extends PacketTranslator<ServerUpdateViewPositionPacket> {
 
     @Override
-    public void translate(ServerUpdateViewPositionPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerUpdateViewPositionPacket packet) {
         if (!session.isSpawned() && session.getLastChunkPosition() == null) {
             ChunkUtils.updateChunkPosition(session, Vector3i.from(packet.getChunkX() << 4, 64, packet.getChunkZ() << 4));
         }

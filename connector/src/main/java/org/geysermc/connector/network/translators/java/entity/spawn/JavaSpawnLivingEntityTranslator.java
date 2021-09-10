@@ -42,7 +42,7 @@ import java.lang.reflect.InvocationTargetException;
 public class JavaSpawnLivingEntityTranslator extends PacketTranslator<ServerSpawnLivingEntityPacket> {
 
     @Override
-    public void translate(ServerSpawnLivingEntityPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerSpawnLivingEntityPacket packet) {
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f motion = Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());
         Vector3f rotation = Vector3f.from(packet.getYaw(), packet.getPitch(), packet.getHeadYaw());

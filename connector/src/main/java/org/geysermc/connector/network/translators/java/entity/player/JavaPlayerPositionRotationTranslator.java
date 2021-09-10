@@ -50,7 +50,7 @@ import org.geysermc.connector.utils.LanguageUtils;
 public class JavaPlayerPositionRotationTranslator extends PacketTranslator<ServerPlayerPositionRotationPacket> {
 
     @Override
-    public void translate(ServerPlayerPositionRotationPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerPlayerPositionRotationPacket packet) {
         if (!session.isLoggedIn())
             return;
 

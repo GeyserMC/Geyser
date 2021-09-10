@@ -270,4 +270,8 @@ public class MessageTranslator {
 
         return false;
     }
+
+    public static void init() {
+        // no-op
+    }
 }

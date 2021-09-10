@@ -30,6 +30,7 @@ import com.viaversion.viaversion.bukkit.handlers.BukkitChannelInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.local.LocalAddress;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import org.bukkit.Bukkit;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.common.GeyserInjector;
@@ -117,7 +118,8 @@ public class GeyserSpigotInjector extends GeyserInjector {
                         initChannel.invoke(childHandler, ch);
                     }
                 })
-                .group(new DefaultEventLoopGroup())
+                // Set to MAX_PRIORITY as MultithreadEventLoopGroup#newDefaultThreadFactory which DefaultEventLoopGroup implements does by default
+                .group(new DefaultEventLoopGroup(0, new DefaultThreadFactory("Geyser Spigot connection thread", Thread.MAX_PRIORITY)))
                 .localAddress(LocalAddress.ANY))
                 .bind()
                 .syncUninterruptibly();

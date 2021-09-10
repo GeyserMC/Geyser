@@ -35,7 +35,7 @@ import org.geysermc.connector.utils.StatisticsUtils;
 public class JavaStatisticsTranslator extends PacketTranslator<ServerStatisticsPacket> {
 
     @Override
-    public void translate(ServerStatisticsPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerStatisticsPacket packet) {
         session.updateStatistics(packet.getStatistics());
 
         if (session.isWaitingForStatistics()) {

@@ -44,7 +44,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class BedrockItemFrameDropItemTranslator extends PacketTranslator<ItemFrameDropItemPacket> {
 
     @Override
-    public void translate(ItemFrameDropItemPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ItemFrameDropItemPacket packet) {
         Entity entity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
         if (entity != null) {
             ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),

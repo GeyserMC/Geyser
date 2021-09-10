@@ -98,7 +98,7 @@ public class JavaOpenHorseWindowTranslator extends PacketTranslator<ServerOpenHo
     }
 
     @Override
-    public void translate(ServerOpenHorseWindowPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerOpenHorseWindowPacket packet) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) {
             return;

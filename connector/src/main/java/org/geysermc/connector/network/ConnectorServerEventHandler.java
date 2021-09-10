@@ -58,7 +58,8 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     private static final int MAGIC_RAKNET_LENGTH = 338;
 
     private final GeyserConnector connector;
-    private final DefaultEventLoopGroup eventLoopGroup = new DefaultEventLoopGroup(new DefaultThreadFactory("Geyser player thread"));
+    // There is a constructor that doesn't require inputting threads, but older Netty versions don't have it
+    private final DefaultEventLoopGroup eventLoopGroup = new DefaultEventLoopGroup(0, new DefaultThreadFactory("Geyser player thread"));
 
     public ConnectorServerEventHandler(GeyserConnector connector) {
         this.connector = connector;
@@ -87,7 +88,9 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
-        connector.getLogger().debug(LanguageUtils.getLocaleStringLog("geyser.network.pinged", inetSocketAddress));
+        if (connector.getConfig().isDebugMode()) {
+            connector.getLogger().debug(LanguageUtils.getLocaleStringLog("geyser.network.pinged", inetSocketAddress));
+        }
 
         GeyserConfiguration config = connector.getConfig();
 

@@ -37,7 +37,7 @@ import org.geysermc.connector.network.translators.chat.MessageTranslator;
 public class BedrockTextTranslator extends PacketTranslator<TextPacket> {
 
     @Override
-    public void translate(TextPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, TextPacket packet) {
         String message = packet.getMessage();
 
         if (MessageTranslator.isTooLong(message, session)) {

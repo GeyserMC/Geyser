@@ -43,7 +43,7 @@ import java.util.Arrays;
 public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEntitySetPassengersPacket> {
 
     @Override
-    public void translate(ServerEntitySetPassengersPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerEntitySetPassengersPacket packet) {
         Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();

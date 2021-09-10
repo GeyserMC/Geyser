@@ -20,7 +20,7 @@ pipeline {
             }
         }
 
-        /*stage ('Deploy') {
+        stage ('Deploy') {
             when {
                 branch "master"
             }
@@ -48,7 +48,7 @@ pipeline {
                         serverId: "opencollab-artifactory"
                 )
             }
-        }*/
+        }
     }
 
     post {

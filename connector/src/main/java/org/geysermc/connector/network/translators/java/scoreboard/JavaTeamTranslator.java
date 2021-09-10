@@ -47,7 +47,7 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
     private static final GeyserLogger LOGGER = GeyserConnector.getInstance().getLogger();
 
     @Override
-    public void translate(ServerTeamPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerTeamPacket packet) {
         if (LOGGER.isDebug()) {
             LOGGER.debug("Team packet " + packet.getTeamName() + " " + packet.getAction() + " " + Arrays.toString(packet.getPlayers()));
         }

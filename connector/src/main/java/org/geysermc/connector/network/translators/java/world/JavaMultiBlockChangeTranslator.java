@@ -37,7 +37,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerMultiB
 public class JavaMultiBlockChangeTranslator extends PacketTranslator<ServerMultiBlockChangePacket> {
 
     @Override
-    public void translate(ServerMultiBlockChangePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerMultiBlockChangePacket packet) {
         for (BlockChangeRecord record : packet.getRecords()) {
             ChunkUtils.updateBlock(session, record.getBlock(), record.getPosition());
         }

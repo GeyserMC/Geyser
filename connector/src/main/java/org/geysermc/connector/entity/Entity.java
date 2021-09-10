@@ -249,10 +249,7 @@ public class Entity {
                     // Swimming is ignored here and instead we rely on the pose
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
 
-                    // Armour stands are handled in their own class
-                    if (!this.is(ArmorStandEntity.class)) {
-                        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
-                    }
+                    setInvisible(session, (xd & 0x20) == 0x20);
                 }
                 break;
             case 1: // Air/bubbles
@@ -339,6 +336,16 @@ public class Entity {
 
     protected int getMaxAir() {
         return 300;
+    }
+
+    /**
+     * Set a boolean - whether the entity is invisible or visible
+     *
+     * @param session the Geyser session
+     * @param value true if the entity is invisible
+     */
+    protected void setInvisible(GeyserSession session, boolean value) {
+        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, value);
     }
 
     /**

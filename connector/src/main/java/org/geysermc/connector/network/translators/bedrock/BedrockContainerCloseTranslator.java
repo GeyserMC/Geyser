@@ -38,7 +38,7 @@ import org.geysermc.connector.utils.InventoryUtils;
 public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerClosePacket> {
 
     @Override
-    public void translate(ContainerClosePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ContainerClosePacket packet) {
         byte windowId = packet.getId();
 
         //Client wants close confirmation

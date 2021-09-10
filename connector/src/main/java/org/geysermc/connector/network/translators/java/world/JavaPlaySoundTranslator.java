@@ -40,7 +40,7 @@ import org.geysermc.connector.registry.type.SoundMapping;
 public class JavaPlaySoundTranslator extends PacketTranslator<ServerPlaySoundPacket> {
 
     @Override
-    public void translate(ServerPlaySoundPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerPlaySoundPacket packet) {
         String packetSound;
         if (packet.getSound() instanceof BuiltinSound) {
             packetSound = ((BuiltinSound) packet.getSound()).getName();

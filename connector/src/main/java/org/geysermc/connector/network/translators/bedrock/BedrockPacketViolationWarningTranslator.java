@@ -34,7 +34,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class BedrockPacketViolationWarningTranslator extends PacketTranslator<PacketViolationWarningPacket> {
 
     @Override
-    public void translate(PacketViolationWarningPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, PacketViolationWarningPacket packet) {
         // Not translated since this is something that the developers need to know
         session.getConnector().getLogger().error("Packet violation warning sent from client! " + packet.toString());
     }

@@ -34,7 +34,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class JavaDeclareTagsTranslator extends PacketTranslator<ServerDeclareTagsPacket> {
 
     @Override
-    public void translate(ServerDeclareTagsPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerDeclareTagsPacket packet) {
         session.getTagCache().loadPacket(packet);
     }
 }

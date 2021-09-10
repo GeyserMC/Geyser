@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit;
 public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPacket> {
 
     @Override
-    public void translate(EntityEventPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, EntityEventPacket packet) {
         switch (packet.getType()) {
             case EATING_ITEM -> {
                 // Resend the packet so we get the eating sounds
@@ -53,7 +53,8 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
             case COMPLETE_TRADE -> {
                 ClientSelectTradePacket selectTradePacket = new ClientSelectTradePacket(packet.getData());
                 session.sendDownstreamPacket(selectTradePacket);
-                session.getEventLoop().schedule(() -> {
+
+                session.scheduleInEventLoop(() -> {
                     Entity villager = session.getPlayerEntity();
                     Inventory openInventory = session.getOpenInventory();
                     if (openInventory instanceof MerchantContainer merchantInventory) {

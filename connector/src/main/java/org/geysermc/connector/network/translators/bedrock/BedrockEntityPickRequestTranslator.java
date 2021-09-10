@@ -42,7 +42,7 @@ import org.geysermc.connector.utils.InventoryUtils;
 public class BedrockEntityPickRequestTranslator extends PacketTranslator<EntityPickRequestPacket> {
 
     @Override
-    public void translate(EntityPickRequestPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, EntityPickRequestPacket packet) {
         if (session.getGameMode() != GameMode.CREATIVE) return; // Apparently Java behavior
         Entity entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
         if (entity == null) return;

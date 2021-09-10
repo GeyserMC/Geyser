@@ -51,7 +51,7 @@ public abstract class FireworkBaseTranslator extends NbtItemStackTranslator {
 
             int i = 0;
             for (int color : oldColors) {
-                colors[i++] = FireworkColor.fromJavaID(color).getBedrockID();
+                colors[i++] = FireworkColor.fromJavaRGB(color);
             }
 
             newExplosionData.put(new ByteArrayTag("FireworkColor", colors));
@@ -63,7 +63,7 @@ public abstract class FireworkBaseTranslator extends NbtItemStackTranslator {
 
             int i = 0;
             for (int color : oldColors) {
-                colors[i++] = FireworkColor.fromJavaID(color).getBedrockID();
+                colors[i++] = FireworkColor.fromJavaRGB(color);
             }
 
             newExplosionData.put(new ByteArrayTag("FireworkFade", colors));
@@ -93,7 +93,7 @@ public abstract class FireworkBaseTranslator extends NbtItemStackTranslator {
 
             int i = 0;
             for (byte color : oldColors) {
-                colors[i++] = FireworkColor.fromBedrockID(color).getJavaID();
+                colors[i++] = FireworkColor.fromBedrockId(color);
             }
 
             newExplosionData.put(new IntArrayTag("Colors", colors));
@@ -105,7 +105,7 @@ public abstract class FireworkBaseTranslator extends NbtItemStackTranslator {
 
             int i = 0;
             for (byte color : oldColors) {
-                colors[i++] = FireworkColor.fromBedrockID(color).getJavaID();
+                colors[i++] = FireworkColor.fromBedrockId(color);
             }
 
             newExplosionData.put(new IntArrayTag("FadeColors", colors));

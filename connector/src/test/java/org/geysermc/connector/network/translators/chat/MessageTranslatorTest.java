@@ -57,6 +57,9 @@ public class MessageTranslatorTest {
         // Disabled due to not having an GeyserConnector instance, hence it fails
         //messages.put("{\"translate\":\"death.attack.player\",\"with\":[{\"text\":\"rtm516\",\"insertion\":\"rtm516\"},{\"text\":\"*invincible_rt\",\"insertion\":\"*invincible_rt\"}]}",
         //        "rtm516 was slain by *invincible_rt");
+        //// Test translation with the ' character (which MessageFormat requires special handling for)
+        //messages.put("{\"translate\":\"commands.give.success.single\",\"with\":[{\"text\":\"1\"},{\"color\":\"yellow\",\"hoverEvent\":{\"action\":\"show_item\",\"contents\":{\"id\":\"minecraft:player_head\",\"tag\":\"{SkullOwner:\\\"Camotoy\\\"}\"}},\"translate\":\"chat.square_brackets\",\"with\":[{\"extra\":[{\"translate\":\"block.minecraft.player_head.named\",\"with\":[{\"text\":\"Camotoy\"}]}],\"text\":\"\"}]},{\"insertion\":\"DoctorMad9952\",\"clickEvent\":{\"action\":\"suggest_command\",\"value\":\"/tell DoctorMad9952 \"},\"hoverEvent\":{\"action\":\"show_entity\",\"contents\":{\"type\":\"minecraft:player\",\"id\":\"8d712993-d208-3dac-b4d8-f2ce7e7d2b75\",\"name\":{\"text\":\"DoctorMad9952\"}}},\"extra\":[{\"text\":\"DoctorMad9952\"}],\"text\":\"\"}]}",
+        //        "Gave 1 §r§e[Camotoy's Head]§r to DoctorMad9952");
     }
 
     @Test

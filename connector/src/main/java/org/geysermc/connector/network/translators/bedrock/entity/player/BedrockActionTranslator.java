@@ -54,7 +54,7 @@ import java.util.ArrayList;
 public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket> {
 
     @Override
-    public void translate(PlayerActionPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, PlayerActionPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         // Send book update before any player action

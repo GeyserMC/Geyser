@@ -41,7 +41,7 @@ import org.geysermc.connector.registry.type.ItemMapping;
 
 import java.util.EnumSet;
 
-public class ThrownPotionEntity extends ThrowableEntity {
+public class ThrownPotionEntity extends ThrowableItemEntity {
     private static final EnumSet<Potion> NON_ENCHANTED_POTIONS = EnumSet.of(Potion.WATER, Potion.MUNDANE, Potion.THICK, Potion.AWKWARD);
 
     public ThrownPotionEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {

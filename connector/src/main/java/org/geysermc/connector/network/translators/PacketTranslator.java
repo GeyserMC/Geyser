@@ -29,6 +29,6 @@ import org.geysermc.connector.network.session.GeyserSession;
 
 public abstract class PacketTranslator<T> {
 
-    public abstract void translate(T packet, GeyserSession session);
+    public abstract void translate(GeyserSession session, T packet);
 
 }

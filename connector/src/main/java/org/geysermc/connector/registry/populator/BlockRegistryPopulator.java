@@ -29,8 +29,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import com.nukkitx.nbt.*;
 import com.nukkitx.protocol.bedrock.v448.Bedrock_v448;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -43,6 +43,7 @@ import org.geysermc.connector.registry.type.BlockMapping;
 import org.geysermc.connector.registry.type.BlockMappings;
 import org.geysermc.connector.utils.BlockUtils;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.connector.utils.PistonBehavior;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
@@ -112,15 +113,17 @@ public class BlockRegistryPopulator {
             int commandBlockRuntimeId = -1;
             int javaRuntimeId = -1;
             int waterRuntimeId = -1;
+            int movingBlockRuntimeId = -1;
             Iterator<Map.Entry<String, JsonNode>> blocksIterator = BLOCKS_JSON.fields();
 
             BiFunction<String, NbtMapBuilder, String> stateMapper = STATE_MAPPER.getOrDefault(palette.getKey(), (i, s) -> null);
 
-            Int2IntMap javaToBedrockBlockMap = new Int2IntOpenHashMap();
-            Int2IntMap bedrockToJavaBlockMap = new Int2IntOpenHashMap();
+            int[] javaToBedrockBlocks = new int[BLOCKS_JSON.size()];
 
             Map<String, NbtMap> flowerPotBlocks = new Object2ObjectOpenHashMap<>();
             Object2IntMap<NbtMap> itemFrames = new Object2IntOpenHashMap<>();
+
+            IntSet jigsawStateIds = new IntOpenHashSet();
 
             BlockMappings.BlockMappingsBuilder builder = BlockMappings.builder();
             while (blocksIterator.hasNext()) {
@@ -138,17 +141,19 @@ public class BlockRegistryPopulator {
                     case "minecraft:air" -> airRuntimeId = bedrockRuntimeId;
                     case "minecraft:water[level=0]" -> waterRuntimeId = bedrockRuntimeId;
                     case "minecraft:command_block[conditional=false,facing=north]" -> commandBlockRuntimeId = bedrockRuntimeId;
+                    case "minecraft:moving_piston[facing=north,type=normal]" -> movingBlockRuntimeId = bedrockRuntimeId;
+                }
+
+                if (javaId.contains("jigsaw")) {
+                    jigsawStateIds.add(bedrockRuntimeId);
                 }
 
                 boolean waterlogged = entry.getKey().contains("waterlogged=true")
                         || javaId.contains("minecraft:bubble_column") || javaId.contains("minecraft:kelp") || javaId.contains("seagrass");
 
                 if (waterlogged) {
-                    bedrockToJavaBlockMap.putIfAbsent(bedrockRuntimeId | 1 << 31, javaRuntimeId);
                     int finalJavaRuntimeId = javaRuntimeId;
                     BlockRegistries.WATERLOGGED.register(set -> set.add(finalJavaRuntimeId));
-                } else {
-                    bedrockToJavaBlockMap.putIfAbsent(bedrockRuntimeId, javaRuntimeId);
                 }
 
                 String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(entry.getKey());
@@ -162,7 +167,7 @@ public class BlockRegistryPopulator {
                     javaIdentifierToBedrockTag.put(cleanJavaIdentifier.intern(), blocksTag.get(bedrockRuntimeId));
                 }
 
-                javaToBedrockBlockMap.put(javaRuntimeId, bedrockRuntimeId);
+                javaToBedrockBlocks[javaRuntimeId] = bedrockRuntimeId;
             }
 
             if (commandBlockRuntimeId == -1) {
@@ -180,6 +185,11 @@ public class BlockRegistryPopulator {
             }
             builder.bedrockAirId(airRuntimeId);
 
+            if (movingBlockRuntimeId == -1) {
+                throw new AssertionError("Unable to find moving block in palette");
+            }
+            builder.bedrockMovingBlockId(movingBlockRuntimeId);
+
             // Loop around again to find all item frame runtime IDs
             for (Object2IntMap.Entry<NbtMap> entry : blockStateOrderedMap.object2IntEntrySet()) {
                 String name = entry.getKey().getString("name");
@@ -191,11 +201,11 @@ public class BlockRegistryPopulator {
 
             BlockRegistries.BLOCKS.register(PALETTE_VERSIONS.getInt(palette.getKey()), builder.blockStateVersion(stateVersion)
                     .emptyChunkSection(new ChunkSection(new BlockStorage[]{new BlockStorage(airRuntimeId)}))
-                    .javaToBedrockBlockMap(javaToBedrockBlockMap)
-                    .bedrockToJavaBlockMap(bedrockToJavaBlockMap)
+                    .javaToBedrockBlocks(javaToBedrockBlocks)
                     .javaIdentifierToBedrockTag(javaIdentifierToBedrockTag)
                     .itemFrames(itemFrames)
                     .flowerPotBlocks(flowerPotBlocks)
+                    .jigsawStateIds(jigsawStateIds)
                     .build());
         }
     }
@@ -210,6 +220,8 @@ public class BlockRegistryPopulator {
             throw new AssertionError("Unable to load Java block mappings", e);
         }
 
+        BlockRegistries.JAVA_BLOCKS.set(new BlockMapping[blocksJson.size()]); // Set array size to number of blockstates
+
         Set<String> cleanIdentifiers = new HashSet<>();
 
         int javaRuntimeId = -1;
@@ -217,6 +229,8 @@ public class BlockRegistryPopulator {
         int cobwebBlockId = -1;
         int furnaceRuntimeId = -1;
         int furnaceLitRuntimeId = -1;
+        int honeyBlockRuntimeId = -1;
+        int slimeBlockRuntimeId = -1;
         int spawnerRuntimeId = -1;
         int uniqueJavaId = -1;
         int waterRuntimeId = -1;
@@ -248,6 +262,24 @@ public class BlockRegistryPopulator {
             JsonNode pickItemNode = entry.getValue().get("pick_item");
             if (pickItemNode != null) {
                 builder.pickItem(pickItemNode.textValue().intern());
+            }
+
+            if (javaId.equals("minecraft:obsidian") || javaId.equals("minecraft:crying_obsidian") || javaId.startsWith("minecraft:respawn_anchor")) {
+                builder.pistonBehavior(PistonBehavior.BLOCK);
+            } else {
+                JsonNode pistonBehaviorNode = entry.getValue().get("piston_behavior");
+                if (pistonBehaviorNode != null) {
+                    builder.pistonBehavior(PistonBehavior.getByName(pistonBehaviorNode.textValue()));
+                } else {
+                    builder.pistonBehavior(PistonBehavior.NORMAL);
+                }
+            }
+
+            JsonNode hasBlockEntityNode = entry.getValue().get("has_block_entity");
+            if (hasBlockEntityNode != null) {
+                builder.isBlockEntity(hasBlockEntityNode.booleanValue());
+            } else {
+                builder.isBlockEntity(false);
             }
 
             BlockStateValues.storeBlockStateValues(entry.getKey(), javaRuntimeId, entry.getValue());
@@ -289,6 +321,10 @@ public class BlockRegistryPopulator {
 
             } else if ("minecraft:water[level=0]".equals(javaId)) {
                 waterRuntimeId = javaRuntimeId;
+            } else if (javaId.equals("minecraft:honey_block")) {
+                honeyBlockRuntimeId = javaRuntimeId;
+            } else if (javaId.equals("minecraft:slime_block")) {
+                slimeBlockRuntimeId = javaRuntimeId;
             }
         }
         if (bellBlockId == -1) {
@@ -310,6 +346,16 @@ public class BlockRegistryPopulator {
             throw new AssertionError("Unable to find lit furnace in palette");
         }
         BlockStateValues.JAVA_FURNACE_LIT_ID = furnaceLitRuntimeId;
+
+        if (honeyBlockRuntimeId == -1) {
+            throw new AssertionError("Unable to find honey block in palette");
+        }
+        BlockStateValues.JAVA_HONEY_BLOCK_ID = honeyBlockRuntimeId;
+
+        if (slimeBlockRuntimeId == -1) {
+            throw new AssertionError("Unable to find slime block in palette");
+        }
+        BlockStateValues.JAVA_SLIME_BLOCK_ID = slimeBlockRuntimeId;
 
         if (spawnerRuntimeId == -1) {
             throw new AssertionError("Unable to find spawner in palette");

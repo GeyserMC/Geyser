@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
 
     @Override
-    public void translate(AnimatePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, AnimatePacket packet) {
         // Stop the player sending animations before they have fully spawned into the server
         if (!session.isSpawned()) {
             return;
@@ -48,8 +48,8 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
         switch (packet.getAction()) {
             case SWING_ARM ->
                 // Delay so entity damage can be processed first
-                session.getEventLoop().schedule(() ->
-                                session.sendDownstreamPacket(new ClientPlayerSwingArmPacket(Hand.MAIN_HAND)),
+                session.scheduleInEventLoop(() ->
+                        session.sendDownstreamPacket(new ClientPlayerSwingArmPacket(Hand.MAIN_HAND)),
                         25,
                         TimeUnit.MILLISECONDS
                 );
