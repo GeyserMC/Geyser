@@ -45,7 +45,7 @@ public class LecternHasBookMap extends FixedInt2BooleanMap {
         WorldManager worldManager = session.getConnector().getWorldManager();
 
         int offset = blockState - this.start;
-        if (offset < 0 || offset > this.value.length) {
+        if (offset < 0 || offset >= this.value.length) {
             // Block state is out of bounds of this map - lectern has been destroyed, if it existed
             if (!worldManager.shouldExpectLecternHandled()) {
                 session.getLecternCache().remove(position);
