@@ -72,6 +72,8 @@ public class PistonBlockEntity {
      */
     private int[] flattenedAttachedBlocks = new int[0];
 
+    private boolean placedFinalBlocks = true;
+
     /**
      * The position of the piston head
      */
@@ -141,6 +143,7 @@ public class PistonBlockEntity {
         } else {
             removePistonHead();
         }
+        placedFinalBlocks = false;
 
         // Set progress and lastProgress to allow 0 tick pistons to animate
         switch (action) {
@@ -175,6 +178,7 @@ public class PistonBlockEntity {
         } else {
             removePistonHead();
         }
+        placedFinalBlocks = false;
 
         // Set progress and lastProgress to allow 0 tick pistons to animate
         switch (action) {
@@ -636,6 +640,12 @@ public class PistonBlockEntity {
      * The Java server will handle updating the blocks that do collide later.
      */
     private void placeFinalBlocks() {
+        // Prevent blocks from being placed multiple times since it is called in
+        // setAction and updateBlocks
+        if (placedFinalBlocks) {
+            return;
+        }
+        placedFinalBlocks = true;
         Vector3i movement = getMovement();
         attachedBlocks.forEach((blockPos, javaId) -> {
             blockPos = blockPos.add(movement);
