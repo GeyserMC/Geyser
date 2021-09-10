@@ -25,11 +25,14 @@
 
 package org.geysermc.connector.network.translators.collision;
 
+import com.nukkitx.math.vector.Vector3d;
 import lombok.*;
+import org.geysermc.connector.utils.Axis;
+import org.geysermc.connector.utils.Direction;
 
 @Data
 @AllArgsConstructor
-public class BoundingBox {
+public class BoundingBox implements Cloneable {
     private double middleX;
     private double middleY;
     private double middleZ;
@@ -44,9 +47,128 @@ public class BoundingBox {
         middleZ += z;
     }
 
-    public boolean checkIntersection(int offsetX, int offsetY, int offsetZ, BoundingBox otherBox) {
+    public void extend(double x, double y, double z) {
+        middleX += x / 2;
+        middleY += y / 2;
+        middleZ += z / 2;
+
+        sizeX += Math.abs(x);
+        sizeY += Math.abs(y);
+        sizeZ += Math.abs(z);
+    }
+
+    public void extend(Vector3d extend) {
+        extend(extend.getX(), extend.getY(), extend.getZ());
+    }
+
+    public boolean checkIntersection(double offsetX, double offsetY, double offsetZ, BoundingBox otherBox) {
         return (Math.abs((middleX + offsetX) - otherBox.getMiddleX()) * 2 < (sizeX + otherBox.getSizeX())) &&
                 (Math.abs((middleY + offsetY) - otherBox.getMiddleY()) * 2 < (sizeY + otherBox.getSizeY())) &&
                 (Math.abs((middleZ + offsetZ) - otherBox.getMiddleZ()) * 2 < (sizeZ + otherBox.getSizeZ()));
+    }
+
+    public boolean checkIntersection(Vector3d offset, BoundingBox otherBox) {
+        return checkIntersection(offset.getX(), offset.getY(), offset.getZ(), otherBox);
+    }
+
+    public Vector3d getMin() {
+        double x = middleX - sizeX / 2;
+        double y = middleY - sizeY / 2;
+        double z = middleZ - sizeZ / 2;
+        return Vector3d.from(x, y, z);
+    }
+
+    public Vector3d getMax() {
+        double x = middleX + sizeX / 2;
+        double y = middleY + sizeY / 2;
+        double z = middleZ + sizeZ / 2;
+        return Vector3d.from(x, y, z);
+    }
+
+    public Vector3d getBottomCenter() {
+        return Vector3d.from(middleX, middleY - sizeY / 2, middleZ);
+    }
+
+    private boolean checkOverlapInAxis(Vector3d offset, BoundingBox otherBox, Axis axis) {
+        switch (axis) {
+            case X:
+                return Math.abs((middleX + offset.getX()) - otherBox.getMiddleX()) * 2 < (sizeX + otherBox.getSizeX());
+            case Y:
+                return Math.abs((middleY + offset.getY()) - otherBox.getMiddleY()) * 2 < (sizeY + otherBox.getSizeY());
+            case Z:
+                return Math.abs((middleZ + offset.getZ()) - otherBox.getMiddleZ()) * 2 < (sizeZ + otherBox.getSizeZ());
+        }
+        return false;
+    }
+
+    /**
+     * Find the maximum offset of another bounding box in an axis that will not collide with this bounding box
+     *
+     * @param boxOffset The offset of this bounding box
+     * @param otherBoundingBox The bounding box that is moving
+     * @param axis The axis of movement
+     * @param offset The current max offset
+     * @return The new max offset
+     */
+    public double getMaxOffset(Vector3d boxOffset, BoundingBox otherBoundingBox, Axis axis, double offset) {
+        // Make sure that the bounding box overlaps in the other axes
+        for (Axis a : Axis.VALUES) {
+            if (a != axis && !checkOverlapInAxis(boxOffset, otherBoundingBox, a)) {
+                return offset;
+            }
+        }
+        if (offset > 0) {
+            double min = axis.choose(getMin().add(boxOffset));
+            double max = axis.choose(otherBoundingBox.getMax());
+            if ((min - max) >= -2.0 * CollisionManager.COLLISION_TOLERANCE) {
+                offset = Math.min(min - max, offset);
+            }
+        } else if (offset < 0) {
+            double min = axis.choose(otherBoundingBox.getMin());
+            double max = axis.choose(getMax().add(boxOffset));
+            if ((min - max) >= -2.0 * CollisionManager.COLLISION_TOLERANCE) {
+                offset = Math.max(max - min, offset);
+            }
+        }
+        return offset;
+    }
+
+    /**
+     * Get the distance required to move this bounding box to one of otherBoundingBox's sides
+     *
+     * @param otherBoundingBox The stationary bounding box
+     * @param side The side of otherBoundingBox to snap this bounding box to
+     * @return The distance to move in the direction of {@code side}
+     */
+    public double getIntersectionSize(BoundingBox otherBoundingBox, Direction side) {
+        switch (side) {
+            case DOWN:
+                return getMax().getY() - otherBoundingBox.getMin().getY();
+            case UP:
+                return otherBoundingBox.getMax().getY() - getMin().getY();
+            case NORTH:
+                return getMax().getZ() - otherBoundingBox.getMin().getZ();
+            case SOUTH:
+                return otherBoundingBox.getMax().getZ() - getMin().getZ();
+            case WEST:
+                return getMax().getX() - otherBoundingBox.getMin().getX();
+            case EAST:
+                return otherBoundingBox.getMax().getX() - getMin().getX();
+        }
+        return 0;
+    }
+
+    @SneakyThrows(CloneNotSupportedException.class)
+    @Override
+    public BoundingBox clone() {
+        BoundingBox clone = (BoundingBox) super.clone();
+        clone.middleX = middleX;
+        clone.middleY = middleY;
+        clone.middleZ = middleZ;
+
+        clone.sizeX = sizeX;
+        clone.sizeY = sizeY;
+        clone.sizeZ = sizeZ;
+        return clone;
     }
 }

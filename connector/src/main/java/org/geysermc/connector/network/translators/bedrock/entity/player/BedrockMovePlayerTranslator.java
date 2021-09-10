@@ -92,9 +92,9 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
             session.sendDownstreamPacket(playerRotationPacket);
         } else {
-            Vector3d position = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), packet.isOnGround());
-            if (position != null) { // A null return value cancels the packet
-                if (isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
+            if (isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
+                Vector3d position = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), packet.isOnGround());
+                if (position != null) { // A null return value cancels the packet
                     Packet movePacket;
                     if (rotationChanged) {
                         // Send rotation updates as well
@@ -134,11 +134,11 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                             session.sendUpstreamPacket(movePlayerPacket);
                         }
                     }
-                } else {
-                    // Not a valid move
-                    session.getConnector().getLogger().debug("Recalculating position...");
-                    session.getCollisionManager().recalculatePosition();
                 }
+            } else {
+                // Not a valid move
+                session.getConnector().getLogger().debug("Recalculating position...");
+                session.getCollisionManager().recalculatePosition();
             }
         }
 
