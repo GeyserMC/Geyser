@@ -49,7 +49,7 @@ public class BlockStateValues {
     private static final LecternHasBookMap LECTERN_BOOK_STATES = new LecternHasBookMap();
     private static final Int2IntMap NOTEBLOCK_PITCHES = new FixedInt2IntMap();
     private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
-    private static final Int2BooleanMap IS_STICKY_PISTON = new Int2BooleanOpenHashMap();
+    private static final IntSet STICKY_PISTONS = new IntOpenHashSet();
     private static final Object2IntMap<Direction> PISTON_HEADS = new Object2IntOpenHashMap<>();
     private static final Int2ObjectMap<Direction> PISTON_ORIENTATION = new Int2ObjectOpenHashMap<>();
     private static final IntSet ALL_PISTON_HEADS = new IntOpenHashSet();
@@ -132,7 +132,9 @@ public class BlockStateValues {
             } else {
                 PISTON_VALUES.put(javaBlockState, javaId.contains("extended=true"));
             }
-            IS_STICKY_PISTON.put(javaBlockState, javaId.contains("sticky"));
+            if (javaId.contains("sticky")) {
+                STICKY_PISTONS.add(javaBlockState);
+            }
             PISTON_ORIENTATION.put(javaBlockState, getBlockDirection(javaId));
             return;
         } else if (javaId.startsWith("minecraft:piston_head")) {
@@ -255,7 +257,7 @@ public class BlockStateValues {
     }
 
     public static boolean isStickyPiston(int blockState) {
-        return IS_STICKY_PISTON.get(blockState);
+        return STICKY_PISTONS.contains(blockState);
     }
 
     public static boolean isPistonHead(int state) {
