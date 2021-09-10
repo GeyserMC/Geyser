@@ -154,6 +154,12 @@ public class GeyserSession implements CommandSender {
 
     private final Int2ObjectMap<TeleportCache> teleportMap = new Int2ObjectOpenHashMap<>();
 
+    private final WorldBorder worldBorder;
+    /**
+     * Whether simulated fog has been sent to the client or not.
+     */
+    private boolean isInWorldBorderWarningArea = false;
+
     private final PlayerInventory playerInventory;
     @Setter
     private Inventory openInventory;
@@ -451,6 +457,8 @@ public class GeyserSession implements CommandSender {
         this.preferencesCache = new PreferencesCache(this);
         this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
+
+        this.worldBorder = new WorldBorder(this);
 
         this.collisionManager = new CollisionManager(this);
 
@@ -927,6 +935,25 @@ public class GeyserSession implements CommandSender {
                 }
                 lastMovementTimestamp = System.currentTimeMillis();
             }
+
+            if (worldBorder.isResizing()) {
+                worldBorder.resize();
+            }
+
+            if (!worldBorder.isWithinWarningBoundaries()) {
+                // Show particles representing where the world border is
+                worldBorder.drawWall();
+                // Set the mood
+                if (!isInWorldBorderWarningArea) {
+                    isInWorldBorderWarningArea = true;
+                    WorldBorder.sendFog(this, "minecraft:fog_crimson_forest");
+                }
+            } else if (isInWorldBorderWarningArea) {
+                // Clear fog as we are outside the world border now
+                WorldBorder.removeFog(this);
+                isInWorldBorderWarningArea = false;
+            }
+
 
             for (Tickable entity : entityCache.getTickableEntities()) {
                 entity.tick(this);

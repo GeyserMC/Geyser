@@ -92,6 +92,10 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
             session.sendDownstreamPacket(playerRotationPacket);
         } else {
+            if (session.getWorldBorder().isPassingIntoBorderBoundaries(packet.getPosition(), true)) {
+                return;
+            }
+
             if (isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
                 Vector3d position = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), packet.isOnGround());
                 if (position != null) { // A null return value cancels the packet
