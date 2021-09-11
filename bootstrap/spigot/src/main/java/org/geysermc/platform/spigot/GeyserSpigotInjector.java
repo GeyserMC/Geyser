@@ -147,6 +147,7 @@ public class GeyserSpigotInjector extends GeyserInjector {
                 break;
             } catch (Exception e) {
                 if (bootstrap.getGeyserConfig().isDebugMode()) {
+                    bootstrap.getGeyserLogger().debug("The handler " + name + " isn't a ChannelInitializer. THIS ERROR IS SAFE TO IGNORE!");
                     e.printStackTrace();
                 }
             }
