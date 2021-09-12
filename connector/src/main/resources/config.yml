@@ -59,7 +59,6 @@ remote:
   forward-hostname: false
 
 # Allows the overworld world height to be extended from 0 - 255 to -64 - 319. This option cannot be changed during a reload.
-# 1.17.0-1.17.2 Bedrock clients cannot connect with this option enabled.
 # Performance issues and/or additional bugs may occur for Bedrock clients as this is an experimental toggle on their end.
 extended-world-height: false
 
