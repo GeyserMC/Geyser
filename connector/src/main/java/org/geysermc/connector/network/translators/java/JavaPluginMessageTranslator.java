@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPluginMessag
 import com.google.common.base.Charsets;
 import com.nukkitx.protocol.bedrock.packet.EmotePacket;
 import org.geysermc.connector.common.AuthType;
+import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -80,7 +81,9 @@ public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMe
 
 
         emotePacket.setEmoteId(new String(idBytes, StandardCharsets.UTF_8));
-        emotePacket.setRuntimeEntityId(session.getEntityCache().getEntityByJavaId(byteBuffer.getLong()).getGeyserId());
+        Entity entity = session.getEntityCache().getEntityByJavaId(byteBuffer.getLong());
+        if (entity == null) return;
+        emotePacket.setRuntimeEntityId(entity.getGeyserId());
 
         session.sendUpstreamPacket(emotePacket);
     }
