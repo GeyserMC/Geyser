@@ -140,6 +140,11 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
                             channelInitializer = PipelineUtils.SERVER_CHILD;
                         }
                         initChannel.invoke(channelInitializer, ch);
+
+                        if (bootstrap.getGeyserConfig().isDisableCompression()) {
+                            ch.pipeline().addAfter(PipelineUtils.PACKET_ENCODER, "geyser-compression-disabler",
+                                    new GeyserBungeeCompressionDisabler());
+                        }
                     }
                 })
                 .childAttr(listener, listenerInfo)
