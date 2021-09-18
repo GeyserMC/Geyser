@@ -45,7 +45,7 @@ public class FireworkRocketTranslator extends FireworkBaseTranslator {
         }
 
         if (fireworks.get("Flight") != null) {
-            fireworks.put(new ByteTag("Flight", MathUtils.convertByte(fireworks.get("Flight").getValue())));
+            fireworks.put(new ByteTag("Flight", MathUtils.getNbtByte(fireworks.get("Flight").getValue())));
         }
 
         ListTag explosions = fireworks.get("Explosions");
@@ -69,7 +69,7 @@ public class FireworkRocketTranslator extends FireworkBaseTranslator {
         }
 
         if (fireworks.contains("Flight")) {
-            fireworks.put(new ByteTag("Flight", MathUtils.convertByte(fireworks.get("Flight").getValue())));
+            fireworks.put(new ByteTag("Flight", MathUtils.getNbtByte(fireworks.get("Flight").getValue())));
         }
 
         ListTag explosions = fireworks.get("Explosions");

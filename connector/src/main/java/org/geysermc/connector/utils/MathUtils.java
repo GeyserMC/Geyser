@@ -85,18 +85,14 @@ public class MathUtils {
     }
 
     /**
-     * Converts the given object from an int or byte to byte.
-     * This is used for NBT data that might be either an int
-     * or byte and bedrock only takes it as an byte
+     * Ensures the resulting object is a byte. Java Edition does not care whether a byte is encoded as an integer or not;
+     * it converts it into a byte anyway.
      *
      * @param value The value to convert
      * @return The converted byte
      */
-    public static Byte convertByte(Object value) {
-        if (value instanceof Integer) {
-            return ((Integer) value).byteValue();
-        }
-        return (Byte) value;
+    public static byte getNbtByte(Object value) {
+        return ((Number) value).byteValue();
     }
 
     /**

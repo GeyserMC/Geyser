@@ -81,7 +81,7 @@ public class FireworkEntity extends Entity {
 
             NbtMapBuilder fireworksBuilder = NbtMap.builder();
             if (fireworks.get("Flight") != null) {
-                fireworksBuilder.putByte("Flight", MathUtils.convertByte(fireworks.get("Flight").getValue()));
+                fireworksBuilder.putByte("Flight", MathUtils.getNbtByte(fireworks.get("Flight").getValue()));
             }
 
             List<NbtMap> explosions = new ArrayList<>();
@@ -91,7 +91,7 @@ public class FireworkEntity extends Entity {
                     NbtMapBuilder effectBuilder = NbtMap.builder();
 
                     if (effectData.get("Type") != null) {
-                        effectBuilder.putByte("FireworkType", MathUtils.convertByte(effectData.get("Type").getValue()));
+                        effectBuilder.putByte("FireworkType", MathUtils.getNbtByte(effectData.get("Type").getValue()));
                     }
 
                     if (effectData.get("Colors") != null) {
@@ -119,11 +119,11 @@ public class FireworkEntity extends Entity {
                     }
 
                     if (effectData.get("Trail") != null) {
-                        effectBuilder.putByte("FireworkTrail", MathUtils.convertByte(effectData.get("Trail").getValue()));
+                        effectBuilder.putByte("FireworkTrail", MathUtils.getNbtByte(effectData.get("Trail").getValue()));
                     }
 
                     if (effectData.get("Flicker") != null) {
-                        effectBuilder.putByte("FireworkFlicker", MathUtils.convertByte(effectData.get("Flicker").getValue()));
+                        effectBuilder.putByte("FireworkFlicker", MathUtils.getNbtByte(effectData.get("Flicker").getValue()));
                     }
 
                     explosions.add(effectBuilder.build());
