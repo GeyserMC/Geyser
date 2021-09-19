@@ -36,6 +36,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.v448.Bedrock_v448;
+import com.nukkitx.protocol.bedrock.v448.Bedrock_v465;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -68,6 +69,8 @@ public class ItemRegistryPopulator {
         } else {
             PALETTE_VERSIONS.put("1_17_10", new PaletteVersion(Bedrock_v448.V448_CODEC.getProtocolVersion(), Collections.emptyMap()));
         }
+
+        PALETTE_VERSIONS.put("1_17_30", new PaletteVersion(Bedrock_v465.V465_CODEC.getProtocolVersion(), Collections.emptyMap()));
     }
 
     @Getter
@@ -84,7 +87,7 @@ public class ItemRegistryPopulator {
         // Load item mappings from Java Edition to Bedrock Edition
         InputStream stream = FileUtils.getResource("mappings/items.json");
 
-        TypeReference<Map<String, GeyserMappingItem>> mappingItemsType = new TypeReference<Map<String, GeyserMappingItem>>() { };
+        TypeReference<Map<String, GeyserMappingItem>> mappingItemsType = new TypeReference<>() { };
 
         Map<String, GeyserMappingItem> items;
         try {

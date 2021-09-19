@@ -114,8 +114,8 @@
         </dependency>
         <dependency>
             <groupId>com.github.CloudburstMC.Protocol</groupId>
-            <artifactId>bedrock-v448</artifactId>
-            <version>6b48673</version>
+            <artifactId>bedrock-v465</artifactId>
+            <version>v1.17.30-d29a058370-1</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
