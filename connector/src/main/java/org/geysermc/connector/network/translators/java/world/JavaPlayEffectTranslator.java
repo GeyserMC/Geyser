@@ -33,6 +33,7 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
+import com.nukkitx.protocol.bedrock.v448.Bedrock_v465;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -207,15 +208,11 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     soundEventPacket.setRelativeVolumeDisabled(false);
                     session.sendUpstreamPacket(soundEventPacket);
                 }
-                case BREAK_EYE_OF_ENDER -> {
-                    effectPacket.setType(LevelEventType.PARTICLE_EYE_OF_ENDER_DEATH);
-                }
-                case MOB_SPAWN -> {
-                    effectPacket.setType(LevelEventType.PARTICLE_MOB_BLOCK_SPAWN); // TODO: Check, but I don't think I really verified this ever went into effect on Java
-                }
-                // Note that there is no particle without sound in Bedrock. If you wanted to implement the sound, send a PlaySoundPacket with "item.bone_meal.use" and volume and pitch at 1.0F
+                case BREAK_EYE_OF_ENDER -> effectPacket.setType(LevelEventType.PARTICLE_EYE_OF_ENDER_DEATH);
+                case MOB_SPAWN -> effectPacket.setType(LevelEventType.PARTICLE_MOB_BLOCK_SPAWN); // TODO: Check, but I don't think I really verified this ever went into effect on Java
                 case BONEMEAL_GROW_WITH_SOUND, BONEMEAL_GROW -> {
-                    effectPacket.setType(LevelEventType.PARTICLE_CROP_GROWTH);
+                    effectPacket.setType((particleEffect == ParticleEffect.BONEMEAL_GROW
+                            && session.getUpstream().getProtocolVersion() >= Bedrock_v465.V465_CODEC.getProtocolVersion()) ? LevelEventType.PARTICLE_TURTLE_EGG : LevelEventType.PARTICLE_CROP_GROWTH);
 
                     BonemealGrowEffectData growEffectData = (BonemealGrowEffectData) packet.getData();
                     effectPacket.setData(growEffectData.getParticleCount());
