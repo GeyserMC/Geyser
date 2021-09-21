@@ -38,4 +38,9 @@ public class JavaDisconnectPacket extends PacketTranslator<ServerDisconnectPacke
     public void translate(GeyserSession session, ServerDisconnectPacket packet) {
         session.disconnect(MessageTranslator.convertMessage(packet.getReason(), session.getLocale()));
     }
+
+    @Override
+    public boolean shouldExecuteInEventLoop() {
+        return false;
+    }
 }
