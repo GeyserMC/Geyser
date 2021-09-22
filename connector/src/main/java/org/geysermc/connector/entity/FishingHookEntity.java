@@ -41,7 +41,6 @@ import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.utils.BlockUtils;
 
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class FishingHookEntity extends ThrowableEntity {
@@ -91,11 +90,9 @@ public class FishingHookEntity extends ThrowableEntity {
         boundingBox.setMiddleY(position.getY() + boundingBox.getSizeY() / 2);
         boundingBox.setMiddleZ(position.getZ());
 
-        CollisionManager collisionManager = session.getCollisionManager();
-        List<Vector3i> collidableBlocks = collisionManager.getCollidableBlocks(boundingBox);
         boolean touchingWater = false;
         boolean collided = false;
-        for (Vector3i blockPos : collidableBlocks) {
+        for (Vector3i blockPos : session.getCollisionManager().collidableBlocksIterator(boundingBox)) {
             int blockID = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
             BlockCollision blockCollision = BlockUtils.getCollision(blockID, blockPos);
             if (blockCollision != null) {

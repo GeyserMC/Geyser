@@ -42,13 +42,12 @@ import org.geysermc.connector.network.session.cache.PistonCache;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 import org.geysermc.connector.network.translators.collision.translators.ScaffoldingCollision;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import org.geysermc.connector.utils.BlockPositionIterator;
 import org.geysermc.connector.utils.BlockUtils;
 import org.geysermc.connector.utils.Axis;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 public class CollisionManager {
@@ -201,9 +200,7 @@ public class CollisionManager {
         session.sendUpstreamPacket(movePlayerPacket);
     }
 
-    public List<Vector3i> getCollidableBlocks(BoundingBox box) {
-        List<Vector3i> blocks = new ArrayList<>();
-
+    public BlockPositionIterator collidableBlocksIterator(BoundingBox box) {
         Vector3d position = Vector3d.from(box.getMiddleX(),
                 box.getMiddleY() - (box.getSizeY() / 2),
                 box.getMiddleZ());
@@ -211,36 +208,22 @@ public class CollisionManager {
         // Expand volume by 1 in each direction to include moving blocks
         double pistonExpand = session.getPistonCache().getPistons().isEmpty() ? 0 : 1;
 
-        // Ensure sizes cannot be too large - https://github.com/GeyserMC/Geyser/issues/2540
-        double sizeX = Math.min(box.getSizeX(), 256);
-        double sizeY = Math.min(box.getSizeY(), 256);
-        double sizeZ = Math.min(box.getSizeZ(), 256);
-
         // Loop through all blocks that could collide
-        int minCollisionX = (int) Math.floor(position.getX() - ((sizeX / 2) + COLLISION_TOLERANCE + pistonExpand));
-        int maxCollisionX = (int) Math.floor(position.getX() + (sizeX / 2) + COLLISION_TOLERANCE + pistonExpand);
+        int minCollisionX = (int) Math.floor(position.getX() - ((box.getSizeX() / 2) + COLLISION_TOLERANCE + pistonExpand));
+        int maxCollisionX = (int) Math.floor(position.getX() + (box.getSizeX() / 2) + COLLISION_TOLERANCE + pistonExpand);
 
         // Y extends 0.5 blocks down because of fence hitboxes
         int minCollisionY = (int) Math.floor(position.getY() - 0.5 - COLLISION_TOLERANCE - pistonExpand / 2.0);
+        int maxCollisionY = (int) Math.floor(position.getY() + box.getSizeY() + pistonExpand);
 
-        int maxCollisionY = (int) Math.floor(position.getY() + sizeY + pistonExpand);
+        int minCollisionZ = (int) Math.floor(position.getZ() - ((box.getSizeZ() / 2) + COLLISION_TOLERANCE + pistonExpand));
+        int maxCollisionZ = (int) Math.floor(position.getZ() + (box.getSizeZ() / 2) + COLLISION_TOLERANCE + pistonExpand);
 
-        int minCollisionZ = (int) Math.floor(position.getZ() - ((sizeZ / 2) + COLLISION_TOLERANCE + pistonExpand));
-        int maxCollisionZ = (int) Math.floor(position.getZ() + (sizeZ / 2) + COLLISION_TOLERANCE + pistonExpand);
-
-        for (int y = minCollisionY; y < maxCollisionY + 1; y++) {
-            for (int x = minCollisionX; x < maxCollisionX + 1; x++) {
-                for (int z = minCollisionZ; z < maxCollisionZ + 1; z++) {
-                    blocks.add(Vector3i.from(x, y, z));
-                }
-            }
-        }
-
-        return blocks;
+        return new BlockPositionIterator(minCollisionX, minCollisionY, minCollisionZ, maxCollisionX, maxCollisionY, maxCollisionZ);
     }
 
-    public List<Vector3i> getPlayerCollidableBlocks() {
-        return getCollidableBlocks(playerBoundingBox);
+    public BlockPositionIterator playerCollidableBlocksIterator() {
+        return collidableBlocksIterator(playerBoundingBox);
     }
 
     /**
@@ -254,10 +237,8 @@ public class CollisionManager {
         touchingScaffolding = false;
         onScaffolding = false;
 
-        List<Vector3i> collidableBlocks = getPlayerCollidableBlocks();
-
         // Used when correction code needs to be run before the main correction
-        for (Vector3i blockPos : collidableBlocks) {
+        for (Vector3i blockPos : playerCollidableBlocksIterator()) {
             BlockCollision blockCollision = BlockUtils.getCollisionAt(session, blockPos);
             if (blockCollision != null) {
                 blockCollision.beforeCorrectPosition(playerBoundingBox);
@@ -266,7 +247,7 @@ public class CollisionManager {
         }
 
         // Main correction code
-        for (Vector3i blockPos : collidableBlocks) {
+        for (Vector3i blockPos : playerCollidableBlocksIterator()) {
             BlockCollision blockCollision = BlockUtils.getCollisionAt(session, blockPos);
             if (blockCollision != null) {
                 if (!blockCollision.correctPosition(session, playerBoundingBox)) {
@@ -342,23 +323,21 @@ public class CollisionManager {
         BoundingBox movementBoundingBox = boundingBox.clone();
         movementBoundingBox.extend(movement);
 
-        List<Vector3i> collidableBlocks = getCollidableBlocks(movementBoundingBox);
-
         if (Math.abs(movementY) > CollisionManager.COLLISION_TOLERANCE) {
-            movementY = computeCollisionOffset(boundingBox, Axis.Y, movementY, collidableBlocks, checkWorld);
+            movementY = computeCollisionOffset(boundingBox, Axis.Y, movementY, movementBoundingBox, checkWorld);
             boundingBox.translate(0, movementY, 0);
         }
         boolean checkZFirst = Math.abs(movementZ) > Math.abs(movementX);
         if (checkZFirst && Math.abs(movementZ) > CollisionManager.COLLISION_TOLERANCE) {
-            movementZ = computeCollisionOffset(boundingBox, Axis.Z, movementZ, collidableBlocks, checkWorld);
+            movementZ = computeCollisionOffset(boundingBox, Axis.Z, movementZ, movementBoundingBox, checkWorld);
             boundingBox.translate(0, 0, movementZ);
         }
         if (Math.abs(movementX) > CollisionManager.COLLISION_TOLERANCE) {
-            movementX = computeCollisionOffset(boundingBox, Axis.X, movementX, collidableBlocks, checkWorld);
+            movementX = computeCollisionOffset(boundingBox, Axis.X, movementX, movementBoundingBox, checkWorld);
             boundingBox.translate(movementX, 0, 0);
         }
         if (!checkZFirst && Math.abs(movementZ) > CollisionManager.COLLISION_TOLERANCE) {
-            movementZ = computeCollisionOffset(boundingBox, Axis.Z, movementZ, collidableBlocks, checkWorld);
+            movementZ = computeCollisionOffset(boundingBox, Axis.Z, movementZ, movementBoundingBox, checkWorld);
             boundingBox.translate(0, 0, movementZ);
         }
 
@@ -366,8 +345,8 @@ public class CollisionManager {
         return Vector3d.from(movementX, movementY, movementZ);
     }
 
-    private double computeCollisionOffset(BoundingBox boundingBox, Axis axis, double offset, List<Vector3i> collidableBlocks, boolean checkWorld) {
-        for (Vector3i blockPos : collidableBlocks) {
+    private double computeCollisionOffset(BoundingBox boundingBox, Axis axis, double offset, BoundingBox movementBoundingBox, boolean checkWorld) {
+        for (Vector3i blockPos : collidableBlocksIterator(movementBoundingBox)) {
             if (checkWorld) {
                 BlockCollision blockCollision = BlockUtils.getCollisionAt(session, blockPos);
                 if (blockCollision != null && !(blockCollision instanceof ScaffoldingCollision)) {
