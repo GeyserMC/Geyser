@@ -40,7 +40,7 @@ pipeline {
                 )
                 rtMavenRun(
                         pom: 'pom.xml',
-                        goals: 'javadoc:jar source:jar install -pl connector -am -DskipTests',
+                        goals: 'source:jar install -pl connector -am -DskipTests',
                         deployerId: "maven-deployer",
                         resolverId: "maven-resolver"
                 )
