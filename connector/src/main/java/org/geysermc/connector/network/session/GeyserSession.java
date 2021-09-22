@@ -929,7 +929,7 @@ public class GeyserSession implements CommandSender {
             // Check to see if the player's position needs updating - a position update should be sent once every 3 seconds
             if (spawned && (System.currentTimeMillis() - lastMovementTimestamp) > 3000) {
                 // Recalculate in case something else changed position
-                Vector3d position = collisionManager.adjustBedrockPosition(playerEntity.getPosition(), playerEntity.isOnGround());
+                Vector3d position = collisionManager.adjustBedrockPosition(playerEntity.getPosition(), playerEntity.isOnGround(), false);
                 // A null return value cancels the packet
                 if (position != null) {
                     ClientPlayerPositionPacket packet = new ClientPlayerPositionPacket(playerEntity.isOnGround(),

@@ -135,7 +135,7 @@ public class CollisionManager {
      * @param onGround whether the Bedrock player is on the ground
      * @return the position to send to the Java server, or null to cancel sending the packet
      */
-    public Vector3d adjustBedrockPosition(Vector3f bedrockPosition, boolean onGround) {
+    public Vector3d adjustBedrockPosition(Vector3f bedrockPosition, boolean onGround, boolean teleported) {
         PistonCache pistonCache = session.getPistonCache();
         // Bedrock clients tend to fall off of honey blocks, so we need to teleport them to the new position
         if (pistonCache.isPlayerAttachedToHoney()) {
@@ -150,7 +150,7 @@ public class CollisionManager {
 
         Vector3d startingPos = playerBoundingBox.getBottomCenter();
         Vector3d movement = position.sub(startingPos);
-        Vector3d adjustedMovement = correctPlayerMovement(movement, false);
+        Vector3d adjustedMovement = correctPlayerMovement(movement, false, teleported);
         playerBoundingBox.translate(adjustedMovement.getX(), adjustedMovement.getY(), adjustedMovement.getZ());
         playerBoundingBox.translate(pistonCache.getPlayerMotion().getX(), pistonCache.getPlayerMotion().getY(), pistonCache.getPlayerMotion().getZ());
         // Correct player position
@@ -211,17 +211,22 @@ public class CollisionManager {
         // Expand volume by 1 in each direction to include moving blocks
         double pistonExpand = session.getPistonCache().getPistons().isEmpty() ? 0 : 1;
 
+        // Ensure sizes cannot be too large - https://github.com/GeyserMC/Geyser/issues/2540
+        double sizeX = Math.min(box.getSizeX(), 256);
+        double sizeY = Math.min(box.getSizeY(), 256);
+        double sizeZ = Math.min(box.getSizeZ(), 256);
+
         // Loop through all blocks that could collide
-        int minCollisionX = (int) Math.floor(position.getX() - ((box.getSizeX() / 2) + COLLISION_TOLERANCE + pistonExpand));
-        int maxCollisionX = (int) Math.floor(position.getX() + (box.getSizeX() / 2) + COLLISION_TOLERANCE + pistonExpand);
+        int minCollisionX = (int) Math.floor(position.getX() - ((sizeX / 2) + COLLISION_TOLERANCE + pistonExpand));
+        int maxCollisionX = (int) Math.floor(position.getX() + (sizeX / 2) + COLLISION_TOLERANCE + pistonExpand);
 
         // Y extends 0.5 blocks down because of fence hitboxes
         int minCollisionY = (int) Math.floor(position.getY() - 0.5 - COLLISION_TOLERANCE - pistonExpand / 2.0);
 
-        int maxCollisionY = (int) Math.floor(position.getY() + box.getSizeY() + pistonExpand);
+        int maxCollisionY = (int) Math.floor(position.getY() + sizeY + pistonExpand);
 
-        int minCollisionZ = (int) Math.floor(position.getZ() - ((box.getSizeZ() / 2) + COLLISION_TOLERANCE + pistonExpand));
-        int maxCollisionZ = (int) Math.floor(position.getZ() + (box.getSizeZ() / 2) + COLLISION_TOLERANCE + pistonExpand);
+        int minCollisionZ = (int) Math.floor(position.getZ() - ((sizeZ / 2) + COLLISION_TOLERANCE + pistonExpand));
+        int maxCollisionZ = (int) Math.floor(position.getZ() + (sizeZ / 2) + COLLISION_TOLERANCE + pistonExpand);
 
         for (int y = minCollisionY; y < maxCollisionY + 1; y++) {
             for (int x = minCollisionX; x < maxCollisionX + 1; x++) {
@@ -276,8 +281,10 @@ public class CollisionManager {
         return true;
     }
 
-    public Vector3d correctPlayerMovement(Vector3d movement, boolean checkWorld) {
-        if (!checkWorld && session.getPistonCache().getPistons().isEmpty()) { // There is nothing to check
+    public Vector3d correctPlayerMovement(Vector3d movement, boolean checkWorld, boolean teleported) {
+        // On the teleported check: see https://github.com/GeyserMC/Geyser/issues/2540
+        // As of this commit we don't know how it happens but we don't need to check movement here anyway in that case
+        if (teleported || (!checkWorld && session.getPistonCache().getPistons().isEmpty())) { // There is nothing to check
             return movement;
         }
         return correctMovement(movement, playerBoundingBox, session.getPlayerEntity().isOnGround(), PLAYER_STEP_UP, checkWorld);
