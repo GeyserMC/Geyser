@@ -73,7 +73,10 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         // Send book update before the player moves
         session.getBookEditCache().checkForSend();
 
-        session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityType.PLAYER.getOffset(), 0));
+        if (!session.getTeleportMap().isEmpty()) {
+            session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityType.PLAYER.getOffset(), 0));
+            return;
+        }
         // head yaw, pitch, head yaw
         Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
 
@@ -155,7 +158,14 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         }
     }
 
+    private boolean isInvalidNumber(float val) {
+        return Float.isNaN(val) || Float.isInfinite(val);
+    }
+
     private boolean isValidMove(GeyserSession session, MovePlayerPacket.Mode mode, Vector3f currentPosition, Vector3f newPosition) {
+        if (isInvalidNumber(newPosition.getX()) || isInvalidNumber(newPosition.getY()) || isInvalidNumber(newPosition.getZ())) {
+            return false;
+        }
         if (mode != MovePlayerPacket.Mode.NORMAL)
             return true;
 
