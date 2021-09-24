@@ -27,7 +27,6 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3i;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.PlayerInventory;
@@ -231,25 +230,15 @@ public class BlockUtils {
         return fullJavaIdentifier.substring(0, stateIndex);
     }
 
-    public static BlockCollision getCollision(int blockId, Vector3i blockPos) {
-        BlockCollision collision = Registries.COLLISIONS.get(blockId);
-        if (collision != null) {
-            collision.setPosition(blockPos);
-            collision.setPositionOffset(null);
-        }
-        return collision;
-    }
-
-    public static BlockCollision getCollision(int blockId, Vector3i blockPos, Vector3d blockOffset) {
-        BlockCollision collision = Registries.COLLISIONS.get(blockId);
-        if (collision != null) {
-            collision.setPosition(blockPos);
-            collision.setPositionOffset(blockOffset);
-        }
-        return collision;
+    public static BlockCollision getCollision(int blockId) {
+        return Registries.COLLISIONS.get(blockId);
     }
 
     public static BlockCollision getCollisionAt(GeyserSession session, Vector3i blockPos) {
-        return getCollision(session.getConnector().getWorldManager().getBlockAt(session, blockPos), blockPos);
+        return getCollision(session.getConnector().getWorldManager().getBlockAt(session, blockPos));
+    }
+
+    public static BlockCollision getCollisionAt(GeyserSession session, int x, int y, int z) {
+        return getCollision(session.getConnector().getWorldManager().getBlockAt(session, x, y, z));
     }
 }

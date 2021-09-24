@@ -25,14 +25,11 @@
 
 package org.geysermc.connector.utils;
 
-import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.network.util.Preconditions;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Iterator;
+import lombok.Getter;
 
 
-public class BlockPositionIterator implements Iterator<Vector3i>, Iterable<Vector3i> {
+public class BlockPositionIterator {
     private final int minX;
     private final int minY;
     private final int minZ;
@@ -58,24 +55,24 @@ public class BlockPositionIterator implements Iterator<Vector3i>, Iterable<Vecto
         this.maxI = sizeX * sizeY * sizeZ;
     }
 
-    @Override
     public boolean hasNext() {
         return i < maxI;
     }
 
-    @Override
-    public Vector3i next() {
+    public void next() {
         // Iterate in zxy order
-        int x = ((i / sizeZ) % sizeX) + minX;
-        int y = (i / sizeZ / sizeX) + minY;
-        int z = (i % sizeZ) + minZ;
         i++;
-        return Vector3i.from(x, y, z);
     }
 
-    @NotNull
-    @Override
-    public Iterator<Vector3i> iterator() {
-        return this;
+    public int getX() {
+        return ((i / sizeZ) % sizeX) + minX;
+    }
+
+    public int getY() {
+        return (i / sizeZ / sizeX) + minY;
+    }
+
+    public int getZ() {
+        return (i % sizeZ) + minZ;
     }
 }

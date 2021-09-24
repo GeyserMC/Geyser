@@ -230,7 +230,7 @@ public class CollisionManager {
     /**
      * Returns false if the movement is invalid, and in this case it shouldn't be sent to the server and should be
      * cancelled
-     * See {@link BlockCollision#correctPosition(GeyserSession, BoundingBox)} for more info
+     * See {@link BlockCollision#correctPosition(GeyserSession, int, int, int, BoundingBox)} for more info
      */
     public boolean correctPlayerPosition() {
 
@@ -239,22 +239,20 @@ public class CollisionManager {
         onScaffolding = false;
 
         // Used when correction code needs to be run before the main correction
-        for (Vector3i blockPos : playerCollidableBlocksIterator()) {
-            BlockCollision blockCollision = BlockUtils.getCollisionAt(session, blockPos);
+        for (BlockPositionIterator iter = session.getCollisionManager().playerCollidableBlocksIterator(); iter.hasNext(); iter.next()) {
+            BlockCollision blockCollision = BlockUtils.getCollisionAt(session, iter.getX(), iter.getY(), iter.getZ());
             if (blockCollision != null) {
-                blockCollision.beforeCorrectPosition(playerBoundingBox);
-                blockCollision.reset();
+                blockCollision.beforeCorrectPosition(iter.getX(), iter.getY(), iter.getZ(), playerBoundingBox);
             }
         }
 
         // Main correction code
-        for (Vector3i blockPos : playerCollidableBlocksIterator()) {
-            BlockCollision blockCollision = BlockUtils.getCollisionAt(session, blockPos);
+        for (BlockPositionIterator iter = session.getCollisionManager().playerCollidableBlocksIterator(); iter.hasNext(); iter.next()) {
+            BlockCollision blockCollision = BlockUtils.getCollisionAt(session, iter.getX(), iter.getY(), iter.getZ());
             if (blockCollision != null) {
-                if (!blockCollision.correctPosition(session, playerBoundingBox)) {
+                if (!blockCollision.correctPosition(session, iter.getX(), iter.getY(), iter.getZ(), playerBoundingBox)) {
                     return false;
                 }
-                blockCollision.reset();
             }
         }
 
@@ -347,15 +345,14 @@ public class CollisionManager {
     }
 
     private double computeCollisionOffset(BoundingBox boundingBox, Axis axis, double offset, BoundingBox movementBoundingBox, boolean checkWorld) {
-        for (Vector3i blockPos : collidableBlocksIterator(movementBoundingBox)) {
+        for (BlockPositionIterator iter = collidableBlocksIterator(movementBoundingBox); iter.hasNext(); iter.next()) {
             if (checkWorld) {
-                BlockCollision blockCollision = BlockUtils.getCollisionAt(session, blockPos);
+                BlockCollision blockCollision = BlockUtils.getCollisionAt(session, iter.getX(), iter.getY(), iter.getZ());
                 if (blockCollision != null && !(blockCollision instanceof ScaffoldingCollision)) {
-                    offset = blockCollision.computeCollisionOffset(boundingBox, axis, offset);
-                    blockCollision.reset();
+                    offset = blockCollision.computeCollisionOffset(iter.getX(), iter.getY(), iter.getZ(), boundingBox, axis, offset);
                 }
             }
-            offset = session.getPistonCache().computeCollisionOffset(blockPos, boundingBox, axis, offset);
+            offset = session.getPistonCache().computeCollisionOffset(Vector3i.from(iter.getX(), iter.getY(), iter.getZ()), boundingBox, axis, offset);
             if (Math.abs(offset) < COLLISION_TOLERANCE) {
                 return 0;
             }
@@ -379,9 +376,8 @@ public class CollisionManager {
 
             playerBoundingBox.setSizeY(EntityType.PLAYER.getHeight());
             playerBoundingBox.setMiddleY(standingY);
-            boolean result = collision.checkIntersection(playerBoundingBox);
+            boolean result = collision.checkIntersection(position, playerBoundingBox);
             result |= session.getPistonCache().checkCollision(position, playerBoundingBox);
-            collision.reset();
             playerBoundingBox.setSizeY(originalHeight);
             playerBoundingBox.setMiddleY(originalY);
             return result;
