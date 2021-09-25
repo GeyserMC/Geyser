@@ -64,6 +64,10 @@ public class BlockPositionIterator {
         i++;
     }
 
+    public void reset() {
+        i = 0;
+    }
+
     public int getX() {
         return ((i / sizeZ) % sizeX) + minX;
     }

@@ -239,7 +239,8 @@ public class CollisionManager {
         onScaffolding = false;
 
         // Used when correction code needs to be run before the main correction
-        for (BlockPositionIterator iter = session.getCollisionManager().playerCollidableBlocksIterator(); iter.hasNext(); iter.next()) {
+        BlockPositionIterator iter = session.getCollisionManager().playerCollidableBlocksIterator();
+        for (; iter.hasNext(); iter.next()) {
             BlockCollision blockCollision = BlockUtils.getCollisionAt(session, iter.getX(), iter.getY(), iter.getZ());
             if (blockCollision != null) {
                 blockCollision.beforeCorrectPosition(iter.getX(), iter.getY(), iter.getZ(), playerBoundingBox);
@@ -247,7 +248,7 @@ public class CollisionManager {
         }
 
         // Main correction code
-        for (BlockPositionIterator iter = session.getCollisionManager().playerCollidableBlocksIterator(); iter.hasNext(); iter.next()) {
+        for (iter.reset(); iter.hasNext(); iter.next()) {
             BlockCollision blockCollision = BlockUtils.getCollisionAt(session, iter.getX(), iter.getY(), iter.getZ());
             if (blockCollision != null) {
                 if (!blockCollision.correctPosition(session, iter.getX(), iter.getY(), iter.getZ(), playerBoundingBox)) {
@@ -321,22 +322,22 @@ public class CollisionManager {
 
         BoundingBox movementBoundingBox = boundingBox.clone();
         movementBoundingBox.extend(movement);
-
+        BlockPositionIterator iter = collidableBlocksIterator(movementBoundingBox);
         if (Math.abs(movementY) > CollisionManager.COLLISION_TOLERANCE) {
-            movementY = computeCollisionOffset(boundingBox, Axis.Y, movementY, movementBoundingBox, checkWorld);
+            movementY = computeCollisionOffset(boundingBox, Axis.Y, movementY, iter, checkWorld);
             boundingBox.translate(0, movementY, 0);
         }
         boolean checkZFirst = Math.abs(movementZ) > Math.abs(movementX);
         if (checkZFirst && Math.abs(movementZ) > CollisionManager.COLLISION_TOLERANCE) {
-            movementZ = computeCollisionOffset(boundingBox, Axis.Z, movementZ, movementBoundingBox, checkWorld);
+            movementZ = computeCollisionOffset(boundingBox, Axis.Z, movementZ, iter, checkWorld);
             boundingBox.translate(0, 0, movementZ);
         }
         if (Math.abs(movementX) > CollisionManager.COLLISION_TOLERANCE) {
-            movementX = computeCollisionOffset(boundingBox, Axis.X, movementX, movementBoundingBox, checkWorld);
+            movementX = computeCollisionOffset(boundingBox, Axis.X, movementX, iter, checkWorld);
             boundingBox.translate(movementX, 0, 0);
         }
         if (!checkZFirst && Math.abs(movementZ) > CollisionManager.COLLISION_TOLERANCE) {
-            movementZ = computeCollisionOffset(boundingBox, Axis.Z, movementZ, movementBoundingBox, checkWorld);
+            movementZ = computeCollisionOffset(boundingBox, Axis.Z, movementZ, iter, checkWorld);
             boundingBox.translate(0, 0, movementZ);
         }
 
@@ -344,8 +345,8 @@ public class CollisionManager {
         return Vector3d.from(movementX, movementY, movementZ);
     }
 
-    private double computeCollisionOffset(BoundingBox boundingBox, Axis axis, double offset, BoundingBox movementBoundingBox, boolean checkWorld) {
-        for (BlockPositionIterator iter = collidableBlocksIterator(movementBoundingBox); iter.hasNext(); iter.next()) {
+    private double computeCollisionOffset(BoundingBox boundingBox, Axis axis, double offset, BlockPositionIterator iter, boolean checkWorld) {
+        for (iter.reset(); iter.hasNext(); iter.next()) {
             if (checkWorld) {
                 BlockCollision blockCollision = BlockUtils.getCollisionAt(session, iter.getX(), iter.getY(), iter.getZ());
                 if (blockCollision != null && !(blockCollision instanceof ScaffoldingCollision)) {
