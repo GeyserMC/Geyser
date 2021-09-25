@@ -347,13 +347,16 @@ public class CollisionManager {
 
     private double computeCollisionOffset(BoundingBox boundingBox, Axis axis, double offset, BlockPositionIterator iter, boolean checkWorld) {
         for (iter.reset(); iter.hasNext(); iter.next()) {
+            int x = iter.getX();
+            int y = iter.getY();
+            int z = iter.getZ();
             if (checkWorld) {
-                BlockCollision blockCollision = BlockUtils.getCollisionAt(session, iter.getX(), iter.getY(), iter.getZ());
+                BlockCollision blockCollision = BlockUtils.getCollisionAt(session, x, y, z);
                 if (blockCollision != null && !(blockCollision instanceof ScaffoldingCollision)) {
-                    offset = blockCollision.computeCollisionOffset(iter.getX(), iter.getY(), iter.getZ(), boundingBox, axis, offset);
+                    offset = blockCollision.computeCollisionOffset(x, y, z, boundingBox, axis, offset);
                 }
             }
-            offset = session.getPistonCache().computeCollisionOffset(Vector3i.from(iter.getX(), iter.getY(), iter.getZ()), boundingBox, axis, offset);
+            offset = session.getPistonCache().computeCollisionOffset(Vector3i.from(x, y, z), boundingBox, axis, offset);
             if (Math.abs(offset) < COLLISION_TOLERANCE) {
                 return 0;
             }
