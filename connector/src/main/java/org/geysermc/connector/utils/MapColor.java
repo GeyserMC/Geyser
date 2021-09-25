@@ -277,28 +277,24 @@ public enum MapColor {
 
     private static final MapColor[] VALUES = values();
 
-    private final int red;
-    private final int green;
-    private final int blue;
+    private final int value;
 
     MapColor(int red, int green, int blue) {
-        this.red = red;
-        this.green = green;
-        this.blue = blue;
+        int alpha = 255;
+        if (red == -1 && green == -1 && blue == -1)
+            alpha = 0; // transparent
+
+        this.value = ((alpha & 0xFF) << 24) |
+                ((red & 0xFF) << 16) |
+                ((green & 0xFF) << 8) |
+                (blue & 0xFF);
     }
 
     public static MapColor fromId(int id) {
         return id >= 0 && id < VALUES.length ? VALUES[id] : COLOR_0;
     }
 
-    public int toARGB() {
-        int alpha = 255;
-        if (red == -1 && green == -1 && blue == -1)
-            alpha = 0; // transparent
-
-        return ((alpha & 0xFF) << 24) |
-               ((red & 0xFF) << 16) |
-               ((green & 0xFF) << 8) |
-               (blue & 0xFF);
+    public int getARGB() {
+        return value;
     }
 }
