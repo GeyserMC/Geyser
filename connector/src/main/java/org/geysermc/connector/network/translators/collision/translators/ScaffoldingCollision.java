@@ -41,12 +41,12 @@ public class ScaffoldingCollision extends BlockCollision {
     }
 
     @Override
-    public boolean correctPosition(GeyserSession session, BoundingBox playerCollision) {
+    public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
         // Hack to not check below the player
         playerCollision.setSizeY(playerCollision.getSizeY() - 0.001);
         playerCollision.setMiddleY(playerCollision.getMiddleY() + 0.002);
 
-        boolean intersected = this.checkIntersection(playerCollision);
+        boolean intersected = this.checkIntersection(x, y, z, playerCollision);
 
         playerCollision.setSizeY(playerCollision.getSizeY() + 0.001);
         playerCollision.setMiddleY(playerCollision.getMiddleY() - 0.002);
@@ -59,7 +59,7 @@ public class ScaffoldingCollision extends BlockCollision {
             playerCollision.setSizeY(playerCollision.getSizeY() + 0.001);
             playerCollision.setMiddleY(playerCollision.getMiddleY() - 0.002);
 
-            if (this.checkIntersection(playerCollision)) {
+            if (this.checkIntersection(x, y, z, playerCollision)) {
                 session.getCollisionManager().setOnScaffolding(true);
             }
 

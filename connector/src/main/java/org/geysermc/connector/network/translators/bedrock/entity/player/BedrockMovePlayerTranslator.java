@@ -73,7 +73,10 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         // Send book update before the player moves
         session.getBookEditCache().checkForSend();
 
-        session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityType.PLAYER.getOffset(), 0));
+        if (!session.getTeleportMap().isEmpty()) {
+            session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityType.PLAYER.getOffset(), 0));
+            return;
+        }
         // head yaw, pitch, head yaw
         Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
 
@@ -96,7 +99,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                 return;
             }
 
-            if (isValidMove(session, packet.getMode(), entity.getPosition(), packet.getPosition())) {
+            if (isValidMove(session, entity.getPosition(), packet.getPosition())) {
                 Vector3d position = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), packet.isOnGround(), packet.getMode() == MovePlayerPacket.Mode.TELEPORT);
                 if (position != null) { // A null return value cancels the packet
                     Packet movePacket;
@@ -155,22 +158,15 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         }
     }
 
-    private boolean isValidMove(GeyserSession session, MovePlayerPacket.Mode mode, Vector3f currentPosition, Vector3f newPosition) {
-        if (mode != MovePlayerPacket.Mode.NORMAL)
-            return true;
+    private boolean isInvalidNumber(float val) {
+        return Float.isNaN(val) || Float.isInfinite(val);
+    }
 
-        double xRange = newPosition.getX() - currentPosition.getX();
-        double yRange = newPosition.getY() - currentPosition.getY();
-        double zRange = newPosition.getZ() - currentPosition.getZ();
-
-        if (xRange < 0)
-            xRange = -xRange;
-        if (yRange < 0)
-            yRange = -yRange;
-        if (zRange < 0)
-            zRange = -zRange;
-
-        if ((xRange + yRange + zRange) > 100) {
+    private boolean isValidMove(GeyserSession session, Vector3f currentPosition, Vector3f newPosition) {
+        if (isInvalidNumber(newPosition.getX()) || isInvalidNumber(newPosition.getY()) || isInvalidNumber(newPosition.getZ())) {
+            return false;
+        }
+        if (currentPosition.distanceSquared(newPosition) > 300) {
             session.getConnector().getLogger().debug(ChatColor.RED + session.getName() + " moved too quickly." +
                     " current position: " + currentPosition + ", new position: " + newPosition);
 

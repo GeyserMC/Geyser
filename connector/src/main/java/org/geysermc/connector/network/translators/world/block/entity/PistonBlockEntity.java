@@ -526,16 +526,7 @@ public class PistonBlockEntity {
     }
 
     private BlockCollision getCollision(Vector3i blockPos) {
-        int blockId = getAttachedBlockId(blockPos);
-        if (blockId != BlockStateValues.JAVA_AIR_ID) {
-            double movementProgress = progress;
-            if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
-                movementProgress = 1f - progress;
-            }
-            Vector3d offset = getMovement().toDouble().mul(movementProgress);
-            return BlockUtils.getCollision(blockId, blockPos, offset);
-        }
-        return null;
+        return BlockUtils.getCollision(getAttachedBlockId(blockPos));
     }
 
     /**
@@ -550,8 +541,15 @@ public class PistonBlockEntity {
     public double computeCollisionOffset(Vector3i blockPos, BoundingBox boundingBox, Axis axis, double movement) {
         BlockCollision blockCollision = getCollision(blockPos);
         if (blockCollision != null) {
-            double adjustedMovement = blockCollision.computeCollisionOffset(boundingBox, axis, movement);
-            blockCollision.reset();
+            double movementProgress = progress;
+            if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
+                movementProgress = 1f - progress;
+            }
+            Vector3i movementVec = getMovement();
+            double x = blockPos.getX() + movementVec.getX() * movementProgress;
+            double y = blockPos.getY() + movementVec.getY() * movementProgress;
+            double z = blockPos.getZ() + movementVec.getZ() * movementProgress;
+            double adjustedMovement = blockCollision.computeCollisionOffset(x, y, z, boundingBox, axis, movement);
             if (getAttachedBlockId(blockPos) == BlockStateValues.JAVA_SLIME_BLOCK_ID && adjustedMovement != movement) {
                 session.getPistonCache().setPlayerSlimeCollision(true);
             }
@@ -563,9 +561,15 @@ public class PistonBlockEntity {
     public boolean checkCollision(Vector3i blockPos, BoundingBox boundingBox) {
         BlockCollision blockCollision = getCollision(blockPos);
         if (blockCollision != null) {
-            boolean result = blockCollision.checkIntersection(boundingBox);
-            blockCollision.reset();
-            return result;
+            double movementProgress = progress;
+            if (action == PistonValueType.PULLING || action == PistonValueType.CANCELLED_MID_PUSH) {
+                movementProgress = 1f - progress;
+            }
+            Vector3i movementVec = getMovement();
+            double x = blockPos.getX() + movementVec.getX() * movementProgress;
+            double y = blockPos.getY() + movementVec.getY() * movementProgress;
+            double z = blockPos.getZ() + movementVec.getZ() * movementProgress;
+            return blockCollision.checkIntersection(x, y, z, boundingBox);
         }
         return false;
     }

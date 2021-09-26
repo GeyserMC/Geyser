@@ -42,13 +42,12 @@ import org.geysermc.connector.network.session.cache.PistonCache;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 import org.geysermc.connector.network.translators.collision.translators.ScaffoldingCollision;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import org.geysermc.connector.utils.BlockPositionIterator;
 import org.geysermc.connector.utils.BlockUtils;
 import org.geysermc.connector.utils.Axis;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 public class CollisionManager {
@@ -133,6 +132,7 @@ public class CollisionManager {
      *
      * @param bedrockPosition the current Bedrock position of the client
      * @param onGround whether the Bedrock player is on the ground
+     * @param teleported whether the Bedrock player has teleported to a new position. If true, movement correction is skipped.
      * @return the position to send to the Java server, or null to cancel sending the packet
      */
     public Vector3d adjustBedrockPosition(Vector3f bedrockPosition, boolean onGround, boolean teleported) {
@@ -201,9 +201,7 @@ public class CollisionManager {
         session.sendUpstreamPacket(movePlayerPacket);
     }
 
-    public List<Vector3i> getCollidableBlocks(BoundingBox box) {
-        List<Vector3i> blocks = new ArrayList<>();
-
+    public BlockPositionIterator collidableBlocksIterator(BoundingBox box) {
         Vector3d position = Vector3d.from(box.getMiddleX(),
                 box.getMiddleY() - (box.getSizeY() / 2),
                 box.getMiddleZ());
@@ -211,42 +209,28 @@ public class CollisionManager {
         // Expand volume by 1 in each direction to include moving blocks
         double pistonExpand = session.getPistonCache().getPistons().isEmpty() ? 0 : 1;
 
-        // Ensure sizes cannot be too large - https://github.com/GeyserMC/Geyser/issues/2540
-        double sizeX = Math.min(box.getSizeX(), 256);
-        double sizeY = Math.min(box.getSizeY(), 256);
-        double sizeZ = Math.min(box.getSizeZ(), 256);
-
         // Loop through all blocks that could collide
-        int minCollisionX = (int) Math.floor(position.getX() - ((sizeX / 2) + COLLISION_TOLERANCE + pistonExpand));
-        int maxCollisionX = (int) Math.floor(position.getX() + (sizeX / 2) + COLLISION_TOLERANCE + pistonExpand);
+        int minCollisionX = (int) Math.floor(position.getX() - ((box.getSizeX() / 2) + COLLISION_TOLERANCE + pistonExpand));
+        int maxCollisionX = (int) Math.floor(position.getX() + (box.getSizeX() / 2) + COLLISION_TOLERANCE + pistonExpand);
 
         // Y extends 0.5 blocks down because of fence hitboxes
         int minCollisionY = (int) Math.floor(position.getY() - 0.5 - COLLISION_TOLERANCE - pistonExpand / 2.0);
+        int maxCollisionY = (int) Math.floor(position.getY() + box.getSizeY() + pistonExpand);
 
-        int maxCollisionY = (int) Math.floor(position.getY() + sizeY + pistonExpand);
+        int minCollisionZ = (int) Math.floor(position.getZ() - ((box.getSizeZ() / 2) + COLLISION_TOLERANCE + pistonExpand));
+        int maxCollisionZ = (int) Math.floor(position.getZ() + (box.getSizeZ() / 2) + COLLISION_TOLERANCE + pistonExpand);
 
-        int minCollisionZ = (int) Math.floor(position.getZ() - ((sizeZ / 2) + COLLISION_TOLERANCE + pistonExpand));
-        int maxCollisionZ = (int) Math.floor(position.getZ() + (sizeZ / 2) + COLLISION_TOLERANCE + pistonExpand);
-
-        for (int y = minCollisionY; y < maxCollisionY + 1; y++) {
-            for (int x = minCollisionX; x < maxCollisionX + 1; x++) {
-                for (int z = minCollisionZ; z < maxCollisionZ + 1; z++) {
-                    blocks.add(Vector3i.from(x, y, z));
-                }
-            }
-        }
-
-        return blocks;
+        return new BlockPositionIterator(minCollisionX, minCollisionY, minCollisionZ, maxCollisionX, maxCollisionY, maxCollisionZ);
     }
 
-    public List<Vector3i> getPlayerCollidableBlocks() {
-        return getCollidableBlocks(playerBoundingBox);
+    public BlockPositionIterator playerCollidableBlocksIterator() {
+        return collidableBlocksIterator(playerBoundingBox);
     }
 
     /**
      * Returns false if the movement is invalid, and in this case it shouldn't be sent to the server and should be
      * cancelled
-     * See {@link BlockCollision#correctPosition(GeyserSession, BoundingBox)} for more info
+     * See {@link BlockCollision#correctPosition(GeyserSession, int, int, int, BoundingBox)} for more info
      */
     public boolean correctPlayerPosition() {
 
@@ -254,25 +238,22 @@ public class CollisionManager {
         touchingScaffolding = false;
         onScaffolding = false;
 
-        List<Vector3i> collidableBlocks = getPlayerCollidableBlocks();
-
         // Used when correction code needs to be run before the main correction
-        for (Vector3i blockPos : collidableBlocks) {
-            BlockCollision blockCollision = BlockUtils.getCollisionAt(session, blockPos);
+        BlockPositionIterator iter = session.getCollisionManager().playerCollidableBlocksIterator();
+        for (; iter.hasNext(); iter.next()) {
+            BlockCollision blockCollision = BlockUtils.getCollisionAt(session, iter.getX(), iter.getY(), iter.getZ());
             if (blockCollision != null) {
-                blockCollision.beforeCorrectPosition(playerBoundingBox);
-                blockCollision.reset();
+                blockCollision.beforeCorrectPosition(iter.getX(), iter.getY(), iter.getZ(), playerBoundingBox);
             }
         }
 
         // Main correction code
-        for (Vector3i blockPos : collidableBlocks) {
-            BlockCollision blockCollision = BlockUtils.getCollisionAt(session, blockPos);
+        for (iter.reset(); iter.hasNext(); iter.next()) {
+            BlockCollision blockCollision = BlockUtils.getCollisionAt(session, iter.getX(), iter.getY(), iter.getZ());
             if (blockCollision != null) {
-                if (!blockCollision.correctPosition(session, playerBoundingBox)) {
+                if (!blockCollision.correctPosition(session, iter.getX(), iter.getY(), iter.getZ(), playerBoundingBox)) {
                     return false;
                 }
-                blockCollision.reset();
             }
         }
 
@@ -341,24 +322,22 @@ public class CollisionManager {
 
         BoundingBox movementBoundingBox = boundingBox.clone();
         movementBoundingBox.extend(movement);
-
-        List<Vector3i> collidableBlocks = getCollidableBlocks(movementBoundingBox);
-
+        BlockPositionIterator iter = collidableBlocksIterator(movementBoundingBox);
         if (Math.abs(movementY) > CollisionManager.COLLISION_TOLERANCE) {
-            movementY = computeCollisionOffset(boundingBox, Axis.Y, movementY, collidableBlocks, checkWorld);
+            movementY = computeCollisionOffset(boundingBox, Axis.Y, movementY, iter, checkWorld);
             boundingBox.translate(0, movementY, 0);
         }
         boolean checkZFirst = Math.abs(movementZ) > Math.abs(movementX);
         if (checkZFirst && Math.abs(movementZ) > CollisionManager.COLLISION_TOLERANCE) {
-            movementZ = computeCollisionOffset(boundingBox, Axis.Z, movementZ, collidableBlocks, checkWorld);
+            movementZ = computeCollisionOffset(boundingBox, Axis.Z, movementZ, iter, checkWorld);
             boundingBox.translate(0, 0, movementZ);
         }
         if (Math.abs(movementX) > CollisionManager.COLLISION_TOLERANCE) {
-            movementX = computeCollisionOffset(boundingBox, Axis.X, movementX, collidableBlocks, checkWorld);
+            movementX = computeCollisionOffset(boundingBox, Axis.X, movementX, iter, checkWorld);
             boundingBox.translate(movementX, 0, 0);
         }
         if (!checkZFirst && Math.abs(movementZ) > CollisionManager.COLLISION_TOLERANCE) {
-            movementZ = computeCollisionOffset(boundingBox, Axis.Z, movementZ, collidableBlocks, checkWorld);
+            movementZ = computeCollisionOffset(boundingBox, Axis.Z, movementZ, iter, checkWorld);
             boundingBox.translate(0, 0, movementZ);
         }
 
@@ -366,16 +345,18 @@ public class CollisionManager {
         return Vector3d.from(movementX, movementY, movementZ);
     }
 
-    private double computeCollisionOffset(BoundingBox boundingBox, Axis axis, double offset, List<Vector3i> collidableBlocks, boolean checkWorld) {
-        for (Vector3i blockPos : collidableBlocks) {
+    private double computeCollisionOffset(BoundingBox boundingBox, Axis axis, double offset, BlockPositionIterator iter, boolean checkWorld) {
+        for (iter.reset(); iter.hasNext(); iter.next()) {
+            int x = iter.getX();
+            int y = iter.getY();
+            int z = iter.getZ();
             if (checkWorld) {
-                BlockCollision blockCollision = BlockUtils.getCollisionAt(session, blockPos);
+                BlockCollision blockCollision = BlockUtils.getCollisionAt(session, x, y, z);
                 if (blockCollision != null && !(blockCollision instanceof ScaffoldingCollision)) {
-                    offset = blockCollision.computeCollisionOffset(boundingBox, axis, offset);
-                    blockCollision.reset();
+                    offset = blockCollision.computeCollisionOffset(x, y, z, boundingBox, axis, offset);
                 }
             }
-            offset = session.getPistonCache().computeCollisionOffset(blockPos, boundingBox, axis, offset);
+            offset = session.getPistonCache().computeCollisionOffset(Vector3i.from(x, y, z), boundingBox, axis, offset);
             if (Math.abs(offset) < COLLISION_TOLERANCE) {
                 return 0;
             }
@@ -399,9 +380,8 @@ public class CollisionManager {
 
             playerBoundingBox.setSizeY(EntityType.PLAYER.getHeight());
             playerBoundingBox.setMiddleY(standingY);
-            boolean result = collision.checkIntersection(playerBoundingBox);
+            boolean result = collision.checkIntersection(position, playerBoundingBox);
             result |= session.getPistonCache().checkCollision(position, playerBoundingBox);
-            collision.reset();
             playerBoundingBox.setSizeY(originalHeight);
             playerBoundingBox.setMiddleY(originalY);
             return result;
