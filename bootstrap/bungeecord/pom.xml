@@ -73,14 +73,6 @@
                                     <shadedPattern>org.geysermc.platform.bungeecord.shaded.io.netty.channel.kqueue</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>com.google.common</pattern>
-                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.google.common</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.google.guava</pattern>
-                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.google.guava</shadedPattern>
-                                </relocation>
-                                <relocation>
                                     <pattern>net.kyori</pattern>
                                     <shadedPattern>org.geysermc.platform.bungeecord.shaded.kyori</shadedPattern>
                                 </relocation>
@@ -91,7 +83,7 @@
                 <configuration>
                     <artifactSet>
                         <excludes>
-                            <exclude>com.google.code.gson:*</exclude>
+                            <exclude>com.google.*:*</exclude>
                             <exclude>org.yaml:*</exclude>
                             <exclude>io.netty:netty-transport-native-epoll:*</exclude>
                             <exclude>io.netty:netty-transport-native-unix-common:*</exclude>

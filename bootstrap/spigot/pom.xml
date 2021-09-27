@@ -84,14 +84,6 @@
                                     <shadedPattern>org.geysermc.platform.spigot.shaded.jackson</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>com.google.common</pattern>
-                                    <shadedPattern>org.geysermc.platform.spigot.shaded.google.common</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.google.guava</pattern>
-                                    <shadedPattern>org.geysermc.platform.spigot.shaded.google.guava</shadedPattern>
-                                </relocation>
-                                <relocation>
                                     <pattern>net.kyori</pattern>
                                     <shadedPattern>org.geysermc.platform.spigot.shaded.kyori</shadedPattern>
                                 </relocation>
@@ -106,7 +98,7 @@
                 <configuration>
                     <artifactSet>
                         <excludes>
-                            <exclude>com.google.code.gson:*</exclude>
+                            <exclude>com.google.*:*</exclude>
                             <exclude>org.yaml:*</exclude>
                             <!-- We cannot shade Netty, or else native libraries will not load -->
                             <!-- Needed because older Spigot builds do not provide the haproxy module -->

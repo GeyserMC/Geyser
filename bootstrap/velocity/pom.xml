@@ -66,14 +66,6 @@
                                     <shadedPattern>org.geysermc.platform.velocity.shaded.fastutil</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>com.google.common</pattern>
-                                    <shadedPattern>org.geysermc.platform.velocity.shaded.google.common</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.google.guava</pattern>
-                                    <shadedPattern>org.geysermc.platform.velocity.shaded.google.guava</shadedPattern>
-                                </relocation>
-                                <relocation>
                                     <pattern>net.kyori.adventure.text.serializer.gson.legacyimpl</pattern>
                                     <shadedPattern>org.geysermc.platform.velocity.shaded.kyori.legacyimpl</shadedPattern>
                                 </relocation>
@@ -84,7 +76,7 @@
                 <configuration>
                     <artifactSet>
                         <excludes>
-                            <exclude>com.google.code.gson:*</exclude>
+                            <exclude>com.google.*:*</exclude>
                             <!-- Needed because Velocity provides every dependency except netty-resolver-dns -->
                             <exclude>io.netty:netty-transport-native-epoll:*</exclude>
                             <exclude>io.netty:netty-transport-native-unix-common:*</exclude>
