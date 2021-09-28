@@ -63,7 +63,7 @@ public class SkinProvider {
     public static final Skin EMPTY_SKIN = new Skin(-1, "steve", STEVE_SKIN);
     public static final byte[] ALEX_SKIN = new ProvidedSkin("bedrock/skin/skin_alex.png").getSkin();
     public static final Skin EMPTY_SKIN_ALEX = new Skin(-1, "alex", ALEX_SKIN);
-    private static final Map<String, Skin> permanentSkins = new HashMap<String, Skin>() {{
+    private static final Map<String, Skin> permanentSkins = new HashMap<>() {{
         put("steve", EMPTY_SKIN);
         put("alex", EMPTY_SKIN_ALEX);
     }};
