@@ -45,7 +45,7 @@ import lombok.Setter;
 import org.geysermc.connector.entity.attribute.GeyserAttributeType;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.registry.type.ItemMapping;
 import org.geysermc.connector.utils.AttributeUtils;
 import org.geysermc.connector.utils.ChunkUtils;
 
@@ -84,20 +84,21 @@ public class LivingEntity extends Entity {
     @Override
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         switch (entityMetadata.getId()) {
-            case 8: // blocking
+            case 8 -> { // blocking
                 byte xd = (byte) entityMetadata.getValue();
 
                 //blocking gets triggered when using a bow, but if we set USING_ITEM for all items, it may look like
                 //you're "mining" with ex. a shield.
-                boolean isUsingShield = (getHand().getId() == ItemRegistry.SHIELD.getBedrockId() ||
-                                         getHand().equals(ItemData.AIR) && getOffHand().getId() == ItemRegistry.SHIELD.getBedrockId());
+                ItemMapping shield = session.getItemMappings().getStoredItems().shield();
+                boolean isUsingShield = (getHand().getId() == shield.getBedrockId() ||
+                        getHand().equals(ItemData.AIR) && getOffHand().getId() == shield.getBedrockId());
                 metadata.getFlags().setFlag(EntityFlag.USING_ITEM, (xd & 0x01) == 0x01 && !isUsingShield);
                 metadata.getFlags().setFlag(EntityFlag.BLOCKING, (xd & 0x01) == 0x01);
 
                 // Riptide spin attack
                 metadata.getFlags().setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, (xd & 0x04) == 0x04);
-                break;
-            case 9:
+            }
+            case 9 -> {
                 this.health = (float) entityMetadata.getValue();
 
                 AttributeData healthData = createHealthAttribute();
@@ -105,14 +106,10 @@ public class LivingEntity extends Entity {
                 attributesPacket.setRuntimeEntityId(geyserId);
                 attributesPacket.setAttributes(Collections.singletonList(healthData));
                 session.sendUpstreamPacket(attributesPacket);
-                break;
-            case 10:
-                metadata.put(EntityData.EFFECT_COLOR, entityMetadata.getValue());
-                break;
-            case 11:
-                metadata.put(EntityData.EFFECT_AMBIENT, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
-                break;
-            case 14: // Bed Position
+            }
+            case 10 -> metadata.put(EntityData.EFFECT_COLOR, entityMetadata.getValue());
+            case 11 -> metadata.put(EntityData.EFFECT_AMBIENT, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
+            case 14 -> { // Bed Position
                 Position bedPosition = (Position) entityMetadata.getValue();
                 if (bedPosition != null) {
                     metadata.put(EntityData.BED_POSITION, Vector3i.from(bedPosition.getX(), bedPosition.getY(), bedPosition.getZ()));
@@ -127,7 +124,7 @@ public class LivingEntity extends Entity {
                     // Player is no longer sleeping
                     metadata.put(EntityData.PLAYER_FLAGS, (byte) 0);
                 }
-                break;
+            }
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
@@ -171,10 +168,11 @@ public class LivingEntity extends Entity {
         ItemData chestplate = this.chestplate;
         // If an entity has a banner on them, it will be in the helmet slot in Java but the chestplate spot in Bedrock
         // But don't overwrite the chestplate if it isn't empty
-        if (chestplate.getId() == ItemData.AIR.getId() && helmet.getId() == ItemRegistry.BANNER.getBedrockId()) {
+        ItemMapping banner = session.getItemMappings().getStoredItems().banner();
+        if (chestplate.getId() == ItemData.AIR.getId() && helmet.getId() == banner.getBedrockId()) {
             chestplate = this.helmet;
             helmet = ItemData.AIR;
-        } else if (chestplate.getId() == ItemRegistry.BANNER.getBedrockId()) {
+        } else if (chestplate.getId() == banner.getBedrockId()) {
             // Prevent chestplate banners from showing erroneously
             chestplate = ItemData.AIR;
         }
@@ -247,28 +245,16 @@ public class LivingEntity extends Entity {
      */
     protected void updateAttribute(Attribute javaAttribute, List<AttributeData> newAttributes) {
         switch (javaAttribute.getType()) {
-            case GENERIC_MAX_HEALTH:
+            case GENERIC_MAX_HEALTH -> {
                 this.maxHealth = (float) AttributeUtils.calculateValue(javaAttribute);
                 newAttributes.add(createHealthAttribute());
-                break;
-            case GENERIC_ATTACK_DAMAGE:
-                newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.ATTACK_DAMAGE));
-                break;
-            case GENERIC_FLYING_SPEED:
-                newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED));
-                break;
-            case GENERIC_MOVEMENT_SPEED:
-                newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.MOVEMENT_SPEED));
-                break;
-            case GENERIC_FOLLOW_RANGE:
-                newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FOLLOW_RANGE));
-                break;
-            case GENERIC_KNOCKBACK_RESISTANCE:
-                newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.KNOCKBACK_RESISTANCE));
-                break;
-            case HORSE_JUMP_STRENGTH:
-                newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.HORSE_JUMP_STRENGTH));
-                break;
+            }
+            case GENERIC_ATTACK_DAMAGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.ATTACK_DAMAGE));
+            case GENERIC_FLYING_SPEED -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED));
+            case GENERIC_MOVEMENT_SPEED -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.MOVEMENT_SPEED));
+            case GENERIC_FOLLOW_RANGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FOLLOW_RANGE));
+            case GENERIC_KNOCKBACK_RESISTANCE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.KNOCKBACK_RESISTANCE));
+            case HORSE_JUMP_STRENGTH -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.HORSE_JUMP_STRENGTH));
         }
     }
 

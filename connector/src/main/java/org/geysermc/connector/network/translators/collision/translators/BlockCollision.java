@@ -26,21 +26,19 @@
 package org.geysermc.connector.network.translators.collision.translators;
 
 import com.nukkitx.math.vector.Vector3d;
+import com.nukkitx.math.vector.Vector3i;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
+import org.geysermc.connector.network.translators.collision.CollisionManager;
+import org.geysermc.connector.utils.Axis;
 
 @EqualsAndHashCode
 public class BlockCollision {
 
     @Getter
-    protected BoundingBox[] boundingBoxes;
-
-    protected int x;
-    protected int y;
-    protected int z;
+    protected final BoundingBox[] boundingBoxes;
 
     /**
      * This is used for the step up logic.
@@ -51,20 +49,22 @@ public class BlockCollision {
      * I didn't just set it for beds because other collision may also be slightly raised off the ground.
      * If this causes any problems, change this back to 0 and add an exception for beds.
      */
-    @EqualsAndHashCode.Exclude
     protected double pushUpTolerance = 1;
 
-    public void setPosition(int x, int y, int z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+    /**
+     * This is used to control the maximum distance a face of a bounding box can push the player away
+     */
+    protected double pushAwayTolerance = CollisionManager.COLLISION_TOLERANCE * 1.1;
+
+    protected BlockCollision(BoundingBox[] boxes) {
+        this.boundingBoxes = boxes;
     }
 
     /**
      * Overridden in classes like SnowCollision and GrassPathCollision when correction code needs to be run before the
      * main correction
      */
-    public void beforeCorrectPosition(BoundingBox playerCollision) {}
+    public void beforeCorrectPosition(int x, int y, int z, BoundingBox playerCollision) {}
 
     /**
      * Returns false if the movement is invalid, and in this case it shouldn't be sent to the server and should be
@@ -72,7 +72,7 @@ public class BlockCollision {
      * While the Java server should do this, it could result in false flags by anticheat
      * This functionality is currently only used in 6 or 7 layer snow
      */
-    public boolean correctPosition(GeyserSession session, BoundingBox playerCollision) {
+    public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
         double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
         for (BoundingBox b : this.boundingBoxes) {
             double boxMinY = (b.getMiddleY() + y) - (b.getSizeY() / 2);
@@ -95,43 +95,44 @@ public class BlockCollision {
             // This check doesn't allow players right up against the block, so they must be pushed slightly away
             if (b.checkIntersection(x, y, z, playerCollision)) {
                 Vector3d relativePlayerPosition = Vector3d.from(playerCollision.getMiddleX() - x,
-                        playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2) - y,
+                        playerCollision.getMiddleY() - y,
                         playerCollision.getMiddleZ() - z);
 
-                Vector3d northFacePos = Vector3d.from(b.getMiddleX(),
-                        b.getMiddleY(),
-                        b.getMiddleZ() - (b.getSizeZ() / 2));
+                // The ULP should give an upper bound on the floating point error
+                double xULP = Math.ulp((float) Math.max(Math.abs(playerCollision.getMiddleX()) + playerCollision.getSizeX() / 2.0, Math.abs(x) + 1));
+                double zULP = Math.ulp((float) Math.max(Math.abs(playerCollision.getMiddleZ()) + playerCollision.getSizeZ() / 2.0, Math.abs(z) + 1));
 
-                Vector3d southFacePos = Vector3d.from(b.getMiddleX(),
-                        b.getMiddleY(),
-                        b.getMiddleZ() + (b.getSizeZ() / 2));
+                double xPushAwayTolerance = Math.max(pushAwayTolerance, xULP);
+                double zPushAwayTolerance = Math.max(pushAwayTolerance, zULP);
 
-                Vector3d eastFacePos = Vector3d.from(b.getMiddleX()  + (b.getSizeX() / 2),
-                        b.getMiddleY(),
-                        b.getMiddleZ());
-
-                Vector3d westFacePos = Vector3d.from(b.getMiddleX()  - (b.getSizeX() / 2),
-                        b.getMiddleY(),
-                        b.getMiddleZ());
-
-                double translateDistance = northFacePos.getZ() - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
-                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 1.1) {
-                    playerCollision.translate(0, 0, translateDistance);
-                }
-                
-                translateDistance = southFacePos.getZ() - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
-                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 1.1) {
+                double northFaceZPos = b.getMiddleZ() - (b.getSizeZ() / 2);
+                double translateDistance = northFaceZPos - relativePlayerPosition.getZ() - (playerCollision.getSizeZ() / 2);
+                if (Math.abs(translateDistance) < zPushAwayTolerance) {
                     playerCollision.translate(0, 0, translateDistance);
                 }
 
-                translateDistance = eastFacePos.getX() - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
-                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 1.1) {
+                double southFaceZPos = b.getMiddleZ() + (b.getSizeZ() / 2);
+                translateDistance = southFaceZPos - relativePlayerPosition.getZ() + (playerCollision.getSizeZ() / 2);
+                if (Math.abs(translateDistance) < zPushAwayTolerance) {
+                    playerCollision.translate(0, 0, translateDistance);
+                }
+
+                double eastFaceXPos = b.getMiddleX() + (b.getSizeX() / 2);
+                translateDistance = eastFaceXPos - relativePlayerPosition.getX() + (playerCollision.getSizeX() / 2);
+                if (Math.abs(translateDistance) < xPushAwayTolerance) {
                     playerCollision.translate(translateDistance, 0, 0);
                 }
 
-                translateDistance = westFacePos.getX() - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
-                if (Math.abs(translateDistance) < CollisionManager.COLLISION_TOLERANCE * 1.1) {
+                double westFaceXPos = b.getMiddleX() - (b.getSizeX() / 2);
+                translateDistance = westFaceXPos - relativePlayerPosition.getX() - (playerCollision.getSizeX() / 2);
+                if (Math.abs(translateDistance) < xPushAwayTolerance) {
                     playerCollision.translate(translateDistance, 0, 0);
+                }
+
+                double bottomFaceYPos = b.getMiddleY() - (b.getSizeY() / 2);
+                translateDistance = bottomFaceYPos - relativePlayerPosition.getY() - (playerCollision.getSizeY() / 2);
+                if (Math.abs(translateDistance) < pushAwayTolerance) {
+                    playerCollision.translate(0, translateDistance, 0);
                 }
             }
 
@@ -143,12 +144,26 @@ public class BlockCollision {
         return true;
     }
 
-    public boolean checkIntersection(BoundingBox playerCollision) {
+    public boolean checkIntersection(double x, double y, double z, BoundingBox playerCollision) {
         for (BoundingBox b : boundingBoxes) {
             if (b.checkIntersection(x, y, z, playerCollision)) {
                 return true;
             }
         }
         return false;
+    }
+
+    public boolean checkIntersection(Vector3i position, BoundingBox playerCollision) {
+        return checkIntersection(position.getX(), position.getY(), position.getZ(), playerCollision);
+    }
+
+    public double computeCollisionOffset(double x, double y, double z, BoundingBox boundingBox, Axis axis, double offset) {
+        for (BoundingBox b : boundingBoxes) {
+            offset = b.getMaxOffset(x, y, z, boundingBox, axis, offset);
+            if (Math.abs(offset) < CollisionManager.COLLISION_TOLERANCE) {
+                return 0;
+            }
+        }
+        return offset;
     }
 }

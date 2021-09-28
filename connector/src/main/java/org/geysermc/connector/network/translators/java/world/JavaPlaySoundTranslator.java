@@ -33,13 +33,14 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.sound.SoundRegistry;
+import org.geysermc.connector.registry.Registries;
+import org.geysermc.connector.registry.type.SoundMapping;
 
 @Translator(packet = ServerPlaySoundPacket.class)
 public class JavaPlaySoundTranslator extends PacketTranslator<ServerPlaySoundPacket> {
 
     @Override
-    public void translate(ServerPlaySoundPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerPlaySoundPacket packet) {
         String packetSound;
         if (packet.getSound() instanceof BuiltinSound) {
             packetSound = ((BuiltinSound) packet.getSound()).getName();
@@ -50,7 +51,7 @@ public class JavaPlaySoundTranslator extends PacketTranslator<ServerPlaySoundPac
             return;
         }
 
-        SoundRegistry.SoundMapping soundMapping = SoundRegistry.fromJava(packetSound.replace("minecraft:", ""));
+        SoundMapping soundMapping = Registries.SOUNDS.get(packetSound.replace("minecraft:", ""));
         String playsound;
         if (soundMapping == null || soundMapping.getPlaysound() == null) {
             // no mapping

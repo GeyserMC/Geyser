@@ -43,16 +43,16 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.SlotType;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.function.IntFunction;
 
 public class PlayerInventoryTranslator extends InventoryTranslator {
-    private static final ItemData UNUSUABLE_CRAFTING_SPACE_BLOCK = InventoryUtils.createUnusableSpaceBlock(LanguageUtils.getLocaleStringLog("geyser.inventory.unusable_item.creative"));
+    private static final IntFunction<ItemData> UNUSUABLE_CRAFTING_SPACE_BLOCK = InventoryUtils.createUnusableSpaceBlock(LanguageUtils.getLocaleStringLog("geyser.inventory.unusable_item.creative"));
 
     public PlayerInventoryTranslator() {
         super(46);
@@ -106,7 +106,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
             slotPacket.setSlot(i + 27);
 
             if (session.getGameMode() == GameMode.CREATIVE) {
-                slotPacket.setItem(UNUSUABLE_CRAFTING_SPACE_BLOCK);
+                slotPacket.setItem(UNUSUABLE_CRAFTING_SPACE_BLOCK.apply(session.getUpstream().getProtocolVersion()));
             } else {
                 slotPacket.setItem(ItemTranslator.translateToBedrock(session, inventory.getItem(i).getItemStack()));
             }
@@ -218,8 +218,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         IntSet affectedSlots = new IntOpenHashSet();
         for (StackRequestActionData action : request.getActions()) {
             switch (action.getType()) {
-                case TAKE:
-                case PLACE: {
+                case TAKE, PLACE -> {
                     TransferStackRequestActionData transferAction = (TransferStackRequestActionData) action;
                     if (!(checkNetId(session, inventory, transferAction.getSource()) && checkNetId(session, inventory, transferAction.getDestination()))) {
                         return rejectRequest(request);
@@ -265,9 +264,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         affectedSlots.add(sourceSlot);
                         affectedSlots.add(destSlot);
                     }
-                    break;
                 }
-                case SWAP: {
+                case SWAP -> {
                     SwapStackRequestActionData swapAction = (SwapStackRequestActionData) action;
                     if (!(checkNetId(session, inventory, swapAction.getSource()) && checkNetId(session, inventory, swapAction.getDestination()))) {
                         return rejectRequest(request);
@@ -306,9 +304,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         affectedSlots.add(sourceSlot);
                         affectedSlots.add(destSlot);
                     }
-                    break;
                 }
-                case DROP: {
+                case DROP -> {
                     DropStackRequestActionData dropAction = (DropStackRequestActionData) action;
                     if (!checkNetId(session, inventory, dropAction.getSource())) {
                         return rejectRequest(request);
@@ -334,9 +331,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     session.sendDownstreamPacket(creativeDropPacket);
 
                     sourceItem.sub(dropAction.getCount());
-                    break;
                 }
-                case DESTROY: {
+                case DESTROY -> {
                     // Only called when a creative client wants to destroy an item... I think - Camotoy
                     DestroyStackRequestActionData destroyAction = (DestroyStackRequestActionData) action;
                     if (!checkNetId(session, inventory, destroyAction.getSource())) {
@@ -356,11 +352,11 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         // Just sync up the item on our end, since the server doesn't care what's in our cursor
                         playerInv.getCursor().sub(destroyAction.getCount());
                     }
-                    break;
                 }
-                default:
+                default -> {
                     session.getConnector().getLogger().error("Unknown crafting state induced by " + session.getName());
                     return rejectRequest(request);
+                }
             }
         }
         for (int slot : affectedSlots) {
@@ -384,12 +380,13 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     craftState = CraftState.RECIPE_ID;
 
                     int creativeId = creativeAction.getCreativeItemNetworkId() - 1;
-                    if (creativeId < 0 || creativeId >= ItemRegistry.CREATIVE_ITEMS.length) {
+                    ItemData[] creativeItems = session.getItemMappings().getCreativeItems();
+                    if (creativeId < 0 || creativeId >= creativeItems.length) {
                         return rejectRequest(request);
                     }
                     // Reference the creative items list we send to the client to know what it's asking of us
-                    ItemData creativeItem = ItemRegistry.CREATIVE_ITEMS[creativeId];
-                    javaCreativeItem = ItemTranslator.translateToJava(creativeItem);
+                    ItemData creativeItem = creativeItems[creativeId];
+                    javaCreativeItem = ItemTranslator.translateToJava(creativeItem, session.getItemMappings());
                     break;
                 }
                 case CRAFT_RESULTS_DEPRECATED: {

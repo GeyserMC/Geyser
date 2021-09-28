@@ -31,7 +31,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 public class CatEntity extends TameableEntity {
 
@@ -59,23 +59,14 @@ public class CatEntity extends TameableEntity {
         }
         if (entityMetadata.getId() == 19) {
             // Different colors in Java and Bedrock for some reason
-            int variantColor;
-            switch ((int) entityMetadata.getValue()) {
-                case 0:
-                    variantColor = 8;
-                    break;
-                case 8:
-                    variantColor = 0;
-                    break;
-                case 9:
-                    variantColor = 10;
-                    break;
-                case 10:
-                    variantColor = 9;
-                    break;
-                default:
-                    variantColor = (int) entityMetadata.getValue();
-            }
+            int metadataValue = (int) entityMetadata.getValue();
+            int variantColor = switch (metadataValue) {
+                case 0 -> 8;
+                case 8 -> 0;
+                case 9 -> 10;
+                case 10 -> 9;
+                default -> metadataValue;
+            };
             metadata.put(EntityData.VARIANT, variantColor);
         }
         if (entityMetadata.getId() == 20) {
@@ -91,7 +82,7 @@ public class CatEntity extends TameableEntity {
     }
 
     @Override
-    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemMapping mapping) {
         return javaIdentifierStripped.equals("cod") || javaIdentifierStripped.equals("salmon");
     }
 }

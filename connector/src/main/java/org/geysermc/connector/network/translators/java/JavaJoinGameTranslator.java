@@ -38,6 +38,7 @@ import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.world.BiomeTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.PluginMessageUtils;
@@ -50,11 +51,9 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
     private static final List<SkinPart> SKIN_PART_VALUES = Arrays.asList(SkinPart.values());
 
     @Override
-    public void translate(ServerJoinGamePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerJoinGamePacket packet) {
         PlayerEntity entity = session.getPlayerEntity();
         entity.setEntityId(packet.getEntityId());
-
-        ChunkUtils.applyDimensionHeight(session, packet.getDimension());
 
         // If the player is already initialized and a join game packet is sent, they
         // are swapping servers
@@ -67,6 +66,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         }
         session.setWorldName(packet.getWorldName());
 
+        BiomeTranslator.loadServerBiomes(session, packet.getDimensionCodec());
         session.getTagCache().clear();
 
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
@@ -108,5 +108,7 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
         if (!newDimension.equals(session.getDimension())) {
             DimensionUtils.switchDimension(session, newDimension);
         }
+
+        ChunkUtils.applyDimensionHeight(session, packet.getDimension());
     }
 }

@@ -42,7 +42,8 @@ import org.bukkit.plugin.Plugin;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.translators.LecternInventoryTranslator;
 import org.geysermc.connector.network.translators.world.GeyserWorldManager;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.utils.BlockEntityUtils;
 import org.geysermc.connector.utils.GameRule;
 
@@ -68,15 +69,19 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
         Player bukkitPlayer;
         if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
-            return BlockTranslator.JAVA_AIR_ID;
+            return BlockStateValues.JAVA_AIR_ID;
         }
         World world = bukkitPlayer.getWorld();
         if (!world.isChunkLoaded(x >> 4, z >> 4)) {
             // If the chunk isn't loaded, how could we even be here?
-            return BlockTranslator.JAVA_AIR_ID;
+            return BlockStateValues.JAVA_AIR_ID;
         }
 
-        return BlockTranslator.getJavaIdBlockMap().getOrDefault(world.getBlockAt(x, y, z).getBlockData().getAsString(), BlockTranslator.JAVA_AIR_ID);
+        return getBlockNetworkId(bukkitPlayer, world.getBlockAt(x, y, z), x, y, z);
+    }
+
+    public int getBlockNetworkId(Player player, Block block, int x, int y, int z) {
+        return BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(block.getBlockData().getAsString(), BlockStateValues.JAVA_AIR_ID);
     }
 
     @Override
@@ -94,14 +99,13 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             }
 
             Block block = bukkitPlayer.getWorld().getBlockAt(x, y, z);
-            if (!(block.getState() instanceof Lectern)) {
+            if (!(block.getState() instanceof Lectern lectern)) {
                 session.getConnector().getLogger().error("Lectern expected at: " + Vector3i.from(x, y, z).toString() + " but was not! " + block.toString());
                 return;
             }
 
-            Lectern lectern = (Lectern) block.getState();
             ItemStack itemStack = lectern.getInventory().getItem(0);
-            if (itemStack == null || !(itemStack.getItemMeta() instanceof BookMeta)) {
+            if (itemStack == null || !(itemStack.getItemMeta() instanceof BookMeta bookMeta)) {
                 if (!isChunkLoad) {
                     // We need to update the lectern since it's not going to be updated otherwise
                     BlockEntityUtils.updateBlockEntity(session, LecternInventoryTranslator.getBaseLecternTag(x, y, z, 0).build(), Vector3i.from(x, y, z));
@@ -110,7 +114,6 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
                 return;
             }
 
-            BookMeta bookMeta = (BookMeta) itemStack.getItemMeta();
             // On the count: allow the book to show/open even there are no pages. We know there is a book here, after all, and this matches Java behavior
             boolean hasBookPages = bookMeta.getPageCount() > 0;
             NbtMapBuilder lecternTag = LecternInventoryTranslator.getBaseLecternTag(x, y, z, hasBookPages ? bookMeta.getPageCount() : 1);

@@ -49,10 +49,8 @@ import org.geysermc.connector.utils.LocaleUtils;
 public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyClientPacket> {
 
     @Override
-    public void translate(ServerNotifyClientPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerNotifyClientPacket packet) {
         PlayerEntity entity = session.getPlayerEntity();
-        if (entity == null)
-            return;
 
         switch (packet.getNotification()) {
             case START_RAIN:
@@ -110,21 +108,33 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
 
                 session.sendAdventureSettings();
 
+                if (session.getPlayerEntity().isOnGround() && gameMode == GameMode.SPECTATOR) {
+                    // Fix a bug where the player has glitched movement and thinks they are still on the ground
+                    MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
+                    movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
+                    movePlayerPacket.setPosition(entity.getPosition());
+                    movePlayerPacket.setRotation(entity.getBedrockRotation());
+                    movePlayerPacket.setOnGround(false);
+                    movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
+                    movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);
+                    session.sendUpstreamPacket(movePlayerPacket);
+                }
+
                 // Update the crafting grid to add/remove barriers for creative inventory
                 PlayerInventoryTranslator.updateCraftingGrid(session, session.getPlayerInventory());
                 break;
             case ENTER_CREDITS:
                 switch ((EnterCreditsValue) packet.getValue()) {
-                    case SEEN_BEFORE:
+                    case SEEN_BEFORE -> {
                         ClientRequestPacket javaRespawnPacket = new ClientRequestPacket(ClientRequest.RESPAWN);
                         session.sendDownstreamPacket(javaRespawnPacket);
-                        break;
-                    case FIRST_TIME:
+                    }
+                    case FIRST_TIME -> {
                         ShowCreditsPacket showCreditsPacket = new ShowCreditsPacket();
                         showCreditsPacket.setStatus(ShowCreditsPacket.Status.START_CREDITS);
                         showCreditsPacket.setRuntimeEntityId(entity.getGeyserId());
                         session.sendUpstreamPacket(showCreditsPacket);
-                        break;
+                    }
                 }
                 break;
             case AFFECTED_BY_ELDER_GUARDIAN:

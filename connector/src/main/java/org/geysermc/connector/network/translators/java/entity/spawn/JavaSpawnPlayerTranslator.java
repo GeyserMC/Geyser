@@ -39,7 +39,7 @@ import org.geysermc.connector.skin.SkinManager;
 public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlayerPacket> {
 
     @Override
-    public void translate(ServerSpawnPlayerPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerSpawnPlayerPacket packet) {
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f rotation = Vector3f.from(packet.getYaw(), packet.getPitch(), packet.getYaw());
 

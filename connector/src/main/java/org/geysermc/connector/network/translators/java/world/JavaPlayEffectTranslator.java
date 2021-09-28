@@ -33,12 +33,13 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
+import com.nukkitx.protocol.bedrock.v448.Bedrock_v465;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.effect.Effect;
-import org.geysermc.connector.network.translators.effect.EffectRegistry;
+import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.utils.LocaleUtils;
 
 import java.util.Collections;
@@ -48,11 +49,11 @@ import java.util.Locale;
 public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectPacket> {
 
     @Override
-    public void translate(ServerPlayEffectPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerPlayEffectPacket packet) {
         // Separate case since each RecordEffectData in Java is an individual track in Bedrock
         if (packet.getEffect() == SoundEffect.RECORD) {
             RecordEffectData recordEffectData = (RecordEffectData) packet.getData();
-            SoundEvent soundEvent = EffectRegistry.RECORDS.getOrDefault(recordEffectData.getRecordId(), SoundEvent.STOP_RECORD);
+            SoundEvent soundEvent = Registries.RECORDS.getOrDefault(recordEffectData.getRecordId(), SoundEvent.STOP_RECORD);
             Vector3f pos = Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()).add(0.5f, 0.5f, 0.5f);
 
             LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
@@ -80,34 +81,28 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
             return;
         }
 
-        if (packet.getEffect() instanceof SoundEffect) {
-            SoundEffect soundEffect = (SoundEffect) packet.getEffect();
-            Effect geyserEffect = EffectRegistry.SOUND_EFFECTS.get(soundEffect);
+        if (packet.getEffect() instanceof SoundEffect soundEffect) {
+            Effect geyserEffect = Registries.SOUND_EFFECTS.get(soundEffect);
             if (geyserEffect != null) {
                 geyserEffect.handleEffectPacket(session, packet);
                 return;
             }
             GeyserConnector.getInstance().getLogger().debug("Unhandled sound effect: " + soundEffect.name());
-        } else if (packet.getEffect() instanceof ParticleEffect) {
-            ParticleEffect particleEffect = (ParticleEffect) packet.getEffect();
+        } else if (packet.getEffect() instanceof ParticleEffect particleEffect) {
             Vector3f pos = Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()).add(0.5f, 0.5f, 0.5f);
 
             LevelEventPacket effectPacket = new LevelEventPacket();
             effectPacket.setPosition(pos);
             effectPacket.setData(0);
             switch (particleEffect) {
-                case COMPOSTER: {
+                case COMPOSTER -> {
                     effectPacket.setType(LevelEventType.PARTICLE_CROP_GROWTH);
 
                     ComposterEffectData composterEffectData = (ComposterEffectData) packet.getData();
                     LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
                     switch (composterEffectData) {
-                        case FILL:
-                            soundEventPacket.setSound(SoundEvent.COMPOSTER_FILL);
-                            break;
-                        case FILL_SUCCESS:
-                            soundEventPacket.setSound(SoundEvent.COMPOSTER_FILL_LAYER);
-                            break;
+                        case FILL -> soundEventPacket.setSound(SoundEvent.COMPOSTER_FILL);
+                        case FILL_SUCCESS -> soundEventPacket.setSound(SoundEvent.COMPOSTER_FILL_LAYER);
                     }
                     soundEventPacket.setPosition(pos);
                     soundEventPacket.setIdentifier("");
@@ -115,9 +110,8 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     soundEventPacket.setBabySound(false);
                     soundEventPacket.setRelativeVolumeDisabled(false);
                     session.sendUpstreamPacket(soundEventPacket);
-                    break;
                 }
-                case BLOCK_LAVA_EXTINGUISH: {
+                case BLOCK_LAVA_EXTINGUISH -> {
                     effectPacket.setType(LevelEventType.PARTICLE_EVAPORATE);
                     effectPacket.setPosition(pos.add(-0.5f, 0.7f, -0.5f));
 
@@ -129,9 +123,8 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     soundEventPacket.setBabySound(false);
                     soundEventPacket.setRelativeVolumeDisabled(false);
                     session.sendUpstreamPacket(soundEventPacket);
-                    break;
                 }
-                case BLOCK_REDSTONE_TORCH_BURNOUT: {
+                case BLOCK_REDSTONE_TORCH_BURNOUT -> {
                     effectPacket.setType(LevelEventType.PARTICLE_EVAPORATE);
                     effectPacket.setPosition(pos.add(-0.5f, 0, -0.5f));
 
@@ -143,9 +136,8 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     soundEventPacket.setBabySound(false);
                     soundEventPacket.setRelativeVolumeDisabled(false);
                     session.sendUpstreamPacket(soundEventPacket);
-                    break;
                 }
-                case BLOCK_END_PORTAL_FRAME_FILL: {
+                case BLOCK_END_PORTAL_FRAME_FILL -> {
                     effectPacket.setType(LevelEventType.PARTICLE_EVAPORATE);
                     effectPacket.setPosition(pos.add(-0.5f, 0.3125f, -0.5f));
 
@@ -157,53 +149,50 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     soundEventPacket.setBabySound(false);
                     soundEventPacket.setRelativeVolumeDisabled(false);
                     session.sendUpstreamPacket(soundEventPacket);
-                    break;
                 }
-                case SMOKE: {
+                case SMOKE -> {
                     effectPacket.setType(LevelEventType.PARTICLE_SHOOT);
 
                     SmokeEffectData smokeEffectData = (SmokeEffectData) packet.getData();
                     int data = 0;
                     switch (smokeEffectData) {
-                        case DOWN:
+                        case DOWN -> {
                             data = 4;
                             pos = pos.add(0, -0.9f, 0);
-                            break;
-                        case UP:
+                        }
+                        case UP -> {
                             data = 4;
                             pos = pos.add(0, 0.5f, 0);
-                            break;
-                        case NORTH:
+                        }
+                        case NORTH -> {
                             data = 1;
                             pos = pos.add(0, -0.2f, -0.7f);
-                            break;
-                        case SOUTH:
+                        }
+                        case SOUTH -> {
                             data = 7;
                             pos = pos.add(0, -0.2f, 0.7f);
-                            break;
-                        case WEST:
+                        }
+                        case WEST -> {
                             data = 3;
                             pos = pos.add(-0.7f, -0.2f, 0);
-                            break;
-                        case EAST:
+                        }
+                        case EAST -> {
                             data = 5;
                             pos = pos.add(0.7f, -0.2f, 0);
-                            break;
-
+                        }
                     }
                     effectPacket.setPosition(pos);
                     effectPacket.setData(data);
-                    break;
                 }
+
                 //TODO: Block break particles when under fire
-                case BREAK_BLOCK: {
+                case BREAK_BLOCK -> {
                     effectPacket.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
 
                     BreakBlockEffectData breakBlockEffectData = (BreakBlockEffectData) packet.getData();
-                    effectPacket.setData(session.getBlockTranslator().getBedrockBlockId(breakBlockEffectData.getBlockState()));
-                    break;
+                    effectPacket.setData(session.getBlockMappings().getBedrockBlockId(breakBlockEffectData.getBlockState()));
                 }
-                case BREAK_SPLASH_POTION: {
+                case BREAK_SPLASH_POTION -> {
                     effectPacket.setType(LevelEventType.PARTICLE_POTION_SPLASH);
                     effectPacket.setPosition(pos.add(0, -0.5f, 0));
 
@@ -218,25 +207,17 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     soundEventPacket.setBabySound(false);
                     soundEventPacket.setRelativeVolumeDisabled(false);
                     session.sendUpstreamPacket(soundEventPacket);
-                    break;
                 }
-                case BREAK_EYE_OF_ENDER: {
-                    effectPacket.setType(LevelEventType.PARTICLE_EYE_OF_ENDER_DEATH);
-                    break;
-                }
-                case MOB_SPAWN: {
-                    effectPacket.setType(LevelEventType.PARTICLE_MOB_BLOCK_SPAWN); // TODO: Check, but I don't think I really verified this ever went into effect on Java
-                    break;
-                }
-                case BONEMEAL_GROW_WITH_SOUND: // Note that there is no particle without sound in Bedrock. If you wanted to implement the sound, send a PlaySoundPacket with "item.bone_meal.use" and volume and pitch at 1.0F
-                case BONEMEAL_GROW: {
-                    effectPacket.setType(LevelEventType.PARTICLE_CROP_GROWTH);
+                case BREAK_EYE_OF_ENDER -> effectPacket.setType(LevelEventType.PARTICLE_EYE_OF_ENDER_DEATH);
+                case MOB_SPAWN -> effectPacket.setType(LevelEventType.PARTICLE_MOB_BLOCK_SPAWN); // TODO: Check, but I don't think I really verified this ever went into effect on Java
+                case BONEMEAL_GROW_WITH_SOUND, BONEMEAL_GROW -> {
+                    effectPacket.setType((particleEffect == ParticleEffect.BONEMEAL_GROW
+                            && session.getUpstream().getProtocolVersion() >= Bedrock_v465.V465_CODEC.getProtocolVersion()) ? LevelEventType.PARTICLE_TURTLE_EGG : LevelEventType.PARTICLE_CROP_GROWTH);
 
                     BonemealGrowEffectData growEffectData = (BonemealGrowEffectData) packet.getData();
                     effectPacket.setData(growEffectData.getParticleCount());
-                    break;
                 }
-                case ENDERDRAGON_FIREBALL_EXPLODE: {
+                case ENDERDRAGON_FIREBALL_EXPLODE -> {
                     effectPacket.setType(LevelEventType.PARTICLE_EYE_OF_ENDER_DEATH); // TODO
 
                     DragonFireballEffectData fireballEffectData = (DragonFireballEffectData) packet.getData();
@@ -250,19 +231,16 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                         soundEventPacket.setRelativeVolumeDisabled(false);
                         session.sendUpstreamPacket(soundEventPacket);
                     }
-                    break;
                 }
-                case EXPLOSION: {
+                case EXPLOSION -> {
                     effectPacket.setType(LevelEventType.PARTICLE_GENERIC_SPAWN);
                     effectPacket.setData(61);
-                    break;
                 }
-                case EVAPORATE: {
+                case EVAPORATE -> {
                     effectPacket.setType(LevelEventType.PARTICLE_EVAPORATE_WATER);
                     effectPacket.setPosition(pos.add(-0.5f, 0.5f, -0.5f));
-                    break;
                 }
-                case END_GATEWAY_SPAWN: {
+                case END_GATEWAY_SPAWN -> {
                     effectPacket.setType(LevelEventType.PARTICLE_EXPLOSION);
 
                     LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
@@ -273,30 +251,24 @@ public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectP
                     soundEventPacket.setBabySound(false);
                     soundEventPacket.setRelativeVolumeDisabled(false);
                     session.sendUpstreamPacket(soundEventPacket);
-                    break;
                 }
-                case DRIPSTONE_DRIP: {
+                case DRIPSTONE_DRIP -> {
                     effectPacket.setType(LevelEventType.PARTICLE_DRIPSTONE_DRIP);
-                    break;
                 }
-                case ELECTRIC_SPARK: {
+                case ELECTRIC_SPARK -> {
                     // Matches with a Bedrock server but doesn't seem to match up with Java
                     effectPacket.setType(LevelEventType.PARTICLE_ELECTRIC_SPARK);
-                    break;
                 }
-                case WAX_ON: {
+                case WAX_ON -> {
                     effectPacket.setType(LevelEventType.PARTICLE_WAX_ON);
-                    break;
                 }
-                case WAX_OFF: {
+                case WAX_OFF -> {
                     effectPacket.setType(LevelEventType.PARTICLE_WAX_OFF);
-                    break;
                 }
-                case SCRAPE: {
+                case SCRAPE -> {
                     effectPacket.setType(LevelEventType.PARTICLE_SCRAPE);
-                    break;
                 }
-                default: {
+                default -> {
                     GeyserConnector.getInstance().getLogger().debug("Unhandled particle effect: " + particleEffect.name());
                     return;
                 }

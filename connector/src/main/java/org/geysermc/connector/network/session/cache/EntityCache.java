@@ -26,6 +26,8 @@
 package org.geysermc.connector.network.session.cache;
 
 import it.unimi.dsi.fastutil.longs.*;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
 import org.geysermc.connector.entity.Tickable;
@@ -44,15 +46,15 @@ public class EntityCache {
     private final GeyserSession session;
 
     @Getter
-    private Long2ObjectMap<Entity> entities = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
+    private final Long2ObjectMap<Entity> entities = new Long2ObjectOpenHashMap<>();
     /**
      * A list of all entities that must be ticked.
      */
-    private final List<Tickable> tickableEntities = Collections.synchronizedList(new ArrayList<>());
-    private Long2LongMap entityIdTranslations = Long2LongMaps.synchronize(new Long2LongOpenHashMap());
-    private Map<UUID, PlayerEntity> playerEntities = Collections.synchronizedMap(new HashMap<>());
-    private Map<UUID, BossBar> bossBars = Collections.synchronizedMap(new HashMap<>());
-    private final Long2LongMap cachedPlayerEntityLinks = Long2LongMaps.synchronize(new Long2LongOpenHashMap());
+    private final List<Tickable> tickableEntities = new ObjectArrayList<>();
+    private final Long2LongMap entityIdTranslations = new Long2LongOpenHashMap();
+    private final Map<UUID, PlayerEntity> playerEntities = new Object2ObjectOpenHashMap<>();
+    private final Map<UUID, BossBar> bossBars = new Object2ObjectOpenHashMap<>();
+    private final Long2LongMap cachedPlayerEntityLinks = new Long2LongOpenHashMap();
 
     @Getter
     private final AtomicLong nextEntityId = new AtomicLong(2L);
@@ -154,13 +156,6 @@ public class EntityCache {
 
     public void updateBossBars() {
         bossBars.values().forEach(BossBar::updateBossBar);
-    }
-
-    public void clear() {
-        entities = null;
-        entityIdTranslations = null;
-        playerEntities = null;
-        bossBars = null;
     }
 
     public long getCachedPlayerEntityLink(long playerId) {

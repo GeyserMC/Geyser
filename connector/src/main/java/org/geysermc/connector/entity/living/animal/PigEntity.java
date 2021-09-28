@@ -30,7 +30,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 public class PigEntity extends AnimalEntity {
 
@@ -47,7 +47,7 @@ public class PigEntity extends AnimalEntity {
     }
 
     @Override
-    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemMapping mapping) {
         return javaIdentifierStripped.equals("carrot") || javaIdentifierStripped.equals("potato") || javaIdentifierStripped.equals("beetroot");
     }
 }

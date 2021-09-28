@@ -41,6 +41,8 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.Data;
@@ -49,9 +51,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.entity.player.SkullPlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.translators.LecternInventoryTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.BedrockOnlyBlockEntity;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
@@ -59,23 +59,65 @@ import org.geysermc.connector.network.translators.world.chunk.BlockStorage;
 import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
 import org.geysermc.connector.network.translators.world.chunk.bitarray.BitArray;
 import org.geysermc.connector.network.translators.world.chunk.bitarray.BitArrayVersion;
+import org.geysermc.connector.registry.BlockRegistries;
 
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
-import static org.geysermc.connector.network.translators.world.block.BlockTranslator.JAVA_AIR_ID;
+import static org.geysermc.connector.network.translators.world.block.BlockStateValues.JAVA_AIR_ID;
 
 @UtilityClass
 public class ChunkUtils {
     /**
      * The minimum height Bedrock Edition will accept.
      */
-    private static final int MINIMUM_ACCEPTED_HEIGHT = 0;
+    public static final int MINIMUM_ACCEPTED_HEIGHT = 0;
+    private static final int CAVES_AND_CLIFFS_MINIMUM_HEIGHT = -64;
+    public static final int MINIMUM_ACCEPTED_HEIGHT_OVERWORLD = GeyserConnector.getInstance().getConfig().isExtendedWorldHeight() ?
+            CAVES_AND_CLIFFS_MINIMUM_HEIGHT  : MINIMUM_ACCEPTED_HEIGHT;
     /**
-     * The maximum height Bedrock Edition will accept.
+     * The maximum chunk height Bedrock Edition will accept, from the lowest point to the highest.
      */
     private static final int MAXIMUM_ACCEPTED_HEIGHT = 256;
+    private static final int CAVES_AND_CLIFFS_MAXIMUM_HEIGHT = 384;
+    private static final int MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD = GeyserConnector.getInstance().getConfig().isExtendedWorldHeight() ?
+            CAVES_AND_CLIFFS_MAXIMUM_HEIGHT : MAXIMUM_ACCEPTED_HEIGHT;
+
+    public static final byte[] EMPTY_CHUNK_DATA;
+    public static final byte[] EMPTY_BIOME_DATA;
+
+    static {
+        if (GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
+            ByteBuf byteBuf = Unpooled.buffer();
+            try {
+                BlockStorage blockStorage = new BlockStorage(0);
+                blockStorage.writeToNetwork(byteBuf);
+
+                EMPTY_BIOME_DATA = new byte[byteBuf.readableBytes()];
+                byteBuf.readBytes(EMPTY_BIOME_DATA);
+            } finally {
+                byteBuf.release();
+            }
+
+            byteBuf = Unpooled.buffer();
+            try {
+                for (int i = 0; i < 32; i++) {
+                    byteBuf.writeBytes(EMPTY_BIOME_DATA);
+                }
+
+                byteBuf.writeByte(0); // Border
+
+                EMPTY_CHUNK_DATA = new byte[byteBuf.readableBytes()];
+                byteBuf.readBytes(EMPTY_CHUNK_DATA);
+            } finally {
+                byteBuf.release();
+            }
+        } else {
+            EMPTY_BIOME_DATA = null; // Unused
+            EMPTY_CHUNK_DATA = new byte[257]; // 256 bytes for biomes, one for borders
+        }
+    }
 
     private static int indexYZXtoXZY(int yzx) {
         return (yzx >> 8) | (yzx & 0x0F0) | ((yzx & 0x00F) << 8);
@@ -91,9 +133,13 @@ public class ChunkUtils {
         BitSet waterloggedPaletteIds = new BitSet();
         BitSet pistonOrFlowerPaletteIds = new BitSet();
 
+        boolean overworld = session.getChunkCache().isExtendedHeight();
+        int maxBedrockSectionY = ((overworld ? MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD : MAXIMUM_ACCEPTED_HEIGHT) >> 4) - 1;
+
         for (int sectionY = 0; sectionY < javaSections.length; sectionY++) {
-            if (yOffset < 0 && sectionY < -yOffset) {
-                // Ignore this chunk since it goes below the accepted height limit
+            int bedrockSectionY = sectionY + (yOffset - ((overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4));
+            if (bedrockSectionY < 0 || maxBedrockSectionY < bedrockSectionY) {
+                // Ignore this chunk section since it goes outside the bounds accepted by the Bedrock client
                 continue;
             }
 
@@ -109,26 +155,26 @@ public class ChunkUtils {
 
             if (javaPalette instanceof GlobalPalette) {
                 // As this is the global palette, simply iterate through the whole chunk section once
-                ChunkSection section = new ChunkSection(session.getBlockTranslator().getBedrockAirId());
+                ChunkSection section = new ChunkSection(session.getBlockMappings().getBedrockAirId());
                 for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
                     int javaId = javaData.get(yzx);
-                    int bedrockId = session.getBlockTranslator().getBedrockBlockId(javaId);
+                    int bedrockId = session.getBlockMappings().getBedrockBlockId(javaId);
                     int xzy = indexYZXtoXZY(yzx);
                     section.getBlockStorageArray()[0].setFullBlock(xzy, bedrockId);
 
-                    if (BlockTranslator.isWaterlogged(javaId)) {
-                        section.getBlockStorageArray()[1].setFullBlock(xzy, session.getBlockTranslator().getBedrockWaterId());
+                    if (BlockRegistries.WATERLOGGED.get().contains(javaId)) {
+                        section.getBlockStorageArray()[1].setFullBlock(xzy, session.getBlockMappings().getBedrockWaterId());
                     }
 
                     // Check if block is piston or flower to see if we'll need to create additional block entities, as they're only block entities in Bedrock
                     if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId)) {
                         bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(session,
-                                Vector3i.from((column.getX() << 4) + (yzx & 0xF), (sectionY << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
+                                Vector3i.from((column.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
                                 javaId
                         ));
                     }
                 }
-                sections[sectionY + yOffset] = section;
+                sections[bedrockSectionY] = section;
                 continue;
             }
 
@@ -139,9 +185,9 @@ public class ChunkUtils {
             // Iterate through palette and convert state IDs to Bedrock, doing some additional checks as we go
             for (int i = 0; i < javaPalette.size(); i++) {
                 int javaId = javaPalette.idToState(i);
-                bedrockPalette.add(session.getBlockTranslator().getBedrockBlockId(javaId));
+                bedrockPalette.add(session.getBlockMappings().getBedrockBlockId(javaId));
 
-                if (BlockTranslator.isWaterlogged(javaId)) {
+                if (BlockRegistries.WATERLOGGED.get().contains(javaId)) {
                     waterloggedPaletteIds.set(i);
                 }
 
@@ -159,7 +205,7 @@ public class ChunkUtils {
                     int paletteId = javaData.get(yzx);
                     if (pistonOrFlowerPaletteIds.get(paletteId)) {
                         bedrockOnlyBlockEntities.add(BedrockOnlyBlockEntity.getTag(session,
-                                Vector3i.from((column.getX() << 4) + (yzx & 0xF), (sectionY << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
+                                Vector3i.from((column.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (column.getZ() << 4) + ((yzx >> 4) & 0xF)),
                                 javaPalette.idToState(paletteId)
                         ));
                     }
@@ -195,13 +241,13 @@ public class ChunkUtils {
 
                 // V1 palette
                 IntList layer1Palette = new IntArrayList(2);
-                layer1Palette.add(session.getBlockTranslator().getBedrockAirId()); // Air - see BlockStorage's constructor for more information
-                layer1Palette.add(session.getBlockTranslator().getBedrockWaterId());
+                layer1Palette.add(session.getBlockMappings().getBedrockAirId()); // Air - see BlockStorage's constructor for more information
+                layer1Palette.add(session.getBlockMappings().getBedrockWaterId());
 
                 layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
             }
 
-            sections[sectionY + yOffset] = new ChunkSection(layers);
+            sections[bedrockSectionY] = new ChunkSection(layers);
         }
 
         CompoundTag[] blockEntities = column.getTileEntities();
@@ -210,14 +256,14 @@ public class ChunkUtils {
         while (i < blockEntities.length) {
             CompoundTag tag = blockEntities[i];
             String tagName;
-            if (tag.contains("id")) {
-                tagName = (String) tag.get("id").getValue();
+            Tag idTag = tag.get("id");
+            if (idTag != null) {
+                tagName = (String) idTag.getValue();
             } else {
                 tagName = "Empty";
                 // Sometimes legacy tags have their ID be a StringTag with empty value
                 for (Tag subTag : tag) {
-                    if (subTag instanceof StringTag) {
-                        StringTag stringTag = (StringTag) subTag;
+                    if (subTag instanceof StringTag stringTag) {
                         if (stringTag.getValue().isEmpty()) {
                             tagName = stringTag.getName();
                             break;
@@ -230,18 +276,20 @@ public class ChunkUtils {
             }
 
             String id = BlockEntityUtils.getBedrockBlockEntityId(tagName);
-            Position pos = new Position((int) tag.get("x").getValue(), (int) tag.get("y").getValue(), (int) tag.get("z").getValue());
+            int x = (int) tag.get("x").getValue();
+            int y = (int) tag.get("y").getValue();
+            int z = (int) tag.get("z").getValue();
 
             // Get Java blockstate ID from block entity position
             int blockState = 0;
-            Chunk section = column.getChunks()[(pos.getY() >> 4) - yOffset];
+            Chunk section = column.getChunks()[(y >> 4) - yOffset];
             if (section != null) {
-                blockState = section.get(pos.getX() & 0xF, pos.getY() & 0xF, pos.getZ() & 0xF);
+                blockState = section.get(x & 0xF, y & 0xF, z & 0xF);
             }
 
             if (tagName.equals("minecraft:lectern") && BlockStateValues.getLecternBookStates().get(blockState)) {
                 // If getLecternBookStates is false, let's just treat it like a normal block entity
-                bedrockBlockEntities[i] = session.getConnector().getWorldManager().getLecternDataAt(session, pos.getX(), pos.getY(), pos.getZ(), true);
+                bedrockBlockEntities[i] = session.getConnector().getWorldManager().getLecternDataAt(session, x, y, z, true);
                 i++;
                 continue;
             }
@@ -317,54 +365,35 @@ public class ChunkUtils {
             skull.despawnEntity(session, position);
         }
 
-        int blockId = session.getBlockTranslator().getBedrockBlockId(blockState);
+        // Prevent moving_piston from being placed
+        // It's used for extending piston heads, but it isn't needed on Bedrock and causes pistons to flicker
+        if (!BlockStateValues.isMovingPiston(blockState)) {
+            int blockId = session.getBlockMappings().getBedrockBlockId(blockState);
 
-        UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-        updateBlockPacket.setDataLayer(0);
-        updateBlockPacket.setBlockPosition(position);
-        updateBlockPacket.setRuntimeId(blockId);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-        updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-        session.sendUpstreamPacket(updateBlockPacket);
+            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+            updateBlockPacket.setDataLayer(0);
+            updateBlockPacket.setBlockPosition(position);
+            updateBlockPacket.setRuntimeId(blockId);
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+            session.sendUpstreamPacket(updateBlockPacket);
 
-        UpdateBlockPacket waterPacket = new UpdateBlockPacket();
-        waterPacket.setDataLayer(1);
-        waterPacket.setBlockPosition(position);
-        if (BlockTranslator.isWaterlogged(blockState)) {
-            waterPacket.setRuntimeId(session.getBlockTranslator().getBedrockWaterId());
-        } else {
-            waterPacket.setRuntimeId(session.getBlockTranslator().getBedrockAirId());
-        }
-        session.sendUpstreamPacket(waterPacket);
-
-        BlockStateValues.getLecternBookStates().compute(blockState, (key, newLecternHasBook) -> {
-            // Determine if this block is a lectern
-            if (newLecternHasBook != null) {
-                boolean lecternCachedHasBook = session.getLecternCache().contains(position);
-                if (!session.getConnector().getWorldManager().shouldExpectLecternHandled() && lecternCachedHasBook != newLecternHasBook) {
-                    // Refresh the block entirely - it either has a book or no longer has a book
-                    NbtMap newLecternTag;
-                    if (newLecternHasBook) {
-                        newLecternTag = session.getConnector().getWorldManager().getLecternDataAt(session, position.getX(), position.getY(), position.getZ(), false);
-                    } else {
-                        session.getLecternCache().remove(position);
-                        newLecternTag = LecternInventoryTranslator.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 0).build();
-                    }
-                    BlockEntityUtils.updateBlockEntity(session, newLecternTag, position);
-                } else {
-                    // As of right now, no tag can be added asynchronously
-                    session.getConnector().getWorldManager().getLecternDataAt(session, position.getX(), position.getY(), position.getZ(), false);
-                }
+            UpdateBlockPacket waterPacket = new UpdateBlockPacket();
+            waterPacket.setDataLayer(1);
+            waterPacket.setBlockPosition(position);
+            if (BlockRegistries.WATERLOGGED.get().contains(blockState)) {
+                waterPacket.setRuntimeId(session.getBlockMappings().getBedrockWaterId());
             } else {
-                // Lectern has been destroyed, if it existed
-                session.getLecternCache().remove(position);
+                waterPacket.setRuntimeId(session.getBlockMappings().getBedrockAirId());
             }
-            return newLecternHasBook;
-        });
+            session.sendUpstreamPacket(waterPacket);
+        }
+
+        BlockStateValues.getLecternBookStates().handleBlockChange(session, blockState, position);
 
         // Iterates through all Bedrock-only block entity translators and determines if a manual block entity packet
         // needs to be sent
-        for (BedrockOnlyBlockEntity bedrockOnlyBlockEntity : BlockEntityTranslator.BEDROCK_ONLY_BLOCK_ENTITIES) {
+        for (BedrockOnlyBlockEntity bedrockOnlyBlockEntity : BlockEntityUtils.BEDROCK_ONLY_BLOCK_ENTITIES) {
             if (bedrockOnlyBlockEntity.isBlock(blockState)) {
                 // Flower pots are block entities only in Bedrock and are not updated anywhere else like note blocks
                 bedrockOnlyBlockEntity.updateBlock(session, blockState, position);
@@ -383,7 +412,7 @@ public class ChunkUtils {
                 data.setChunkX(chunkX + x);
                 data.setChunkZ(chunkZ + z);
                 data.setSubChunksLength(0);
-                data.setData(session.getBlockTranslator().getEmptyChunkData());
+                data.setData(EMPTY_CHUNK_DATA);
                 data.setCachingEnabled(false);
                 session.sendUpstreamPacket(data);
 
@@ -400,7 +429,8 @@ public class ChunkUtils {
     }
 
     /**
-     * Process the minimum and maximum heights for this dimension
+     * Process the minimum and maximum heights for this dimension.
+     * This must be done after the player has switched dimensions so we know what their dimension is
      */
     public static void applyDimensionHeight(GeyserSession session, CompoundTag dimensionTag) {
         int minY = ((IntTag) dimensionTag.get("min_y")).getValue();
@@ -414,8 +444,25 @@ public class ChunkUtils {
             throw new RuntimeException("Maximum Y must be a multiple of 16!");
         }
 
-        if (minY < MINIMUM_ACCEPTED_HEIGHT || maxY > MAXIMUM_ACCEPTED_HEIGHT) {
-            session.getConnector().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds"));
+        int dimension = DimensionUtils.javaToBedrock(session.getDimension());
+        boolean extendedHeight = dimension == 0 && session.getConnector().getConfig().isExtendedWorldHeight();
+        session.getChunkCache().setExtendedHeight(extendedHeight);
+
+        // Yell in the console if the world height is too height in the current scenario
+        // The constraints change depending on if the player is in the overworld or not, and if experimental height is enabled
+        if (minY < (extendedHeight ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT)
+                || maxY > (extendedHeight ? MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD : MAXIMUM_ACCEPTED_HEIGHT)) {
+            if (minY >= CAVES_AND_CLIFFS_MINIMUM_HEIGHT && maxY <= CAVES_AND_CLIFFS_MAXIMUM_HEIGHT && dimension == 0 && !session.getConnector().getConfig().isExtendedWorldHeight()) {
+                // This dimension uses heights that would be fixed by enabling the experimental toggle
+                session.getConnector().getLogger().warning(
+                        LanguageUtils.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds.caves_and_cliffs",
+                                "extended-world-height"));
+            } else {
+                session.getConnector().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds",
+                        extendedHeight ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT,
+                        extendedHeight ? MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD : MAXIMUM_ACCEPTED_HEIGHT,
+                        session.getDimension()));
+            }
         }
 
         session.getChunkCache().setMinY(minY);

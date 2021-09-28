@@ -26,10 +26,12 @@
 package org.geysermc.connector.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
-import com.nukkitx.protocol.bedrock.v440.Bedrock_v440;
+import com.nukkitx.protocol.bedrock.v448.Bedrock_v448;
+import com.nukkitx.protocol.bedrock.v448.Bedrock_v465;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
 /**
  * Contains information about the supported Bedrock protocols in Geyser.
@@ -39,14 +41,17 @@ public class BedrockProtocol {
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
      */
-    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v440.V440_CODEC;
+    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v448.V448_CODEC;
     /**
      * A list of all supported Bedrock versions that can join Geyser
      */
     public static final List<BedrockPacketCodec> SUPPORTED_BEDROCK_CODECS = new ArrayList<>();
 
     static {
-        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
+                .minecraftVersion("1.17.10/1.17.11")
+                .build());
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v465.V465_CODEC);
     }
 
     /**
@@ -61,5 +66,17 @@ public class BedrockProtocol {
             }
         }
         return null;
+    }
+
+    /**
+     * @return a string showing all supported versions for this Geyser instance
+     */
+    public static String getAllSupportedVersions() {
+        StringJoiner joiner = new StringJoiner(", ");
+        for (BedrockPacketCodec packetCodec : SUPPORTED_BEDROCK_CODECS) {
+            joiner.add(packetCodec.getMinecraftVersion());
+        }
+
+        return joiner.toString();
     }
 }

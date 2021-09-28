@@ -31,7 +31,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.NbtItemStackTranslator;
 import org.geysermc.connector.network.translators.item.Enchantment;
-import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,11 +41,11 @@ import java.util.Map;
 public class EnchantmentTranslator extends NbtItemStackTranslator {
 
     @Override
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
         List<Tag> newTags = new ArrayList<>();
-        if (itemTag.contains("Enchantments")) {
-            ListTag enchantmentTag = itemTag.get("Enchantments");
-            for (Tag tag : enchantmentTag.getValue()) {
+        Tag enchantmentTag = itemTag.get("Enchantments");
+        if (enchantmentTag instanceof ListTag listTag) {
+            for (Tag tag : listTag.getValue()) {
                 if (!(tag instanceof CompoundTag)) continue;
 
                 CompoundTag bedrockTag = remapEnchantment((CompoundTag) tag);
@@ -53,9 +53,9 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
             }
             itemTag.remove("Enchantments");
         }
-        if (itemTag.contains("StoredEnchantments")) {
-            ListTag enchantmentTag = itemTag.get("StoredEnchantments");
-            for (Tag tag : enchantmentTag.getValue()) {
+        enchantmentTag = itemTag.get("StoredEnchantments");
+        if (enchantmentTag instanceof ListTag listTag) {
+            for (Tag tag : listTag.getValue()) {
                 if (!(tag instanceof CompoundTag)) continue;
 
                 CompoundTag bedrockTag = remapEnchantment((CompoundTag) tag);
@@ -73,7 +73,7 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
     }
 
     @Override
-    public void translateToJava(CompoundTag itemTag, ItemEntry itemEntry) {
+    public void translateToJava(CompoundTag itemTag, ItemMapping mapping) {
         if (!itemTag.contains("ench")) {
             return;
         }
@@ -82,10 +82,9 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
         List<Tag> enchantments = new ArrayList<>();
         List<Tag> storedEnchantments = new ArrayList<>();
         for (Tag value : enchantmentTag.getValue()) {
-            if (!(value instanceof CompoundTag))
+            if (!(value instanceof CompoundTag tagValue))
                 continue;
 
-            CompoundTag tagValue = (CompoundTag) value;
             ShortTag bedrockId = tagValue.get("id");
             if (bedrockId == null) continue;
 

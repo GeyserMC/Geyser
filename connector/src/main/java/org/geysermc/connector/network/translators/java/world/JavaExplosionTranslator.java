@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.java.world;
 import com.github.steveice10.mc.protocol.data.game.world.block.ExplodedBlockRecord;
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerExplosionPacket;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
@@ -36,17 +37,17 @@ import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.utils.ChunkUtils;
 
 @Translator(packet = ServerExplosionPacket.class)
 public class JavaExplosionTranslator extends PacketTranslator<ServerExplosionPacket> {
 
     @Override
-    public void translate(ServerExplosionPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerExplosionPacket packet) {
         for (ExplodedBlockRecord record : packet.getExploded()) {
-            Vector3f pos = Vector3f.from(packet.getX() + record.getX(), packet.getY() + record.getY(), packet.getZ() + record.getZ());
-            ChunkUtils.updateBlock(session, BlockTranslator.JAVA_AIR_ID, pos.toInt());
+            Vector3i pos = Vector3i.from(packet.getX() + record.getX(), packet.getY() + record.getY(), packet.getZ() + record.getZ());
+            ChunkUtils.updateBlock(session, BlockStateValues.JAVA_AIR_ID, pos);
         }
 
         Vector3f pos = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
@@ -54,7 +55,7 @@ public class JavaExplosionTranslator extends PacketTranslator<ServerExplosionPac
         LevelEventPacket levelEventPacket = new LevelEventPacket();
         levelEventPacket.setType(packet.getRadius() >= 2.0f ? LevelEventType.PARTICLE_HUGE_EXPLODE : LevelEventType.PARTICLE_EXPLOSION);
         levelEventPacket.setData(0);
-        levelEventPacket.setPosition(pos.toFloat());
+        levelEventPacket.setPosition(pos);
         session.sendUpstreamPacket(levelEventPacket);
 
         LevelSoundEventPacket levelSoundEventPacket = new LevelSoundEventPacket();
@@ -63,10 +64,10 @@ public class JavaExplosionTranslator extends PacketTranslator<ServerExplosionPac
         levelSoundEventPacket.setExtraData(-1);
         levelSoundEventPacket.setSound(SoundEvent.EXPLODE);
         levelSoundEventPacket.setIdentifier(":");
-        levelSoundEventPacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
+        levelSoundEventPacket.setPosition(pos);
         session.sendUpstreamPacket(levelSoundEventPacket);
 
-        if (packet.getPushX() > 0f || packet.getPushY() > 0f || packet.getPushZ() > 0f) {
+        if (packet.getPushX() != 0f || packet.getPushY() != 0f || packet.getPushZ() != 0f) {
             SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
             motionPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
             motionPacket.setMotion(Vector3f.from(packet.getPushX(), packet.getPushY(), packet.getPushZ()));

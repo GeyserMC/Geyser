@@ -27,24 +27,19 @@ package org.geysermc.connector.entity;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.AddPaintingPacket;
-
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.PaintingType;
 
-@Getter @Setter
-@Accessors(chain = true)
 public class PaintingEntity extends Entity {
     private static final double OFFSET = -0.46875;
-    private PaintingType paintingName;
-    private int direction;
+    private final PaintingType paintingName;
+    private final int direction;
 
-    public PaintingEntity(long entityId, long geyserId, Vector3f position) {
+    public PaintingEntity(long entityId, long geyserId, Vector3f position, PaintingType paintingName, int direction) {
         super(entityId, geyserId, EntityType.PAINTING, position, Vector3f.ZERO, Vector3f.ZERO);
+        this.paintingName = paintingName;
+        this.direction = direction;
     }
 
     @Override
@@ -53,7 +48,7 @@ public class PaintingEntity extends Entity {
         addPaintingPacket.setUniqueEntityId(geyserId);
         addPaintingPacket.setRuntimeEntityId(geyserId);
         addPaintingPacket.setMotive(paintingName.getBedrockName());
-        addPaintingPacket.setPosition(fixOffset(true));
+        addPaintingPacket.setPosition(fixOffset());
         addPaintingPacket.setDirection(direction);
         session.sendUpstreamPacket(addPaintingPacket);
 
@@ -67,20 +62,18 @@ public class PaintingEntity extends Entity {
         // Do nothing, as head look messes up paintings
     }
 
-    public Vector3f fixOffset(boolean toBedrock) {
-        if (toBedrock) {
-            Vector3f position = super.position;
-            position = position.add(0.5, 0.5, 0.5);
-            double widthOffset = paintingName.getWidth() > 1 ? 0.5 : 0;
-            double heightOffset = paintingName.getHeight() > 1 && paintingName.getHeight() != 3 ? 0.5 : 0;
+    private Vector3f fixOffset() {
+        Vector3f position = super.position;
+        position = position.add(0.5, 0.5, 0.5);
+        double widthOffset = paintingName.getWidth() > 1 ? 0.5 : 0;
+        double heightOffset = paintingName.getHeight() > 1 && paintingName.getHeight() != 3 ? 0.5 : 0;
 
-            switch (direction) {
-                case 0: return position.add(widthOffset, heightOffset, OFFSET);
-                case 1: return position.add(-OFFSET, heightOffset, widthOffset);
-                case 2: return position.add(-widthOffset, heightOffset, -OFFSET);
-                case 3: return position.add(OFFSET, heightOffset, -widthOffset);
-            }
-        }
-        return position;
+        return switch (direction) {
+            case 0 -> position.add(widthOffset, heightOffset, OFFSET);
+            case 1 -> position.add(-OFFSET, heightOffset, widthOffset);
+            case 2 -> position.add(-widthOffset, heightOffset, -OFFSET);
+            case 3 -> position.add(OFFSET, heightOffset, -widthOffset);
+            default -> position;
+        };
     }
 }

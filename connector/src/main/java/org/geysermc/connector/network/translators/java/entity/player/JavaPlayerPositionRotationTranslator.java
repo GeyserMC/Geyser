@@ -50,7 +50,7 @@ import org.geysermc.connector.utils.LanguageUtils;
 public class JavaPlayerPositionRotationTranslator extends PacketTranslator<ServerPlayerPositionRotationPacket> {
 
     @Override
-    public void translate(ServerPlayerPositionRotationPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerPlayerPositionRotationPacket packet) {
         if (!session.isLoggedIn())
             return;
 
@@ -124,8 +124,18 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
         session.getConnector().getLogger().debug("Teleport from " + entity.getPosition().getX() + " " + (entity.getPosition().getY() - EntityType.PLAYER.getOffset()) + " " + entity.getPosition().getZ());
 
         session.addTeleport(new TeleportCache(newX, newY, newZ, newPitch, newYaw, packet.getTeleportId()));
-        entity.moveAbsolute(session, Vector3f.from(newX, newY, newZ), newYaw, newPitch, true, true);
+
+        Vector3f lastPlayerPosition = entity.getPosition().down(EntityType.PLAYER.getOffset());
+        float lastPlayerPitch = entity.getBedrockRotation().getX();
+        Vector3f teleportDestination = Vector3f.from(newX, newY, newZ);
+        entity.moveAbsolute(session, teleportDestination, newYaw, newPitch, true, true);
 
         session.getConnector().getLogger().debug("to " + entity.getPosition().getX() + " " + (entity.getPosition().getY() - EntityType.PLAYER.getOffset()) + " " + entity.getPosition().getZ());
+
+        // Bedrock ignores teleports that are extremely close to the player's original position and orientation,
+        // so check if we can immediately confirm the teleport
+        if (lastPlayerPosition.distanceSquared(teleportDestination) < 0.001 && Math.abs(newPitch - lastPlayerPitch) < 5) {
+            session.confirmTeleport(lastPlayerPosition.toDouble());
+        }
     }
 }

@@ -35,12 +35,12 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+import com.nukkitx.protocol.bedrock.v448.Bedrock_v465;
 import lombok.Getter;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 import java.util.concurrent.TimeUnit;
 
@@ -85,12 +85,16 @@ public class ItemFrameEntity extends Entity {
     public void spawnEntity(GeyserSession session) {
         NbtMapBuilder blockBuilder = NbtMap.builder()
                 .putString("name", this.entityType == EntityType.GLOW_ITEM_FRAME ? "minecraft:glow_frame" : "minecraft:frame")
-                .putInt("version", session.getBlockTranslator().getBlockStateVersion());
-        blockBuilder.put("states", NbtMap.builder()
+                .putInt("version", session.getBlockMappings().getBlockStateVersion());
+        NbtMapBuilder statesBuilder = NbtMap.builder()
                 .putInt("facing_direction", direction.ordinal())
-                .putByte("item_frame_map_bit", (byte) 0)
-                .build());
-        bedrockRuntimeId = session.getBlockTranslator().getItemFrame(blockBuilder.build());
+                .putByte("item_frame_map_bit", (byte) 0);
+        if (session.getUpstream().getProtocolVersion() >= Bedrock_v465.V465_CODEC.getProtocolVersion()) {
+            statesBuilder.putByte("item_frame_photo_bit", (byte) 0);
+        }
+        blockBuilder.put("states", statesBuilder.build());
+
+        bedrockRuntimeId = session.getBlockMappings().getItemFrame(blockBuilder.build());
         bedrockPosition = Vector3i.from(position.getFloorX(), position.getFloorY(), position.getFloorZ());
 
         session.getItemFrameCache().put(bedrockPosition, this);
@@ -108,7 +112,7 @@ public class ItemFrameEntity extends Entity {
         if (entityMetadata.getId() == 8 && entityMetadata.getValue() != null) {
             this.heldItem = (ItemStack) entityMetadata.getValue();
             ItemData itemData = ItemTranslator.translateToBedrock(session, heldItem);
-            ItemEntry itemEntry = ItemRegistry.getItem((ItemStack) entityMetadata.getValue());
+            ItemMapping mapping = session.getItemMappings().getMapping((ItemStack) entityMetadata.getValue());
             NbtMapBuilder builder = NbtMap.builder();
 
             builder.putByte("Count", (byte) itemData.getCount());
@@ -116,7 +120,7 @@ public class ItemFrameEntity extends Entity {
                 builder.put("tag", itemData.getTag());
             }
             builder.putShort("Damage", (short) itemData.getDamage());
-            builder.putString("Name", itemEntry.getBedrockIdentifier());
+            builder.putString("Name", mapping.getBedrockIdentifier());
             NbtMapBuilder tag = getDefaultTag().toBuilder();
             tag.put("Item", builder.build());
             tag.putFloat("ItemDropChance", 1.0f);
@@ -149,7 +153,7 @@ public class ItemFrameEntity extends Entity {
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setBlockPosition(bedrockPosition);
-        updateBlockPacket.setRuntimeId(session.getBlockTranslator().getBedrockAirId());
+        updateBlockPacket.setRuntimeId(session.getBlockMappings().getBedrockAirId());
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);

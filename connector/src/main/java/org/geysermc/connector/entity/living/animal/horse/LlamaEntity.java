@@ -32,8 +32,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 public class LlamaEntity extends ChestedHorseEntity {
 
@@ -59,7 +58,7 @@ public class LlamaEntity extends ChestedHorseEntity {
             if (carpetIndex > -1 && carpetIndex <= 15) {
                 // The damage value is the dye color that Java sends us, for pre-1.16.220
                 // The item is always going to be a carpet
-                equipmentPacket.setChestplate(ItemRegistry.CARPETS.get(carpetIndex));
+                equipmentPacket.setChestplate(session.getItemMappings().getCarpets().get(carpetIndex));
             } else {
                 equipmentPacket.setChestplate(ItemData.AIR);
             }
@@ -78,7 +77,7 @@ public class LlamaEntity extends ChestedHorseEntity {
     }
 
     @Override
-    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemMapping mapping) {
         return javaIdentifierStripped.equals("wheat") || javaIdentifierStripped.equals("hay_block");
     }
 }

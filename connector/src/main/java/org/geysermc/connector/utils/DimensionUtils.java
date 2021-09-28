@@ -28,13 +28,15 @@ package org.geysermc.connector.utils;
 import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.ChangeDimensionPacket;
 import com.nukkitx.protocol.bedrock.packet.MobEffectPacket;
 import com.nukkitx.protocol.bedrock.packet.StopSoundPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.Set;
 
 public class DimensionUtils {
 
@@ -58,32 +60,38 @@ public class DimensionUtils {
         int bedrockDimension = javaToBedrock(javaDimension);
         Entity player = session.getPlayerEntity();
 
+        session.getChunkCache().clear();
         session.getEntityCache().removeAllEntities();
         session.getItemFrameCache().clear();
-        session.getLecternCache().clear();
+        if (session.getLecternCache() != null) {
+            session.getLecternCache().clear();
+        }
+        session.getLodestoneCache().clear();
+        session.getPistonCache().clear();
         session.getSkullCache().clear();
 
-        Vector3i pos = Vector3i.from(0, Short.MAX_VALUE, 0);
+        Vector3f pos = Vector3f.from(0, Short.MAX_VALUE, 0);
 
         ChangeDimensionPacket changeDimensionPacket = new ChangeDimensionPacket();
         changeDimensionPacket.setDimension(bedrockDimension);
         changeDimensionPacket.setRespawn(true);
-        changeDimensionPacket.setPosition(pos.toFloat());
+        changeDimensionPacket.setPosition(pos);
         session.sendUpstreamPacket(changeDimensionPacket);
         session.setDimension(javaDimension);
-        player.setPosition(pos.toFloat());
+        player.setPosition(pos);
         session.setSpawned(false);
         session.setLastChunkPosition(null);
 
-        for (Effect effect : session.getEffectCache().getEntityEffects().keySet()) {
+        Set<Effect> entityEffects = session.getEffectCache().getEntityEffects();
+        for (Effect effect : entityEffects) {
             MobEffectPacket mobEffectPacket = new MobEffectPacket();
             mobEffectPacket.setEvent(MobEffectPacket.Event.REMOVE);
-            mobEffectPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+            mobEffectPacket.setRuntimeEntityId(player.getGeyserId());
             mobEffectPacket.setEffectId(EntityUtils.toBedrockEffectId(effect));
             session.sendUpstreamPacket(mobEffectPacket);
         }
         // Effects are re-sent from server
-        session.getEffectCache().getEntityEffects().clear();
+        entityEffects.clear();
 
         //let java server handle portal travel sound
         StopSoundPacket stopSoundPacket = new StopSoundPacket();
@@ -103,14 +111,11 @@ public class DimensionUtils {
      * @return Converted Bedrock edition dimension ID
      */
     public static int javaToBedrock(String javaDimension) {
-        switch (javaDimension) {
-            case NETHER:
-                return BEDROCK_NETHER_ID;
-            case THE_END:
-                return 2;
-            default:
-                return 0;
-        }
+        return switch (javaDimension) {
+            case NETHER -> BEDROCK_NETHER_ID;
+            case THE_END -> 2;
+            default -> 0;
+        };
     }
 
     /**

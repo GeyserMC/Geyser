@@ -28,13 +28,19 @@ package org.geysermc.connector.configuration;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.common.serializer.AsteriskSerializer;
 import org.geysermc.connector.network.CIDRMatcher;
+import org.geysermc.connector.utils.LanguageUtils;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -44,6 +50,7 @@ import java.util.stream.Collectors;
 
 @Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
+@SuppressWarnings("FieldMayBeFinal") // Jackson requires that the fields are not final
 public abstract class GeyserJacksonConfiguration implements GeyserConfiguration {
 
     /**
@@ -55,8 +62,11 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private BedrockConfiguration bedrock = new BedrockConfiguration();
     private RemoteConfiguration remote = new RemoteConfiguration();
 
+    @JsonProperty("extended-world-height")
+    private boolean extendedWorldHeight = false;
+
     @JsonProperty("floodgate-key-file")
-    private String floodgateKeyFile = "public-key.pem";
+    private String floodgateKeyFile = "key.pem";
 
     public abstract Path getFloodgateKeyPath();
 
@@ -190,12 +200,14 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         @AsteriskSerializer.Asterisk(isIp = true)
         private String address = "auto";
 
+        @JsonDeserialize(using = PortDeserializer.class)
         @Setter
         private int port = 25565;
 
         @Setter
+        @JsonDeserialize(using = AuthType.Deserializer.class)
         @JsonProperty("auth-type")
-        private String authType = "online";
+        private AuthType authType = AuthType.ONLINE;
 
         @JsonProperty("allow-password-authentication")
         private boolean passwordAuthentication = true;
@@ -238,9 +250,25 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("mtu")
     private int mtu = 1400;
 
-    @JsonProperty("use-adapters")
-    private boolean useAdapters = true;
+    @JsonProperty("use-direct-connection")
+    private boolean useDirectConnection = true;
 
     @JsonProperty("config-version")
     private int configVersion = 0;
+
+    /**
+     * Ensure that the port deserializes in the config as a number no matter what.
+     */
+    protected static class PortDeserializer extends JsonDeserializer<Integer> {
+        @Override
+        public Integer deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            String value = p.getValueAsString();
+            try {
+                return Integer.parseInt(value);
+            } catch (NumberFormatException e) {
+                System.err.println(LanguageUtils.getLocaleStringLog("geyser.bootstrap.config.invalid_port"));
+                return 25565;
+            }
+        }
+    }
 }

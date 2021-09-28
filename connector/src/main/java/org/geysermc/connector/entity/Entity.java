@@ -46,6 +46,7 @@ import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
+import org.geysermc.connector.utils.MathUtils;
 
 @Getter
 @Setter
@@ -83,11 +84,11 @@ public class Entity {
         this.valid = false;
 
         setPosition(position);
+        setAir(getMaxAir());
 
         metadata.put(EntityData.SCALE, 1f);
         metadata.put(EntityData.COLOR, 0);
-        metadata.put(EntityData.MAX_AIR_SUPPLY, (short) 300);
-        metadata.put(EntityData.AIR_SUPPLY, (short) 0);
+        metadata.put(EntityData.MAX_AIR_SUPPLY, getMaxAir());
         metadata.put(EntityData.LEASH_HOLDER_EID, -1L);
         metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
         metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
@@ -248,25 +249,16 @@ public class Entity {
                     // Swimming is ignored here and instead we rely on the pose
                     metadata.getFlags().setFlag(EntityFlag.GLIDING, (xd & 0x80) == 0x80);
 
-                    // Armour stands are handled in their own class
-                    if (!this.is(ArmorStandEntity.class)) {
-                        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, (xd & 0x20) == 0x20);
-                    }
+                    setInvisible(session, (xd & 0x20) == 0x20);
                 }
                 break;
             case 1: // Air/bubbles
-                if ((int) entityMetadata.getValue() == 300) {
-                    metadata.put(EntityData.AIR_SUPPLY, (short) 0); // Otherwise the bubble counter remains in the UI
-                } else {
-                    metadata.put(EntityData.AIR_SUPPLY, (short) (int) entityMetadata.getValue());
-                }
+                setAir((int) entityMetadata.getValue());
                 break;
             case 2: // custom name
-                if (entityMetadata.getValue() instanceof Component) {
-                    Component message = (Component) entityMetadata.getValue();
-                    if (message != null)
-                        // Always translate even if it's a TextMessage since there could be translatable parameters
-                        metadata.put(EntityData.NAMETAG, MessageTranslator.convertMessage(message, session.getLocale()));
+                if (entityMetadata.getValue() instanceof Component message) {
+                    // Always translate even if it's a TextMessage since there could be translatable parameters
+                    metadata.put(EntityData.NAMETAG, MessageTranslator.convertMessage(message, session.getLocale()));
                 }
                 break;
             case 3: // is custom name visible
@@ -332,6 +324,28 @@ public class Entity {
      */
     protected void setFreezing(GeyserSession session, float amount) {
         metadata.put(EntityData.FREEZING_EFFECT_STRENGTH, amount);
+    }
+
+    /**
+     * Set an int from 0 - this entity's maximum air - (air / maxAir) represents the percentage of bubbles left
+     * @param amount the amount of air
+     */
+    protected void setAir(int amount) {
+        metadata.put(EntityData.AIR_SUPPLY, (short) MathUtils.constrain(amount, 0, getMaxAir()));
+    }
+
+    protected int getMaxAir() {
+        return 300;
+    }
+
+    /**
+     * Set a boolean - whether the entity is invisible or visible
+     *
+     * @param session the Geyser session
+     * @param value true if the entity is invisible
+     */
+    protected void setInvisible(GeyserSession session, boolean value) {
+        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, value);
     }
 
     /**

@@ -6,22 +6,28 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>geyser-parent</artifactId>
-        <version>1.4.0-SNAPSHOT</version>
+        <version>1.4.3-SNAPSHOT</version>
     </parent>
     <artifactId>connector</artifactId>
 
     <properties>
         <adventure.version>4.8.0</adventure.version>
         <fastutil.version>8.5.2</fastutil.version>
-        <jackson.version>2.10.2</jackson.version>
-        <netty.version>4.1.59.Final</netty.version>
+        <jackson.version>2.12.4</jackson.version>
+        <netty.version>4.1.66.Final</netty.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.geysermc</groupId>
+            <artifactId>ap</artifactId>
+            <version>1.4.3-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.geysermc</groupId>
             <artifactId>common</artifactId>
-            <version>1.4.0-SNAPSHOT</version>
+            <version>1.4.3-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <!-- Jackson JSON and YAML serialization -->
@@ -50,34 +56,18 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.java-websocket</groupId>
-            <artifactId>Java-WebSocket</artifactId>
-            <version>1.5.1</version>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>29.0-jre</version>
             <scope>compile</scope>
         </dependency>
+        <!-- fastutil maps -->
         <dependency>
-            <groupId>com.github.CloudburstMC.Protocol</groupId>
-            <artifactId>bedrock-v440</artifactId>
-            <version>1656151</version>
+            <groupId>com.nukkitx</groupId>
+            <artifactId>nbt</artifactId>
+            <!-- Used for key/value interning -->
+            <version>2.1.0</version>
             <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.nukkitx.network</groupId>
-                    <artifactId>raknet</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.nukkitx.network</groupId>
-            <artifactId>raknet</artifactId>
-            <version>1.6.26-20210217.205834-2</version>
-            <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>io.netty</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
@@ -115,22 +105,51 @@
             <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
+        <!-- Network libraries -->
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>29.0-jre</version>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>1.5.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.GeyserMC</groupId>
+            <groupId>com.github.CloudburstMC.Protocol</groupId>
+            <artifactId>bedrock-v465</artifactId>
+            <version>fa9d104</version>
+            <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.nukkitx.network</groupId>
+                    <artifactId>raknet</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.nukkitx</groupId>
+                    <artifactId>nbt</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.nukkitx.network</groupId>
+            <artifactId>raknet</artifactId>
+            <version>1.6.26-20210217.205834-2</version>
+            <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.github.RednedEpic</groupId>
             <artifactId>MCAuthLib</artifactId>
-            <version>0e48a094f2</version>
+            <version>6c99331</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.GeyserMC</groupId>
+            <groupId>com.github.RednedEpic</groupId>
             <artifactId>MCProtocolLib</artifactId>
-            <version>6e318f5</version>
+            <version>e17787a</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -148,12 +167,12 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.github.GeyserMC</groupId>
+            <groupId>com.github.RednedEpic</groupId>
             <artifactId>PacketLib</artifactId>
-            <version>0b75570</version>
+            <version>9d4b476</version>
             <scope>compile</scope>
             <exclusions>
-                <exclusion> <!-- Move this exclusion back to MCProtocolLib it gets the latest PacketLib -->
+                <exclusion>
                     <groupId>io.netty</groupId>
                     <artifactId>netty-all</artifactId>
                 </exclusion>
@@ -206,19 +225,6 @@
             <scope>compile</scope>
             <classifier>osx-x86_64</classifier>
         </dependency>
-        <!-- End -->
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>0.9.11</version> <!-- This isn't the latest version to get round https://github.com/ronmamo/reflections/issues/273 -->
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.dom4j</groupId>
-            <artifactId>dom4j</artifactId>
-            <version>2.1.3</version>
-            <scope>compile</scope>
-        </dependency>
         <!-- Adventure text serialization -->
         <dependency>
             <groupId>net.kyori</groupId>
@@ -244,6 +250,7 @@
             <version>${adventure.version}</version>
             <scope>compile</scope>
         </dependency>
+        <!-- Other -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -254,6 +261,16 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/services/javax.annotation.processing.Processor</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>pl.project13.maven</groupId>
                 <artifactId>git-commit-id-plugin</artifactId>
@@ -341,54 +358,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.gmavenplus</groupId>
-                <artifactId>gmavenplus-plugin</artifactId>
-                <version>1.9.1</version>
-                <executions>
-                    <execution>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>execute</goal>
-                        </goals>
-                        <configuration>
-                            <scripts>
-                                <script><![CDATA[
-                                    new org.reflections.Reflections("org.geysermc.connector.network.translators")
-                                        .save("${project.artifactId}/target/classes/META-INF/reflections/org.geysermc.connector.network.translators-reflections.xml")
-                                    new org.reflections.Reflections("org.geysermc.connector.network.translators.collision.translators")
-                                        .save("${project.artifactId}/target/classes/META-INF/reflections/org.geysermc.connector.network.translators.collision.translators-reflections.xml")
-                                    new org.reflections.Reflections("org.geysermc.connector.network.translators.item")
-                                        .save("${project.artifactId}/target/classes/META-INF/reflections/org.geysermc.connector.network.translators.item-reflections.xml")
-                                    new org.reflections.Reflections("org.geysermc.connector.network.translators.sound")
-                                        .save("${project.artifactId}/target/classes/META-INF/reflections/org.geysermc.connector.network.translators.sound-reflections.xml")
-                                    new org.reflections.Reflections("org.geysermc.connector.network.translators.world.block.entity")
-                                        .save("${project.artifactId}/target/classes/META-INF/reflections/org.geysermc.connector.network.translators.world.block.entity-reflections.xml")
-                                ]]></script>
-                            </scripts>
-                        </configuration>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.reflections</groupId>
-                        <artifactId>reflections</artifactId>
-                        <version>0.9.11</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.dom4j</groupId>
-                        <artifactId>dom4j</artifactId>
-                        <version>2.1.3</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.codehaus.groovy</groupId>
-                        <artifactId>groovy-all</artifactId>
-                        <version>3.0.5</version>
-                        <scope>runtime</scope>
-                        <type>pom</type>
-                    </dependency>
-                </dependencies>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

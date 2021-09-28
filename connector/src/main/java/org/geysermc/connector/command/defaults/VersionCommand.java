@@ -60,10 +60,11 @@ public class VersionCommand extends GeyserCommand {
         if (supportedCodecs.size() > 1) {
             bedrockVersions = supportedCodecs.get(0).getMinecraftVersion() + " - " + supportedCodecs.get(supportedCodecs.size() - 1).getMinecraftVersion();
         } else {
-            bedrockVersions = BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion();
+            bedrockVersions = BedrockProtocol.SUPPORTED_BEDROCK_CODECS.get(0).getMinecraftVersion();
         }
 
-        sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.version", sender.getLocale(), GeyserConnector.NAME, GeyserConnector.VERSION, GeyserConnector.MINECRAFT_VERSION, bedrockVersions));
+        sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.version", sender.getLocale(),
+                GeyserConnector.NAME, GeyserConnector.VERSION, GeyserConnector.MINECRAFT_VERSION, bedrockVersions));
 
         // Disable update checking in dev mode and for players in Geyser Standalone
         if (GeyserConnector.getInstance().isProductionEnvironment() && !(!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE)) {
@@ -72,14 +73,16 @@ public class VersionCommand extends GeyserCommand {
                 Properties gitProp = new Properties();
                 gitProp.load(FileUtils.getResource("git.properties"));
 
-                String buildXML = WebUtils.getBody("https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/" + URLEncoder.encode(gitProp.getProperty("git.branch"), StandardCharsets.UTF_8.toString()) + "/lastSuccessfulBuild/api/xml?xpath=//buildNumber");
+                String buildXML = WebUtils.getBody("https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/" +
+                        URLEncoder.encode(gitProp.getProperty("git.branch"), StandardCharsets.UTF_8.toString()) + "/lastSuccessfulBuild/api/xml?xpath=//buildNumber");
                 if (buildXML.startsWith("<buildNumber>")) {
                     int latestBuildNum = Integer.parseInt(buildXML.replaceAll("<(\\\\)?(/)?buildNumber>", "").trim());
                     int buildNum = Integer.parseInt(gitProp.getProperty("git.build.number"));
                     if (latestBuildNum == buildNum) {
                         sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.no_updates", sender.getLocale()));
                     } else {
-                        sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.outdated", sender.getLocale(), (latestBuildNum - buildNum), "https://ci.geysermc.org/"));
+                        sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.outdated",
+                                sender.getLocale(), (latestBuildNum - buildNum), "https://ci.geysermc.org/"));
                     }
                 } else {
                     throw new AssertionError("buildNumber missing");

@@ -31,7 +31,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 public class AxolotlEntity extends AnimalEntity {
     public AxolotlEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
@@ -44,12 +44,8 @@ public class AxolotlEntity extends AnimalEntity {
         if (entityMetadata.getId() == 17) {
             int variant = (int) entityMetadata.getValue();
             switch (variant) {
-                case 1: // Java - "Wild" (brown)
-                    variant = 3;
-                    break;
-                case 3: // Java - cyan
-                    variant = 1;
-                    break;
+                case 1 -> variant = 3; // Java - "Wild" (brown)
+                case 3 -> variant = 1; // Java - cyan
             }
             metadata.put(EntityData.VARIANT, variant);
         }
@@ -59,7 +55,12 @@ public class AxolotlEntity extends AnimalEntity {
     }
 
     @Override
-    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemMapping mapping) {
         return javaIdentifierStripped.equals("tropical_fish_bucket");
+    }
+
+    @Override
+    protected int getMaxAir() {
+        return 6000;
     }
 }

@@ -43,17 +43,15 @@ import org.geysermc.connector.utils.DimensionUtils;
 public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket> {
 
     @Override
-    public void translate(ServerRespawnPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerRespawnPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         entity.setHealth(entity.getMaxHealth());
         entity.getAttributes().put(GeyserAttributeType.HEALTH, entity.createHealthAttribute());
 
-        session.addInventoryTask(() -> {
-            session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
-            session.setOpenInventory(null);
-            session.setClosingInventory(false);
-        });
+        session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
+        session.setOpenInventory(null);
+        session.setClosingInventory(false);
 
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         playerGameTypePacket.setGamemode(packet.getGamemode().ordinal());
@@ -78,8 +76,6 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
             session.setThunder(false);
         }
 
-        ChunkUtils.applyDimensionHeight(session, packet.getDimension());
-
         String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
         if (!session.getDimension().equals(newDimension) || !packet.getWorldName().equals(session.getWorldName())) {
             // Switching to a new world (based off the world name change); send a fake dimension change
@@ -93,5 +89,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket>
             session.setWorldName(packet.getWorldName());
             DimensionUtils.switchDimension(session, newDimension);
         }
+
+        ChunkUtils.applyDimensionHeight(session, packet.getDimension());
     }
 }

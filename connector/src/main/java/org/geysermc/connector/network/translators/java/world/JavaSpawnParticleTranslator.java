@@ -37,19 +37,20 @@ import com.nukkitx.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.effect.EffectRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.registry.Registries;
+import org.geysermc.connector.registry.type.ParticleMapping;
 import org.geysermc.connector.utils.DimensionUtils;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 
 @Translator(packet = ServerSpawnParticlePacket.class)
 public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnParticlePacket> {
-    private final Random random = new Random();
 
     @Override
-    public void translate(ServerSpawnParticlePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerSpawnParticlePacket packet) {
         Function<Vector3f, BedrockPacket> particleCreateFunction = createParticle(session, packet.getParticle());
         if (particleCreateFunction != null) {
             if (packet.getAmount() == 0) {
@@ -57,10 +58,11 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                 Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
                 session.sendUpstreamPacket(particleCreateFunction.apply(position));
             } else {
+                Random random = ThreadLocalRandom.current();
                 for (int i = 0; i < packet.getAmount(); i++) {
-                    double offsetX = this.random.nextGaussian() * (double) packet.getOffsetX();
-                    double offsetY = this.random.nextGaussian() * (double) packet.getOffsetY();
-                    double offsetZ = this.random.nextGaussian() * (double) packet.getOffsetZ();
+                    double offsetX = random.nextGaussian() * (double) packet.getOffsetX();
+                    double offsetY = random.nextGaussian() * (double) packet.getOffsetY();
+                    double offsetZ = random.nextGaussian() * (double) packet.getOffsetZ();
                     Vector3f position = Vector3f.from(packet.getX() + offsetX, packet.getY() + offsetY, packet.getZ() + offsetZ);
 
                     session.sendUpstreamPacket(particleCreateFunction.apply(position));
@@ -80,8 +82,8 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
      */
     private Function<Vector3f, BedrockPacket> createParticle(GeyserSession session, Particle particle) {
         switch (particle.getType()) {
-            case BLOCK: {
-                int blockState = session.getBlockTranslator().getBedrockBlockId(((BlockParticleData) particle.getData()).getBlockState());
+            case BLOCK -> {
+                int blockState = session.getBlockMappings().getBedrockBlockId(((BlockParticleData) particle.getData()).getBlockState());
                 return (position) -> {
                     LevelEventPacket packet = new LevelEventPacket();
                     packet.setType(LevelEventType.PARTICLE_CRACK_BLOCK);
@@ -90,8 +92,8 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                     return packet;
                 };
             }
-            case FALLING_DUST: {
-                int blockState = session.getBlockTranslator().getBedrockBlockId(((FallingDustParticleData) particle.getData()).getBlockState());
+            case FALLING_DUST -> {
+                int blockState = session.getBlockMappings().getBedrockBlockId(((FallingDustParticleData) particle.getData()).getBlockState());
                 return (position) -> {
                     LevelEventPacket packet = new LevelEventPacket();
                     // In fact, FallingDustParticle should have data like DustParticle,
@@ -102,7 +104,7 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                     return packet;
                 };
             }
-            case ITEM: {
+            case ITEM -> {
                 ItemStack javaItem = ((ItemParticleData) particle.getData()).getItemStack();
                 ItemData bedrockItem = ItemTranslator.translateToBedrock(session, javaItem);
                 int data = bedrockItem.getId() << 16 | bedrockItem.getDamage();
@@ -114,8 +116,7 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                     return packet;
                 };
             }
-            case DUST:
-            case DUST_COLOR_TRANSITION: { //TODO
+            case DUST, DUST_COLOR_TRANSITION -> { //TODO
                 DustParticleData data = (DustParticleData) particle.getData();
                 int r = (int) (data.getRed() * 255);
                 int g = (int) (data.getGreen() * 255);
@@ -129,30 +130,32 @@ public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnPar
                     return packet;
                 };
             }
-            default:
-                LevelEventType typeParticle = EffectRegistry.getParticleLevelEventType(particle.getType());
-                if (typeParticle != null) {
+            default -> {
+                ParticleMapping particleMapping = Registries.PARTICLES.get(particle.getType());
+                if (particleMapping == null) { //TODO ensure no particle can be null
+                    return null;
+                }
+
+                if (particleMapping.getLevelEventType() != null) {
                     return (position) -> {
                         LevelEventPacket packet = new LevelEventPacket();
-                        packet.setType(typeParticle);
+                        packet.setType(particleMapping.getLevelEventType());
                         packet.setPosition(position);
                         return packet;
                     };
+                } else if (particleMapping.getIdentifier() != null) {
+                    int dimensionId = DimensionUtils.javaToBedrock(session.getDimension());
+                    return (position) -> {
+                        SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
+                        stringPacket.setIdentifier(particleMapping.getIdentifier());
+                        stringPacket.setDimensionId(dimensionId);
+                        stringPacket.setPosition(position);
+                        return stringPacket;
+                    };
                 } else {
-                    String stringParticle = EffectRegistry.getParticleString(particle.getType());
-                    if (stringParticle != null) {
-                        int dimensionId = DimensionUtils.javaToBedrock(session.getDimension());
-                        return (position) -> {
-                            SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
-                            stringPacket.setIdentifier(stringParticle);
-                            stringPacket.setDimensionId(dimensionId);
-                            stringPacket.setPosition(position);
-                            return stringPacket;
-                        };
-                    } else {
-                        return null;
-                    }
+                    return null;
                 }
+            }
         }
     }
 }

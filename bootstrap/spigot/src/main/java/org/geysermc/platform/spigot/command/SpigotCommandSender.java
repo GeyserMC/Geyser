@@ -97,8 +97,7 @@ public class SpigotCommandSender implements CommandSender {
      * @return the locale of the Spigot player
      */
     private String getSpigotLocale() {
-        if (handle instanceof Player) {
-            Player player = (Player) handle;
+        if (handle instanceof Player player) {
             if (USE_LEGACY_METHOD) {
                 try {
                     // sigh

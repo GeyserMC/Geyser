@@ -35,7 +35,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerD
 public class JavaDisplayScoreboardTranslator extends PacketTranslator<ServerDisplayScoreboardPacket> {
 
     @Override
-    public void translate(ServerDisplayScoreboardPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerDisplayScoreboardPacket packet) {
         session.getWorldCache().getScoreboard()
                 .displayObjective(packet.getName(), packet.getPosition());
     }

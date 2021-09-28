@@ -35,10 +35,9 @@ import org.geysermc.connector.utils.InventoryUtils;
 public class JavaCloseWindowTranslator extends PacketTranslator<ServerCloseWindowPacket> {
 
     @Override
-    public void translate(ServerCloseWindowPacket packet, GeyserSession session) {
-        session.addInventoryTask(() ->
-                // Sometimes the server can request a window close of ID 0... when the window isn't even open
-                // Don't confirm in this instance
-                InventoryUtils.closeInventory(session, packet.getWindowId(), (session.getOpenInventory() != null && session.getOpenInventory().getId() == packet.getWindowId())));
+    public void translate(GeyserSession session, ServerCloseWindowPacket packet) {
+        // Sometimes the server can request a window close of ID 0... when the window isn't even open
+        // Don't confirm in this instance
+        InventoryUtils.closeInventory(session, packet.getWindowId(), (session.getOpenInventory() != null && session.getOpenInventory().getId() == packet.getWindowId()));
     }
 }

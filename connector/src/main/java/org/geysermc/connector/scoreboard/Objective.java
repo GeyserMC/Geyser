@@ -76,25 +76,19 @@ public final class Objective {
     }
 
     private static String translateDisplaySlot(ScoreboardPosition displaySlot) {
-        switch (displaySlot) {
-            case BELOW_NAME:
-                return "belowname";
-            case PLAYER_LIST:
-                return "list";
-            default:
-                return "sidebar";
-        }
+        return switch (displaySlot) {
+            case BELOW_NAME -> "belowname";
+            case PLAYER_LIST -> "list";
+            default -> "sidebar";
+        };
     }
 
     private static ScoreboardPosition correctDisplaySlot(ScoreboardPosition displaySlot) {
-        switch (displaySlot) {
-            case BELOW_NAME:
-                return ScoreboardPosition.BELOW_NAME;
-            case PLAYER_LIST:
-                return ScoreboardPosition.PLAYER_LIST;
-            default:
-                return ScoreboardPosition.SIDEBAR;
-        }
+        return switch (displaySlot) {
+            case BELOW_NAME -> ScoreboardPosition.BELOW_NAME;
+            case PLAYER_LIST -> ScoreboardPosition.PLAYER_LIST;
+            default -> ScoreboardPosition.SIDEBAR;
+        };
     }
 
     public void registerScore(String id, int score) {

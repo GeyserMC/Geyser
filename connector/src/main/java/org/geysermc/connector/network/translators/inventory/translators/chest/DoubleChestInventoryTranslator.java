@@ -37,16 +37,16 @@ import org.geysermc.connector.inventory.Container;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
 import org.geysermc.connector.network.translators.world.block.DoubleChestValue;
 import org.geysermc.connector.network.translators.world.block.entity.DoubleChestBlockEntityTranslator;
+import org.geysermc.connector.registry.BlockRegistries;
 
 public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
     private final int defaultJavaBlockState;
 
     public DoubleChestInventoryTranslator(int size) {
         super(size, 54);
-        this.defaultJavaBlockState = BlockTranslator.getJavaBlockState("minecraft:chest[facing=north,type=single,waterlogged=false]");
+        this.defaultJavaBlockState = BlockRegistries.JAVA_IDENTIFIERS.get("minecraft:chest[facing=north,type=single,waterlogged=false]");
     }
 
     @Override
@@ -54,7 +54,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         // See BlockInventoryHolder - same concept there except we're also dealing with a specific block state
         if (session.getLastInteractionPlayerPosition().equals(session.getPlayerEntity().getPosition())) {
             int javaBlockId = session.getConnector().getWorldManager().getBlockAt(session, session.getLastInteractionBlockPosition());
-            String[] javaBlockString = BlockTranslator.getJavaIdBlockMap().inverse().getOrDefault(javaBlockId, "minecraft:air").split("\\[");
+            String[] javaBlockString = BlockRegistries.JAVA_IDENTIFIERS.get().getOrDefault(javaBlockId, "minecraft:air").split("\\[");
             if (javaBlockString.length > 1 && (javaBlockString[0].equals("minecraft:chest") || javaBlockString[0].equals("minecraft:trapped_chest"))
                     && !javaBlockString[1].contains("type=single")) {
                 inventory.setHolderPosition(session.getLastInteractionBlockPosition());
@@ -82,7 +82,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
 
         Vector3i position = session.getPlayerEntity().getPosition().toInt().add(Vector3i.UP);
         Vector3i pairPosition = position.add(Vector3i.UNIT_X);
-        int bedrockBlockId = session.getBlockTranslator().getBedrockBlockId(defaultJavaBlockState);
+        int bedrockBlockId = session.getBlockMappings().getBedrockBlockId(defaultJavaBlockState);
 
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
@@ -154,7 +154,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
-        blockPacket.setRuntimeId(session.getBlockTranslator().getBedrockBlockId(realBlock));
+        blockPacket.setRuntimeId(session.getBlockMappings().getBedrockBlockId(realBlock));
         session.sendUpstreamPacket(blockPacket);
 
         holderPos = holderPos.add(Vector3i.UNIT_X);
@@ -162,7 +162,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
         blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
-        blockPacket.setRuntimeId(session.getBlockTranslator().getBedrockBlockId(realBlock));
+        blockPacket.setRuntimeId(session.getBlockMappings().getBedrockBlockId(realBlock));
         session.sendUpstreamPacket(blockPacket);
     }
 }

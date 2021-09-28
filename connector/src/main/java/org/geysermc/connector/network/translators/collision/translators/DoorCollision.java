@@ -25,10 +25,13 @@
 
 package org.geysermc.connector.network.translators.collision.translators;
 
+import com.nukkitx.math.vector.Vector3i;
+import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 
+@EqualsAndHashCode(callSuper = true)
 @CollisionRemapper(regex = "_door$", usesParams = true, passDefaultBoxes = true)
 public class DoorCollision extends BlockCollision {
     /**
@@ -40,8 +43,7 @@ public class DoorCollision extends BlockCollision {
     private int facing;
 
     public DoorCollision(String params, BoundingBox[] defaultBoxes) {
-        super();
-        boundingBoxes = defaultBoxes;
+        super(defaultBoxes);
         if (params.contains("facing=north")) {
             facing = 1;
         } else if (params.contains("facing=east")) {
@@ -59,28 +61,20 @@ public class DoorCollision extends BlockCollision {
     }
 
     @Override
-    public boolean correctPosition(GeyserSession session, BoundingBox playerCollision) {
-        boolean result = super.correctPosition(session, playerCollision);
+    public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
+        boolean result = super.correctPosition(session, x, y, z, playerCollision);
         // Hack to prevent false positives
         playerCollision.setSizeX(playerCollision.getSizeX() - 0.0001);
         playerCollision.setSizeY(playerCollision.getSizeY() - 0.0001);
         playerCollision.setSizeZ(playerCollision.getSizeZ() - 0.0001);
 
         // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
-        if (this.checkIntersection(playerCollision)) {
+        if (this.checkIntersection(x, y, z, playerCollision)) {
             switch (facing) {
-                case 1: // North
-                    playerCollision.setMiddleZ(Math.floor(playerCollision.getMiddleZ()) + 0.5125);
-                    break;
-                case 2: // East
-                    playerCollision.setMiddleX(Math.floor(playerCollision.getMiddleX()) + 0.5125);
-                    break;
-                case 3: // South
-                    playerCollision.setMiddleZ(Math.floor(playerCollision.getMiddleZ()) + 0.4875);
-                    break;
-                case 4: // West
-                    playerCollision.setMiddleX(Math.floor(playerCollision.getMiddleX()) + 0.4875);
-                    break;
+                case 1 -> playerCollision.setMiddleZ(z + 0.5125); // North
+                case 2 -> playerCollision.setMiddleX(x + 0.5125); // East
+                case 3 -> playerCollision.setMiddleZ(z + 0.4875); // South
+                case 4 -> playerCollision.setMiddleX(x + 0.4875); // West
             }
         }
 

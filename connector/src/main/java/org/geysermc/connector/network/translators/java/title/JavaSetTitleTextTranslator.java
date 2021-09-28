@@ -36,7 +36,7 @@ import org.geysermc.connector.network.translators.chat.MessageTranslator;
 public class JavaSetTitleTextTranslator extends PacketTranslator<ServerSetTitleTextPacket> {
 
     @Override
-    public void translate(ServerSetTitleTextPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerSetTitleTextPacket packet) {
         String text;
         if (packet.getText() == null) { //TODO 1.17 can this happen?
             text = " ";
@@ -47,6 +47,8 @@ public class JavaSetTitleTextTranslator extends PacketTranslator<ServerSetTitleT
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.TITLE);
         titlePacket.setText(text);
+        titlePacket.setXuid("");
+        titlePacket.setPlatformOnlineId("");
         session.sendUpstreamPacket(titlePacket);
     }
 }

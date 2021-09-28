@@ -29,9 +29,10 @@ import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.chunk.GeyserColumn;
 import org.geysermc.connector.utils.MathUtils;
 
@@ -43,6 +44,13 @@ public class ChunkCache {
     private int minY;
     @Setter
     private int heightY;
+
+    /**
+     * Whether the Bedrock client believes they are in a world with a minimum of -64 and maximum of 320
+     */
+    @Getter
+    @Setter
+    private boolean isExtendedHeight = false;
 
     public ChunkCache(GeyserSession session) {
         this.cache = !session.getConnector().getWorldManager().hasOwnChunkCache(); // To prevent Spigot from initializing
@@ -59,7 +67,7 @@ public class ChunkCache {
         chunks.put(chunkPosition, geyserColumn);
     }
 
-    public GeyserColumn getChunk(int chunkX, int chunkZ)  {
+    public GeyserColumn getChunk(int chunkX, int chunkZ) {
         long chunkPosition = MathUtils.chunkPositionToLong(chunkX, chunkZ);
         return chunks.getOrDefault(chunkPosition, null);
     }
@@ -74,19 +82,19 @@ public class ChunkCache {
             return;
         }
 
-        if (y < minY || (y >> 4) > column.getChunks().length - 1) {
+        if (y < minY || ((y - minY) >> 4) > column.getChunks().length - 1) {
             // Y likely goes above or below the height limit of this world
             return;
         }
 
-        Chunk chunk = column.getChunks()[(y >> 4) - getChunkMinY()];
+        Chunk chunk = column.getChunks()[(y - minY) >> 4];
         if (chunk == null) {
-            if (block != BlockTranslator.JAVA_AIR_ID) {
+            if (block != BlockStateValues.JAVA_AIR_ID) {
                 // A previously empty chunk, which is no longer empty as a block has been added to it
                 chunk = new Chunk();
                 // Fixes the chunk assuming that all blocks is the `block` variable we are updating. /shrug
-                chunk.getPalette().stateToId(BlockTranslator.JAVA_AIR_ID);
-                column.getChunks()[(y >> 4) - getChunkMinY()] = chunk;
+                chunk.getPalette().stateToId(BlockStateValues.JAVA_AIR_ID);
+                column.getChunks()[(y - minY) >> 4] = chunk;
             } else {
                 // Nothing to update
                 return;
@@ -98,25 +106,25 @@ public class ChunkCache {
 
     public int getBlockAt(int x, int y, int z) {
         if (!cache) {
-            return BlockTranslator.JAVA_AIR_ID;
+            return BlockStateValues.JAVA_AIR_ID;
         }
 
         GeyserColumn column = this.getChunk(x >> 4, z >> 4);
         if (column == null) {
-            return BlockTranslator.JAVA_AIR_ID;
+            return BlockStateValues.JAVA_AIR_ID;
         }
 
-        if (y < minY || (y >> 4) > column.getChunks().length - 1) {
+        if (y < minY || ((y - minY) >> 4) > column.getChunks().length - 1) {
             // Y likely goes above or below the height limit of this world
-            return BlockTranslator.JAVA_AIR_ID;
+            return BlockStateValues.JAVA_AIR_ID;
         }
 
-        Chunk chunk = column.getChunks()[(y >> 4) - getChunkMinY()];
+        Chunk chunk = column.getChunks()[(y - minY) >> 4];
         if (chunk != null) {
             return chunk.get(x & 0xF, y & 0xF, z & 0xF);
         }
 
-        return BlockTranslator.JAVA_AIR_ID;
+        return BlockStateValues.JAVA_AIR_ID;
     }
 
     public void removeChunk(int chunkX, int chunkZ) {
@@ -126,6 +134,19 @@ public class ChunkCache {
 
         long chunkPosition = MathUtils.chunkPositionToLong(chunkX, chunkZ);
         chunks.remove(chunkPosition);
+    }
+
+    /**
+     * Manually clears all entries in the chunk cache.
+     * The server is responsible for clearing chunk entries if out of render distance (for example) or switching dimensions,
+     * but it is the client that must clear chunks in the event of proxy switches.
+     */
+    public void clear() {
+        if (!cache) {
+            return;
+        }
+
+        chunks.clear();
     }
 
     public int getChunkMinY() {

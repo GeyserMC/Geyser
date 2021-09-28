@@ -38,8 +38,7 @@ import org.geysermc.connector.entity.attribute.GeyserAttributeType;
 import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
+import org.geysermc.connector.registry.type.ItemMapping;
 
 import java.util.Set;
 
@@ -105,7 +104,7 @@ public class AbstractHorseEntity extends AnimalEntity {
                 EntityEventPacket entityEventPacket = new EntityEventPacket();
                 entityEventPacket.setRuntimeEntityId(geyserId);
                 entityEventPacket.setType(EntityEventType.EATING_ITEM);
-                entityEventPacket.setData(ItemRegistry.WHEAT.getBedrockId() << 16);
+                entityEventPacket.setData(session.getItemMappings().getStoredItems().wheat().getBedrockId() << 16);
                 session.sendUpstreamPacket(entityEventPacket);
             }
 
@@ -120,7 +119,7 @@ public class AbstractHorseEntity extends AnimalEntity {
     }
 
     @Override
-    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemEntry itemEntry) {
+    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemMapping mapping) {
         return DONKEY_AND_HORSE_FOODS.contains(javaIdentifierStripped);
     }
 }

@@ -34,6 +34,8 @@ import com.nukkitx.network.util.EventLoops;
 import com.nukkitx.protocol.bedrock.BedrockServer;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.kqueue.KQueue;
+import io.netty.util.NettyRuntime;
+import io.netty.util.internal.SystemPropertyUtil;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.PlatformType;
@@ -44,20 +46,12 @@ import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.BiomeTranslator;
-import org.geysermc.connector.network.translators.EntityIdentifierRegistry;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
+import org.geysermc.connector.registry.BlockRegistries;
+import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
-import org.geysermc.connector.network.translators.collision.CollisionTranslator;
-import org.geysermc.connector.network.translators.effect.EffectRegistry;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.geysermc.connector.network.translators.item.PotionMixRegistry;
-import org.geysermc.connector.network.translators.item.RecipeRegistry;
-import org.geysermc.connector.network.translators.sound.SoundHandlerRegistry;
-import org.geysermc.connector.network.translators.sound.SoundRegistry;
 import org.geysermc.connector.network.translators.world.WorldManager;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
-import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.connector.skin.FloodgateSkinUploader;
 import org.geysermc.connector.utils.*;
@@ -115,9 +109,6 @@ public class GeyserConnector {
     @Setter
     private static boolean shouldStartListener = true;
 
-    @Setter
-    private AuthType defaultAuthType;
-
     private final TimeSyncer timeSyncer;
     private FloodgateCipher cipher;
     private FloodgateSkinUploader skinUploader;
@@ -158,19 +149,12 @@ public class GeyserConnector {
         PacketTranslatorRegistry.init();
 
         /* Initialize translators and registries */
-        BiomeTranslator.init();
-        BlockTranslator.init();
-        BlockEntityTranslator.init();
-        EffectRegistry.init();
-        EntityIdentifierRegistry.init();
-        ItemRegistry.init();
+        BlockRegistries.init();
+        Registries.init();
+
         ItemTranslator.init();
-        CollisionTranslator.init();
+        MessageTranslator.init();
         LocaleUtils.init();
-        PotionMixRegistry.init();
-        RecipeRegistry.init();
-        SoundRegistry.init();
-        SoundHandlerRegistry.init();
 
         ResourcePack.loadPacks();
 
@@ -209,10 +193,8 @@ public class GeyserConnector {
             }
         }
 
-        defaultAuthType = AuthType.getByName(config.getRemote().getAuthType());
-
         TimeSyncer timeSyncer = null;
-        if (defaultAuthType == AuthType.FLOODGATE) {
+        if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
             timeSyncer = new TimeSyncer(Constants.NTP_SERVER);
             try {
                 Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
@@ -253,10 +235,16 @@ public class GeyserConnector {
         RakNetConstants.MAXIMUM_MTU_SIZE = (short) config.getMtu();
         logger.debug("Setting MTU to " + config.getMtu());
 
+        Integer bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads");
+        if (bedrockThreadCount == null) {
+            // Copy the code from Netty's default thread count fallback
+            bedrockThreadCount = Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));
+        }
+
         boolean enableProxyProtocol = config.getBedrock().isEnableProxyProtocol();
         bedrockServer = new BedrockServer(
                 new InetSocketAddress(config.getBedrock().getAddress(), config.getBedrock().getPort()),
-                1,
+                bedrockThreadCount,
                 EventLoops.commonGroup(),
                 enableProxyProtocol
         );
@@ -290,7 +278,7 @@ public class GeyserConnector {
             metrics = new Metrics(this, "GeyserMC", config.getMetrics().getUniqueId(), false, java.util.logging.Logger.getLogger(""));
             metrics.addCustomChart(new Metrics.SingleLineChart("players", players::size));
             // Prevent unwanted words best we can
-            metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> AuthType.getByName(config.getRemote().getAuthType()).toString().toLowerCase()));
+            metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> config.getRemote().getAuthType().toString().toLowerCase()));
             metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::getPlatformName));
             metrics.addCustomChart(new Metrics.SimplePie("defaultLocale", LanguageUtils::getDefaultLocale));
             metrics.addCustomChart(new Metrics.SimplePie("version", () -> GeyserConnector.VERSION));
@@ -449,7 +437,6 @@ public class GeyserConnector {
         }
         newsHandler.shutdown();
         players.clear();
-        defaultAuthType = null;
         this.getCommandManager().getCommands().clear();
 
         bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.done"));
@@ -542,15 +529,12 @@ public class GeyserConnector {
     }
 
     /**
-     * Whether to use XML reflections in the jar or manually find the reflections.
-     * Will return true if in production and the platform is not Fabric.
-     * On Fabric - it complains about being unable to create a default XMLReader.
-     * On other platforms this should only be true in compiled jars.
-     *
-     * @return whether to use XML reflections
+     * Deprecated. Get the AuthType from the GeyserConfiguration through {@link GeyserConnector#getConfig()}
+     * @return The
      */
-    public boolean useXmlReflections() {
-        return !this.getPlatformType().equals(PlatformType.FABRIC) && isProductionEnvironment();
+    @Deprecated
+    public AuthType getDefaultAuthType() {
+        return getConfig().getRemote().getAuthType();
     }
 
     public static GeyserConnector getInstance() {

@@ -48,53 +48,43 @@ public class CartographyInventoryTranslator extends AbstractBlockInventoryTransl
         if (javaDestinationSlot == 0) {
             // Bedrock Edition can use paper or an empty map in slot 0
             GeyserItemStack itemStack = javaSourceSlot == -1 ? session.getPlayerInventory().getCursor() : inventory.getItem(javaSourceSlot);
-            return itemStack.getItemEntry().getJavaIdentifier().equals("minecraft:paper") || itemStack.getItemEntry().getJavaIdentifier().equals("minecraft:map");
+            return itemStack.getMapping(session).getJavaIdentifier().equals("minecraft:paper") || itemStack.getMapping(session).getJavaIdentifier().equals("minecraft:map");
         } else if (javaDestinationSlot == 1) {
             // Bedrock Edition can use a compass to create locator maps, or use a filled map, in the ADDITIONAL slot
             GeyserItemStack itemStack = javaSourceSlot == -1 ? session.getPlayerInventory().getCursor() : inventory.getItem(javaSourceSlot);
-            return itemStack.getItemEntry().getJavaIdentifier().equals("minecraft:compass") || itemStack.getItemEntry().getJavaIdentifier().equals("minecraft:filled_map");
+            return itemStack.getMapping(session).getJavaIdentifier().equals("minecraft:compass") || itemStack.getMapping(session).getJavaIdentifier().equals("minecraft:filled_map");
         }
         return false;
     }
 
     @Override
     public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
-        switch (slotInfoData.getContainer()) {
-            case CARTOGRAPHY_INPUT:
-                return 0;
-            case CARTOGRAPHY_ADDITIONAL:
-                return 1;
-            case CARTOGRAPHY_RESULT:
-            case CREATIVE_OUTPUT:
-                return 2;
-        }
-        return super.bedrockSlotToJava(slotInfoData);
+        return switch (slotInfoData.getContainer()) {
+            case CARTOGRAPHY_INPUT -> 0;
+            case CARTOGRAPHY_ADDITIONAL -> 1;
+            case CARTOGRAPHY_RESULT, CREATIVE_OUTPUT -> 2;
+            default -> super.bedrockSlotToJava(slotInfoData);
+        };
     }
 
     @Override
     public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
-        switch (slot) {
-            case 0:
-                return new BedrockContainerSlot(ContainerSlotType.CARTOGRAPHY_INPUT, 12);
-            case 1:
-                return new BedrockContainerSlot(ContainerSlotType.CARTOGRAPHY_ADDITIONAL, 13);
-            case 2:
-                return new BedrockContainerSlot(ContainerSlotType.CARTOGRAPHY_RESULT, 50);
-        }
-        return super.javaSlotToBedrockContainer(slot);
+        return switch (slot) {
+            case 0 -> new BedrockContainerSlot(ContainerSlotType.CARTOGRAPHY_INPUT, 12);
+            case 1 -> new BedrockContainerSlot(ContainerSlotType.CARTOGRAPHY_ADDITIONAL, 13);
+            case 2 -> new BedrockContainerSlot(ContainerSlotType.CARTOGRAPHY_RESULT, 50);
+            default -> super.javaSlotToBedrockContainer(slot);
+        };
     }
 
     @Override
     public int javaSlotToBedrock(int slot) {
-        switch (slot) {
-            case 0:
-                return 12;
-            case 1:
-                return 13;
-            case 2:
-                return 50;
-        }
-        return super.javaSlotToBedrock(slot);
+        return switch (slot) {
+            case 0 -> 12;
+            case 1 -> 13;
+            case 2 -> 50;
+            default -> super.javaSlotToBedrock(slot);
+        };
     }
 
     @Override

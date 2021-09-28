@@ -2,7 +2,7 @@ pipeline {
     agent any
     tools {
         maven 'Maven 3'
-        jdk 'Java 8'
+        jdk 'Java 16'
     }
     options {
         buildDiscarder(logRotator(artifactNumToKeepStr: '20'))
@@ -40,7 +40,7 @@ pipeline {
                 )
                 rtMavenRun(
                         pom: 'pom.xml',
-                        goals: 'javadoc:jar source:jar install -DskipTests',
+                        goals: 'javadoc:jar source:jar install -pl :connector -am -DskipTests',
                         deployerId: "maven-deployer",
                         resolverId: "maven-resolver"
                 )

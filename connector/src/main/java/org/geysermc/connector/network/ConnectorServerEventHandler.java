@@ -28,8 +28,11 @@ package org.geysermc.connector.network;
 import com.nukkitx.protocol.bedrock.BedrockPong;
 import com.nukkitx.protocol.bedrock.BedrockServerEventHandler;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.socket.DatagramPacket;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.ping.GeyserPingInfo;
 import org.geysermc.connector.configuration.GeyserConfiguration;
@@ -38,6 +41,7 @@ import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.geysermc.connector.utils.LanguageUtils;
 
+import javax.annotation.Nonnull;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -54,6 +58,8 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     private static final int MAGIC_RAKNET_LENGTH = 338;
 
     private final GeyserConnector connector;
+    // There is a constructor that doesn't require inputting threads, but older Netty versions don't have it
+    private final DefaultEventLoopGroup eventLoopGroup = new DefaultEventLoopGroup(0, new DefaultThreadFactory("Geyser player thread"));
 
     public ConnectorServerEventHandler(GeyserConnector connector) {
         this.connector = connector;
@@ -82,7 +88,9 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
-        connector.getLogger().debug(LanguageUtils.getLocaleStringLog("geyser.network.pinged", inetSocketAddress));
+        if (connector.getConfig().isDebugMode()) {
+            connector.getLogger().debug(LanguageUtils.getLocaleStringLog("geyser.network.pinged", inetSocketAddress));
+        }
 
         GeyserConfiguration config = connector.getConfig();
 
@@ -121,10 +129,10 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         }
 
         // Fallbacks to prevent errors and allow Bedrock to see the server
-        if (pong.getMotd() == null || pong.getMotd().trim().isEmpty()) {
+        if (pong.getMotd() == null || pong.getMotd().isBlank()) {
             pong.setMotd(GeyserConnector.NAME);
         }
-        if (pong.getSubMotd() == null || pong.getSubMotd().trim().isEmpty()) {
+        if (pong.getSubMotd() == null || pong.getSubMotd().isBlank()) {
             // Sub-MOTD cannot be empty as of 1.16.210.59
             pong.setSubMotd(GeyserConnector.NAME);
         }
@@ -160,13 +168,16 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     public void onSessionCreation(BedrockServerSession bedrockServerSession) {
         bedrockServerSession.setLogging(true);
         bedrockServerSession.setCompressionLevel(connector.getConfig().getBedrock().getCompressionLevel());
-        bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(connector, new GeyserSession(connector, bedrockServerSession)));
+        bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(connector, new GeyserSession(connector, bedrockServerSession, eventLoopGroup.next())));
         // Set the packet codec to default just in case we need to send disconnect packets.
         bedrockServerSession.setPacketCodec(BedrockProtocol.DEFAULT_BEDROCK_CODEC);
     }
 
     @Override
-    public void onUnhandledDatagram(ChannelHandlerContext ctx, DatagramPacket packet) {
-        new QueryPacketHandler(connector, packet.sender(), packet.content());
+    public void onUnhandledDatagram(@Nonnull ChannelHandlerContext ctx, DatagramPacket packet) {
+        ByteBuf content = packet.content();
+        if (QueryPacketHandler.isQueryPacket(content)) {
+            new QueryPacketHandler(connector, packet.sender(), content);
+        }
     }
 }

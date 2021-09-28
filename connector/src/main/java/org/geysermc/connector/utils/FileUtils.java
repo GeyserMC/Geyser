@@ -30,16 +30,17 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.geysermc.connector.GeyserConnector;
-import org.reflections.Reflections;
-import org.reflections.serializers.XmlSerializer;
-import org.reflections.util.ConfigurationBuilder;
 
 import java.io.*;
-import java.net.URL;
+import java.lang.annotation.Annotation;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FileUtils {
 
@@ -194,24 +195,6 @@ public class FileUtils {
     }
 
     /**
-     * Get the stored reflection data for a given path
-     *
-     * @param path The path to get the reflection data for
-     * @return The created Reflections object
-     */
-    public static Reflections getReflections(String path) {
-        Reflections reflections = new Reflections(new ConfigurationBuilder().setScanners());
-        XmlSerializer serializer = new XmlSerializer();
-        URL resource = FileUtils.class.getClassLoader().getResource("META-INF/reflections/" + path + "-reflections.xml");
-        try (InputStream inputStream = resource.openConnection().getInputStream()) {
-            reflections.merge(serializer.read(inputStream));
-        } catch (IOException ignored) {
-        }
-
-        return reflections;
-    }
-
-    /**
      * An android compatible version of {@link Files#readAllBytes}
      *
      * @param file File to read bytes of
@@ -239,7 +222,58 @@ public class FileUtils {
             }
             return bytes;
         } catch (IOException e) {
-            throw new RuntimeException("Error while trying to read input stream!");
+            throw new RuntimeException("Error while trying to read input stream!", e);
         }
+    }
+
+    /**
+     * Read the lines of a file and return it as a stream
+     *
+     * @param path File path to read
+     * @return The lines as a stream
+     */
+    public static Stream<String> readAllLines(Path path) {
+        try {
+            return new BufferedReader(new InputStreamReader(Files.newInputStream(path))).lines();
+        } catch (IOException e) {
+            throw new RuntimeException("Error while trying to read file!", e);
+        }
+    }
+
+    /**
+     * Returns a set of all the classes that are annotated by a given annotation.
+     * Keep in mind that these are from a set of generated annotations generated
+     * at compile time by the annotation processor, meaning that arbitrary annotations
+     * cannot be passed into this method and expected to have a set of classes
+     * returned back.
+     *
+     * @param annotationClass the annotation class
+     * @return a set of all the classes annotated by the given annotation
+     */
+    public static Set<Class<?>> getGeneratedClassesForAnnotation(Class<? extends Annotation> annotationClass) {
+        return getGeneratedClassesForAnnotation(annotationClass.getName());
+    }
+
+    /**
+     * Returns a set of all the classes that are annotated by a given annotation.
+     * Keep in mind that these are from a set of generated annotations generated
+     * at compile time by the annotation processor, meaning that arbitrary annotations
+     * cannot be passed into this method and expected to have a set of classes
+     * returned back.
+     *
+     * @param input the fully qualified name of the annotation
+     * @return a set of all the classes annotated by the given annotation
+     */
+    public static Set<Class<?>> getGeneratedClassesForAnnotation(String input) {
+        InputStream annotatedClass = FileUtils.getResource(input);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(annotatedClass));
+        return reader.lines().map(className -> {
+            try {
+                return Class.forName(className);
+            } catch (ClassNotFoundException ex) {
+                GeyserConnector.getInstance().getLogger().error("Failed to find class " + className, ex);
+                throw new RuntimeException(ex);
+            }
+        }).collect(Collectors.toSet());
     }
 }

@@ -37,7 +37,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.world.block.BlockTranslator;
+import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
 import java.util.List;
 
@@ -66,22 +66,28 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
         Player player = Bukkit.getPlayer(session.getPlayerEntity().getUsername());
         if (player == null) {
-            return BlockTranslator.JAVA_AIR_ID;
+            return BlockStateValues.JAVA_AIR_ID;
         }
         if (!player.getWorld().isChunkLoaded(x >> 4, z >> 4)) {
             // Prevent nasty async errors if a player is loading in
-            return BlockTranslator.JAVA_AIR_ID;
+            return BlockStateValues.JAVA_AIR_ID;
         }
+
+        Block block = player.getWorld().getBlockAt(x, y, z);
+        return getBlockNetworkId(player, block, x, y, z);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public int getBlockNetworkId(Player player, Block block, int x, int y, int z) {
         // Get block entity storage
         BlockStorage storage = Via.getManager().getConnectionManager().getConnectedClient(player.getUniqueId()).get(BlockStorage.class);
-        Block block = player.getWorld().getBlockAt(x, y, z);
         // Black magic that gets the old block state ID
-        int blockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
-        return getLegacyBlock(storage, blockId, x, y, z);
+        int oldBlockId = (block.getType().getId() << 4) | (block.getData() & 0xF);
+        return getLegacyBlock(storage, oldBlockId, x, y, z);
     }
 
     /**

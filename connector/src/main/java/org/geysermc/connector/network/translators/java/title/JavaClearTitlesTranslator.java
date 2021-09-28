@@ -35,11 +35,13 @@ import org.geysermc.connector.network.translators.Translator;
 public class JavaClearTitlesTranslator extends PacketTranslator<ServerClearTitlesPacket> {
 
     @Override
-    public void translate(ServerClearTitlesPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerClearTitlesPacket packet) {
         SetTitlePacket titlePacket = new SetTitlePacket();
         // TODO handle packet.isResetTimes()
         titlePacket.setType(SetTitlePacket.Type.CLEAR);
         titlePacket.setText("");
+        titlePacket.setXuid("");
+        titlePacket.setPlatformOnlineId("");
         session.sendUpstreamPacket(titlePacket);
     }
 }

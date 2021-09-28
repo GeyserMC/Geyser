@@ -65,16 +65,13 @@ public class DumpCommand extends GeyserCommand {
 
         boolean showSensitive = false;
         boolean offlineDump = false;
+        boolean addLog = false;
         if (args.length >= 1) {
             for (String arg : args) {
                 switch (arg) {
-                    case "full":
-                        showSensitive = true;
-                        break;
-                    case "offline":
-                        offlineDump = true;
-                        break;
-
+                    case "full" -> showSensitive = true;
+                    case "offline" -> offlineDump = true;
+                    case "logs" -> addLog = true;
                 }
             }
         }
@@ -85,9 +82,9 @@ public class DumpCommand extends GeyserCommand {
         String dumpData = "";
         try {
             if (offlineDump) {
-                dumpData = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(new DumpInfo());
+                dumpData = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(new DumpInfo(addLog));
             } else {
-                dumpData = MAPPER.writeValueAsString(new DumpInfo());
+                dumpData = MAPPER.writeValueAsString(new DumpInfo(addLog));
             }
         } catch (IOException e) {
             sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.commands.dump.collect_error", sender.getLocale()));
@@ -141,6 +138,6 @@ public class DumpCommand extends GeyserCommand {
 
     @Override
     public List<String> getSubCommands() {
-        return Arrays.asList("offline", "full");
+        return Arrays.asList("offline", "full", "logs");
     }
 }

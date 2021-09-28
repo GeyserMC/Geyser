@@ -42,7 +42,7 @@ public abstract class FireworkBaseTranslator extends NbtItemStackTranslator {
         CompoundTag newExplosionData = new CompoundTag(newName);
 
         if (explosion.get("Type") != null) {
-            newExplosionData.put(new ByteTag("FireworkType", MathUtils.convertByte(explosion.get("Type").getValue())));
+            newExplosionData.put(new ByteTag("FireworkType", MathUtils.getNbtByte(explosion.get("Type").getValue())));
         }
 
         if (explosion.get("Colors") != null) {
@@ -51,7 +51,7 @@ public abstract class FireworkBaseTranslator extends NbtItemStackTranslator {
 
             int i = 0;
             for (int color : oldColors) {
-                colors[i++] = FireworkColor.fromJavaID(color).getBedrockID();
+                colors[i++] = FireworkColor.fromJavaRGB(color);
             }
 
             newExplosionData.put(new ByteArrayTag("FireworkColor", colors));
@@ -63,18 +63,18 @@ public abstract class FireworkBaseTranslator extends NbtItemStackTranslator {
 
             int i = 0;
             for (int color : oldColors) {
-                colors[i++] = FireworkColor.fromJavaID(color).getBedrockID();
+                colors[i++] = FireworkColor.fromJavaRGB(color);
             }
 
             newExplosionData.put(new ByteArrayTag("FireworkFade", colors));
         }
 
         if (explosion.get("Trail") != null) {
-            newExplosionData.put(new ByteTag("FireworkTrail", MathUtils.convertByte(explosion.get("Trail").getValue())));
+            newExplosionData.put(new ByteTag("FireworkTrail", MathUtils.getNbtByte(explosion.get("Trail").getValue())));
         }
 
         if (explosion.get("Flicker") != null) {
-            newExplosionData.put(new ByteTag("FireworkFlicker", MathUtils.convertByte(explosion.get("Flicker").getValue())));
+            newExplosionData.put(new ByteTag("FireworkFlicker", MathUtils.getNbtByte(explosion.get("Flicker").getValue())));
         }
 
         return newExplosionData;
@@ -84,7 +84,7 @@ public abstract class FireworkBaseTranslator extends NbtItemStackTranslator {
         CompoundTag newExplosionData = new CompoundTag(newName);
 
         if (explosion.get("FireworkType") != null) {
-            newExplosionData.put(new ByteTag("Type", MathUtils.convertByte(explosion.get("FireworkType").getValue())));
+            newExplosionData.put(new ByteTag("Type", MathUtils.getNbtByte(explosion.get("FireworkType").getValue())));
         }
 
         if (explosion.get("FireworkColor") != null) {
@@ -93,7 +93,7 @@ public abstract class FireworkBaseTranslator extends NbtItemStackTranslator {
 
             int i = 0;
             for (byte color : oldColors) {
-                colors[i++] = FireworkColor.fromBedrockID(color).getJavaID();
+                colors[i++] = FireworkColor.fromBedrockId(color);
             }
 
             newExplosionData.put(new IntArrayTag("Colors", colors));
@@ -105,18 +105,18 @@ public abstract class FireworkBaseTranslator extends NbtItemStackTranslator {
 
             int i = 0;
             for (byte color : oldColors) {
-                colors[i++] = FireworkColor.fromBedrockID(color).getJavaID();
+                colors[i++] = FireworkColor.fromBedrockId(color);
             }
 
             newExplosionData.put(new IntArrayTag("FadeColors", colors));
         }
 
         if (explosion.get("FireworkTrail") != null) {
-            newExplosionData.put(new ByteTag("Trail", MathUtils.convertByte(explosion.get("FireworkTrail").getValue())));
+            newExplosionData.put(new ByteTag("Trail", MathUtils.getNbtByte(explosion.get("FireworkTrail").getValue())));
         }
 
         if (explosion.get("FireworkFlicker") != null) {
-            newExplosionData.put(new ByteTag("Flicker", MathUtils.convertByte(explosion.get("FireworkFlicker").getValue())));
+            newExplosionData.put(new ByteTag("Flicker", MathUtils.getNbtByte(explosion.get("FireworkFlicker").getValue())));
         }
 
         return newExplosionData;

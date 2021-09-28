@@ -25,7 +25,12 @@
 
 package org.geysermc.connector.common;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import lombok.Getter;
+
+import java.io.IOException;
 
 @Getter
 public enum AuthType {
@@ -40,7 +45,7 @@ public enum AuthType {
     }
 
     /**
-     * Convert the AuthType string (from config) to the enum, OFFLINE on fail
+     * Convert the AuthType string (from config) to the enum, ONLINE on fail
      *
      * @param name AuthType string
      *
@@ -53,6 +58,13 @@ public enum AuthType {
                 return type;
             }
         }
-        return OFFLINE;
+        return ONLINE;
+    }
+
+    public static class Deserializer extends JsonDeserializer<AuthType> {
+        @Override
+        public AuthType deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            return getByName(p.getValueAsString());
+        }
     }
 }

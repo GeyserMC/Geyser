@@ -25,10 +25,13 @@
 
 package org.geysermc.connector.network.translators.collision.translators;
 
+import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
+import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 
+@EqualsAndHashCode(callSuper = true)
 @CollisionRemapper(regex = "_trapdoor$", usesParams = true, passDefaultBoxes = true)
 public class TrapdoorCollision extends BlockCollision {
     /**
@@ -42,8 +45,7 @@ public class TrapdoorCollision extends BlockCollision {
     private int facing;
 
     public TrapdoorCollision(String params, BoundingBox[] defaultBoxes) {
-        super();
-        boundingBoxes = defaultBoxes;
+        super(defaultBoxes);
         if (params.contains("open=true")) {
             if (params.contains("facing=north")) {
                 facing = 1;
@@ -66,40 +68,32 @@ public class TrapdoorCollision extends BlockCollision {
     }
 
     @Override
-    public boolean correctPosition(GeyserSession session, BoundingBox playerCollision) {
-        boolean result = super.correctPosition(session, playerCollision);
-        // Hack to prevent false positives
-        playerCollision.setSizeX(playerCollision.getSizeX() - 0.0001);
-        playerCollision.setSizeY(playerCollision.getSizeY() - 0.0001);
-        playerCollision.setSizeZ(playerCollision.getSizeZ() - 0.0001);
-
+    public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
+        boolean result = super.correctPosition(session, x, y, z, playerCollision);
         // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
-        if (this.checkIntersection(playerCollision)) {
+        if (this.checkIntersection(x, y, z, playerCollision)) {
             switch (facing) {
                 case 1: // North
-                    playerCollision.setMiddleZ(Math.floor(playerCollision.getMiddleZ()) + 0.5125);
+                    playerCollision.setMiddleZ(z + 0.5125);
+                    break;
+                case 2: // East
+                    playerCollision.setMiddleX(x + 0.5125);
                     break;
                 case 3: // South
-                    playerCollision.setMiddleZ(Math.floor(playerCollision.getMiddleZ()) + 0.4875);
+                    playerCollision.setMiddleZ(z + 0.4875);
                     break;
                 case 4: // West
-                    playerCollision.setMiddleX(Math.floor(playerCollision.getMiddleX()) + 0.4875);
+                    playerCollision.setMiddleX(x + 0.4875);
+                    break;
+                case 5:
+                    // Up-facing trapdoors are handled by the step-up check
                     break;
                 case 6: // Down
-                    playerCollision.setMiddleY(Math.floor(
-                            playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2)
-                            ) + 0.0125 + (playerCollision.getSizeY() / 2));
-                    break;
-                case 2:
-                case 5:
-                    // Up-facing and east-facing trapdoors work fine
+                    // (top y of trap door) - (trap door thickness) = top y of player
+                    playerCollision.setMiddleY(y + 1 - (3.0 / 16.0) - playerCollision.getSizeY() / 2.0 - CollisionManager.COLLISION_TOLERANCE);
                     break;
             }
         }
-
-        playerCollision.setSizeX(playerCollision.getSizeX() + 0.0001);
-        playerCollision.setSizeY(playerCollision.getSizeY() + 0.0001);
-        playerCollision.setSizeZ(playerCollision.getSizeZ() + 0.0001);
         return result;
     }
 }

@@ -25,16 +25,18 @@
 
 package org.geysermc.connector.bootstrap;
 
-import org.geysermc.connector.dump.BootstrapDumpInfo;
-import org.geysermc.connector.ping.IGeyserPingPassthrough;
-import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.configuration.GeyserConfiguration;
+import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.network.translators.world.GeyserWorldManager;
 import org.geysermc.connector.network.translators.world.WorldManager;
+import org.geysermc.connector.ping.IGeyserPingPassthrough;
 
 import javax.annotation.Nullable;
+import java.net.SocketAddress;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public interface GeyserBootstrap {
 
@@ -113,5 +115,14 @@ public interface GeyserBootstrap {
     @Nullable
     default String getMinecraftServerVersion() {
         return null;
+    }
+
+    @Nullable
+    default SocketAddress getSocketAddress() {
+        return null;
+    }
+
+    default Path getLogsPath() {
+        return Paths.get("logs/latest.log");
     }
 }

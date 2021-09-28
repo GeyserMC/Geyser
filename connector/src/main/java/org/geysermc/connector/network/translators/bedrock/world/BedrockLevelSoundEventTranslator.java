@@ -36,7 +36,7 @@ import org.geysermc.connector.utils.CooldownUtils;
 public class BedrockLevelSoundEventTranslator extends PacketTranslator<LevelSoundEventPacket> {
 
     @Override
-    public void translate(LevelSoundEventPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, LevelSoundEventPacket packet) {
         // lol what even :thinking:
         session.sendUpstreamPacket(packet);
 

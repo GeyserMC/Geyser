@@ -41,7 +41,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerS
 public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerScoreboardObjectivePacket> {
 
     @Override
-    public void translate(ServerScoreboardObjectivePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerScoreboardObjectivePacket packet) {
         WorldCache worldCache = session.getWorldCache();
         Scoreboard scoreboard = worldCache.getScoreboard();
         Objective objective = scoreboard.getObjective(packet.getName());
@@ -52,14 +52,9 @@ public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerSc
         }
 
         switch (packet.getAction()) {
-            case ADD:
-            case UPDATE:
-                objective.setDisplayName(MessageTranslator.convertMessage(packet.getDisplayName()))
-                        .setType(packet.getType().ordinal());
-                break;
-            case REMOVE:
-                scoreboard.unregisterObjective(packet.getName());
-                break;
+            case ADD, UPDATE -> objective.setDisplayName(MessageTranslator.convertMessage(packet.getDisplayName()))
+                    .setType(packet.getType().ordinal());
+            case REMOVE -> scoreboard.unregisterObjective(packet.getName());
         }
 
         if (objective == null || !objective.isActive()) {

@@ -42,7 +42,7 @@ import java.util.Map;
 public class JavaAdvancementsTranslator extends PacketTranslator<ServerAdvancementsPacket> {
 
     @Override
-    public void translate(ServerAdvancementsPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerAdvancementsPacket packet) {
         AdvancementsCache advancementsCache = session.getAdvancementsCache();
         if (packet.isReset()) {
             advancementsCache.getStoredAdvancements().clear();
@@ -95,6 +95,8 @@ public class JavaAdvancementsTranslator extends PacketTranslator<ServerAdvanceme
                     titlePacket.setFadeOutTime(3);
                     titlePacket.setFadeInTime(3);
                     titlePacket.setStayTime(3);
+                    titlePacket.setXuid("");
+                    titlePacket.setPlatformOnlineId("");
                     session.sendUpstreamPacket(titlePacket);
                 }
             }

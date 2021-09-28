@@ -25,37 +25,20 @@
 
 package org.geysermc.connector.network.translators.collision.translators;
 
+import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
-
-@CollisionRemapper(regex = "^snow$", usesParams = true)
+@EqualsAndHashCode(callSuper = true)
+@CollisionRemapper(regex = "^snow$", passDefaultBoxes = true, usesParams = true)
 public class SnowCollision extends BlockCollision {
     private final int layers;
 
-    public SnowCollision(String params) {
-        super();
-        Pattern layersPattern = Pattern.compile("layers=([0-8])");
-        Matcher matcher = layersPattern.matcher(params);
-        //noinspection ResultOfMethodCallIgnored
-        matcher.find();
-
-        // Hitbox is 1 layer less (you sink in 1 layer)
-        layers = Integer.parseInt(matcher.group(1));
-
-        if (layers > 1) {
-            boundingBoxes = new BoundingBox[] {
-                    // Take away 1 because you can go 1 layer into snow layers
-                    new BoundingBox(0.5, ((layers - 1) * 0.125) / 2, 0.5,
-                            1, (layers - 1) * 0.125, 1)
-            };
-        } else {
-            // Single layers have no collision
-            boundingBoxes = new BoundingBox[0];
-        }
+    public SnowCollision(String params, BoundingBox[] defaultBoxes) {
+        super(defaultBoxes);
+        int layerCharIndex = params.indexOf("=") + 1;
+        layers = Integer.parseInt(params.substring(layerCharIndex, layerCharIndex + 1));
 
         pushUpTolerance = 0.125;
     }
@@ -63,7 +46,7 @@ public class SnowCollision extends BlockCollision {
     // Needs to run before the main correction code or it can move the player into blocks
     // This is counteracted by the main collision code pushing them out
     @Override
-    public void beforeCorrectPosition(BoundingBox playerCollision) {
+    public void beforeCorrectPosition(int x, int y, int z, BoundingBox playerCollision) {
         // In Bedrock, snow layers round down to half blocks but you can't sink into them at all
         // This means the collision each half block reaches above where it should be on Java so the player has to be
         // pushed down
@@ -79,13 +62,17 @@ public class SnowCollision extends BlockCollision {
     }
 
     @Override
-    public boolean correctPosition(GeyserSession session, BoundingBox playerCollision) {
+    public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
+        if (layers == 1) {
+            // 1 layer of snow does not have collision
+            return true;
+        }
         // Hack to prevent false positives
         playerCollision.setSizeX(playerCollision.getSizeX() - 0.0001);
         playerCollision.setSizeY(playerCollision.getSizeY() - 0.0001);
         playerCollision.setSizeZ(playerCollision.getSizeZ() - 0.0001);
 
-        if (this.checkIntersection(playerCollision)) {
+        if (this.checkIntersection(x, y, z, playerCollision)) {
             double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
             double boxMaxY = (boundingBoxes[0].getMiddleY() + y) + (boundingBoxes[0].getSizeY() / 2);
             // If the player actually can't step onto it (they can step onto it from other snow layers)
@@ -98,6 +85,6 @@ public class SnowCollision extends BlockCollision {
         playerCollision.setSizeX(playerCollision.getSizeX() + 0.0001);
         playerCollision.setSizeY(playerCollision.getSizeY() + 0.0001);
         playerCollision.setSizeZ(playerCollision.getSizeZ() + 0.0001);
-        return super.correctPosition(session, playerCollision);
+        return super.correctPosition(session, x, y, z, playerCollision);
     }
 }

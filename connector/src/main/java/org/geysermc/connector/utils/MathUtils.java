@@ -42,6 +42,7 @@ public class MathUtils {
 
     /**
      * If number is greater than the max, set it to max, and if number is lower than low, set it to low.
+     *
      * @param num number to calculate
      * @param min the lowest value the number can be
      * @param max the greatest value the number can be
@@ -53,6 +54,7 @@ public class MathUtils {
         if (num > max) {
             num = max;
         }
+
         if (num < min) {
             num = min;
         }
@@ -61,18 +63,36 @@ public class MathUtils {
     }
 
     /**
-     * Converts the given object from an int or byte to byte.
-     * This is used for NBT data that might be either an int
-     * or byte and bedrock only takes it as an byte
+     * If number is greater than the max, set it to max, and if number is lower than low, set it to low.
+     *
+     * @param num number to calculate
+     * @param min the lowest value the number can be
+     * @param max the greatest value the number can be
+     * @return - min if num is lower than min <br>
+     * - max if num is greater than max <br>
+     * - num otherwise
+     */
+    public static int constrain(int num, int min, int max) {
+        if (num > max) {
+            num = max;
+        }
+
+        if (num < min) {
+            num = min;
+        }
+
+        return num;
+    }
+
+    /**
+     * Ensures the resulting object is a byte. Java Edition does not care whether a byte is encoded as an integer or not;
+     * it converts it into a byte anyway.
      *
      * @param value The value to convert
      * @return The converted byte
      */
-    public static Byte convertByte(Object value) {
-        if (value instanceof Integer) {
-            return ((Integer) value).byteValue();
-        }
-        return (Byte) value;
+    public static byte getNbtByte(Object value) {
+        return ((Number) value).byteValue();
     }
 
     /**

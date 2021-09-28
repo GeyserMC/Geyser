@@ -29,6 +29,13 @@ import org.geysermc.connector.network.session.GeyserSession;
 
 public abstract class PacketTranslator<T> {
 
-    public abstract void translate(T packet, GeyserSession session);
+    public abstract void translate(GeyserSession session, T packet);
 
+    /**
+     * Determines if this packet should be handled in the session's event loop. This should generally be true -
+     * only when the packet has to be executed immediately should it be false.
+     */
+    public boolean shouldExecuteInEventLoop() {
+        return true;
+    }
 }

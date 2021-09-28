@@ -37,27 +37,27 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
+import java.util.concurrent.TimeUnit;
+
 @Translator(packet = EntityEventPacket.class)
 public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPacket> {
 
     @Override
-    public void translate(EntityEventPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, EntityEventPacket packet) {
         switch (packet.getType()) {
-            case EATING_ITEM:
+            case EATING_ITEM -> {
                 // Resend the packet so we get the eating sounds
                 session.sendUpstreamPacket(packet);
                 return;
-            case COMPLETE_TRADE:
-                session.addInventoryTask(() -> {
-                    ClientSelectTradePacket selectTradePacket = new ClientSelectTradePacket(packet.getData());
-                    session.sendDownstreamPacket(selectTradePacket);
-                });
+            }
+            case COMPLETE_TRADE -> {
+                ClientSelectTradePacket selectTradePacket = new ClientSelectTradePacket(packet.getData());
+                session.sendDownstreamPacket(selectTradePacket);
 
-                session.addInventoryTask(() -> {
+                session.scheduleInEventLoop(() -> {
                     Entity villager = session.getPlayerEntity();
                     Inventory openInventory = session.getOpenInventory();
-                    if (openInventory instanceof MerchantContainer) {
-                        MerchantContainer merchantInventory = (MerchantContainer) openInventory;
+                    if (openInventory instanceof MerchantContainer merchantInventory) {
                         VillagerTrade[] trades = merchantInventory.getVillagerTrades();
                         if (trades != null && packet.getData() >= 0 && packet.getData() < trades.length) {
                             VillagerTrade trade = merchantInventory.getVillagerTrades()[packet.getData()];
@@ -66,8 +66,9 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
                             villager.updateBedrockMetadata(session);
                         }
                     }
-                }, 100);
+                }, 100, TimeUnit.MILLISECONDS);
                 return;
+            }
         }
         session.getConnector().getLogger().debug("Did not translate incoming EntityEventPacket: " + packet.toString());
     }

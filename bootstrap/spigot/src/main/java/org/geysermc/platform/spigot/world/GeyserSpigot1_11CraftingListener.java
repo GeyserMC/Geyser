@@ -50,7 +50,7 @@ import org.bukkit.inventory.ShapelessRecipe;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.geysermc.connector.network.translators.item.RecipeRegistry;
+import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.*;
 
@@ -94,7 +94,7 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
     }
 
     public void sendServerRecipes(GeyserSession session) {
-        int netId = RecipeRegistry.LAST_RECIPE_NET_ID;
+        int netId = InventoryUtils.LAST_RECIPE_NET_ID;
 
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
@@ -106,11 +106,10 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
             Pair<ItemStack, ItemData> outputs = translateToBedrock(session, recipe.getResult());
             ItemStack javaOutput = outputs.getKey();
             ItemData output = outputs.getValue();
-            if (output.getId() == 0) continue; // If items make air we don't want that
+            if (output == null || output.getId() == 0) continue; // If items make air we don't want that
 
             boolean isNotAllAir = false; // Check for all-air recipes
-            if (recipe instanceof ShapedRecipe) {
-                ShapedRecipe shapedRecipe = (ShapedRecipe) recipe;
+            if (recipe instanceof ShapedRecipe shapedRecipe) {
                 int size = shapedRecipe.getShape().length * shapedRecipe.getShape()[0].length();
                 Ingredient[] ingredients = new Ingredient[size];
                 ItemData[] input = new ItemData[size];
@@ -134,8 +133,7 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
                 craftingDataPacket.getCraftingData().add(CraftingData.fromShaped(uuid.toString(),
                         shapedRecipe.getShape()[0].length(), shapedRecipe.getShape().length, Arrays.asList(input),
                         Collections.singletonList(output), uuid, "crafting_table", 0, netId++));
-            } else if (recipe instanceof ShapelessRecipe) {
-                ShapelessRecipe shapelessRecipe = (ShapelessRecipe) recipe;
+            } else if (recipe instanceof ShapelessRecipe shapelessRecipe) {
                 Ingredient[] ingredients = new Ingredient[shapelessRecipe.getIngredientList().size()];
                 ItemData[] input = new ItemData[shapelessRecipe.getIngredientList().size()];
 

@@ -27,7 +27,10 @@ package org.geysermc.connector.registry.type;
 
 import lombok.Builder;
 import lombok.Value;
+import org.geysermc.connector.utils.BlockUtils;
+import org.geysermc.connector.utils.PistonBehavior;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 @Builder
@@ -50,11 +53,15 @@ public class BlockMapping {
     int collisionIndex;
     @Nullable String pickItem;
 
+    @Nonnull
+    PistonBehavior pistonBehavior;
+    boolean isBlockEntity;
+
     /**
      * @return the identifier without the additional block states
      */
     public String getCleanJavaIdentifier() {
-        return javaIdentifier.split("\\[")[0];
+        return BlockUtils.getCleanIdentifier(javaIdentifier);
     }
 
     /**

@@ -40,7 +40,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class BedrockRespawnTranslator extends PacketTranslator<RespawnPacket> {
 
     @Override
-    public void translate(RespawnPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, RespawnPacket packet) {
         if (packet.getState() == RespawnPacket.State.CLIENT_READY) {
             // Previously we only sent the respawn packet before the server finished loading
             // The message included was 'Otherwise when immediate respawn is on the client never loads'

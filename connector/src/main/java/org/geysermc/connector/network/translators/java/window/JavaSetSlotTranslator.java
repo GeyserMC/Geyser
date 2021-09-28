@@ -58,40 +58,38 @@ import java.util.concurrent.TimeUnit;
 public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket> {
 
     @Override
-    public void translate(ServerSetSlotPacket packet, GeyserSession session) {
-        session.addInventoryTask(() -> {
-            if (packet.getWindowId() == 255) { //cursor
-                GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
-                session.getPlayerInventory().setCursor(newItem, session);
-                InventoryUtils.updateCursor(session);
-                return;
+    public void translate(GeyserSession session, ServerSetSlotPacket packet) {
+        if (packet.getWindowId() == 255) { //cursor
+            GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
+            session.getPlayerInventory().setCursor(newItem, session);
+            InventoryUtils.updateCursor(session);
+            return;
+        }
+
+        //TODO: support window id -2, should update player inventory
+        Inventory inventory = InventoryUtils.getInventory(session, packet.getWindowId());
+        if (inventory == null)
+            return;
+
+        inventory.setStateId(packet.getStateId());
+
+        InventoryTranslator translator = session.getInventoryTranslator();
+        if (translator != null) {
+            if (session.getCraftingGridFuture() != null) {
+                session.getCraftingGridFuture().cancel(false);
             }
+            session.setCraftingGridFuture(session.scheduleInEventLoop(() -> updateCraftingGrid(session, packet, inventory, translator), 150, TimeUnit.MILLISECONDS));
 
-            //TODO: support window id -2, should update player inventory
-            Inventory inventory = InventoryUtils.getInventory(session, packet.getWindowId());
-            if (inventory == null)
-                return;
-
-            inventory.setStateId(packet.getStateId());
-
-            InventoryTranslator translator = session.getInventoryTranslator();
-            if (translator != null) {
-                if (session.getCraftingGridFuture() != null) {
-                    session.getCraftingGridFuture().cancel(false);
-                }
-                session.setCraftingGridFuture(session.getConnector().getGeneralThreadPool().schedule(() -> session.addInventoryTask(() -> updateCraftingGrid(session, packet, inventory, translator)), 150, TimeUnit.MILLISECONDS));
-
-                GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
-                if (packet.getWindowId() == 0 && !(translator instanceof PlayerInventoryTranslator)) {
-                    // In rare cases, the window ID can still be 0 but Java treats it as valid
-                    session.getPlayerInventory().setItem(packet.getSlot(), newItem, session);
-                    InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), packet.getSlot());
-                } else {
-                    inventory.setItem(packet.getSlot(), newItem, session);
-                    translator.updateSlot(session, inventory, packet.getSlot());
-                }
+            GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
+            if (packet.getWindowId() == 0 && !(translator instanceof PlayerInventoryTranslator)) {
+                // In rare cases, the window ID can still be 0 but Java treats it as valid
+                session.getPlayerInventory().setItem(packet.getSlot(), newItem, session);
+                InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), packet.getSlot());
+            } else {
+                inventory.setItem(packet.getSlot(), newItem, session);
+                translator.updateSlot(session, inventory, packet.getSlot());
             }
-        });
+        }
     }
 
     private static void updateCraftingGrid(GeyserSession session, ServerSetSlotPacket packet, Inventory inventory, InventoryTranslator translator) {

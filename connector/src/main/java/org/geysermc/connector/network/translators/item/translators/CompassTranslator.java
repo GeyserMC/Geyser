@@ -28,11 +28,12 @@ package org.geysermc.connector.network.translators.item.translators;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import org.geysermc.connector.network.BedrockProtocol;
 import org.geysermc.connector.network.translators.ItemRemapper;
-import org.geysermc.connector.network.translators.item.ItemEntry;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.geysermc.connector.utils.LoadstoneTracker;
+import org.geysermc.connector.registry.Registries;
+import org.geysermc.connector.registry.type.ItemMapping;
+import org.geysermc.connector.registry.type.ItemMappings;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,80 +41,43 @@ import java.util.stream.Collectors;
 @ItemRemapper
 public class CompassTranslator extends ItemTranslator {
 
-    private final List<ItemEntry> appliedItems;
+    private final List<ItemMapping> appliedItems;
 
     public CompassTranslator() {
-        appliedItems = ItemRegistry.ITEM_ENTRIES.values().stream().filter(entry -> entry.getJavaIdentifier().endsWith("compass")).collect(Collectors.toList());
+        appliedItems = Registries.ITEMS.forVersion(BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
+                .getItems()
+                .values()
+                .stream()
+                .filter(entry -> entry.getJavaIdentifier().endsWith("compass"))
+                .collect(Collectors.toList());
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemEntry itemEntry) {
-        if (itemStack.getNbt() == null) return super.translateToBedrock(itemStack, itemEntry);
+    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
+        if (itemStack.getNbt() == null) return super.translateToBedrock(itemStack, mapping, mappings);
 
         Tag lodestoneTag = itemStack.getNbt().get("LodestoneTracked");
         if (lodestoneTag instanceof ByteTag) {
             // Get the fake lodestonecompass entry
-            itemEntry = ItemRegistry.getItemEntry("minecraft:lodestone_compass");
-
-            // Get the loadstone pos
-            CompoundTag loadstonePos = itemStack.getNbt().get("LodestonePos");
-            if (loadstonePos != null) {
-                // Get all info needed for tracking
-                int x = ((IntTag) loadstonePos.get("X")).getValue();
-                int y = ((IntTag) loadstonePos.get("Y")).getValue();
-                int z = ((IntTag) loadstonePos.get("Z")).getValue();
-                String dim = ((StringTag) itemStack.getNbt().get("LodestoneDimension")).getValue();
-
-                // Store the info
-                int trackID = LoadstoneTracker.store(x, y, z, dim);
-
-                // Set the bedrock tracking id
-                itemStack.getNbt().put(new IntTag("trackingHandle", trackID));
-            } else {
-                // The loadstone was removed just set the tracking id to 0
-                itemStack.getNbt().put(new IntTag("trackingHandle", 0));
-            }
+            mapping = mappings.getStoredItems().lodestoneCompass();
+            // NBT will be translated in nbt/LodestoneCompassTranslator
         }
 
-        return super.translateToBedrock(itemStack, itemEntry);
+        return super.translateToBedrock(itemStack, mapping, mappings);
     }
 
     @Override
-    public ItemStack translateToJava(ItemData itemData, ItemEntry itemEntry) {
-        boolean isLoadstone = false;
-        if (itemEntry.getBedrockIdentifier().equals("minecraft:lodestone_compass")) {
+    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
+        if (mapping.getBedrockIdentifier().equals("minecraft:lodestone_compass")) {
             // Revert the entry back to the compass
-            itemEntry = ItemRegistry.getItemEntry("minecraft:compass");
-
-            isLoadstone = true;
+            mapping = mappings.getStoredItems().compass();
         }
 
-        ItemStack itemStack = super.translateToJava(itemData, itemEntry);
-
-        if (isLoadstone) {
-            // Get the tracking id
-            int trackingID = ((IntTag) itemStack.getNbt().get("trackingHandle")).getValue();
-
-            // Fetch the tracking info from the id
-            LoadstoneTracker.LoadstonePos pos = LoadstoneTracker.getPos(trackingID);
-            if (pos != null) {
-                // Build the new NBT data for the fetched tracking info
-                itemStack.getNbt().put(new StringTag("LodestoneDimension", pos.getDimension()));
-
-                CompoundTag posTag = new CompoundTag("LodestonePos");
-                posTag.put(new IntTag("X", pos.getX()));
-                posTag.put(new IntTag("Y", pos.getY()));
-                posTag.put(new IntTag("Z", pos.getZ()));
-
-                itemStack.getNbt().put(posTag);
-            }
-        }
-
-        return itemStack;
+        return super.translateToJava(itemData, mapping, mappings);
     }
 
     @Override
-    public List<ItemEntry> getAppliedItems() {
+    public List<ItemMapping> getAppliedItems() {
         return appliedItems;
     }
 }

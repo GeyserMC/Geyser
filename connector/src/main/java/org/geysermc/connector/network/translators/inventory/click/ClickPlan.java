@@ -179,31 +179,30 @@ public class ClickPlan {
     private void simulateAction(ClickAction action) {
         GeyserItemStack cursor = simulating ? getCursor() : session.getPlayerInventory().getCursor();
         switch (action.click) {
-            case LEFT_OUTSIDE:
+            case LEFT_OUTSIDE -> {
                 setCursor(GeyserItemStack.EMPTY);
                 return;
-            case RIGHT_OUTSIDE:
+            }
+            case RIGHT_OUTSIDE -> {
                 if (!cursor.isEmpty()) {
                     cursor.sub(1);
                 }
                 return;
+            }
         }
 
         GeyserItemStack clicked = simulating ? getItem(action.slot) : inventory.getItem(action.slot);
         if (translator.getSlotType(action.slot) == SlotType.OUTPUT) {
             switch (action.click) {
-                case LEFT:
-                case RIGHT:
+                case LEFT, RIGHT -> {
                     if (cursor.isEmpty() && !clicked.isEmpty()) {
                         setCursor(clicked.copy());
                     } else if (InventoryUtils.canStack(cursor, clicked)) {
                         cursor.add(clicked.getAmount());
                     }
                     reduceCraftingGrid(false);
-                    break;
-                case LEFT_SHIFT:
-                    reduceCraftingGrid(true);
-                    break;
+                }
+                case LEFT_SHIFT -> reduceCraftingGrid(true);
             }
         } else {
             switch (action.click) {

@@ -40,14 +40,13 @@ import org.geysermc.connector.entity.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.item.ItemRegistry;
 import org.geysermc.connector.utils.InteractiveTagManager;
 
 @Translator(packet = InteractPacket.class)
 public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> {
 
     @Override
-    public void translate(InteractPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, InteractPacket packet) {
         Entity entity;
         if (packet.getRuntimeEntityId() == session.getPlayerEntity().getGeyserId()) {
             //Player is not in entity cache
@@ -60,7 +59,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
 
         switch (packet.getAction()) {
             case INTERACT:
-                if (session.getPlayerInventory().getItemInHand().getJavaId() == ItemRegistry.SHIELD.getJavaId()) {
+                if (session.getPlayerInventory().getItemInHand().getJavaId() == session.getItemMappings().getStoredItems().shield().getJavaId()) {
                     break;
                 }
                 ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),

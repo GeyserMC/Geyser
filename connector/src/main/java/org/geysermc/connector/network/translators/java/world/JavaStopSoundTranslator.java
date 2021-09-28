@@ -32,13 +32,14 @@ import com.nukkitx.protocol.bedrock.packet.StopSoundPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.sound.SoundRegistry;
+import org.geysermc.connector.registry.Registries;
+import org.geysermc.connector.registry.type.SoundMapping;
 
 @Translator(packet = ServerStopSoundPacket.class)
 public class JavaStopSoundTranslator extends PacketTranslator<ServerStopSoundPacket> {
 
     @Override
-    public void translate(ServerStopSoundPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerStopSoundPacket packet) {
         // Runs if all sounds are stopped
         if (packet.getSound() == null) {
             StopSoundPacket stopPacket = new StopSoundPacket();
@@ -57,7 +58,7 @@ public class JavaStopSoundTranslator extends PacketTranslator<ServerStopSoundPac
             session.getConnector().getLogger().debug("Unknown sound packet, we were unable to map this. " + packet.toString());
             return;
         }
-        SoundRegistry.SoundMapping soundMapping = SoundRegistry.fromJava(packetSound.replace("minecraft:", ""));
+        SoundMapping soundMapping = Registries.SOUNDS.get(packetSound.replace("minecraft:", ""));
         session.getConnector().getLogger()
                 .debug("[StopSound] Sound mapping " + packetSound + " -> "
                         + soundMapping + (soundMapping == null ? "[not found]" : "")

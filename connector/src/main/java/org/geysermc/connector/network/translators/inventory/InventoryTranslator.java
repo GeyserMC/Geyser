@@ -159,21 +159,14 @@ public abstract class InventoryTranslator {
                     // Some special request that shouldn't be processed normally
                     response = translateSpecialRequest(session, inventory, request);
                 } else {
-                    switch (firstAction.getType()) {
-                        case CRAFT_RECIPE:
-                            response = translateCraftingRequest(session, inventory, request);
-                            break;
-                        case CRAFT_RECIPE_AUTO:
-                            response = translateAutoCraftingRequest(session, inventory, request);
-                            break;
-                        case CRAFT_CREATIVE:
-                            // This is also used for pulling items out of creative
-                            response = translateCreativeRequest(session, inventory, request);
-                            break;
-                        default:
-                            response = translateRequest(session, inventory, request);
-                            break;
-                    }
+                    response = switch (firstAction.getType()) {
+                        case CRAFT_RECIPE -> translateCraftingRequest(session, inventory, request);
+                        case CRAFT_RECIPE_AUTO -> translateAutoCraftingRequest(session, inventory, request);
+                        case CRAFT_CREATIVE ->
+                                // This is also used for pulling items out of creative
+                                translateCreativeRequest(session, inventory, request);
+                        default -> translateRequest(session, inventory, request);
+                    };
                 }
             } else {
                 response = rejectRequest(request);
@@ -550,6 +543,7 @@ public abstract class InventoryTranslator {
             switch (action.getType()) {
                 case CRAFT_RECIPE_AUTO: {
                     AutoCraftRecipeStackRequestActionData autoCraftAction = (AutoCraftRecipeStackRequestActionData) action;
+                    // TODO autoCraftAction#getTimesCrafted 1.17.10 ???
                     if (craftState != CraftState.START) {
                         return rejectRequest(request);
                     }
@@ -571,7 +565,7 @@ public abstract class InventoryTranslator {
                     }
 
                     switch (recipe.getType()) {
-                        case CRAFTING_SHAPED:
+                        case CRAFTING_SHAPED -> {
                             ShapedRecipeData shapedData = (ShapedRecipeData) recipe.getData();
                             ingredients = shapedData.getIngredients();
                             recipeWidth = shapedData.getWidth();
@@ -579,8 +573,8 @@ public abstract class InventoryTranslator {
                             if (shapedData.getWidth() > gridDimensions || shapedData.getHeight() > gridDimensions) {
                                 return rejectRequest(request);
                             }
-                            break;
-                        case CRAFTING_SHAPELESS:
+                        }
+                        case CRAFTING_SHAPELESS -> {
                             ShapelessRecipeData shapelessData = (ShapelessRecipeData) recipe.getData();
                             ingredients = shapelessData.getIngredients();
                             recipeWidth = gridDimensions;
@@ -588,7 +582,7 @@ public abstract class InventoryTranslator {
                             if (ingredients.length > gridSize) {
                                 return rejectRequest(request);
                             }
-                            break;
+                        }
                     }
                     break;
                 }
@@ -843,7 +837,7 @@ public abstract class InventoryTranslator {
         for (int slot : affectedSlots) {
             BedrockContainerSlot bedrockSlot = javaSlotToBedrockContainer(slot);
             List<ItemStackResponsePacket.ItemEntry> list = containerMap.computeIfAbsent(bedrockSlot.getContainer(), k -> new ArrayList<>());
-            list.add(makeItemEntry(bedrockSlot.getSlot(), inventory.getItem(slot)));
+            list.add(makeItemEntry(session, bedrockSlot.getSlot(), inventory.getItem(slot)));
         }
 
         List<ItemStackResponsePacket.ContainerEntry> containerEntries = new ArrayList<>();
@@ -851,13 +845,13 @@ public abstract class InventoryTranslator {
             containerEntries.add(new ItemStackResponsePacket.ContainerEntry(entry.getKey(), entry.getValue()));
         }
 
-        ItemStackResponsePacket.ItemEntry cursorEntry = makeItemEntry(0, session.getPlayerInventory().getCursor());
+        ItemStackResponsePacket.ItemEntry cursorEntry = makeItemEntry(session, 0, session.getPlayerInventory().getCursor());
         containerEntries.add(new ItemStackResponsePacket.ContainerEntry(ContainerSlotType.CURSOR, Collections.singletonList(cursorEntry)));
 
         return containerEntries;
     }
 
-    public static ItemStackResponsePacket.ItemEntry makeItemEntry(int bedrockSlot, GeyserItemStack itemStack) {
+    public static ItemStackResponsePacket.ItemEntry makeItemEntry(GeyserSession session, int bedrockSlot, GeyserItemStack itemStack) {
         ItemStackResponsePacket.ItemEntry itemEntry;
         if (!itemStack.isEmpty()) {
             // As of 1.16.210: Bedrock needs confirmation on what the current item durability is.
@@ -866,7 +860,7 @@ public abstract class InventoryTranslator {
             if (itemStack.getNbt() != null) {
                 Tag damage = itemStack.getNbt().get("Damage");
                 if (damage instanceof IntTag) {
-                    durability = ItemUtils.getCorrectBedrockDurability(itemStack.getJavaId(), ((IntTag) damage).getValue());
+                    durability = ItemUtils.getCorrectBedrockDurability(session, itemStack.getJavaId(), ((IntTag) damage).getValue());
                 }
             }
 

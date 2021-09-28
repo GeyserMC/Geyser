@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<NetworkStackLatencyPacket> {
 
     @Override
-    public void translate(NetworkStackLatencyPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, NetworkStackLatencyPacket packet) {
         long pingId;
         // so apparently, as of 1.16.200
         // PS4 divides the network stack latency timestamp FOR US!!!

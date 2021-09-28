@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.collision.translators;
 
+import lombok.EqualsAndHashCode;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionRemapper;
@@ -32,20 +33,20 @@ import org.geysermc.connector.network.translators.collision.CollisionRemapper;
 /**
  * In order for scaffolding to work on Bedrock, entity flags need to be sent to the player
  */
+@EqualsAndHashCode(callSuper = true)
 @CollisionRemapper(regex = "^scaffolding$", usesParams = true, passDefaultBoxes = true)
 public class ScaffoldingCollision extends BlockCollision {
     public ScaffoldingCollision(String params, BoundingBox[] defaultBoxes) {
-        super();
-        boundingBoxes = defaultBoxes;
+        super(defaultBoxes);
     }
 
     @Override
-    public boolean correctPosition(GeyserSession session, BoundingBox playerCollision) {
+    public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
         // Hack to not check below the player
         playerCollision.setSizeY(playerCollision.getSizeY() - 0.001);
         playerCollision.setMiddleY(playerCollision.getMiddleY() + 0.002);
 
-        boolean intersected = this.checkIntersection(playerCollision);
+        boolean intersected = this.checkIntersection(x, y, z, playerCollision);
 
         playerCollision.setSizeY(playerCollision.getSizeY() + 0.001);
         playerCollision.setMiddleY(playerCollision.getMiddleY() - 0.002);
@@ -58,7 +59,7 @@ public class ScaffoldingCollision extends BlockCollision {
             playerCollision.setSizeY(playerCollision.getSizeY() + 0.001);
             playerCollision.setMiddleY(playerCollision.getMiddleY() - 0.002);
 
-            if (this.checkIntersection(playerCollision)) {
+            if (this.checkIntersection(x, y, z, playerCollision)) {
                 session.getCollisionManager().setOnScaffolding(true);
             }
 

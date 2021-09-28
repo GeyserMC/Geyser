@@ -163,7 +163,11 @@ public class SkinProvider {
 
     public static CompletableFuture<Skin> requestSkin(UUID playerId, String textureUrl, boolean newThread) {
         if (textureUrl == null || textureUrl.isEmpty()) return CompletableFuture.completedFuture(EMPTY_SKIN);
-        if (requestedSkins.containsKey(textureUrl)) return requestedSkins.get(textureUrl); // already requested
+        CompletableFuture<Skin> requestedSkin = requestedSkins.get(textureUrl);
+        if (requestedSkin != null) {
+            // already requested
+            return requestedSkin;
+        }
 
         Skin cachedSkin = getCachedSkin(textureUrl);
         if (cachedSkin != null) {
@@ -679,11 +683,11 @@ public class SkinProvider {
         }
 
         public static String toRequestedType(CapeUrlType type, UUID uuid, String username) {
-            switch (type) {
-                case UUID: return uuid.toString().replace("-", "");
-                case UUID_DASHED: return uuid.toString();
-                default: return username;
-            }
+            return switch (type) {
+                case UUID -> uuid.toString().replace("-", "");
+                case UUID_DASHED -> uuid.toString();
+                default -> username;
+            };
         }
     }
 
@@ -715,11 +719,11 @@ public class SkinProvider {
         }
 
         public static String toRequestedType(CapeUrlType type, UUID uuid, String username) {
-            switch (type) {
-                case UUID: return uuid.toString().replace("-", "");
-                case UUID_DASHED: return uuid.toString();
-                default: return username;
-            }
+            return switch (type) {
+                case UUID -> uuid.toString().replace("-", "");
+                case UUID_DASHED -> uuid.toString();
+                default -> username;
+            };
         }
     }
 }

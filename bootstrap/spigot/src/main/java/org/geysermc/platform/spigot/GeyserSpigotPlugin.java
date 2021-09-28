@@ -36,6 +36,7 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.network.translators.world.WorldManager;
@@ -47,12 +48,14 @@ import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.platform.spigot.command.GeyserSpigotCommandManager;
 import org.geysermc.platform.spigot.command.SpigotCommandSender;
+import org.geysermc.platform.spigot.world.GeyserPistonListener;
 import org.geysermc.platform.spigot.world.GeyserSpigot1_11CraftingListener;
 import org.geysermc.platform.spigot.world.GeyserSpigotBlockPlaceListener;
 import org.geysermc.platform.spigot.world.manager.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
@@ -61,6 +64,7 @@ import java.util.logging.Level;
 public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     private GeyserSpigotCommandManager geyserCommandManager;
     private GeyserSpigotConfiguration geyserConfig;
+    private GeyserSpigotInjector geyserInjector;
     private GeyserSpigotLogger geyserLogger;
     private IGeyserPingPassthrough geyserSpigotPingPassthrough;
     private GeyserSpigotWorldManager geyserWorldManager;
@@ -127,14 +131,14 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return;
         }
 
-        if (geyserConfig.getRemote().getAuthType().equals("floodgate") && Bukkit.getPluginManager().getPlugin("floodgate") == null) {
+        if (geyserConfig.getRemote().getAuthType() == AuthType.FLOODGATE && Bukkit.getPluginManager().getPlugin("floodgate") == null) {
             geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             this.getPluginLoader().disablePlugin(this);
             return;
         } else if (geyserConfig.isAutoconfiguredRemote() && Bukkit.getPluginManager().getPlugin("floodgate") != null) {
             // Floodgate installed means that the user wants Floodgate authentication
             geyserLogger.debug("Auto-setting to Floodgate authentication.");
-            geyserConfig.getRemote().setAuthType("floodgate");
+            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
         }
 
         geyserConfig.loadFloodgate(this);
@@ -175,7 +179,12 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         // Set if we need to use a different method for getting a player's locale
         SpigotCommandSender.setUseLegacyLocaleMethod(isPre1_12);
 
-        if (connector.getConfig().isUseAdapters()) {
+        // We want to do this late in the server startup process to allow plugins such as ViaVersion and ProtocolLib
+        // To do their job injecting, then connect into *that*
+        this.geyserInjector = new GeyserSpigotInjector(isViaVersion);
+        this.geyserInjector.initializeLocalChannel(this);
+
+        if (Boolean.parseBoolean(System.getProperty("Geyser.UseDirectAdapters", "true"))) {
             try {
                 String name = Bukkit.getServer().getClass().getPackage().getName();
                 String nmsVersion = name.substring(name.lastIndexOf('.') + 1);
@@ -200,7 +209,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 }
             }
         } else {
-            geyserLogger.debug("Not using NMS adapter as it is disabled in the config.");
+            geyserLogger.debug("Not using NMS adapter as it is disabled via system property.");
         }
         if (this.geyserWorldManager == null) {
             // No NMS adapter
@@ -219,6 +228,8 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(connector, this.geyserWorldManager);
         Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
 
+        Bukkit.getServer().getPluginManager().registerEvents(new GeyserPistonListener(connector, this.geyserWorldManager), this);
+
         if (isPre1_12) {
             // Register events needed to send all recipes to the client
             Bukkit.getServer().getPluginManager().registerEvents(new GeyserSpigot1_11CraftingListener(connector), this);
@@ -231,6 +242,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     public void onDisable() {
         if (connector != null) {
             connector.shutdown();
+        }
+        if (geyserInjector != null) {
+            geyserInjector.shutdown();
         }
     }
 
@@ -272,6 +286,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     @Override
     public String getMinecraftServerVersion() {
         return this.minecraftVersion;
+    }
+
+    @Override
+    public SocketAddress getSocketAddress() {
+        return this.geyserInjector.getServerSocketAddress();
     }
 
     public boolean isCompatible(String version, String whichVersion) {

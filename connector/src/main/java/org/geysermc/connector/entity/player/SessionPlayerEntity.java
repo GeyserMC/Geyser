@@ -74,9 +74,9 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
-        session.getCollisionManager().updatePlayerBoundingBox(position);
-        super.moveAbsolute(session, position, rotation, isOnGround, teleported);
+    public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
+        super.moveRelative(session, relX, relY, relZ, rotation, isOnGround);
+        session.getCollisionManager().updatePlayerBoundingBox(this.position.down(entityType.getOffset()));
     }
 
     @Override
@@ -85,6 +85,17 @@ public class SessionPlayerEntity extends PlayerEntity {
             session.getCollisionManager().updatePlayerBoundingBox(position);
         }
         super.setPosition(position);
+    }
+
+    /**
+     * Set the player's position without applying an offset or moving the bounding box
+     * This is used in BedrockMovePlayerTranslator which receives the player's position
+     * with the offset pre-applied
+     *
+     * @param position the new position of the Bedrock player
+     */
+    public void setPositionManual(Vector3f position) {
+        this.position = position;
     }
 
     @Override
@@ -106,6 +117,15 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public void setHealth(float health) {
         super.setHealth(health);
+    }
+
+    @Override
+    protected void setAir(int amount) {
+        if (amount == getMaxAir()) {
+            super.setAir(0); // Hide the bubble counter from the UI for the player
+        } else {
+            super.setAir(amount);
+        }
     }
 
     @Override

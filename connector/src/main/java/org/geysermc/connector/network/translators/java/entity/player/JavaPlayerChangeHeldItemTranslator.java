@@ -35,15 +35,13 @@ import org.geysermc.connector.network.translators.Translator;
 public class JavaPlayerChangeHeldItemTranslator extends PacketTranslator<ServerPlayerChangeHeldItemPacket> {
 
     @Override
-    public void translate(ServerPlayerChangeHeldItemPacket packet, GeyserSession session) {
-        session.addInventoryTask(() -> {
-            PlayerHotbarPacket hotbarPacket = new PlayerHotbarPacket();
-            hotbarPacket.setContainerId(0);
-            hotbarPacket.setSelectedHotbarSlot(packet.getSlot());
-            hotbarPacket.setSelectHotbarSlot(true);
-            session.sendUpstreamPacket(hotbarPacket);
+    public void translate(GeyserSession session, ServerPlayerChangeHeldItemPacket packet) {
+        PlayerHotbarPacket hotbarPacket = new PlayerHotbarPacket();
+        hotbarPacket.setContainerId(0);
+        hotbarPacket.setSelectedHotbarSlot(packet.getSlot());
+        hotbarPacket.setSelectHotbarSlot(true);
+        session.sendUpstreamPacket(hotbarPacket);
 
-            session.getPlayerInventory().setHeldItemSlot(packet.getSlot());
-        });
+        session.getPlayerInventory().setHeldItemSlot(packet.getSlot());
     }
 }

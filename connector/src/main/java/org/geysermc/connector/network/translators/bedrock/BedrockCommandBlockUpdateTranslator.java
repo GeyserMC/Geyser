@@ -38,22 +38,18 @@ import org.geysermc.connector.network.translators.Translator;
 public class BedrockCommandBlockUpdateTranslator extends PacketTranslator<CommandBlockUpdatePacket> {
 
     @Override
-    public void translate(CommandBlockUpdatePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, CommandBlockUpdatePacket packet) {
         String command = packet.getCommand();
         boolean outputTracked = packet.isOutputTracked();
         if (packet.isBlock()) {
-            CommandBlockMode mode;
-            switch (packet.getMode()) {
-                case CHAIN: // The green one
-                    mode = CommandBlockMode.SEQUENCE;
-                    break;
-                case REPEATING: // The purple one
-                    mode = CommandBlockMode.AUTO;
-                    break;
-                default: // NORMAL, the orange one
-                    mode = CommandBlockMode.REDSTONE;
-                    break;
-            }
+            CommandBlockMode mode = switch (packet.getMode()) {
+                case CHAIN -> // The green one
+                        CommandBlockMode.SEQUENCE;
+                case REPEATING -> // The purple one
+                        CommandBlockMode.AUTO;
+                default -> // NORMAL, the orange one
+                        CommandBlockMode.REDSTONE;
+            };
             boolean isConditional = packet.isConditional();
             boolean automatic = !packet.isRedstoneMode(); // Automatic = Always Active option in Java
             ClientUpdateCommandBlockPacket commandBlockPacket = new ClientUpdateCommandBlockPacket(

@@ -38,26 +38,24 @@ import org.geysermc.connector.utils.InventoryUtils;
 public class JavaWindowItemsTranslator extends PacketTranslator<ServerWindowItemsPacket> {
 
     @Override
-    public void translate(ServerWindowItemsPacket packet, GeyserSession session) {
-        session.addInventoryTask(() -> {
-            Inventory inventory = InventoryUtils.getInventory(session, packet.getWindowId());
-            if (inventory == null)
-                return;
+    public void translate(GeyserSession session, ServerWindowItemsPacket packet) {
+        Inventory inventory = InventoryUtils.getInventory(session, packet.getWindowId());
+        if (inventory == null)
+            return;
 
-            inventory.setStateId(packet.getStateId());
+        inventory.setStateId(packet.getStateId());
 
-            for (int i = 0; i < packet.getItems().length; i++) {
-                GeyserItemStack newItem = GeyserItemStack.from(packet.getItems()[i]);
-                inventory.setItem(i, newItem, session);
-            }
+        for (int i = 0; i < packet.getItems().length; i++) {
+            GeyserItemStack newItem = GeyserItemStack.from(packet.getItems()[i]);
+            inventory.setItem(i, newItem, session);
+        }
 
-            InventoryTranslator translator = session.getInventoryTranslator();
-            if (translator != null) {
-                translator.updateInventory(session, inventory);
-            }
+        InventoryTranslator translator = session.getInventoryTranslator();
+        if (translator != null) {
+            translator.updateInventory(session, inventory);
+        }
 
-            session.getPlayerInventory().setCursor(GeyserItemStack.from(packet.getCarriedItem()), session);
-            InventoryUtils.updateCursor(session);
-        });
+        session.getPlayerInventory().setCursor(GeyserItemStack.from(packet.getCarriedItem()), session);
+        InventoryUtils.updateCursor(session);
     }
 }

@@ -26,29 +26,41 @@
 package org.geysermc.connector.network.session.cache;
 
 import com.github.steveice10.mc.protocol.data.game.entity.Effect;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 public class EntityEffectCache {
-
+    /**
+     * Used to clear effects on dimension switch.
+     */
     @Getter
-    private final Object2IntMap<Effect> entityEffects = new Object2IntOpenHashMap<>();
+    private final Set<Effect> entityEffects = EnumSet.noneOf(Effect.class);
 
-    public void addEffect(Effect effect, int effectAmplifier) {
-        if (effect != null) {
-            entityEffects.putIfAbsent(effect, effectAmplifier + 1);
+    /* Used to track mining speed */
+    @Getter
+    private int conduitPower;
+    @Getter
+    private int haste;
+    @Getter
+    private int miningFatigue;
+
+    public void setEffect(Effect effect, int effectAmplifier) {
+        switch (effect) {
+            case CONDUIT_POWER -> conduitPower = effectAmplifier + 1;
+            case FASTER_DIG -> haste = effectAmplifier + 1;
+            case SLOWER_DIG -> miningFatigue = effectAmplifier + 1;
         }
+        entityEffects.add(effect);
     }
 
     public void removeEffect(Effect effect) {
-        if (entityEffects.containsKey(effect)) {
-            int effectLevel = entityEffects.getInt(effect);
-            entityEffects.remove(effect, effectLevel);
+        switch (effect) {
+            case CONDUIT_POWER -> conduitPower = 0;
+            case FASTER_DIG -> haste = 0;
+            case SLOWER_DIG -> miningFatigue = 0;
         }
-    }
-
-    public int getEffectLevel(Effect effect) {
-        return entityEffects.getOrDefault(effect, 0);
+        entityEffects.remove(effect);
     }
 }
