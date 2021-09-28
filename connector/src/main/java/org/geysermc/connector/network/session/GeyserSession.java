@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.session;
 
+import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.AuthPendingException;
 import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
@@ -593,7 +594,14 @@ public class GeyserSession implements CommandSender {
                     authenticationService.setPassword(password);
                     authenticationService.login();
 
-                    protocol = new MinecraftProtocol(authenticationService.getSelectedProfile(), authenticationService.getAccessToken());
+                    GameProfile profile = authenticationService.getSelectedProfile();
+                    if (profile == null) {
+                        // Java account is offline
+                        disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.remote.invalid_account", clientData.getLanguageCode()));
+                        return null;
+                    }
+
+                    protocol = new MinecraftProtocol(profile, authenticationService.getAccessToken());
                 } else {
                     // always replace spaces when using Floodgate,
                     // as usernames with spaces cause issues with Bungeecord's login cycle.
@@ -618,7 +626,9 @@ public class GeyserSession implements CommandSender {
                 disconnect(ex.toString());
             }
             if (this.closed) {
-                connector.getLogger().error("", ex);
+                if (ex != null) {
+                    connector.getLogger().error("", ex);
+                }
                 // Client disconnected during the authentication attempt
                 return;
             }
@@ -657,6 +667,7 @@ public class GeyserSession implements CommandSender {
         }).whenComplete((response, ex) -> {
             if (ex != null) {
                 ex.printStackTrace();
+                disconnect(ex.toString());
                 return;
             }
             LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
@@ -673,7 +684,14 @@ public class GeyserSession implements CommandSender {
         }
         try {
             msaAuthenticationService.login();
-            protocol = new MinecraftProtocol(msaAuthenticationService.getSelectedProfile(), msaAuthenticationService.getAccessToken());
+            GameProfile profile = msaAuthenticationService.getSelectedProfile();
+            if (profile == null) {
+                // Java account is offline
+                disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.remote.invalid_account", clientData.getLanguageCode()));
+                return;
+            }
+
+            protocol = new MinecraftProtocol(profile, msaAuthenticationService.getAccessToken());
 
             connectDownstream();
         } catch (RequestException e) {
@@ -773,11 +791,6 @@ public class GeyserSession implements CommandSender {
             public void connected(ConnectedEvent event) {
                 loggingIn = false;
                 loggedIn = true;
-                if (protocol.getProfile() == null) {
-                    // Java account is offline
-                    disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.remote.invalid_account", clientData.getLanguageCode()));
-                    return;
-                }
 
                 if (downstream.isInternallyConnecting()) {
                     // Connected directly to the server
