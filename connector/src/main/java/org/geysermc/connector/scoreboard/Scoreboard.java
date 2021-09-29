@@ -42,14 +42,15 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.geysermc.connector.scoreboard.UpdateType.*;
 
-@Getter
 public final class Scoreboard {
     private final GeyserSession session;
     private final GeyserLogger logger;
+    @Getter
     private final AtomicLong nextId = new AtomicLong(0);
 
     private final Map<String, Objective> objectives = new ConcurrentHashMap<>();
-    private final Map<String, Team> teams = new HashMap<>();
+    private final Map<ScoreboardPosition, Objective> objectiveSlots = new HashMap<>();
+    private final Map<String, Team> teams = new ConcurrentHashMap<>(); // updated on multiple threads
 
     private int lastAddScoreCount = 0;
     private int lastRemoveScoreCount = 0;
@@ -59,45 +60,52 @@ public final class Scoreboard {
         this.logger = GeyserConnector.getInstance().getLogger();
     }
 
-    public Objective registerNewObjective(String objectiveId, boolean active) {
-        Objective objective = objectives.get(objectiveId);
-        if (active || objective != null) {
-            return objective;
+    public void removeScoreboard() {
+        Iterator<Objective> iterator = objectives.values().iterator();
+        while (iterator.hasNext()) {
+            Objective objective = iterator.next();
+            iterator.remove();
+
+            deleteObjective(objective, false);
         }
+    }
+
+    public Objective registerNewObjective(String objectiveId) {
+        Objective objective = objectives.get(objectiveId);
+        if (objective != null) {
+            // we have no other choice, or we have to make a new map?
+            // if the objective hasn't been deleted, we have to force it
+            if (objective.getUpdateType() != REMOVE) {
+                return null;
+            }
+            deleteObjective(objective, true);
+        }
+
         objective = new Objective(this, objectiveId);
         objectives.put(objectiveId, objective);
         return objective;
     }
 
-    public Objective displayObjective(String objectiveId, ScoreboardPosition displaySlot) {
+    public void displayObjective(String objectiveId, ScoreboardPosition displaySlot) {
         Objective objective = objectives.get(objectiveId);
-        if (objective != null) {
-            if (!objective.isActive()) {
-                objective.setActive(displaySlot);
-                removeOldObjectives(objective);
-                return objective;
-            }
-            despawnObjective(objective);
+        if (objective == null) {
+            return;
         }
 
-        objective = new Objective(this, objectiveId, displaySlot, "unknown", 0);
-        objectives.put(objectiveId, objective);
-        removeOldObjectives(objective);
-        return objective;
-    }
-
-    private void removeOldObjectives(Objective newObjective) {
-        for (Objective next : objectives.values()) {
-            if (next.getId() == newObjective.getId()) {
-                continue;
-            }
-            if (next.getDisplaySlot() == newObjective.getDisplaySlot()) {
-                next.setUpdateType(REMOVE);
-            }
+        if (!objective.isActive()) {
+            objective.setActive(displaySlot);
+            // for reactivated objectives
+            objective.setUpdateType(ADD);
         }
+
+        Objective storedObjective = objectiveSlots.get(displaySlot);
+        if (storedObjective != null && storedObjective != objective) {
+            objective.pendingRemove();
+        }
+        objectiveSlots.put(displaySlot, objective);
     }
 
-    public Team registerNewTeam(String teamName, Set<String> players) {
+    public Team registerNewTeam(String teamName, String[] players) {
         Team team = teams.get(teamName);
         if (team != null) {
             logger.info(LanguageUtils.getLocaleStringLog("geyser.network.translator.team.failed_overrides", teamName));
@@ -113,6 +121,10 @@ public final class Scoreboard {
         return objectives.get(objectiveName);
     }
 
+    public Collection<Objective> getObjectives() {
+        return objectives.values();
+    }
+
     public Team getTeam(String teamName) {
         return teams.get(teamName);
     }
@@ -120,7 +132,7 @@ public final class Scoreboard {
     public void unregisterObjective(String objectiveName) {
         Objective objective = getObjective(objectiveName);
         if (objective != null) {
-            objective.setUpdateType(REMOVE);
+            objective.pendingRemove();
         }
     }
 
@@ -132,114 +144,38 @@ public final class Scoreboard {
     }
 
     public void onUpdate() {
-        List<ScoreInfo> addScores = new ArrayList<>(getLastAddScoreCount());
-        List<ScoreInfo> removeScores = new ArrayList<>(getLastRemoveScoreCount());
+        List<ScoreInfo> addScores = new ArrayList<>(lastAddScoreCount);
+        List<ScoreInfo> removeScores = new ArrayList<>(lastRemoveScoreCount);
         List<Objective> removedObjectives = new ArrayList<>();
 
+        Team playerTeam = getTeamFor(session.getPlayerEntity().getUsername());
+        Objective correctSidebar = null;
+
         for (Objective objective : objectives.values()) {
-            if (!objective.isActive()) {
-                logger.debug("Ignoring non-active Scoreboard Objective '" + objective.getObjectiveName() + '\'');
-                continue;
-            }
-
-            // hearts can't hold teams, so we treat them differently
-            if (objective.getType() == 1) {
-                for (Score score : objective.getScores().values()) {
-                    boolean update = score.shouldUpdate();
-
-                    if (update) {
-                        score.update(objective.getObjectiveName());
-                    }
-
-                    if (score.getUpdateType() != REMOVE && update) {
-                        addScores.add(score.getCachedInfo());
-                    }
-                    if (score.getUpdateType() != ADD && update) {
-                        removeScores.add(score.getCachedInfo());
-                    }
-                }
-                continue;
-            }
-
-            boolean objectiveUpdate = objective.getUpdateType() == UPDATE;
-            boolean objectiveAdd = objective.getUpdateType() == ADD;
-            boolean objectiveRemove = objective.getUpdateType() == REMOVE;
-
-            for (Score score : objective.getScores().values()) {
-                Team team = score.getTeam();
-
-                boolean add = objectiveAdd || objectiveUpdate;
-                boolean remove = false;
-                if (team != null) {
-                    if (team.getUpdateType() == REMOVE || !team.hasEntity(score.getName())) {
-                        score.setTeam(null);
-                        add = true;
-                        remove = true;
-                    }
-                }
-
-                add |= score.shouldUpdate();
-                remove |= score.shouldUpdate();
-
-                if (score.getUpdateType() == REMOVE || objectiveRemove) {
-                    add = false;
-                }
-
-                if (score.getUpdateType() == ADD || objectiveRemove) {
-                    remove = false;
-                }
-
-                if (objectiveRemove && score.getCachedData() != null) {
-                    // This score has been sent to the client and needs to be removed since the objective is being removed
-                    remove = true;
-                } else if (score.shouldUpdate()) {
-                    score.update(objective.getObjectiveName());
-                }
-
-                if (add) {
-                    addScores.add(score.getCachedInfo());
-                }
-
-                if (remove) {
-                    removeScores.add(score.getCachedInfo());
-                }
-
-                // score is pending to be removed, so we can remove it from the objective
-                if (score.getUpdateType() == REMOVE) {
-                    objective.removeScore0(score.getName());
-                }
-
-                score.setUpdateType(NOTHING);
-            }
-
-            if (objectiveRemove) {
+            // objective has been deleted
+            if (objective.getUpdateType() == REMOVE) {
                 removedObjectives.add(objective);
+                continue;
             }
 
-            if (objectiveUpdate) {
-                RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
-                removeObjectivePacket.setObjectiveId(objective.getObjectiveName());
-                session.sendUpstreamPacket(removeObjectivePacket);
+            if (playerTeam != null && playerTeam.getColor() == objective.getTeamColor()) {
+                correctSidebar = objective;
             }
-
-            if ((objectiveAdd || objectiveUpdate) && !objectiveRemove) {
-                SetDisplayObjectivePacket displayObjectivePacket = new SetDisplayObjectivePacket();
-                displayObjectivePacket.setObjectiveId(objective.getObjectiveName());
-                displayObjectivePacket.setDisplayName(objective.getDisplayName());
-                displayObjectivePacket.setCriteria("dummy");
-                displayObjectivePacket.setDisplaySlot(objective.getDisplaySlotName());
-                displayObjectivePacket.setSortOrder(1); // ??
-                session.sendUpstreamPacket(displayObjectivePacket);
-            }
-
-            objective.setUpdateType(NOTHING);
         }
+
+        if (correctSidebar == null) {
+            correctSidebar = objectiveSlots.get(ScoreboardPosition.SIDEBAR);
+        }
+
+        handleObjective(objectiveSlots.get(ScoreboardPosition.PLAYER_LIST), addScores, removeScores);
+        handleObjective(correctSidebar, addScores, removeScores);
+        handleObjective(objectiveSlots.get(ScoreboardPosition.BELOW_NAME), addScores, removeScores);
 
         Iterator<Team> teamIterator = teams.values().iterator();
         while (teamIterator.hasNext()) {
             Team current = teamIterator.next();
 
-            switch (current.getUpdateType()) {
+            switch (current.getCachedUpdateType()) {
                 case ADD, UPDATE -> current.markUpdated();
                 case REMOVE -> teamIterator.remove();
             }
@@ -259,17 +195,100 @@ public final class Scoreboard {
             session.sendUpstreamPacket(setScorePacket);
         }
 
-        // prevents crashes in some cases
         for (Objective objective : removedObjectives) {
-            despawnObjective(objective);
+            deleteObjective(objective, true);
         }
 
         lastAddScoreCount = addScores.size();
         lastRemoveScoreCount = removeScores.size();
     }
 
-    public void despawnObjective(Objective objective) {
-        objectives.remove(objective.getObjectiveName());
+    private void handleObjective(Objective objective, List<ScoreInfo> addScores, List<ScoreInfo> removeScores) {
+        if (objective == null || objective.getUpdateType() == REMOVE) {
+            return;
+        }
+
+        // hearts can't hold teams, so we treat them differently
+        if (objective.getType() == 1) {
+            for (Score score : objective.getScores().values()) {
+                boolean update = score.shouldUpdate();
+
+                if (update) {
+                    score.update(objective.getObjectiveName());
+                }
+
+                if (score.getUpdateType() != REMOVE && update) {
+                    addScores.add(score.getCachedInfo());
+                }
+                if (score.getUpdateType() != ADD && update) {
+                    removeScores.add(score.getCachedInfo());
+                }
+            }
+            return;
+        }
+
+        boolean objectiveAdd = objective.getUpdateType() == ADD;
+        boolean objectiveUpdate = objective.getUpdateType() == UPDATE;
+
+        for (Score score : objective.getScores().values()) {
+            if (score.getUpdateType() == REMOVE) {
+                removeScores.add(score.getCachedInfo());
+                // score is pending to be removed, so we can remove it from the objective
+                objective.removeScore0(score.getName());
+                break;
+            }
+
+            Team team = score.getTeam();
+
+            boolean add = objectiveAdd || objectiveUpdate;
+
+            if (team != null) {
+                if (team.getUpdateType() == REMOVE || !team.hasEntity(score.getName())) {
+                    score.setTeam(null);
+                    add = true;
+                }
+            }
+
+            if (score.shouldUpdate()) {
+                score.update(objective.getObjectiveName());
+                add = true;
+            }
+
+            if (add) {
+                addScores.add(score.getCachedInfo());
+            }
+
+            score.setUpdateType(NOTHING);
+        }
+
+        if (objectiveUpdate) {
+            RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();
+            removeObjectivePacket.setObjectiveId(objective.getObjectiveName());
+            session.sendUpstreamPacket(removeObjectivePacket);
+        }
+
+        if (objectiveAdd || objectiveUpdate) {
+            SetDisplayObjectivePacket displayObjectivePacket = new SetDisplayObjectivePacket();
+            displayObjectivePacket.setObjectiveId(objective.getObjectiveName());
+            displayObjectivePacket.setDisplayName(objective.getDisplayName());
+            displayObjectivePacket.setCriteria("dummy");
+            displayObjectivePacket.setDisplaySlot(objective.getDisplaySlotName());
+            displayObjectivePacket.setSortOrder(1); // 0 = ascending, 1 = descending
+            session.sendUpstreamPacket(displayObjectivePacket);
+        }
+
+        objective.setUpdateType(NOTHING);
+    }
+
+    /**
+     * @param remove if we should remove the objective from the objectives map.
+     */
+    public void deleteObjective(Objective objective, boolean remove) {
+        if (remove) {
+            objectives.remove(objective.getObjectiveName());
+        }
+        objectiveSlots.remove(objective.getDisplaySlot(), objective);
+
         objective.removed();
 
         RemoveObjectivePacket removeObjectivePacket = new RemoveObjectivePacket();

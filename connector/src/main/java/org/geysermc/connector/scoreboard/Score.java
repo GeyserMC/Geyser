@@ -39,7 +39,7 @@ public final class Score {
     /**
      * Changes that have been made since the last cached data.
      */
-    private Score.ScoreData currentData;
+    private final Score.ScoreData currentData;
     /**
      * The data that is currently displayed to the Bedrock client.
      */
@@ -72,14 +72,14 @@ public final class Score {
         if (currentData.team != null && team != null) {
             if (!currentData.team.equals(team)) {
                 currentData.team = team;
-                currentData.updateType = UpdateType.UPDATE;
+                setUpdateType(UpdateType.UPDATE);
             }
             return this;
         }
         // simplified from (this.team != null && team == null) || (this.team == null && team != null)
         if (currentData.team != null || team != null) {
             currentData.team = team;
-            currentData.updateType = UpdateType.UPDATE;
+            setUpdateType(UpdateType.UPDATE);
         }
         return this;
     }
@@ -126,13 +126,13 @@ public final class Score {
 
     @Getter
     public static final class ScoreData {
-        protected UpdateType updateType;
-        protected long updateTime;
+        private UpdateType updateType;
+        private long updateTime;
 
         private Team team;
         private int score;
 
-        protected ScoreData() {
+        private ScoreData() {
             updateType = UpdateType.ADD;
         }
     }

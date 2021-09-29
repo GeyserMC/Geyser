@@ -66,7 +66,7 @@ public class JavaUpdateScoreTranslator extends PacketTranslator<ServerUpdateScor
                 if (objective != null) {
                     objective.removeScore(packet.getEntry());
                 } else {
-                    for (Objective objective1 : scoreboard.getObjectives().values()) {
+                    for (Objective objective1 : scoreboard.getObjectives()) {
                         objective1.removeScore(packet.getEntry());
                     }
                 }

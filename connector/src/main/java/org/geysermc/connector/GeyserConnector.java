@@ -53,6 +53,7 @@ import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
+import org.geysermc.connector.scoreboard.ScoreboardUpdater;
 import org.geysermc.connector.skin.FloodgateSkinUploader;
 import org.geysermc.connector.utils.*;
 import org.geysermc.floodgate.crypto.AesCipher;
@@ -155,6 +156,7 @@ public class GeyserConnector {
         ItemTranslator.init();
         MessageTranslator.init();
         LocaleUtils.init();
+        ScoreboardUpdater.init();
 
         ResourcePack.loadPacks();
 

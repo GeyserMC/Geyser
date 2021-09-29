@@ -25,30 +25,39 @@
 
 package org.geysermc.connector.network.translators.java.scoreboard;
 
+import com.github.steveice10.mc.protocol.data.game.scoreboard.ObjectiveAction;
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerScoreboardObjectivePacket;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.WorldCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.scoreboard.Objective;
 import org.geysermc.connector.scoreboard.Scoreboard;
 import org.geysermc.connector.scoreboard.ScoreboardUpdater;
-import org.geysermc.connector.network.translators.chat.MessageTranslator;
-
-import com.github.steveice10.mc.protocol.data.game.scoreboard.ObjectiveAction;
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerScoreboardObjectivePacket;
+import org.geysermc.connector.scoreboard.UpdateType;
 
 @Translator(packet = ServerScoreboardObjectivePacket.class)
 public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerScoreboardObjectivePacket> {
+    private final GeyserLogger logger = GeyserConnector.getInstance().getLogger();
 
     @Override
     public void translate(GeyserSession session, ServerScoreboardObjectivePacket packet) {
         WorldCache worldCache = session.getWorldCache();
         Scoreboard scoreboard = worldCache.getScoreboard();
-        Objective objective = scoreboard.getObjective(packet.getName());
         int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();
 
-        if (objective == null && packet.getAction() != ObjectiveAction.REMOVE) {
-            objective = scoreboard.registerNewObjective(packet.getName(), false);
+        Objective objective = scoreboard.getObjective(packet.getName());
+        if (objective != null && objective.getUpdateType() != UpdateType.REMOVE && packet.getAction() == ObjectiveAction.ADD) {
+            // matches vanilla behaviour
+            logger.warning("An objective with the same name '" + packet.getName() + "' already exists! Ignoring packet");
+            return;
+        }
+
+        if ((objective == null || objective.getUpdateType() == UpdateType.REMOVE) && packet.getAction() != ObjectiveAction.REMOVE) {
+            objective = scoreboard.registerNewObjective(packet.getName());
         }
 
         switch (packet.getAction()) {
