@@ -151,14 +151,11 @@ public final class Objective {
     }
 
     public ScoreboardPosition getPositionCategory() {
-        switch (displaySlot) {
-            case PLAYER_LIST:
-                return ScoreboardPosition.PLAYER_LIST;
-            case BELOW_NAME:
-                return ScoreboardPosition.BELOW_NAME;
-            default:
-                return ScoreboardPosition.SIDEBAR;
-        }
+        return switch (displaySlot) {
+            case PLAYER_LIST -> ScoreboardPosition.PLAYER_LIST;
+            case BELOW_NAME -> ScoreboardPosition.BELOW_NAME;
+            default -> ScoreboardPosition.SIDEBAR;
+        };
     }
 
     public boolean hasTeamColor() {
@@ -168,42 +165,25 @@ public final class Objective {
     }
 
     public TeamColor getTeamColor() {
-        switch (displaySlot) {
-            case SIDEBAR_TEAM_RED:
-                return TeamColor.RED;
-            case SIDEBAR_TEAM_AQUA:
-                return TeamColor.AQUA;
-            case SIDEBAR_TEAM_BLUE:
-                return TeamColor.BLUE;
-            case SIDEBAR_TEAM_GOLD:
-                return TeamColor.GOLD;
-            case SIDEBAR_TEAM_GRAY:
-                return TeamColor.GRAY;
-            case SIDEBAR_TEAM_BLACK:
-                return TeamColor.BLACK;
-            case SIDEBAR_TEAM_GREEN:
-                return TeamColor.GREEN;
-            case SIDEBAR_TEAM_WHITE:
-                return TeamColor.WHITE;
-            case SIDEBAR_TEAM_YELLOW:
-                return TeamColor.YELLOW;
-            case SIDEBAR_TEAM_DARK_RED:
-                return TeamColor.DARK_RED;
-            case SIDEBAR_TEAM_DARK_AQUA:
-                return TeamColor.DARK_AQUA;
-            case SIDEBAR_TEAM_DARK_BLUE:
-                return TeamColor.DARK_BLUE;
-            case SIDEBAR_TEAM_DARK_GRAY:
-                return TeamColor.DARK_GRAY;
-            case SIDEBAR_TEAM_DARK_GREEN:
-                return TeamColor.DARK_GREEN;
-            case SIDEBAR_TEAM_DARK_PURPLE:
-                return TeamColor.DARK_PURPLE;
-            case SIDEBAR_TEAM_LIGHT_PURPLE:
-                return TeamColor.LIGHT_PURPLE;
-            default:
-                return null;
-        }
+        return switch (displaySlot) {
+            case SIDEBAR_TEAM_RED -> TeamColor.RED;
+            case SIDEBAR_TEAM_AQUA -> TeamColor.AQUA;
+            case SIDEBAR_TEAM_BLUE -> TeamColor.BLUE;
+            case SIDEBAR_TEAM_GOLD -> TeamColor.GOLD;
+            case SIDEBAR_TEAM_GRAY -> TeamColor.GRAY;
+            case SIDEBAR_TEAM_BLACK -> TeamColor.BLACK;
+            case SIDEBAR_TEAM_GREEN -> TeamColor.GREEN;
+            case SIDEBAR_TEAM_WHITE -> TeamColor.WHITE;
+            case SIDEBAR_TEAM_YELLOW -> TeamColor.YELLOW;
+            case SIDEBAR_TEAM_DARK_RED -> TeamColor.DARK_RED;
+            case SIDEBAR_TEAM_DARK_AQUA -> TeamColor.DARK_AQUA;
+            case SIDEBAR_TEAM_DARK_BLUE -> TeamColor.DARK_BLUE;
+            case SIDEBAR_TEAM_DARK_GRAY -> TeamColor.DARK_GRAY;
+            case SIDEBAR_TEAM_DARK_GREEN -> TeamColor.DARK_GREEN;
+            case SIDEBAR_TEAM_DARK_PURPLE -> TeamColor.DARK_PURPLE;
+            case SIDEBAR_TEAM_LIGHT_PURPLE -> TeamColor.LIGHT_PURPLE;
+            default -> null;
+        };
     }
 
     public void removed() {

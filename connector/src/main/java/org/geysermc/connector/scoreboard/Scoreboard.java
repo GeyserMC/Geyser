@@ -176,12 +176,8 @@ public final class Scoreboard {
             Team current = teamIterator.next();
 
             switch (current.getCachedUpdateType()) {
-                case ADD:
-                case UPDATE:
-                    current.markUpdated();
-                    break;
-                case REMOVE:
-                    teamIterator.remove();
+                case ADD, UPDATE -> current.markUpdated();
+                case REMOVE -> teamIterator.remove();
             }
         }
 
