@@ -35,10 +35,7 @@ import org.geysermc.connector.GeyserConnector;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.zip.ZipFile;
 
@@ -119,7 +116,11 @@ public class LocaleUtils {
      * @param locale Locale to download and load
      */
     public static void downloadAndLoadLocale(String locale) {
-        locale = locale.toLowerCase();
+        locale = locale.toLowerCase(Locale.ROOT);
+        if (locale.equals("nb_no")) {
+            // Different locale code - https://minecraft.fandom.com/wiki/Language
+            locale = "no_no";
+        }
 
         // Check the locale isn't already loaded
         if (!ASSET_MAP.containsKey("minecraft/lang/" + locale + ".json") && !locale.equals("en_us")) {
@@ -225,8 +226,14 @@ public class LocaleUtils {
                 langMap.put(entry.getKey(), entry.getValue().asText());
             }
 
+            String bedrockLocale = locale.toLowerCase(Locale.ROOT);
+            if (bedrockLocale.equals("no_no")) {
+                // Store this locale under the Bedrock locale so we don't need to do this check over and over
+                bedrockLocale = "nb_no";
+            }
+
             // Insert the locale into the mappings
-            LOCALE_MAPPINGS.put(locale.toLowerCase(), langMap);
+            LOCALE_MAPPINGS.put(bedrockLocale, langMap);
 
             try {
                 localeStream.close();
