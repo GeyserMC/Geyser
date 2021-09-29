@@ -96,7 +96,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
     }
 
     @Override
-    public void translate(ServerDeclareCommandsPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerDeclareCommandsPacket packet) {
         // Don't send command suggestions if they are disabled
         if (!session.getConnector().getConfig().isCommandSuggestions()) {
             session.getConnector().getLogger().debug("Not sending translated command suggestions as they are disabled.");
@@ -204,67 +204,25 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             return CommandParam.STRING;
         }
 
-        switch (parser) {
-            case FLOAT:
-            case ROTATION:
-            case DOUBLE:
-                return CommandParam.FLOAT;
-
-            case INTEGER:
-            case LONG:
-                return CommandParam.INT;
-
-            case ENTITY:
-            case GAME_PROFILE:
-                return CommandParam.TARGET;
-
-            case BLOCK_POS:
-                return CommandParam.BLOCK_POSITION;
-
-            case COLUMN_POS:
-            case VEC3:
-                return CommandParam.POSITION;
-
-            case MESSAGE:
-                return CommandParam.MESSAGE;
-
-            case NBT:
-            case NBT_COMPOUND_TAG:
-            case NBT_TAG:
-            case NBT_PATH:
-                return CommandParam.JSON;
-
-            case RESOURCE_LOCATION:
-            case FUNCTION:
-                return CommandParam.FILE_PATH;
-
-            case BOOL:
-                return ENUM_BOOLEAN;
-
-            case OPERATION: // ">=", "==", etc
-                return CommandParam.OPERATOR;
-
-            case BLOCK_STATE:
-                return BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.get().keySet().toArray(new String[0]);
-
-            case ITEM_STACK:
-                return session.getItemMappings().getItemNames();
-
-            case ITEM_ENCHANTMENT:
-                return Enchantment.JavaEnchantment.ALL_JAVA_IDENTIFIERS;
-
-            case ENTITY_SUMMON:
-                return EntityType.ALL_JAVA_IDENTIFIERS;
-
-            case COLOR:
-                return VALID_COLORS;
-
-            case SCOREBOARD_SLOT:
-                return VALID_SCOREBOARD_SLOTS;
-
-            default:
-                return CommandParam.STRING;
-        }
+        return switch (parser) {
+            case FLOAT, ROTATION, DOUBLE -> CommandParam.FLOAT;
+            case INTEGER, LONG -> CommandParam.INT;
+            case ENTITY, GAME_PROFILE -> CommandParam.TARGET;
+            case BLOCK_POS -> CommandParam.BLOCK_POSITION;
+            case COLUMN_POS, VEC3 -> CommandParam.POSITION;
+            case MESSAGE -> CommandParam.MESSAGE;
+            case NBT, NBT_COMPOUND_TAG, NBT_TAG, NBT_PATH -> CommandParam.JSON;
+            case RESOURCE_LOCATION, FUNCTION -> CommandParam.FILE_PATH;
+            case BOOL -> ENUM_BOOLEAN;
+            case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc
+            case BLOCK_STATE -> BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.get().keySet().toArray(new String[0]);
+            case ITEM_STACK -> session.getItemMappings().getItemNames();
+            case ITEM_ENCHANTMENT -> Enchantment.JavaEnchantment.ALL_JAVA_IDENTIFIERS;
+            case ENTITY_SUMMON -> EntityType.ALL_JAVA_IDENTIFIERS;
+            case COLOR -> VALID_COLORS;
+            case SCOREBOARD_SLOT -> VALID_SCOREBOARD_SLOTS;
+            default -> CommandParam.STRING;
+        };
     }
 
     @Getter

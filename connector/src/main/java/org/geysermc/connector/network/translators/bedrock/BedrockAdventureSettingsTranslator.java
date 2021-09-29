@@ -38,7 +38,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class BedrockAdventureSettingsTranslator extends PacketTranslator<AdventureSettingsPacket> {
 
     @Override
-    public void translate(AdventureSettingsPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, AdventureSettingsPacket packet) {
         boolean isFlying = packet.getSettings().contains(AdventureSetting.FLYING);
         if (!isFlying && session.getGameMode() == GameMode.SPECTATOR) {
             // We should always be flying in spectator mode

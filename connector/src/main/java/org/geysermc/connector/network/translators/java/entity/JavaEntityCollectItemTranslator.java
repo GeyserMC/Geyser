@@ -44,7 +44,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class JavaEntityCollectItemTranslator extends PacketTranslator<ServerEntityCollectItemPacket> {
 
     @Override
-    public void translate(ServerEntityCollectItemPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerEntityCollectItemPacket packet) {
         // Collected entity is the other entity
         Entity collectedEntity = session.getEntityCache().getEntityByJavaId(packet.getCollectedEntityId());
         if (collectedEntity == null) return;

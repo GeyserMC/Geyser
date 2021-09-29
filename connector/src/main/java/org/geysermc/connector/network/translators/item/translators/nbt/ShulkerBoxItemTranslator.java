@@ -25,11 +25,13 @@
 
 package org.geysermc.connector.network.translators.item.translators.nbt;
 
+import com.github.steveice10.mc.protocol.data.game.Identifier;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.*;
 import org.geysermc.connector.registry.type.ItemMapping;
+import org.geysermc.connector.utils.MathUtils;
 
 @ItemRemapper
 public class ShulkerBoxItemTranslator extends NbtItemStackTranslator {
@@ -44,14 +46,14 @@ public class ShulkerBoxItemTranslator extends NbtItemStackTranslator {
         for (Tag item : (ListTag) blockEntityTag.get("Items")) {
             CompoundTag itemData = (CompoundTag) item; // Information about the item
             CompoundTag boxItemTag = new CompoundTag(""); // Final item tag to add to the list
-            boxItemTag.put(new ByteTag("Slot", ((ByteTag) itemData.get("Slot")).getValue()));
+            boxItemTag.put(new ByteTag("Slot", (byte) (MathUtils.getNbtByte(itemData.get("Slot").getValue()) & 255)));
             boxItemTag.put(new ByteTag("WasPickedUp", (byte) 0)); // ???
 
-            ItemMapping boxMapping = session.getItemMappings().getMapping(((StringTag) itemData.get("id")).getValue());
+            ItemMapping boxMapping = session.getItemMappings().getMapping(Identifier.formalize(((StringTag) itemData.get("id")).getValue()));
 
             boxItemTag.put(new StringTag("Name", boxMapping.getBedrockIdentifier()));
             boxItemTag.put(new ShortTag("Damage", (short) boxMapping.getBedrockData()));
-            boxItemTag.put(new ByteTag("Count", ((ByteTag) itemData.get("Count")).getValue()));
+            boxItemTag.put(new ByteTag("Count", MathUtils.getNbtByte(itemData.get("Count").getValue())));
             // Only the display name is what we have interest in, so just translate that if relevant
             CompoundTag displayTag = itemData.get("tag");
             if (displayTag == null && boxMapping.hasTranslation()) {

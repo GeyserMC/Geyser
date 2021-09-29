@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipmentPacket> {
 
     @Override
-    public void translate(MobEquipmentPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, MobEquipmentPacket packet) {
         if (!session.isSpawned() || packet.getHotbarSlot() > 8 ||
                 packet.getContainerId() != ContainerId.INVENTORY || session.getPlayerInventory().getHeldItemSlot() == packet.getHotbarSlot()) {
             // For the last condition - Don't update the slot if the slot is the same - not Java Edition behavior and messes with plugins such as Grief Prevention

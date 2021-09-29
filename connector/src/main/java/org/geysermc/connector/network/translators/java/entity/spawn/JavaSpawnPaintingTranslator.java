@@ -37,7 +37,7 @@ import org.geysermc.connector.utils.PaintingType;
 public class JavaSpawnPaintingTranslator extends PacketTranslator<ServerSpawnPaintingPacket> {
 
     @Override
-    public void translate(ServerSpawnPaintingPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerSpawnPaintingPacket packet) {
         Vector3f position = Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
 
         PaintingEntity entity = new PaintingEntity(packet.getEntityId(),

@@ -125,7 +125,7 @@ public class MessageTranslator {
      * @return Bedrock formatted message
      */
     public static String convertMessageLenient(String message, String locale) {
-        if (message.trim().isEmpty()) {
+        if (message.isBlank()) {
             return message;
         }
 
@@ -269,5 +269,9 @@ public class MessageTranslator {
         }
 
         return false;
+    }
+
+    public static void init() {
+        // no-op
     }
 }

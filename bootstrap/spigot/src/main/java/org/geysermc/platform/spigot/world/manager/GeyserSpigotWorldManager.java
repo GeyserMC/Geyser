@@ -77,7 +77,11 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             return BlockStateValues.JAVA_AIR_ID;
         }
 
-        return BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(world.getBlockAt(x, y, z).getBlockData().getAsString(), BlockStateValues.JAVA_AIR_ID);
+        return getBlockNetworkId(bukkitPlayer, world.getBlockAt(x, y, z), x, y, z);
+    }
+
+    public int getBlockNetworkId(Player player, Block block, int x, int y, int z) {
+        return BlockRegistries.JAVA_IDENTIFIERS.getOrDefault(block.getBlockData().getAsString(), BlockStateValues.JAVA_AIR_ID);
     }
 
     @Override
@@ -95,14 +99,13 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
             }
 
             Block block = bukkitPlayer.getWorld().getBlockAt(x, y, z);
-            if (!(block.getState() instanceof Lectern)) {
+            if (!(block.getState() instanceof Lectern lectern)) {
                 session.getConnector().getLogger().error("Lectern expected at: " + Vector3i.from(x, y, z).toString() + " but was not! " + block.toString());
                 return;
             }
 
-            Lectern lectern = (Lectern) block.getState();
             ItemStack itemStack = lectern.getInventory().getItem(0);
-            if (itemStack == null || !(itemStack.getItemMeta() instanceof BookMeta)) {
+            if (itemStack == null || !(itemStack.getItemMeta() instanceof BookMeta bookMeta)) {
                 if (!isChunkLoad) {
                     // We need to update the lectern since it's not going to be updated otherwise
                     BlockEntityUtils.updateBlockEntity(session, LecternInventoryTranslator.getBaseLecternTag(x, y, z, 0).build(), Vector3i.from(x, y, z));
@@ -111,7 +114,6 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
                 return;
             }
 
-            BookMeta bookMeta = (BookMeta) itemStack.getItemMeta();
             // On the count: allow the book to show/open even there are no pages. We know there is a book here, after all, and this matches Java behavior
             boolean hasBookPages = bookMeta.getPageCount() > 0;
             NbtMapBuilder lecternTag = LecternInventoryTranslator.getBaseLecternTag(x, y, z, hasBookPages ? bookMeta.getPageCount() : 1);

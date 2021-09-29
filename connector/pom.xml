@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>geyser-parent</artifactId>
-        <version>1.4.1-SNAPSHOT</version>
+        <version>1.4.3-SNAPSHOT</version>
     </parent>
     <artifactId>connector</artifactId>
 
@@ -21,13 +21,13 @@
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>ap</artifactId>
-            <version>1.4.1-SNAPSHOT</version>
+            <version>1.4.3-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>common</artifactId>
-            <version>1.4.1-SNAPSHOT</version>
+            <version>1.4.3-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <!-- Jackson JSON and YAML serialization -->
@@ -114,8 +114,8 @@
         </dependency>
         <dependency>
             <groupId>com.github.CloudburstMC.Protocol</groupId>
-            <artifactId>bedrock-v448</artifactId>
-            <version>690a545d</version>
+            <artifactId>bedrock-v465</artifactId>
+            <version>fa9d104</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -141,13 +141,13 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.github.GeyserMC</groupId>
+            <groupId>com.github.RednedEpic</groupId>
             <artifactId>MCAuthLib</artifactId>
-            <version>0e48a094f2</version>
+            <version>6c99331</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.GeyserMC</groupId>
+            <groupId>com.github.RednedEpic</groupId>
             <artifactId>MCProtocolLib</artifactId>
             <version>e17787a</version>
             <scope>compile</scope>
@@ -167,9 +167,9 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.github.GeyserMC</groupId>
+            <groupId>com.github.RednedEpic</groupId>
             <artifactId>PacketLib</artifactId>
-            <version>86c9c38</version>
+            <version>9d4b476</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>

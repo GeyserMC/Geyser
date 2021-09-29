@@ -240,6 +240,14 @@
         "id" : -187
     },
     {
+        "name" : "minecraft:black_candle",
+        "id" : -428
+    },
+    {
+        "name" : "minecraft:black_candle_cake",
+        "id" : -445
+    },
+    {
         "name" : "minecraft:black_dye",
         "id" : 395
     },
@@ -286,6 +294,14 @@
     {
         "name" : "minecraft:bleach",
         "id" : 595
+    },
+    {
+        "name" : "minecraft:blue_candle",
+        "id" : -424
+    },
+    {
+        "name" : "minecraft:blue_candle_cake",
+        "id" : -441
     },
     {
         "name" : "minecraft:blue_dye",
@@ -364,6 +380,14 @@
         "id" : 108
     },
     {
+        "name" : "minecraft:brown_candle",
+        "id" : -425
+    },
+    {
+        "name" : "minecraft:brown_candle_cake",
+        "id" : -442
+    },
+    {
         "name" : "minecraft:brown_dye",
         "id" : 398
     },
@@ -410,6 +434,14 @@
     {
         "name" : "minecraft:campfire",
         "id" : 588
+    },
+    {
+        "name" : "minecraft:candle",
+        "id" : -412
+    },
+    {
+        "name" : "minecraft:candle_cake",
+        "id" : -429
     },
     {
         "name" : "minecraft:carpet",
@@ -846,6 +878,14 @@
     {
         "name" : "minecraft:cut_copper_stairs",
         "id" : -354
+    },
+    {
+        "name" : "minecraft:cyan_candle",
+        "id" : -422
+    },
+    {
+        "name" : "minecraft:cyan_candle_cake",
+        "id" : -439
     },
     {
         "name" : "minecraft:cyan_dye",
@@ -1980,12 +2020,28 @@
         "id" : 13
     },
     {
+        "name" : "minecraft:gray_candle",
+        "id" : -420
+    },
+    {
+        "name" : "minecraft:gray_candle_cake",
+        "id" : -437
+    },
+    {
         "name" : "minecraft:gray_dye",
         "id" : 403
     },
     {
         "name" : "minecraft:gray_glazed_terracotta",
         "id" : 227
+    },
+    {
+        "name" : "minecraft:green_candle",
+        "id" : -426
+    },
+    {
+        "name" : "minecraft:green_candle_cake",
+        "id" : -443
     },
     {
         "name" : "minecraft:green_dye",
@@ -2420,12 +2476,28 @@
         "id" : -215
     },
     {
+        "name" : "minecraft:light_blue_candle",
+        "id" : -416
+    },
+    {
+        "name" : "minecraft:light_blue_candle_cake",
+        "id" : -433
+    },
+    {
         "name" : "minecraft:light_blue_dye",
         "id" : 407
     },
     {
         "name" : "minecraft:light_blue_glazed_terracotta",
         "id" : 223
+    },
+    {
+        "name" : "minecraft:light_gray_candle",
+        "id" : -421
+    },
+    {
+        "name" : "minecraft:light_gray_candle_cake",
+        "id" : -438
     },
     {
         "name" : "minecraft:light_gray_dye",
@@ -2438,6 +2510,14 @@
     {
         "name" : "minecraft:lightning_rod",
         "id" : -312
+    },
+    {
+        "name" : "minecraft:lime_candle",
+        "id" : -418
+    },
+    {
+        "name" : "minecraft:lime_candle_cake",
+        "id" : -435
     },
     {
         "name" : "minecraft:lime_dye",
@@ -2502,6 +2582,14 @@
     {
         "name" : "minecraft:loom",
         "id" : -204
+    },
+    {
+        "name" : "minecraft:magenta_candle",
+        "id" : -415
+    },
+    {
+        "name" : "minecraft:magenta_candle_cake",
+        "id" : -432
     },
     {
         "name" : "minecraft:magenta_dye",
@@ -2800,6 +2888,14 @@
         "id" : 451
     },
     {
+        "name" : "minecraft:orange_candle",
+        "id" : -414
+    },
+    {
+        "name" : "minecraft:orange_candle_cake",
+        "id" : -431
+    },
+    {
         "name" : "minecraft:orange_dye",
         "id" : 409
     },
@@ -2874,6 +2970,14 @@
     {
         "name" : "minecraft:pillager_spawn_egg",
         "id" : 491
+    },
+    {
+        "name" : "minecraft:pink_candle",
+        "id" : -419
+    },
+    {
+        "name" : "minecraft:pink_candle_cake",
+        "id" : -436
     },
     {
         "name" : "minecraft:pink_dye",
@@ -3084,6 +3188,14 @@
         "id" : 104
     },
     {
+        "name" : "minecraft:purple_candle",
+        "id" : -423
+    },
+    {
+        "name" : "minecraft:purple_candle_cake",
+        "id" : -440
+    },
+    {
         "name" : "minecraft:purple_dye",
         "id" : 400
     },
@@ -3190,6 +3302,14 @@
     {
         "name" : "minecraft:real_double_stone_slab4",
         "id" : -168
+    },
+    {
+        "name" : "minecraft:red_candle",
+        "id" : -427
+    },
+    {
+        "name" : "minecraft:red_candle_cake",
+        "id" : -444
     },
     {
         "name" : "minecraft:red_dye",
@@ -3308,8 +3428,24 @@
         "id" : -165
     },
     {
+        "name" : "minecraft:sculk",
+        "id" : -458
+    },
+    {
+        "name" : "minecraft:sculk_catalyst",
+        "id" : -460
+    },
+    {
         "name" : "minecraft:sculk_sensor",
         "id" : -307
+    },
+    {
+        "name" : "minecraft:sculk_shrieker",
+        "id" : -461
+    },
+    {
+        "name" : "minecraft:sculk_vein",
+        "id" : -459
     },
     {
         "name" : "minecraft:scute",
@@ -4044,6 +4180,14 @@
         "id" : 291
     },
     {
+        "name" : "minecraft:white_candle",
+        "id" : -413
+    },
+    {
+        "name" : "minecraft:white_candle_cake",
+        "id" : -430
+    },
+    {
         "name" : "minecraft:white_dye",
         "id" : 410
     },
@@ -4118,6 +4262,14 @@
     {
         "name" : "minecraft:written_book",
         "id" : 511
+    },
+    {
+        "name" : "minecraft:yellow_candle",
+        "id" : -417
+    },
+    {
+        "name" : "minecraft:yellow_candle_cake",
+        "id" : -434
     },
     {
         "name" : "minecraft:yellow_dye",

@@ -31,6 +31,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.github.steveice10.mc.auth.service.MsaAuthenticationService;
 import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.shaded.json.JSONObject;
+import com.nimbusds.jose.shaded.json.JSONValue;
 import com.nukkitx.network.util.Preconditions;
 import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerToClientHandshakePacket;
@@ -49,11 +51,13 @@ import org.geysermc.cumulus.response.SimpleFormResponse;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
+import java.net.URI;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
+import java.util.Iterator;
 import java.util.UUID;
 
 public class LoginEncryptionUtils {
@@ -62,28 +66,55 @@ public class LoginEncryptionUtils {
     private static boolean HAS_SENT_ENCRYPTION_MESSAGE = false;
 
     private static boolean validateChainData(JsonNode data) throws Exception {
+        if (data.size() != 3) {
+            return false;
+        }
+
         ECPublicKey lastKey = null;
-        boolean validChain = false;
-        for (JsonNode node : data) {
+        boolean mojangSigned = false;
+        Iterator<JsonNode> iterator = data.iterator();
+        while (iterator.hasNext()) {
+            JsonNode node = iterator.next();
             JWSObject jwt = JWSObject.parse(node.asText());
 
-            if (!validChain) {
-                validChain = EncryptionUtils.verifyJwt(jwt, EncryptionUtils.getMojangPublicKey());
+            // x509 cert is expected in every claim
+            URI x5u = jwt.getHeader().getX509CertURL();
+            if (x5u == null) {
+                return false;
             }
 
-            if (lastKey != null) {
-                if (!EncryptionUtils.verifyJwt(jwt, lastKey)) return false;
+            ECPublicKey expectedKey = EncryptionUtils.generateKey(jwt.getHeader().getX509CertURL().toString());
+            // First key is self-signed
+            if (lastKey == null) {
+                lastKey = expectedKey;
+            } else if (!lastKey.equals(expectedKey)) {
+                return false;
             }
 
-            JsonNode payloadNode = JSON_MAPPER.readTree(jwt.getPayload().toString());
-            JsonNode ipkNode = payloadNode.get("identityPublicKey");
-            Preconditions.checkState(ipkNode != null && ipkNode.getNodeType() == JsonNodeType.STRING, "identityPublicKey node is missing in chain");
-            lastKey = EncryptionUtils.generateKey(ipkNode.asText());
+            if (!EncryptionUtils.verifyJwt(jwt, lastKey)) {
+                return false;
+            }
+
+            if (mojangSigned) {
+                return !iterator.hasNext();
+            }
+
+            if (lastKey.equals(EncryptionUtils.getMojangPublicKey())) {
+                mojangSigned = true;
+            }
+
+            Object payload = JSONValue.parse(jwt.getPayload().toString());
+            Preconditions.checkArgument(payload instanceof JSONObject, "Payload is not an object");
+
+            Object identityPublicKey = ((JSONObject) payload).get("identityPublicKey");
+            Preconditions.checkArgument(identityPublicKey instanceof String, "identityPublicKey node is missing in chain");
+            lastKey = EncryptionUtils.generateKey((String) identityPublicKey);
         }
-        return validChain;
+
+        return mojangSigned;
     }
 
-    public static void encryptPlayerConnection(GeyserConnector connector, GeyserSession session, LoginPacket loginPacket) {
+    public static void encryptPlayerConnection(GeyserSession session, LoginPacket loginPacket) {
         JsonNode certData;
         try {
             certData = JSON_MAPPER.readTree(loginPacket.getChainData().toByteArray());
@@ -96,11 +127,13 @@ public class LoginEncryptionUtils {
             throw new RuntimeException("Certificate data is not valid");
         }
 
-        encryptConnectionWithCert(connector, session, loginPacket.getSkinData().toString(), certChainData);
+        encryptConnectionWithCert(session, loginPacket.getSkinData().toString(), certChainData);
     }
 
-    private static void encryptConnectionWithCert(GeyserConnector connector, GeyserSession session, String clientData, JsonNode certChainData) {
+    private static void encryptConnectionWithCert(GeyserSession session, String clientData, JsonNode certChainData) {
         try {
+            GeyserConnector connector = session.getConnector();
+
             boolean validChain = validateChainData(certChainData);
 
             connector.getLogger().debug(String.format("Is player data valid? %s", validChain));

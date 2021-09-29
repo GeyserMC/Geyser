@@ -90,7 +90,7 @@ public class PacketTranslatorRegistry<T> {
             PacketTranslator<P> translator = (PacketTranslator<P>) translators.get(clazz);
             if (translator != null) {
                 EventLoop eventLoop = session.getEventLoop();
-                if (eventLoop.inEventLoop()) {
+                if (!translator.shouldExecuteInEventLoop() || eventLoop.inEventLoop()) {
                     translate0(session, translator, packet);
                 } else {
                     eventLoop.execute(() -> translate0(session, translator, packet));
@@ -112,7 +112,7 @@ public class PacketTranslatorRegistry<T> {
         }
 
         try {
-            translator.translate(packet, session);
+            translator.translate(session, packet);
         } catch (Throwable ex) {
             GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.network.translator.packet.failed", packet.getClass().getSimpleName()), ex);
             ex.printStackTrace();

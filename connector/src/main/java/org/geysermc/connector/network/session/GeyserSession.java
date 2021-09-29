@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.session;
 
+import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.AuthPendingException;
 import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
@@ -146,11 +147,19 @@ public class GeyserSession implements CommandSender {
     private final EntityCache entityCache;
     private final EntityEffectCache effectCache;
     private final FormCache formCache;
+    private final LodestoneCache lodestoneCache;
+    private final PistonCache pistonCache;
     private final PreferencesCache preferencesCache;
     private final TagCache tagCache;
     private final WorldCache worldCache;
 
     private final Int2ObjectMap<TeleportCache> teleportMap = new Int2ObjectOpenHashMap<>();
+
+    private final WorldBorder worldBorder;
+    /**
+     * Whether simulated fog has been sent to the client or not.
+     */
+    private boolean isInWorldBorderWarningArea = false;
 
     private final PlayerInventory playerInventory;
     @Setter
@@ -206,7 +215,7 @@ public class GeyserSession implements CommandSender {
      * See {@link org.geysermc.connector.network.translators.world.WorldManager#getLecternDataAt(GeyserSession, int, int, int, boolean)}
      * for more information.
      */
-    private final Set<Vector3i> lecternCache = new ObjectOpenHashSet<>();
+    private final Set<Vector3i> lecternCache;
 
     @Setter
     private boolean droppingLecternBook;
@@ -444,9 +453,13 @@ public class GeyserSession implements CommandSender {
         this.entityCache = new EntityCache(this);
         this.effectCache = new EntityEffectCache();
         this.formCache = new FormCache(this);
+        this.lodestoneCache = new LodestoneCache();
+        this.pistonCache = new PistonCache(this);
         this.preferencesCache = new PreferencesCache(this);
         this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
+
+        this.worldBorder = new WorldBorder(this);
 
         this.collisionManager = new CollisionManager(this);
 
@@ -461,6 +474,13 @@ public class GeyserSession implements CommandSender {
 
         this.spawned = false;
         this.loggedIn = false;
+
+        if (connector.getWorldManager().shouldExpectLecternHandled()) {
+            // Unneeded on these platforms
+            this.lecternCache = null;
+        } else {
+            this.lecternCache = new ObjectOpenHashSet<>();
+        }
 
         if (connector.getConfig().getEmoteOffhandWorkaround() != EmoteOffhandWorkaroundOption.NO_EMOTES) {
             this.emotes = new HashSet<>();
@@ -574,7 +594,14 @@ public class GeyserSession implements CommandSender {
                     authenticationService.setPassword(password);
                     authenticationService.login();
 
-                    protocol = new MinecraftProtocol(authenticationService.getSelectedProfile(), authenticationService.getAccessToken());
+                    GameProfile profile = authenticationService.getSelectedProfile();
+                    if (profile == null) {
+                        // Java account is offline
+                        disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.remote.invalid_account", clientData.getLanguageCode()));
+                        return null;
+                    }
+
+                    protocol = new MinecraftProtocol(profile, authenticationService.getAccessToken());
                 } else {
                     // always replace spaces when using Floodgate,
                     // as usernames with spaces cause issues with Bungeecord's login cycle.
@@ -591,12 +618,17 @@ public class GeyserSession implements CommandSender {
                 connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.login.invalid", username));
                 disconnect(LanguageUtils.getPlayerLocaleString("geyser.auth.login.invalid.kick", getClientData().getLanguageCode()));
             } catch (RequestException ex) {
-                ex.printStackTrace();
                 disconnect(ex.getMessage());
             }
             return null;
         }).whenComplete((aVoid, ex) -> {
+            if (ex != null) {
+                disconnect(ex.toString());
+            }
             if (this.closed) {
+                if (ex != null) {
+                    connector.getLogger().error("", ex);
+                }
                 // Client disconnected during the authentication attempt
                 return;
             }
@@ -635,6 +667,7 @@ public class GeyserSession implements CommandSender {
         }).whenComplete((response, ex) -> {
             if (ex != null) {
                 ex.printStackTrace();
+                disconnect(ex.toString());
                 return;
             }
             LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
@@ -651,12 +684,20 @@ public class GeyserSession implements CommandSender {
         }
         try {
             msaAuthenticationService.login();
-            protocol = new MinecraftProtocol(msaAuthenticationService.getSelectedProfile(), msaAuthenticationService.getAccessToken());
+            GameProfile profile = msaAuthenticationService.getSelectedProfile();
+            if (profile == null) {
+                // Java account is offline
+                disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.remote.invalid_account", clientData.getLanguageCode()));
+                return;
+            }
+
+            protocol = new MinecraftProtocol(profile, msaAuthenticationService.getAccessToken());
 
             connectDownstream();
         } catch (RequestException e) {
             if (!(e instanceof AuthPendingException)) {
-                throw new RuntimeException("Failed to log in with Microsoft code!", e);
+                connector.getLogger().error("Failed to log in with Microsoft code!", e);
+                disconnect(e.toString());
             } else {
                 // Wait one second before trying again
                 connector.getGeneralThreadPool().schedule(() -> attemptCodeAuthentication(msaAuthenticationService), 1, TimeUnit.SECONDS);
@@ -750,11 +791,6 @@ public class GeyserSession implements CommandSender {
             public void connected(ConnectedEvent event) {
                 loggingIn = false;
                 loggedIn = true;
-                if (protocol.getProfile() == null) {
-                    // Java account is offline
-                    disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.remote.invalid_account", clientData.getLanguageCode()));
-                    return;
-                }
 
                 if (downstream.isInternallyConnecting()) {
                     // Connected directly to the server
@@ -836,7 +872,7 @@ public class GeyserSession implements CommandSender {
                 // This issue could be mitigated down the line by preventing Bungee from setting compression
                 downstream.setFlag(BuiltinFlags.USE_ONLY_DIRECT_BUFFERS, connector.getPlatformType() == PlatformType.BUNGEECORD);
 
-                downstream.connectInternal(connector.getBootstrap().getSocketAddress(), upstream.getAddress().getAddress().getHostAddress(), true);
+                downstream.connectInternal(connector.getBootstrap().getSocketAddress(), upstream.getAddress().getAddress().getHostAddress());
                 internalConnect = true;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -861,7 +897,7 @@ public class GeyserSession implements CommandSender {
         }
 
         if (tickThread != null) {
-            tickThread.cancel(true);
+            tickThread.cancel(false);
         }
 
         closed = true;
@@ -902,10 +938,11 @@ public class GeyserSession implements CommandSender {
      */
     protected void tick() {
         try {
+            pistonCache.tick();
             // Check to see if the player's position needs updating - a position update should be sent once every 3 seconds
             if (spawned && (System.currentTimeMillis() - lastMovementTimestamp) > 3000) {
                 // Recalculate in case something else changed position
-                Vector3d position = collisionManager.adjustBedrockPosition(playerEntity.getPosition(), playerEntity.isOnGround());
+                Vector3d position = collisionManager.adjustBedrockPosition(playerEntity.getPosition(), playerEntity.isOnGround(), false);
                 // A null return value cancels the packet
                 if (position != null) {
                     ClientPlayerPositionPacket packet = new ClientPlayerPositionPacket(playerEntity.isOnGround(),
@@ -914,6 +951,25 @@ public class GeyserSession implements CommandSender {
                 }
                 lastMovementTimestamp = System.currentTimeMillis();
             }
+
+            if (worldBorder.isResizing()) {
+                worldBorder.resize();
+            }
+
+            if (!worldBorder.isWithinWarningBoundaries()) {
+                // Show particles representing where the world border is
+                worldBorder.drawWall();
+                // Set the mood
+                if (!isInWorldBorderWarningArea) {
+                    isInWorldBorderWarningArea = true;
+                    WorldBorder.sendFog(this, "minecraft:fog_crimson_forest");
+                }
+            } else if (isInWorldBorderWarningArea) {
+                // Clear fog as we are outside the world border now
+                WorldBorder.removeFog(this);
+                isInWorldBorderWarningArea = false;
+            }
+
 
             for (Tickable entity : entityCache.getTickableEntities()) {
                 entity.tick(this);
@@ -1228,8 +1284,11 @@ public class GeyserSession implements CommandSender {
         if (!closed && this.downstream != null) {
             Channel channel = this.downstream.getChannel();
             if (channel == null) {
-                // Channel is set to null when downstream is disconnected - there is a short window for this to happen
-                // as downstream doesn't call GeyserSession#disconnect
+                // Channel is only null before the connection has initialized
+                connector.getLogger().warning("Tried to send a packet to the Java server too early!");
+                if (connector.getConfig().isDebugMode()) {
+                    Thread.dumpStack();
+                }
                 return;
             }
 

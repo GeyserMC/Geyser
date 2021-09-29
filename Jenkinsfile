@@ -20,7 +20,7 @@ pipeline {
             }
         }
 
-        /*stage ('Deploy') {
+        stage ('Deploy') {
             when {
                 branch "master"
             }
@@ -40,7 +40,7 @@ pipeline {
                 )
                 rtMavenRun(
                         pom: 'pom.xml',
-                        goals: 'javadoc:jar source:jar install -DskipTests',
+                        goals: 'javadoc:jar source:jar install -pl :connector -am -DskipTests',
                         deployerId: "maven-deployer",
                         resolverId: "maven-resolver"
                 )
@@ -48,7 +48,7 @@ pipeline {
                         serverId: "opencollab-artifactory"
                 )
             }
-        }*/
+        }
     }
 
     post {

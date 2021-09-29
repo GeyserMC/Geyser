@@ -80,7 +80,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         session.setBlockMappings(BlockRegistries.BLOCKS.forVersion(loginPacket.getProtocolVersion()));
         session.setItemMappings(Registries.ITEMS.forVersion(loginPacket.getProtocolVersion()));
 
-        LoginEncryptionUtils.encryptPlayerConnection(connector, session, loginPacket);
+        LoginEncryptionUtils.encryptPlayerConnection(session, loginPacket);
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);

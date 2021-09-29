@@ -38,41 +38,31 @@ public class SmithingInventoryTranslator extends AbstractBlockInventoryTranslato
 
     @Override
     public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
-        switch (slotInfoData.getContainer()) {
-            case SMITHING_TABLE_INPUT:
-                return 0;
-            case SMITHING_TABLE_MATERIAL:
-                return 1;
-            case SMITHING_TABLE_RESULT:
-            case CREATIVE_OUTPUT:
-                return 2;
-        }
-        return super.bedrockSlotToJava(slotInfoData);
+        return switch (slotInfoData.getContainer()) {
+            case SMITHING_TABLE_INPUT -> 0;
+            case SMITHING_TABLE_MATERIAL -> 1;
+            case SMITHING_TABLE_RESULT, CREATIVE_OUTPUT -> 2;
+            default -> super.bedrockSlotToJava(slotInfoData);
+        };
     }
 
     @Override
     public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
-        switch (slot) {
-            case 0:
-                return new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_INPUT, 51);
-            case 1:
-                return new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_MATERIAL, 52);
-            case 2:
-                return new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_RESULT, 50);
-        }
-        return super.javaSlotToBedrockContainer(slot);
+        return switch (slot) {
+            case 0 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_INPUT, 51);
+            case 1 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_MATERIAL, 52);
+            case 2 -> new BedrockContainerSlot(ContainerSlotType.SMITHING_TABLE_RESULT, 50);
+            default -> super.javaSlotToBedrockContainer(slot);
+        };
     }
 
     @Override
     public int javaSlotToBedrock(int slot) {
-        switch (slot) {
-            case 0:
-                return 51;
-            case 1:
-                return 52;
-            case 2:
-                return 50;
-        }
-        return super.javaSlotToBedrock(slot);
+        return switch (slot) {
+            case 0 -> 51;
+            case 1 -> 52;
+            case 2 -> 50;
+            default -> super.javaSlotToBedrock(slot);
+        };
     }
 }

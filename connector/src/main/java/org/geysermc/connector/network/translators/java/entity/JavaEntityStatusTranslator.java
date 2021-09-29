@@ -39,11 +39,13 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 @Translator(packet = ServerEntityStatusPacket.class)
 public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntityStatusPacket> {
 
     @Override
-    public void translate(ServerEntityStatusPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerEntityStatusPacket packet) {
         Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
@@ -158,6 +160,13 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 break;
             case TOTEM_OF_UNDYING_MAKE_SOUND:
                 entityEventPacket.setType(EntityEventType.CONSUME_TOTEM);
+
+                PlaySoundPacket playSoundPacket = new PlaySoundPacket();
+                playSoundPacket.setSound("random.totem");
+                playSoundPacket.setPosition(entity.getPosition());
+                playSoundPacket.setVolume(1.0F);
+                playSoundPacket.setPitch(1.0F + (ThreadLocalRandom.current().nextFloat() * 0.1F) - 0.05F);
+                session.sendUpstreamPacket(playSoundPacket);
                 break;
             case SHEEP_GRAZE_OR_TNT_CART_EXPLODE:
                 if (entity.getEntityType() == EntityType.SHEEP) {
@@ -202,8 +211,7 @@ public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntitySta
                 session.sendUpstreamPacket(equipmentBreakPacket);
                 return;
             case PLAYER_SWAP_SAME_ITEM: // Not just used for players
-                if (entity instanceof LivingEntity) {
-                    LivingEntity livingEntity = (LivingEntity) entity;
+                if (entity instanceof LivingEntity livingEntity) {
                     ItemData newMainHand = livingEntity.getOffHand();
                     livingEntity.setOffHand(livingEntity.getHand());
                     livingEntity.setHand(newMainHand);

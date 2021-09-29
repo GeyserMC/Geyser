@@ -30,8 +30,6 @@ import com.github.steveice10.mc.auth.data.GameProfile;
 import com.nukkitx.protocol.bedrock.data.skin.ImageData;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.player.PlayerEntity;
@@ -52,10 +50,10 @@ public class SkinManager {
      */
     public static PlayerListPacket.Entry buildCachedEntry(GeyserSession session, PlayerEntity playerEntity) {
         GameProfileData data = GameProfileData.from(playerEntity.getProfile());
-        SkinProvider.Cape cape = SkinProvider.getCachedCape(data.getCapeUrl());
+        SkinProvider.Cape cape = SkinProvider.getCachedCape(data.capeUrl());
         SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.getLegacy(data.isAlex());
 
-        SkinProvider.Skin skin = SkinProvider.getCachedSkin(data.getSkinUrl());
+        SkinProvider.Skin skin = SkinProvider.getCachedSkin(data.skinUrl());
         if (skin == null) {
             skin = SkinProvider.EMPTY_SKIN;
         }
@@ -118,7 +116,7 @@ public class SkinManager {
                                                    Consumer<SkinProvider.SkinAndCape> skinAndCapeConsumer) {
         GameProfileData data = GameProfileData.from(entity.getProfile());
 
-        SkinProvider.requestSkinAndCape(entity.getUuid(), data.getSkinUrl(), data.getCapeUrl())
+        SkinProvider.requestSkinAndCape(entity.getUuid(), data.skinUrl(), data.capeUrl())
                 .whenCompleteAsync((skinAndCape, throwable) -> {
                     try {
                         SkinProvider.Skin skin = skinAndCape.getSkin();
@@ -206,7 +204,10 @@ public class SkinManager {
     }
 
     public static void handleBedrockSkin(PlayerEntity playerEntity, BedrockClientData clientData) {
-        GeyserConnector.getInstance().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.skin.bedrock.register", playerEntity.getUsername(), playerEntity.getUuid()));
+        GeyserConnector connector = GeyserConnector.getInstance();
+        if (connector.getConfig().isDebugMode()) {
+            connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.skin.bedrock.register", playerEntity.getUsername(), playerEntity.getUuid()));
+        }
 
         try {
             byte[] skinBytes = Base64.getDecoder().decode(clientData.getSkinData().getBytes(StandardCharsets.UTF_8));
@@ -218,9 +219,9 @@ public class SkinManager {
             if (skinBytes.length <= (128 * 128 * 4) && !clientData.isPersonaSkin()) {
                 SkinProvider.storeBedrockSkin(playerEntity.getUuid(), clientData.getSkinId(), skinBytes);
                 SkinProvider.storeBedrockGeometry(playerEntity.getUuid(), geometryNameBytes, geometryBytes);
-            } else {
-                GeyserConnector.getInstance().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.skin.bedrock.fail", playerEntity.getUsername()));
-                GeyserConnector.getInstance().getLogger().debug("The size of '" + playerEntity.getUsername() + "' skin is: " + clientData.getSkinImageWidth() + "x" + clientData.getSkinImageHeight());
+            } else if (connector.getConfig().isDebugMode()) {
+                connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.skin.bedrock.fail", playerEntity.getUsername()));
+                connector.getLogger().debug("The size of '" + playerEntity.getUsername() + "' skin is: " + clientData.getSkinImageWidth() + "x" + clientData.getSkinImageHeight());
             }
 
             if (!clientData.getCapeId().equals("")) {
@@ -231,13 +232,7 @@ public class SkinManager {
         }
     }
 
-    @AllArgsConstructor
-    @Getter
-    public static class GameProfileData {
-        private final String skinUrl;
-        private final String capeUrl;
-        private final boolean alex;
-
+    public record GameProfileData(String skinUrl, String capeUrl, boolean isAlex) {
         /**
          * Generate the GameProfileData from the given GameProfile
          *

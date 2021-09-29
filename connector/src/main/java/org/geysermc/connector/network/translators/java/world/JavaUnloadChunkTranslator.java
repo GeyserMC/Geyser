@@ -37,7 +37,7 @@ import java.util.Iterator;
 public class JavaUnloadChunkTranslator extends PacketTranslator<ServerUnloadChunkPacket> {
 
     @Override
-    public void translate(ServerUnloadChunkPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerUnloadChunkPacket packet) {
         session.getChunkCache().removeChunk(packet.getX(), packet.getZ());
 
         //Checks if a skull is in an unloaded chunk then removes it
@@ -50,12 +50,14 @@ public class JavaUnloadChunkTranslator extends PacketTranslator<ServerUnloadChun
             }
         }
 
-        // Do the same thing with lecterns
-        iterator = session.getLecternCache().iterator();
-        while (iterator.hasNext()) {
-            Vector3i position = iterator.next();
-            if ((position.getX() >> 4) == packet.getX() && (position.getZ() >> 4) == packet.getZ()) {
-                iterator.remove();
+        if (!session.getConnector().getWorldManager().shouldExpectLecternHandled()) {
+            // Do the same thing with lecterns
+            iterator = session.getLecternCache().iterator();
+            while (iterator.hasNext()) {
+                Vector3i position = iterator.next();
+                if ((position.getX() >> 4) == packet.getX() && (position.getZ() >> 4) == packet.getZ()) {
+                    iterator.remove();
+                }
             }
         }
     }

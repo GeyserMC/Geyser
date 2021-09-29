@@ -38,7 +38,7 @@ import org.geysermc.connector.utils.DimensionUtils;
 public class JavaSpawnPositionTranslator extends PacketTranslator<ServerSpawnPositionPacket> {
 
     @Override
-    public void translate(ServerSpawnPositionPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerSpawnPositionPacket packet) {
         SetSpawnPositionPacket spawnPositionPacket = new SetSpawnPositionPacket();
         spawnPositionPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
         spawnPositionPacket.setSpawnForced(true);

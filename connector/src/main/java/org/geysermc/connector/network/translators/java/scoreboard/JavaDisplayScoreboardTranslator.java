@@ -34,7 +34,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class JavaDisplayScoreboardTranslator extends PacketTranslator<ServerDisplayScoreboardPacket> {
 
     @Override
-    public void translate(ServerDisplayScoreboardPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerDisplayScoreboardPacket packet) {
         session.getWorldCache().getScoreboard()
                 .displayObjective(packet.getName(), packet.getPosition());
     }

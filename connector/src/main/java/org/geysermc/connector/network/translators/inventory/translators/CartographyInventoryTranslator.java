@@ -59,42 +59,32 @@ public class CartographyInventoryTranslator extends AbstractBlockInventoryTransl
 
     @Override
     public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
-        switch (slotInfoData.getContainer()) {
-            case CARTOGRAPHY_INPUT:
-                return 0;
-            case CARTOGRAPHY_ADDITIONAL:
-                return 1;
-            case CARTOGRAPHY_RESULT:
-            case CREATIVE_OUTPUT:
-                return 2;
-        }
-        return super.bedrockSlotToJava(slotInfoData);
+        return switch (slotInfoData.getContainer()) {
+            case CARTOGRAPHY_INPUT -> 0;
+            case CARTOGRAPHY_ADDITIONAL -> 1;
+            case CARTOGRAPHY_RESULT, CREATIVE_OUTPUT -> 2;
+            default -> super.bedrockSlotToJava(slotInfoData);
+        };
     }
 
     @Override
     public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
-        switch (slot) {
-            case 0:
-                return new BedrockContainerSlot(ContainerSlotType.CARTOGRAPHY_INPUT, 12);
-            case 1:
-                return new BedrockContainerSlot(ContainerSlotType.CARTOGRAPHY_ADDITIONAL, 13);
-            case 2:
-                return new BedrockContainerSlot(ContainerSlotType.CARTOGRAPHY_RESULT, 50);
-        }
-        return super.javaSlotToBedrockContainer(slot);
+        return switch (slot) {
+            case 0 -> new BedrockContainerSlot(ContainerSlotType.CARTOGRAPHY_INPUT, 12);
+            case 1 -> new BedrockContainerSlot(ContainerSlotType.CARTOGRAPHY_ADDITIONAL, 13);
+            case 2 -> new BedrockContainerSlot(ContainerSlotType.CARTOGRAPHY_RESULT, 50);
+            default -> super.javaSlotToBedrockContainer(slot);
+        };
     }
 
     @Override
     public int javaSlotToBedrock(int slot) {
-        switch (slot) {
-            case 0:
-                return 12;
-            case 1:
-                return 13;
-            case 2:
-                return 50;
-        }
-        return super.javaSlotToBedrock(slot);
+        return switch (slot) {
+            case 0 -> 12;
+            case 1 -> 13;
+            case 2 -> 50;
+            default -> super.javaSlotToBedrock(slot);
+        };
     }
 
     @Override

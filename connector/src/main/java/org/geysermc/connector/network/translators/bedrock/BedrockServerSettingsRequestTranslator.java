@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 @Translator(packet = ServerSettingsRequestPacket.class)
 public class BedrockServerSettingsRequestTranslator extends PacketTranslator<ServerSettingsRequestPacket> {
     @Override
-    public void translate(ServerSettingsRequestPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerSettingsRequestPacket packet) {
         CustomForm window = SettingsUtils.buildForm(session);
         int windowId = session.getFormCache().addForm(window);
 

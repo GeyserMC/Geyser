@@ -59,23 +59,14 @@ public class CatEntity extends TameableEntity {
         }
         if (entityMetadata.getId() == 19) {
             // Different colors in Java and Bedrock for some reason
-            int variantColor;
-            switch ((int) entityMetadata.getValue()) {
-                case 0:
-                    variantColor = 8;
-                    break;
-                case 8:
-                    variantColor = 0;
-                    break;
-                case 9:
-                    variantColor = 10;
-                    break;
-                case 10:
-                    variantColor = 9;
-                    break;
-                default:
-                    variantColor = (int) entityMetadata.getValue();
-            }
+            int metadataValue = (int) entityMetadata.getValue();
+            int variantColor = switch (metadataValue) {
+                case 0 -> 8;
+                case 8 -> 0;
+                case 9 -> 10;
+                case 10 -> 9;
+                default -> metadataValue;
+            };
             metadata.put(EntityData.VARIANT, variantColor);
         }
         if (entityMetadata.getId() == 20) {

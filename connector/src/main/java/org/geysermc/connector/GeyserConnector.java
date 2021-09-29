@@ -34,6 +34,8 @@ import com.nukkitx.network.util.EventLoops;
 import com.nukkitx.protocol.bedrock.BedrockServer;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.kqueue.KQueue;
+import io.netty.util.NettyRuntime;
+import io.netty.util.internal.SystemPropertyUtil;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.common.PlatformType;
@@ -44,6 +46,7 @@ import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
@@ -151,6 +154,7 @@ public class GeyserConnector {
         Registries.init();
 
         ItemTranslator.init();
+        MessageTranslator.init();
         LocaleUtils.init();
         ScoreboardUpdater.init();
 
@@ -233,10 +237,16 @@ public class GeyserConnector {
         RakNetConstants.MAXIMUM_MTU_SIZE = (short) config.getMtu();
         logger.debug("Setting MTU to " + config.getMtu());
 
+        Integer bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads");
+        if (bedrockThreadCount == null) {
+            // Copy the code from Netty's default thread count fallback
+            bedrockThreadCount = Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));
+        }
+
         boolean enableProxyProtocol = config.getBedrock().isEnableProxyProtocol();
         bedrockServer = new BedrockServer(
                 new InetSocketAddress(config.getBedrock().getAddress(), config.getBedrock().getPort()),
-                1,
+                bedrockThreadCount,
                 EventLoops.commonGroup(),
                 enableProxyProtocol
         );
@@ -376,38 +386,7 @@ public class GeyserConnector {
             logger.warning(LanguageUtils.getLocaleStringLog("geyser.core.movement_warn"));
         }
 
-        checkForOutdatedJava();
-
         newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
-    }
-
-    private void checkForOutdatedJava() {
-        final int supportedJavaVersion = 16;
-        // Taken from Paper
-        String javaVersion = System.getProperty("java.version");
-        Matcher matcher = Pattern.compile("(?:1\\.)?(\\d+)").matcher(javaVersion);
-        if (!matcher.find()) {
-            getLogger().debug("Could not parse Java version string " + javaVersion);
-            return;
-        }
-
-        String version = matcher.group(1);
-        int majorVersion;
-        try {
-            majorVersion = Integer.parseInt(version);
-        } catch (NumberFormatException e) {
-            getLogger().debug("Could not format as an int: " + version);
-            return;
-        }
-
-        if (majorVersion < supportedJavaVersion) {
-            getLogger().warning("*********************************************");
-            getLogger().warning("");
-            getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.unsupported_java.header"));
-            getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.unsupported_java.message", supportedJavaVersion, javaVersion));
-            getLogger().warning("");
-            getLogger().warning("*********************************************");
-        }
     }
 
     public void shutdown() {

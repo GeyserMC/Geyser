@@ -40,7 +40,7 @@ import org.geysermc.connector.utils.ChunkUtils;
 public class JavaPlayerActionAckTranslator extends PacketTranslator<ServerPlayerActionAckPacket> {
 
     @Override
-    public void translate(ServerPlayerActionAckPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerPlayerActionAckPacket packet) {
         ChunkUtils.updateBlock(session, packet.getNewState(), packet.getPosition());
         if (packet.getAction() == PlayerAction.START_DIGGING && !packet.isSuccessful()) {
             LevelEventPacket stopBreak = new LevelEventPacket();

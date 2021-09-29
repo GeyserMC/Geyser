@@ -27,7 +27,6 @@ package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
 /**
@@ -52,19 +51,8 @@ public class PistonBlockEntityTranslator {
      * @return Bedrock tag of piston.
      */
     public static NbtMap getTag(int blockState, Vector3i position) {
-        NbtMapBuilder tagBuilder = NbtMap.builder()
-                .putInt("x", position.getX())
-                .putInt("y", position.getY())
-                .putInt("z", position.getZ())
-                .putByte("isMovable", (byte) 1)
-                .putString("id", "PistonArm");
-
         boolean extended = BlockStateValues.getPistonValues().get(blockState);
-        // 1f if extended, otherwise 0f
-        tagBuilder.putFloat("Progress", (extended) ? 1.0f : 0.0f);
-        // 1 if sticky, 0 if not
-        tagBuilder.putByte("Sticky", (byte) ((BlockStateValues.isStickyPiston(blockState)) ? 1 : 0));
-
-        return tagBuilder.build();
+        boolean sticky = BlockStateValues.isStickyPiston(blockState);
+        return PistonBlockEntity.buildStaticPistonTag(position, extended, sticky);
     }
 }

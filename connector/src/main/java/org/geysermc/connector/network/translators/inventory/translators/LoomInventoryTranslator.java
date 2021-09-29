@@ -125,10 +125,9 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
     public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         // TODO: I anticipate this will be changed in the future to use something non-deprecated. Keep an eye out.
         StackRequestActionData data = request.getActions()[1];
-        if (!(data instanceof CraftResultsDeprecatedStackRequestActionData)) {
+        if (!(data instanceof CraftResultsDeprecatedStackRequestActionData craftData)) {
             return rejectRequest(request);
         }
-        CraftResultsDeprecatedStackRequestActionData craftData = (CraftResultsDeprecatedStackRequestActionData) data;
 
         // Get the patterns compound tag
         List<NbtMap> newBlockEntityTag = craftData.getResultItems()[0].getTag().getList("Patterns", NbtType.COMPOUND);
@@ -177,48 +176,35 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
 
     @Override
     public int bedrockSlotToJava(StackRequestSlotInfoData slotInfoData) {
-        switch (slotInfoData.getContainer()) {
-            case LOOM_INPUT:
-                return 0;
-            case LOOM_DYE:
-                return 1;
-            case LOOM_MATERIAL:
-                return 2;
-            case LOOM_RESULT:
-            case CREATIVE_OUTPUT:
-                return 3;
-        }
-        return super.bedrockSlotToJava(slotInfoData);
+        return switch (slotInfoData.getContainer()) {
+            case LOOM_INPUT -> 0;
+            case LOOM_DYE -> 1;
+            case LOOM_MATERIAL -> 2;
+            case LOOM_RESULT, CREATIVE_OUTPUT -> 3;
+            default -> super.bedrockSlotToJava(slotInfoData);
+        };
     }
 
     @Override
     public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
-        switch (slot) {
-            case 0:
-                return new BedrockContainerSlot(ContainerSlotType.LOOM_INPUT, 9);
-            case 1:
-                return new BedrockContainerSlot(ContainerSlotType.LOOM_DYE, 10);
-            case 2:
-                return new BedrockContainerSlot(ContainerSlotType.LOOM_MATERIAL, 11);
-            case 3:
-                return new BedrockContainerSlot(ContainerSlotType.LOOM_RESULT, 50);
-        }
-        return super.javaSlotToBedrockContainer(slot);
+        return switch (slot) {
+            case 0 -> new BedrockContainerSlot(ContainerSlotType.LOOM_INPUT, 9);
+            case 1 -> new BedrockContainerSlot(ContainerSlotType.LOOM_DYE, 10);
+            case 2 -> new BedrockContainerSlot(ContainerSlotType.LOOM_MATERIAL, 11);
+            case 3 -> new BedrockContainerSlot(ContainerSlotType.LOOM_RESULT, 50);
+            default -> super.javaSlotToBedrockContainer(slot);
+        };
     }
 
     @Override
     public int javaSlotToBedrock(int slot) {
-        switch (slot) {
-            case 0:
-                return 9;
-            case 1:
-                return 10;
-            case 2:
-                return 11;
-            case 3:
-                return 50;
-        }
-        return super.javaSlotToBedrock(slot);
+        return switch (slot) {
+            case 0 -> 9;
+            case 1 -> 10;
+            case 2 -> 11;
+            case 3 -> 50;
+            default -> super.javaSlotToBedrock(slot);
+        };
     }
 
     @Override

@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.registry;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -34,7 +33,7 @@ import org.geysermc.connector.registry.loader.RegistryLoaders;
 import org.geysermc.connector.registry.populator.BlockRegistryPopulator;
 import org.geysermc.connector.registry.type.BlockMapping;
 import org.geysermc.connector.registry.type.BlockMappings;
-import org.geysermc.connector.utils.Object2IntBiMap;
+import org.geysermc.connector.utils.collections.Object2IntBiMap;
 
 /**
  * Holds all the block registries in Geyser.
@@ -52,10 +51,10 @@ public class BlockRegistries {
     public static final SimpleMappedRegistry<String, String> JAVA_TO_BEDROCK_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
-     * A mapped registry which stores Java IDs to {@link BlockMapping}, containing miscellaneous information about
+     * A registry which stores Java IDs to {@link BlockMapping}, containing miscellaneous information about
      * blocks and their behavior in many cases.
      */
-    public static final MappedRegistry<Integer, BlockMapping, Int2ObjectMap<BlockMapping>> JAVA_BLOCKS = MappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
+    public static final ArrayRegistry<BlockMapping> JAVA_BLOCKS = ArrayRegistry.create(RegistryLoaders.empty(() -> new BlockMapping[] {}));
 
     /**
      * A (bi)mapped registry containing the Java IDs to identifiers.

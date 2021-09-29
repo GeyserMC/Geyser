@@ -46,7 +46,7 @@ import java.lang.reflect.InvocationTargetException;
 public class JavaSpawnEntityTranslator extends PacketTranslator<ServerSpawnEntityPacket> {
 
     @Override
-    public void translate(ServerSpawnEntityPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerSpawnEntityPacket packet) {
 
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f motion = Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());

@@ -45,7 +45,7 @@ import org.geysermc.connector.utils.BlockEntityUtils;
 public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdateTileEntityPacket> {
 
     @Override
-    public void translate(ServerUpdateTileEntityPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerUpdateTileEntityPacket packet) {
         String id = BlockEntityUtils.getBedrockBlockEntityId(packet.getType().name());
         if (packet.getNbt().isEmpty()) { // Fixes errors in servers sending empty NBT
             BlockEntityUtils.updateBlockEntity(session, NbtMap.EMPTY, packet.getPosition());

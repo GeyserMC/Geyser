@@ -46,7 +46,7 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
     private final GeyserLogger LOGGER = GeyserConnector.getInstance().getLogger();
 
     @Override
-    public void translate(ServerTeamPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerTeamPacket packet) {
         if (LOGGER.isDebug()) {
             LOGGER.debug("Team packet " + packet.getTeamName() + " " + packet.getAction() + " " + Arrays.toString(packet.getPlayers()));
         }
@@ -60,15 +60,13 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
         Scoreboard scoreboard = session.getWorldCache().getScoreboard();
         Team team = scoreboard.getTeam(packet.getTeamName());
         switch (packet.getAction()) {
-            case CREATE:
-                scoreboard.registerNewTeam(packet.getTeamName(), packet.getPlayers())
-                        .setName(MessageTranslator.convertMessage(packet.getDisplayName()))
-                        .setColor(packet.getColor())
-                        .setNameTagVisibility(packet.getNameTagVisibility())
-                        .setPrefix(MessageTranslator.convertMessage(packet.getPrefix(), session.getLocale()))
-                        .setSuffix(MessageTranslator.convertMessage(packet.getSuffix(), session.getLocale()));
-                break;
-            case UPDATE:
+            case CREATE -> scoreboard.registerNewTeam(packet.getTeamName(), packet.getPlayers())
+                    .setName(MessageTranslator.convertMessage(packet.getDisplayName()))
+                    .setColor(packet.getColor())
+                    .setNameTagVisibility(packet.getNameTagVisibility())
+                    .setPrefix(MessageTranslator.convertMessage(packet.getPrefix(), session.getLocale()))
+                    .setSuffix(MessageTranslator.convertMessage(packet.getSuffix(), session.getLocale()));
+            case UPDATE -> {
                 if (team == null) {
                     LOGGER.debug(LanguageUtils.getLocaleStringLog(
                             "geyser.network.translator.team.failed_not_registered",
@@ -83,8 +81,8 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
                         .setPrefix(MessageTranslator.convertMessage(packet.getPrefix(), session.getLocale()))
                         .setSuffix(MessageTranslator.convertMessage(packet.getSuffix(), session.getLocale()))
                         .setUpdateType(UpdateType.UPDATE);
-                break;
-            case ADD_PLAYER:
+            }
+            case ADD_PLAYER -> {
                 if (team == null) {
                     LOGGER.debug(LanguageUtils.getLocaleStringLog(
                             "geyser.network.translator.team.failed_not_registered",
@@ -93,8 +91,8 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
                     return;
                 }
                 team.addEntities(packet.getPlayers());
-                break;
-            case REMOVE_PLAYER:
+            }
+            case REMOVE_PLAYER -> {
                 if (team == null) {
                     LOGGER.debug(LanguageUtils.getLocaleStringLog(
                             "geyser.network.translator.team.failed_not_registered",
@@ -103,10 +101,8 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
                     return;
                 }
                 team.removeEntities(packet.getPlayers());
-                break;
-            case REMOVE:
-                scoreboard.removeTeam(packet.getTeamName());
-                break;
+            }
+            case REMOVE -> scoreboard.removeTeam(packet.getTeamName());
         }
 
         // ScoreboardUpdater will handle it for us if the packets per second

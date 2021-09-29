@@ -88,7 +88,9 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
-        connector.getLogger().debug(LanguageUtils.getLocaleStringLog("geyser.network.pinged", inetSocketAddress));
+        if (connector.getConfig().isDebugMode()) {
+            connector.getLogger().debug(LanguageUtils.getLocaleStringLog("geyser.network.pinged", inetSocketAddress));
+        }
 
         GeyserConfiguration config = connector.getConfig();
 
@@ -127,10 +129,10 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         }
 
         // Fallbacks to prevent errors and allow Bedrock to see the server
-        if (pong.getMotd() == null || pong.getMotd().trim().isEmpty()) {
+        if (pong.getMotd() == null || pong.getMotd().isBlank()) {
             pong.setMotd(GeyserConnector.NAME);
         }
-        if (pong.getSubMotd() == null || pong.getSubMotd().trim().isEmpty()) {
+        if (pong.getSubMotd() == null || pong.getSubMotd().isBlank()) {
             // Sub-MOTD cannot be empty as of 1.16.210.59
             pong.setSubMotd(GeyserConnector.NAME);
         }

@@ -51,14 +51,13 @@ import java.util.List;
 public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPacket> {
 
     @Override
-    public void translate(ServerTradeListPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerTradeListPacket packet) {
         Inventory openInventory = session.getOpenInventory();
-        if (!(openInventory instanceof MerchantContainer && openInventory.getId() == packet.getWindowId())) {
+        if (!(openInventory instanceof MerchantContainer merchantInventory && openInventory.getId() == packet.getWindowId())) {
             return;
         }
 
         // Retrieve the fake villager involved in the trade, and update its metadata to match with the window information
-        MerchantContainer merchantInventory = (MerchantContainer) openInventory;
         merchantInventory.setVillagerTrades(packet.getTrades());
         Entity villager = merchantInventory.getVillager();
         villager.getMetadata().put(EntityData.TRADE_TIER, packet.getVillagerLevel() - 1);

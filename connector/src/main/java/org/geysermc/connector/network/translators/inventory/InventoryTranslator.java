@@ -159,21 +159,14 @@ public abstract class InventoryTranslator {
                     // Some special request that shouldn't be processed normally
                     response = translateSpecialRequest(session, inventory, request);
                 } else {
-                    switch (firstAction.getType()) {
-                        case CRAFT_RECIPE:
-                            response = translateCraftingRequest(session, inventory, request);
-                            break;
-                        case CRAFT_RECIPE_AUTO:
-                            response = translateAutoCraftingRequest(session, inventory, request);
-                            break;
-                        case CRAFT_CREATIVE:
-                            // This is also used for pulling items out of creative
-                            response = translateCreativeRequest(session, inventory, request);
-                            break;
-                        default:
-                            response = translateRequest(session, inventory, request);
-                            break;
-                    }
+                    response = switch (firstAction.getType()) {
+                        case CRAFT_RECIPE -> translateCraftingRequest(session, inventory, request);
+                        case CRAFT_RECIPE_AUTO -> translateAutoCraftingRequest(session, inventory, request);
+                        case CRAFT_CREATIVE ->
+                                // This is also used for pulling items out of creative
+                                translateCreativeRequest(session, inventory, request);
+                        default -> translateRequest(session, inventory, request);
+                    };
                 }
             } else {
                 response = rejectRequest(request);
@@ -572,7 +565,7 @@ public abstract class InventoryTranslator {
                     }
 
                     switch (recipe.getType()) {
-                        case CRAFTING_SHAPED:
+                        case CRAFTING_SHAPED -> {
                             ShapedRecipeData shapedData = (ShapedRecipeData) recipe.getData();
                             ingredients = shapedData.getIngredients();
                             recipeWidth = shapedData.getWidth();
@@ -580,8 +573,8 @@ public abstract class InventoryTranslator {
                             if (shapedData.getWidth() > gridDimensions || shapedData.getHeight() > gridDimensions) {
                                 return rejectRequest(request);
                             }
-                            break;
-                        case CRAFTING_SHAPELESS:
+                        }
+                        case CRAFTING_SHAPELESS -> {
                             ShapelessRecipeData shapelessData = (ShapelessRecipeData) recipe.getData();
                             ingredients = shapelessData.getIngredients();
                             recipeWidth = gridDimensions;
@@ -589,7 +582,7 @@ public abstract class InventoryTranslator {
                             if (ingredients.length > gridSize) {
                                 return rejectRequest(request);
                             }
-                            break;
+                        }
                     }
                     break;
                 }

@@ -44,7 +44,7 @@ public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerSc
     private final GeyserLogger logger = GeyserConnector.getInstance().getLogger();
 
     @Override
-    public void translate(ServerScoreboardObjectivePacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerScoreboardObjectivePacket packet) {
         WorldCache worldCache = session.getWorldCache();
         Scoreboard scoreboard = worldCache.getScoreboard();
         int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();
@@ -61,14 +61,9 @@ public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerSc
         }
 
         switch (packet.getAction()) {
-            case ADD:
-            case UPDATE:
-                objective.setDisplayName(MessageTranslator.convertMessage(packet.getDisplayName()))
-                        .setType(packet.getType().ordinal());
-                break;
-            case REMOVE:
-                scoreboard.unregisterObjective(packet.getName());
-                break;
+            case ADD, UPDATE -> objective.setDisplayName(MessageTranslator.convertMessage(packet.getDisplayName()))
+                    .setType(packet.getType().ordinal());
+            case REMOVE -> scoreboard.unregisterObjective(packet.getName());
         }
 
         if (objective == null || !objective.isActive()) {

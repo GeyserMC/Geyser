@@ -35,6 +35,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
+import com.nukkitx.protocol.bedrock.v448.Bedrock_v465;
 import lombok.Getter;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -85,10 +86,14 @@ public class ItemFrameEntity extends Entity {
         NbtMapBuilder blockBuilder = NbtMap.builder()
                 .putString("name", this.entityType == EntityType.GLOW_ITEM_FRAME ? "minecraft:glow_frame" : "minecraft:frame")
                 .putInt("version", session.getBlockMappings().getBlockStateVersion());
-        blockBuilder.put("states", NbtMap.builder()
+        NbtMapBuilder statesBuilder = NbtMap.builder()
                 .putInt("facing_direction", direction.ordinal())
-                .putByte("item_frame_map_bit", (byte) 0)
-                .build());
+                .putByte("item_frame_map_bit", (byte) 0);
+        if (session.getUpstream().getProtocolVersion() >= Bedrock_v465.V465_CODEC.getProtocolVersion()) {
+            statesBuilder.putByte("item_frame_photo_bit", (byte) 0);
+        }
+        blockBuilder.put("states", statesBuilder.build());
+
         bedrockRuntimeId = session.getBlockMappings().getItemFrame(blockBuilder.build());
         bedrockPosition = Vector3i.from(position.getFloorX(), position.getFloorY(), position.getFloorZ());
 

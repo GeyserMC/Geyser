@@ -121,8 +121,9 @@ public class ItemMappings {
                     }
                 } else {
                     if (!(mapping.getBedrockData() == data.getDamage() ||
-                            // Make exceptions for potions and tipped arrows, whose damage values can vary
-                            (mapping.getJavaIdentifier().endsWith("potion") || mapping.getJavaIdentifier().equals("minecraft:arrow")))) {
+                            // Make exceptions for potions, tipped arrows, and firework stars, whose damage values can vary
+                            (mapping.getJavaIdentifier().endsWith("potion") || mapping.getJavaIdentifier().equals("minecraft:arrow")
+                                    || mapping.getJavaIdentifier().equals("minecraft:firework_star")))) {
                         continue;
                     }
                 }

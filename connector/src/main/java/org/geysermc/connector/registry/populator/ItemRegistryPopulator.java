@@ -35,8 +35,8 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import com.nukkitx.protocol.bedrock.v440.Bedrock_v440;
 import com.nukkitx.protocol.bedrock.v448.Bedrock_v448;
+import com.nukkitx.protocol.bedrock.v448.Bedrock_v465;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -67,29 +67,10 @@ public class ItemRegistryPopulator {
         if (GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
             PALETTE_VERSIONS.put("1_17_10.caves_and_cliffs", new PaletteVersion(Bedrock_v448.V448_CODEC.getProtocolVersion(), Collections.emptyMap()));
         } else {
-            PALETTE_VERSIONS.put("1_17_0", new PaletteVersion(Bedrock_v440.V440_CODEC.getProtocolVersion(), new Object2ObjectOpenHashMap<String, String>() {
-                {
-                    put("minecraft:candle", "minecraft:sea_pickle");
-                    put("minecraft:white_candle", "minecraft:sea_pickle");
-                    put("minecraft:orange_candle", "minecraft:sea_pickle");
-                    put("minecraft:magenta_candle", "minecraft:sea_pickle");
-                    put("minecraft:light_blue_candle", "minecraft:sea_pickle");
-                    put("minecraft:yellow_candle", "minecraft:sea_pickle");
-                    put("minecraft:lime_candle", "minecraft:sea_pickle");
-                    put("minecraft:pink_candle", "minecraft:sea_pickle");
-                    put("minecraft:gray_candle", "minecraft:sea_pickle");
-                    put("minecraft:light_gray_candle", "minecraft:sea_pickle");
-                    put("minecraft:cyan_candle", "minecraft:sea_pickle");
-                    put("minecraft:purple_candle", "minecraft:sea_pickle");
-                    put("minecraft:blue_candle", "minecraft:sea_pickle");
-                    put("minecraft:brown_candle", "minecraft:sea_pickle");
-                    put("minecraft:green_candle", "minecraft:sea_pickle");
-                    put("minecraft:red_candle", "minecraft:sea_pickle");
-                    put("minecraft:black_candle", "minecraft:sea_pickle");
-                }
-            }));
             PALETTE_VERSIONS.put("1_17_10", new PaletteVersion(Bedrock_v448.V448_CODEC.getProtocolVersion(), Collections.emptyMap()));
         }
+
+        PALETTE_VERSIONS.put("1_17_30", new PaletteVersion(Bedrock_v465.V465_CODEC.getProtocolVersion(), Collections.emptyMap()));
     }
 
     @Getter
@@ -106,7 +87,7 @@ public class ItemRegistryPopulator {
         // Load item mappings from Java Edition to Bedrock Edition
         InputStream stream = FileUtils.getResource("mappings/items.json");
 
-        TypeReference<Map<String, GeyserMappingItem>> mappingItemsType = new TypeReference<Map<String, GeyserMappingItem>>() { };
+        TypeReference<Map<String, GeyserMappingItem>> mappingItemsType = new TypeReference<>() { };
 
         Map<String, GeyserMappingItem> items;
         try {
@@ -119,7 +100,7 @@ public class ItemRegistryPopulator {
         for (Map.Entry<String, PaletteVersion> palette : PALETTE_VERSIONS.entrySet()) {
             stream = FileUtils.getResource(String.format("bedrock/runtime_item_states.%s.json", palette.getKey()));
 
-            TypeReference<List<PaletteItem>> paletteEntriesType = new TypeReference<List<PaletteItem>>() { };
+            TypeReference<List<PaletteItem>> paletteEntriesType = new TypeReference<>() {};
 
             // Used to get the Bedrock namespaced ID (in instances where there are small differences)
             Object2IntMap<String> bedrockIdentifierToId = new Object2IntOpenHashMap<>();
@@ -489,9 +470,17 @@ public class ItemRegistryPopulator {
                 builder.putString("name", "geysermc:furnace_minecart")
                         .putInt("id", furnaceMinecartId);
 
+                NbtMapBuilder itemProperties = NbtMap.builder();
+
                 NbtMapBuilder componentBuilder = NbtMap.builder();
                 // Conveniently, as of 1.16.200, the furnace minecart has a texture AND translation string already.
-                componentBuilder.putCompound("minecraft:icon", NbtMap.builder().putString("texture", "minecart_furnace").build());
+                // 1.17.30 moves the icon to the item properties section
+                (palette.getValue().getProtocolVersion() >= Bedrock_v465.V465_CODEC.getProtocolVersion() ?
+                        itemProperties : componentBuilder).putCompound("minecraft:icon", NbtMap.builder()
+                        .putString("texture", "minecart_furnace")
+                        .putString("frame", "0.000000")
+                        .putInt("frame_version", 1)
+                        .putString("legacy_id", "").build());
                 componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", "item.minecartFurnace.name").build());
 
                 // Indicate that the arm animation should play on rails
@@ -502,7 +491,6 @@ public class ItemRegistryPopulator {
                         .putList("use_on", NbtType.COMPOUND, useOnTag)
                         .build());
 
-                NbtMapBuilder itemProperties = NbtMap.builder();
                 // We always want to allow offhand usage when we can - matches Java Edition
                 itemProperties.putBoolean("allow_off_hand", true);
                 itemProperties.putBoolean("hand_equipped", false);

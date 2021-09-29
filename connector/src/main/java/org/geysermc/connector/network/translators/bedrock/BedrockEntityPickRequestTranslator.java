@@ -42,7 +42,7 @@ import org.geysermc.connector.utils.InventoryUtils;
 public class BedrockEntityPickRequestTranslator extends PacketTranslator<EntityPickRequestPacket> {
 
     @Override
-    public void translate(EntityPickRequestPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, EntityPickRequestPacket packet) {
         if (session.getGameMode() != GameMode.CREATIVE) return; // Apparently Java behavior
         Entity entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
         if (entity == null) return;
@@ -50,59 +50,30 @@ public class BedrockEntityPickRequestTranslator extends PacketTranslator<EntityP
         // Get the corresponding item
         String itemName;
         switch (entity.getEntityType()) {
-            case BOAT:
+            case BOAT -> {
                 // Include type of boat in the name
                 int variant = entity.getMetadata().getInt(EntityData.VARIANT);
-                String typeOfBoat;
-                switch (variant) {
-                    case 1:
-                        typeOfBoat = "spruce";
-                        break;
-                    case 2:
-                        typeOfBoat = "birch";
-                        break;
-                    case 3:
-                        typeOfBoat = "jungle";
-                        break;
-                    case 4:
-                        typeOfBoat = "acacia";
-                        break;
-                    case 5:
-                        typeOfBoat = "dark_oak";
-                        break;
-                    default:
-                        typeOfBoat = "oak";
-                        break;
-                }
+                String typeOfBoat = switch (variant) {
+                    case 1 -> "spruce";
+                    case 2 -> "birch";
+                    case 3 -> "jungle";
+                    case 4 -> "acacia";
+                    case 5 -> "dark_oak";
+                    default -> "oak";
+                };
                 itemName = typeOfBoat + "_boat";
-                break;
-            case LEASH_KNOT:
-                itemName = "lead";
-                break;
-            case MINECART_CHEST:
-            case MINECART_COMMAND_BLOCK:
-            case MINECART_FURNACE:
-            case MINECART_HOPPER:
-            case MINECART_TNT:
-                // Move MINECART to the end of the name
-                itemName = entity.getEntityType().toString().toLowerCase().replace("minecart_", "") + "_minecart";
-                break;
-            case MINECART_SPAWNER:
-                // Turns into a normal minecart
-                itemName = "minecart";
-                break;
-            case ARMOR_STAND:
-            case END_CRYSTAL:
-            //case ITEM_FRAME: Not an entity in Bedrock Edition
-            //case GLOW_ITEM_FRAME:
-            case MINECART:
-            case PAINTING:
-                // No spawn egg, just an item
-                itemName = entity.getEntityType().toString().toLowerCase();
-                break;
-            default:
-                itemName = entity.getEntityType().toString().toLowerCase() + "_spawn_egg";
-                break;
+            }
+            case LEASH_KNOT -> itemName = "lead";
+            case MINECART_CHEST, MINECART_COMMAND_BLOCK, MINECART_FURNACE, MINECART_HOPPER, MINECART_TNT ->
+                    // Move MINECART to the end of the name
+                    itemName = entity.getEntityType().toString().toLowerCase().replace("minecart_", "") + "_minecart";
+            case MINECART_SPAWNER -> itemName = "minecart"; // Turns into a normal minecart
+            //case ITEM_FRAME -> Not an entity in Bedrock Edition
+            //case GLOW_ITEM_FRAME ->
+            case ARMOR_STAND, END_CRYSTAL, MINECART, PAINTING ->
+                    // No spawn egg, just an item
+                    itemName = entity.getEntityType().toString().toLowerCase();
+            default -> itemName = entity.getEntityType().toString().toLowerCase() + "_spawn_egg";
         }
 
         String fullItemName = "minecraft:" + itemName;

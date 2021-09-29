@@ -43,7 +43,7 @@ import org.geysermc.connector.utils.DimensionUtils;
 public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket> {
 
     @Override
-    public void translate(ServerRespawnPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerRespawnPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         entity.setHealth(entity.getMaxHealth());

@@ -38,12 +38,14 @@ remote:
   # The IP address of the remote (Java Edition) server
   # If it is "auto", for standalone version the remote address will be set to 127.0.0.1,
   # for plugin versions, it is recommended to keep this as "auto" so Geyser will automatically configure address, port, and auth-type.
+  # Leave as "auto" if floodgate is installed.
   address: auto
   # The port of the remote (Java Edition) server
   # For plugin versions, if address has been set to "auto", the port will also follow the server's listening port.
   port: 25565
   # Authentication type. Can be offline, online, or floodgate (see https://github.com/GeyserMC/Geyser/wiki/Floodgate).
   # For plugin versions, it's recommended to keep the `address` field to "auto" so Floodgate support is automatically configured.
+  # If Floodgate is installed and `address:` is set to "auto", then "auth-type: floodgate" will automatically be used.
   auth-type: online
   # Allow for password-based authentication methods through Geyser. Only useful in online mode.
   # If this is false, users must authenticate to Microsoft using a code provided by Geyser on their desktop.
@@ -59,7 +61,6 @@ remote:
   forward-hostname: false
 
 # Allows the overworld world height to be extended from 0 - 255 to -64 - 319. This option cannot be changed during a reload.
-# 1.17.0-1.17.2 Bedrock clients cannot connect with this option enabled.
 # Performance issues and/or additional bugs may occur for Bedrock clients as this is an experimental toggle on their end.
 extended-world-height: false
 
@@ -193,7 +194,7 @@ enable-proxy-connections: false
 
 # The internet supports a maximum MTU of 1492 but could cause issues with packet fragmentation.
 # 1400 is the default.
-# mtu: 1400
+mtu: 1400
 
 # Whether to connect directly into the Java server without creating a TCP connection.
 # This should only be disabled if a plugin that interfaces with packets or the network does not work correctly with Geyser.

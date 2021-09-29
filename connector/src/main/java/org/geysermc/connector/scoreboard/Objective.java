@@ -77,14 +77,11 @@ public final class Objective {
     }
 
     private static String translateDisplaySlot(ScoreboardPosition displaySlot) {
-        switch (displaySlot) {
-            case BELOW_NAME:
-                return "belowname";
-            case PLAYER_LIST:
-                return "list";
-            default:
-                return "sidebar";
-        }
+        return switch (displaySlot) {
+            case BELOW_NAME -> "belowname";
+            case PLAYER_LIST -> "list";
+            default -> "sidebar";
+        };
     }
 
     public void registerScore(String id, int score) {

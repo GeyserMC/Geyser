@@ -35,7 +35,7 @@ import org.geysermc.connector.network.translators.Translator;
 public class JavaEntityRotationTranslator extends PacketTranslator<ServerEntityRotationPacket> {
 
     @Override
-    public void translate(ServerEntityRotationPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerEntityRotationPacket packet) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();

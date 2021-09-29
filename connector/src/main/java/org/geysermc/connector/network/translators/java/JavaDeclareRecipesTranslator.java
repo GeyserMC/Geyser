@@ -71,7 +71,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
     );
 
     @Override
-    public void translate(ServerDeclareRecipesPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, ServerDeclareRecipesPacket packet) {
         Map<RecipeType, List<CraftingData>> recipeTypes = Registries.CRAFTING_DATA.forVersion(session.getUpstream().getProtocolVersion());
         // Get the last known network ID (first used for the pregenerated recipes) and increment from there.
         int netId = InventoryUtils.LAST_RECIPE_NET_ID + 1;
@@ -82,7 +82,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
         craftingDataPacket.setCleanRecipes(true);
         for (Recipe recipe : packet.getRecipes()) {
             switch (recipe.getType()) {
-                case CRAFTING_SHAPELESS: {
+                case CRAFTING_SHAPELESS -> {
                     ShapelessRecipeData shapelessRecipeData = (ShapelessRecipeData) recipe.getData();
                     ItemData output = ItemTranslator.translateToBedrock(session, shapelessRecipeData.getResult());
                     // Strip NBT - tools won't appear in the recipe book otherwise
@@ -94,9 +94,8 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                                 Arrays.asList(inputs), Collections.singletonList(output), uuid, "crafting_table", 0, netId));
                         recipeMap.put(netId++, recipe);
                     }
-                    break;
                 }
-                case CRAFTING_SHAPED: {
+                case CRAFTING_SHAPED -> {
                     ShapedRecipeData shapedRecipeData = (ShapedRecipeData) recipe.getData();
                     ItemData output = ItemTranslator.translateToBedrock(session, shapedRecipeData.getResult());
                     // See above
@@ -106,12 +105,11 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                         UUID uuid = UUID.randomUUID();
                         craftingDataPacket.getCraftingData().add(CraftingData.fromShaped(uuid.toString(),
                                 shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), Arrays.asList(inputs),
-                                        Collections.singletonList(output), uuid, "crafting_table", 0, netId));
+                                Collections.singletonList(output), uuid, "crafting_table", 0, netId));
                         recipeMap.put(netId++, recipe);
                     }
-                    break;
                 }
-                case STONECUTTING: {
+                case STONECUTTING -> {
                     StoneCuttingRecipeData stoneCuttingData = (StoneCuttingRecipeData) recipe.getData();
                     ItemStack ingredient = stoneCuttingData.getIngredient().getOptions()[0];
                     List<StoneCuttingRecipeData> data = unsortedStonecutterData.get(ingredient.getId());
@@ -121,14 +119,12 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                     }
                     data.add(stoneCuttingData);
                     // Save for processing after all recipes have been received
-                    break;
                 }
-                default: {
+                default -> {
                     List<CraftingData> craftingData = recipeTypes.get(recipe.getType());
                     if (craftingData != null) {
                         craftingDataPacket.getCraftingData().addAll(craftingData);
                     }
-                    break;
                 }
             }
         }

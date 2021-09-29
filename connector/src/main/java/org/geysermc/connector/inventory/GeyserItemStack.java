@@ -33,6 +33,8 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.registry.type.ItemMapping;
 
+import javax.annotation.Nonnull;
+
 @Data
 public class GeyserItemStack {
     public static final GeyserItemStack EMPTY = new GeyserItemStack(0, 0, null);
@@ -42,26 +44,18 @@ public class GeyserItemStack {
     private CompoundTag nbt;
     private int netId;
 
-    public GeyserItemStack(int javaId) {
-        this(javaId, 1);
-    }
-
-    public GeyserItemStack(int javaId, int amount) {
-        this(javaId, amount, null);
-    }
-
-    public GeyserItemStack(int javaId, int amount, CompoundTag nbt) {
+    private GeyserItemStack(int javaId, int amount, CompoundTag nbt) {
         this(javaId, amount, nbt, 1);
     }
 
-    public GeyserItemStack(int javaId, int amount, CompoundTag nbt, int netId) {
+    private GeyserItemStack(int javaId, int amount, CompoundTag nbt, int netId) {
         this.javaId = javaId;
         this.amount = amount;
         this.nbt = nbt;
         this.netId = netId;
     }
 
-    public static GeyserItemStack from(ItemStack itemStack) {
+    public static @Nonnull GeyserItemStack from(ItemStack itemStack) {
         return itemStack == null ? EMPTY : new GeyserItemStack(itemStack.getId(), itemStack.getAmount(), itemStack.getNbt());
     }
 

@@ -276,6 +276,8 @@ public class LocaleUtils {
 
             // Delete the nolonger needed client/server jar
             Files.delete(tmpFilePath);
+
+            GeyserConnector.getInstance().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.locale.download.en_us.done"));
         } catch (Exception e) {
             GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.locale.fail.en_us"), e);
         }

@@ -70,7 +70,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     private static final float MAXIMUM_BLOCK_DESTROYING_DISTANCE = 36f;
 
     @Override
-    public void translate(InventoryTransactionPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, InventoryTransactionPacket packet) {
         // Send book updates before opening inventories
         session.getBookEditCache().checkForSend();
 
@@ -108,7 +108,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 break;
             case ITEM_USE:
                 switch (packet.getActionType()) {
-                    case 0:
+                    case 0 -> {
                         // Check to make sure the client isn't spamming interaction
                         // Based on Nukkit 1.0, with changes to ensure holding down still works
                         boolean hasAlreadyClicked = System.currentTimeMillis() - session.getLastInteractionTime() < 110.0 &&
@@ -144,22 +144,25 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         "Not in range" doesn't refer to how far a vanilla client goes (that's a whole other mess),
                         but how much a server will accept from the client maximum
                          */
+                        // Blocks cannot be placed or destroyed outside of the world border
+                        if (!session.getWorldBorder().isInsideBorderBoundaries()) {
+                            restoreCorrectBlock(session, blockPos, packet);
+                            return;
+                        }
+
                         // CraftBukkit+ check - see https://github.com/PaperMC/Paper/blob/458db6206daae76327a64f4e2a17b67a7e38b426/Spigot-Server-Patches/0532-Move-range-check-for-block-placing-up.patch
                         Vector3f playerPosition = session.getPlayerEntity().getPosition();
 
                         // Adjust position for current eye height
                         switch (session.getPose()) {
-                            case SNEAKING:
+                            case SNEAKING ->
                                 playerPosition = playerPosition.sub(0, (EntityType.PLAYER.getOffset() - 1.27f), 0);
-                                break;
-                            case SWIMMING:
-                            case FALL_FLYING: // Elytra
-                            case SPIN_ATTACK: // Trident spin attack
+                            case SWIMMING,
+                                FALL_FLYING, // Elytra
+                                SPIN_ATTACK -> // Trident spin attack
                                 playerPosition = playerPosition.sub(0, (EntityType.PLAYER.getOffset() - 0.4f), 0);
-                                break;
-                            case SLEEPING:
+                            case SLEEPING ->
                                 playerPosition = playerPosition.sub(0, (EntityType.PLAYER.getOffset() - 0.2f), 0);
-                                break;
                         } // else, we don't have to modify the position
 
                         float diffX = playerPosition.getX() - packet.getBlockPosition().getX();
@@ -232,11 +235,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         if (packet.getActions().isEmpty()) {
                             if (session.getOpPermissionLevel() >= 2 && session.getGameMode() == GameMode.CREATIVE) {
                                 // Otherwise insufficient permissions
-                                int blockState = session.getBlockMappings().getJavaBlockState(packet.getBlockRuntimeId());
-                                String blockName = BlockRegistries.JAVA_IDENTIFIERS.get().getOrDefault(blockState, "");
-                                // In the future this can be used for structure blocks too, however not all elements
-                                // are available in each GUI
-                                if (blockName.contains("jigsaw")) {
+                                if (session.getBlockMappings().getJigsawStateIds().contains(packet.getBlockRuntimeId())) {
                                     ContainerOpenPacket openPacket = new ContainerOpenPacket();
                                     openPacket.setBlockPosition(packet.getBlockPosition());
                                     openPacket.setId((byte) 1);
@@ -246,15 +245,14 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 }
                             }
                         }
-
                         ItemMapping handItem = mappings.getMapping(packet.getItemInHand());
                         if (handItem.isBlock()) {
                             session.setLastBlockPlacePosition(blockPos);
                             session.setLastBlockPlacedId(handItem.getJavaIdentifier());
                         }
                         session.setInteracting(true);
-                        break;
-                    case 1:
+                    }
+                    case 1 -> {
                         if (packet.getActions().size() == 1 && packet.getLegacySlots().size() > 0) {
                             InventoryActionData actionData = packet.getActions().get(0);
                             LegacySetItemSlotData slotData = packet.getLegacySlots().get(0);
@@ -284,8 +282,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
                         session.sendDownstreamPacket(useItemPacket);
-                        break;
-                    case 2:
+                    }
+                    case 2 -> {
                         int blockState = session.getGameMode() == GameMode.CREATIVE ?
                                 session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition()) : session.getBreakingBlock();
 
@@ -293,12 +291,17 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.setLastBlockPlacePosition(null);
 
                         // Same deal with vanilla block placing as above.
+                        if (!session.getWorldBorder().isInsideBorderBoundaries()) {
+                            restoreCorrectBlock(session, packet.getBlockPosition(), packet);
+                            return;
+                        }
+
                         // This is working out the distance using 3d Pythagoras and the extra value added to the Y is the sneaking height of a java player.
-                        playerPosition = session.getPlayerEntity().getPosition();
+                        Vector3f playerPosition = session.getPlayerEntity().getPosition();
                         Vector3f floatBlockPosition = packet.getBlockPosition().toFloat();
-                        diffX = playerPosition.getX() - (floatBlockPosition.getX() + 0.5f);
-                        diffY = (playerPosition.getY() - EntityType.PLAYER.getOffset()) - (floatBlockPosition.getY() + 0.5f) + 1.5f;
-                        diffZ = playerPosition.getZ() - (floatBlockPosition.getZ() + 0.5f);
+                        float diffX = playerPosition.getX() - (floatBlockPosition.getX() + 0.5f);
+                        float diffY = (playerPosition.getY() - EntityType.PLAYER.getOffset()) - (floatBlockPosition.getY() + 0.5f) + 1.5f;
+                        float diffZ = playerPosition.getZ() - (floatBlockPosition.getZ() + 0.5f);
                         float distanceSquared = diffX * diffX + diffY * diffY + diffZ * diffZ;
                         if (distanceSquared > MAXIMUM_BLOCK_DESTROYING_DISTANCE) {
                             restoreCorrectBlock(session, packet.getBlockPosition(), packet);
@@ -324,7 +327,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         Position pos = new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());
                         ClientPlayerActionPacket breakPacket = new ClientPlayerActionPacket(action, pos, BlockFace.values()[packet.getBlockFace()]);
                         session.sendDownstreamPacket(breakPacket);
-                        break;
+                    }
                 }
                 break;
             case ITEM_RELEASE:

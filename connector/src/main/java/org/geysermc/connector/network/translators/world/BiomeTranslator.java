@@ -56,39 +56,15 @@ public class BiomeTranslator {
             if (bedrockId == -1) {
                 // There is no matching Bedrock variation for this biome; let's set the closest match based on biome category
                 String category = ((StringTag) ((CompoundTag) biomeTag.get("element")).get("category")).getValue();
-                String replacementBiome;
-                switch (category) {
-                    case "extreme_hills":
-                        replacementBiome = "minecraft:mountains";
-                        break;
-                    case "icy":
-                        replacementBiome = "minecraft:ice_spikes";
-                        break;
-                    case "mesa":
-                        replacementBiome = "minecraft:badlands";
-                        break;
-                    case "mushroom":
-                        replacementBiome = "minecraft:mushroom_fields";
-                        break;
-                    case "nether":
-                        replacementBiome = "minecraft:nether_wastes";
-                        break;
-                    default:
-                        replacementBiome = "minecraft:ocean"; // Typically ID 0 so a good default
-                        break;
-                    case "taiga":
-                    case "jungle":
-                    case "plains":
-                    case "savanna":
-                    case "the_end":
-                    case "beach":
-                    case "ocean":
-                    case "desert":
-                    case "river":
-                    case "swamp":
-                        replacementBiome = "minecraft:" + category;
-                        break;
-                }
+                String replacementBiome = switch (category) {
+                    case "extreme_hills" -> "minecraft:mountains";
+                    case "icy" -> "minecraft:ice_spikes";
+                    case "mesa" -> "minecraft:badlands";
+                    case "mushroom" -> "minecraft:mushroom_fields";
+                    case "nether" -> "minecraft:nether_wastes";
+                    default -> "minecraft:ocean"; // Typically ID 0 so a good default
+                    case "taiga", "jungle", "plains", "savanna", "the_end", "beach", "ocean", "desert", "river", "swamp" -> "minecraft:" + category;
+                };
                 bedrockId = Registries.BIOME_IDENTIFIERS.get().getInt(replacementBiome);
             }
 

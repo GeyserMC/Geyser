@@ -26,9 +26,8 @@
 package org.geysermc.connector.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
-import com.nukkitx.protocol.bedrock.v440.Bedrock_v440;
 import com.nukkitx.protocol.bedrock.v448.Bedrock_v448;
-import org.geysermc.connector.GeyserConnector;
+import com.nukkitx.protocol.bedrock.v448.Bedrock_v465;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,14 +48,10 @@ public class BedrockProtocol {
     public static final List<BedrockPacketCodec> SUPPORTED_BEDROCK_CODECS = new ArrayList<>();
 
     static {
-        if (!GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
-            SUPPORTED_BEDROCK_CODECS.add(Bedrock_v440.V440_CODEC.toBuilder()
-                    .minecraftVersion("1.17.0/1.17.1/1.17.2")
-                    .build());
-        }
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
                 .minecraftVersion("1.17.10/1.17.11")
                 .build());
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v465.V465_CODEC);
     }
 
     /**

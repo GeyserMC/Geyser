@@ -27,7 +27,7 @@ package org.geysermc.connector.registry.type;
 
 import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.Builder;
 import lombok.Value;
@@ -40,13 +40,13 @@ import java.util.Map;
 public class BlockMappings {
     int bedrockAirId;
     int bedrockWaterId;
+    int bedrockMovingBlockId;
 
     int blockStateVersion;
 
     ChunkSection emptyChunkSection;
 
-    int[] javaToBedrockBlockMap;
-    Int2IntMap bedrockToJavaBlockMap;
+    int[] javaToBedrockBlocks;
 
     NbtList<NbtMap> bedrockBlockStates;
 
@@ -61,15 +61,13 @@ public class BlockMappings {
     Object2IntMap<NbtMap> itemFrames;
     Map<String, NbtMap> flowerPotBlocks;
 
+    IntSet jigsawStateIds;
+
     public int getBedrockBlockId(int state) {
-        if (state >= this.javaToBedrockBlockMap.length) {
+        if (state >= this.javaToBedrockBlocks.length) {
             return bedrockAirId;
         }
-        return this.javaToBedrockBlockMap[state];
-    }
-
-    public int getJavaBlockState(int bedrockId) {
-        return this.bedrockToJavaBlockMap.get(bedrockId);
+        return this.javaToBedrockBlocks[state];
     }
 
     public int getItemFrame(NbtMap tag) {

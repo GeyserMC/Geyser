@@ -171,17 +171,12 @@ public final class Team {
     }
 
     public boolean isVisibleFor(String entity) {
-        switch (nameTagVisibility) {
-            case HIDE_FOR_OTHER_TEAMS:
-                return hasEntity(entity);
-            case HIDE_FOR_OWN_TEAM:
-                return !hasEntity(entity);
-            case ALWAYS:
-                return true;
-            case NEVER:
-                return false;
-        }
-        return true;
+        return switch (nameTagVisibility) {
+            case HIDE_FOR_OTHER_TEAMS -> hasEntity(entity);
+            case HIDE_FOR_OWN_TEAM -> !hasEntity(entity);
+            case ALWAYS -> true;
+            case NEVER -> false;
+        };
     }
 
     @Override

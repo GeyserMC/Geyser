@@ -38,7 +38,7 @@ import org.geysermc.connector.skin.SkinManager;
 public class JavaLoginSuccessTranslator extends PacketTranslator<LoginSuccessPacket> {
 
     @Override
-    public void translate(LoginSuccessPacket packet, GeyserSession session) {
+    public void translate(GeyserSession session, LoginSuccessPacket packet) {
         PlayerEntity playerEntity = session.getPlayerEntity();
         AuthType remoteAuthType = session.getRemoteAuthType();
 

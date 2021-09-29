@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>bootstrap-parent</artifactId>
-        <version>1.4.1-SNAPSHOT</version>
+        <version>1.4.3-SNAPSHOT</version>
     </parent>
     <artifactId>bootstrap-bungeecord</artifactId>
 
@@ -14,7 +14,7 @@
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>connector</artifactId>
-            <version>1.4.1-SNAPSHOT</version>
+            <version>1.4.3-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <!-- Used for better working with internals without reflection -->
@@ -49,7 +49,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.1</version>
+                <version>3.3.0-SNAPSHOT</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -73,14 +73,6 @@
                                     <shadedPattern>org.geysermc.platform.bungeecord.shaded.io.netty.channel.kqueue</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>com.google.common</pattern>
-                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.google.common</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.google.guava</pattern>
-                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.google.guava</shadedPattern>
-                                </relocation>
-                                <relocation>
                                     <pattern>net.kyori</pattern>
                                     <shadedPattern>org.geysermc.platform.bungeecord.shaded.kyori</shadedPattern>
                                 </relocation>
@@ -91,7 +83,7 @@
                 <configuration>
                     <artifactSet>
                         <excludes>
-                            <exclude>com.google.code.gson:*</exclude>
+                            <exclude>com.google.*:*</exclude>
                             <exclude>org.yaml:*</exclude>
                             <exclude>io.netty:netty-transport-native-epoll:*</exclude>
                             <exclude>io.netty:netty-transport-native-unix-common:*</exclude>
