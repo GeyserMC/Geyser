@@ -258,8 +258,10 @@ public final class Scoreboard {
                 addScores.add(score.getCachedInfo());
             }
 
-            // we need this as long as MCPE-143063 hasn't been fixed
-            if (add && score.getUpdateType() != ADD && !objectiveUpdate) {
+            // we need this as long as MCPE-143063 hasn't been fixed.
+            // the checks after 'add' are there to prevent removing scores that
+            // are going to be removed anyway / don't need to be removed
+            if (add && score.getUpdateType() != ADD && !(objectiveUpdate || objectiveAdd)) {
                 removeScores.add(score.getCachedInfo());
             }
 
