@@ -258,6 +258,11 @@ public final class Scoreboard {
                 addScores.add(score.getCachedInfo());
             }
 
+            // we need this as long as MCPE-143063 hasn't been fixed
+            if (add && score.getUpdateType() != ADD && !objectiveUpdate) {
+                removeScores.add(score.getCachedInfo());
+            }
+
             score.setUpdateType(NOTHING);
         }
 

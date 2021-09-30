@@ -43,12 +43,12 @@ import java.util.Arrays;
 
 @Translator(packet = ServerTeamPacket.class)
 public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
-    private final GeyserLogger LOGGER = GeyserConnector.getInstance().getLogger();
+    private final GeyserLogger logger = GeyserConnector.getInstance().getLogger();
 
     @Override
     public void translate(GeyserSession session, ServerTeamPacket packet) {
-        if (LOGGER.isDebug()) {
-            LOGGER.debug("Team packet " + packet.getTeamName() + " " + packet.getAction() + " " + Arrays.toString(packet.getPlayers()));
+        if (logger.isDebug()) {
+            logger.debug("Team packet " + packet.getTeamName() + " " + packet.getAction() + " " + Arrays.toString(packet.getPlayers()));
         }
 
         if ((packet.getAction() == TeamAction.ADD_PLAYER || packet.getAction() == TeamAction.REMOVE_PLAYER) && packet.getPlayers().length == 0) {
@@ -60,15 +60,16 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
         Scoreboard scoreboard = session.getWorldCache().getScoreboard();
         Team team = scoreboard.getTeam(packet.getTeamName());
         switch (packet.getAction()) {
-            case CREATE -> scoreboard.registerNewTeam(packet.getTeamName(), packet.getPlayers())
-                    .setName(MessageTranslator.convertMessage(packet.getDisplayName()))
-                    .setColor(packet.getColor())
-                    .setNameTagVisibility(packet.getNameTagVisibility())
-                    .setPrefix(MessageTranslator.convertMessage(packet.getPrefix(), session.getLocale()))
-                    .setSuffix(MessageTranslator.convertMessage(packet.getSuffix(), session.getLocale()));
+            case CREATE ->
+                    scoreboard.registerNewTeam(packet.getTeamName(), packet.getPlayers())
+                            .setName(MessageTranslator.convertMessage(packet.getDisplayName()))
+                            .setColor(packet.getColor())
+                            .setNameTagVisibility(packet.getNameTagVisibility())
+                            .setPrefix(MessageTranslator.convertMessage(packet.getPrefix(), session.getLocale()))
+                            .setSuffix(MessageTranslator.convertMessage(packet.getSuffix(), session.getLocale()));
             case UPDATE -> {
                 if (team == null) {
-                    LOGGER.debug(LanguageUtils.getLocaleStringLog(
+                    logger.debug(LanguageUtils.getLocaleStringLog(
                             "geyser.network.translator.team.failed_not_registered",
                             packet.getAction(), packet.getTeamName()
                     ));
@@ -84,7 +85,7 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
             }
             case ADD_PLAYER -> {
                 if (team == null) {
-                    LOGGER.debug(LanguageUtils.getLocaleStringLog(
+                    logger.debug(LanguageUtils.getLocaleStringLog(
                             "geyser.network.translator.team.failed_not_registered",
                             packet.getAction(), packet.getTeamName()
                     ));
@@ -94,7 +95,7 @@ public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
             }
             case REMOVE_PLAYER -> {
                 if (team == null) {
-                    LOGGER.debug(LanguageUtils.getLocaleStringLog(
+                    logger.debug(LanguageUtils.getLocaleStringLog(
                             "geyser.network.translator.team.failed_not_registered",
                             packet.getAction(), packet.getTeamName()
                     ));
