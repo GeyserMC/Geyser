@@ -355,7 +355,9 @@ public class PlayerEntity extends LivingEntity {
                 session.sendUpstreamPacket(packet);
             }
         } else {
-            if (valid && metadata.remove(EntityData.SCORE_TAG) != null) {
+            // Always remove the score tag first, then check for valid.
+            // That way the score tag is removed if the player was spawned, then despawned, and is being respawned
+            if (metadata.remove(EntityData.SCORE_TAG) != null && valid) {
                 SetEntityDataPacket packet = new SetEntityDataPacket();
                 packet.setRuntimeEntityId(geyserId);
                 packet.getMetadata().put(EntityData.SCORE_TAG, "");

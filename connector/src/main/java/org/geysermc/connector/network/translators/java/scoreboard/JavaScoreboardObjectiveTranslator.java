@@ -70,11 +70,9 @@ public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerSc
                 if (objective != null && objective == scoreboard.getObjectiveSlots().get(ScoreboardPosition.BELOW_NAME)) {
                     // Clear the score tag from all players
                     for (PlayerEntity entity : session.getEntityCache().getAllPlayerEntities()) {
-                        if (!entity.isValid()) {
-                            // Player hasn't spawned yet - don't bother
-                            continue;
-                        }
-
+                        // Other places we check for the entity being valid,
+                        // but we must set the below name text as null for all players
+                        // or else PlayerEntity#spawnEntity will find a null objective and not touch EntityData#SCORE_TAG
                         entity.setBelowNameText(session, null);
                     }
                 }
