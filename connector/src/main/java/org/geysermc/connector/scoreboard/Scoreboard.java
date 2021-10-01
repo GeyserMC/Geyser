@@ -33,6 +33,7 @@ import com.nukkitx.protocol.bedrock.packet.SetScorePacket;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.GeyserLogger;
+import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
@@ -49,7 +50,8 @@ public final class Scoreboard {
     private final AtomicLong nextId = new AtomicLong(0);
 
     private final Map<String, Objective> objectives = new ConcurrentHashMap<>();
-    private final Map<ScoreboardPosition, Objective> objectiveSlots = new HashMap<>();
+    @Getter
+    private final Map<ScoreboardPosition, Objective> objectiveSlots = new EnumMap<>(ScoreboardPosition.class);
     private final Map<String, Team> teams = new ConcurrentHashMap<>(); // updated on multiple threads
 
     private int lastAddScoreCount = 0;
@@ -103,6 +105,19 @@ public final class Scoreboard {
             objective.pendingRemove();
         }
         objectiveSlots.put(displaySlot, objective);
+
+        if (displaySlot == ScoreboardPosition.BELOW_NAME) {
+            // Display the below name score option to all players
+            // Of note: unlike Bedrock, if there is an objective in the below name slot, everyone has a display
+            for (PlayerEntity entity : session.getEntityCache().getAllPlayerEntities()) {
+                if (!entity.isValid()) {
+                    // Player hasn't spawned yet - don't bother, it'll be done then
+                    continue;
+                }
+
+                entity.setBelowNameText(session, objective);
+            }
+        }
     }
 
     public Team registerNewTeam(String teamName, String[] players) {

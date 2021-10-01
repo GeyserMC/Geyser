@@ -26,9 +26,11 @@
 package org.geysermc.connector.network.translators.java.scoreboard;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ObjectiveAction;
+import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerScoreboardObjectivePacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.GeyserLogger;
+import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.WorldCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -63,7 +65,20 @@ public class JavaScoreboardObjectiveTranslator extends PacketTranslator<ServerSc
         switch (packet.getAction()) {
             case ADD, UPDATE -> objective.setDisplayName(MessageTranslator.convertMessage(packet.getDisplayName()))
                     .setType(packet.getType().ordinal());
-            case REMOVE -> scoreboard.unregisterObjective(packet.getName());
+            case REMOVE -> {
+                scoreboard.unregisterObjective(packet.getName());
+                if (objective != null && objective == scoreboard.getObjectiveSlots().get(ScoreboardPosition.BELOW_NAME)) {
+                    // Clear the score tag from all players
+                    for (PlayerEntity entity : session.getEntityCache().getAllPlayerEntities()) {
+                        if (!entity.isValid()) {
+                            // Player hasn't spawned yet - don't bother
+                            continue;
+                        }
+
+                        entity.setBelowNameText(session, null);
+                    }
+                }
+            }
         }
 
         if (objective == null || !objective.isActive()) {
