@@ -46,6 +46,6 @@ public final class GeyserSpigotConfiguration extends GeyserJacksonConfiguration 
         Path geyserDataFolder = plugin.getDataFolder().toPath();
         Path floodgateDataFolder = floodgate != null ? floodgate.getDataFolder().toPath() : null;
 
-        floodgateKeyPath = FloodgateKeyLoader.getKeyPath(this, floodgate, floodgateDataFolder, geyserDataFolder, plugin.getGeyserLogger());
+        floodgateKeyPath = FloodgateKeyLoader.getKeyPath(this, floodgateDataFolder, geyserDataFolder, plugin.getGeyserLogger());
     }
 }
