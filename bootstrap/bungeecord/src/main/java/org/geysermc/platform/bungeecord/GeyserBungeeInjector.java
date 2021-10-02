@@ -39,7 +39,9 @@ import net.md_5.bungee.netty.PipelineUtils;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.common.GeyserInjector;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Set;
 
 public class GeyserBungeeInjector extends GeyserInjector {
     private final ProxyServer proxy;
@@ -47,12 +49,14 @@ public class GeyserBungeeInjector extends GeyserInjector {
      * Set as a variable so it is only set after the proxy has finished initializing
      */
     private ChannelInitializer<Channel> channelInitializer = null;
+    private Set<Channel> bungeeChannels = null;
 
     public GeyserBungeeInjector(ProxyServer proxy) {
         this.proxy = proxy;
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception {
         // TODO - allow Geyser to specify its own listener info properties
         if (proxy.getConfig().getListeners().size() != 1) {
@@ -97,6 +101,13 @@ public class GeyserBungeeInjector extends GeyserInjector {
                 bootstrap.getGeyserConfig().getRemote().isUseProxyProtocol() // If Geyser is expecting HAProxy, so should the Bungee end
         );
 
+        // The field that stores all listeners in BungeeCord
+        // As of https://github.com/ViaVersion/ViaVersion/pull/2698 ViaVersion adds a wrapper to this field to
+        // add its connections
+        Field listenerField = proxyClass.getDeclaredField("listeners");
+        listenerField.setAccessible(true);
+        bungeeChannels = (Set<Channel>) listenerField.get(proxy);
+
         // This method is what initializes the connection in Java Edition, after Netty is all set.
         Method initChannel = ChannelInitializer.class.getDeclaredMethod("initChannel", Channel.class);
         initChannel.setAccessible(true);
@@ -116,7 +127,7 @@ public class GeyserBungeeInjector extends GeyserInjector {
 
                         if (channelInitializer == null) {
                             // Proxy has finished initializing; we can safely grab this variable without fear of plugins modifying it
-                            // (ViaVersion replaces this to inject)
+                            // (Older versions of ViaVersion replace this to inject)
                             channelInitializer = PipelineUtils.SERVER_CHILD;
                         }
                         initChannel.invoke(channelInitializer, ch);
@@ -129,6 +140,16 @@ public class GeyserBungeeInjector extends GeyserInjector {
                 .syncUninterruptibly();
 
         this.localChannel = channelFuture;
+        this.bungeeChannels.add(this.localChannel.channel());
         this.serverSocketAddress = channelFuture.channel().localAddress();
+    }
+
+    @Override
+    public void shutdown() {
+        if (this.localChannel != null && this.bungeeChannels != null) {
+            this.bungeeChannels.remove(this.localChannel.channel());
+            this.bungeeChannels = null;
+        }
+        super.shutdown();
     }
 }
