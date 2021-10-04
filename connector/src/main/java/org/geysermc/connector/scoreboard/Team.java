@@ -139,7 +139,7 @@ public final class Team {
     }
 
     public boolean shouldUpdate() {
-        return updating || cachedData == null || currentData.updateTime > cachedData.updateTime;
+        return updating || cachedData == null || currentData.changed;
     }
 
     public void prepareUpdate() {
@@ -155,7 +155,7 @@ public final class Team {
             cachedData.updateType = currentData.updateType;
         }
 
-        cachedData.updateTime = currentData.updateTime;
+        cachedData.changed = currentData.changed;
         cachedData.name = currentData.name;
         cachedData.prefix = currentData.prefix;
         cachedData.suffix = currentData.suffix;
@@ -171,7 +171,7 @@ public final class Team {
 
     public Team setUpdateType(UpdateType updateType) {
         if (updateType != UpdateType.NOTHING) {
-            currentData.updateTime = System.currentTimeMillis();
+            currentData.changed = true;
         }
         currentData.updateType = updateType;
         return this;
@@ -198,7 +198,7 @@ public final class Team {
     @Getter
     public static final class TeamData {
         private UpdateType updateType;
-        private long updateTime;
+        private boolean changed;
 
         private String name;
         private String prefix;

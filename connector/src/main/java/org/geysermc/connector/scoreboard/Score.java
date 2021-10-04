@@ -59,6 +59,10 @@ public final class Score {
         return name;
     }
 
+    public int getScore() {
+        return currentData.getScore();
+    }
+
     public Score setScore(int score) {
         currentData.score = score;
         return this;
@@ -90,14 +94,14 @@ public final class Score {
 
     public Score setUpdateType(UpdateType updateType) {
         if (updateType != UpdateType.NOTHING) {
-            currentData.updateTime = System.currentTimeMillis();
+            currentData.changed = true;
         }
         currentData.updateType = updateType;
         return this;
     }
 
     public boolean shouldUpdate() {
-        return cachedData == null || currentData.updateTime > cachedData.updateTime ||
+        return cachedData == null || currentData.changed ||
                 (currentData.team != null && currentData.team.shouldUpdate());
     }
 
@@ -112,7 +116,7 @@ public final class Score {
             cachedData.updateType = currentData.updateType;
         }
 
-        cachedData.updateTime = currentData.updateTime;
+        currentData.changed = false;
         cachedData.team = currentData.team;
         cachedData.score = currentData.score;
 
@@ -127,7 +131,7 @@ public final class Score {
     @Getter
     public static final class ScoreData {
         private UpdateType updateType;
-        private long updateTime;
+        private boolean changed;
 
         private Team team;
         private int score;

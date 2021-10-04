@@ -135,35 +135,6 @@ public final class Scoreboard {
         return team;
     }
 
-    public Objective getObjective(String objectiveName) {
-        return objectives.get(objectiveName);
-    }
-
-    public Collection<Objective> getObjectives() {
-        return objectives.values();
-    }
-
-    public Team getTeam(String teamName) {
-        return teams.get(teamName);
-    }
-
-    public void unregisterObjective(String objectiveName) {
-        Objective objective = getObjective(objectiveName);
-        if (objective != null) {
-            objective.pendingRemove();
-        }
-    }
-
-    public void removeTeam(String teamName) {
-        Team remove = teams.remove(teamName);
-        if (remove != null) {
-            remove.setUpdateType(REMOVE);
-            // We need to use the direct entities list here, so #refreshSessionPlayerDisplays also updates accordingly
-            // With the player's lack of a team in visibility checks
-            updateEntityNames(remove, remove.getEntities(), true);
-        }
-    }
-
     public void onUpdate() {
         List<ScoreInfo> addScores = new ArrayList<>(lastAddScoreCount);
         List<ScoreInfo> removeScores = new ArrayList<>(lastRemoveScoreCount);
@@ -324,6 +295,29 @@ public final class Scoreboard {
         session.sendUpstreamPacket(removeObjectivePacket);
     }
 
+    public Objective getObjective(String objectiveName) {
+        return objectives.get(objectiveName);
+    }
+
+    public Collection<Objective> getObjectives() {
+        return objectives.values();
+    }
+
+    public void unregisterObjective(String objectiveName) {
+        Objective objective = getObjective(objectiveName);
+        if (objective != null) {
+            objective.pendingRemove();
+        }
+    }
+
+    public Objective getSlot(ScoreboardPosition slot) {
+        return objectiveSlots.get(slot);
+    }
+
+    public Team getTeam(String teamName) {
+        return teams.get(teamName);
+    }
+
     public Team getTeamFor(String entity) {
         for (Team team : teams.values()) {
             if (team.hasEntity(entity)) {
@@ -331,6 +325,16 @@ public final class Scoreboard {
             }
         }
         return null;
+    }
+
+    public void removeTeam(String teamName) {
+        Team remove = teams.remove(teamName);
+        if (remove != null) {
+            remove.setUpdateType(REMOVE);
+            // We need to use the direct entities list here, so #refreshSessionPlayerDisplays also updates accordingly
+            // With the player's lack of a team in visibility checks
+            updateEntityNames(remove, remove.getEntities(), true);
+        }
     }
 
     /**
