@@ -42,8 +42,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.item.StoredItemMappings;
 import org.geysermc.connector.registry.BlockRegistries;
@@ -73,14 +71,7 @@ public class ItemRegistryPopulator {
         PALETTE_VERSIONS.put("1_17_30", new PaletteVersion(Bedrock_v465.V465_CODEC.getProtocolVersion(), Collections.emptyMap()));
     }
 
-    @Getter
-    @AllArgsConstructor
-    private static class PaletteVersion {
-        private final int protocolVersion;
-        /**
-         * Key - item not available in this version. Value - Java replacement item
-         */
-        private final Map<String, String> additionalTranslatedItems;
+    private record PaletteVersion(int protocolVersion, Map<String, String> additionalTranslatedItems) {
     }
 
     public static void populate() {
@@ -176,6 +167,10 @@ public class ItemRegistryPopulator {
                 }
 
                 String identifier = itemNode.get("id").textValue();
+                if (identifier.equals("minecraft:sculk_sensor") && !GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
+                    // https://github.com/GeyserMC/Geyser/issues/2564
+                    continue;
+                }
                 StartGamePacket.ItemEntry entry = entries.get(identifier);
                 int id = -1;
                 if (entry != null) {
@@ -210,7 +205,7 @@ public class ItemRegistryPopulator {
                 }
             }
 
-            BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.getValue().getProtocolVersion());
+            BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.getValue().protocolVersion());
 
             int itemIndex = 0;
             int javaFurnaceMinecartId = 0;
@@ -227,12 +222,12 @@ public class ItemRegistryPopulator {
                 javaOnlyItems.add("minecraft:sculk_sensor");
             }
             // Java-only items for this version
-            javaOnlyItems.addAll(palette.getValue().getAdditionalTranslatedItems().keySet());
+            javaOnlyItems.addAll(palette.getValue().additionalTranslatedItems().keySet());
 
             for (Map.Entry<String, GeyserMappingItem> entry : items.entrySet()) {
                 String javaIdentifier = entry.getKey().intern();
                 GeyserMappingItem mappingItem;
-                String replacementItem = palette.getValue().getAdditionalTranslatedItems().get(javaIdentifier);
+                String replacementItem = palette.getValue().additionalTranslatedItems().get(javaIdentifier);
                 if (replacementItem != null) {
                     mappingItem = items.get(replacementItem);
                 } else {
@@ -475,7 +470,7 @@ public class ItemRegistryPopulator {
                 NbtMapBuilder componentBuilder = NbtMap.builder();
                 // Conveniently, as of 1.16.200, the furnace minecart has a texture AND translation string already.
                 // 1.17.30 moves the icon to the item properties section
-                (palette.getValue().getProtocolVersion() >= Bedrock_v465.V465_CODEC.getProtocolVersion() ?
+                (palette.getValue().protocolVersion() >= Bedrock_v465.V465_CODEC.getProtocolVersion() ?
                         itemProperties : componentBuilder).putCompound("minecraft:icon", NbtMap.builder()
                         .putString("texture", "minecart_furnace")
                         .putString("frame", "0.000000")
@@ -517,7 +512,7 @@ public class ItemRegistryPopulator {
                     .furnaceMinecartData(furnaceMinecartData)
                     .build();
 
-            Registries.ITEMS.register(palette.getValue().getProtocolVersion(), itemMappings);
+            Registries.ITEMS.register(palette.getValue().protocolVersion(), itemMappings);
         }
     }
 }
