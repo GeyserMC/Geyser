@@ -37,14 +37,13 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
 import java.util.EnumMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 public class MessageTranslator {
-
     // These are used for handling the translations of the messages
-    private static final TranslatableComponentRenderer<Locale> RENDERER = TranslatableComponentRenderer.usingTranslationSource(new MinecraftTranslationRegistry());
+    // Custom instead of TranslatableComponentRenderer#usingTranslationSource so we don't need to worry about finding a Locale class
+    private static final TranslatableComponentRenderer<String> RENDERER = new MinecraftTranslationRegistry();
 
     // Construct our own {@link GsonComponentSerializer} since we need to change a setting
     private static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.builder()
@@ -105,9 +104,8 @@ public class MessageTranslator {
      */
     public static String convertMessage(Component message, String locale) {
         try {
-            // Get a Locale from the given locale string
-            Locale localeCode = Locale.forLanguageTag(locale.replace('_', '-'));
-            message = RENDERER.render(message, localeCode);
+            // Translate any components that require it
+            message = RENDERER.render(message, locale);
 
             String legacy = LegacyComponentSerializer.legacySection().serialize(message);
 
