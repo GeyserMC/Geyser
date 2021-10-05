@@ -29,6 +29,7 @@ import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
+import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
@@ -39,9 +40,11 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.entity.living.animal.tameable.ParrotEntity;
@@ -53,6 +56,7 @@ import org.geysermc.connector.scoreboard.Score;
 import org.geysermc.connector.scoreboard.Team;
 import org.geysermc.connector.scoreboard.UpdateType;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -63,6 +67,9 @@ public class PlayerEntity extends LivingEntity {
     private UUID uuid;
     private String username;
     private boolean playerList = true;  // Player is in the player list
+
+    @Getter(AccessLevel.NONE)
+    private String displayName;
 
     /**
      * Saves the parrot currently on the player's left shoulder; otherwise null
@@ -79,6 +86,7 @@ public class PlayerEntity extends LivingEntity {
         profile = gameProfile;
         uuid = gameProfile.getId();
         username = gameProfile.getName();
+        displayName = username;
 
         // For the OptionalPack, set all bits as invisible by default as this matches Java Edition behavior
         metadata.put(EntityData.MARK_VARIANT, 0xff);
@@ -240,23 +248,6 @@ public class PlayerEntity extends LivingEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         super.updateBedrockMetadata(entityMetadata, session);
 
-        if (entityMetadata.getId() == 2) {
-            String username = this.username;
-            Component name = (Component) entityMetadata.getValue();
-            if (name != null) {
-                username = MessageTranslator.convertMessage(name);
-            }
-            Team team = session.getWorldCache().getScoreboard().getTeamFor(username);
-            if (team != null) {
-                String displayName = "";
-                if (team.isVisibleFor(session.getPlayerEntity().getUsername())) {
-                    displayName = MessageTranslator.toChatColor(team.getColor()) + username;
-                    displayName = team.getCurrentData().getDisplayName(displayName);
-                }
-                metadata.put(EntityData.NAMETAG, displayName);
-            }
-        }
-
         // Extra hearts - is not metadata but an attribute on Bedrock
         if (entityMetadata.getId() == 15) {
             UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
@@ -316,6 +307,65 @@ public class PlayerEntity extends LivingEntity {
                     }
                 }
             }
+        }
+    }
+
+    @Override
+    protected String setDisplayName(GeyserSession session, Component name) {
+        String displayName = super.setDisplayName(session, name);
+        this.displayName = displayName != null ? displayName : username;
+        // Update if we know this player has a team
+        updateDisplayName(session, null, false);
+
+        return this.displayName;
+    }
+
+    //todo this will become common entity logic once UUID support is implemented for them
+    /**
+     * @param useGivenTeam even if there is no team, update the username in the entity metadata anyway, and don't look for a team
+     */
+    public void updateDisplayName(GeyserSession session, @Nullable Team team, boolean useGivenTeam) {
+        if (team == null && !useGivenTeam) {
+            // Only search for the team if we are not supposed to use the given team
+            // If the given team is null, this is intentional that we are being removed from the team
+            team = session.getWorldCache().getScoreboard().getTeamFor(username);
+        }
+
+        boolean needsUpdate;
+        String newDisplayName = this.displayName;
+        if (team != null) {
+            if (team.isVisibleFor(session.getPlayerEntity().getUsername())) {
+                TeamColor color = team.getColor();
+                String chatColor;
+                if (color == TeamColor.NONE) {
+                    chatColor = ChatColor.RESET;
+                } else {
+                    chatColor = MessageTranslator.toChatColor(color);
+                }
+                // We have to emulate what modern Java text already does for us and add the color to each section
+                String prefix = team.getCurrentData().getPrefix();
+                String suffix = team.getCurrentData().getSuffix();
+                newDisplayName = chatColor + prefix + chatColor + this.displayName + chatColor + suffix;
+            } else {
+                // The name is not visible to the session player; clear name
+                newDisplayName = "";
+            }
+            needsUpdate = useGivenTeam && !newDisplayName.equals(metadata.getString(EntityData.NAMETAG, null));
+            metadata.put(EntityData.NAMETAG, newDisplayName);
+        } else if (useGivenTeam) {
+            // The name has reset, if it was previously something else
+            needsUpdate = !newDisplayName.equals(metadata.getString(EntityData.NAMETAG));
+            metadata.put(EntityData.NAMETAG, this.displayName);
+        } else {
+            needsUpdate = false;
+        }
+
+        if (needsUpdate) {
+            // Update the metadata as it won't be updated later
+            SetEntityDataPacket packet = new SetEntityDataPacket();
+            packet.getMetadata().put(EntityData.NAMETAG, newDisplayName);
+            packet.setRuntimeEntityId(geyserId);
+            session.sendUpstreamPacket(packet);
         }
     }
 

@@ -41,7 +41,6 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import org.geysermc.connector.entity.living.ArmorStandEntity;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -256,10 +255,7 @@ public class Entity {
                 setAir((int) entityMetadata.getValue());
                 break;
             case 2: // custom name
-                if (entityMetadata.getValue() instanceof Component message) {
-                    // Always translate even if it's a TextMessage since there could be translatable parameters
-                    metadata.put(EntityData.NAMETAG, MessageTranslator.convertMessage(message, session.getLocale()));
-                }
+                setDisplayName(session, (Component) entityMetadata.getValue());
                 break;
             case 3: // is custom name visible
                 if (!this.is(PlayerEntity.class))
@@ -308,6 +304,21 @@ public class Entity {
      */
     protected boolean isShaking(GeyserSession session) {
         return false;
+    }
+
+    /**
+     * @return the translated string display
+     */
+    protected String setDisplayName(GeyserSession session, Component name) {
+        if (name != null) {
+            String displayName = MessageTranslator.convertMessage(name, session.getLocale());
+            metadata.put(EntityData.NAMETAG, displayName);
+            return displayName;
+        } else if (!metadata.getString(EntityData.NAMETAG).isEmpty()) {
+            // Clear nametag
+            metadata.put(EntityData.NAMETAG, "");
+        }
+        return null;
     }
 
     /**

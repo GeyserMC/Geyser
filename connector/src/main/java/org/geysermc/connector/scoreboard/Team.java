@@ -33,8 +33,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
 @Getter
@@ -43,7 +42,7 @@ public final class Team {
     private final Scoreboard scoreboard;
     private final String id;
 
-    @Getter(AccessLevel.NONE)
+    @Getter(AccessLevel.PACKAGE)
     private final Set<String> entities;
     @Setter private NameTagVisibility nameTagVisibility;
     @Setter private TeamColor color;
@@ -60,16 +59,16 @@ public final class Team {
         entities = new ObjectOpenHashSet<>();
     }
 
-    public Team addEntities(String... names) {
-        List<String> added = new ArrayList<>();
+    public Set<String> addEntities(String... names) {
+        Set<String> added = new HashSet<>();
         for (String name : names) {
             if (entities.add(name)) {
                 added.add(name);
             }
         }
 
-        if (added.size() == 0) {
-            return this;
+        if (added.isEmpty()) {
+            return added;
         }
         // we don't have to change the updateType,
         // because the scores itself need updating, not the team
@@ -81,13 +80,21 @@ public final class Team {
                 }
             }
         }
-        return this;
+
+        return added;
     }
 
-    public void removeEntities(String... names) {
+    /**
+     * @return all removed entities from this team
+     */
+    public Set<String> removeEntities(String... names) {
+        Set<String> removed = new HashSet<>();
         for (String name : names) {
-            entities.remove(name);
+            if (entities.remove(name)) {
+                removed.add(name);
+            }
         }
+        return removed;
     }
 
     public boolean hasEntity(String name) {
@@ -172,7 +179,11 @@ public final class Team {
 
     public boolean isVisibleFor(String entity) {
         return switch (nameTagVisibility) {
-            case HIDE_FOR_OTHER_TEAMS -> hasEntity(entity);
+            case HIDE_FOR_OTHER_TEAMS -> {
+                // Player must be in a team in order for HIDE_FOR_OTHER_TEAMS to be triggered
+                Team team = scoreboard.getTeamFor(entity);
+                yield team == null || team == this;
+            }
             case HIDE_FOR_OWN_TEAM -> !hasEntity(entity);
             case ALWAYS -> true;
             case NEVER -> false;
