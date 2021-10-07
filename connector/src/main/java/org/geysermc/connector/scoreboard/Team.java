@@ -155,7 +155,7 @@ public final class Team {
             cachedData.updateType = currentData.updateType;
         }
 
-        cachedData.changed = currentData.changed;
+        currentData.changed = false;
         cachedData.name = currentData.name;
         cachedData.prefix = currentData.prefix;
         cachedData.suffix = currentData.suffix;
