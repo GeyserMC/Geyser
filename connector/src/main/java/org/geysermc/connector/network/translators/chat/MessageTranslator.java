@@ -30,7 +30,6 @@ import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import net.kyori.adventure.text.serializer.gson.legacyimpl.NBTLegacyHoverEventSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -45,11 +44,8 @@ public class MessageTranslator {
     // Custom instead of TranslatableComponentRenderer#usingTranslationSource so we don't need to worry about finding a Locale class
     private static final TranslatableComponentRenderer<String> RENDERER = new MinecraftTranslationRegistry();
 
-    // Construct our own {@link GsonComponentSerializer} since we need to change a setting
-    private static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.builder()
-            // Specify that we may be expecting legacy hover events
-            .legacyHoverEventSerializer(NBTLegacyHoverEventSerializer.get())
-            .build();
+    // Possible TODO: replace the legacy hover event serializer with an empty one since we have no use for hover events
+    private static final GsonComponentSerializer GSON_SERIALIZER = DefaultComponentSerializer.get();
 
     // Store team colors for player names
     private static final Map<TeamColor, String> TEAM_COLORS = new EnumMap<>(TeamColor.class);
@@ -90,9 +86,6 @@ public class MessageTranslator {
         TEAM_COLORS.put(TeamColor.BOLD, BASE + "l");
         TEAM_COLORS.put(TeamColor.STRIKETHROUGH, BASE + "m");
         TEAM_COLORS.put(TeamColor.ITALIC, BASE + "o");
-
-        // Tell MCProtocolLib to use our serializer
-        DefaultComponentSerializer.set(GSON_SERIALIZER);
     }
 
     /**

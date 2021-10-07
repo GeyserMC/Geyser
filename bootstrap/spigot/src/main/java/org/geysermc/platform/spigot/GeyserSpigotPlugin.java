@@ -42,6 +42,7 @@ import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
+import org.geysermc.connector.utils.Constants;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
@@ -126,7 +127,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         // Remove this in like a year
         if (Bukkit.getPluginManager().getPlugin("floodgate-bukkit") != null) {
-            geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/"));
+            geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", Constants.FLOODGATE_DOWNLOAD_LOCATION));
             this.getPluginLoader().disablePlugin(this);
             return;
         }

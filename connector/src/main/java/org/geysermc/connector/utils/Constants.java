@@ -35,6 +35,8 @@ public final class Constants {
     public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v1/news";
     public static final String NEWS_PROJECT_NAME = "geyser";
 
+    public static final String FLOODGATE_DOWNLOAD_LOCATION = "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/";
+
     static {
         URI wsUri = null;
         try {

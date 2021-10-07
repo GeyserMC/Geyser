@@ -11,7 +11,7 @@
     <artifactId>connector</artifactId>
 
     <properties>
-        <adventure.version>4.8.0</adventure.version>
+        <adventure.version>4.9.2</adventure.version>
         <fastutil.version>8.5.2</fastutil.version>
         <jackson.version>2.12.4</jackson.version>
         <netty.version>4.1.66.Final</netty.version>
@@ -147,15 +147,11 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.RednedEpic</groupId>
+            <groupId>com.github.GeyserMC</groupId>
             <artifactId>MCProtocolLib</artifactId>
-            <version>e17787a</version>
+            <version>e7979c4</version>
             <scope>compile</scope>
             <exclusions>
-                <exclusion>
-                    <groupId>net.kyori</groupId>
-                    <artifactId>adventure-text-serializer-gson</artifactId>
-                </exclusion>
                 <exclusion>
                     <groupId>com.github.steveice10</groupId>
                     <artifactId>packetlib</artifactId>
@@ -228,25 +224,7 @@
         <!-- Adventure text serialization -->
         <dependency>
             <groupId>net.kyori</groupId>
-            <artifactId>adventure-api</artifactId>
-            <version>${adventure.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.kyori</groupId>
-            <artifactId>adventure-text-serializer-gson</artifactId>
-            <version>${adventure.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-legacy</artifactId>
-            <version>${adventure.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.kyori</groupId>
-            <artifactId>adventure-text-serializer-gson-legacy-impl</artifactId>
             <version>${adventure.version}</version>
             <scope>compile</scope>
         </dependency>
