@@ -32,7 +32,6 @@ import org.geysermc.connector.FloodgateKeyLoader;
 import org.geysermc.connector.configuration.GeyserJacksonConfiguration;
 
 import java.nio.file.Path;
-import java.util.Optional;
 
 public class GeyserFabricConfiguration extends GeyserJacksonConfiguration {
     @JsonIgnore
@@ -40,9 +39,9 @@ public class GeyserFabricConfiguration extends GeyserJacksonConfiguration {
 
     public void loadFloodgate(GeyserFabricMod geyser, ModContainer floodgate) {
         Path geyserDataFolder = geyser.getConfigFolder();
-        Path floodgateDataFolder = FabricLoader.getInstance().getConfigDir().resolve("floodgate");
+        Path floodgateDataFolder = floodgate != null ? FabricLoader.getInstance().getConfigDir().resolve("floodgate") : null;
 
-        floodgateKeyPath = FloodgateKeyLoader.getKeyPath(this, floodgate, floodgateDataFolder, geyserDataFolder, geyser.getGeyserLogger());
+        floodgateKeyPath = FloodgateKeyLoader.getKeyPath(this, floodgateDataFolder, geyserDataFolder, geyser.getGeyserLogger());
     }
 
     @Override
