@@ -40,7 +40,6 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.*;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
@@ -68,9 +67,6 @@ public class PlayerEntity extends LivingEntity {
     private String username;
     private boolean playerList = true;  // Player is in the player list
 
-    @Getter(AccessLevel.NONE)
-    private String displayName;
-
     /**
      * Saves the parrot currently on the player's left shoulder; otherwise null
      */
@@ -86,7 +82,6 @@ public class PlayerEntity extends LivingEntity {
         profile = gameProfile;
         uuid = gameProfile.getId();
         username = gameProfile.getName();
-        displayName = username;
 
         // For the OptionalPack, set all bits as invisible by default as this matches Java Edition behavior
         metadata.put(EntityData.MARK_VARIANT, 0xff);
@@ -99,6 +94,9 @@ public class PlayerEntity extends LivingEntity {
         if (objective != null) {
             setBelowNameText(session, objective);
         }
+
+        // The name can't be updated later (the entity metadata for it is ignored), so we need to check for this now
+        updateDisplayName(session, null, false);
 
         AddPlayerPacket addPlayerPacket = new AddPlayerPacket();
         addPlayerPacket.setUuid(uuid);
@@ -311,13 +309,8 @@ public class PlayerEntity extends LivingEntity {
     }
 
     @Override
-    protected String setDisplayName(GeyserSession session, Component name) {
-        String displayName = super.setDisplayName(session, name);
-        this.displayName = displayName != null ? displayName : username;
-        // Update if we know this player has a team
-        updateDisplayName(session, null, false);
-
-        return this.displayName;
+    protected void setDisplayName(GeyserSession session, Component name) {
+        // Doesn't do anything for players
     }
 
     //todo this will become common entity logic once UUID support is implemented for them
@@ -332,7 +325,7 @@ public class PlayerEntity extends LivingEntity {
         }
 
         boolean needsUpdate;
-        String newDisplayName = this.displayName;
+        String newDisplayName = this.username;
         if (team != null) {
             if (team.isVisibleFor(session.getPlayerEntity().getUsername())) {
                 TeamColor color = team.getColor();
@@ -345,7 +338,7 @@ public class PlayerEntity extends LivingEntity {
                 // We have to emulate what modern Java text already does for us and add the color to each section
                 String prefix = team.getCurrentData().getPrefix();
                 String suffix = team.getCurrentData().getSuffix();
-                newDisplayName = chatColor + prefix + chatColor + this.displayName + chatColor + suffix;
+                newDisplayName = chatColor + prefix + chatColor + this.username + chatColor + suffix;
             } else {
                 // The name is not visible to the session player; clear name
                 newDisplayName = "";
@@ -355,7 +348,7 @@ public class PlayerEntity extends LivingEntity {
         } else if (useGivenTeam) {
             // The name has reset, if it was previously something else
             needsUpdate = !newDisplayName.equals(metadata.getString(EntityData.NAMETAG));
-            metadata.put(EntityData.NAMETAG, this.displayName);
+            metadata.put(EntityData.NAMETAG, this.username);
         } else {
             needsUpdate = false;
         }
@@ -367,6 +360,11 @@ public class PlayerEntity extends LivingEntity {
             packet.setRuntimeEntityId(geyserId);
             session.sendUpstreamPacket(packet);
         }
+    }
+
+    @Override
+    protected void setDisplayNameVisible(EntityMetadata entityMetadata) {
+        // Doesn't do anything for players
     }
 
     @Override
