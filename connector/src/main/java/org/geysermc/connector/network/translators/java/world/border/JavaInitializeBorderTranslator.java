@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.java.world.border;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.border.ServerInitializeBorderPacket;
-import com.nukkitx.math.vector.Vector2f;
+import com.nukkitx.math.vector.Vector2d;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.WorldBorder;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -38,13 +38,14 @@ public class JavaInitializeBorderTranslator extends PacketTranslator<ServerIniti
     @Override
     public void translate(GeyserSession session, ServerInitializeBorderPacket packet) {
         WorldBorder worldBorder = session.getWorldBorder();
-        worldBorder.setCenter(Vector2f.from(packet.getNewCenterX(), packet.getNewCenterZ()));
+        worldBorder.setCenter(Vector2d.from(packet.getNewCenterX(), packet.getNewCenterZ()));
         worldBorder.setOldDiameter(packet.getOldSize());
         worldBorder.setNewDiameter(packet.getNewSize());
         worldBorder.setSpeed(packet.getLerpTime());
         worldBorder.setWarningDelay(packet.getWarningTime());
         worldBorder.setWarningBlocks(packet.getWarningBlocks());
         worldBorder.setResizing(packet.getLerpTime() > 0);
+        worldBorder.setAbsoluteMaxSize(packet.getNewAbsoluteMaxSize());
 
         worldBorder.update();
     }

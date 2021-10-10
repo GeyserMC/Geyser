@@ -67,7 +67,10 @@ public class ChunkCache {
         chunks.put(chunkPosition, geyserColumn);
     }
 
-    public GeyserColumn getChunk(int chunkX, int chunkZ) {
+    /**
+     * Doesn't check for cache enabled, so don't use this without checking that first!
+     */
+    private GeyserColumn getChunk(int chunkX, int chunkZ) {
         long chunkPosition = MathUtils.chunkPositionToLong(chunkX, chunkZ);
         return chunks.getOrDefault(chunkPosition, null);
     }
