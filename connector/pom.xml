@@ -13,8 +13,8 @@
     <properties>
         <adventure.version>4.9.2</adventure.version>
         <fastutil.version>8.5.2</fastutil.version>
-        <jackson.version>2.12.4</jackson.version>
-        <netty.version>4.1.66.Final</netty.version>
+        <jackson.version>2.13.0</jackson.version>
+        <netty.version>4.1.68.Final</netty.version>
     </properties>
 
     <dependencies>
@@ -58,7 +58,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>29.0-jre</version>
+            <version>31.0.1-jre</version>
             <scope>compile</scope>
         </dependency>
         <!-- fastutil maps -->
@@ -109,7 +109,7 @@
         <dependency>
             <groupId>org.java-websocket</groupId>
             <artifactId>Java-WebSocket</artifactId>
-            <version>1.5.1</version>
+            <version>1.5.2</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -232,7 +232,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13.1</version>
+            <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
