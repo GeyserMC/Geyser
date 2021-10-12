@@ -406,7 +406,7 @@ public class ItemRegistryPopulator {
                 } else if (javaIdentifier.startsWith("minecraft:music_disc_")) {
                     // The Java record level event uses the item ID as the "key" to play the record
                     Registries.RECORDS.register(itemIndex, SoundEvent.valueOf("RECORD_" +
-                            javaIdentifier.replace("minecraft:music_disc_", "").toUpperCase(Locale.ENGLISH).intern()));
+                            javaIdentifier.replace("minecraft:music_disc_", "").toUpperCase(Locale.ENGLISH)));
                 } else if (javaIdentifier.endsWith("_spawn_egg")) {
                     spawnEggs.add(mapping.getBedrockId());
                 }

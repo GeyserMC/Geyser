@@ -299,9 +299,8 @@ public class BlockRegistryPopulator {
             BlockRegistries.JAVA_BLOCKS.register(javaRuntimeId, builder.build());
 
             // Keeping this here since this is currently unchanged between versions
-            if (!cleanJavaIdentifier.equals(bedrockIdentifier)) {
-                BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.register(cleanJavaIdentifier.intern(), bedrockIdentifier.intern());
-            }
+            // It's possible to only have this store differences in names, but the key set of all Java names is used in sending command suggestions
+            BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.register(cleanJavaIdentifier.intern(), bedrockIdentifier.intern());
 
             if (javaId.startsWith("minecraft:bell[")) {
                 bellBlockId = uniqueJavaId;

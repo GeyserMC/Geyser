@@ -41,6 +41,7 @@ import org.geysermc.connector.entity.player.PlayerEntity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Getter
 public enum EntityType {
@@ -194,7 +195,7 @@ public enum EntityType {
             if (type == AGENT || type == BALLOON || type == CHALKBOARD || type == NPC || type == TRIPOD_CAMERA || type == ENDER_DRAGON_PART) {
                 continue;
             }
-            allJavaIdentifiers.add("minecraft:" + type.name().toLowerCase());
+            allJavaIdentifiers.add("minecraft:" + type.name().toLowerCase(Locale.ROOT));
         }
         ALL_JAVA_IDENTIFIERS = allJavaIdentifiers.toArray(new String[0]);
     }
