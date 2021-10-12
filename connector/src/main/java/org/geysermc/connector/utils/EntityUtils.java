@@ -40,9 +40,9 @@ import java.util.Locale;
 public final class EntityUtils {
 
     /**
-     * @return a new String array of all known potion identifiers
+     * @return a new String array of all known effect identifiers
      */
-    public static String[] getAllPotionIdentifiers() {
+    public static String[] getAllEffectIdentifiers() {
         String[] identifiers = new String[Effect.VALUES.length];
         for (int i = 0; i < Effect.VALUES.length; i++) {
             identifiers[i] = "minecraft:" + Effect.VALUES[i].name().toLowerCase(Locale.ROOT);
