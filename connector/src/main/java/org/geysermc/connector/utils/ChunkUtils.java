@@ -42,7 +42,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import lombok.Data;
 import lombok.experimental.UtilityClass;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.ItemFrameEntity;
@@ -470,9 +469,6 @@ public class ChunkUtils {
         session.getWorldBorder().setWorldCoordinateScale(coordinateScale);
     }
 
-    @Data
-    public static final class ChunkData {
-        private final ChunkSection[] sections;
-        private final NbtMap[] blockEntities;
+    public record ChunkData(ChunkSection[] sections, NbtMap[] blockEntities) {
     }
 }
