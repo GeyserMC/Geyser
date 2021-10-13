@@ -27,6 +27,7 @@ package org.geysermc.connector.command;
 
 import lombok.Getter;
 
+import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.defaults.*;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -47,13 +48,15 @@ public abstract class CommandManager {
         registerCommand(new HelpCommand(connector, "help", "geyser.commands.help.desc", "geyser.command.help"));
         registerCommand(new ListCommand(connector, "list", "geyser.commands.list.desc", "geyser.command.list"));
         registerCommand(new ReloadCommand(connector, "reload", "geyser.commands.reload.desc", "geyser.command.reload"));
-        registerCommand(new StopCommand(connector, "stop", "geyser.commands.stop.desc", "geyser.command.stop"));
         registerCommand(new OffhandCommand(connector, "offhand", "geyser.commands.offhand.desc", "geyser.command.offhand"));
         registerCommand(new DumpCommand(connector, "dump", "geyser.commands.dump.desc", "geyser.command.dump"));
         registerCommand(new VersionCommand(connector, "version", "geyser.commands.version.desc", "geyser.command.version"));
         registerCommand(new SettingsCommand(connector, "settings", "geyser.commands.settings.desc", "geyser.command.settings"));
         registerCommand(new StatisticsCommand(connector, "statistics", "geyser.commands.statistics.desc", "geyser.command.statistics"));
         registerCommand(new AdvancementsCommand("advancements", "geyser.commands.advancements.desc", "geyser.command.advancements"));
+        if (GeyserConnector.getInstance().getPlatformType() == PlatformType.STANDALONE) {
+            registerCommand(new StopCommand(connector, "stop", "geyser.commands.stop.desc", "geyser.command.stop"));
+        }
     }
 
     public void registerCommand(GeyserCommand command) {
