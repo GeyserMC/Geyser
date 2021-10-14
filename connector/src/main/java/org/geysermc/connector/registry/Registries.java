@@ -39,7 +39,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 import org.geysermc.connector.network.translators.effect.Effect;
-import org.geysermc.connector.network.translators.item.Enchantment;
+import org.geysermc.connector.network.translators.item.Enchantment.JavaEnchantment;
 import org.geysermc.connector.network.translators.sound.SoundHandler;
 import org.geysermc.connector.network.translators.sound.SoundInteractionHandler;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
@@ -87,7 +87,7 @@ public class Registries {
     /**
      * A registry holding data of all the known enchantments.
      */
-    public static final SimpleMappedRegistry<Enchantment, EnchantmentData> ENCHANTMENTS;
+    public static final SimpleMappedRegistry<JavaEnchantment, EnchantmentData> ENCHANTMENTS;
 
     /**
      * A registry holding a CompoundTag of the known entity identifiers.

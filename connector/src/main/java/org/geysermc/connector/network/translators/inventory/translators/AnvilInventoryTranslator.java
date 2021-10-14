@@ -33,11 +33,11 @@ import org.geysermc.connector.inventory.AnvilContainer;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.inventory.PlayerInventory;
 import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
-import org.geysermc.connector.network.translators.inventory.updater.UIInventoryUpdater;
+import org.geysermc.connector.network.translators.inventory.updater.AnvilInventoryUpdater;
 
 public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
     public AnvilInventoryTranslator() {
-        super(3, "minecraft:anvil[facing=north]", ContainerType.ANVIL, UIInventoryUpdater.INSTANCE,
+        super(3, "minecraft:anvil[facing=north]", ContainerType.ANVIL, AnvilInventoryUpdater.INSTANCE,
                 "minecraft:chipped_anvil", "minecraft:damaged_anvil");
     }
 

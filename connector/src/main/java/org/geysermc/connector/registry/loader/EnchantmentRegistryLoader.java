@@ -28,23 +28,23 @@ package org.geysermc.connector.registry.loader;
 import com.fasterxml.jackson.databind.JsonNode;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.BedrockProtocol;
-import org.geysermc.connector.network.translators.item.Enchantment;
+import org.geysermc.connector.network.translators.item.Enchantment.JavaEnchantment;
 import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.EnchantmentData;
 import org.geysermc.connector.registry.type.ItemMapping;
 import org.geysermc.connector.utils.FileUtils;
 
 import java.io.InputStream;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Map;
 
-public class EnchantmentRegistryLoader implements RegistryLoader<String, Map<Enchantment, EnchantmentData>> {
+public class EnchantmentRegistryLoader implements RegistryLoader<String, Map<JavaEnchantment, EnchantmentData>> {
     @Override
-    public Map<Enchantment, EnchantmentData> load(String input) {
+    public Map<JavaEnchantment, EnchantmentData> load(String input) {
         InputStream enchantmentsStream = FileUtils.getResource(input);
         JsonNode enchantmentsNode;
         try {
@@ -53,11 +53,11 @@ public class EnchantmentRegistryLoader implements RegistryLoader<String, Map<Enc
             throw new AssertionError("Unable to load enchantment data", e);
         }
 
-        Map<Enchantment, EnchantmentData> enchantments = new Object2ObjectOpenHashMap<>(enchantmentsNode.size());
+        Map<JavaEnchantment, EnchantmentData> enchantments = new EnumMap<>(JavaEnchantment.class);
         Iterator<Map.Entry<String, JsonNode>> it = enchantmentsNode.fields();
         while (it.hasNext()) {
             Map.Entry<String, JsonNode> entry = it.next();
-            Enchantment key = Enchantment.getByJavaIdentifier(entry.getKey());
+            JavaEnchantment key = JavaEnchantment.getByJavaIdentifier(entry.getKey());
             JsonNode node = entry.getValue();
             int rarityMultipler = switch (node.get("rarity").textValue()) {
                 case "common" -> 1;
@@ -68,11 +68,11 @@ public class EnchantmentRegistryLoader implements RegistryLoader<String, Map<Enc
             };
             int maxLevel = node.get("max_level").asInt();
 
-            EnumSet<Enchantment> incompatibleEnchantments = EnumSet.noneOf(Enchantment.class);
+            EnumSet<JavaEnchantment> incompatibleEnchantments = EnumSet.noneOf(JavaEnchantment.class);
             JsonNode incompatibleEnchantmentsNode = node.get("incompatible_enchantments");
             if (incompatibleEnchantmentsNode != null) {
                 for (JsonNode incompatibleNode : incompatibleEnchantmentsNode) {
-                    incompatibleEnchantments.add(Enchantment.getByJavaIdentifier(incompatibleNode.textValue()));
+                    incompatibleEnchantments.add(JavaEnchantment.getByJavaIdentifier(incompatibleNode.textValue()));
                 }
             }
 
