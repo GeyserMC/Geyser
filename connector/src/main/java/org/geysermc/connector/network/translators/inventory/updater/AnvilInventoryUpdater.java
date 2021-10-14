@@ -116,7 +116,6 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
 
         int diff = 0;
         boolean creativeOverride = session.getGameMode() == GameMode.CREATIVE; // TODO: Check abilities instead
-        boolean hasIncompatible = false;
         boolean hasCompatible = false;
         Map<JavaEnchantment, Integer> combinedEnchantments = getEnchantments(session, input);
         for (Map.Entry<JavaEnchantment, Integer> entry : getEnchantments(session, material).entrySet()) {
@@ -134,6 +133,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                     diff++;
                 }
             }
+
             if (creativeOverride || canApply) {
                 hasCompatible = true;
                 int currentLevel = combinedEnchantments.getOrDefault(enchantment, 0);
@@ -150,26 +150,26 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                 }
                 combinedEnchantments.put(enchantment, newLevel);
 
-                int rarityMultipler = data.rarityMultiplier();
-                if (isMaterialEnchantedBook && rarityMultipler > 1) {
-                    rarityMultipler /= 2;
+                int rarityMultiplier = data.rarityMultiplier();
+                if (isMaterialEnchantedBook && rarityMultiplier > 1) {
+                    rarityMultiplier /= 2;
                 }
 
                 if (canApply) {
-                    diff += rarityMultipler * currentLevel;
                     if (enchantment == JavaEnchantment.IMPALING) {
                         // Compensate for the multiplier being halved on Bedrock
-                        diff += rarityMultipler / 2 * newLevel;
+                        diff += rarityMultiplier / 2 * (newLevel + currentLevel);
+                    } else {
+                        diff += rarityMultiplier * currentLevel;
                     }
                 } else {
                     // Apply full level cost because Bedrock does not apply/count invalid enchantments at all
-                    diff += rarityMultipler * newLevel;
+                    diff += rarityMultiplier * newLevel;
                 }
-            } else {
-                hasIncompatible = true;
             }
         }
-        if (hasIncompatible && !hasCompatible) {
+
+        if (!hasCompatible) {
             return 0;
         }
         return diff;
@@ -209,6 +209,6 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     }
 
     private boolean isEnchantedBook(GeyserSession session, GeyserItemStack itemStack) {
-        return itemStack.getMapping(session).getJavaIdentifier().equals("minecraft:enchanted_book");
+        return itemStack.getJavaId() == session.getItemMappings().getStoredItems().enchantedBook().getJavaId();
     }
 }
