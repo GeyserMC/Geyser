@@ -1,0 +1,95 @@
+/*
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.connector.registry.loader;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.BedrockProtocol;
+import org.geysermc.connector.network.translators.item.Enchantment;
+import org.geysermc.connector.registry.Registries;
+import org.geysermc.connector.registry.type.EnchantmentData;
+import org.geysermc.connector.registry.type.ItemMapping;
+import org.geysermc.connector.utils.FileUtils;
+
+import java.io.InputStream;
+import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.Map;
+
+public class EnchantmentRegistryLoader implements RegistryLoader<String, Map<Enchantment, EnchantmentData>> {
+    @Override
+    public Map<Enchantment, EnchantmentData> load(String input) {
+        InputStream enchantmentsStream = FileUtils.getResource(input);
+        JsonNode enchantmentsNode;
+        try {
+            enchantmentsNode = GeyserConnector.JSON_MAPPER.readTree(enchantmentsStream);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load enchantment data", e);
+        }
+
+        Map<Enchantment, EnchantmentData> enchantments = new Object2ObjectOpenHashMap<>(enchantmentsNode.size());
+        Iterator<Map.Entry<String, JsonNode>> it = enchantmentsNode.fields();
+        while (it.hasNext()) {
+            Map.Entry<String, JsonNode> entry = it.next();
+            Enchantment key = Enchantment.getByJavaIdentifier(entry.getKey());
+            JsonNode node = entry.getValue();
+            int rarityMultipler = switch (node.get("rarity").textValue()) {
+                case "common" -> 1;
+                case "uncommon" -> 2;
+                case "rare" -> 4;
+                case "very_rare" -> 8;
+                default -> throw new IllegalStateException("Unexpected value: " + node.get("rarity").textValue());
+            };
+            int maxLevel = node.get("max_level").asInt();
+
+            EnumSet<Enchantment> incompatibleEnchantments = EnumSet.noneOf(Enchantment.class);
+            JsonNode incompatibleEnchantmentsNode = node.get("incompatible_enchantments");
+            if (incompatibleEnchantmentsNode != null) {
+                for (JsonNode incompatibleNode : incompatibleEnchantmentsNode) {
+                    incompatibleEnchantments.add(Enchantment.getByJavaIdentifier(incompatibleNode.textValue()));
+                }
+            }
+
+            IntSet validItems = new IntOpenHashSet();
+            for (JsonNode itemNode : node.get("valid_items")) {
+                String javaIdentifier = itemNode.textValue();
+                ItemMapping itemMapping = Registries.ITEMS.forVersion(BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getMapping(javaIdentifier);
+                if (itemMapping != null) {
+                    validItems.add(itemMapping.getJavaId());
+                } else {
+                    throw new NullPointerException("No item entry exists for java identifier: " + javaIdentifier);
+                }
+            }
+
+            EnchantmentData enchantmentData = new EnchantmentData(rarityMultipler, maxLevel, incompatibleEnchantments, validItems);
+            enchantments.put(key, enchantmentData);
+        }
+        return enchantments;
+    }
+}
