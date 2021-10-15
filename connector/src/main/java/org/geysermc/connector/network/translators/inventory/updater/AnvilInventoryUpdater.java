@@ -60,7 +60,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             slotPacket.setContainerId(ContainerId.UI);
             slotPacket.setSlot(bedrockSlot);
             slotPacket.setItem(inventory.getItem(i).getItemData(session));
-            if (bedrockSlot == 1) { // Input item slot
+            if (i == 0) { // Input item slot
                 slotPacket.setItem(hijackRepairCost(session, inventory, slotPacket.getItem()));
             }
             session.sendUpstreamPacket(slotPacket);
@@ -76,8 +76,10 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         slotPacket.setContainerId(ContainerId.UI);
         slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
         slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
-        if (slotPacket.getSlot() == 1) { // Input item slot
+        if (javaSlot == 0) { // Input item slot
             slotPacket.setItem(hijackRepairCost(session, inventory, slotPacket.getItem()));
+        } else {
+            updateSlot(translator, session, inventory, 0);
         }
         session.sendUpstreamPacket(slotPacket);
         return true;
@@ -140,11 +142,8 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                 int newLevel = entry.getValue();
                 if (newLevel == currentLevel) {
                     newLevel++;
-                } else if (newLevel < currentLevel) {
-                    int temp = newLevel;
-                    newLevel = currentLevel;
-                    currentLevel = temp;
                 }
+                newLevel = Math.max(currentLevel, newLevel);
                 if (newLevel > data.maxLevel()) {
                     newLevel = data.maxLevel();
                 }
@@ -154,18 +153,15 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                 if (isMaterialEnchantedBook && rarityMultiplier > 1) {
                     rarityMultiplier /= 2;
                 }
-
-                if (canApply) {
-                    if (enchantment == JavaEnchantment.IMPALING) {
-                        // Compensate for the multiplier being halved on Bedrock
-                        diff += rarityMultiplier / 2 * (newLevel + currentLevel);
-                    } else {
-                        diff += rarityMultiplier * currentLevel;
-                    }
-                } else {
-                    // Apply full level cost because Bedrock does not apply/count invalid enchantments at all
-                    diff += rarityMultiplier * newLevel;
+                int bedrockRarityMultiplier = rarityMultiplier;
+                if (enchantment == JavaEnchantment.IMPALING) {
+                    // Multiplier is halved on Bedrock for some reason
+                    bedrockRarityMultiplier /= 2;
                 }
+
+                int javaCost = rarityMultiplier * newLevel;
+                int bedrockCost = canApply ? bedrockRarityMultiplier * (newLevel - currentLevel) : 0;
+                diff += javaCost - bedrockCost;
             }
         }
 
