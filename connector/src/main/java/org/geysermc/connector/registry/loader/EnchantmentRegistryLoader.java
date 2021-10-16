@@ -59,7 +59,7 @@ public class EnchantmentRegistryLoader implements RegistryLoader<String, Map<Jav
             Map.Entry<String, JsonNode> entry = it.next();
             JavaEnchantment key = JavaEnchantment.getByJavaIdentifier(entry.getKey());
             JsonNode node = entry.getValue();
-            int rarityMultipler = switch (node.get("rarity").textValue()) {
+            int rarityMultiplier = switch (node.get("rarity").textValue()) {
                 case "common" -> 1;
                 case "uncommon" -> 2;
                 case "rare" -> 4;
@@ -87,7 +87,7 @@ public class EnchantmentRegistryLoader implements RegistryLoader<String, Map<Jav
                 }
             }
 
-            EnchantmentData enchantmentData = new EnchantmentData(rarityMultipler, maxLevel, incompatibleEnchantments, validItems);
+            EnchantmentData enchantmentData = new EnchantmentData(rarityMultiplier, maxLevel, incompatibleEnchantments, validItems);
             enchantments.put(key, enchantmentData);
         }
         return enchantments;

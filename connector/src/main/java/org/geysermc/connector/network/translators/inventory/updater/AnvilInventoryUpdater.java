@@ -88,18 +88,22 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     private ItemData hijackRepairCost(GeyserSession session, Inventory inventory, ItemData itemData) {
         // Fix level count by adjusting repair cost
         int newRepairCost = calcLevelDiff(session, inventory.getItem(0), inventory.getItem(1));
+        if (newRepairCost == 0) {
+            return itemData;
+        }
+
+        NbtMapBuilder tagBuilder = NbtMap.builder();
         if (itemData.getTag() != null) {
             newRepairCost += itemData.getTag().getInt("RepairCost", 0);
-            // TODO There has to be a better way
-            NbtMapBuilder newNBTMapBuilder = itemData.getTag().toBuilder();
-            newNBTMapBuilder.put("RepairCost", newRepairCost);
-            return itemData.toBuilder().tag(newNBTMapBuilder.build()).build();
+            tagBuilder.putAll(itemData.getTag());
         }
-        return itemData.toBuilder().tag(NbtMap.builder().putInt("RepairCost", newRepairCost).build()).build();
+        tagBuilder.put("RepairCost", newRepairCost);
+        return itemData.toBuilder().tag(tagBuilder.build()).build();
     }
 
     /**
      * Calculate the difference between xp levels of Java anvil mechanics and Bedrock anvil mechanics
+     *
      * @param session the geyser session
      * @param input left item stack
      * @param material right item stack
@@ -117,7 +121,6 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         }
 
         int diff = 0;
-        boolean creativeOverride = session.getGameMode() == GameMode.CREATIVE; // TODO: Check abilities instead
         boolean hasCompatible = false;
         Map<JavaEnchantment, Integer> combinedEnchantments = getEnchantments(session, input);
         for (Map.Entry<JavaEnchantment, Integer> entry : getEnchantments(session, material).entrySet()) {
@@ -136,7 +139,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                 }
             }
 
-            if (creativeOverride || canApply) {
+            if (session.getGameMode() == GameMode.CREATIVE || canApply) {
                 hasCompatible = true;
                 int currentLevel = combinedEnchantments.getOrDefault(enchantment, 0);
                 int newLevel = entry.getValue();
@@ -178,7 +181,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         if (itemStack.getNbt() == null) {
             return Object2ObjectMaps.emptyMap();
         }
-        EnumMap<JavaEnchantment, Integer> enchantments = new EnumMap<>(JavaEnchantment.class);
+        Map<JavaEnchantment, Integer> enchantments = new EnumMap<>(JavaEnchantment.class);
         Tag enchantmentTag;
         if (isEnchantedBook(session, itemStack)) {
             enchantmentTag = itemStack.getNbt().get("StoredEnchantments");
