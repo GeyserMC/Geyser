@@ -27,7 +27,8 @@ package org.geysermc.connector.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.v448.Bedrock_v448;
-import com.nukkitx.protocol.bedrock.v448.Bedrock_v465;
+import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
+import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +53,7 @@ public class BedrockProtocol {
                 .minecraftVersion("1.17.10/1.17.11")
                 .build());
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v465.V465_CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v471.V471_CODEC);
     }
 
     /**
