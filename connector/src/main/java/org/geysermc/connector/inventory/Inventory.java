@@ -95,7 +95,7 @@ public class Inventory {
     }
 
     public GeyserItemStack getItem(int slot) {
-        if (slot > this.size) {
+        if (slot >= this.size) {
             GeyserConnector.getInstance().getLogger().debug("Tried to get an item out of bounds! " + this);
             return GeyserItemStack.EMPTY;
         }
