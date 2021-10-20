@@ -45,7 +45,7 @@ public class MessageTranslator {
     private static final TranslatableComponentRenderer<String> RENDERER = new MinecraftTranslationRegistry();
 
     // Possible TODO: replace the legacy hover event serializer with an empty one since we have no use for hover events
-    private static final GsonComponentSerializer GSON_SERIALIZER = DefaultComponentSerializer.get();
+    private static final GsonComponentSerializer GSON_SERIALIZER;
 
     // Store team colors for player names
     private static final Map<TeamColor, String> TEAM_COLORS = new EnumMap<>(TeamColor.class);
@@ -86,6 +86,12 @@ public class MessageTranslator {
         TEAM_COLORS.put(TeamColor.BOLD, BASE + "l");
         TEAM_COLORS.put(TeamColor.STRIKETHROUGH, BASE + "m");
         TEAM_COLORS.put(TeamColor.ITALIC, BASE + "o");
+
+        // Temporary fix for https://github.com/KyoriPowered/adventure/issues/447
+        GsonComponentSerializer source = DefaultComponentSerializer.get();
+        GSON_SERIALIZER = new GsonComponentSerializerWrapper(source);
+        // Tell MCProtocolLib to use this serializer, too.
+        DefaultComponentSerializer.set(GSON_SERIALIZER);
     }
 
     /**
