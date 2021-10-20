@@ -145,7 +145,7 @@ public class BannerTranslator extends ItemTranslator {
     /**
      * Convert the Bedrock edition banner pattern nbt to Java edition
      *
-     * @param pattern Bedorck edition pattern nbt
+     * @param pattern Bedrock edition pattern nbt
      * @return The Java edition format pattern nbt
      */
     public static CompoundTag getJavaBannerPattern(NbtMap pattern) {

@@ -34,6 +34,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
+import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.CraftLoomStackRequestActionData;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.CraftResultsDeprecatedStackRequestActionData;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
@@ -118,12 +119,14 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
     @Override
     public boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
         // If the LOOM_MATERIAL slot is not empty, we are crafting a pattern that does not come from an item
-        return action.getType() == StackRequestActionType.CRAFT_NON_IMPLEMENTED_DEPRECATED && inventory.getItem(2).isEmpty();
+        // Remove the CRAFT_NON_IMPLEMENTED_DEPRECATED when 1.17.30 is dropped
+        return (action.getType() == StackRequestActionType.CRAFT_NON_IMPLEMENTED_DEPRECATED || action.getType() == StackRequestActionType.CRAFT_LOOM)
+                && inventory.getItem(2).isEmpty();
     }
 
     @Override
     public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
-        // TODO: I anticipate this will be changed in the future to use something non-deprecated. Keep an eye out.
+        StackRequestActionData headerData = request.getActions()[0];
         StackRequestActionData data = request.getActions()[1];
         if (!(data instanceof CraftResultsDeprecatedStackRequestActionData craftData)) {
             return rejectRequest(request);
@@ -133,8 +136,18 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
         List<NbtMap> newBlockEntityTag = craftData.getResultItems()[0].getTag().getList("Patterns", NbtType.COMPOUND);
         // Get the pattern that the Bedrock client requests - the last pattern in the Patterns list
         NbtMap pattern = newBlockEntityTag.get(newBlockEntityTag.size() - 1);
+        String bedrockPattern;
+
+        if (headerData instanceof CraftLoomStackRequestActionData loomData) {
+            // Prioritize this if on 1.17.40
+            // Remove the below if statement when 1.17.30 is dropped
+            bedrockPattern = loomData.getPatternId();
+        } else {
+            bedrockPattern = pattern.getString("Pattern");
+        }
+
         // Get the Java index of this pattern
-        int index = PATTERN_TO_INDEX.getOrDefault(pattern.getString("Pattern"), -1);
+        int index = PATTERN_TO_INDEX.getOrDefault(bedrockPattern, -1);
         if (index == -1) {
             return rejectRequest(request);
         }

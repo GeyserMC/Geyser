@@ -133,7 +133,7 @@ public enum EntityType {
     WITHER_SKULL(WitherSkullEntity.class, 89, 0.3125f),
     BOAT(BoatEntity.class, 90, 0.6f, 1.6f, 1.6f, 0.35f),
     WITHER_SKULL_DANGEROUS(WitherSkullEntity.class, 91, 0f),
-    LIGHTNING_BOLT(Entity.class, 93, 0f),
+    LIGHTNING_BOLT(LightningEntity.class, 93, 0f),
     SMALL_FIREBALL(ItemedFireballEntity.class, 94, 0.3125f),
     AREA_EFFECT_CLOUD(AreaEffectCloudEntity.class, 95, 0.5f, 1.0f),
     MINECART_HOPPER(MinecartEntity.class, 96, 0.7f, 0.98f, 0.98f, 0.35f, "minecraft:hopper_minecart"),

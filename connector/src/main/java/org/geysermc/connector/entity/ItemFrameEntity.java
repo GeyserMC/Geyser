@@ -35,7 +35,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
-import com.nukkitx.protocol.bedrock.v448.Bedrock_v465;
+import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
 import lombok.Getter;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;

@@ -36,7 +36,8 @@ import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.v448.Bedrock_v448;
-import com.nukkitx.protocol.bedrock.v448.Bedrock_v465;
+import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
+import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -69,6 +70,7 @@ public class ItemRegistryPopulator {
         }
 
         PALETTE_VERSIONS.put("1_17_30", new PaletteVersion(Bedrock_v465.V465_CODEC.getProtocolVersion(), Collections.emptyMap()));
+        PALETTE_VERSIONS.put("1_17_40", new PaletteVersion(Bedrock_v471.V471_CODEC.getProtocolVersion(), Collections.emptyMap()));
     }
 
     private record PaletteVersion(int protocolVersion, Map<String, String> additionalTranslatedItems) {
