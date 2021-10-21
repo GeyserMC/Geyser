@@ -38,10 +38,7 @@ import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.v448.Bedrock_v448;
 import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
 import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.*;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.item.StoredItemMappings;
@@ -374,7 +371,12 @@ public class ItemRegistryPopulator {
                         .bedrockId(bedrockId)
                         .bedrockData(mappingItem.getBedrockData())
                         .bedrockBlockId(bedrockBlockId)
-                        .stackSize(stackSize);
+                        .stackSize(stackSize)
+                        .maxDamage(mappingItem.getMaxDamage());
+
+                if (mappingItem.getRepairMaterials() != null) {
+                    mappingBuilder = mappingBuilder.repairMaterials(new ObjectOpenHashSet<>(mappingItem.getRepairMaterials()));
+                }
 
                 if (mappingItem.getToolType() != null) {
                     if (mappingItem.getToolTier() != null) {

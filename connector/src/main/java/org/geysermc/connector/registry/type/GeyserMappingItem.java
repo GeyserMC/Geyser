@@ -28,6 +28,8 @@ package org.geysermc.connector.registry.type;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * Represents Geyser's own serialized item information before being processed per-version
  */
@@ -40,4 +42,6 @@ public class GeyserMappingItem {
     @JsonProperty("stack_size") int stackSize = 64;
     @JsonProperty("tool_type") String toolType;
     @JsonProperty("tool_tier") String toolTier;
+    @JsonProperty("max_damage") int maxDamage = 0;
+    @JsonProperty("repair_materials") List<String> repairMaterials;
 }
