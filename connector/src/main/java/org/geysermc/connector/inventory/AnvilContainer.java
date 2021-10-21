@@ -26,11 +26,16 @@
 package org.geysermc.connector.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Used to determine if rename packets should be sent.
  */
 public class AnvilContainer extends Container {
+    @Getter @Setter
+    private int javaLevelCost = 0;
+
     public AnvilContainer(String title, int id, int size, WindowType windowType, PlayerInventory playerInventory) {
         super(title, id, size, windowType, playerInventory);
     }

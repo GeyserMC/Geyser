@@ -32,6 +32,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import org.geysermc.connector.inventory.AnvilContainer;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.inventory.PlayerInventory;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot;
 import org.geysermc.connector.network.translators.inventory.updater.AnvilInventoryUpdater;
 
@@ -74,5 +75,14 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
     @Override
     public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
         return new AnvilContainer(name, windowId, this.size, windowType, playerInventory);
+    }
+
+    @Override
+    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
+        if (key == 0) {
+            AnvilContainer anvilContainer = (AnvilContainer) inventory;
+            anvilContainer.setJavaLevelCost(value);
+            updateInventory(session, inventory); // TODO maybe just update the input slot?
+        }
     }
 }

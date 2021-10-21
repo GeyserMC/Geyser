@@ -34,6 +34,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.inventory.AnvilContainer;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -61,7 +62,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             slotPacket.setSlot(bedrockSlot);
             slotPacket.setItem(inventory.getItem(i).getItemData(session));
             if (i == 0) { // Input item slot
-                slotPacket.setItem(hijackRepairCost(session, inventory, slotPacket.getItem()));
+                slotPacket.setItem(hijackRepairCost(session, (AnvilContainer) inventory, slotPacket.getItem()));
             }
             session.sendUpstreamPacket(slotPacket);
         }
@@ -77,7 +78,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
         slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
         if (javaSlot == 0) { // Input item slot
-            slotPacket.setItem(hijackRepairCost(session, inventory, slotPacket.getItem()));
+            slotPacket.setItem(hijackRepairCost(session, (AnvilContainer) inventory, slotPacket.getItem()));
         } else {
             updateSlot(translator, session, inventory, 0);
         }
@@ -85,9 +86,14 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return true;
     }
 
-    private ItemData hijackRepairCost(GeyserSession session, Inventory inventory, ItemData itemData) {
+    private ItemData hijackRepairCost(GeyserSession session, AnvilContainer anvilContainer, ItemData itemData) {
         // Fix level count by adjusting repair cost
-        int newRepairCost = calcLevelDiff(session, inventory.getItem(0), inventory.getItem(1));
+        int newRepairCost = anvilContainer.getJavaLevelCost(); // TODO check when property is not sent
+        newRepairCost -= calcLevelCost(session, anvilContainer, true);
+        // TODO remove debug
+        System.out.println("Java: " + anvilContainer.getJavaLevelCost());
+        System.out.println("Java pred: " + calcLevelCost(session, anvilContainer, false));
+        System.out.println("Bedrock: " + calcLevelCost(session, anvilContainer, true));
         if (newRepairCost == 0) {
             return itemData;
         }
@@ -102,27 +108,107 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     }
 
     /**
-     * Calculate the difference between xp levels of Java anvil mechanics and Bedrock anvil mechanics
+     * Calculate the number of levels needed to combine/rename an item
      *
      * @param session the geyser session
-     * @param input left item stack
-     * @param material right item stack
-     * @return the number of levels needed to match Java edition
+     * @param anvilContainer the anvil container
+     * @param bedrock True to count enchantments like Bedrock
+     * @return the number of levels needed
      */
-    private int calcLevelDiff(GeyserSession session, GeyserItemStack input, GeyserItemStack material) {
-        if (input.isEmpty() || material.isEmpty()) {
+    public int calcLevelCost(GeyserSession session, AnvilContainer anvilContainer, boolean bedrock) {
+        GeyserItemStack input = anvilContainer.getItem(0);
+        GeyserItemStack material = anvilContainer.getItem(1);
+
+        if (input.isEmpty()) {
             return 0;
         }
+        int totalRepairCost = getRepairCost(input);
+        int cost = 0;
+        if (!material.isEmpty()) {
+            totalRepairCost += getRepairCost(material);
+            boolean inputHasDurability = hasDurability(session, input);
+            if (isCombining(session, input, material)) {
+                if (inputHasDurability && input.getJavaId() == material.getJavaId()) {
+                    cost += calcMergeRepairCost(session, input, material);
+                }
 
-        boolean isInputEnchantedBook = isEnchantedBook(session, input);
-        boolean isMaterialEnchantedBook = isEnchantedBook(session, material);
-        if (input.getJavaId() != material.getJavaId() && !isMaterialEnchantedBook) {
-            return 0;
+                int enchantmentLevelCost = calcMergeEnchantmentCost(session, input, material, bedrock);
+                if (enchantmentLevelCost != -1) {
+                    cost += enchantmentLevelCost;
+                } else if (cost == 0) {
+                    // Can't repair or merge enchantments
+                    return -1;
+                }
+            } else if (inputHasDurability && isRepairing(session, input, material)) {
+                cost = calcRepairLevelCost(session, input, material);
+                if (cost == -1) {
+                    return -1;
+                }
+            } else {
+                return -1;
+            }
         }
 
-        int diff = 0;
+        cost += totalRepairCost;
+
+        // TOOD check renaming
+
+        return cost;
+    }
+
+    /**
+     * Calculate the levels needed to repair an item with its repair material
+     * E.g. iron_sword + iron_ingot
+     *
+     * @param session Geyser session
+     * @param input an item with durability
+     * @param material the item's respective repair material
+     * @return the number of levels needed or 0 if it is not possible to repair any further
+     */
+    private int calcRepairLevelCost(GeyserSession session, GeyserItemStack input, GeyserItemStack material) {
+        int newDamage = getDamage(input);
+        int unitRepair = Math.min(newDamage, input.getMapping(session).getMaxDamage() / 4);
+        if (unitRepair <= 0) {
+            return -1;
+        }
+        for (int i = 0; i < material.getAmount(); i++) {
+            newDamage -= unitRepair;
+            unitRepair = Math.min(newDamage, input.getMapping(session).getMaxDamage() / 4);
+            if (unitRepair <= 0) {
+                return i + 1;
+            }
+        }
+        return material.getAmount();
+    }
+
+    /**
+     * Calculate the levels cost for repairing items by combining two of the same item
+     *
+     * @param session Geyser session
+     * @param input an item with durability
+     * @param material a matching item
+     * @return the number of levels needed or 0 if it is not possible to repair any further
+     */
+    private int calcMergeRepairCost(GeyserSession session, GeyserItemStack input, GeyserItemStack material) {
+        if (getDamage(input) > 0 && getDamage(material) < (material.getMapping(session).getMaxDamage() * 112 / 100)) {
+            return 2;
+        }
+        return 0;
+    }
+
+    /**
+     * Calculate the levels needed for combining the enchantments of two items
+     *
+     * @param session Geyser session
+     * @param input an item with durability
+     * @param material a matching item
+     * @param bedrock True to count enchantments like Bedrock, False to count like Java
+     * @return the number of levels needed or -1 if no enchantments can be applied
+     */
+    private int calcMergeEnchantmentCost(GeyserSession session, GeyserItemStack input, GeyserItemStack material, boolean bedrock) {
         boolean hasCompatible = false;
         Map<JavaEnchantment, Integer> combinedEnchantments = getEnchantments(session, input);
+        int cost = 0;
         for (Map.Entry<JavaEnchantment, Integer> entry : getEnchantments(session, material).entrySet()) {
             JavaEnchantment enchantment = entry.getKey();
             EnchantmentData data = Registries.ENCHANTMENTS.get(enchantment);
@@ -131,16 +217,17 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                 continue;
             }
 
-            boolean canApply = isInputEnchantedBook || data.validItems().contains(input.getJavaId());
+            boolean canApply = isEnchantedBook(session, input) || data.validItems().contains(input.getJavaId());
             for (JavaEnchantment incompatible : data.incompatibleEnchantments()) {
                 if (combinedEnchantments.containsKey(incompatible)) {
                     canApply = false;
-                    diff++;
+                    if (!bedrock) {
+                        cost++;
+                    }
                 }
             }
 
-            if (session.getGameMode() == GameMode.CREATIVE || canApply) {
-                hasCompatible = true;
+            if (canApply || (!bedrock && session.getGameMode() == GameMode.CREATIVE)) {
                 int currentLevel = combinedEnchantments.getOrDefault(enchantment, 0);
                 int newLevel = entry.getValue();
                 if (newLevel == currentLevel) {
@@ -153,28 +240,32 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                 combinedEnchantments.put(enchantment, newLevel);
 
                 int rarityMultiplier = data.rarityMultiplier();
-                if (isMaterialEnchantedBook && rarityMultiplier > 1) {
+                if (isEnchantedBook(session, material) && rarityMultiplier > 1) {
                     rarityMultiplier /= 2;
                 }
-                int bedrockRarityMultiplier = rarityMultiplier;
-                if (enchantment == JavaEnchantment.IMPALING) {
-                    // Multiplier is halved on Bedrock for some reason
-                    bedrockRarityMultiplier /= 2;
-                } else if (enchantment == JavaEnchantment.SWEEPING) {
-                    // Doesn't exist on Bedrock
-                    bedrockRarityMultiplier = 0;
+                if (bedrock) {
+                    if (newLevel > currentLevel) {
+                        hasCompatible = true;
+                    }
+                    if (enchantment == JavaEnchantment.IMPALING) {
+                        // Multiplier is halved on Bedrock for some reason
+                        rarityMultiplier /= 2;
+                    } else if (enchantment == JavaEnchantment.SWEEPING) {
+                        // Doesn't exist on Bedrock
+                        rarityMultiplier = 0;
+                    }
+                    cost += rarityMultiplier * (newLevel - currentLevel);
+                } else {
+                    hasCompatible = true;
+                    cost += rarityMultiplier * newLevel;
                 }
-
-                int javaCost = rarityMultiplier * newLevel;
-                int bedrockCost = canApply ? bedrockRarityMultiplier * (newLevel - currentLevel) : 0;
-                diff += javaCost - bedrockCost;
             }
         }
 
         if (!hasCompatible) {
-            return 0;
+            return -1;
         }
-        return diff;
+        return cost;
     }
 
     private Map<JavaEnchantment, Integer> getEnchantments(GeyserSession session, GeyserItemStack itemStack) {
@@ -212,5 +303,38 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
 
     private boolean isEnchantedBook(GeyserSession session, GeyserItemStack itemStack) {
         return itemStack.getJavaId() == session.getItemMappings().getStoredItems().enchantedBook().getJavaId();
+    }
+
+    private boolean isCombining(GeyserSession session, GeyserItemStack input, GeyserItemStack material) {
+        return input.getJavaId() == material.getJavaId() || isEnchantedBook(session, material);
+    }
+
+    private boolean isRepairing(GeyserSession session, GeyserItemStack input, GeyserItemStack material) {
+        return input.getMapping(session).getRepairMaterials().contains(material.getMapping(session).getJavaIdentifier());
+    }
+
+    private int getTagIntValueOr(GeyserItemStack itemStack, String tagName, int defaultValue) {
+        if (itemStack.getNbt() != null) {
+            Tag tag = itemStack.getNbt().get(tagName);
+            if (tag != null && tag.getValue() instanceof Number value) {
+                return value.intValue();
+            }
+        }
+        return defaultValue;
+    }
+
+    private int getRepairCost(GeyserItemStack itemStack) {
+        return getTagIntValueOr(itemStack, "RepairCost", 0);
+    }
+
+    private boolean hasDurability(GeyserSession session, GeyserItemStack itemStack) {
+        if (itemStack.getMapping(session).getMaxDamage() > 0) {
+            return getTagIntValueOr(itemStack, "Unbreakable", 0) == 0;
+        }
+        return false;
+    }
+
+    private int getDamage(GeyserItemStack itemStack) {
+        return getTagIntValueOr(itemStack, "Damage", 0);
     }
 }
