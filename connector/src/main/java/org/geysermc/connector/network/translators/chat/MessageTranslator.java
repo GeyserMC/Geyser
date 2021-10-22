@@ -61,6 +61,8 @@ public class MessageTranslator {
     private static final Pattern COLOR_CHARACTERS = Pattern.compile("\u00a7([0-9a-f])");
     private static final Pattern DOUBLE_RESET = Pattern.compile("\u00a7r\u00a7r");
 
+    private static final Pattern ALL_FORMATTING = Pattern.compile("\u00a7[0-9a-fklmnor]");
+
     static {
         TEAM_COLORS.put(TeamColor.NONE, "");
 
@@ -171,6 +173,19 @@ public class MessageTranslator {
     public static String convertToJavaMessage(String message) {
         Component component = LegacyComponentSerializer.legacySection().deserialize(message);
         return GSON_SERIALIZER.serialize(component);
+    }
+
+    /**
+     * Convert JSON and legacy format message to plain text
+     *
+     * @param message Message to convert
+     * @param locale Locale to use for translation strings
+     * @return The plain text of the message
+     */
+    public static String convertToPlainText(String message, String locale) {
+        message = convertMessageLenient(message, locale);
+        message = ALL_FORMATTING.matcher(message).replaceAll("");
+        return message;
     }
 
     /**

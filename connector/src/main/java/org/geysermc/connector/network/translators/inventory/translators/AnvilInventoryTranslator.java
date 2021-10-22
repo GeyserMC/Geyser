@@ -82,7 +82,8 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
         if (key == 0) {
             AnvilContainer anvilContainer = (AnvilContainer) inventory;
             anvilContainer.setJavaLevelCost(value);
-            updateInventory(session, inventory); // TODO maybe just update the input slot?
+            anvilContainer.setUseJavaLevelCost(true);
+            updateSlot(session, anvilContainer, 1);
         }
     }
 }

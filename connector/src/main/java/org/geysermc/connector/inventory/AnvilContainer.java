@@ -36,6 +36,15 @@ public class AnvilContainer extends Container {
     @Getter @Setter
     private int javaLevelCost = 0;
 
+    @Getter @Setter
+    private boolean useJavaLevelCost = false;
+
+    @Getter @Setter
+    private GeyserItemStack lastInput = GeyserItemStack.EMPTY;
+
+    @Getter @Setter
+    private GeyserItemStack lastMaterial = GeyserItemStack.EMPTY;
+
     public AnvilContainer(String title, int id, int size, WindowType windowType, PlayerInventory playerInventory) {
         super(title, id, size, windowType, playerInventory);
     }

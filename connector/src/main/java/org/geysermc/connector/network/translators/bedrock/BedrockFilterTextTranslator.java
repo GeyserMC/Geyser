@@ -53,6 +53,7 @@ public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPack
             // Java Edition sends a packet every time an item is renamed even slightly in GUI. Fortunately, this works out for us now
             ClientRenameItemPacket renameItemPacket = new ClientRenameItemPacket(packet.getText());
             session.sendDownstreamPacket(renameItemPacket);
+            session.getInventoryTranslator().updateSlot(session, session.getOpenInventory(), 1);
         }
     }
 }
