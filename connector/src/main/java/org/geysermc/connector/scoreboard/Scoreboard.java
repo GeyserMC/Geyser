@@ -150,6 +150,13 @@ public final class Scoreboard {
                 continue;
             }
 
+            // there's nothing we can do with inactive objectives
+            // after checking if the objective has been deleted,
+            // except waiting for the objective to become activated (:
+            if (!objective.isActive()) {
+                continue;
+            }
+
             if (playerTeam != null && playerTeam.getColor() == objective.getTeamColor()) {
                 correctSidebar = objective;
             }
