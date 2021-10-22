@@ -30,19 +30,15 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Used to determine if rename packets should be sent.
+ * Used to determine if rename packets should be sent and stores
+ * the expected level cost for AnvilInventoryUpdater
  */
+@Getter @Setter
 public class AnvilContainer extends Container {
-    @Getter @Setter
     private int javaLevelCost = 0;
-
-    @Getter @Setter
     private boolean useJavaLevelCost = false;
 
-    @Getter @Setter
     private GeyserItemStack lastInput = GeyserItemStack.EMPTY;
-
-    @Getter @Setter
     private GeyserItemStack lastMaterial = GeyserItemStack.EMPTY;
 
     public AnvilContainer(String title, int id, int size, WindowType windowType, PlayerInventory playerInventory) {
