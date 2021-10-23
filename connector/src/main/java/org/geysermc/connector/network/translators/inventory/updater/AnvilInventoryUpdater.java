@@ -58,7 +58,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         super.updateInventory(translator, session, inventory);
         AnvilContainer anvilContainer = (AnvilContainer) inventory;
         updateInventoryState(session, anvilContainer);
-        int targetSlot = getTargetSlot(session, inventory);
+        int targetSlot = getTargetSlot(session, anvilContainer);
         for (int i = 0; i < translator.size; i++) {
             final int bedrockSlot = translator.javaSlotToBedrock(i);
             if (bedrockSlot == 50)
@@ -83,7 +83,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         updateInventoryState(session, anvilContainer);
 
         int lastTargetSlot = anvilContainer.getLastTargetSlot();
-        int targetSlot = getTargetSlot(session, inventory);
+        int targetSlot = getTargetSlot(session, anvilContainer);
         if (targetSlot != javaSlot) {
             // Update the requested slot
             InventorySlotPacket slotPacket = new InventorySlotPacket();
@@ -105,7 +105,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     }
 
     private void updateInventoryState(GeyserSession session, AnvilContainer anvilContainer) {
-        GeyserItemStack input = anvilContainer.getItem(0);
+        GeyserItemStack input = anvilContainer.getInput();
         if (!input.equals(anvilContainer.getLastInput())) {
             anvilContainer.setLastInput(input.copy());
             anvilContainer.setUseJavaLevelCost(false);
@@ -116,7 +116,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             session.sendDownstreamPacket(renameItemPacket);
         }
 
-        GeyserItemStack material = anvilContainer.getItem(1);
+        GeyserItemStack material = anvilContainer.getMaterial();
         if (!material.equals(anvilContainer.getLastMaterial())) {
             anvilContainer.setLastMaterial(material.copy());
             anvilContainer.setUseJavaLevelCost(false);
@@ -124,12 +124,12 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     }
 
     /**
-     * @param inventory the anvil inventory
+     * @param anvilContainer the anvil inventory
      * @return the slot to change the repair cost
      */
-    private int getTargetSlot(GeyserSession session, Inventory inventory) {
-        GeyserItemStack input = inventory.getItem(0);
-        GeyserItemStack material = inventory.getItem(1);
+    private int getTargetSlot(GeyserSession session, AnvilContainer anvilContainer) {
+        GeyserItemStack input = anvilContainer.getInput();
+        GeyserItemStack material = anvilContainer.getMaterial();
 
         if (!material.isEmpty()) {
             if (!input.isEmpty() && isRepairing(session, input, material)) {
@@ -143,10 +143,20 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     }
 
     private void updateTargetSlot(InventoryTranslator translator, GeyserSession session, AnvilContainer anvilContainer, int slot) {
-        anvilContainer.setLastTargetSlot(slot);
-
         ItemData itemData = anvilContainer.getItem(slot).getItemData(session);
         itemData = hijackRepairCost(session, anvilContainer, itemData);
+
+        if (slot == anvilContainer.getLastTargetSlot() && itemData.equals(anvilContainer.getLastTargetData(), true, true, true)) {
+            // Avoid unnecessary packets
+            return;
+        }
+        if (slot == 0 && isRenaming(session, anvilContainer)) {
+            // Can't change the repairCost because it resets the name field on Bedrock
+            return;
+        }
+
+        anvilContainer.setLastTargetSlot(slot);
+        anvilContainer.setLastTargetData(itemData);
 
         InventorySlotPacket slotPacket = new InventorySlotPacket();
         slotPacket.setContainerId(ContainerId.UI);
@@ -198,9 +208,8 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      * @return the number of levels needed
      */
     public int calcLevelCost(GeyserSession session, AnvilContainer anvilContainer, boolean bedrock) {
-        GeyserItemStack input = anvilContainer.getItem(0);
-        GeyserItemStack material = anvilContainer.getItem(1);
-        GeyserItemStack result = anvilContainer.getItem(2);
+        GeyserItemStack input = anvilContainer.getInput();
+        GeyserItemStack material = anvilContainer.getMaterial();
 
         if (input.isEmpty()) {
             return 0;
@@ -232,9 +241,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         }
 
         int totalCost = totalRepairCost + cost;
-        // This should really check the name field, but that requires
-        // the localized name of the item and other pains
-        boolean renaming = !Objects.equals(getCustomName(session, input), getCustomName(session, result));
+        boolean renaming = isRenaming(session, anvilContainer);
         if (renaming) {
             totalCost++;
             if (cost == 0 && totalCost >= 40) {
@@ -400,6 +407,15 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     private boolean isRepairing(GeyserSession session, GeyserItemStack input, GeyserItemStack material) {
         Set<String> repairMaterials = input.getMapping(session).getRepairMaterials();
         return repairMaterials != null && repairMaterials.contains(material.getMapping(session).getJavaIdentifier());
+    }
+
+    private boolean isRenaming(GeyserSession session, AnvilContainer anvilContainer) {
+        if (anvilContainer.getResult().isEmpty()) {
+            return false;
+        }
+        // This should really check the name field, but that requires
+        // the localized name of the item and other pains
+        return !Objects.equals(getCustomName(session, anvilContainer.getInput()), getCustomName(session, anvilContainer.getResult()));
     }
 
     private int getTagIntValueOr(GeyserItemStack itemStack, String tagName, int defaultValue) {

@@ -26,6 +26,7 @@
 package org.geysermc.connector.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -42,8 +43,21 @@ public class AnvilContainer extends Container {
     private GeyserItemStack lastMaterial = GeyserItemStack.EMPTY;
 
     private int lastTargetSlot;
+    private ItemData lastTargetData;
 
     public AnvilContainer(String title, int id, int size, WindowType windowType, PlayerInventory playerInventory) {
         super(title, id, size, windowType, playerInventory);
+    }
+
+    public GeyserItemStack getInput() {
+        return getItem(0);
+    }
+
+    public GeyserItemStack getMaterial() {
+        return getItem(1);
+    }
+
+    public GeyserItemStack getResult() {
+        return getItem(2);
     }
 }
