@@ -104,7 +104,7 @@ public final class Scoreboard {
 
         Objective storedObjective = objectiveSlots.get(displaySlot);
         if (storedObjective != null && storedObjective != objective) {
-            objective.pendingRemove();
+            storedObjective.pendingRemove();
         }
         objectiveSlots.put(displaySlot, objective);
 
@@ -166,6 +166,12 @@ public final class Scoreboard {
             correctSidebar = objectiveSlots.get(ScoreboardPosition.SIDEBAR);
         }
 
+        for (Objective objective : removedObjectives) {
+            // Deletion must be handled before the active objectives are handled - otherwise if a scoreboard display is changed before the current
+            // scoreboard is removed, the client can crash
+            deleteObjective(objective, true);
+        }
+
         handleObjective(objectiveSlots.get(ScoreboardPosition.PLAYER_LIST), addScores, removeScores);
         handleObjective(correctSidebar, addScores, removeScores);
         handleObjective(objectiveSlots.get(ScoreboardPosition.BELOW_NAME), addScores, removeScores);
@@ -192,10 +198,6 @@ public final class Scoreboard {
             setScorePacket.setAction(SetScorePacket.Action.SET);
             setScorePacket.setInfos(addScores);
             session.sendUpstreamPacket(setScorePacket);
-        }
-
-        for (Objective objective : removedObjectives) {
-            deleteObjective(objective, true);
         }
 
         lastAddScoreCount = addScores.size();
