@@ -49,11 +49,12 @@ public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPack
         packet.setFromServer(true);
         session.sendUpstreamPacket(packet);
 
-        if (session.getOpenInventory() instanceof AnvilContainer) {
+        if (session.getOpenInventory() instanceof AnvilContainer anvilContainer) {
             // Java Edition sends a packet every time an item is renamed even slightly in GUI. Fortunately, this works out for us now
             ClientRenameItemPacket renameItemPacket = new ClientRenameItemPacket(packet.getText());
             session.sendDownstreamPacket(renameItemPacket);
-            session.getInventoryTranslator().updateSlot(session, session.getOpenInventory(), 1);
+            anvilContainer.setUseJavaLevelCost(false);
+            session.getInventoryTranslator().updateSlot(session, anvilContainer, 1);
         }
     }
 }

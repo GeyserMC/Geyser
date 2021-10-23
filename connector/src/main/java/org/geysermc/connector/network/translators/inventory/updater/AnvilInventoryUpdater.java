@@ -55,20 +55,22 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     @Override
     public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         super.updateInventory(translator, session, inventory);
-        updateInventoryState(session, (AnvilContainer) inventory);
+        AnvilContainer anvilContainer = (AnvilContainer) inventory;
+        updateInventoryState(session, anvilContainer);
         int targetSlot = getTargetSlot(inventory);
         for (int i = 0; i < translator.size; i++) {
             final int bedrockSlot = translator.javaSlotToBedrock(i);
             if (bedrockSlot == 50)
                 continue;
-            InventorySlotPacket slotPacket = new InventorySlotPacket();
-            slotPacket.setContainerId(ContainerId.UI);
-            slotPacket.setSlot(bedrockSlot);
-            slotPacket.setItem(inventory.getItem(i).getItemData(session));
             if (i == targetSlot) {
-                slotPacket.setItem(hijackRepairCost(session, (AnvilContainer) inventory, slotPacket.getItem()));
+                updateTargetSlot(translator, session, anvilContainer, targetSlot);
+            } else {
+                InventorySlotPacket slotPacket = new InventorySlotPacket();
+                slotPacket.setContainerId(ContainerId.UI);
+                slotPacket.setSlot(bedrockSlot);
+                slotPacket.setItem(inventory.getItem(i).getItemData(session));
+                session.sendUpstreamPacket(slotPacket);
             }
-            session.sendUpstreamPacket(slotPacket);
         }
     }
 
@@ -76,24 +78,28 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     public boolean updateSlot(InventoryTranslator translator, GeyserSession session, Inventory inventory, int javaSlot) {
         if (super.updateSlot(translator, session, inventory, javaSlot))
             return true;
-        updateInventoryState(session, (AnvilContainer) inventory);
+        AnvilContainer anvilContainer = (AnvilContainer) inventory;
+        updateInventoryState(session, anvilContainer);
+
+        int lastTargetSlot = anvilContainer.getLastTargetSlot();
         int targetSlot = getTargetSlot(inventory);
-
-        InventorySlotPacket slotPacket = new InventorySlotPacket();
-        slotPacket.setContainerId(ContainerId.UI);
-        slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
-        slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
-        if (javaSlot == targetSlot) {
-            slotPacket.setItem(hijackRepairCost(session, (AnvilContainer) inventory, slotPacket.getItem()));
-        } else {
-            session.sendUpstreamPacket(slotPacket);
-
-            slotPacket = new InventorySlotPacket();
+        if (targetSlot != javaSlot) {
+            // Update the requested slot
+            InventorySlotPacket slotPacket = new InventorySlotPacket();
             slotPacket.setContainerId(ContainerId.UI);
-            slotPacket.setSlot(translator.javaSlotToBedrock(targetSlot));
-            slotPacket.setItem(hijackRepairCost(session, (AnvilContainer) inventory, inventory.getItem(targetSlot).getItemData(session)));
+            slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
+            slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
+            session.sendUpstreamPacket(slotPacket);
+        } else if (lastTargetSlot != javaSlot) {
+            // Update the previous target slot to remove repair cost changes
+            InventorySlotPacket slotPacket = new InventorySlotPacket();
+            slotPacket.setContainerId(ContainerId.UI);
+            slotPacket.setSlot(translator.javaSlotToBedrock(lastTargetSlot));
+            slotPacket.setItem(inventory.getItem(lastTargetSlot).getItemData(session));
+            session.sendUpstreamPacket(slotPacket);
         }
-        session.sendUpstreamPacket(slotPacket);
+
+        updateTargetSlot(translator, session, anvilContainer, targetSlot);
         return true;
     }
 
@@ -116,14 +122,35 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         }
     }
 
+    /**
+     * @param inventory the anvil inventory
+     * @return the slot to change the repair cost
+     */
     private int getTargetSlot(Inventory inventory) {
         if (!inventory.getItem(1).isEmpty()) {
+            // Prefer changing the material item because it does not reset the name field
             return 1;
         }
         return 0;
     }
 
+    private void updateTargetSlot(InventoryTranslator translator, GeyserSession session, AnvilContainer anvilContainer, int slot) {
+        anvilContainer.setLastTargetSlot(slot);
+
+        ItemData itemData = anvilContainer.getItem(slot).getItemData(session);
+        itemData = hijackRepairCost(session, anvilContainer, itemData);
+
+        InventorySlotPacket slotPacket = new InventorySlotPacket();
+        slotPacket.setContainerId(ContainerId.UI);
+        slotPacket.setSlot(translator.javaSlotToBedrock(slot));
+        slotPacket.setItem(itemData);
+        session.sendUpstreamPacket(slotPacket);
+    }
+
     private ItemData hijackRepairCost(GeyserSession session, AnvilContainer anvilContainer, ItemData itemData) {
+        if (itemData.isNull()) {
+            return itemData;
+        }
         // Fix level count by adjusting repair cost
         int newRepairCost;
         if (anvilContainer.isUseJavaLevelCost()) {
@@ -132,8 +159,16 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             // Did not receive a ServerWindowPropertyPacket with the level cost
             newRepairCost = calcLevelCost(session, anvilContainer, false);
         }
-        newRepairCost -= calcLevelCost(session, anvilContainer, true);
+
+        int bedrockLevelCost = calcLevelCost(session, anvilContainer, true);
+        if (bedrockLevelCost == -1) {
+            // Bedrock is unable to combine/repair the items
+            return itemData;
+        }
+
+        newRepairCost -= bedrockLevelCost;
         if (newRepairCost == 0) {
+            // No change to the repair cost needed
             return itemData;
         }
 
