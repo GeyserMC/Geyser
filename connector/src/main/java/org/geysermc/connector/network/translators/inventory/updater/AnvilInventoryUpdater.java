@@ -48,6 +48,7 @@ import org.geysermc.connector.registry.type.EnchantmentData;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public class AnvilInventoryUpdater extends InventoryUpdater {
     public static final AnvilInventoryUpdater INSTANCE = new AnvilInventoryUpdater();
@@ -57,7 +58,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         super.updateInventory(translator, session, inventory);
         AnvilContainer anvilContainer = (AnvilContainer) inventory;
         updateInventoryState(session, anvilContainer);
-        int targetSlot = getTargetSlot(inventory);
+        int targetSlot = getTargetSlot(session, inventory);
         for (int i = 0; i < translator.size; i++) {
             final int bedrockSlot = translator.javaSlotToBedrock(i);
             if (bedrockSlot == 50)
@@ -82,7 +83,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         updateInventoryState(session, anvilContainer);
 
         int lastTargetSlot = anvilContainer.getLastTargetSlot();
-        int targetSlot = getTargetSlot(inventory);
+        int targetSlot = getTargetSlot(session, inventory);
         if (targetSlot != javaSlot) {
             // Update the requested slot
             InventorySlotPacket slotPacket = new InventorySlotPacket();
@@ -126,8 +127,15 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      * @param inventory the anvil inventory
      * @return the slot to change the repair cost
      */
-    private int getTargetSlot(Inventory inventory) {
-        if (!inventory.getItem(1).isEmpty()) {
+    private int getTargetSlot(GeyserSession session, Inventory inventory) {
+        GeyserItemStack input = inventory.getItem(0);
+        GeyserItemStack material = inventory.getItem(1);
+
+        if (!material.isEmpty()) {
+            if (!input.isEmpty() && isRepairing(session, input, material)) {
+                // Changing the repair cost on the material item makes it non-stackable
+                return 0;
+            }
             // Prefer changing the material item because it does not reset the name field
             return 1;
         }
@@ -390,7 +398,8 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     }
 
     private boolean isRepairing(GeyserSession session, GeyserItemStack input, GeyserItemStack material) {
-        return input.getMapping(session).getRepairMaterials().contains(material.getMapping(session).getJavaIdentifier());
+        Set<String> repairMaterials = input.getMapping(session).getRepairMaterials();
+        return repairMaterials != null && repairMaterials.contains(material.getMapping(session).getJavaIdentifier());
     }
 
     private int getTagIntValueOr(GeyserItemStack itemStack, String tagName, int defaultValue) {
