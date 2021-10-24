@@ -146,17 +146,12 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         ItemData itemData = anvilContainer.getItem(slot).getItemData(session);
         itemData = hijackRepairCost(session, anvilContainer, itemData);
 
-        if (slot == anvilContainer.getLastTargetSlot() && itemData.equals(anvilContainer.getLastTargetData(), true, true, true)) {
-            // Avoid unnecessary packets
-            return;
-        }
         if (slot == 0 && isRenaming(session, anvilContainer)) {
             // Can't change the repairCost because it resets the name field on Bedrock
             return;
         }
 
         anvilContainer.setLastTargetSlot(slot);
-        anvilContainer.setLastTargetData(itemData);
 
         InventorySlotPacket slotPacket = new InventorySlotPacket();
         slotPacket.setContainerId(ContainerId.UI);

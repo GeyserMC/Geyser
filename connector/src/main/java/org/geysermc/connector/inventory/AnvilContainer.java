@@ -42,8 +42,7 @@ public class AnvilContainer extends Container {
     private GeyserItemStack lastInput = GeyserItemStack.EMPTY;
     private GeyserItemStack lastMaterial = GeyserItemStack.EMPTY;
 
-    private int lastTargetSlot;
-    private ItemData lastTargetData;
+    private int lastTargetSlot = -1;
 
     public AnvilContainer(String title, int id, int size, WindowType windowType, PlayerInventory playerInventory) {
         super(title, id, size, windowType, playerInventory);
