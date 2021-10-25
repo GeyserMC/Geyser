@@ -31,6 +31,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -60,8 +61,6 @@ public class MessageTranslator {
     private static final Pattern STRIKETHROUGH_UNDERLINE = Pattern.compile("\u00a7[mn]");
     private static final Pattern COLOR_CHARACTERS = Pattern.compile("\u00a7([0-9a-f])");
     private static final Pattern DOUBLE_RESET = Pattern.compile("\u00a7r\u00a7r");
-
-    private static final Pattern ALL_FORMATTING = Pattern.compile("\u00a7[0-9a-fklmnor]");
 
     static {
         TEAM_COLORS.put(TeamColor.NONE, "");
@@ -189,9 +188,18 @@ public class MessageTranslator {
      * @return The plain text of the message
      */
     public static String convertToPlainText(String message, String locale) {
-        message = convertMessageLenient(message, locale);
-        message = ALL_FORMATTING.matcher(message).replaceAll("");
-        return message;
+        if (message.isBlank()) {
+            return message;
+        }
+        Component messageComponent;
+        try {
+            messageComponent = GSON_SERIALIZER.deserialize(message);
+            // Translate any components that require it
+            messageComponent = RENDERER.render(messageComponent, locale);
+        } catch (Exception ignored) {
+            messageComponent = LegacyComponentSerializer.legacySection().deserialize(message);
+        }
+        return PlainTextComponentSerializer.plainText().serialize(messageComponent);
     }
 
     /**
