@@ -83,6 +83,7 @@ shadowJar {
     relocate("it.unimi.dsi.fastutil", "org.geysermc.relocate.fastutil")
     relocate("org.objectweb.asm", "org.geysermc.relocate.asm")
     relocate("org.yaml", "org.geysermc.relocate.yaml") // https://github.com/CardboardPowered/cardboard/issues/139
+    relocate("com.fasterxml.jackson", "org.geysermc.relocate.jackson")
 }
 
 jar {
