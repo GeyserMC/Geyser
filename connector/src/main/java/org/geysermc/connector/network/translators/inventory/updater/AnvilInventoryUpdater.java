@@ -53,6 +53,8 @@ import java.util.Set;
 public class AnvilInventoryUpdater extends InventoryUpdater {
     public static final AnvilInventoryUpdater INSTANCE = new AnvilInventoryUpdater();
 
+    private static final int MAX_LEVEL_COST = 40;
+
     @Override
     public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         super.updateInventory(translator, session, inventory);
@@ -147,7 +149,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         itemData = hijackRepairCost(session, anvilContainer, itemData);
 
         if (slot == 0 && isRenaming(session, anvilContainer)) {
-            // Can't change the repairCost because it resets the name field on Bedrock
+            // Can't change the RepairCost because it resets the name field on Bedrock
             return;
         }
 
@@ -228,6 +230,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             } else if (hasDurability(session, input) && isRepairing(session, input, material)) {
                 cost = calcRepairLevelCost(session, input, material);
                 if (cost == -1) {
+                    // No damage to repair
                     return -1;
                 }
             } else {
@@ -239,8 +242,9 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         boolean renaming = isRenaming(session, anvilContainer);
         if (renaming) {
             totalCost++;
-            if (cost == 0 && totalCost >= 40) {
-                totalCost = 39;
+            if (cost == 0 && totalCost >= MAX_LEVEL_COST) {
+                // Items can still be renamed when the level cost for renaming exceeds 40
+                totalCost = MAX_LEVEL_COST;
             }
         }
         return totalCost;
@@ -259,6 +263,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         int newDamage = getDamage(input);
         int unitRepair = Math.min(newDamage, input.getMapping(session).getMaxDamage() / 4);
         if (unitRepair <= 0) {
+            // No damage to repair
             return -1;
         }
         for (int i = 0; i < material.getAmount(); i++) {
@@ -280,6 +285,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      * @return the number of levels needed or 0 if it is not possible to repair any further
      */
     private int calcMergeRepairCost(GeyserSession session, GeyserItemStack input, GeyserItemStack material) {
+        // If the material item is damaged 112% or more, then the input item will not be repaired
         if (getDamage(input) > 0 && getDamage(material) < (material.getMapping(session).getMaxDamage() * 112 / 100)) {
             return 2;
         }

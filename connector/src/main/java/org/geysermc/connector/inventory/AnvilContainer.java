@@ -36,7 +36,14 @@ import lombok.Setter;
  */
 @Getter @Setter
 public class AnvilContainer extends Container {
+    /**
+     * Stores the level cost received as a window property from Java
+     */
     private int javaLevelCost = 0;
+    /**
+     * A flag to specify whether javaLevelCost can be used as it can
+     * be outdated or not sent at all.
+     */
     private boolean useJavaLevelCost = false;
 
     private GeyserItemStack lastInput = GeyserItemStack.EMPTY;
