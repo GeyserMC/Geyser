@@ -45,7 +45,6 @@ import org.geysermc.connector.utils.DockerCheck;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.WebUtils;
 import org.geysermc.floodgate.util.DeviceOs;
-import org.geysermc.floodgate.util.FloodgateInfoHolder;
 
 import java.io.File;
 import java.io.IOException;

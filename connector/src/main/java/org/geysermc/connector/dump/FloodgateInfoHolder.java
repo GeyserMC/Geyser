@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.floodgate.util;
+package org.geysermc.connector.dump;
 
 import lombok.Getter;
 import lombok.Setter;
