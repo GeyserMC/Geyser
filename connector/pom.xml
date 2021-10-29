@@ -11,7 +11,7 @@
     <artifactId>connector</artifactId>
 
     <properties>
-        <adventure.version>4.9.2</adventure.version>
+        <adventure.version>3d6eaaf63f</adventure.version>
         <fastutil.version>8.5.2</fastutil.version>
         <jackson.version>2.12.4</jackson.version>
         <netty.version>4.1.66.Final</netty.version>
@@ -160,6 +160,10 @@
                     <groupId>com.github.steveice10</groupId>
                     <artifactId>mcauthlib</artifactId>
                 </exclusion>
+                <exclusion> <!-- TEMPORARY -->
+                    <groupId>net.kyori</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -223,7 +227,20 @@
         </dependency>
         <!-- Adventure text serialization -->
         <dependency>
-            <groupId>net.kyori</groupId>
+            <groupId>com.github.KyoriPowered.adventure</groupId>
+            <artifactId>adventure-text-serializer-gson</artifactId> <!-- TEMPORARY until https://github.com/KyoriPowered/adventure/commit/3d6eaaf63f44ddd981a4b3bbb1e0018aa6252da8 is in release -->
+            <version>${adventure.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.KyoriPowered.adventure</groupId>
+            <artifactId>adventure-text-serializer-gson-legacy-impl</artifactId> <!-- TEMPORARY until https://github.com/KyoriPowered/adventure/commit/3d6eaaf63f44ddd981a4b3bbb1e0018aa6252da8 is in release -->
+            <version>${adventure.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+<!--            <groupId>net.kyori</groupId>-->
+            <groupId>com.github.KyoriPowered.adventure</groupId>
             <artifactId>adventure-text-serializer-legacy</artifactId>
             <version>${adventure.version}</version>
             <scope>compile</scope>
