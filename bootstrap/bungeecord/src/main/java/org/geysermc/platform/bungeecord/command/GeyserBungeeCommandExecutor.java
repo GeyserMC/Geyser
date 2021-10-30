@@ -86,10 +86,20 @@ public class GeyserBungeeCommandExecutor extends Command implements TabExecutor 
         List<String> availableCommands = new ArrayList<>();
 
         if (args.length == 1) {
-            // Only show commands they have permission to use
             Map<String, GeyserCommand> commands = connector.getCommandManager().getCommands();
+
+            // Need to know for the commands that are bedrock only
+            boolean isBedrockPlayer = this.commandExecutor.getGeyserSession(new BungeeCommandSender(sender)) != null;
+
+            // Only show commands they have permission to use
             for (String name : commands.keySet()) {
-                if (sender.hasPermission(commands.get(name).getPermission())) {
+                GeyserCommand command = commands.get(name);
+                if (sender.hasPermission(command.getPermission())) {
+
+                    if (command.isBedrockOnly() && !isBedrockPlayer) {
+                        continue;
+                    }
+
                     availableCommands.add(name);
                 }
             }

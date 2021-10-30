@@ -85,10 +85,20 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
         List<String> availableCommands = new ArrayList<>();
 
         if (arguments.split(" ").length == 1) {
-            // Only show commands they have permission to use
             Map<String, GeyserCommand> commands = connector.getCommandManager().getCommands();
+
+            // Need to know for the commands that are bedrock only
+            boolean isBedrockPlayer = getGeyserSession(new SpongeCommandSender(source)) != null;
+
+            // Only show commands they have permission to use
             for (String name : commands.keySet()) {
-                if (source.hasPermission(commands.get(name).getPermission())) {
+                GeyserCommand command = commands.get(name);
+                if (source.hasPermission(command.getPermission())) {
+
+                    if (command.isBedrockOnly() && !isBedrockPlayer) {
+                        continue;
+                    }
+
                     availableCommands.add(name);
                 }
             }

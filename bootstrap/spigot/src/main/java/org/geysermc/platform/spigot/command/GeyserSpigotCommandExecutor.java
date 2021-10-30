@@ -81,10 +81,20 @@ public class GeyserSpigotCommandExecutor extends CommandExecutor implements TabE
         List<String> availableCommands = new ArrayList<>();
 
         if (args.length == 1) {
-            // Only show commands they have permission to use
             Map<String, GeyserCommand> commands = connector.getCommandManager().getCommands();
+
+            // Need to know for the commands that are bedrock only
+            boolean isBedrockPlayer = getGeyserSession(new SpigotCommandSender(sender)) != null;
+
+            // Only show commands they have permission to use
             for (String name : commands.keySet()) {
-                if (sender.hasPermission(commands.get(name).getPermission())) {
+                GeyserCommand geyserCommand = commands.get(name);
+                if (sender.hasPermission(geyserCommand.getPermission())) {
+
+                    if (geyserCommand.isBedrockOnly() && !isBedrockPlayer) {
+                        continue;
+                    }
+
                     availableCommands.add(name);
                 }
             }
