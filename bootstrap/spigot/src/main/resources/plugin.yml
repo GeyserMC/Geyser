@@ -8,7 +8,7 @@ api-version: 1.13
 commands:
   geyser:
     description: The main command for Geyser.
-    usage: /geyser help
+    usage: /geyser <subcommand>
 permissions:
   geyser.command.help:
     description: Shows help for all registered commands.
