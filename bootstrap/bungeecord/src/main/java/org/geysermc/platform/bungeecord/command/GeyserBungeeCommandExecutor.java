@@ -35,10 +35,8 @@ import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.Collections;
 
 public class GeyserBungeeCommandExecutor extends Command implements TabExecutor {
 
@@ -83,28 +81,10 @@ public class GeyserBungeeCommandExecutor extends Command implements TabExecutor 
 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
-        List<String> availableCommands = new ArrayList<>();
-
         if (args.length == 1) {
-            Map<String, GeyserCommand> commands = connector.getCommandManager().getCommands();
-
-            // Need to know for the commands that are bedrock only
-            boolean isBedrockPlayer = this.commandExecutor.getGeyserSession(new BungeeCommandSender(sender)) != null;
-
-            // Only show commands they have permission to use
-            for (String name : commands.keySet()) {
-                GeyserCommand command = commands.get(name);
-                if (sender.hasPermission(command.getPermission())) {
-
-                    if (command.isBedrockOnly() && !isBedrockPlayer) {
-                        continue;
-                    }
-
-                    availableCommands.add(name);
-                }
-            }
+            return commandExecutor.tabComplete(new BungeeCommandSender(sender));
+        } else {
+            return Collections.emptyList();
         }
-
-        return availableCommands;
     }
 }

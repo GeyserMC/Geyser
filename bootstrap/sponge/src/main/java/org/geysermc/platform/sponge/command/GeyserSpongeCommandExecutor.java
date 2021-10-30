@@ -40,10 +40,9 @@ import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public class GeyserSpongeCommandExecutor extends CommandExecutor implements CommandCallable {
@@ -82,29 +81,10 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
 
     @Override
     public List<String> getSuggestions(CommandSource source, String arguments, @Nullable Location<World> targetPosition) {
-        List<String> availableCommands = new ArrayList<>();
-
         if (arguments.split(" ").length == 1) {
-            Map<String, GeyserCommand> commands = connector.getCommandManager().getCommands();
-
-            // Need to know for the commands that are bedrock only
-            boolean isBedrockPlayer = getGeyserSession(new SpongeCommandSender(source)) != null;
-
-            // Only show commands they have permission to use
-            for (String name : commands.keySet()) {
-                GeyserCommand command = commands.get(name);
-                if (source.hasPermission(command.getPermission())) {
-
-                    if (command.isBedrockOnly() && !isBedrockPlayer) {
-                        continue;
-                    }
-
-                    availableCommands.add(name);
-                }
-            }
+            return tabComplete(new SpongeCommandSender(source));
         }
-
-        return availableCommands;
+        return Collections.emptyList();
     }
 
     @Override

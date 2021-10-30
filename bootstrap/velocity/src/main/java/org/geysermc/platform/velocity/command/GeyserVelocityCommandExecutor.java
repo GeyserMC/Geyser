@@ -34,10 +34,9 @@ import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 public class GeyserVelocityCommandExecutor extends CommandExecutor implements SimpleCommand {
 
@@ -72,29 +71,10 @@ public class GeyserVelocityCommandExecutor extends CommandExecutor implements Si
 
     @Override
     public List<String> suggest(Invocation invocation) {
-        List<String> availableCommands = new ArrayList<>();
-
-        // Both length 1 and 2 result in the suggestion still showing while the arg is being typed in
+        // Velocity seems to do the splitting a bit differently. This results in the same behaviour in bungeecord/spigot.
         if (invocation.arguments().length == 0 || invocation.arguments().length == 1) {
-            Map<String, GeyserCommand> commands = connector.getCommandManager().getCommands();
-
-            // Need to know for the commands that are bedrock only
-            boolean isBedrockPlayer = getGeyserSession(new VelocityCommandSender(invocation.source())) != null;
-
-            // Only show commands they have permission to use
-            for (String name : commands.keySet()) {
-                GeyserCommand command = commands.get(name);
-                if (invocation.source().hasPermission(command.getPermission())) {
-
-                    if (command.isBedrockOnly() && !isBedrockPlayer) {
-                        continue;
-                    }
-
-                    availableCommands.add(name);
-                }
-            }
+            return tabComplete(new VelocityCommandSender(invocation.source()));
         }
-
-        return availableCommands;
+        return Collections.emptyList();
     }
 }
