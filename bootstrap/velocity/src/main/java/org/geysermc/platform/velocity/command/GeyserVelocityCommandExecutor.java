@@ -73,8 +73,10 @@ public class GeyserVelocityCommandExecutor extends CommandExecutor implements Si
     @Override
     public List<String> suggest(Invocation invocation) {
         List<String> availableCommands = new ArrayList<>();
+        GeyserConnector.getInstance().getLogger().info("arguments length: " + invocation.arguments().length);
 
-        if (invocation.arguments().length == 1) {
+        // Both length 1 and 2 result in the suggestion still showing while the arg is being typed in
+        if (invocation.arguments().length == 0 || invocation.arguments().length == 1) {
             // Only show commands they have permission to use
             Map<String, GeyserCommand> commands = connector.getCommandManager().getCommands();
             for (String name : commands.keySet()) {
