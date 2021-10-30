@@ -12,17 +12,25 @@ commands:
 permissions:
   geyser.command.help:
     description: Shows help for all registered commands.
+    default: true
   geyser.command.advancement:
     description: Shows the advancements of the player on the server.
+    default: true
   geyser.command.dump:
     description: Dumps Geyser debug information for bug reports.
+    default: false
   geyser.command.list:
     description: List all players connected through Geyser.
+    default: false
   geyser.command.offhand:
     description: Puts an items in your offhand.
+    default: true
   geyser.command.reload:
     description: Reloads the Geyser configurations. Kicks all players when used!
+    default: false
   geyser.command.statistics:
     description: Shows the statistics of the player on the server.
+    default: true
   geyser.command.version:
     description: Shows the current Geyser version and checks for updates.
+    default: false
