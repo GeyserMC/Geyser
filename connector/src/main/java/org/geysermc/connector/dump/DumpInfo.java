@@ -204,8 +204,8 @@ public class DumpInfo {
         private final Object config;
 
         Floodgate() {
-            this.gitInfo = FloodgateInfoHolder.getGitProperties();
-            this.config = FloodgateInfoHolder.getConfig();
+            this.gitInfo = FloodgateInfo.getGitProperties();
+            this.config = FloodgateInfo.getConfig();
         }
     }
 
