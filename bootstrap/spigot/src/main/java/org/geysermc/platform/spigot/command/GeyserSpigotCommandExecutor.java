@@ -38,6 +38,7 @@ import org.geysermc.connector.utils.LanguageUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class GeyserSpigotCommandExecutor extends CommandExecutor implements TabExecutor {
 
@@ -77,9 +78,18 @@ public class GeyserSpigotCommandExecutor extends CommandExecutor implements TabE
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        List<String> availableCommands = new ArrayList<>();
+
         if (args.length == 1) {
-            return connector.getCommandManager().getCommandNames();
+            // Only show commands they have permission to use
+            Map<String, GeyserCommand> commands = connector.getCommandManager().getCommands();
+            for (String name : commands.keySet()) {
+                if (sender.hasPermission(commands.get(name).getPermission())) {
+                    availableCommands.add(name);
+                }
+            }
         }
-        return new ArrayList<>();
+
+        return availableCommands;
     }
 }

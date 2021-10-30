@@ -43,6 +43,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class GeyserSpongeCommandExecutor extends CommandExecutor implements CommandCallable {
@@ -81,10 +82,19 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
 
     @Override
     public List<String> getSuggestions(CommandSource source, String arguments, @Nullable Location<World> targetPosition) {
+        List<String> availableCommands = new ArrayList<>();
+
         if (arguments.split(" ").length == 1) {
-            return connector.getCommandManager().getCommandNames();
+            // Only show commands they have permission to use
+            Map<String, GeyserCommand> commands = connector.getCommandManager().getCommands();
+            for (String name : commands.keySet()) {
+                if (source.hasPermission(commands.get(name).getPermission())) {
+                    availableCommands.add(name);
+                }
+            }
         }
-        return new ArrayList<>();
+
+        return availableCommands;
     }
 
     @Override

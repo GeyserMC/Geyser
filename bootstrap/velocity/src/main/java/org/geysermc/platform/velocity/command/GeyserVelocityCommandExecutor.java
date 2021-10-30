@@ -37,6 +37,7 @@ import org.geysermc.connector.utils.LanguageUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class GeyserVelocityCommandExecutor extends CommandExecutor implements SimpleCommand {
 
@@ -71,9 +72,18 @@ public class GeyserVelocityCommandExecutor extends CommandExecutor implements Si
 
     @Override
     public List<String> suggest(Invocation invocation) {
-        if (invocation.arguments().length == 0) {
-            return connector.getCommandManager().getCommandNames();
+        List<String> availableCommands = new ArrayList<>();
+
+        if (invocation.arguments().length == 1) {
+            // Only show commands they have permission to use
+            Map<String, GeyserCommand> commands = connector.getCommandManager().getCommands();
+            for (String name : commands.keySet()) {
+                if (invocation.source().hasPermission(commands.get(name).getPermission())) {
+                    availableCommands.add(name);
+                }
+            }
         }
-        return new ArrayList<>();
+
+        return availableCommands;
     }
 }
