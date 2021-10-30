@@ -27,13 +27,13 @@ permissions:
     default: true
   geyser.command.list:
     description: List all players connected through Geyser.
-    default: false
+    default: op
   geyser.command.dump:
     description: Dumps Geyser debug information for bug reports.
-    default: false
+    default: op
   geyser.command.reload:
     description: Reloads the Geyser configurations. Kicks all players when used!
     default: false
   geyser.command.version:
     description: Shows the current Geyser version and checks for updates.
-    default: false
+    default: op
