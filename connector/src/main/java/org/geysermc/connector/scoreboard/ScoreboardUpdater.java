@@ -62,82 +62,88 @@ public final class ScoreboardUpdater extends Thread {
     @Override
     public void run() {
         while (!connector.isShuttingDown()) {
-            long timeTillAction = getTimeTillNextAction();
-            if (timeTillAction > 0) {
-                sleepFor(timeTillAction);
-                continue;
-            }
+            try {
+                long timeTillAction = getTimeTillNextAction();
+                if (timeTillAction > 0) {
+                    sleepFor(timeTillAction);
+                    continue;
+                }
 
-            long currentTime = System.currentTimeMillis();
+                long currentTime = System.currentTimeMillis();
 
-            // reset score-packets per second every second
-            if (currentTime - lastPacketsPerSecondUpdate >= 1000) {
-                lastPacketsPerSecondUpdate = currentTime;
-                for (GeyserSession session : connector.getPlayers()) {
-                    ScoreboardSession scoreboardSession = session.getWorldCache().getScoreboardSession();
+                // reset score-packets per second every second
+                if (currentTime - lastPacketsPerSecondUpdate >= 1000) {
+                    lastPacketsPerSecondUpdate = currentTime;
+                    for (GeyserSession session : connector.getPlayers()) {
+                        ScoreboardSession scoreboardSession = session.getWorldCache().getScoreboardSession();
 
-                    int oldPps = scoreboardSession.getPacketsPerSecond();
-                    int newPps = scoreboardSession.getPendingPacketsPerSecond().get();
+                        int oldPps = scoreboardSession.getPacketsPerSecond();
+                        int newPps = scoreboardSession.getPendingPacketsPerSecond().get();
 
-                    scoreboardSession.packetsPerSecond = newPps;
-                    scoreboardSession.pendingPacketsPerSecond.set(0);
+                        scoreboardSession.packetsPerSecond = newPps;
+                        scoreboardSession.pendingPacketsPerSecond.set(0);
 
-                    // just making sure that all updates are pushed before giving up control
-                    if (oldPps >= FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD &&
-                            newPps < FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
-                        session.getWorldCache().getScoreboard().onUpdate();
+                        // just making sure that all updates are pushed before giving up control
+                        if (oldPps >= FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD &&
+                                newPps < FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
+                            session.getWorldCache().getScoreboard().onUpdate();
+                        }
                     }
                 }
-            }
 
-            if (currentTime - lastUpdate >= FIRST_MILLIS_BETWEEN_UPDATES) {
-                lastUpdate = currentTime;
+                if (currentTime - lastUpdate >= FIRST_MILLIS_BETWEEN_UPDATES) {
+                    lastUpdate = currentTime;
 
-                for (GeyserSession session : connector.getPlayers()) {
-                    WorldCache worldCache = session.getWorldCache();
-                    ScoreboardSession scoreboardSession = worldCache.getScoreboardSession();
+                    for (GeyserSession session : connector.getPlayers()) {
+                        WorldCache worldCache = session.getWorldCache();
+                        ScoreboardSession scoreboardSession = worldCache.getScoreboardSession();
 
-                    int pps = scoreboardSession.getPacketsPerSecond();
-                    if (pps >= FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
-                        boolean reachedSecondThreshold = pps >= SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD;
+                        int pps = scoreboardSession.getPacketsPerSecond();
+                        if (pps >= FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
+                            boolean reachedSecondThreshold = pps >= SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD;
 
-                        int millisBetweenUpdates = reachedSecondThreshold ?
-                                SECOND_MILLIS_BETWEEN_UPDATES :
-                                FIRST_MILLIS_BETWEEN_UPDATES;
+                            int millisBetweenUpdates = reachedSecondThreshold ?
+                                    SECOND_MILLIS_BETWEEN_UPDATES :
+                                    FIRST_MILLIS_BETWEEN_UPDATES;
 
-                        if (currentTime - scoreboardSession.lastUpdate >= millisBetweenUpdates) {
-                            worldCache.getScoreboard().onUpdate();
-                            scoreboardSession.lastUpdate = currentTime;
+                            if (currentTime - scoreboardSession.lastUpdate >= millisBetweenUpdates) {
+                                worldCache.getScoreboard().onUpdate();
+                                scoreboardSession.lastUpdate = currentTime;
 
-                            if (DEBUG_ENABLED && (currentTime - scoreboardSession.lastLog >= 60000)) { // one minute
-                                int threshold = reachedSecondThreshold ?
-                                        SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD :
-                                        FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD;
+                                if (DEBUG_ENABLED && (currentTime - scoreboardSession.lastLog >= 60000)) { // one minute
+                                    int threshold = reachedSecondThreshold ?
+                                            SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD :
+                                            FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD;
 
-                                connector.getLogger().info(
-                                        LanguageUtils.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached.log", session.getName(), threshold, pps) +
-                                                LanguageUtils.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached", (millisBetweenUpdates / 1000.0))
-                                );
+                                    connector.getLogger().info(
+                                            LanguageUtils.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached.log", session.getName(), threshold, pps) +
+                                                    LanguageUtils.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached", (millisBetweenUpdates / 1000.0))
+                                    );
 
-                                scoreboardSession.lastLog = currentTime;
+                                    scoreboardSession.lastLog = currentTime;
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            if (DEBUG_ENABLED) {
-                long timeSpent = System.currentTimeMillis() - currentTime;
-                if (timeSpent > 0) {
-                    connector.getLogger().info(String.format(
-                            "Scoreboard updater: took %s ms. Updated %s players",
-                            timeSpent, connector.getPlayers().size()
-                    ));
+                if (DEBUG_ENABLED) {
+                    long timeSpent = System.currentTimeMillis() - currentTime;
+                    if (timeSpent > 0) {
+                        connector.getLogger().info(String.format(
+                                "Scoreboard updater: took %s ms. Updated %s players",
+                                timeSpent, connector.getPlayers().size()
+                        ));
+                    }
                 }
-            }
 
-            long timeTillNextAction = getTimeTillNextAction();
-            sleepFor(timeTillNextAction);
+                long timeTillNextAction = getTimeTillNextAction();
+                sleepFor(timeTillNextAction);
+            } catch (Throwable e) {
+                connector.getLogger().error("Error while translating scoreboard information!", e);
+                // Wait so we don't try to run the scoreboard immediately after this
+                sleepFor(FIRST_MILLIS_BETWEEN_UPDATES);
+            }
         }
     }
 
