@@ -35,6 +35,7 @@ import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.fabric.GeyserFabricMod;
+import org.geysermc.platform.fabric.GeyserFabricPermissions;
 
 public class GeyserFabricCommandExecutor extends CommandExecutor implements Command<ServerCommandSource> {
 
@@ -50,11 +51,22 @@ public class GeyserFabricCommandExecutor extends CommandExecutor implements Comm
         this.requiresPermission = requiresPermission;
     }
 
+    /**
+     * Determine whether or not a command source is allowed to run a given executor.
+     *
+     * @param source The command source attempting to run the command
+     * @return True if the command source is allowed to
+     */
+    public boolean canRun(ServerCommandSource source) {
+        return !requiresPermission() || source.hasPermissionLevel(GeyserFabricPermissions.RESTRICTED_MIN_LEVEL);
+    }
+
     @Override
     public int run(CommandContext context) {
         ServerCommandSource source = (ServerCommandSource) context.getSource();
         FabricCommandSender sender = new FabricCommandSender(source);
-        if (requiresPermission && !source.hasPermissionLevel(2)) {
+        GeyserSession session = getGeyserSession(sender);
+        if (!canRun(source)) {
             sender.sendMessage(LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail"));
             return 0;
         }
@@ -62,15 +74,22 @@ public class GeyserFabricCommandExecutor extends CommandExecutor implements Comm
             GeyserFabricMod.getInstance().setReloading(true);
         }
 
-        GeyserSession session = null;
-        if (command.isBedrockOnly()) {
-            session = getGeyserSession(sender);
-            if (session == null) {
-                sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", sender.getLocale()));
-                return 0;
-            }
+        if (command.isBedrockOnly() && session == null) {
+            sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", sender.getLocale()));
+            return 0;
         }
         command.execute(session, sender, new String[0]);
         return 0;
+    }
+
+    public GeyserCommand getCommand() {
+        return command;
+    }
+
+    /**
+     * Returns whether the command requires permission level of {@link GeyserFabricPermissions#RESTRICTED_MIN_LEVEL} or higher to be ran
+     */
+    public boolean requiresPermission() {
+        return requiresPermission;
     }
 }

@@ -67,8 +67,13 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
     private GeyserConnector connector;
     private Path dataFolder;
-    private List<String> playerCommands;
     private MinecraftServer server;
+
+    /**
+     * Commands that don't require any permission level to ran
+     */
+    private List<String> playerCommands;
+    private final List<GeyserFabricCommandExecutor> commandExecutors = new ArrayList<>();
 
     private GeyserFabricCommandManager geyserCommandManager;
     private GeyserFabricConfiguration geyserConfig;
@@ -167,14 +172,17 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
         // Start command building
         // Set just "geyser" as the help command
-        LiteralArgumentBuilder<ServerCommandSource> builder = net.minecraft.server.command.CommandManager.literal("geyser")
-                .executes(new GeyserFabricCommandExecutor(connector, connector.getCommandManager().getCommands().get("help"),
-                        !playerCommands.contains("help")));
+        GeyserFabricCommandExecutor helpExecutor = new GeyserFabricCommandExecutor(connector,
+                connector.getCommandManager().getCommands().get("help"), !playerCommands.contains("help"));
+        commandExecutors.add(helpExecutor);
+        LiteralArgumentBuilder<ServerCommandSource> builder = net.minecraft.server.command.CommandManager.literal("geyser").executes(helpExecutor);
+
+        // Register all subcommands as valid
         for (Map.Entry<String, GeyserCommand> command : connector.getCommandManager().getCommands().entrySet()) {
-            // Register all subcommands as valid
-            builder.then(net.minecraft.server.command.CommandManager.literal(
-                    command.getKey()).executes(new GeyserFabricCommandExecutor(connector, command.getValue(),
-                    !playerCommands.contains(command.getKey()))));
+            GeyserFabricCommandExecutor executor = new GeyserFabricCommandExecutor(connector, command.getValue(),
+                    !playerCommands.contains(command.getKey()));
+            commandExecutors.add(executor);
+            builder.then(net.minecraft.server.command.CommandManager.literal(command.getKey()).executes(executor));
         }
         server.getCommandManager().getDispatcher().register(builder);
     }
@@ -256,6 +264,10 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         }
 
         return file;
+    }
+
+    public List<GeyserFabricCommandExecutor> getCommandExecutors() {
+        return commandExecutors;
     }
 
     public static GeyserFabricMod getInstance() {

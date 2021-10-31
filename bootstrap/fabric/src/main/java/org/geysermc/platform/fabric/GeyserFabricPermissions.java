@@ -25,6 +25,7 @@
 
 package org.geysermc.platform.fabric;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -33,6 +34,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GeyserFabricPermissions {
+
+    /**
+     * The minimum permission level a command source must have in order for it to run commands that are restricted
+     */
+    @JsonIgnore
+    public static final int RESTRICTED_MIN_LEVEL = 2;
 
     @JsonProperty("commands")
     private String[] commands;

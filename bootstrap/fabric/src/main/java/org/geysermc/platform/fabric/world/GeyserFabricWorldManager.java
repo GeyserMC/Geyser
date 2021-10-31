@@ -42,6 +42,8 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.translators.LecternInventoryTranslator;
 import org.geysermc.connector.network.translators.world.GeyserWorldManager;
 import org.geysermc.connector.utils.BlockEntityUtils;
+import org.geysermc.platform.fabric.GeyserFabricMod;
+import org.geysermc.platform.fabric.command.GeyserFabricCommandExecutor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +65,7 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
     public NbtMap getLecternDataAt(GeyserSession session, int x, int y, int z, boolean isChunkLoad) {
         Runnable lecternGet = () -> {
             // Mostly a reimplementation of Spigot lectern support
-            PlayerEntity player = server.getPlayerManager().getPlayer(session.getPlayerEntity().getUuid());
+            PlayerEntity player = getPlayer(session);
             if (player != null) {
                 BlockEntity blockEntity = player.world.getBlockEntity(new BlockPos(x, y, z));
                 if (!(blockEntity instanceof LecternBlockEntity lectern)) {
@@ -118,5 +120,22 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
             server.execute(lecternGet);
         }
         return LecternInventoryTranslator.getBaseLecternTag(x, y, z, 0).build();
+    }
+
+    @Override
+    public boolean hasPermission(GeyserSession session, String permission) {
+
+        // Workaround for our commands because fabric doesn't have native permissions
+        for (GeyserFabricCommandExecutor executor : GeyserFabricMod.getInstance().getCommandExecutors()) {
+            if (executor.getCommand().getPermission().equals(permission)) {
+                return executor.canRun(getPlayer(session).getCommandSource());
+            }
+        }
+
+        return false;
+    }
+
+    private PlayerEntity getPlayer(GeyserSession session) {
+        return server.getPlayerManager().getPlayer(session.getPlayerEntity().getUuid());
     }
 }

@@ -31,6 +31,7 @@ import net.minecraft.text.LiteralText;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.ChatColor;
+import org.geysermc.platform.fabric.GeyserFabricMod;
 
 public class FabricCommandSender implements CommandSender {
 
@@ -57,5 +58,19 @@ public class FabricCommandSender implements CommandSender {
     @Override
     public boolean isConsole() {
         return !(source.getEntity() instanceof ServerPlayerEntity);
+    }
+
+    @Override
+    public boolean hasPermission(String s) {
+        // Mostly copied from fabric's world manager since the method there takes a GeyserSession
+
+        // Workaround for our commands because fabric doesn't have native permissions
+        for (GeyserFabricCommandExecutor executor : GeyserFabricMod.getInstance().getCommandExecutors()) {
+            if (executor.getCommand().getPermission().equals(s)) {
+                return executor.canRun(source);
+            }
+        }
+
+        return false;
     }
 }
