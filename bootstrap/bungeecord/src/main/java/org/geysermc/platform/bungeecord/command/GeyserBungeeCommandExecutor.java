@@ -35,8 +35,8 @@ import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 public class GeyserBungeeCommandExecutor extends Command implements TabExecutor {
 
@@ -82,8 +82,9 @@ public class GeyserBungeeCommandExecutor extends Command implements TabExecutor 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
         if (args.length == 1) {
-            return connector.getCommandManager().getCommandNames();
+            return commandExecutor.tabComplete(new BungeeCommandSender(sender));
+        } else {
+            return Collections.emptyList();
         }
-        return new ArrayList<>();
     }
 }

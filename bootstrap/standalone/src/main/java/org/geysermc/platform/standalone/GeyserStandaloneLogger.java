@@ -110,4 +110,9 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements Gey
     public boolean isConsole() {
         return true;
     }
+
+    @Override
+    public boolean hasPermission(String permission) {
+        return true;
+    }
 }

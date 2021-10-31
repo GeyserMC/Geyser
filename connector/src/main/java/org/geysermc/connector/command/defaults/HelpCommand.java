@@ -33,9 +33,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class HelpCommand extends GeyserCommand {
     private final GeyserConnector connector;
@@ -47,16 +45,33 @@ public class HelpCommand extends GeyserCommand {
         this.setAliases(Collections.singletonList("?"));
     }
 
+    /**
+     * Sends the help menu to a command sender. Will not show certain commands depending on the command sender and session.
+     *
+     * @param session The Geyser session of the command sender, if it is a bedrock player. If null, bedrock-only commands will be hidden.
+     * @param sender The CommandSender to send the help message to.
+     * @param args Not used.
+     */
     @Override
     public void execute(GeyserSession session, CommandSender sender, String[] args) {
         int page = 1;
         int maxPage = 1;
         String header = LanguageUtils.getPlayerLocaleString("geyser.commands.help.header", sender.getLocale(), page, maxPage);
-
         sender.sendMessage(header);
+
         Map<String, GeyserCommand> cmds = connector.getCommandManager().getCommands();
-        List<String> commands = connector.getCommandManager().getCommands().keySet().stream().sorted().collect(Collectors.toList());
-        commands.forEach(cmd -> sender.sendMessage(ChatColor.YELLOW + "/geyser " + cmd + ChatColor.WHITE + ": " +
-                LanguageUtils.getPlayerLocaleString(cmds.get(cmd).getDescription(), sender.getLocale())));
+        for (String cmdName : cmds.keySet()) {
+            GeyserCommand cmd = cmds.get(cmdName);
+
+            if (sender.hasPermission(cmd.getPermission())) {
+                // Only list commands the player can actually run
+                if (cmd.isBedrockOnly() && session == null) {
+                    continue;
+                }
+
+                sender.sendMessage(ChatColor.YELLOW + "/geyser " + cmdName + ChatColor.WHITE + ": " +
+                        LanguageUtils.getPlayerLocaleString(cmd.getDescription(), sender.getLocale()));
+            }
+        }
     }
 }

@@ -35,8 +35,8 @@ import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class GeyserSpigotCommandExecutor extends CommandExecutor implements TabExecutor {
@@ -78,8 +78,8 @@ public class GeyserSpigotCommandExecutor extends CommandExecutor implements TabE
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return connector.getCommandManager().getCommandNames();
+            return tabComplete(new SpigotCommandSender(sender));
         }
-        return new ArrayList<>();
+        return Collections.emptyList();
     }
 }

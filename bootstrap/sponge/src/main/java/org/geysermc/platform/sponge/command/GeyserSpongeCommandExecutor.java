@@ -40,8 +40,8 @@ import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -82,9 +82,9 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
     @Override
     public List<String> getSuggestions(CommandSource source, String arguments, @Nullable Location<World> targetPosition) {
         if (arguments.split(" ").length == 1) {
-            return connector.getCommandManager().getCommandNames();
+            return tabComplete(new SpongeCommandSender(source));
         }
-        return new ArrayList<>();
+        return Collections.emptyList();
     }
 
     @Override

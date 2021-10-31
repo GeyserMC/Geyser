@@ -72,4 +72,9 @@ public class VelocityCommandSender implements CommandSender {
         }
         return LanguageUtils.getDefaultLocale();
     }
+
+    @Override
+    public boolean hasPermission(String permission) {
+        return handle.hasPermission(permission);
+    }
 }
