@@ -49,6 +49,7 @@ public class GeyserSpigotCommandExecutor extends CommandExecutor implements TabE
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         SpigotCommandSender commandSender = new SpigotCommandSender(sender);
         GeyserSession session = getGeyserSession(commandSender);
+
         if (args.length > 0) {
             GeyserCommand geyserCommand = getCommand(args[0]);
             if (geyserCommand != null) {

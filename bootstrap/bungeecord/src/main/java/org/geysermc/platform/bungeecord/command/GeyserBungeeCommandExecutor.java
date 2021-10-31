@@ -54,7 +54,8 @@ public class GeyserBungeeCommandExecutor extends Command implements TabExecutor 
     @Override
     public void execute(CommandSender sender, String[] args) {
         BungeeCommandSender commandSender = new BungeeCommandSender(sender);
-        @Nullable GeyserSession session = this.commandExecutor.getGeyserSession(commandSender);
+        GeyserSession session = this.commandExecutor.getGeyserSession(commandSender);
+
         if (args.length > 0) {
             GeyserCommand command = this.commandExecutor.getCommand(args[0]);
             if (command != null) {

@@ -48,6 +48,7 @@ public class GeyserVelocityCommandExecutor extends CommandExecutor implements Si
     public void execute(Invocation invocation) {
         CommandSender sender = new VelocityCommandSender(invocation.source());
         GeyserSession session = getGeyserSession(sender);
+
         if (invocation.arguments().length > 0) {
             GeyserCommand command = getCommand(invocation.arguments()[0]);
             if (command != null) {
