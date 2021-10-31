@@ -29,6 +29,7 @@ import lombok.AllArgsConstructor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -46,6 +47,7 @@ public class CommandExecutor {
         return connector.getCommandManager().getCommands().get(label);
     }
 
+    @Nullable
     public GeyserSession getGeyserSession(CommandSender sender) {
         if (sender.isConsole()) {
             return null;

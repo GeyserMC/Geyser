@@ -47,29 +47,26 @@ public class GeyserSpigotCommandExecutor extends CommandExecutor implements TabE
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        SpigotCommandSender commandSender = new SpigotCommandSender(sender);
+        GeyserSession session = getGeyserSession(commandSender);
         if (args.length > 0) {
             GeyserCommand geyserCommand = getCommand(args[0]);
             if (geyserCommand != null) {
-                SpigotCommandSender commandSender = new SpigotCommandSender(sender);
                 if (!sender.hasPermission(geyserCommand.getPermission())) {
                     String message = LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", commandSender.getLocale());
 
                     commandSender.sendMessage(ChatColor.RED + message);
                     return true;
                 }
-                GeyserSession session = null;
-                if (geyserCommand.isBedrockOnly()) {
-                    session = getGeyserSession(commandSender);
-                    if (session == null) {
-                        sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", commandSender.getLocale()));
-                        return true;
-                    }
+                if (geyserCommand.isBedrockOnly() && session == null) {
+                    sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", commandSender.getLocale()));
+                    return true;
                 }
                 geyserCommand.execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
                 return true;
             }
         } else {
-            getCommand("help").execute(null, new SpigotCommandSender(sender), new String[0]);
+            getCommand("help").execute(session, commandSender, new String[0]);
             return true;
         }
         return true;
