@@ -294,7 +294,7 @@ public class ChunkUtils {
             bedrockBlockEntities[i] = blockEntityTranslator.getBlockEntityTag(tagName, tag, blockState);
 
             // Check for custom skulls
-            if (SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS && tag.contains("SkullOwner")) {
+            if (session.getPreferencesCache().showCustomSkulls() && tag.contains("SkullOwner")) {
                 SkullBlockEntityTranslator.spawnPlayer(session, tag, blockState);
             }
             i++;
