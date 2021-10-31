@@ -11,7 +11,7 @@
     <artifactId>connector</artifactId>
 
     <properties>
-        <adventure.version>4.10.0-20211011.045617-12</adventure.version>
+        <adventure.version>4.9.3</adventure.version>
         <fastutil.version>8.5.2</fastutil.version>
         <jackson.version>2.12.4</jackson.version>
         <netty.version>4.1.66.Final</netty.version>
@@ -149,7 +149,7 @@
         <dependency>
             <groupId>com.github.GeyserMC</groupId>
             <artifactId>MCProtocolLib</artifactId>
-            <version>f1ac2de</version>
+            <version>c2985e8</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -159,10 +159,6 @@
                 <exclusion>
                     <groupId>com.github.steveice10</groupId>
                     <artifactId>mcauthlib</artifactId>
-                </exclusion>
-                <exclusion> <!-- TEMPORARY -->
-                    <groupId>net.kyori</groupId>
-                    <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -226,18 +222,6 @@
             <classifier>osx-x86_64</classifier>
         </dependency>
         <!-- Adventure text serialization -->
-        <dependency>
-            <groupId>net.kyori</groupId>
-            <artifactId>adventure-text-serializer-gson</artifactId> <!-- TEMPORARY until https://github.com/KyoriPowered/adventure/commit/3d6eaaf63f44ddd981a4b3bbb1e0018aa6252da8 is in release -->
-            <version>${adventure.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.kyori</groupId>
-            <artifactId>adventure-text-serializer-gson-legacy-impl</artifactId> <!-- TEMPORARY until https://github.com/KyoriPowered/adventure/commit/3d6eaaf63f44ddd981a4b3bbb1e0018aa6252da8 is in release -->
-            <version>${adventure.version}</version>
-            <scope>compile</scope>
-        </dependency>
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-legacy</artifactId>
