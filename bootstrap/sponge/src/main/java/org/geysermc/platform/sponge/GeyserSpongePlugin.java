@@ -43,10 +43,7 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.lifecycle.ConstructPluginEvent;
-import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
-import org.spongepowered.api.event.lifecycle.StartedEngineEvent;
-import org.spongepowered.api.event.lifecycle.StoppingEngineEvent;
+import org.spongepowered.api.event.lifecycle.*;
 import org.spongepowered.plugin.PluginContainer;
 import org.spongepowered.plugin.builtin.jvm.Plugin;
 
@@ -157,7 +154,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     }
 
     @Listener
-    public void onEngineStart(StartedEngineEvent<?> event) {
+    public void onLoadGame(LoadedGameEvent event) {
         // GeyserSpongePingPassthrough requires the server instance, which is not available during plugin construction.
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserSpongePingPassthrough = GeyserLegacyPingPassthrough.init(connector);
