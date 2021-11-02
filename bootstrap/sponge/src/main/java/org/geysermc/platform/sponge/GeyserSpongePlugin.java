@@ -45,6 +45,7 @@ import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.lifecycle.ConstructPluginEvent;
 import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
+import org.spongepowered.api.event.lifecycle.StartedEngineEvent;
 import org.spongepowered.api.event.lifecycle.StoppingEngineEvent;
 import org.spongepowered.plugin.PluginContainer;
 import org.spongepowered.plugin.builtin.jvm.Plugin;
@@ -111,12 +112,6 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         this.geyserLogger = new GeyserSpongeLogger(logger, geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
         this.connector = GeyserConnector.start(PlatformType.SPONGE, this);
-
-        if (geyserConfig.isLegacyPingPassthrough()) {
-            this.geyserSpongePingPassthrough = GeyserLegacyPingPassthrough.init(connector);
-        } else {
-            this.geyserSpongePingPassthrough = new GeyserSpongePingPassthrough();
-        }
     }
 
     @Listener
@@ -159,6 +154,16 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     public void onConstruction(ConstructPluginEvent event) {
         // this event must be used instead of StartingEngineEvent/StartedEngineEvent/LoadedGame event, as command registration events are called before the latter 3
         onEnable();
+    }
+
+    @Listener
+    public void onEngineStart(StartedEngineEvent<?> event) {
+        // GeyserSpongePingPassthrough requires the server instance, which is not available during plugin construction.
+        if (geyserConfig.isLegacyPingPassthrough()) {
+            this.geyserSpongePingPassthrough = GeyserLegacyPingPassthrough.init(connector);
+        } else {
+            this.geyserSpongePingPassthrough = new GeyserSpongePingPassthrough();
+        }
     }
 
     @Listener
