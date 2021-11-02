@@ -28,8 +28,8 @@ package org.geysermc.platform.sponge;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.logging.log4j.Logger;
 import org.geysermc.connector.GeyserLogger;
-import org.slf4j.Logger;
 
 @AllArgsConstructor
 public class GeyserSpongeLogger implements GeyserLogger {

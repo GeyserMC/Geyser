@@ -26,6 +26,7 @@
 package org.geysermc.platform.sponge;
 
 import com.google.inject.Inject;
+import org.apache.logging.log4j.Logger;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
@@ -38,7 +39,6 @@ import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.platform.sponge.command.GeyserSpongeCommandExecutor;
 import org.geysermc.platform.sponge.command.GeyserSpongeCommandManager;
-import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.config.ConfigDir;
