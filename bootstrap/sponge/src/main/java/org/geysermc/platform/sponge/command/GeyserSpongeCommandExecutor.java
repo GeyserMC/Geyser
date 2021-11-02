@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class GeyserSpongeCommandExecutor extends CommandExecutor implements Command {
+public class GeyserSpongeCommandExecutor extends CommandExecutor implements Command.Raw {
 
     public GeyserSpongeCommandExecutor(GeyserConnector connector) {
         super(connector);

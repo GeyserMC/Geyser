@@ -29,6 +29,7 @@ import lombok.AllArgsConstructor;
 
 import net.kyori.adventure.text.Component;
 import org.geysermc.connector.command.CommandSender;
+import org.spongepowered.api.SystemSubject;
 import org.spongepowered.api.command.CommandCause;
 
 @AllArgsConstructor
@@ -48,7 +49,7 @@ public class SpongeCommandSender implements CommandSender {
 
     @Override
     public boolean isConsole() {
-        return handle instanceof ConsoleSource;
+        return handle instanceof SystemSubject; // todo: this good?
     }
 
     @Override

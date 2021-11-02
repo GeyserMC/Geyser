@@ -40,8 +40,13 @@ import org.geysermc.platform.sponge.command.GeyserSpongeCommandExecutor;
 import org.geysermc.platform.sponge.command.GeyserSpongeCommandManager;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.command.Command;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.lifecycle.ConstructPluginEvent;
+import org.spongepowered.api.event.lifecycle.RegisterCommandEvent;
+import org.spongepowered.api.event.lifecycle.StoppingEngineEvent;
+import org.spongepowered.plugin.PluginContainer;
 import org.spongepowered.plugin.builtin.jvm.Plugin;
 
 import java.io.File;
@@ -54,6 +59,9 @@ import java.util.UUID;
 //@Plugin(id = "geyser", name = GeyserConnector.NAME + "-Sponge", version = GeyserConnector.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
 @Plugin(value = "geyser")
 public class GeyserSpongePlugin implements GeyserBootstrap {
+
+    @Inject
+    private PluginContainer pluginContainer;
 
     @Inject
     private Logger logger;
@@ -71,9 +79,9 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
-        if (!configDir.exists())
+        if (!configDir.exists()) {
             configDir.mkdirs();
-
+        }
         File configFile = null;
         try {
             configFile = FileUtils.fileOrCopiedFromResource(new File(configDir, "config.yml"), "config.yml", (file) -> file.replaceAll("generateduuid", UUID.randomUUID().toString()));
@@ -114,10 +122,12 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         } else {
             this.geyserSpongePingPassthrough = new GeyserSpongePingPassthrough();
         }
+    }
 
+    @Listener
+    public void onRegisterCommands(RegisterCommandEvent<Command.Raw> event) {
         this.geyserCommandManager = new GeyserSpongeCommandManager(Sponge.server().commandManager(), connector);
-
-        Sponge.server().commandManager().registrar().get().register(this, new GeyserSpongeCommandExecutor(connector), "geyser"); // todo: figure out how to register
+        event.register(this.pluginContainer, new GeyserSpongeCommandExecutor(connector), "geyser");
     }
 
     @Override
@@ -151,12 +161,13 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     }
 
     @Listener
-    public void onServerStart(GameStartedServerEvent event) {
+    public void onConstruction(ConstructPluginEvent event) {
+        // this event must be used instead of StartingEngineEvent/StartedEngineEvent/LoadedGame event, as command registration events are called before the latter 3
         onEnable();
     }
 
     @Listener
-    public void onServerStop(GameStoppedEvent event) {
+    public void onEngineStopping(StoppingEngineEvent<?> event) {
         onDisable();
     }
 
