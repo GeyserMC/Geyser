@@ -39,7 +39,7 @@ public class SpongeCommandSender implements CommandSender {
 
     @Override
     public String getName() {
-        return handle.identifier();
+        return handle.friendlyIdentifier().orElse(handle.identifier());
     }
 
     @Override
