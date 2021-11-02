@@ -27,23 +27,34 @@ package org.geysermc.platform.sponge.command;
 
 import net.kyori.adventure.text.Component;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandCause;
+import org.spongepowered.api.command.manager.CommandManager;
 import org.spongepowered.api.command.manager.CommandMapping;
 
-public class GeyserSpongeCommandManager extends CommandManager {
-    private final org.spongepowered.api.command.manager.CommandManager handle;
+import java.util.Map;
 
-    public GeyserSpongeCommandManager(org.spongepowered.api.command.manager.CommandManager handle, GeyserConnector connector) {
+public class GeyserSpongeCommandManager extends org.geysermc.connector.command.CommandManager {
+
+    public GeyserSpongeCommandManager(GeyserConnector connector) {
         super(connector);
 
-        this.handle = handle;
     }
 
     @Override
     public String getDescription(String command) {
+        if (!Sponge.isServerAvailable()) {
+            Map<String, GeyserCommand> commands = this.getCommands();
+            if (commands.containsKey(command)) {
+                return MessageTranslator.convertMessage(commands.get(command).getDescription());
+            } else {
+                return "";
+            }
+        }
 
+        CommandManager handle = Sponge.server().commandManager();
         if (handle.commandMapping(command).isPresent()) {
             CommandMapping mapping = handle.commandMapping(command).get();
 

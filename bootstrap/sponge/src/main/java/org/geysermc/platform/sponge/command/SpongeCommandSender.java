@@ -49,7 +49,7 @@ public class SpongeCommandSender implements CommandSender {
 
     @Override
     public boolean isConsole() {
-        return handle instanceof SystemSubject; // todo: this good?
+        return handle instanceof SystemSubject; // todo: this good? don't this so
     }
 
     @Override
