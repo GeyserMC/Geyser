@@ -27,24 +27,23 @@ package org.geysermc.platform.sponge.command;
 
 import lombok.AllArgsConstructor;
 
+import net.kyori.adventure.text.Component;
 import org.geysermc.connector.command.CommandSender;
-import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.source.ConsoleSource;
-import org.spongepowered.api.text.Text;
+import org.spongepowered.api.command.CommandCause;
 
 @AllArgsConstructor
 public class SpongeCommandSender implements CommandSender {
 
-    private CommandSource handle;
+    private final CommandCause handle;
 
     @Override
     public String getName() {
-        return handle.getName();
+        return handle.context().toString();
     }
 
     @Override
     public void sendMessage(String message) {
-        handle.sendMessage(Text.of(message));
+        handle.audience().sendMessage(Component.text(message));
     }
 
     @Override

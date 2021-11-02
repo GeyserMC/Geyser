@@ -42,9 +42,7 @@ import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.game.state.GameStartedServerEvent;
-import org.spongepowered.api.event.game.state.GameStoppedEvent;
-import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.plugin.builtin.jvm.Plugin;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,7 +50,9 @@ import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.util.UUID;
 
-@Plugin(id = "geyser", name = GeyserConnector.NAME + "-Sponge", version = GeyserConnector.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
+// todo: create the metadata file
+//@Plugin(id = "geyser", name = GeyserConnector.NAME + "-Sponge", version = GeyserConnector.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
+@Plugin(value = "geyser")
 public class GeyserSpongePlugin implements GeyserBootstrap {
 
     @Inject
@@ -90,8 +90,8 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             return;
         }
 
-        if (Sponge.getServer().getBoundAddress().isPresent()) {
-            InetSocketAddress javaAddr = Sponge.getServer().getBoundAddress().get();
+        if (Sponge.server().boundAddress().isPresent()) {
+            InetSocketAddress javaAddr = Sponge.server().boundAddress().get();
 
             // Don't change the ip if its listening on all interfaces
             // By default this should be 127.0.0.1 but may need to be changed in some circumstances
@@ -115,8 +115,9 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             this.geyserSpongePingPassthrough = new GeyserSpongePingPassthrough();
         }
 
-        this.geyserCommandManager = new GeyserSpongeCommandManager(Sponge.getCommandManager(), connector);
-        Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(connector), "geyser");
+        this.geyserCommandManager = new GeyserSpongeCommandManager(Sponge.server().commandManager(), connector);
+
+        Sponge.server().commandManager().registrar().get().register(this, new GeyserSpongeCommandExecutor(connector), "geyser"); // todo: figure out how to register
     }
 
     @Override
@@ -166,6 +167,6 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
     @Override
     public String getMinecraftServerVersion() {
-        return Sponge.getPlatform().getMinecraftVersion().getName();
+        return Sponge.platform().minecraftVersion().name();
     }
 }

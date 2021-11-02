@@ -29,10 +29,15 @@ import lombok.Getter;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.spongepowered.api.Platform;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.plugin.PluginContainer;
+import org.spongepowered.plugin.PluginContainer;
+import org.spongepowered.plugin.metadata.PluginMetadata;
+import org.spongepowered.plugin.metadata.model.PluginContributor;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Getter
 public class GeyserSpongeDumpInfo extends BootstrapDumpInfo {
@@ -45,17 +50,21 @@ public class GeyserSpongeDumpInfo extends BootstrapDumpInfo {
 
     GeyserSpongeDumpInfo() {
         super();
-        PluginContainer container = Sponge.getPlatform().getContainer(Platform.Component.IMPLEMENTATION);
-        this.platformName = container.getName();
-        this.platformVersion = container.getVersion().get();
-        this.onlineMode = Sponge.getServer().getOnlineMode();
-        this.serverIP = Sponge.getServer().getBoundAddress().get().getHostString();
-        this.serverPort = Sponge.getServer().getBoundAddress().get().getPort();
+        PluginContainer container = Sponge.platform().container(Platform.Component.IMPLEMENTATION);
+        PluginMetadata platformMeta = container.metadata();
+        this.platformName = platformMeta.name().orElse("unknown");
+        this.platformVersion = platformMeta.version().getQualifier();
+        this.onlineMode = Sponge.server().isOnlineModeEnabled();
+        Optional<InetSocketAddress> socketAddress = Sponge.server().boundAddress();
+        this.serverIP = socketAddress.map(InetSocketAddress::getHostString).orElse("unknown");
+        this.serverPort = socketAddress.map(InetSocketAddress::getPort).orElse(-1); // todo is this bad?
         this.plugins = new ArrayList<>();
 
-        for (PluginContainer plugin : Sponge.getPluginManager().getPlugins()) {
-            String pluginClass = plugin.getInstance().map((pl) -> pl.getClass().getName()).orElse("unknown");
-            this.plugins.add(new PluginInfo(true, plugin.getName(), plugin.getVersion().get(), pluginClass, plugin.getAuthors()));
+        for (PluginContainer plugin : Sponge.pluginManager().plugins()) {
+            PluginMetadata meta = plugin.metadata(); // todo: not sure if this can be null or not
+
+            List<String> contributors = meta.contributors().stream().map(PluginContributor::name).collect(Collectors.toList());
+            this.plugins.add(new PluginInfo(true, meta.name().orElse("unknown"), meta.version().getQualifier(), meta.entrypoint(), contributors));
         }
     }
 }

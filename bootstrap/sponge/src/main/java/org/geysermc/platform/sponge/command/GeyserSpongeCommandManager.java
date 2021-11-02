@@ -25,16 +25,19 @@
 
 package org.geysermc.platform.sponge.command;
 
+import net.kyori.adventure.text.Component;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandManager;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.command.CommandMapping;
-import org.spongepowered.api.text.Text;
+import org.spongepowered.api.command.CommandCause;
+import org.spongepowered.api.command.manager.CommandMapping;
+import org.spongepowered.api.command.registrar.CommandRegistrar;
 
 public class GeyserSpongeCommandManager extends CommandManager {
-    private final org.spongepowered.api.command.CommandManager handle;
+    private final org.spongepowered.api.command.manager.CommandManager handle;
 
-    public GeyserSpongeCommandManager(org.spongepowered.api.command.CommandManager handle, GeyserConnector connector) {
+    public GeyserSpongeCommandManager(org.spongepowered.api.command.manager.CommandManager handle, GeyserConnector connector) {
         super(connector);
 
         this.handle = handle;
@@ -42,8 +45,13 @@ public class GeyserSpongeCommandManager extends CommandManager {
 
     @Override
     public String getDescription(String command) {
-        return handle.get(command).map(CommandMapping::getCallable)
-                .map(callable -> callable.getShortDescription(Sponge.getServer().getConsole()).orElse(Text.EMPTY))
-                .orElse(Text.EMPTY).toPlain();
+
+        if (handle.commandMapping(command).isPresent()) {
+            CommandMapping mapping = handle.commandMapping(command).get();
+
+            // todo: this commandcause use to be console
+            return MessageTranslator.convertMessage(mapping.registrar().shortDescription(CommandCause.create(), mapping).orElse(Component.empty()));
+        }
+        return "";
     }
 }

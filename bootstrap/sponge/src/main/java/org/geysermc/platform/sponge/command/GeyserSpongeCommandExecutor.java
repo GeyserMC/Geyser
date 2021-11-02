@@ -25,6 +25,7 @@
 
 package org.geysermc.platform.sponge.command;
 
+import net.kyori.adventure.text.Component;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandExecutor;
 import org.geysermc.connector.command.CommandSender;
@@ -32,41 +33,41 @@ import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
-import org.spongepowered.api.command.CommandCallable;
+import org.jetbrains.annotations.NotNull;
+import org.spongepowered.api.command.Command;
+import org.spongepowered.api.command.CommandCause;
+import org.spongepowered.api.command.CommandCompletion;
 import org.spongepowered.api.command.CommandResult;
-import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.text.Text;
-import org.spongepowered.api.world.Location;
-import org.spongepowered.api.world.World;
+import org.spongepowered.api.command.parameter.ArgumentReader;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-public class GeyserSpongeCommandExecutor extends CommandExecutor implements CommandCallable {
+public class GeyserSpongeCommandExecutor extends CommandExecutor implements Command {
 
     public GeyserSpongeCommandExecutor(GeyserConnector connector) {
         super(connector);
     }
 
     @Override
-    public CommandResult process(CommandSource source, String arguments) {
+    public CommandResult process(CommandCause source, ArgumentReader.Mutable arguments) {
         CommandSender commandSender = new SpongeCommandSender(source);
         GeyserSession session = getGeyserSession(commandSender);
 
-        String[] args = arguments.split(" ");
+        String[] args = arguments.input().split(" "); //todo: this probably doesn't work
         if (args.length > 0) {
             GeyserCommand command = getCommand(args[0]);
             if (command != null) {
                 if (!source.hasPermission(command.getPermission())) {
                     // Not ideal to use log here but we dont get a session
-                    source.sendMessage(Text.of(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail")));
+                    source.audience().sendMessage(Component.text(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail"))); // todo: might not work
                     return CommandResult.success();
                 }
                 if (command.isBedrockOnly() && session == null) {
-                    source.sendMessage(Text.of(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.bedrock_only")));
+                    source.audience().sendMessage(Component.text(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.bedrock_only")));
                     return CommandResult.success();
                 }
                 getCommand(args[0]).execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
@@ -78,30 +79,35 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
     }
 
     @Override
-    public List<String> getSuggestions(CommandSource source, String arguments, @Nullable Location<World> targetPosition) {
-        if (arguments.split(" ").length == 1) {
-            return tabComplete(new SpongeCommandSender(source));
+    public List<CommandCompletion> complete(CommandCause cause, ArgumentReader.Mutable arguments) {
+        if (arguments.input().split(" ").length == 1) {
+            return tabComplete(new SpongeCommandSender(cause)).stream().map(CommandCompletion::of).collect(Collectors.toList());
         }
         return Collections.emptyList();
     }
 
     @Override
-    public boolean testPermission(CommandSource source) {
+    public boolean canExecute(CommandCause cause) {
         return true;
     }
 
     @Override
-    public Optional<Text> getShortDescription(CommandSource source) {
-        return Optional.of(Text.of("The main command for Geyser."));
+    public Optional<Component> shortDescription(CommandCause cause) {
+        return Optional.of(Component.text("The main command for Geyser."));
     }
 
     @Override
-    public Optional<Text> getHelp(CommandSource source) {
-        return Optional.of(Text.of("/geyser help"));
+    public Optional<Component> extendedDescription(CommandCause cause) {
+        return shortDescription(cause);
     }
 
     @Override
-    public Text getUsage(CommandSource source) {
-        return Text.of("/geyser help");
+    public Optional<Component> help(@NotNull CommandCause cause) {
+        return Optional.of(Component.text("/geyser help"));
+    }
+
+    @Override
+    public Component usage(CommandCause cause) {
+        return Component.text("/geyser help");
     }
 }

@@ -27,12 +27,13 @@ package org.geysermc.platform.sponge;
 
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import org.geysermc.connector.common.ping.GeyserPingInfo;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.spongepowered.api.MinecraftVersion;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.event.Cause;
+import org.spongepowered.api.event.EventContext;
 import org.spongepowered.api.event.SpongeEventFactory;
-import org.spongepowered.api.event.cause.Cause;
-import org.spongepowered.api.event.cause.EventContext;
 import org.spongepowered.api.event.server.ClientPingServerEvent;
 import org.spongepowered.api.network.status.StatusClient;
 import org.spongepowered.api.profile.GameProfile;
@@ -43,7 +44,7 @@ import java.util.Optional;
 
 public class GeyserSpongePingPassthrough implements IGeyserPingPassthrough {
 
-    private static final Cause CAUSE = Cause.of(EventContext.empty(), Sponge.getServer());
+    private static final Cause CAUSE = Cause.of(EventContext.empty(), Sponge.server());
 
     private static Method SpongeStatusResponse_create;
 
@@ -59,50 +60,43 @@ public class GeyserSpongePingPassthrough implements IGeyserPingPassthrough {
                 SpongeStatusResponse_create = SpongeStatusResponse.getDeclaredMethod("create", MinecraftServer);
             }
 
-            Object response = SpongeStatusResponse_create.invoke(null, Sponge.getServer());
+            Object response = SpongeStatusResponse_create.invoke(null, Sponge.server());
             event = SpongeEventFactory.createClientPingServerEvent(CAUSE, new GeyserStatusClient(inetSocketAddress), (ClientPingServerEvent.Response) response);
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
-        Sponge.getEventManager().post(event);
+        Sponge.eventManager().post(event);
         GeyserPingInfo geyserPingInfo = new GeyserPingInfo(
-                event.getResponse().getDescription().toPlain(),
+                MessageTranslator.convertMessage(event.response().description()),
                 new GeyserPingInfo.Players(
-                        event.getResponse().getPlayers().orElseThrow(IllegalStateException::new).getMax(),
-                        event.getResponse().getPlayers().orElseThrow(IllegalStateException::new).getOnline()
+                        event.response().players().orElseThrow(IllegalStateException::new).max(),
+                        event.response().players().orElseThrow(IllegalStateException::new).online()
                 ),
                 new GeyserPingInfo.Version(
-                        event.getResponse().getVersion().getName(),
+                        event.response().version().name(),
                         MinecraftConstants.PROTOCOL_VERSION) // thanks for also not exposing this sponge
         );
-        event.getResponse().getPlayers().get().getProfiles().stream()
-                .map(GameProfile::getName)
+        event.response().players().get().profiles().stream()
+                .map(GameProfile::name)
                 .map(op -> op.orElseThrow(IllegalStateException::new))
                 .forEach(geyserPingInfo.getPlayerList()::add);
         return geyserPingInfo;
     }
 
-    @SuppressWarnings("NullableProblems")
-    private static class GeyserStatusClient implements StatusClient {
-
-        private final InetSocketAddress remote;
-
-        public GeyserStatusClient(InetSocketAddress remote) {
-            this.remote = remote;
-        }
+    private record GeyserStatusClient(InetSocketAddress remote) implements StatusClient {
 
         @Override
-        public InetSocketAddress getAddress() {
+        public InetSocketAddress address() {
             return this.remote;
         }
 
         @Override
-        public MinecraftVersion getVersion() {
-            return Sponge.getPlatform().getMinecraftVersion();
+        public MinecraftVersion version() {
+            return Sponge.platform().minecraftVersion();
         }
 
         @Override
-        public Optional<InetSocketAddress> getVirtualHost() {
+        public Optional<InetSocketAddress> virtualHost() {
             return Optional.empty();
         }
     }
