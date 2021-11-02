@@ -51,7 +51,6 @@ import org.spongepowered.plugin.builtin.jvm.Plugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.util.UUID;
 
@@ -97,15 +96,12 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             return;
         }
 
-        if (Sponge.server().boundAddress().isPresent()) {
-            InetSocketAddress javaAddr = Sponge.server().boundAddress().get();
-
-            // Don't change the ip if its listening on all interfaces
-            // By default this should be 127.0.0.1 but may need to be changed in some circumstances
-            if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
-                this.geyserConfig.setAutoconfiguredRemote(true);
-                geyserConfig.getRemote().setPort(javaAddr.getPort());
-            }
+        if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+            // Can't access the server instance during the ConstructPluginEvent to determine the server address.
+            // Can't use later lifecycle events after this event because commands can no longer be registered (at least not without hacks)
+            this.geyserConfig.setAutoconfiguredRemote(true);
+            logger.warn("Remote address in the config is set to auto but Geyser-sponge doesn't support automatically determining the remote port.");
+            // GeyserConnector should still attempt to determine an okay address
         }
 
         if (geyserConfig.getBedrock().isCloneRemotePort()) {
