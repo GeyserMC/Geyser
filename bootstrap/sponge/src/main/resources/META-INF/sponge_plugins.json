@@ -12,9 +12,9 @@
       "entrypoint": "org.geysermc.platform.sponge.GeyserSpongePlugin",
       "description": "${description}",
       "links": {
-        "homepage": "{url}",
-        "source": "{scm.url}",
-        "issues": "{scm.url}"
+        "homepage": "${url}",
+        "source": "${scm.url}",
+        "issues": "${scm.url}"
       },
       "contributors": [
         {
