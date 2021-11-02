@@ -1,6 +1,6 @@
 name: Feature request
 description: Suggest an idea for this project
-labels: "Feature Request"
+labels: "Feature Request,Needs Triage"
 body:
 - type: markdown
   attributes:
