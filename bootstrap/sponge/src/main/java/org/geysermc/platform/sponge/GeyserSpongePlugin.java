@@ -55,8 +55,6 @@ import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.util.UUID;
 
-// todo: create the metadata file
-//@Plugin(id = "geyser", name = GeyserConnector.NAME + "-Sponge", version = GeyserConnector.VERSION, url = "https://geysermc.org", authors = "GeyserMC")
 @Plugin(value = "geyser")
 public class GeyserSpongePlugin implements GeyserBootstrap {
 
@@ -68,7 +66,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
     @Inject
     @ConfigDir(sharedRoot = false)
-    private File configDir;
+    private Path configPath;
 
     private GeyserSpongeCommandManager geyserCommandManager;
     private GeyserSpongeConfiguration geyserConfig;
@@ -79,6 +77,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
+        File configDir = configPath.toFile();
         if (!configDir.exists()) {
             configDir.mkdirs();
         }
@@ -157,7 +156,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
     @Override
     public Path getConfigFolder() {
-        return configDir.toPath();
+        return configPath;
     }
 
     @Listener
