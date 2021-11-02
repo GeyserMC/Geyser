@@ -27,9 +27,7 @@ package org.geysermc.connector.command;
 
 import lombok.AllArgsConstructor;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.network.session.GeyserSession;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,24 +39,10 @@ import java.util.Map;
 @AllArgsConstructor
 public class CommandExecutor {
 
-    protected final GeyserConnector connector;
+    protected final CommandManager commandManager;
 
     public GeyserCommand getCommand(String label) {
-        return connector.getCommandManager().getCommands().get(label);
-    }
-
-    @Nullable
-    public GeyserSession getGeyserSession(CommandSender sender) {
-        if (sender.isConsole()) {
-            return null;
-        }
-
-        for (GeyserSession session : connector.getPlayers()) {
-            if (sender.getName().equals(session.getPlayerEntity().getUsername())) {
-                return session;
-            }
-        }
-        return null;
+        return GeyserConnector.getInstance().getCommandManager().getCommands().get(label);
     }
 
     /**
@@ -71,13 +55,13 @@ public class CommandExecutor {
      * @return A list of command names to include in the tab complete
      */
     public List<String> tabComplete(CommandSender sender) {
-        if (getGeyserSession(sender) != null) {
+        if (sender.getGeyserSession() != null) {
             // Bedrock doesn't get tab completions or argument suggestions
             return Collections.emptyList();
         }
 
         List<String> availableCommands = new ArrayList<>();
-        Map<String, GeyserCommand> commands = connector.getCommandManager().getCommands();
+        Map<String, GeyserCommand> commands = commandManager.getCommands();
 
         // Only show commands they have permission to use
         for (String name : commands.keySet()) {

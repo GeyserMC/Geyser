@@ -29,8 +29,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandExecutor;
+import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -41,14 +41,14 @@ import java.util.List;
 
 public class GeyserSpigotCommandExecutor extends CommandExecutor implements TabExecutor {
 
-    public GeyserSpigotCommandExecutor(GeyserConnector connector) {
-        super(connector);
+    public GeyserSpigotCommandExecutor(CommandManager commandManager) {
+        super(commandManager);
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         SpigotCommandSender commandSender = new SpigotCommandSender(sender);
-        GeyserSession session = getGeyserSession(commandSender);
+        GeyserSession session = commandSender.getGeyserSession();
 
         if (args.length > 0) {
             GeyserCommand geyserCommand = getCommand(args[0]);

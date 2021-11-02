@@ -47,8 +47,11 @@ import org.spongepowered.api.event.lifecycle.*;
 import org.spongepowered.plugin.PluginContainer;
 import org.spongepowered.plugin.builtin.jvm.Plugin;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.util.UUID;
 
@@ -65,15 +68,39 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     @ConfigDir(sharedRoot = false)
     private Path configPath;
 
-    private GeyserSpongeCommandManager geyserCommandManager;
+    // Available after construction lifecycle
     private GeyserSpongeConfiguration geyserConfig;
     private GeyserSpongeLogger geyserLogger;
+
+    // Available after command registration lifecycle
+    private GeyserSpongeCommandManager geyserCommandManager;
+
+    // Available after StartedEngine lifecycle
+    private GeyserConnector connector;
     private IGeyserPingPassthrough geyserSpongePingPassthrough;
 
-    private GeyserConnector connector;
 
+    /**
+     * Only to be used for reloading
+     */
     @Override
     public void onEnable() {
+        onConstruction(null);
+        // new commands cannot be registered, and geyser's command manager does not need be reloaded
+        onStartedEngine(null);
+    }
+
+    @Override
+    public void onDisable() {
+        connector.shutdown();
+    }
+
+    /**
+     * Construct the configuration and logger.
+     * @param event Not used.
+     */
+    @Listener
+    public void onConstruction(@Nullable ConstructPluginEvent event) {
         File configDir = configPath.toFile();
         if (!configDir.exists()) {
             configDir.mkdirs();
@@ -91,35 +118,57 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         } catch (IOException ex) {
             logger.warn(LanguageUtils.getLocaleStringLog("geyser.config.failed"));
             ex.printStackTrace();
-            return;
+            throw new RuntimeException("Failed to start Geyser"); // todo: Does this make Sponge disable us?
         }
 
-        if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
-            // Can't access the server instance during the ConstructPluginEvent to determine the server address.
-            // Can't use later lifecycle events after this event because commands can no longer be registered (at least not without hacks)
-            this.geyserConfig.setAutoconfiguredRemote(true);
-            logger.warn("Remote address in the config is set to auto but Geyser-sponge doesn't support automatically determining the remote port.");
-            // GeyserConnector should still attempt to determine an okay address
+        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+
+        this.geyserLogger = new GeyserSpongeLogger(logger, geyserConfig.isDebugMode());
+    }
+
+    /**
+     * Construct the {@link GeyserSpongeCommandManager} and register the commands
+     * @param event required to register the commands
+     */
+    @Listener
+    public void onRegisterCommands(@Nonnull RegisterCommandEvent<Command.Raw> event) {
+        this.geyserCommandManager = new GeyserSpongeCommandManager(this.geyserLogger);
+        event.register(this.pluginContainer, new GeyserSpongeCommandExecutor(this.geyserCommandManager), "geyser");
+    }
+
+    /**
+     * Configure the config properly if remote address is auto. Start the
+     * @param event required to register the commands
+     */
+    @Listener
+    public void onStartedEngine(@Nullable StartedEngineEvent<?> event) {
+        if (Sponge.server().boundAddress().isPresent()) {
+            InetSocketAddress javaAddr = Sponge.server().boundAddress().get();
+
+            // Don't change the ip if its listening on all interfaces
+            // By default this should be 127.0.0.1 but may need to be changed in some circumstances
+            if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
+                this.geyserConfig.setAutoconfiguredRemote(true);
+                geyserConfig.getRemote().setPort(javaAddr.getPort());
+            }
         }
 
         if (geyserConfig.getBedrock().isCloneRemotePort()) {
             geyserConfig.getBedrock().setPort(geyserConfig.getRemote().getPort());
         }
 
-        this.geyserLogger = new GeyserSpongeLogger(logger, geyserConfig.isDebugMode());
-        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
         this.connector = GeyserConnector.start(PlatformType.SPONGE, this);
+
+        if (geyserConfig.isLegacyPingPassthrough()) {
+            this.geyserSpongePingPassthrough = GeyserLegacyPingPassthrough.init(connector);
+        } else {
+            this.geyserSpongePingPassthrough = new GeyserSpongePingPassthrough();
+        }
     }
 
     @Listener
-    public void onRegisterCommands(RegisterCommandEvent<Command.Raw> event) {
-        this.geyserCommandManager = new GeyserSpongeCommandManager(geyserLogger);
-        event.register(this.pluginContainer, new GeyserSpongeCommandExecutor(connector), "geyser");
-    }
-
-    @Override
-    public void onDisable() {
-        connector.shutdown();
+    public void onEngineStopping(StoppingEngineEvent<?> event) {
+        onDisable();
     }
 
     @Override
@@ -145,27 +194,6 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     @Override
     public Path getConfigFolder() {
         return configPath;
-    }
-
-    @Listener
-    public void onConstruction(ConstructPluginEvent event) {
-        // this event must be used instead of StartingEngineEvent/StartedEngineEvent/LoadedGame event, as command registration events are called before the latter 3
-        onEnable();
-    }
-
-    @Listener
-    public void onLoadGame(LoadedGameEvent event) {
-        // GeyserSpongePingPassthrough requires the server instance, which is not available during plugin construction.
-        if (geyserConfig.isLegacyPingPassthrough()) {
-            this.geyserSpongePingPassthrough = GeyserLegacyPingPassthrough.init(connector);
-        } else {
-            this.geyserSpongePingPassthrough = new GeyserSpongePingPassthrough();
-        }
-    }
-
-    @Listener
-    public void onEngineStopping(StoppingEngineEvent<?> event) {
-        onDisable();
     }
 
     @Override

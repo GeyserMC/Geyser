@@ -26,8 +26,8 @@
 package org.geysermc.platform.velocity.command;
 
 import com.velocitypowered.api.command.SimpleCommand;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandExecutor;
+import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.common.ChatColor;
@@ -40,14 +40,14 @@ import java.util.List;
 
 public class GeyserVelocityCommandExecutor extends CommandExecutor implements SimpleCommand {
 
-    public GeyserVelocityCommandExecutor(GeyserConnector connector) {
-        super(connector);
+    public GeyserVelocityCommandExecutor(CommandManager commandManager) {
+        super(commandManager);
     }
 
     @Override
     public void execute(Invocation invocation) {
         CommandSender sender = new VelocityCommandSender(invocation.source());
-        GeyserSession session = getGeyserSession(sender);
+        GeyserSession session = sender.getGeyserSession();
 
         if (invocation.arguments().length > 0) {
             GeyserCommand command = getCommand(invocation.arguments()[0]);

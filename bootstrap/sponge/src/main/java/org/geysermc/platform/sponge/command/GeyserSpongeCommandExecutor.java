@@ -26,8 +26,8 @@
 package org.geysermc.platform.sponge.command;
 
 import net.kyori.adventure.text.Component;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandExecutor;
+import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.common.ChatColor;
@@ -48,14 +48,14 @@ import java.util.stream.Collectors;
 
 public class GeyserSpongeCommandExecutor extends CommandExecutor implements Command.Raw {
 
-    public GeyserSpongeCommandExecutor(GeyserConnector connector) {
-        super(connector);
+    public GeyserSpongeCommandExecutor(CommandManager commandManager) {
+        super(commandManager);
     }
 
     @Override
     public CommandResult process(CommandCause source, ArgumentReader.Mutable arguments) {
         CommandSender commandSender = new SpongeCommandSender(source);
-        GeyserSession session = getGeyserSession(commandSender);
+        GeyserSession session = commandSender.getGeyserSession();
 
         String[] args = arguments.input().split(" "); //todo: this probably doesn't work
         if (args.length > 0) {

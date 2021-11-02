@@ -142,7 +142,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         // Will be initialized after the proxy has been bound
 
         this.geyserCommandManager = new GeyserVelocityCommandManager(connector);
-        this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(connector));
+        this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(this.geyserCommandManager));
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
         } else {

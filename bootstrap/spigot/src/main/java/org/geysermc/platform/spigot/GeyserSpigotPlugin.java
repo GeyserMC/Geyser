@@ -155,8 +155,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             this.geyserSpigotPingPassthrough = new GeyserSpigotPingPassthrough(geyserLogger);
         }
 
-        this.geyserCommandManager = new GeyserSpigotCommandManager(connector);
-
         boolean isViaVersion = Bukkit.getPluginManager().getPlugin("ViaVersion") != null;
         if (isViaVersion) {
             try {
@@ -236,7 +234,8 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             Bukkit.getServer().getPluginManager().registerEvents(new GeyserSpigot1_11CraftingListener(connector), this);
         }
 
-        this.getCommand("geyser").setExecutor(new GeyserSpigotCommandExecutor(connector));
+        this.geyserCommandManager = new GeyserSpigotCommandManager(connector);
+        this.getCommand("geyser").setExecutor(new GeyserSpigotCommandExecutor(this.geyserCommandManager));
     }
 
     @Override

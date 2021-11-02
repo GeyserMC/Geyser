@@ -25,7 +25,11 @@
 
 package org.geysermc.connector.command;
 
+import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
+
+import javax.annotation.Nullable;
 
 /**
  * Implemented on top of any class that can send a command.
@@ -64,4 +68,30 @@ public interface CommandSender {
      * @return true if the CommandSender has the requested permission, false if not
      */
     boolean hasPermission(String permission);
+
+    /**
+     * Get the GeyserSession of this {@link CommandSender}. Returns null if the Commandsender is console.
+     * Will only return a session if {@link GeyserConnector#getInstance()} does not return null,
+     * and {@link CommandSender#getName()} equals the username of a session.
+     *
+     * @return The corresponding GeyserSession, if it exists
+     */
+    @Nullable
+    default GeyserSession getGeyserSession() {
+        if (isConsole()) {
+            return null;
+        }
+
+        GeyserConnector connector = GeyserConnector.getInstance();
+        if (connector == null) {
+            return null;
+        }
+
+        for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
+            if (getName().equals(session.getPlayerEntity().getUsername())) {
+                return session;
+            }
+        }
+        return null;
+    }
 }

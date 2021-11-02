@@ -129,7 +129,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             this.geyserBungeePingPassthrough = new GeyserBungeePingPassthrough(getProxy());
         }
 
-        this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor(connector));
+        this.getProxy().getPluginManager().registerCommand(this, new GeyserBungeeCommandExecutor(this.geyserCommandManager));
     }
 
     @Override

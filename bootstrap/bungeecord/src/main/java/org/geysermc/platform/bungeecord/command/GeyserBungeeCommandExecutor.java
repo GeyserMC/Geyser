@@ -29,32 +29,29 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandExecutor;
+import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 
 public class GeyserBungeeCommandExecutor extends Command implements TabExecutor {
 
     private final CommandExecutor commandExecutor;
-    private final GeyserConnector connector;
 
-    public GeyserBungeeCommandExecutor(GeyserConnector connector) {
+    public GeyserBungeeCommandExecutor(CommandManager commandManager) {
         super("geyser");
 
-        this.commandExecutor = new CommandExecutor(connector);
-        this.connector = connector;
+        this.commandExecutor = new CommandExecutor(commandManager);
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
         BungeeCommandSender commandSender = new BungeeCommandSender(sender);
-        GeyserSession session = this.commandExecutor.getGeyserSession(commandSender);
+        GeyserSession session = commandSender.getGeyserSession();
 
         if (args.length > 0) {
             GeyserCommand command = this.commandExecutor.getCommand(args[0]);
