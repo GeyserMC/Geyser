@@ -1,0 +1,33 @@
+{
+  "loader": {
+    "name": "java_plain",
+    "version": "1.0"
+  },
+  "license": "MIT",
+  "plugins": [
+    {
+      "id": "geyser",
+      "name": "${outputName}-Spigot}",
+      "version": "${version}",
+      "entrypoint": "org.geysermc.platform.sponge.GeyserSpongePlugin",
+      "description": "${description}",
+      "links": {
+        "homepage": "{url}",
+        "source": "{scm.url}",
+        "issues": "{scm.url}"
+      },
+      "contributors": [
+        {
+          "name": "GeyserMC",
+          "description": "Organisation"
+        }
+      ],
+      "dependencies": [
+        {
+          "id": "spongeapi",
+          "version": "8.0.0"
+        }
+      ]
+    }
+  ]
+}
