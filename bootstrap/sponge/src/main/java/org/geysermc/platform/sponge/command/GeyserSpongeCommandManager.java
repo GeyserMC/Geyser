@@ -29,10 +29,8 @@ import net.kyori.adventure.text.Component;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandCause;
 import org.spongepowered.api.command.manager.CommandMapping;
-import org.spongepowered.api.command.registrar.CommandRegistrar;
 
 public class GeyserSpongeCommandManager extends CommandManager {
     private final org.spongepowered.api.command.manager.CommandManager handle;
