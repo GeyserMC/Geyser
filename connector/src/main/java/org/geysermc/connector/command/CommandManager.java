@@ -29,6 +29,7 @@ import lombok.Getter;
 
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.command.defaults.*;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -40,11 +41,25 @@ public abstract class CommandManager {
     @Getter
     private final Map<String, GeyserCommand> commands = Collections.synchronizedMap(new HashMap<>());
 
-    private final GeyserConnector connector;
+    private final GeyserLogger logger;
+
+    /**
+     * Create a command manager to manage and run all the default commands. This constructor does not use {@link GeyserConnector},
+     * and consequently the default commands will not be registered. They must be registered at a later time with {@link CommandManager#registerDefaults(GeyserConnector)}
+     *
+     * @param logger The logger to use for console messages
+     */
+    public CommandManager(GeyserLogger logger) {
+        this.logger = logger;
+    }
 
     public CommandManager(GeyserConnector connector) {
-        this.connector = connector;
+        this.logger = connector.getLogger();
 
+        registerDefaults(connector);
+    }
+
+    public void registerDefaults(GeyserConnector connector) {
         registerCommand(new HelpCommand(connector, "help", "geyser.commands.help.desc", "geyser.command.help"));
         registerCommand(new ListCommand(connector, "list", "geyser.commands.list.desc", "geyser.command.list"));
         registerCommand(new ReloadCommand(connector, "reload", "geyser.commands.reload.desc", "geyser.command.reload"));
@@ -61,7 +76,7 @@ public abstract class CommandManager {
 
     public void registerCommand(GeyserCommand command) {
         commands.put(command.getName(), command);
-        connector.getLogger().debug(LanguageUtils.getLocaleStringLog("geyser.commands.registered", command.getName()));
+        logger.debug(LanguageUtils.getLocaleStringLog("geyser.commands.registered", command.getName()));
 
         if (command.getAliases().isEmpty())
             return;
@@ -89,7 +104,7 @@ public abstract class CommandManager {
 
         GeyserCommand cmd = commands.get(label);
         if (cmd == null) {
-            connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.commands.invalid"));
+            logger.error(LanguageUtils.getLocaleStringLog("geyser.commands.invalid"));
             return;
         }
 
@@ -99,7 +114,7 @@ public abstract class CommandManager {
             if (!cmd.isBedrockOnly()) {
                 cmd.execute(null, sender, args);
             } else {
-                connector.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.bedrock_only"));
+                logger.error(LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.bedrock_only"));
             }
         }
     }
@@ -108,7 +123,7 @@ public abstract class CommandManager {
      * @return a list of all subcommands under {@code /geyser}.
      */
     public List<String> getCommandNames() {
-        return Arrays.asList(connector.getCommandManager().getCommands().keySet().toArray(new String[0]));
+        return Arrays.asList(getCommands().keySet().toArray(new String[0]));
     }
 
     /**

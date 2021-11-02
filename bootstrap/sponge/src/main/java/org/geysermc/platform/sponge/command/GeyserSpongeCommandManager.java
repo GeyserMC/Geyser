@@ -26,7 +26,7 @@
 package org.geysermc.platform.sponge.command;
 
 import net.kyori.adventure.text.Component;
-import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.spongepowered.api.Sponge;
@@ -38,9 +38,8 @@ import java.util.Map;
 
 public class GeyserSpongeCommandManager extends org.geysermc.connector.command.CommandManager {
 
-    public GeyserSpongeCommandManager(GeyserConnector connector) {
-        super(connector);
-
+    public GeyserSpongeCommandManager(GeyserLogger logger) {
+        super(logger);
     }
 
     @Override

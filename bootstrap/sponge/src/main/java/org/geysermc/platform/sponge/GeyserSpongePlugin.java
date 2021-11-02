@@ -113,7 +113,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
     @Listener
     public void onRegisterCommands(RegisterCommandEvent<Command.Raw> event) {
-        this.geyserCommandManager = new GeyserSpongeCommandManager(connector);
+        this.geyserCommandManager = new GeyserSpongeCommandManager(geyserLogger);
         event.register(this.pluginContainer, new GeyserSpongeCommandExecutor(connector), "geyser");
     }
 
