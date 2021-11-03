@@ -58,6 +58,12 @@ import java.util.UUID;
 @Plugin(value = "geyser")
 public class GeyserSpongePlugin implements GeyserBootstrap {
 
+    /**
+     * True if the plugin should be in a disabled state.
+     * This exists because you can't unregister or disable plugins in Sponge
+     */
+    private boolean enabled = true;
+
     @Inject
     private PluginContainer pluginContainer;
 
@@ -83,6 +89,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
      */
     @Override
     public void onEnable() {
+        enabled = true;
         onConstruction(null);
         // new commands cannot be registered, and geyser's command manager does not need be reloaded
         onStartedEngine(null);
@@ -90,6 +97,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
     @Override
     public void onDisable() {
+        enabled = false;
         if (connector != null) {
             connector.shutdown();
         }
@@ -107,20 +115,15 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         if (!configDir.exists()) {
             configDir.mkdirs();
         }
-        File configFile = null;
-        try {
-            configFile = FileUtils.fileOrCopiedFromResource(new File(configDir, "config.yml"), "config.yml", (file) -> file.replaceAll("generateduuid", UUID.randomUUID().toString()));
-        } catch (IOException ex) {
-            logger.warn(LanguageUtils.getLocaleStringLog("geyser.config.failed"));
-            ex.printStackTrace();
-        }
 
         try {
+            File configFile = FileUtils.fileOrCopiedFromResource(new File(configDir, "config.yml"), "config.yml", (file) -> file.replaceAll("generateduuid", UUID.randomUUID().toString()));
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserSpongeConfiguration.class);
         } catch (IOException ex) {
-            logger.warn(LanguageUtils.getLocaleStringLog("geyser.config.failed"));
+            logger.error(LanguageUtils.getLocaleStringLog("geyser.config.failed"));
             ex.printStackTrace();
-            throw new RuntimeException("Failed to start Geyser"); // todo: Does this make Sponge disable us?
+            onDisable();
+            return;
         }
 
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
@@ -137,7 +140,9 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
      */
     @Listener
     public void onRegisterCommands(@Nonnull RegisterCommandEvent<Command.Raw> event) {
-        event.register(this.pluginContainer, new GeyserSpongeCommandExecutor(this.geyserCommandManager), "geyser");
+        if (enabled) {
+            event.register(this.pluginContainer, new GeyserSpongeCommandExecutor(this.geyserCommandManager), "geyser");
+        }
     }
 
     /**
@@ -147,6 +152,10 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
      */
     @Listener
     public void onStartedEngine(@Nullable StartedEngineEvent<?> event) {
+        if (!enabled) {
+            return;
+        }
+
         if (Sponge.server().boundAddress().isPresent()) {
             InetSocketAddress javaAddr = Sponge.server().boundAddress().get();
 

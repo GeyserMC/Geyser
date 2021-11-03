@@ -49,7 +49,7 @@ public class GeyserSpongeCommandManager extends org.geysermc.connector.command.C
         if (handle.commandMapping(command).isPresent()) {
             CommandMapping mapping = handle.commandMapping(command).get();
 
-            // todo: Not sure if CommandCause here effectively matters
+            // CommandCause.create() seems to be fine
             return MessageTranslator.convertMessage(mapping.registrar().shortDescription(CommandCause.create(), mapping).orElse(Component.empty()));
         }
         return "";
