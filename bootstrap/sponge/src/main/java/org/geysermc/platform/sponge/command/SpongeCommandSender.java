@@ -29,8 +29,8 @@ import lombok.AllArgsConstructor;
 
 import net.kyori.adventure.text.Component;
 import org.geysermc.connector.command.CommandSender;
-import org.spongepowered.api.SystemSubject;
 import org.spongepowered.api.command.CommandCause;
+import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 
 @AllArgsConstructor
 public class SpongeCommandSender implements CommandSender {
@@ -39,17 +39,18 @@ public class SpongeCommandSender implements CommandSender {
 
     @Override
     public String getName() {
+        // todo: probably not okay. maybe cast root cause to ServerPlayer if instance of, then get username
         return handle.friendlyIdentifier().orElse(handle.identifier());
     }
 
     @Override
     public void sendMessage(String message) {
-        handle.audience().sendMessage(Component.text(message));
+        handle.audience().sendMessage(Component.text(message)); // todo: why does this send nothing?
     }
 
     @Override
     public boolean isConsole() {
-        return handle instanceof SystemSubject; // todo: this good? don't this so
+        return !(handle.cause().root() instanceof ServerPlayer);
     }
 
     @Override

@@ -53,21 +53,21 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
     }
 
     @Override
-    public CommandResult process(CommandCause source, ArgumentReader.Mutable arguments) {
-        CommandSender commandSender = new SpongeCommandSender(source);
+    public CommandResult process(CommandCause cause, ArgumentReader.Mutable arguments) {
+        CommandSender commandSender = new SpongeCommandSender(cause);
         GeyserSession session = commandSender.getGeyserSession();
 
         String[] args = arguments.input().split(" "); //todo: this probably doesn't work
         if (args.length > 0) {
             GeyserCommand command = getCommand(args[0]);
             if (command != null) {
-                if (!source.hasPermission(command.getPermission())) {
+                if (!cause.hasPermission(command.getPermission())) {
                     // Not ideal to use log here but we dont get a session
-                    source.audience().sendMessage(Component.text(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail"))); // todo: might not work
+                    cause.audience().sendMessage(Component.text(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail")));
                     return CommandResult.success();
                 }
                 if (command.isBedrockOnly() && session == null) {
-                    source.audience().sendMessage(Component.text(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.bedrock_only")));
+                    cause.audience().sendMessage(Component.text(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.bedrock_only")));
                     return CommandResult.success();
                 }
                 getCommand(args[0]).execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);

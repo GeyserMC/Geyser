@@ -61,8 +61,7 @@ public class GeyserSpongeDumpInfo extends BootstrapDumpInfo {
         this.plugins = new ArrayList<>();
 
         for (PluginContainer plugin : Sponge.pluginManager().plugins()) {
-            PluginMetadata meta = plugin.metadata(); // todo: not sure if this can be null or not
-
+            PluginMetadata meta = plugin.metadata();
             List<String> contributors = meta.contributors().stream().map(PluginContributor::name).collect(Collectors.toList());
             this.plugins.add(new PluginInfo(true, meta.name().orElse("unknown"), meta.version().getQualifier(), meta.entrypoint(), contributors));
         }

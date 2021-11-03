@@ -57,7 +57,8 @@ public class GeyserSpongeCommandManager extends org.geysermc.connector.command.C
         if (handle.commandMapping(command).isPresent()) {
             CommandMapping mapping = handle.commandMapping(command).get();
 
-            // todo: this commandcause use to be console
+            // todo: classcastexception of Component here
+            // todo: Not sure if CommandCause here effectively matters
             return MessageTranslator.convertMessage(mapping.registrar().shortDescription(CommandCause.create(), mapping).orElse(Component.empty()));
         }
         return "";
