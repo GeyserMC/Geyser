@@ -25,10 +25,16 @@
 
 package org.geysermc.connector.network.translators.sound;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.ListTag;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.registry.Registries;
+import org.geysermc.connector.utils.BlockUtils;
 
 import java.util.Map;
 
@@ -87,5 +93,39 @@ public interface BlockSoundInteractionHandler extends SoundInteractionHandler<St
             }
             ((BlockSoundInteractionHandler) interactionEntry.getValue()).handleInteraction(session, position, identifier);
         }
+    }
+
+    /**
+     * Determines if the adventure gamemode would prevent this item from actually succeeding
+     */
+    static boolean canInteract(GeyserSession session, GeyserItemStack itemInHand, String blockIdentifier) {
+        if (session.getGameMode() != GameMode.ADVENTURE) {
+            // There are no restrictions on the item
+            return true;
+        }
+
+        CompoundTag tag = itemInHand.getNbt();
+        if (tag == null) {
+            // No CanPlaceOn tag can exist
+            return false;
+        }
+        ListTag canPlaceOn = tag.get("CanPlaceOn");
+        if (canPlaceOn == null || canPlaceOn.size() == 0) {
+            return false;
+        }
+
+        String cleanIdentifier = BlockUtils.getCleanIdentifier(blockIdentifier);
+
+        for (Tag t : canPlaceOn) {
+            if (t instanceof StringTag stringTag) {
+                if (cleanIdentifier.equals(stringTag.getValue())) {
+                    // This operation would/could be a success!
+                    return true;
+                }
+            }
+        }
+
+        // The block in world is not present in the CanPlaceOn tag on the item
+        return false;
     }
 }
