@@ -141,7 +141,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     }
 
     /**
-     * Configure the config properly if remote address is auto. Start the
+     * Configure the config properly if remote address is auto. Start connector and ping passthrough, and register subcommands of /geyser
      *
      * @param event not required
      */

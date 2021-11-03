@@ -57,8 +57,10 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
         CommandSender commandSender = new SpongeCommandSender(cause);
         GeyserSession session = commandSender.asGeyserSession();
 
-        String[] args = arguments.input().split(" "); //todo: this probably doesn't work
-        if (args.length > 0) {
+        String[] args = arguments.input().split(" ");
+        System.out.println(Arrays.toString(args));
+        System.out.println(args.length);
+        if (args.length > 0 && !args[0].isEmpty()) {
             GeyserCommand command = getCommand(args[0]);
             if (command != null) {
                 if (!cause.hasPermission(command.getPermission())) {

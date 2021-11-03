@@ -67,7 +67,6 @@ public class GeyserSpongePingPassthrough implements IGeyserPingPassthrough {
         }
         Sponge.eventManager().post(event);
         GeyserPingInfo geyserPingInfo = new GeyserPingInfo(
-                // todo: expected classcastexception of component here
                 MessageTranslator.convertMessage(event.response().description()),
                 new GeyserPingInfo.Players(
                         event.response().players().orElseThrow(IllegalStateException::new).max(),

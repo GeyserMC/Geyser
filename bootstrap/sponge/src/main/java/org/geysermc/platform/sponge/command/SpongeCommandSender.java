@@ -40,7 +40,6 @@ public class SpongeCommandSender implements CommandSender {
 
     @Override
     public String getName() {
-        // todo: probably not okay. maybe cast root cause to ServerPlayer if instance of, then get username
         return handle.friendlyIdentifier().orElse(handle.identifier());
     }
 
