@@ -42,7 +42,7 @@ public class CommandExecutor {
     protected final CommandManager commandManager;
 
     public GeyserCommand getCommand(String label) {
-        return GeyserConnector.getInstance().getCommandManager().getCommands().get(label);
+        return commandManager.getCommands().get(label);
     }
 
     /**
@@ -55,7 +55,7 @@ public class CommandExecutor {
      * @return A list of command names to include in the tab complete
      */
     public List<String> tabComplete(CommandSender sender) {
-        if (sender.getGeyserSession() != null) {
+        if (sender.asGeyserSession() != null) {
             // Bedrock doesn't get tab completions or argument suggestions
             return Collections.emptyList();
         }

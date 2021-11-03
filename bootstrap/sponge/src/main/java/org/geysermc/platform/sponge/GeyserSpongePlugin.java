@@ -143,7 +143,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     /**
      * Configure the config properly if remote address is auto. Start the
      *
-     * @param event required to register the commands
+     * @param event not required
      */
     @Listener
     public void onStartedEngine(@Nullable StartedEngineEvent<?> event) {

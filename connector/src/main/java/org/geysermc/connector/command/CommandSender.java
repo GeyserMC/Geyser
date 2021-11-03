@@ -70,14 +70,14 @@ public interface CommandSender {
     boolean hasPermission(String permission);
 
     /**
-     * Get the GeyserSession of this {@link CommandSender}. Returns null if the Commandsender is console.
+     * Attempt to find the corresponding {@link GeyserSession} of this {@link CommandSender}. Returns null if the Commandsender is console.
      * Will only return a session if {@link GeyserConnector#getInstance()} does not return null,
      * and {@link CommandSender#getName()} equals the username of a session.
      *
      * @return The corresponding GeyserSession, if it exists
      */
     @Nullable
-    default GeyserSession getGeyserSession() {
+    default GeyserSession asGeyserSession() {
         if (isConsole()) {
             return null;
         }

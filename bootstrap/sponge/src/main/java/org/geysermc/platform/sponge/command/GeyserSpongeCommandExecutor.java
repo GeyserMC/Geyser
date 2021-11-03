@@ -26,11 +26,11 @@
 package org.geysermc.platform.sponge.command;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.connector.command.CommandExecutor;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
-import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.jetbrains.annotations.NotNull;
@@ -55,7 +55,7 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
     @Override
     public CommandResult process(CommandCause cause, ArgumentReader.Mutable arguments) {
         CommandSender commandSender = new SpongeCommandSender(cause);
-        GeyserSession session = commandSender.getGeyserSession();
+        GeyserSession session = commandSender.asGeyserSession();
 
         String[] args = arguments.input().split(" "); //todo: this probably doesn't work
         if (args.length > 0) {
@@ -63,11 +63,11 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
             if (command != null) {
                 if (!cause.hasPermission(command.getPermission())) {
                     // Not ideal to use log here but we dont get a session
-                    cause.audience().sendMessage(Component.text(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail")));
+                    cause.audience().sendMessage(Component.text(LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail")).color(NamedTextColor.RED));
                     return CommandResult.success();
                 }
                 if (command.isBedrockOnly() && session == null) {
-                    cause.audience().sendMessage(Component.text(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.bedrock_only")));
+                    cause.audience().sendMessage(Component.text(LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.bedrock_only")).color(NamedTextColor.RED));
                     return CommandResult.success();
                 }
                 getCommand(args[0]).execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
