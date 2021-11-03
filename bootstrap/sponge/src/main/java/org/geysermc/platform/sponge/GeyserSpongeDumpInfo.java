@@ -69,6 +69,9 @@ public class GeyserSpongeDumpInfo extends BootstrapDumpInfo {
     }
 
     private static String readVersion(ArtifactVersion version) {
-        return version.getMajorVersion() + "." + version.getMinorVersion() + "." +version.getIncrementalVersion() + "-" + version.getQualifier();
+        String qualifier = version.getQualifier();
+        qualifier = (qualifier == null || qualifier.isBlank()) ? "" : "-" + qualifier;
+
+        return version.getMajorVersion() + "." + version.getMinorVersion() + "." +version.getIncrementalVersion() + qualifier;
     }
 }
