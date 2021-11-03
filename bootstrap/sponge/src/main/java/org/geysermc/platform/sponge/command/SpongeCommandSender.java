@@ -45,7 +45,7 @@ public class SpongeCommandSender implements CommandSender {
 
     @Override
     public void sendMessage(String message) {
-        handle.audience().sendMessage(Component.text(message)); // todo: why does this send nothing?
+        handle.audience().sendMessage(Component.text(message));
     }
 
     @Override

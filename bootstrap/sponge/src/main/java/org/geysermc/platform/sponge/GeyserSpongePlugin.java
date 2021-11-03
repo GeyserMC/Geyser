@@ -71,9 +71,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     // Available after construction lifecycle
     private GeyserSpongeConfiguration geyserConfig;
     private GeyserSpongeLogger geyserLogger;
-
-    // Available after command registration lifecycle
-    private GeyserSpongeCommandManager geyserCommandManager;
+    private GeyserSpongeCommandManager geyserCommandManager; // Commands are only registered after command registration lifecycle
 
     // Available after StartedEngine lifecycle
     private GeyserConnector connector;
@@ -92,11 +90,15 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
     @Override
     public void onDisable() {
-        connector.shutdown();
+        if (connector != null) {
+            connector.shutdown();
+        }
     }
 
     /**
-     * Construct the configuration and logger.
+     * Construct the configuration, logger, and command manager. command manager will only be filled with commands once
+     * the connector is started, but it allows us to register events in sponge.
+     *
      * @param event Not used.
      */
     @Listener
@@ -122,22 +124,25 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         }
 
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-
         this.geyserLogger = new GeyserSpongeLogger(logger, geyserConfig.isDebugMode());
+
+        // Construct it without the commands
+        this.geyserCommandManager = new GeyserSpongeCommandManager(this.geyserLogger);
     }
 
     /**
      * Construct the {@link GeyserSpongeCommandManager} and register the commands
+     *
      * @param event required to register the commands
      */
     @Listener
     public void onRegisterCommands(@Nonnull RegisterCommandEvent<Command.Raw> event) {
-        this.geyserCommandManager = new GeyserSpongeCommandManager(this.geyserLogger);
         event.register(this.pluginContainer, new GeyserSpongeCommandExecutor(this.geyserCommandManager), "geyser");
     }
 
     /**
      * Configure the config properly if remote address is auto. Start the
+     *
      * @param event required to register the commands
      */
     @Listener
@@ -164,6 +169,8 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         } else {
             this.geyserSpongePingPassthrough = new GeyserSpongePingPassthrough();
         }
+
+        this.geyserCommandManager.registerDefaults(connector);
     }
 
     @Listener

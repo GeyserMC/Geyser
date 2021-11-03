@@ -27,14 +27,11 @@ package org.geysermc.platform.sponge.command;
 
 import net.kyori.adventure.text.Component;
 import org.geysermc.connector.GeyserLogger;
-import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandCause;
 import org.spongepowered.api.command.manager.CommandManager;
 import org.spongepowered.api.command.manager.CommandMapping;
-
-import java.util.Map;
 
 public class GeyserSpongeCommandManager extends org.geysermc.connector.command.CommandManager {
 
@@ -45,12 +42,7 @@ public class GeyserSpongeCommandManager extends org.geysermc.connector.command.C
     @Override
     public String getDescription(String command) {
         if (!Sponge.isServerAvailable()) {
-            Map<String, GeyserCommand> commands = this.getCommands();
-            if (commands.containsKey(command)) {
-                return MessageTranslator.convertMessage(commands.get(command).getDescription());
-            } else {
-                return "";
-            }
+            return "";
         }
 
         CommandManager handle = Sponge.server().commandManager();
