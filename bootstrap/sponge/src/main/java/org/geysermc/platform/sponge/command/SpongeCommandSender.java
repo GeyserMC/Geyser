@@ -27,9 +27,8 @@ package org.geysermc.platform.sponge.command;
 
 import lombok.AllArgsConstructor;
 
-import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.command.CommandSender;
-import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.spongepowered.api.command.CommandCause;
 import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 
@@ -45,7 +44,7 @@ public class SpongeCommandSender implements CommandSender {
 
     @Override
     public void sendMessage(String message) {
-        handle.audience().sendMessage(Component.text(MessageTranslator.convertMessage(message))); // this looks icky to me
+        handle.audience().sendMessage(LegacyComponentSerializer.legacySection().deserialize(message)); // this looks icky to me
     }
 
     @Override

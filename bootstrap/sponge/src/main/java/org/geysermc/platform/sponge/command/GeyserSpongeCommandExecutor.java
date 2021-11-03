@@ -58,13 +58,12 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
         GeyserSession session = commandSender.asGeyserSession();
 
         String[] args = arguments.input().split(" ");
-        System.out.println(Arrays.toString(args));
-        System.out.println(args.length);
+        // This split operation results in an array of length 1, containing a zero length string, if the input string is empty
         if (args.length > 0 && !args[0].isEmpty()) {
             GeyserCommand command = getCommand(args[0]);
             if (command != null) {
                 if (!cause.hasPermission(command.getPermission())) {
-                    // Not ideal to use log here but we dont get a session
+                    // Not ideal to use log here but we don't get a session
                     cause.audience().sendMessage(Component.text(LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail")).color(NamedTextColor.RED));
                     return CommandResult.success();
                 }
