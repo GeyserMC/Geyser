@@ -77,10 +77,6 @@
                                     <pattern>com.google.guava</pattern>
                                     <shadedPattern>org.geysermc.platform.sponge.shaded.google.guava</shadedPattern>
                                 </relocation>
-                                <relocation>
-                                    <pattern>net.kyori</pattern>
-                                    <shadedPattern>org.geysermc.platform.sponge.shaded.kyori</shadedPattern>
-                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>
