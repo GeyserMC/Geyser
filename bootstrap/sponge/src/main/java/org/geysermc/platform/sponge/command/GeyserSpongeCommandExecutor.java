@@ -72,9 +72,17 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
                     return CommandResult.success();
                 }
                 command.execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
+            } else {
+                cause.audience().sendMessage(Component.text(LanguageUtils.getLocaleStringLog("geyser.command.not_found")).color(NamedTextColor.RED));
             }
         } else {
-            getCommand("help").execute(session, commandSender, new String[0]);
+            GeyserCommand help = getCommand("help");
+            if (help == null) {
+                // If construction fails during a reload then the geyser command will be registered but the command manager will be emtpy
+                cause.audience().sendMessage(Component.text(LanguageUtils.getLocaleStringLog("geyser.command.not_found")).color(NamedTextColor.RED));
+            } else {
+                help.execute(session, commandSender, new String[0]);
+            }
         }
         return CommandResult.success();
     }

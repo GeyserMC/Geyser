@@ -103,6 +103,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         enabled = false;
         if (connector != null) {
             connector.shutdown();
+            connector = null;
         }
     }
 

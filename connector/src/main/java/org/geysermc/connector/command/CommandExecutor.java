@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents helper functions for listening to {@code /geyser} commands.
@@ -46,7 +47,7 @@ public class CommandExecutor {
 
     @Nullable
     public GeyserCommand getCommand(String label) {
-        return commandManager.getCommands().get(label);
+        return Objects.requireNonNull(commandManager).getCommands().get(label);
     }
 
     /**
