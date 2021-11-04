@@ -57,7 +57,6 @@ public class GeyserSpongeDumpInfo extends BootstrapDumpInfo {
         this.platformVersion = platformMeta.version().getQualifier();
         this.onlineMode = Sponge.server().isOnlineModeEnabled();
         Optional<InetSocketAddress> socketAddress = Sponge.server().boundAddress();
-        System.out.println(socketAddress);
         this.serverIP = socketAddress.map(InetSocketAddress::getHostString).orElse("unknown");
         this.serverPort = socketAddress.map(InetSocketAddress::getPort).orElse(-1);
         this.plugins = new ArrayList<>();

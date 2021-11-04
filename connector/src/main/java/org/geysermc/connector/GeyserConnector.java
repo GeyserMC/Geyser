@@ -115,6 +115,9 @@ public class GeyserConnector {
     private FloodgateSkinUploader skinUploader;
     private final NewsHandler newsHandler;
 
+    /**
+     * True if the connector is shutting down or has shut down
+     */
     private boolean shuttingDown = false;
 
     private final ScheduledExecutorService generalThreadPool;

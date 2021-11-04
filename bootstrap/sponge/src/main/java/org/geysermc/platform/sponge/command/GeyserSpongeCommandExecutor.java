@@ -78,7 +78,9 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
         } else {
             GeyserCommand help = getCommand("help");
             if (help == null) {
-                // If construction fails during a reload then the geyser command will be registered but the command manager will be emtpy
+                // When connector has been shutdown, the command manager is cleared.
+                // If it is shutdown to do a geyser reload, and the reload fails, then the command manager will remain empty and it
+                // will not be replaced within sponge-registered executor.
                 cause.audience().sendMessage(Component.text(LanguageUtils.getLocaleStringLog("geyser.command.not_found")).color(NamedTextColor.RED));
             } else {
                 help.execute(session, commandSender, new String[0]);
