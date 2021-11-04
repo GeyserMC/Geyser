@@ -79,6 +79,9 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     private GeyserSpongeLogger geyserLogger;
     private GeyserSpongeCommandManager geyserCommandManager; // Commands are only registered after command registration lifecycle
 
+    // Available after command registration lifecycle - never changes afterward
+    private GeyserSpongeCommandExecutor geyserCommandExecutor; // This variable should never be changed after initial assignment
+
     // Available after StartedEngine lifecycle
     private GeyserConnector connector;
     private IGeyserPingPassthrough geyserSpongePingPassthrough;
@@ -141,7 +144,8 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     @Listener
     public void onRegisterCommands(@Nonnull RegisterCommandEvent<Command.Raw> event) {
         if (enabled) {
-            event.register(this.pluginContainer, new GeyserSpongeCommandExecutor(this.geyserCommandManager), "geyser");
+            this.geyserCommandExecutor = new GeyserSpongeCommandExecutor(this.geyserCommandManager);
+            event.register(this.pluginContainer, this.geyserCommandExecutor, "geyser");
         }
     }
 
@@ -179,7 +183,8 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             this.geyserSpongePingPassthrough = new GeyserSpongePingPassthrough();
         }
 
-        this.geyserCommandManager.registerDefaults(connector);
+        this.geyserCommandManager.registerDefaults(connector); // register the subcommands once we have the connector
+        this.geyserCommandExecutor.setCommandManager(geyserCommandManager); // re-assign the command manager in the case this was a reload
     }
 
     @Listener

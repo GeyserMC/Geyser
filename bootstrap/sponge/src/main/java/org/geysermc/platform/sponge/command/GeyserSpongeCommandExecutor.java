@@ -71,7 +71,7 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
                     cause.audience().sendMessage(Component.text(LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.bedrock_only")).color(NamedTextColor.RED));
                     return CommandResult.success();
                 }
-                getCommand(args[0]).execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
+                command.execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
             }
         } else {
             getCommand("help").execute(session, commandSender, new String[0]);

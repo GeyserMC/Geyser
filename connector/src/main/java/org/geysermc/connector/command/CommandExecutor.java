@@ -26,8 +26,10 @@
 package org.geysermc.connector.command;
 
 import lombok.AllArgsConstructor;
-import org.geysermc.connector.GeyserConnector;
+import lombok.Setter;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -39,8 +41,10 @@ import java.util.Map;
 @AllArgsConstructor
 public class CommandExecutor {
 
-    protected final CommandManager commandManager;
+    @Setter
+    protected CommandManager commandManager;
 
+    @Nullable
     public GeyserCommand getCommand(String label) {
         return commandManager.getCommands().get(label);
     }
@@ -54,6 +58,7 @@ public class CommandExecutor {
      *               If the command sender does not have the permission for a given command, the command will not be shown.
      * @return A list of command names to include in the tab complete
      */
+    @Nonnull
     public List<String> tabComplete(CommandSender sender) {
         if (sender.asGeyserSession() != null) {
             // Bedrock doesn't get tab completions or argument suggestions
