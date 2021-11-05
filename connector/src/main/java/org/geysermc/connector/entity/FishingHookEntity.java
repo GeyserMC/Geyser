@@ -27,7 +27,6 @@ package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.PlaySoundPacket;
@@ -35,13 +34,12 @@ import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
-import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.registry.BlockRegistries;
+import org.geysermc.connector.utils.BlockPositionIterator;
 import org.geysermc.connector.utils.BlockUtils;
 
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class FishingHookEntity extends ThrowableEntity {
@@ -91,19 +89,16 @@ public class FishingHookEntity extends ThrowableEntity {
         boundingBox.setMiddleY(position.getY() + boundingBox.getSizeY() / 2);
         boundingBox.setMiddleZ(position.getZ());
 
-        CollisionManager collisionManager = session.getCollisionManager();
-        List<Vector3i> collidableBlocks = collisionManager.getCollidableBlocks(boundingBox);
         boolean touchingWater = false;
         boolean collided = false;
-        for (Vector3i blockPos : collidableBlocks) {
-            int blockID = session.getConnector().getWorldManager().getBlockAt(session, blockPos);
-            BlockCollision blockCollision = BlockUtils.getCollision(blockID, blockPos);
+        for (BlockPositionIterator iter = session.getCollisionManager().collidableBlocksIterator(boundingBox); iter.hasNext(); iter.next()) {
+            int blockID = session.getConnector().getWorldManager().getBlockAt(session, iter.getX(), iter.getY(), iter.getZ());
+            BlockCollision blockCollision = BlockUtils.getCollision(blockID);
             if (blockCollision != null) {
-                if (blockCollision.checkIntersection(boundingBox)) {
+                if (blockCollision.checkIntersection(iter.getX(), iter.getY(), iter.getZ(), boundingBox)) {
                     // TODO Push bounding box out of collision to improve movement
                     collided = true;
                 }
-                blockCollision.reset();
             }
 
             int waterLevel = BlockStateValues.getWaterLevel(blockID);
@@ -111,10 +106,10 @@ public class FishingHookEntity extends ThrowableEntity {
                 waterLevel = 0;
             }
             if (waterLevel >= 0) {
-                double waterMaxY = blockPos.getY() + 1 - (waterLevel + 1) / 9.0;
+                double waterMaxY = iter.getY() + 1 - (waterLevel + 1) / 9.0;
                 // Falling water is a full block
                 if (waterLevel >= 8) {
-                    waterMaxY = blockPos.getY() + 1;
+                    waterMaxY = iter.getY() + 1;
                 }
                 if (position.getY() <= waterMaxY) {
                     touchingWater = true;

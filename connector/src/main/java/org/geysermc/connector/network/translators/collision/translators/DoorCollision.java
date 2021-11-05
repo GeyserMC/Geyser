@@ -61,19 +61,15 @@ public class DoorCollision extends BlockCollision {
     }
 
     @Override
-    public boolean correctPosition(GeyserSession session, BoundingBox playerCollision) {
-        boolean result = super.correctPosition(session, playerCollision);
+    public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
+        boolean result = super.correctPosition(session, x, y, z, playerCollision);
         // Hack to prevent false positives
         playerCollision.setSizeX(playerCollision.getSizeX() - 0.0001);
         playerCollision.setSizeY(playerCollision.getSizeY() - 0.0001);
         playerCollision.setSizeZ(playerCollision.getSizeZ() - 0.0001);
 
         // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
-        if (this.checkIntersection(playerCollision)) {
-            Vector3i blockPos = this.position.get();
-            int x = blockPos.getX();
-            int z = blockPos.getZ();
-
+        if (this.checkIntersection(x, y, z, playerCollision)) {
             switch (facing) {
                 case 1 -> playerCollision.setMiddleZ(z + 0.5125); // North
                 case 2 -> playerCollision.setMiddleX(x + 0.5125); // East

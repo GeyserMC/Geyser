@@ -69,7 +69,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                     return;
                 }
                 ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, column, yOffset);
-                ChunkSection[] sections = chunkData.getSections();
+                ChunkSection[] sections = chunkData.sections();
 
                 // Find highest section
                 int sectionCount = sections.length - 1;
@@ -91,7 +91,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
                 }
                 size += 1; // Border blocks
                 size += 1; // Extra data length (always 0)
-                size += chunkData.getBlockEntities().length * 64; // Conservative estimate of 64 bytes per tile entity
+                size += chunkData.blockEntities().length * 64; // Conservative estimate of 64 bytes per tile entity
 
                 // Allocate output buffer
                 ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(size);
@@ -129,7 +129,7 @@ public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPac
 
                     // Encode tile entities into buffer
                     NBTOutputStream nbtStream = NbtUtils.createNetworkWriter(new ByteBufOutputStream(byteBuf));
-                    for (NbtMap blockEntity : chunkData.getBlockEntities()) {
+                    for (NbtMap blockEntity : chunkData.blockEntities()) {
                         nbtStream.writeTag(blockEntity);
                     }
 

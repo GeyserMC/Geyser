@@ -46,13 +46,13 @@ public class SnowCollision extends BlockCollision {
     // Needs to run before the main correction code or it can move the player into blocks
     // This is counteracted by the main collision code pushing them out
     @Override
-    public void beforeCorrectPosition(BoundingBox playerCollision) {
+    public void beforeCorrectPosition(int x, int y, int z, BoundingBox playerCollision) {
         // In Bedrock, snow layers round down to half blocks but you can't sink into them at all
         // This means the collision each half block reaches above where it should be on Java so the player has to be
         // pushed down
         if (layers == 4 || layers == 8) {
             double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
-            double boxMaxY = (boundingBoxes[0].getMiddleY() + position.get().getY()) + (boundingBoxes[0].getSizeY() / 2);
+            double boxMaxY = (boundingBoxes[0].getMiddleY() + y) + (boundingBoxes[0].getSizeY() / 2);
             // If the player is in the buggy area, push them down
             if (playerMinY > boxMaxY &&
                     playerMinY <= (boxMaxY + 0.125)) {
@@ -62,7 +62,7 @@ public class SnowCollision extends BlockCollision {
     }
 
     @Override
-    public boolean correctPosition(GeyserSession session, BoundingBox playerCollision) {
+    public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
         if (layers == 1) {
             // 1 layer of snow does not have collision
             return true;
@@ -72,9 +72,9 @@ public class SnowCollision extends BlockCollision {
         playerCollision.setSizeY(playerCollision.getSizeY() - 0.0001);
         playerCollision.setSizeZ(playerCollision.getSizeZ() - 0.0001);
 
-        if (this.checkIntersection(playerCollision)) {
+        if (this.checkIntersection(x, y, z, playerCollision)) {
             double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
-            double boxMaxY = (boundingBoxes[0].getMiddleY() + position.get().getY()) + (boundingBoxes[0].getSizeY() / 2);
+            double boxMaxY = (boundingBoxes[0].getMiddleY() + y) + (boundingBoxes[0].getSizeY() / 2);
             // If the player actually can't step onto it (they can step onto it from other snow layers)
             if ((boxMaxY - playerMinY) > 0.5) {
                 // Cancel the movement
@@ -85,6 +85,6 @@ public class SnowCollision extends BlockCollision {
         playerCollision.setSizeX(playerCollision.getSizeX() + 0.0001);
         playerCollision.setSizeY(playerCollision.getSizeY() + 0.0001);
         playerCollision.setSizeZ(playerCollision.getSizeZ() + 0.0001);
-        return super.correctPosition(session, playerCollision);
+        return super.correctPosition(session, x, y, z, playerCollision);
     }
 }

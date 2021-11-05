@@ -41,8 +41,6 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import org.geysermc.connector.entity.living.ArmorStandEntity;
-import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
@@ -52,7 +50,7 @@ import org.geysermc.connector.utils.MathUtils;
 @Setter
 public class Entity {
     protected long entityId;
-    protected long geyserId;
+    protected final long geyserId;
 
     protected Vector3f position;
     protected Vector3f motion;
@@ -256,14 +254,10 @@ public class Entity {
                 setAir((int) entityMetadata.getValue());
                 break;
             case 2: // custom name
-                if (entityMetadata.getValue() instanceof Component message) {
-                    // Always translate even if it's a TextMessage since there could be translatable parameters
-                    metadata.put(EntityData.NAMETAG, MessageTranslator.convertMessage(message, session.getLocale()));
-                }
+                setDisplayName(session, (Component) entityMetadata.getValue());
                 break;
             case 3: // is custom name visible
-                if (!this.is(PlayerEntity.class))
-                    metadata.put(EntityData.NAMETAG_ALWAYS_SHOW, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
+                setDisplayNameVisible(entityMetadata);
                 break;
             case 4: // silent
                 metadata.getFlags().setFlag(EntityFlag.SILENT, (boolean) entityMetadata.getValue());
@@ -310,11 +304,26 @@ public class Entity {
         return false;
     }
 
+    protected void setDisplayName(GeyserSession session, Component name) {
+        if (name != null) {
+            String displayName = MessageTranslator.convertMessage(name, session.getLocale());
+            metadata.put(EntityData.NAMETAG, displayName);
+        } else if (!metadata.getString(EntityData.NAMETAG).isEmpty()) {
+            // Clear nametag
+            metadata.put(EntityData.NAMETAG, "");
+        }
+    }
+
+    protected void setDisplayNameVisible(EntityMetadata entityMetadata) {
+        metadata.put(EntityData.NAMETAG_ALWAYS_SHOW, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
+    }
+
     /**
      * Set the height and width of the entity's bounding box
      */
     protected void setDimensions(Pose pose) {
         // No flexibility options for basic entities
+        //TODO don't even set this for basic entities since we already set it on entity initialization
         metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
         metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight());
     }

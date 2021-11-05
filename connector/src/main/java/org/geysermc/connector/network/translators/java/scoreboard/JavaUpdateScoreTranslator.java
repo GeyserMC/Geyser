@@ -26,9 +26,13 @@
 package org.geysermc.connector.network.translators.java.scoreboard;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardAction;
+import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
 import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerUpdateScorePacket;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.GeyserLogger;
+import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.WorldCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -58,25 +62,85 @@ public class JavaUpdateScoreTranslator extends PacketTranslator<ServerUpdateScor
             return;
         }
 
+        // If this is the objective that is in use to show the below name text, we need to update the player
+        // attached to this score.
+        boolean isBelowName = objective != null && objective == scoreboard.getObjectiveSlots().get(ScoreboardPosition.BELOW_NAME);
+
         switch (packet.getAction()) {
-            case ADD_OR_UPDATE:
+            case ADD_OR_UPDATE -> {
                 objective.setScore(packet.getEntry(), packet.getValue());
-                break;
-            case REMOVE:
+                if (isBelowName) {
+                    // Update the below name score on this player
+                    setBelowName(session, objective, packet.getEntry(), packet.getValue());
+                }
+            }
+            case REMOVE -> {
+                if (packet.getObjective().isEmpty()) {
+                    // An empty objective name means all scores are reset for that player (/scoreboard players reset PLAYERNAME)
+                    Objective belowName = scoreboard.getObjectiveSlots().get(ScoreboardPosition.BELOW_NAME);
+                    if (belowName != null) {
+                        setBelowName(session, belowName, packet.getEntry(), 0);
+                    }
+                }
+
                 if (objective != null) {
                     objective.removeScore(packet.getEntry());
+
+                    if (isBelowName) {
+                        // Update the score on this player to now reflect 0
+                        setBelowName(session, objective, packet.getEntry(), 0);
+                    }
                 } else {
-                    for (Objective objective1 : scoreboard.getObjectives().values()) {
+                    for (Objective objective1 : scoreboard.getObjectives()) {
                         objective1.removeScore(packet.getEntry());
                     }
                 }
-                break;
+            }
         }
 
         // ScoreboardUpdater will handle it for us if the packets per second
-        // (for score and team packets) is higher then the first threshold
+        // (for score and team packets) is higher than the first threshold
         if (pps < ScoreboardUpdater.FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
             scoreboard.onUpdate();
         }
+    }
+
+    /**
+     * @param objective the objective that currently resides on the below name display slot
+     */
+    private void setBelowName(GeyserSession session, Objective objective, String username, int count) {
+        PlayerEntity entity = getPlayerEntity(session, username);
+        if (entity == null) {
+            return;
+        }
+
+        String displayString = count + " " + objective.getDisplayName();
+
+        // Of note: unlike Bedrock, if there is an objective in the below name slot, everyone has a display
+        entity.getMetadata().put(EntityData.SCORE_TAG, displayString);
+        SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
+        entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
+        entityDataPacket.getMetadata().put(EntityData.SCORE_TAG, displayString);
+        session.sendUpstreamPacket(entityDataPacket);
+    }
+
+    private PlayerEntity getPlayerEntity(GeyserSession session, String username) {
+        // We don't care about the session player, because... they're not going to be seeing their own score
+        if (session.getPlayerEntity().getUsername().equals(username)) {
+            return null;
+        }
+
+        for (PlayerEntity entity : session.getEntityCache().getAllPlayerEntities()) {
+            if (entity.getUsername().equals(username)) {
+                if (entity.isValid()) {
+                    return entity;
+                } else {
+                    // The below name text will be applied on spawn
+                    return null;
+                }
+            }
+        }
+
+        return null;
     }
 }

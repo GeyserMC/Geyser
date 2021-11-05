@@ -34,8 +34,8 @@ import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class GeyserVelocityCommandExecutor extends CommandExecutor implements SimpleCommand {
@@ -46,34 +46,33 @@ public class GeyserVelocityCommandExecutor extends CommandExecutor implements Si
 
     @Override
     public void execute(Invocation invocation) {
+        CommandSender sender = new VelocityCommandSender(invocation.source());
+        GeyserSession session = getGeyserSession(sender);
+
         if (invocation.arguments().length > 0) {
             GeyserCommand command = getCommand(invocation.arguments()[0]);
             if (command != null) {
-                CommandSender sender = new VelocityCommandSender(invocation.source());
                 if (!invocation.source().hasPermission(getCommand(invocation.arguments()[0]).getPermission())) {
                     sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.getLocale()));
                     return;
                 }
-                GeyserSession session = null;
-                if (command.isBedrockOnly()) {
-                    session = getGeyserSession(sender);
-                    if (session == null) {
-                        sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", sender.getLocale()));
-                        return;
-                    }
+                if (command.isBedrockOnly() && session == null) {
+                    sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", sender.getLocale()));
+                    return;
                 }
                 command.execute(session, sender, invocation.arguments().length > 1 ? Arrays.copyOfRange(invocation.arguments(), 1, invocation.arguments().length) : new String[0]);
             }
         } else {
-            getCommand("help").execute(null, new VelocityCommandSender(invocation.source()), new String[0]);
+            getCommand("help").execute(session, sender, new String[0]);
         }
     }
 
     @Override
     public List<String> suggest(Invocation invocation) {
-        if (invocation.arguments().length == 0) {
-            return connector.getCommandManager().getCommandNames();
+        // Velocity seems to do the splitting a bit differently. This results in the same behaviour in bungeecord/spigot.
+        if (invocation.arguments().length == 0 || invocation.arguments().length == 1) {
+            return tabComplete(new VelocityCommandSender(invocation.source()));
         }
-        return new ArrayList<>();
+        return Collections.emptyList();
     }
 }

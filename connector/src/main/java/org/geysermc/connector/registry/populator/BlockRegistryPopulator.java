@@ -29,11 +29,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import com.nukkitx.nbt.*;
 import com.nukkitx.protocol.bedrock.v448.Bedrock_v448;
+import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
+import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.chunk.BlockStorage;
@@ -58,17 +61,16 @@ import java.util.zip.GZIPInputStream;
  * Populates the block registries.
  */
 public class BlockRegistryPopulator {
-    private static final ImmutableMap<String, BiFunction<String, NbtMapBuilder, String>> STATE_MAPPER;
-
-    private static final Object2IntMap<String> PALETTE_VERSIONS;
+    private static final ImmutableMap<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> BLOCK_MAPPERS;
+    private static final BiFunction<String, NbtMapBuilder, String> EMPTY_MAPPER = (bedrockIdentifier, statesBuilder) -> null;
 
     static {
-        ImmutableMap.Builder<String, BiFunction<String, NbtMapBuilder, String>> stateMapperBuilder = ImmutableMap.<String, BiFunction<String, NbtMapBuilder, String>>builder()
-                .put("1_17_10", (bedrockIdentifier, statesBuilder) -> null);
-        STATE_MAPPER = stateMapperBuilder.build();
+        ImmutableMap.Builder<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> stateMapperBuilder = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
+                .put(ObjectIntPair.of("1_17_10", Bedrock_v448.V448_CODEC.getProtocolVersion()), EMPTY_MAPPER)
+                .put(ObjectIntPair.of("1_17_30", Bedrock_v465.V465_CODEC.getProtocolVersion()), EMPTY_MAPPER)
+                .put(ObjectIntPair.of("1_17_40", Bedrock_v471.V471_CODEC.getProtocolVersion()), EMPTY_MAPPER);
 
-        PALETTE_VERSIONS = new Object2IntOpenHashMap<>();
-        PALETTE_VERSIONS.put("1_17_10", Bedrock_v448.V448_CODEC.getProtocolVersion());
+        BLOCK_MAPPERS = stateMapperBuilder.build();
     }
 
     /**
@@ -84,8 +86,8 @@ public class BlockRegistryPopulator {
     }
 
     private static void registerBedrockBlocks() {
-        for (Map.Entry<String, BiFunction<String, NbtMapBuilder, String>> palette : STATE_MAPPER.entrySet()) {
-            InputStream stream = FileUtils.getResource(String.format("bedrock/block_palette.%s.nbt", palette.getKey()));
+        for (Map.Entry<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> palette : BLOCK_MAPPERS.entrySet()) {
+            InputStream stream = FileUtils.getResource(String.format("bedrock/block_palette.%s.nbt", palette.getKey().key()));
             NbtList<NbtMap> blocksTag;
             try (NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)), true, true)) {
                 NbtMap blockPalette = (NbtMap) nbtInputStream.readTag();
@@ -116,7 +118,7 @@ public class BlockRegistryPopulator {
             int movingBlockRuntimeId = -1;
             Iterator<Map.Entry<String, JsonNode>> blocksIterator = BLOCKS_JSON.fields();
 
-            BiFunction<String, NbtMapBuilder, String> stateMapper = STATE_MAPPER.getOrDefault(palette.getKey(), (i, s) -> null);
+            BiFunction<String, NbtMapBuilder, String> stateMapper = BLOCK_MAPPERS.getOrDefault(palette.getKey(), EMPTY_MAPPER);
 
             int[] javaToBedrockBlocks = new int[BLOCKS_JSON.size()];
 
@@ -199,7 +201,7 @@ public class BlockRegistryPopulator {
             }
             builder.bedrockBlockStates(blocksTag);
 
-            BlockRegistries.BLOCKS.register(PALETTE_VERSIONS.getInt(palette.getKey()), builder.blockStateVersion(stateVersion)
+            BlockRegistries.BLOCKS.register(palette.getKey().valueInt(), builder.blockStateVersion(stateVersion)
                     .emptyChunkSection(new ChunkSection(new BlockStorage[]{new BlockStorage(airRuntimeId)}))
                     .javaToBedrockBlocks(javaToBedrockBlocks)
                     .javaIdentifierToBedrockTag(javaIdentifierToBedrockTag)
@@ -299,9 +301,8 @@ public class BlockRegistryPopulator {
             BlockRegistries.JAVA_BLOCKS.register(javaRuntimeId, builder.build());
 
             // Keeping this here since this is currently unchanged between versions
-            if (!cleanJavaIdentifier.equals(bedrockIdentifier)) {
-                BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.register(cleanJavaIdentifier.intern(), bedrockIdentifier.intern());
-            }
+            // It's possible to only have this store differences in names, but the key set of all Java names is used in sending command suggestions
+            BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.register(cleanJavaIdentifier.intern(), bedrockIdentifier.intern());
 
             if (javaId.startsWith("minecraft:bell[")) {
                 bellBlockId = uniqueJavaId;

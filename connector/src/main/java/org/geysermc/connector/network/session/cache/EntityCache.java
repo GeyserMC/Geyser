@@ -25,13 +25,16 @@
 
 package org.geysermc.connector.network.session.cache;
 
-import it.unimi.dsi.fastutil.longs.*;
+import it.unimi.dsi.fastutil.longs.Long2LongMap;
+import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
-import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.Tickable;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 
@@ -136,6 +139,10 @@ public class EntityCache {
 
     public PlayerEntity removePlayerEntity(UUID uuid) {
         return playerEntities.remove(uuid);
+    }
+
+    public Collection<PlayerEntity> getAllPlayerEntities() {
+        return playerEntities.values();
     }
 
     public void addBossBar(UUID uuid, BossBar bossBar) {

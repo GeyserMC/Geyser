@@ -31,6 +31,7 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ListenerBoundEvent;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
+import com.velocitypowered.api.network.ListenerType;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
@@ -86,7 +87,8 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
             if (!configFolder.toFile().exists())
                 //noinspection ResultOfMethodCallIgnored
                 configFolder.toFile().mkdirs();
-            File configFile = FileUtils.fileOrCopiedFromResource(configFolder.resolve("config.yml").toFile(), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
+            File configFile = FileUtils.fileOrCopiedFromResource(configFolder.resolve("config.yml").toFile(),
+                    "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserVelocityConfiguration.class);
         } catch (IOException ex) {
             logger.warn(LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
@@ -116,13 +118,15 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         try {
             // Should only exist on 1.0
             Class.forName("org.geysermc.floodgate.FloodgateAPI");
-            geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/"));
+            geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.outdated",
+                    "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/"));
             return;
         } catch (ClassNotFoundException ignored) {
         }
 
-        if (geyserConfig.getRemote().getAuthType() == AuthType.FLOODGATE && !proxyServer.getPluginManager().getPlugin("floodgate").isPresent()) {
-            geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
+        if (geyserConfig.getRemote().getAuthType() == AuthType.FLOODGATE && proxyServer.getPluginManager().getPlugin("floodgate").isEmpty()) {
+            geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
+                    + LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             return;
         } else if (geyserConfig.isAutoconfiguredRemote() && proxyServer.getPluginManager().getPlugin("floodgate").isPresent()) {
             // Floodgate installed means that the user wants Floodgate authentication
@@ -188,8 +192,10 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Subscribe
     public void onProxyBound(ListenerBoundEvent event) {
-        // After this bound, we know that the channel initializer cannot change without it being ineffective for Velocity, too
-        geyserInjector.initializeLocalChannel(this);
+        if (event.getListenerType() == ListenerType.MINECRAFT && geyserInjector != null) {
+            // After this bound, we know that the channel initializer cannot change without it being ineffective for Velocity, too
+            geyserInjector.initializeLocalChannel(this);
+        }
     }
 
     @Override

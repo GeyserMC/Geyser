@@ -8,23 +8,32 @@ api-version: 1.13
 commands:
   geyser:
     description: The main command for Geyser.
-    usage: /geyser help
+    usage: /geyser <subcommand>
 permissions:
   geyser.command.help:
     description: Shows help for all registered commands.
-  geyser.command.advancement:
-    description: Shows the advancements of the player on the server.
-  geyser.command.dump:
-    description: Dumps Geyser debug information for bug reports.
-  geyser.command.list:
-    description: List all players connected through Geyser.
+    default: true
   geyser.command.offhand:
     description: Puts an items in your offhand.
-  geyser.command.reload:
-    description: Reloads the Geyser configurations. Kicks all players when used!
-  geyser.command.shutdown:
-    description: Shuts down Geyser.
+    default: true
+  geyser.command.advancements:
+    description: Shows the advancements of the player on the server.
+    default: true
   geyser.command.statistics:
     description: Shows the statistics of the player on the server.
+    default: true
+  geyser.command.settings:
+    description: Modify user settings
+    default: true
+  geyser.command.list:
+    description: List all players connected through Geyser.
+    default: op
+  geyser.command.dump:
+    description: Dumps Geyser debug information for bug reports.
+    default: op
+  geyser.command.reload:
+    description: Reloads the Geyser configurations. Kicks all players when used!
+    default: false
   geyser.command.version:
     description: Shows the current Geyser version and checks for updates.
+    default: op

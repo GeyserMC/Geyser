@@ -25,6 +25,8 @@
 
 package org.geysermc.connector.command.defaults;
 
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.geysermc.common.PlatformType;
@@ -79,10 +81,13 @@ public class DumpCommand extends GeyserCommand {
         AsteriskSerializer.showSensitive = showSensitive;
 
         sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.dump.collecting", sender.getLocale()));
-        String dumpData = "";
+        String dumpData;
         try {
             if (offlineDump) {
-                dumpData = MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(new DumpInfo(addLog));
+                DefaultPrettyPrinter prettyPrinter = new DefaultPrettyPrinter();
+                // Make arrays easier to read
+                prettyPrinter.indentArraysWith(new DefaultIndenter("    ", "\n"));
+                dumpData = MAPPER.writer(prettyPrinter).writeValueAsString(new DumpInfo(addLog));
             } else {
                 dumpData = MAPPER.writeValueAsString(new DumpInfo(addLog));
             }

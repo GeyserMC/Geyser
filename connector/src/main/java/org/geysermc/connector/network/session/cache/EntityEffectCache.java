@@ -49,8 +49,8 @@ public class EntityEffectCache {
     public void setEffect(Effect effect, int effectAmplifier) {
         switch (effect) {
             case CONDUIT_POWER -> conduitPower = effectAmplifier + 1;
-            case FASTER_DIG -> haste = effectAmplifier + 1;
-            case SLOWER_DIG -> miningFatigue = effectAmplifier + 1;
+            case HASTE -> haste = effectAmplifier + 1;
+            case MINING_FATIGUE -> miningFatigue = effectAmplifier + 1;
         }
         entityEffects.add(effect);
     }
@@ -58,8 +58,8 @@ public class EntityEffectCache {
     public void removeEffect(Effect effect) {
         switch (effect) {
             case CONDUIT_POWER -> conduitPower = 0;
-            case FASTER_DIG -> haste = 0;
-            case SLOWER_DIG -> miningFatigue = 0;
+            case HASTE -> haste = 0;
+            case MINING_FATIGUE -> miningFatigue = 0;
         }
         entityEffects.remove(effect);
     }

@@ -40,10 +40,10 @@ public class DirtPathCollision extends BlockCollision {
     // Needs to run before the main correction code or it can move the player into blocks
     // This is counteracted by the main collision code pushing them out
     @Override
-    public void beforeCorrectPosition(BoundingBox playerCollision) {
+    public void beforeCorrectPosition(int x, int y, int z, BoundingBox playerCollision) {
         // In Bedrock, dirt paths are solid blocks, so the player must be pushed down.
         double playerMinY = playerCollision.getMiddleY() - (playerCollision.getSizeY() / 2);
-        double blockMaxY = position.get().getY() + 1;
+        double blockMaxY = y + 1;
         if (Math.abs(blockMaxY - playerMinY) <= CollisionManager.COLLISION_TOLERANCE) {
             playerCollision.translate(0, -0.0625, 0);
         }

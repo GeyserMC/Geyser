@@ -40,6 +40,11 @@ public class BedrockTextTranslator extends PacketTranslator<TextPacket> {
     public void translate(GeyserSession session, TextPacket packet) {
         String message = packet.getMessage();
 
+        if (message.isBlank()) {
+            // Java Edition (as of 1.17.1) just doesn't pass on these messages, so... we won't either!
+            return;
+        }
+
         if (MessageTranslator.isTooLong(message, session)) {
             return;
         }

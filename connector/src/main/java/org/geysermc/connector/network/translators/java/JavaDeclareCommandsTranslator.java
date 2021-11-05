@@ -49,17 +49,19 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.item.Enchantment;
 import org.geysermc.connector.registry.BlockRegistries;
+import org.geysermc.connector.utils.EntityUtils;
 
 import java.util.*;
 
 @Translator(packet = ServerDeclareCommandsPacket.class)
 public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclareCommandsPacket> {
 
+    private static final String[] ALL_EFFECT_IDENTIFIERS = EntityUtils.getAllEffectIdentifiers();
     private static final String[] ENUM_BOOLEAN = {"true", "false"};
     private static final String[] VALID_COLORS;
     private static final String[] VALID_SCOREBOARD_SLOTS;
 
-    private static final Hash.Strategy<CommandParamData[][]> PARAM_STRATEGY = new Hash.Strategy<CommandParamData[][]>() {
+    private static final Hash.Strategy<CommandParamData[][]> PARAM_STRATEGY = new Hash.Strategy<>() {
         @Override
         public int hashCode(CommandParamData[][] o) {
             return Arrays.deepHashCode(o);
@@ -221,6 +223,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
             case ENTITY_SUMMON -> EntityType.ALL_JAVA_IDENTIFIERS;
             case COLOR -> VALID_COLORS;
             case SCOREBOARD_SLOT -> VALID_SCOREBOARD_SLOTS;
+            case MOB_EFFECT -> ALL_EFFECT_IDENTIFIERS;
             default -> CommandParam.STRING;
         };
     }

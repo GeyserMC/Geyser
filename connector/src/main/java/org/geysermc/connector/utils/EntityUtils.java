@@ -35,7 +35,21 @@ import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
+import java.util.Locale;
+
 public final class EntityUtils {
+
+    /**
+     * @return a new String array of all known effect identifiers
+     */
+    public static String[] getAllEffectIdentifiers() {
+        String[] identifiers = new String[Effect.VALUES.length];
+        for (int i = 0; i < Effect.VALUES.length; i++) {
+            identifiers[i] = "minecraft:" + Effect.VALUES[i].name().toLowerCase(Locale.ROOT);
+        }
+
+        return identifiers;
+    }
 
     /**
      * Convert Java edition effect IDs to Bedrock edition
@@ -177,5 +191,8 @@ public final class EntityUtils {
             passenger.getMetadata().put(EntityData.RIDER_SEAT_POSITION, offset);
         }
         passenger.updateBedrockMetadata(session);
+    }
+
+    private EntityUtils() {
     }
 }

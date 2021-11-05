@@ -90,7 +90,7 @@ public class PacketTranslatorRegistry<T> {
             PacketTranslator<P> translator = (PacketTranslator<P>) translators.get(clazz);
             if (translator != null) {
                 EventLoop eventLoop = session.getEventLoop();
-                if (eventLoop.inEventLoop()) {
+                if (!translator.shouldExecuteInEventLoop() || eventLoop.inEventLoop()) {
                     translate0(session, translator, packet);
                 } else {
                     eventLoop.execute(() -> translate0(session, translator, packet));

@@ -114,6 +114,6 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
             DimensionUtils.switchDimension(session, newDimension);
         }
 
-        ChunkUtils.applyDimensionHeight(session, packet.getDimension());
+        ChunkUtils.loadDimensionTag(session, packet.getDimension());
     }
 }

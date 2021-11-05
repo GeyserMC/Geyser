@@ -33,8 +33,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
 @Getter
@@ -43,12 +42,12 @@ public final class Team {
     private final Scoreboard scoreboard;
     private final String id;
 
-    @Getter(AccessLevel.NONE)
+    @Getter(AccessLevel.PACKAGE)
     private final Set<String> entities;
     @Setter private NameTagVisibility nameTagVisibility;
     @Setter private TeamColor color;
 
-    private TeamData currentData;
+    private final TeamData currentData;
     private TeamData cachedData;
 
     private boolean updating;
@@ -60,13 +59,20 @@ public final class Team {
         entities = new ObjectOpenHashSet<>();
     }
 
-    private void checkAddedEntities(List<String> added) {
-        if (added.size() == 0) {
-            return;
+    public Set<String> addEntities(String... names) {
+        Set<String> added = new HashSet<>();
+        for (String name : names) {
+            if (entities.add(name)) {
+                added.add(name);
+            }
+        }
+
+        if (added.isEmpty()) {
+            return added;
         }
         // we don't have to change the updateType,
         // because the scores itself need updating, not the team
-        for (Objective objective : scoreboard.getObjectives().values()) {
+        for (Objective objective : scoreboard.getObjectives()) {
             for (String addedEntity : added) {
                 Score score = objective.getScores().get(addedEntity);
                 if (score != null) {
@@ -74,34 +80,21 @@ public final class Team {
                 }
             }
         }
+
+        return added;
     }
 
-    public Team addEntities(String... names) {
-        List<String> added = new ArrayList<>();
+    /**
+     * @return all removed entities from this team
+     */
+    public Set<String> removeEntities(String... names) {
+        Set<String> removed = new HashSet<>();
         for (String name : names) {
-            if (entities.add(name)) {
-                added.add(name);
+            if (entities.remove(name)) {
+                removed.add(name);
             }
         }
-        checkAddedEntities(added);
-        return this;
-    }
-
-    public Team addEntities(Set<String> names) {
-        List<String> added = new ArrayList<>();
-        for (String name : names) {
-            if (entities.add(name)) {
-                added.add(name);
-            }
-        }
-        checkAddedEntities(added);
-        return this;
-    }
-
-    public void removeEntities(String... names) {
-        for (String name : names) {
-            entities.remove(name);
-        }
+        return removed;
     }
 
     public boolean hasEntity(String name) {
@@ -146,7 +139,7 @@ public final class Team {
     }
 
     public boolean shouldUpdate() {
-        return updating || cachedData == null || currentData.updateTime > cachedData.updateTime;
+        return updating || cachedData == null || currentData.changed;
     }
 
     public void prepareUpdate() {
@@ -162,19 +155,23 @@ public final class Team {
             cachedData.updateType = currentData.updateType;
         }
 
-        cachedData.updateTime = currentData.updateTime;
+        currentData.changed = false;
         cachedData.name = currentData.name;
         cachedData.prefix = currentData.prefix;
         cachedData.suffix = currentData.suffix;
     }
 
     public UpdateType getUpdateType() {
+        return currentData.updateType;
+    }
+
+    public UpdateType getCachedUpdateType() {
         return cachedData != null ? cachedData.updateType : currentData.updateType;
     }
 
     public Team setUpdateType(UpdateType updateType) {
         if (updateType != UpdateType.NOTHING) {
-            currentData.updateTime = System.currentTimeMillis();
+            currentData.changed = true;
         }
         currentData.updateType = updateType;
         return this;
@@ -182,7 +179,11 @@ public final class Team {
 
     public boolean isVisibleFor(String entity) {
         return switch (nameTagVisibility) {
-            case HIDE_FOR_OTHER_TEAMS -> hasEntity(entity);
+            case HIDE_FOR_OTHER_TEAMS -> {
+                // Player must be in a team in order for HIDE_FOR_OTHER_TEAMS to be triggered
+                Team team = scoreboard.getTeamFor(entity);
+                yield team == null || team == this;
+            }
             case HIDE_FOR_OWN_TEAM -> !hasEntity(entity);
             case ALWAYS -> true;
             case NEVER -> false;
@@ -196,14 +197,14 @@ public final class Team {
 
     @Getter
     public static final class TeamData {
-        protected UpdateType updateType;
-        protected long updateTime;
+        private UpdateType updateType;
+        private boolean changed;
 
-        protected String name;
-        protected String prefix;
-        protected String suffix;
+        private String name;
+        private String prefix;
+        private String suffix;
 
-        protected TeamData() {
+        private TeamData() {
             updateType = UpdateType.ADD;
         }
 

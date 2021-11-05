@@ -28,6 +28,8 @@ package org.geysermc.connector.entity.player;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
+import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
+import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
@@ -37,21 +39,23 @@ import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
-import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
-import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
-import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
+import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.entity.living.animal.tameable.ParrotEntity;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
+import org.geysermc.connector.scoreboard.Objective;
+import org.geysermc.connector.scoreboard.Score;
 import org.geysermc.connector.scoreboard.Team;
+import org.geysermc.connector.scoreboard.UpdateType;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -85,6 +89,15 @@ public class PlayerEntity extends LivingEntity {
 
     @Override
     public void spawnEntity(GeyserSession session) {
+        // Check to see if the player should have a belowname counterpart added
+        Objective objective = session.getWorldCache().getScoreboard().getObjectiveSlots().get(ScoreboardPosition.BELOW_NAME);
+        if (objective != null) {
+            setBelowNameText(session, objective);
+        }
+
+        // The name can't be updated later (the entity metadata for it is ignored), so we need to check for this now
+        updateDisplayName(session, null, false);
+
         AddPlayerPacket addPlayerPacket = new AddPlayerPacket();
         addPlayerPacket.setUuid(uuid);
         addPlayerPacket.setUsername(username);
@@ -233,23 +246,6 @@ public class PlayerEntity extends LivingEntity {
     public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
         super.updateBedrockMetadata(entityMetadata, session);
 
-        if (entityMetadata.getId() == 2) {
-            String username = this.username;
-            Component name = (Component) entityMetadata.getValue();
-            if (name != null) {
-                username = MessageTranslator.convertMessage(name);
-            }
-            Team team = session.getWorldCache().getScoreboard().getTeamFor(username);
-            if (team != null) {
-                String displayName = "";
-                if (team.isVisibleFor(session.getPlayerEntity().getUsername())) {
-                    displayName = MessageTranslator.toChatColor(team.getColor()) + username;
-                    displayName = team.getCurrentData().getDisplayName(displayName);
-                }
-                metadata.put(EntityData.NAMETAG, displayName);
-            }
-        }
-
         // Extra hearts - is not metadata but an attribute on Bedrock
         if (entityMetadata.getId() == 15) {
             UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
@@ -313,6 +309,65 @@ public class PlayerEntity extends LivingEntity {
     }
 
     @Override
+    protected void setDisplayName(GeyserSession session, Component name) {
+        // Doesn't do anything for players
+    }
+
+    //todo this will become common entity logic once UUID support is implemented for them
+    /**
+     * @param useGivenTeam even if there is no team, update the username in the entity metadata anyway, and don't look for a team
+     */
+    public void updateDisplayName(GeyserSession session, @Nullable Team team, boolean useGivenTeam) {
+        if (team == null && !useGivenTeam) {
+            // Only search for the team if we are not supposed to use the given team
+            // If the given team is null, this is intentional that we are being removed from the team
+            team = session.getWorldCache().getScoreboard().getTeamFor(username);
+        }
+
+        boolean needsUpdate;
+        String newDisplayName = this.username;
+        if (team != null) {
+            if (team.isVisibleFor(session.getPlayerEntity().getUsername())) {
+                TeamColor color = team.getColor();
+                String chatColor;
+                if (color == TeamColor.NONE) {
+                    chatColor = ChatColor.RESET;
+                } else {
+                    chatColor = MessageTranslator.toChatColor(color);
+                }
+                // We have to emulate what modern Java text already does for us and add the color to each section
+                String prefix = team.getCurrentData().getPrefix();
+                String suffix = team.getCurrentData().getSuffix();
+                newDisplayName = chatColor + prefix + chatColor + this.username + chatColor + suffix;
+            } else {
+                // The name is not visible to the session player; clear name
+                newDisplayName = "";
+            }
+            needsUpdate = useGivenTeam && !newDisplayName.equals(metadata.getString(EntityData.NAMETAG, null));
+            metadata.put(EntityData.NAMETAG, newDisplayName);
+        } else if (useGivenTeam) {
+            // The name has reset, if it was previously something else
+            needsUpdate = !newDisplayName.equals(metadata.getString(EntityData.NAMETAG));
+            metadata.put(EntityData.NAMETAG, this.username);
+        } else {
+            needsUpdate = false;
+        }
+
+        if (needsUpdate) {
+            // Update the metadata as it won't be updated later
+            SetEntityDataPacket packet = new SetEntityDataPacket();
+            packet.getMetadata().put(EntityData.NAMETAG, newDisplayName);
+            packet.setRuntimeEntityId(geyserId);
+            session.sendUpstreamPacket(packet);
+        }
+    }
+
+    @Override
+    protected void setDisplayNameVisible(EntityMetadata entityMetadata) {
+        // Doesn't do anything for players
+    }
+
+    @Override
     protected void setDimensions(Pose pose) {
         float height;
         switch (pose) {
@@ -325,5 +380,37 @@ public class PlayerEntity extends LivingEntity {
         }
         metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth());
         metadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
+    }
+
+    public void setBelowNameText(GeyserSession session, Objective objective) {
+        if (objective != null && objective.getUpdateType() != UpdateType.REMOVE) {
+            int amount;
+            Score score = objective.getScores().get(username);
+            if (score != null) {
+                amount = score.getCurrentData().getScore();
+            } else {
+                amount = 0;
+            }
+            String displayString = amount + " " + objective.getDisplayName();
+
+            metadata.put(EntityData.SCORE_TAG, displayString);
+            if (valid) {
+                // Already spawned - we still need to run the rest of this code because the spawn packet will be
+                // providing the information
+                SetEntityDataPacket packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(geyserId);
+                packet.getMetadata().put(EntityData.SCORE_TAG, displayString);
+                session.sendUpstreamPacket(packet);
+            }
+        } else {
+            // Always remove the score tag first, then check for valid.
+            // That way the score tag is removed if the player was spawned, then despawned, and is being respawned
+            if (metadata.remove(EntityData.SCORE_TAG) != null && valid) {
+                SetEntityDataPacket packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(geyserId);
+                packet.getMetadata().put(EntityData.SCORE_TAG, "");
+                session.sendUpstreamPacket(packet);
+            }
+        }
     }
 }

@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
+import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AllArgsConstructor;
@@ -48,8 +49,13 @@ import org.geysermc.floodgate.util.FloodgateInfoHolder;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.*;
+import java.lang.management.ManagementFactory;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -68,6 +74,7 @@ public class DumpInfo {
     private final RamInfo ramInfo;
     private LogsInfo logsInfo;
     private final BootstrapDumpInfo bootstrapInfo;
+    private final FlagsInfo flagsInfo;
 
     public DumpInfo(boolean addLog) {
         this.versionInfo = new VersionInfo();
@@ -113,12 +120,16 @@ public class DumpInfo {
         }
 
         this.bootstrapInfo = GeyserConnector.getInstance().getBootstrap().getDumpInfo();
+
+        this.flagsInfo = new FlagsInfo();
     }
 
     @Getter
     public static class VersionInfo {
         private final String name;
         private final String version;
+        private final String javaName;
+        private final String javaVendor;
         private final String javaVersion;
         private final String architecture;
         private final String operatingSystem;
@@ -130,7 +141,9 @@ public class DumpInfo {
         VersionInfo() {
             this.name = GeyserConnector.NAME;
             this.version = GeyserConnector.VERSION;
-            this.javaVersion = System.getProperty("java.version");
+            this.javaName = System.getProperty("java.vm.name");
+            this.javaVendor = System.getProperty("java.vendor");
+            this.javaVersion = ManagementFactory.getRuntimeMXBean().getVmVersion(); // Gives a little more to the version we can use over the system property
             // Usually gives Java architecture but still may be helpful.
             this.architecture = System.getProperty("os.arch");
             this.operatingSystem = System.getProperty("os.name");
@@ -171,14 +184,16 @@ public class DumpInfo {
 
     @Getter
     public static class MCInfo {
-        private final String bedrockVersion;
-        private final int bedrockProtocol;
+        private final List<String> bedrockVersions;
+        private final List<Integer> bedrockProtocols;
+        private final int defaultBedrockProtocol;
         private final String javaVersion;
         private final int javaProtocol;
 
         MCInfo() {
-            this.bedrockVersion = BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion();
-            this.bedrockProtocol = BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion();
+            this.bedrockVersions = BedrockProtocol.SUPPORTED_BEDROCK_CODECS.stream().map(BedrockPacketCodec::getMinecraftVersion).toList();
+            this.bedrockProtocols = BedrockProtocol.SUPPORTED_BEDROCK_CODECS.stream().map(BedrockPacketCodec::getProtocolVersion).toList();
+            this.defaultBedrockProtocol = BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion();
             this.javaVersion = MinecraftConstants.GAME_VERSION;
             this.javaProtocol = MinecraftConstants.PROTOCOL_VERSION;
         }
@@ -228,6 +243,18 @@ public class DumpInfo {
             this.free = Runtime.getRuntime().freeMemory() / MEGABYTE;
             this.total = Runtime.getRuntime().totalMemory() / MEGABYTE;
             this.max = Runtime.getRuntime().maxMemory() / MEGABYTE;
+        }
+    }
+
+    /**
+     * E.G. `-Xmx1024M` - all runtime JVM flags on this machine
+     */
+    @Getter
+    public static class FlagsInfo {
+        private final List<String> flags;
+
+        FlagsInfo() {
+            this.flags = ManagementFactory.getRuntimeMXBean().getInputArguments();
         }
     }
 }

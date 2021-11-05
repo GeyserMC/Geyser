@@ -64,7 +64,7 @@ import java.util.*;
 public abstract class InventoryTranslator {
 
     public static final InventoryTranslator PLAYER_INVENTORY_TRANSLATOR = new PlayerInventoryTranslator();
-    public static final Map<WindowType, InventoryTranslator> INVENTORY_TRANSLATORS = new HashMap<WindowType, InventoryTranslator>() {
+    public static final Map<WindowType, InventoryTranslator> INVENTORY_TRANSLATORS = new HashMap<>() {
         {
             /* Player Inventory */
             put(null, PLAYER_INVENTORY_TRANSLATOR);
@@ -395,7 +395,9 @@ public abstract class InventoryTranslator {
                 case CRAFT_RECIPE_AUTO: // Called by villagers
                 case CRAFT_NON_IMPLEMENTED_DEPRECATED: // Tends to be called for UI inventories
                 case CRAFT_RESULTS_DEPRECATED: // Tends to be called for UI inventories
-                case CRAFT_RECIPE_OPTIONAL: { // Anvils and cartography tables will handle this
+                case CRAFT_RECIPE_OPTIONAL: // Anvils and cartography tables will handle this
+                case CRAFT_LOOM: // Looms 1.17.40+
+                case CRAFT_REPAIR_AND_DISENCHANT: { // Grindstones 1.17.40+
                     break;
                 }
                 default:

@@ -89,39 +89,41 @@ public class BoundingBox implements Cloneable {
         return Vector3d.from(middleX, middleY - sizeY / 2, middleZ);
     }
 
-    private boolean checkOverlapInAxis(Vector3d offset, BoundingBox otherBox, Axis axis) {
+    private boolean checkOverlapInAxis(double xOffset, double yOffset, double zOffset, BoundingBox otherBox, Axis axis) {
         return switch (axis) {
-            case X -> Math.abs((middleX + offset.getX()) - otherBox.getMiddleX()) * 2 < (sizeX + otherBox.getSizeX());
-            case Y -> Math.abs((middleY + offset.getY()) - otherBox.getMiddleY()) * 2 < (sizeY + otherBox.getSizeY());
-            case Z -> Math.abs((middleZ + offset.getZ()) - otherBox.getMiddleZ()) * 2 < (sizeZ + otherBox.getSizeZ());
+            case X -> Math.abs((middleX + xOffset) - otherBox.getMiddleX()) * 2 < (sizeX + otherBox.getSizeX());
+            case Y -> Math.abs((middleY + yOffset) - otherBox.getMiddleY()) * 2 < (sizeY + otherBox.getSizeY());
+            case Z -> Math.abs((middleZ + zOffset) - otherBox.getMiddleZ()) * 2 < (sizeZ + otherBox.getSizeZ());
         };
     }
 
     /**
      * Find the maximum offset of another bounding box in an axis that will not collide with this bounding box
      *
-     * @param boxOffset The offset of this bounding box
+     * @param xOffset The x offset of this bounding box
+     * @param yOffset The y offset of this bounding box
+     * @param zOffset The z offset of this bounding box
      * @param otherBoundingBox The bounding box that is moving
      * @param axis The axis of movement
      * @param offset The current max offset
      * @return The new max offset
      */
-    public double getMaxOffset(Vector3d boxOffset, BoundingBox otherBoundingBox, Axis axis, double offset) {
+    public double getMaxOffset(double xOffset, double yOffset, double zOffset, BoundingBox otherBoundingBox, Axis axis, double offset) {
         // Make sure that the bounding box overlaps in the other axes
         for (Axis a : Axis.VALUES) {
-            if (a != axis && !checkOverlapInAxis(boxOffset, otherBoundingBox, a)) {
+            if (a != axis && !checkOverlapInAxis(xOffset, yOffset, zOffset, otherBoundingBox, a)) {
                 return offset;
             }
         }
         if (offset > 0) {
-            double min = axis.choose(getMin().add(boxOffset));
+            double min = axis.choose(getMin().add(xOffset, yOffset, zOffset));
             double max = axis.choose(otherBoundingBox.getMax());
             if ((min - max) >= -2.0 * CollisionManager.COLLISION_TOLERANCE) {
                 offset = Math.min(min - max, offset);
             }
         } else if (offset < 0) {
             double min = axis.choose(otherBoundingBox.getMin());
-            double max = axis.choose(getMax().add(boxOffset));
+            double max = axis.choose(getMax().add(xOffset, yOffset, zOffset));
             if ((min - max) >= -2.0 * CollisionManager.COLLISION_TOLERANCE) {
                 offset = Math.max(max - min, offset);
             }

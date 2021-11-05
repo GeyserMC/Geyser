@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.session.cache;
 
 import com.nukkitx.math.GenericMath;
-import com.nukkitx.math.vector.Vector2f;
+import com.nukkitx.math.vector.Vector2d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
@@ -43,35 +43,45 @@ import java.util.Collections;
 public class WorldBorder {
     private static final double DEFAULT_WORLD_BORDER_SIZE = 5.9999968E7D;
 
-    @Getter @Setter
-    private @Nonnull Vector2f center = Vector2f.ZERO;
+    @Setter
+    private @Nonnull Vector2d center = Vector2d.ZERO;
     /**
      * The diameter in blocks of the world border before it got changed or similar to newDiameter if not changed.
      */
-    @Getter @Setter
+    @Setter
     private double oldDiameter = DEFAULT_WORLD_BORDER_SIZE;
     /**
      * The diameter in blocks of the new world border.
      */
-    @Getter @Setter
+    @Setter
     private double newDiameter = DEFAULT_WORLD_BORDER_SIZE;
     /**
      * The speed to apply an expansion/shrinking of the world border.
      * When a client joins they get the actual border oldDiameter and the time left to reach the newDiameter.
      */
-    @Getter @Setter
+    @Setter
     private long speed = 0;
     /**
      * The time in seconds before a shrinking world border would hit a not moving player.
      * Creates the same visual warning effect as warningBlocks.
      */
-    @Getter @Setter
+    @Setter
     private int warningDelay = 15;
     /**
      * Block length before you reach the border to show warning particles.
      */
-    @Getter @Setter
+    @Setter
     private int warningBlocks = 5;
+    /**
+     * The world border cannot go beyond this number, positive or negative, in world coordinates
+     */
+    @Setter
+    private int absoluteMaxSize = 29999984;
+
+    /**
+     * The world coordinate scale as sent in the dimension registry. Used to scale the center X and Z.
+     */
+    private double worldCoordinateScale = 1.0D;
 
     @Getter
     private boolean resizing;
@@ -110,6 +120,14 @@ public class WorldBorder {
         this.session = session;
         // Initialize all min/max/warning variables
         update();
+    }
+
+    public void setWorldCoordinateScale(double worldCoordinateScale) {
+        boolean needsUpdate = worldCoordinateScale != this.worldCoordinateScale;
+        this.worldCoordinateScale = worldCoordinateScale;
+        if (needsUpdate) {
+            this.update();
+        }
     }
 
     /**
@@ -173,10 +191,16 @@ public class WorldBorder {
         } else {
             radius = this.newDiameter / 2.0D;
         }
-        this.minX = center.getX() - radius;
-        this.minZ = center.getY() - radius; // Mapping 2D vector to 3D coordinates >> Y becomes Z
-        this.maxX = center.getX() + radius;
-        this.maxZ = center.getY() + radius; // Mapping 2D vector to 3D coordinates >> Y becomes Z
+        
+        double absoluteMinSize = -this.absoluteMaxSize;
+        // Used in the Nether by default
+        double centerX = this.center.getX() / this.worldCoordinateScale;
+        double centerZ = this.center.getY() / this.worldCoordinateScale; // Mapping 2D vector to 3D coordinates >> Y becomes Z
+
+        this.minX = GenericMath.clamp(centerX - radius, absoluteMinSize, this.absoluteMaxSize);
+        this.minZ = GenericMath.clamp(centerZ - radius, absoluteMinSize, this.absoluteMaxSize);
+        this.maxX = GenericMath.clamp(centerX + radius, absoluteMinSize, this.absoluteMaxSize);
+        this.maxZ = GenericMath.clamp(centerZ + radius, absoluteMinSize, this.absoluteMaxSize);
 
         /*
          * Caching the warning boundaries.

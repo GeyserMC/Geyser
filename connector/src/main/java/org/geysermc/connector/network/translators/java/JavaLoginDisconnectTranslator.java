@@ -39,4 +39,9 @@ public class JavaLoginDisconnectTranslator extends PacketTranslator<LoginDisconn
         // The client doesn't manually get disconnected so we have to do it ourselves
         session.disconnect(MessageTranslator.convertMessage(packet.getReason(), session.getLocale()));
     }
+
+    @Override
+    public boolean shouldExecuteInEventLoop() {
+        return false;
+    }
 }

@@ -150,7 +150,7 @@ public class PistonCache {
 
         Vector3d delta = totalDisplacement.sub(playerDisplacement);
         // Check if the piston is pushing a player into collision
-        delta = session.getCollisionManager().correctPlayerMovement(delta, true);
+        delta = session.getCollisionManager().correctPlayerMovement(delta, true, false);
 
         session.getCollisionManager().getPlayerBoundingBox().translate(delta.getX(), delta.getY(), delta.getZ());
 
