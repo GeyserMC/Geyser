@@ -443,7 +443,7 @@ public class ItemRegistryPopulator {
                 entries.put("geysermc:furnace_minecart", new StartGamePacket.ItemEntry("geysermc:furnace_minecart", (short) furnaceMinecartId, true));
 
                 mappings.put(javaFurnaceMinecartId, ItemMapping.builder()
-                        .javaIdentifier("geysermc:furnace_minecart")
+                        .javaIdentifier("minecraft:furnace_minecart")
                         .bedrockIdentifier("geysermc:furnace_minecart")
                         .javaId(javaFurnaceMinecartId)
                         .bedrockId(furnaceMinecartId)

@@ -28,8 +28,12 @@ package org.geysermc.geyser.util;
 import com.github.steveice10.mc.protocol.data.MagicValues;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.data.game.statistic.*;
+import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.cumulus.SimpleForm;
 import org.geysermc.cumulus.response.SimpleFormResponse;
@@ -37,7 +41,10 @@ import org.geysermc.cumulus.util.FormImage;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.function.IntFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,12 +66,12 @@ public class StatisticsUtils {
                         .title("gui.stats")
                         .button("stat.generalButton", FormImage.Type.PATH, "textures/ui/World")
                         .button("stat.itemsButton - stat_type.minecraft.mined", FormImage.Type.PATH, "textures/items/iron_pickaxe")
-                        .button("stat.itemsButton - stat_type.minecraft.broken", FormImage.Type.PATH, "textures/item/record_11")
+                        .button("stat.itemsButton - stat_type.minecraft.broken", FormImage.Type.PATH, "textures/items/record_11")
                         .button("stat.itemsButton - stat_type.minecraft.crafted", FormImage.Type.PATH, "textures/blocks/crafting_table_side")
                         .button("stat.itemsButton - stat_type.minecraft.used", FormImage.Type.PATH, "textures/ui/Wrenches1")
                         .button("stat.itemsButton - stat_type.minecraft.picked_up", FormImage.Type.PATH, "textures/blocks/chest_front")
                         .button("stat.itemsButton - stat_type.minecraft.dropped", FormImage.Type.PATH, "textures/ui/trash_default")
-                        .button("stat.mobsButton - geyser.statistics.killed", FormImage.Type.PATH, "textures/items/diamon_sword")
+                        .button("stat.mobsButton - geyser.statistics.killed", FormImage.Type.PATH, "textures/items/diamond_sword")
                         .button("stat.mobsButton - geyser.statistics.killed_by", FormImage.Type.PATH, "textures/ui/wither_heart_flash")
                         .responseHandler((form, responseData) -> {
                             SimpleFormResponse response = form.parseResponse(responseData);
@@ -83,22 +90,45 @@ public class StatisticsUtils {
                                 case 0:
                                     builder.title("stat.generalButton");
 
+                                    List<String> stats = new ArrayList<>();
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
-                                        if (entry.getKey() instanceof GenericStatistic) {
-                                            String statName = ((GenericStatistic) entry.getKey()).name().toLowerCase();
-                                            content.append("stat.minecraft.").append(statName).append(": ").append(entry.getValue()).append("\n");
+                                        if (entry.getKey() instanceof GenericStatistic statistic) {
+                                            String statName = statistic.name().toLowerCase();
+                                            IntFunction<String> formatter = Registries.STATISTIC_FORMATS.getOrDefault(statistic, StatisticFormatters.DEFAULT);
+                                            stats.add(translateEntry("stat.minecraft." + statName, language) + ": " + formatter.apply(entry.getValue()));
+                                        }
+                                    }
+
+                                    // Statistics are sorted alphabetically in Java Edition
+                                    stats.sort(String::compareTo);
+                                    for (int i = 0; i < stats.size(); i++) {
+                                        if (i % 2 != 0) {
+                                            // Make every other line grey
+                                            content.append("\u00a77");
+                                        }
+                                        content.append(stats.get(i)).append("\n");
+                                        if (i % 2 != 0) {
+                                            // Have to reset after each line
+                                            content.append("\u00a7r");
                                         }
                                     }
                                     break;
                                 case 1:
                                     builder.title("stat.itemsButton - stat_type.minecraft.mined");
 
+                                    Object2IntMap<String> blocksMined = new Object2IntArrayMap<>();
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
-                                        if (entry.getKey() instanceof BreakBlockStatistic) {
-                                            String block = BlockRegistries.JAVA_BLOCKS.get(((BreakBlockStatistic) entry.getKey()).getId()).getJavaIdentifier();
-                                            block = block.replace("minecraft:", "block.minecraft.");
-                                            content.append(block).append(": ").append(entry.getValue()).append("\n");
+                                        if (entry.getKey() instanceof BreakBlockStatistic blockStatistic) {
+                                            BlockMapping block = BlockRegistries.JAVA_BLOCKS.get(blockStatistic.getId());
+                                            if (block != null) {
+                                                blocksMined.mergeInt(block.getCleanJavaIdentifier(), entry.getValue(), Integer::sum);
+                                            }
                                         }
+                                    }
+
+                                    for (Object2IntMap.Entry<String> entry : blocksMined.object2IntEntrySet()) {
+                                        String block = entry.getKey().replace("minecraft:", "block.minecraft.");
+                                        content.append(block).append(": ").append(entry.getIntValue()).append("\n");
                                     }
                                     break;
                                 case 2:
@@ -212,7 +242,7 @@ public class StatisticsUtils {
     private static String translate(String keys, String locale) {
         Matcher matcher = CONTENT_PATTERN.matcher(keys);
 
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         while (matcher.find()) {
             String group = matcher.group();
             matcher.appendReplacement(buffer, translateEntry(group.substring(0, group.length() - 1), locale) + ":");
