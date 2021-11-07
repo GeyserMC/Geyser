@@ -244,7 +244,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             totalCost++;
             if (cost == 0 && totalCost >= MAX_LEVEL_COST) {
                 // Items can still be renamed when the level cost for renaming exceeds 40
-                totalCost = MAX_LEVEL_COST;
+                totalCost = MAX_LEVEL_COST - 1;
             }
         }
         return totalCost;
