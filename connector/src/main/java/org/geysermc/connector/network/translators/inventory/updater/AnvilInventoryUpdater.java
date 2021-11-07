@@ -33,7 +33,9 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMaps;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.inventory.AnvilContainer;
 import org.geysermc.connector.inventory.GeyserItemStack;
@@ -45,8 +47,6 @@ import org.geysermc.connector.network.translators.item.Enchantment.JavaEnchantme
 import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.EnchantmentData;
 
-import java.util.EnumMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -303,9 +303,9 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      */
     private int calcMergeEnchantmentCost(GeyserSession session, GeyserItemStack input, GeyserItemStack material, boolean bedrock) {
         boolean hasCompatible = false;
-        Map<JavaEnchantment, Integer> combinedEnchantments = getEnchantments(session, input);
+        Object2IntMap<JavaEnchantment> combinedEnchantments = getEnchantments(session, input);
         int cost = 0;
-        for (Map.Entry<JavaEnchantment, Integer> entry : getEnchantments(session, material).entrySet()) {
+        for (Object2IntMap.Entry<JavaEnchantment> entry : getEnchantments(session, material).object2IntEntrySet()) {
             JavaEnchantment enchantment = entry.getKey();
             EnchantmentData data = Registries.ENCHANTMENTS.get(enchantment);
             if (data == null) {
@@ -325,7 +325,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
 
             if (canApply || (!bedrock && session.getGameMode() == GameMode.CREATIVE)) {
                 int currentLevel = combinedEnchantments.getOrDefault(enchantment, 0);
-                int newLevel = entry.getValue();
+                int newLevel = entry.getIntValue();
                 if (newLevel == currentLevel) {
                     newLevel++;
                 }
@@ -364,11 +364,11 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return cost;
     }
 
-    private Map<JavaEnchantment, Integer> getEnchantments(GeyserSession session, GeyserItemStack itemStack) {
+    private Object2IntMap<JavaEnchantment> getEnchantments(GeyserSession session, GeyserItemStack itemStack) {
         if (itemStack.getNbt() == null) {
-            return Object2ObjectMaps.emptyMap();
+            return Object2IntMaps.emptyMap();
         }
-        Map<JavaEnchantment, Integer> enchantments = new EnumMap<>(JavaEnchantment.class);
+        Object2IntMap<JavaEnchantment> enchantments = new Object2IntOpenHashMap<>();
         Tag enchantmentTag;
         if (isEnchantedBook(session, itemStack)) {
             enchantmentTag = itemStack.getNbt().get("StoredEnchantments");

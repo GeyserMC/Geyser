@@ -28,8 +28,8 @@ package org.geysermc.connector.registry.type;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.geysermc.connector.network.translators.item.Enchantment.JavaEnchantment;
 
-import java.util.EnumSet;
+import java.util.Set;
 
-public record EnchantmentData(int rarityMultiplier, int maxLevel, EnumSet<JavaEnchantment> incompatibleEnchantments,
+public record EnchantmentData(int rarityMultiplier, int maxLevel, Set<JavaEnchantment> incompatibleEnchantments,
                               IntSet validItems) {
 }
