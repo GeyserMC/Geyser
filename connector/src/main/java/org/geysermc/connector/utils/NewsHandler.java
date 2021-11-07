@@ -68,7 +68,7 @@ public class NewsHandler {
 
     private void checkNews() {
         try {
-            String body = WebUtils.getBody(Constants.NEWS_OVERVIEW_URL);
+            String body = WebUtils.getBody(Constants.NEWS_OVERVIEW_URL + Constants.NEWS_PROJECT_NAME);
             JsonArray array = gson.fromJson(body, JsonArray.class);
 
             try {
@@ -141,10 +141,6 @@ public class NewsHandler {
         }
 
         if (!item.isActive()) {
-            return;
-        }
-
-        if (!item.isGlobal() && !Constants.NEWS_PROJECT_NAME.equals(item.getProject())) {
             return;
         }
 
