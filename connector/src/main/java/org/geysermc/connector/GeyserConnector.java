@@ -231,7 +231,6 @@ public class GeyserConnector {
 
         CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
-        SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS = config.isAllowCustomSkulls();
 
         // https://github.com/GeyserMC/Geyser/issues/957
         RakNetConstants.MAXIMUM_MTU_SIZE = (short) config.getMtu();

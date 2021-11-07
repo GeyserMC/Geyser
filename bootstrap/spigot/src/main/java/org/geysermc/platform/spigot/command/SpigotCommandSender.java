@@ -73,6 +73,11 @@ public class SpigotCommandSender implements CommandSender {
         return locale;
     }
 
+    @Override
+    public boolean hasPermission(String permission) {
+        return handle.hasPermission(permission);
+    }
+
     /**
      * Set if we are on pre-1.12, and therefore {@code player.getLocale()} doesn't exist and we have to get
      * {@code player.spigot().getLocale()}.

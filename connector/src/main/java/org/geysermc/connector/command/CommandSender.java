@@ -56,4 +56,12 @@ public interface CommandSender {
     default String getLocale() {
         return LanguageUtils.getDefaultLocale();
     }
+
+    /**
+     * Checks if the CommandSender has a permission
+     *
+     * @param permission The permission node to check
+     * @return true if the CommandSender has the requested permission, false if not
+     */
+    boolean hasPermission(String permission);
 }

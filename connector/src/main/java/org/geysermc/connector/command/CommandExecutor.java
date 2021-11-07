@@ -29,6 +29,12 @@ import lombok.AllArgsConstructor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Represents helper functions for listening to {@code /geyser} commands.
  */
@@ -41,6 +47,7 @@ public class CommandExecutor {
         return connector.getCommandManager().getCommands().get(label);
     }
 
+    @Nullable
     public GeyserSession getGeyserSession(CommandSender sender) {
         if (sender.isConsole()) {
             return null;
@@ -52,5 +59,40 @@ public class CommandExecutor {
             }
         }
         return null;
+    }
+
+    /**
+     * Determine which subcommands to suggest in the tab complete for the main /geyser command by a given command sender.
+     *
+     * @param sender The command sender to receive the tab complete suggestions.
+     *               If the command sender is a bedrock player, an empty list will be returned as bedrock players do not get command argument suggestions.
+     *               If the command sender is not a bedrock player, bedrock commands will not be shown.
+     *               If the command sender does not have the permission for a given command, the command will not be shown.
+     * @return A list of command names to include in the tab complete
+     */
+    public List<String> tabComplete(CommandSender sender) {
+        if (getGeyserSession(sender) != null) {
+            // Bedrock doesn't get tab completions or argument suggestions
+            return Collections.emptyList();
+        }
+
+        List<String> availableCommands = new ArrayList<>();
+        Map<String, GeyserCommand> commands = connector.getCommandManager().getCommands();
+
+        // Only show commands they have permission to use
+        for (String name : commands.keySet()) {
+            GeyserCommand geyserCommand = commands.get(name);
+            if (sender.hasPermission(geyserCommand.getPermission())) {
+
+                if (geyserCommand.isBedrockOnly()) {
+                    // Don't show commands the JE player can't run
+                    continue;
+                }
+
+                availableCommands.add(name);
+            }
+        }
+
+        return availableCommands;
     }
 }

@@ -150,20 +150,6 @@ public final class Objective {
         updateType = UpdateType.REMOVE;
     }
 
-    public ScoreboardPosition getPositionCategory() {
-        return switch (displaySlot) {
-            case PLAYER_LIST -> ScoreboardPosition.PLAYER_LIST;
-            case BELOW_NAME -> ScoreboardPosition.BELOW_NAME;
-            default -> ScoreboardPosition.SIDEBAR;
-        };
-    }
-
-    public boolean hasTeamColor() {
-        return displaySlot != ScoreboardPosition.PLAYER_LIST &&
-                displaySlot != ScoreboardPosition.BELOW_NAME &&
-                displaySlot != ScoreboardPosition.SIDEBAR;
-    }
-
     public TeamColor getTeamColor() {
         return switch (displaySlot) {
             case SIDEBAR_TEAM_RED -> TeamColor.RED;

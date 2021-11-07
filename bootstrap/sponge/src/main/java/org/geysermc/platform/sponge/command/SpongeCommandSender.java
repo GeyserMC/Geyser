@@ -51,4 +51,9 @@ public class SpongeCommandSender implements CommandSender {
     public boolean isConsole() {
         return handle instanceof ConsoleSource;
     }
+
+    @Override
+    public boolean hasPermission(String permission) {
+        return handle.hasPermission(permission);
+    }
 }
