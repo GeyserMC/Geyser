@@ -148,8 +148,11 @@ public enum Enchantment {
         public static final String[] ALL_JAVA_IDENTIFIERS;
 
         public static JavaEnchantment getByJavaIdentifier(String javaIdentifier) {
+            if (!javaIdentifier.startsWith("minecraft:")) {
+                javaIdentifier = "minecraft:" + javaIdentifier;
+            }
             for (int i = 0; i < ALL_JAVA_IDENTIFIERS.length; i++) {
-                if (ALL_JAVA_IDENTIFIERS[i].equals(javaIdentifier)) {
+                if (ALL_JAVA_IDENTIFIERS[i].equalsIgnoreCase(javaIdentifier)) {
                     return VALUES[i];
                 }
             }

@@ -303,9 +303,9 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      */
     private int calcMergeEnchantmentCost(GeyserSession session, GeyserItemStack input, GeyserItemStack material, boolean bedrock) {
         boolean hasCompatible = false;
-        Object2IntMap<JavaEnchantment> combinedEnchantments = getEnchantments(session, input);
+        Object2IntMap<JavaEnchantment> combinedEnchantments = getEnchantments(session, input, bedrock);
         int cost = 0;
-        for (Object2IntMap.Entry<JavaEnchantment> entry : getEnchantments(session, material).object2IntEntrySet()) {
+        for (Object2IntMap.Entry<JavaEnchantment> entry : getEnchantments(session, material, bedrock).object2IntEntrySet()) {
             JavaEnchantment enchantment = entry.getKey();
             EnchantmentData data = Registries.ENCHANTMENTS.get(enchantment);
             if (data == null) {
@@ -364,7 +364,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return cost;
     }
 
-    private Object2IntMap<JavaEnchantment> getEnchantments(GeyserSession session, GeyserItemStack itemStack) {
+    private Object2IntMap<JavaEnchantment> getEnchantments(GeyserSession session, GeyserItemStack itemStack, boolean bedrock) {
         if (itemStack.getNbt() == null) {
             return Object2IntMaps.emptyMap();
         }
@@ -389,7 +389,11 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                         if (!(javaEnchLvl instanceof ShortTag || javaEnchLvl instanceof IntTag))
                             continue;
 
-                        enchantments.put(enchantment, ((Number) javaEnchLvl.getValue()).intValue());
+                        if (bedrock) {
+                            enchantments.putIfAbsent(enchantment, ((Number) javaEnchLvl.getValue()).intValue());
+                        } else {
+                            enchantments.mergeInt(enchantment, ((Number) javaEnchLvl.getValue()).intValue(), Math::max);
+                        }
                     }
                 }
             }
