@@ -46,6 +46,7 @@ import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.item.Enchantment.JavaEnchantment;
 import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.EnchantmentData;
+import org.geysermc.connector.utils.ItemUtils;
 
 import java.util.Objects;
 import java.util.Set;
@@ -420,7 +421,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         }
         // This should really check the name field, but that requires
         // the localized name of the item and other pains
-        return !Objects.equals(getCustomName(session, anvilContainer.getInput()), getCustomName(session, anvilContainer.getResult()));
+        return !Objects.equals(ItemUtils.getCustomName(anvilContainer.getInput().getNbt()), ItemUtils.getCustomName(anvilContainer.getResult().getNbt()));
     }
 
     private int getTagIntValueOr(GeyserItemStack itemStack, String tagName, int defaultValue) {
@@ -446,20 +447,5 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
 
     private int getDamage(GeyserItemStack itemStack) {
         return getTagIntValueOr(itemStack, "Damage", 0);
-    }
-
-    private String getCustomName(GeyserSession session, GeyserItemStack itemStack) {
-        if (itemStack.getNbt() != null) {
-            Tag tag = itemStack.getNbt().get("display");
-            if (tag instanceof CompoundTag displayTag) {
-                if (displayTag.get("Name") instanceof StringTag nameTag) {
-                    String name = MessageTranslator.convertToPlainText(nameTag.getValue(), session.getLocale());
-                    if (!name.isBlank()) {
-                        return name;
-                    }
-                }
-            }
-        }
-        return null;
     }
 }

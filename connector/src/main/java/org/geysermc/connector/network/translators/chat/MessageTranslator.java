@@ -188,6 +188,9 @@ public class MessageTranslator {
      * @return The plain text of the message
      */
     public static String convertToPlainText(String message, String locale) {
+        if (message == null) {
+            return "";
+        }
         if (message.isBlank()) {
             return message;
         }
