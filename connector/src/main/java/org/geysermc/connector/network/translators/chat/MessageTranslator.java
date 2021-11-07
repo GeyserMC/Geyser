@@ -191,12 +191,17 @@ public class MessageTranslator {
         if (message.isBlank()) {
             return message;
         }
-        Component messageComponent;
-        try {
-            messageComponent = GSON_SERIALIZER.deserialize(message);
-            // Translate any components that require it
-            messageComponent = RENDERER.render(messageComponent, locale);
-        } catch (Exception ignored) {
+        Component messageComponent = null;
+        if (message.startsWith("{") && message.endsWith("}")) {
+            // Message is a JSON object
+            try {
+                messageComponent = GSON_SERIALIZER.deserialize(message);
+                // Translate any components that require it
+                messageComponent = RENDERER.render(messageComponent, locale);
+            } catch (Exception ignored) {
+            }
+        }
+        if (messageComponent == null) {
             messageComponent = LegacyComponentSerializer.legacySection().deserialize(message);
         }
         return PlainTextComponentSerializer.plainText().serialize(messageComponent);
