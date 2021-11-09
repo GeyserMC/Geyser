@@ -149,7 +149,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         ItemData itemData = anvilContainer.getItem(slot).getItemData(session);
         itemData = hijackRepairCost(session, anvilContainer, itemData);
 
-        if (slot == 0 && isRenaming(session, anvilContainer)) {
+        if (slot == 0 && isRenaming(anvilContainer)) {
             // Can't change the RepairCost because it resets the name field on Bedrock
             return;
         }
@@ -240,8 +240,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         }
 
         int totalCost = totalRepairCost + cost;
-        boolean renaming = isRenaming(session, anvilContainer);
-        if (renaming) {
+        if (isRenaming(anvilContainer)) {
             totalCost++;
             if (cost == 0 && totalCost >= MAX_LEVEL_COST) {
                 // Items can still be renamed when the level cost for renaming exceeds 40
@@ -390,6 +389,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                         if (!(javaEnchLvl instanceof ShortTag || javaEnchLvl instanceof IntTag))
                             continue;
 
+                        // Handle duplicate enchantments
                         if (bedrock) {
                             enchantments.putIfAbsent(enchantment, ((Number) javaEnchLvl.getValue()).intValue());
                         } else {
@@ -415,12 +415,12 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return repairMaterials != null && repairMaterials.contains(material.getMapping(session).getJavaIdentifier());
     }
 
-    private boolean isRenaming(GeyserSession session, AnvilContainer anvilContainer) {
+    private boolean isRenaming(AnvilContainer anvilContainer) {
         if (anvilContainer.getResult().isEmpty()) {
             return false;
         }
-        // This should really check the name field, but that requires
-        // the localized name of the item and other pains
+        // This should really check the name field, but that requires the localized name
+        // of the item which can change depending on NBT and Minecraft Edition
         return !Objects.equals(ItemUtils.getCustomName(anvilContainer.getInput().getNbt()), ItemUtils.getCustomName(anvilContainer.getResult().getNbt()));
     }
 

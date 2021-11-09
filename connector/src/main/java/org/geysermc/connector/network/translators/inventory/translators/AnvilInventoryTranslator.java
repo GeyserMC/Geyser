@@ -79,11 +79,11 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
 
     @Override
     public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
-        if (key == 0) {
-            AnvilContainer anvilContainer = (AnvilContainer) inventory;
-            anvilContainer.setJavaLevelCost(value);
-            anvilContainer.setUseJavaLevelCost(true);
-            updateSlot(session, anvilContainer, 1);
-        }
+        // The only property sent by Java is key 0 which is the level cost
+        if (key != 0) return;
+        AnvilContainer anvilContainer = (AnvilContainer) inventory;
+        anvilContainer.setJavaLevelCost(value);
+        anvilContainer.setUseJavaLevelCost(true);
+        updateSlot(session, anvilContainer, 1);
     }
 }
