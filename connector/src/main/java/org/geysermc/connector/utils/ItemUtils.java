@@ -67,10 +67,7 @@ public class ItemUtils {
         if (itemTag != null) {
             if (itemTag.get("display") instanceof CompoundTag displayTag) {
                 if (displayTag.get("Name") instanceof StringTag nameTag) {
-                    String name = nameTag.getValue();
-                    if (!name.isBlank()) {
-                        return name;
-                    }
+                    return nameTag.getValue();
                 }
             }
         }
