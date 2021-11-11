@@ -118,7 +118,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
         this.connector = GeyserConnector.start(PlatformType.BUNGEECORD, this);
 
-        this.geyserInjector = new GeyserBungeeInjector(getProxy());
+        this.geyserInjector = new GeyserBungeeInjector(this);
         this.geyserInjector.initializeLocalChannel(this);
 
         this.geyserCommandManager = new GeyserBungeeCommandManager(connector);

@@ -50,7 +50,10 @@ public class SettingsUtils {
                 .iconPath("textures/ui/settings_glyph_color_2x.png");
 
         // Only show the client title if any of the client settings are available
-        boolean showClientSettings = session.getPreferencesCache().isAllowShowCoordinates() || CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED;
+        boolean showClientSettings = session.getPreferencesCache().isAllowShowCoordinates()
+                || CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED
+                || session.getConnector().getConfig().isAllowCustomSkulls();
+
         if (showClientSettings) {
             builder.label("geyser.settings.title.client");
 
@@ -65,6 +68,10 @@ public class SettingsUtils {
                 cooldownDropdown.option("options.attack.hotbar", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.ACTIONBAR);
                 cooldownDropdown.option("options.off", session.getPreferencesCache().getCooldownPreference() == CooldownUtils.CooldownType.DISABLED);
                 builder.dropdown(cooldownDropdown);
+            }
+
+            if (session.getConnector().getConfig().isAllowCustomSkulls()) {
+                builder.toggle("geyser.settings.option.customSkulls", session.getPreferencesCache().isPrefersCustomSkulls());
             }
         }
 
@@ -121,6 +128,10 @@ public class SettingsUtils {
                 if (CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
                     CooldownUtils.CooldownType cooldownType = CooldownUtils.CooldownType.VALUES[(int) response.next()];
                     session.getPreferencesCache().setCooldownPreference(cooldownType);
+                }
+
+                if (session.getConnector().getConfig().isAllowCustomSkulls()) {
+                    session.getPreferencesCache().setPrefersCustomSkulls(response.next());
                 }
             }
 

@@ -25,100 +25,155 @@
 
 package org.geysermc.connector.scoreboard;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.WorldCache;
 import org.geysermc.connector.utils.LanguageUtils;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ScoreboardUpdater extends Thread {
+public final class ScoreboardUpdater extends Thread {
     public static final int FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD;
     public static final int SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD = 250;
 
     private static final int FIRST_MILLIS_BETWEEN_UPDATES = 250; // 4 updates per second
-    private static final int SECOND_MILLIS_BETWEEN_UPDATES = 1000 * 3; // 1 update per 3 seconds
+    private static final int SECOND_MILLIS_BETWEEN_UPDATES = 1000; // 1 update per second
 
     private static final boolean DEBUG_ENABLED;
-
-    private final WorldCache worldCache;
-    private final GeyserSession session;
-
-    private int millisBetweenUpdates = FIRST_MILLIS_BETWEEN_UPDATES;
-    private long lastUpdate = System.currentTimeMillis();
-    private long lastLog = -1;
-
-    private long lastPacketsPerSecondUpdate = System.currentTimeMillis();
-    private final AtomicInteger packetsPerSecond = new AtomicInteger(0);
-    private final AtomicInteger pendingPacketsPerSecond = new AtomicInteger(0);
-
-    public ScoreboardUpdater(WorldCache worldCache) {
-        super("Scoreboard Updater");
-        this.worldCache = worldCache;
-        session = worldCache.getSession();
-    }
-
-    @Override
-    public void run() {
-        if (!session.isClosed()) {
-            long currentTime = System.currentTimeMillis();
-
-            // reset score-packets per second every second
-            if (currentTime - lastPacketsPerSecondUpdate > 1000) {
-                lastPacketsPerSecondUpdate = currentTime;
-                packetsPerSecond.set(pendingPacketsPerSecond.get());
-                pendingPacketsPerSecond.set(0);
-            }
-
-            if (currentTime - lastUpdate > millisBetweenUpdates) {
-                lastUpdate = currentTime;
-
-                int pps = packetsPerSecond.get();
-                if (pps >= FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
-                    boolean reachedSecondThreshold = pps >= SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD;
-                    if (reachedSecondThreshold) {
-                        millisBetweenUpdates = SECOND_MILLIS_BETWEEN_UPDATES;
-                    } else {
-                        millisBetweenUpdates = FIRST_MILLIS_BETWEEN_UPDATES;
-                    }
-
-                    worldCache.getScoreboard().onUpdate();
-
-                    if (DEBUG_ENABLED && (currentTime - lastLog > 60000)) { // one minute
-                        int threshold = reachedSecondThreshold ?
-                                SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD :
-                                FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD;
-
-                        GeyserConnector.getInstance().getLogger().info(
-                                LanguageUtils.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached.log", session.getName(), threshold, pps) +
-                                LanguageUtils.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached", (millisBetweenUpdates / 1000.0))
-                        );
-
-                        lastLog = currentTime;
-                    }
-                }
-            }
-
-            session.getConnector().getGeneralThreadPool().schedule(this, 50, TimeUnit.MILLISECONDS);
-        }
-    }
-
-    public int getPacketsPerSecond() {
-        return packetsPerSecond.get();
-    }
-
-    /**
-     * Increase the Scoreboard Packets Per Second and return the updated value
-     */
-    public int incrementAndGetPacketsPerSecond() {
-        return pendingPacketsPerSecond.incrementAndGet();
-    }
 
     static {
         GeyserConfiguration config = GeyserConnector.getInstance().getConfig();
         FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD = Math.min(config.getScoreboardPacketThreshold(), SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD);
         DEBUG_ENABLED = config.isDebugMode();
+    }
+
+    private final GeyserConnector connector = GeyserConnector.getInstance();
+
+    private long lastUpdate = System.currentTimeMillis();
+    private long lastPacketsPerSecondUpdate = System.currentTimeMillis();
+
+    public static void init() {
+        new ScoreboardUpdater().start();
+    }
+
+    @Override
+    public void run() {
+        while (!connector.isShuttingDown()) {
+            try {
+                long timeTillAction = getTimeTillNextAction();
+                if (timeTillAction > 0) {
+                    sleepFor(timeTillAction);
+                    continue;
+                }
+
+                long currentTime = System.currentTimeMillis();
+
+                // reset score-packets per second every second
+                if (currentTime - lastPacketsPerSecondUpdate >= 1000) {
+                    lastPacketsPerSecondUpdate = currentTime;
+                    for (GeyserSession session : connector.getPlayers()) {
+                        ScoreboardSession scoreboardSession = session.getWorldCache().getScoreboardSession();
+
+                        int oldPps = scoreboardSession.getPacketsPerSecond();
+                        int newPps = scoreboardSession.getPendingPacketsPerSecond().get();
+
+                        scoreboardSession.packetsPerSecond = newPps;
+                        scoreboardSession.pendingPacketsPerSecond.set(0);
+
+                        // just making sure that all updates are pushed before giving up control
+                        if (oldPps >= FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD &&
+                                newPps < FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
+                            session.getWorldCache().getScoreboard().onUpdate();
+                        }
+                    }
+                }
+
+                if (currentTime - lastUpdate >= FIRST_MILLIS_BETWEEN_UPDATES) {
+                    lastUpdate = currentTime;
+
+                    for (GeyserSession session : connector.getPlayers()) {
+                        WorldCache worldCache = session.getWorldCache();
+                        ScoreboardSession scoreboardSession = worldCache.getScoreboardSession();
+
+                        int pps = scoreboardSession.getPacketsPerSecond();
+                        if (pps >= FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
+                            boolean reachedSecondThreshold = pps >= SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD;
+
+                            int millisBetweenUpdates = reachedSecondThreshold ?
+                                    SECOND_MILLIS_BETWEEN_UPDATES :
+                                    FIRST_MILLIS_BETWEEN_UPDATES;
+
+                            if (currentTime - scoreboardSession.lastUpdate >= millisBetweenUpdates) {
+                                worldCache.getScoreboard().onUpdate();
+                                scoreboardSession.lastUpdate = currentTime;
+
+                                if (DEBUG_ENABLED && (currentTime - scoreboardSession.lastLog >= 60000)) { // one minute
+                                    int threshold = reachedSecondThreshold ?
+                                            SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD :
+                                            FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD;
+
+                                    connector.getLogger().info(
+                                            LanguageUtils.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached.log", session.getName(), threshold, pps) +
+                                                    LanguageUtils.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached", (millisBetweenUpdates / 1000.0))
+                                    );
+
+                                    scoreboardSession.lastLog = currentTime;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (DEBUG_ENABLED) {
+                    long timeSpent = System.currentTimeMillis() - currentTime;
+                    if (timeSpent > 0) {
+                        connector.getLogger().info(String.format(
+                                "Scoreboard updater: took %s ms. Updated %s players",
+                                timeSpent, connector.getPlayers().size()
+                        ));
+                    }
+                }
+
+                long timeTillNextAction = getTimeTillNextAction();
+                sleepFor(timeTillNextAction);
+            } catch (Throwable e) {
+                connector.getLogger().error("Error while translating scoreboard information!", e);
+                // Wait so we don't try to run the scoreboard immediately after this
+                sleepFor(FIRST_MILLIS_BETWEEN_UPDATES);
+            }
+        }
+    }
+
+    private long getTimeTillNextAction() {
+        long currentTime = System.currentTimeMillis();
+
+        long timeUntilNextUpdate = FIRST_MILLIS_BETWEEN_UPDATES - (currentTime - lastUpdate);
+        long timeUntilPacketReset = 1000 - (currentTime - lastPacketsPerSecondUpdate);
+
+        return Math.min(timeUntilNextUpdate, timeUntilPacketReset);
+    }
+
+    private void sleepFor(long millis) {
+        if (millis <= 0) {
+            return;
+        }
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @RequiredArgsConstructor
+    @Getter
+    public static final class ScoreboardSession {
+        private final GeyserSession session;
+        private final AtomicInteger pendingPacketsPerSecond = new AtomicInteger(0);
+        private int packetsPerSecond;
+        private long lastUpdate;
+        private long lastLog;
     }
 }

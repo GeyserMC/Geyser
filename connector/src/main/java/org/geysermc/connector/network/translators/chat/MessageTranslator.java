@@ -28,33 +28,27 @@ package org.geysermc.connector.network.translators.chat;
 import com.github.steveice10.mc.protocol.data.DefaultComponentSerializer;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import net.kyori.adventure.text.serializer.gson.legacyimpl.NBTLegacyHoverEventSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
-import java.util.HashMap;
-import java.util.Locale;
+import java.util.EnumMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class MessageTranslator {
-
     // These are used for handling the translations of the messages
-    private static final TranslatableComponentRenderer<Locale> RENDERER = TranslatableComponentRenderer.usingTranslationSource(new MinecraftTranslationRegistry());
+    // Custom instead of TranslatableComponentRenderer#usingTranslationSource so we don't need to worry about finding a Locale class
+    private static final TranslatableComponentRenderer<String> RENDERER = new MinecraftTranslationRegistry();
 
-    // Construct our own {@link GsonComponentSerializer} since we need to change a setting
-    private static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.builder()
-            // Specify that we may be expecting legacy hover events
-            .legacyHoverEventSerializer(NBTLegacyHoverEventSerializer.get())
-            .build();
+    // Possible TODO: replace the legacy hover event serializer with an empty one since we have no use for hover events
+    private static final GsonComponentSerializer GSON_SERIALIZER;
 
     // Store team colors for player names
-    private static final Map<TeamColor, TextDecoration> TEAM_FORMATS = new HashMap<>();
+    private static final Map<TeamColor, String> TEAM_COLORS = new EnumMap<>(TeamColor.class);
 
     // Legacy formatting character
     private static final String BASE = "\u00a7";
@@ -62,13 +56,41 @@ public class MessageTranslator {
     // Reset character
     private static final String RESET = BASE + "r";
 
-    static {
-        TEAM_FORMATS.put(TeamColor.OBFUSCATED, TextDecoration.OBFUSCATED);
-        TEAM_FORMATS.put(TeamColor.BOLD, TextDecoration.BOLD);
-        TEAM_FORMATS.put(TeamColor.STRIKETHROUGH, TextDecoration.STRIKETHROUGH);
-        TEAM_FORMATS.put(TeamColor.ITALIC, TextDecoration.ITALIC);
+    /* Various regexes to fix formatting for Bedrock's specifications */
+    private static final Pattern STRIKETHROUGH_UNDERLINE = Pattern.compile("\u00a7[mn]");
+    private static final Pattern COLOR_CHARACTERS = Pattern.compile("\u00a7([0-9a-f])");
+    private static final Pattern DOUBLE_RESET = Pattern.compile("\u00a7r\u00a7r");
 
-        // Tell MCProtocolLib to use our serializer
+    static {
+        TEAM_COLORS.put(TeamColor.NONE, "");
+
+        TEAM_COLORS.put(TeamColor.BLACK, BASE + "0");
+        TEAM_COLORS.put(TeamColor.DARK_BLUE, BASE + "1");
+        TEAM_COLORS.put(TeamColor.DARK_GREEN, BASE + "2");
+        TEAM_COLORS.put(TeamColor.DARK_AQUA, BASE + "3");
+        TEAM_COLORS.put(TeamColor.DARK_RED, BASE + "4");
+        TEAM_COLORS.put(TeamColor.DARK_PURPLE, BASE + "5");
+        TEAM_COLORS.put(TeamColor.GOLD, BASE + "6");
+        TEAM_COLORS.put(TeamColor.GRAY, BASE + "7");
+        TEAM_COLORS.put(TeamColor.DARK_GRAY, BASE + "8");
+        TEAM_COLORS.put(TeamColor.BLUE, BASE + "9");
+        TEAM_COLORS.put(TeamColor.GREEN, BASE + "a");
+        TEAM_COLORS.put(TeamColor.AQUA, BASE + "b");
+        TEAM_COLORS.put(TeamColor.RED, BASE + "c");
+        TEAM_COLORS.put(TeamColor.LIGHT_PURPLE, BASE + "d");
+        TEAM_COLORS.put(TeamColor.YELLOW, BASE + "e");
+        TEAM_COLORS.put(TeamColor.WHITE, BASE + "f");
+
+        // Formats, not colors
+        TEAM_COLORS.put(TeamColor.OBFUSCATED, BASE + "k");
+        TEAM_COLORS.put(TeamColor.BOLD, BASE + "l");
+        TEAM_COLORS.put(TeamColor.STRIKETHROUGH, BASE + "m");
+        TEAM_COLORS.put(TeamColor.ITALIC, BASE + "o");
+
+        // Temporary fix for https://github.com/KyoriPowered/adventure/issues/447
+        GsonComponentSerializer source = DefaultComponentSerializer.get();
+        GSON_SERIALIZER = new GsonComponentSerializerWrapper(source);
+        // Tell MCProtocolLib to use this serializer, too.
         DefaultComponentSerializer.set(GSON_SERIALIZER);
     }
 
@@ -81,19 +103,18 @@ public class MessageTranslator {
      */
     public static String convertMessage(Component message, String locale) {
         try {
-            // Get a Locale from the given locale string
-            Locale localeCode = Locale.forLanguageTag(locale.replace('_', '-'));
-            message = RENDERER.render(message, localeCode);
+            // Translate any components that require it
+            message = RENDERER.render(message, locale);
 
             String legacy = LegacyComponentSerializer.legacySection().serialize(message);
 
             // Strip strikethrough and underline as they are not supported on bedrock
-            legacy = legacy.replaceAll("\u00a7[mn]", "");
+            legacy = STRIKETHROUGH_UNDERLINE.matcher(legacy).replaceAll("");
 
             // Make color codes reset formatting like Java
             // See https://minecraft.gamepedia.com/Formatting_codes#Usage
-            legacy = legacy.replaceAll("\u00a7([0-9a-f])", "\u00a7r\u00a7$1");
-            legacy = legacy.replaceAll("\u00a7r\u00a7r", "\u00a7r");
+            legacy = COLOR_CHARACTERS.matcher(legacy).replaceAll("\u00a7r\u00a7$1");
+            legacy = DOUBLE_RESET.matcher(legacy).replaceAll("\u00a7r");
 
             return legacy;
         } catch (Exception e) {
@@ -159,100 +180,13 @@ public class MessageTranslator {
     }
 
     /**
-     * Convert a {@link NamedTextColor} into a string for inserting into messages
-     *
-     * @param color {@link NamedTextColor} to convert
-     * @return The converted color string
-     */
-    private static String getColor(NamedTextColor color) {
-        StringBuilder str = new StringBuilder(BASE);
-        if (color.equals(NamedTextColor.BLACK)) {
-            str.append("0");
-        } else if (color.equals(NamedTextColor.DARK_BLUE)) {
-            str.append("1");
-        } else if (color.equals(NamedTextColor.DARK_GREEN)) {
-            str.append("2");
-        } else if (color.equals(NamedTextColor.DARK_AQUA)) {
-            str.append("3");
-        } else if (color.equals(NamedTextColor.DARK_RED)) {
-            str.append("4");
-        } else if (color.equals(NamedTextColor.DARK_PURPLE)) {
-            str.append("5");
-        } else if (color.equals(NamedTextColor.GOLD)) {
-            str.append("6");
-        } else if (color.equals(NamedTextColor.GRAY)) {
-            str.append("7");
-        } else if (color.equals(NamedTextColor.DARK_GRAY)) {
-            str.append("8");
-        } else if (color.equals(NamedTextColor.BLUE)) {
-            str.append("9");
-        } else if (color.equals(NamedTextColor.GREEN)) {
-            str.append("a");
-        } else if (color.equals(NamedTextColor.AQUA)) {
-            str.append("b");
-        } else if (color.equals(NamedTextColor.RED)) {
-            str.append("c");
-        } else if (color.equals(NamedTextColor.LIGHT_PURPLE)) {
-            str.append("d");
-        } else if (color.equals(NamedTextColor.YELLOW)) {
-            str.append("e");
-        } else if (color.equals(NamedTextColor.WHITE)) {
-            str.append("f");
-        } else {
-            return "";
-        }
-
-        return str.toString();
-    }
-
-    /**
-     * Convert a {@link TextDecoration} into a string for inserting into messages
-     *
-     * @param format {@link TextDecoration} to convert
-     * @return The converted chat formatting string
-     */
-    private static String getFormat(TextDecoration format) {
-        StringBuilder str = new StringBuilder(BASE);
-        switch (format) {
-            case OBFUSCATED:
-                str.append("k");
-                break;
-            case BOLD:
-                str.append("l");
-                break;
-            case STRIKETHROUGH:
-                str.append("m");
-                break;
-            case UNDERLINED:
-                str.append("n");
-                break;
-            case ITALIC:
-                str.append("o");
-                break;
-            default:
-                return "";
-        }
-
-        return str.toString();
-    }
-
-    /**
      * Convert a team color to a chat color
      *
      * @param teamColor Color or format to convert
      * @return The chat color character
      */
     public static String toChatColor(TeamColor teamColor) {
-        if (teamColor.equals(TeamColor.NONE)) {
-            return "";
-        }
-
-        NamedTextColor textColor = NamedTextColor.NAMES.value(teamColor.name().toLowerCase());
-        if (textColor != null) {
-            return getColor(textColor);
-        }
-
-        return getFormat(TEAM_FORMATS.get(teamColor));
+        return TEAM_COLORS.getOrDefault(teamColor, "");
     }
 
     /**

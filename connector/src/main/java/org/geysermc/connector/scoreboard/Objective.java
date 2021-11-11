@@ -26,6 +26,7 @@
 package org.geysermc.connector.scoreboard;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
+import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -69,7 +70,7 @@ public final class Objective {
     public Objective(Scoreboard scoreboard, String objectiveName, ScoreboardPosition displaySlot, String displayName, int type) {
         this(scoreboard);
         this.objectiveName = objectiveName;
-        this.displaySlot = correctDisplaySlot(displaySlot);
+        this.displaySlot = displaySlot;
         this.displaySlotName = translateDisplaySlot(displaySlot);
         this.displayName = displayName;
         this.type = type;
@@ -80,14 +81,6 @@ public final class Objective {
             case BELOW_NAME -> "belowname";
             case PLAYER_LIST -> "list";
             default -> "sidebar";
-        };
-    }
-
-    private static ScoreboardPosition correctDisplaySlot(ScoreboardPosition displaySlot) {
-        return switch (displaySlot) {
-            case BELOW_NAME -> ScoreboardPosition.BELOW_NAME;
-            case PLAYER_LIST -> ScoreboardPosition.PLAYER_LIST;
-            default -> ScoreboardPosition.SIDEBAR;
         };
     }
 
@@ -145,12 +138,43 @@ public final class Objective {
     public void setActive(ScoreboardPosition displaySlot) {
         if (!active) {
             active = true;
-            this.displaySlot = correctDisplaySlot(displaySlot);
+            this.displaySlot = displaySlot;
             displaySlotName = translateDisplaySlot(displaySlot);
         }
     }
 
+    /**
+     * The objective will be removed on the next update
+     */
+    public void pendingRemove() {
+        updateType = UpdateType.REMOVE;
+    }
+
+    public TeamColor getTeamColor() {
+        return switch (displaySlot) {
+            case SIDEBAR_TEAM_RED -> TeamColor.RED;
+            case SIDEBAR_TEAM_AQUA -> TeamColor.AQUA;
+            case SIDEBAR_TEAM_BLUE -> TeamColor.BLUE;
+            case SIDEBAR_TEAM_GOLD -> TeamColor.GOLD;
+            case SIDEBAR_TEAM_GRAY -> TeamColor.GRAY;
+            case SIDEBAR_TEAM_BLACK -> TeamColor.BLACK;
+            case SIDEBAR_TEAM_GREEN -> TeamColor.GREEN;
+            case SIDEBAR_TEAM_WHITE -> TeamColor.WHITE;
+            case SIDEBAR_TEAM_YELLOW -> TeamColor.YELLOW;
+            case SIDEBAR_TEAM_DARK_RED -> TeamColor.DARK_RED;
+            case SIDEBAR_TEAM_DARK_AQUA -> TeamColor.DARK_AQUA;
+            case SIDEBAR_TEAM_DARK_BLUE -> TeamColor.DARK_BLUE;
+            case SIDEBAR_TEAM_DARK_GRAY -> TeamColor.DARK_GRAY;
+            case SIDEBAR_TEAM_DARK_GREEN -> TeamColor.DARK_GREEN;
+            case SIDEBAR_TEAM_DARK_PURPLE -> TeamColor.DARK_PURPLE;
+            case SIDEBAR_TEAM_LIGHT_PURPLE -> TeamColor.LIGHT_PURPLE;
+            default -> null;
+        };
+    }
+
     public void removed() {
+        active = false;
+        updateType = UpdateType.REMOVE;
         scores = null;
     }
 }

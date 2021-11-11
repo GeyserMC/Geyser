@@ -29,7 +29,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import com.nukkitx.nbt.*;
 import com.nukkitx.protocol.bedrock.v448.Bedrock_v448;
-import com.nukkitx.protocol.bedrock.v448.Bedrock_v465;
+import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
+import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -66,7 +67,8 @@ public class BlockRegistryPopulator {
     static {
         ImmutableMap.Builder<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> stateMapperBuilder = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
                 .put(ObjectIntPair.of("1_17_10", Bedrock_v448.V448_CODEC.getProtocolVersion()), EMPTY_MAPPER)
-                .put(ObjectIntPair.of("1_17_30", Bedrock_v465.V465_CODEC.getProtocolVersion()), EMPTY_MAPPER);
+                .put(ObjectIntPair.of("1_17_30", Bedrock_v465.V465_CODEC.getProtocolVersion()), EMPTY_MAPPER)
+                .put(ObjectIntPair.of("1_17_40", Bedrock_v471.V471_CODEC.getProtocolVersion()), EMPTY_MAPPER);
 
         BLOCK_MAPPERS = stateMapperBuilder.build();
     }
@@ -299,9 +301,8 @@ public class BlockRegistryPopulator {
             BlockRegistries.JAVA_BLOCKS.register(javaRuntimeId, builder.build());
 
             // Keeping this here since this is currently unchanged between versions
-            if (!cleanJavaIdentifier.equals(bedrockIdentifier)) {
-                BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.register(cleanJavaIdentifier.intern(), bedrockIdentifier.intern());
-            }
+            // It's possible to only have this store differences in names, but the key set of all Java names is used in sending command suggestions
+            BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.register(cleanJavaIdentifier.intern(), bedrockIdentifier.intern());
 
             if (javaId.startsWith("minecraft:bell[")) {
                 bellBlockId = uniqueJavaId;

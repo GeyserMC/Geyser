@@ -28,6 +28,7 @@ package org.geysermc.connector.network.translators.sound.block;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHandler;
 import org.geysermc.connector.network.translators.sound.SoundHandler;
@@ -40,7 +41,11 @@ public class BucketSoundInteractionHandler implements BlockSoundInteractionHandl
         if (session.getBucketScheduledFuture() == null) {
             return; // No bucket was really interacted with
         }
-        String handItemIdentifier = session.getPlayerInventory().getItemInHand().getMapping(session).getJavaIdentifier();
+        GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand();
+        String handItemIdentifier = itemStack.getMapping(session).getJavaIdentifier();
+        if (!BlockSoundInteractionHandler.canInteract(session, itemStack, identifier)) {
+            return;
+        }
         LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
         soundEventPacket.setPosition(position);
         soundEventPacket.setIdentifier(":");

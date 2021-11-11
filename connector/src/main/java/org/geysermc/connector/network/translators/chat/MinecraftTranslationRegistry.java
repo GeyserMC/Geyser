@@ -25,8 +25,7 @@
 
 package org.geysermc.connector.network.translators.chat;
 
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.translation.Translator;
+import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import org.geysermc.connector.utils.LocaleUtils;
 
 import javax.annotation.Nonnull;
@@ -40,19 +39,14 @@ import java.util.regex.Pattern;
  * This class is used for mapping a translation key with the already loaded Java locale data
  * Used in MessageTranslator.java as part of the KyoriPowered/Adventure library
  */
-public class MinecraftTranslationRegistry implements Translator {
+public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<String> {
     private final Pattern stringReplacement = Pattern.compile("%s");
     private final Pattern positionalStringReplacement = Pattern.compile("%([0-9]+)\\$s");
 
     @Override
-    public @Nonnull Key name() {
-        return Key.key("geyser", "minecraft_translations");
-    }
-
-    @Override
-    public @Nullable MessageFormat translate(@Nonnull String key, @Nonnull Locale locale) {
+    public @Nullable MessageFormat translate(@Nonnull String key, @Nonnull String locale) {
         // Get the locale string
-        String localeString = LocaleUtils.getLocaleString(key, locale.toString());
+        String localeString = LocaleUtils.getLocaleString(key, locale);
 
         // Replace the `%s` with numbered inserts `{0}`
         Pattern p = stringReplacement;
@@ -75,6 +69,7 @@ public class MinecraftTranslationRegistry implements Translator {
         m.appendTail(sb);
 
         // replace single quote instances which get lost in MessageFormat otherwise
-        return new MessageFormat(sb.toString().replace("'", "''"), locale);
+        // Locale shouldn't need to be specific - dates for example will not be handled
+        return new MessageFormat(sb.toString().replace("'", "''"), Locale.ROOT);
     }
 }

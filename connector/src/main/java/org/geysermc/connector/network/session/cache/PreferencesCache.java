@@ -41,10 +41,17 @@ public class PreferencesCache {
      */
     @Setter
     private boolean prefersShowCoordinates = true;
+
     /**
      * If the client's preference will be ignored, this will return false.
      */
     private boolean allowShowCoordinates;
+
+    /**
+     * If the session wants custom skulls to be shown.
+     */
+    @Setter
+    private boolean prefersCustomSkulls;
 
     /**
      * Which CooldownType the client prefers. Initially set to {@link CooldownUtils#getDefaultShowCooldown()}.
@@ -54,6 +61,8 @@ public class PreferencesCache {
 
     public PreferencesCache(GeyserSession session) {
         this.session = session;
+
+        prefersCustomSkulls = session.getConnector().getConfig().isAllowCustomSkulls();
     }
 
     /**
@@ -67,5 +76,12 @@ public class PreferencesCache {
     public void updateShowCoordinates() {
         allowShowCoordinates = !session.isReducedDebugInfo() && session.getConnector().getConfig().isShowCoordinates();
         session.sendGameRule("showcoordinates", allowShowCoordinates && prefersShowCoordinates);
+    }
+
+    /**
+     * @return true if the session prefers custom skulls, and the config allows them.
+     */
+    public boolean showCustomSkulls() {
+        return prefersCustomSkulls && session.getConnector().getConfig().isAllowCustomSkulls();
     }
 }

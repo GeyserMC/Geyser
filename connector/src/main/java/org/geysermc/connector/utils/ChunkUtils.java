@@ -31,10 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.chunk.Column;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.GlobalPalette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.Palette;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
+import com.github.steveice10.opennbt.tag.builtin.*;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
@@ -45,7 +42,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import lombok.Data;
 import lombok.experimental.UtilityClass;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.ItemFrameEntity;
@@ -298,7 +294,7 @@ public class ChunkUtils {
             bedrockBlockEntities[i] = blockEntityTranslator.getBlockEntityTag(tagName, tag, blockState);
 
             // Check for custom skulls
-            if (SkullBlockEntityTranslator.ALLOW_CUSTOM_SKULLS && tag.contains("SkullOwner")) {
+            if (session.getPreferencesCache().showCustomSkulls() && tag.contains("SkullOwner")) {
                 SkullBlockEntityTranslator.spawnPlayer(session, tag, blockState);
             }
             i++;
@@ -429,10 +425,10 @@ public class ChunkUtils {
     }
 
     /**
-     * Process the minimum and maximum heights for this dimension.
+     * Process the minimum and maximum heights for this dimension, and processes the world coordinate scale.
      * This must be done after the player has switched dimensions so we know what their dimension is
      */
-    public static void applyDimensionHeight(GeyserSession session, CompoundTag dimensionTag) {
+    public static void loadDimensionTag(GeyserSession session, CompoundTag dimensionTag) {
         int minY = ((IntTag) dimensionTag.get("min_y")).getValue();
         int maxY = ((IntTag) dimensionTag.get("height")).getValue();
         // Logical height can be ignored probably - seems to be for artificial limits like the Nether.
@@ -467,11 +463,12 @@ public class ChunkUtils {
 
         session.getChunkCache().setMinY(minY);
         session.getChunkCache().setHeightY(maxY);
+
+        // Load world coordinate scale for the world border
+        double coordinateScale = ((DoubleTag) dimensionTag.get("coordinate_scale")).getValue();
+        session.getWorldBorder().setWorldCoordinateScale(coordinateScale);
     }
 
-    @Data
-    public static final class ChunkData {
-        private final ChunkSection[] sections;
-        private final NbtMap[] blockEntities;
+    public record ChunkData(ChunkSection[] sections, NbtMap[] blockEntities) {
     }
 }

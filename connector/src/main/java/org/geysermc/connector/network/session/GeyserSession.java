@@ -35,6 +35,7 @@ import com.github.steveice10.mc.auth.service.MsaAuthenticationService;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.SubProtocol;
+import com.github.steveice10.mc.protocol.data.UnexpectedEncryptionException;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
@@ -101,6 +102,7 @@ import org.geysermc.cumulus.util.FormBuilder;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.util.BedrockData;
 
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
@@ -834,16 +836,44 @@ public class GeyserSession implements CommandSender {
             public void disconnected(DisconnectedEvent event) {
                 loggingIn = false;
                 loggedIn = false;
-                if (downstream != null && downstream.isInternallyConnecting()) {
-                    connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.disconnect_internal", authData.getName(), event.getReason()));
+
+                String disconnectMessage;
+                Throwable cause = event.getCause();
+                if (cause instanceof UnexpectedEncryptionException) {
+                    if (remoteAuthType != AuthType.FLOODGATE) {
+                        // Server expects online mode
+                        disconnectMessage = LanguageUtils.getPlayerLocaleString("geyser.network.remote.authentication_type_mismatch", getLocale());
+                        // Explain that they may be looking for Floodgate.
+                        connector.getLogger().warning(LanguageUtils.getLocaleStringLog(
+                                connector.getPlatformType() == PlatformType.STANDALONE ?
+                                        "geyser.network.remote.floodgate_explanation_standalone"
+                                        : "geyser.network.remote.floodgate_explanation_plugin",
+                                Constants.FLOODGATE_DOWNLOAD_LOCATION
+                        ));
+                    } else {
+                        // Likely that Floodgate is not configured correctly.
+                        disconnectMessage = LanguageUtils.getPlayerLocaleString("geyser.network.remote.floodgate_login_error", getLocale());
+                        if (connector.getPlatformType() == PlatformType.STANDALONE) {
+                            connector.getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.network.remote.floodgate_login_error_standalone"));
+                        }
+                    }
+                } else if (cause instanceof ConnectException) {
+                    // Server is offline, probably
+                    disconnectMessage = LanguageUtils.getPlayerLocaleString("geyser.network.remote.server_offline", getLocale());
                 } else {
-                    connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.disconnect", authData.getName(), remoteAddress, event.getReason()));
-                }
-                if (event.getCause() != null) {
-                    event.getCause().printStackTrace();
+                    disconnectMessage = MessageTranslator.convertMessageLenient(event.getReason());
                 }
 
-                upstream.disconnect(MessageTranslator.convertMessageLenient(event.getReason()));
+                if (downstream != null && downstream.isInternallyConnecting()) {
+                    connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.disconnect_internal", authData.getName(), disconnectMessage));
+                } else {
+                    connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.disconnect", authData.getName(), remoteAddress, disconnectMessage));
+                }
+                if (cause != null) {
+                    cause.printStackTrace();
+                }
+
+                upstream.disconnect(disconnectMessage);
             }
 
             @Override
@@ -1354,7 +1384,8 @@ public class GeyserSession implements CommandSender {
      * @param permission The permission node to check
      * @return true if the player has the requested permission, false if not
      */
-    public Boolean hasPermission(String permission) {
+    @Override
+    public boolean hasPermission(String permission) {
         return connector.getWorldManager().hasPermission(this, permission);
     }
 

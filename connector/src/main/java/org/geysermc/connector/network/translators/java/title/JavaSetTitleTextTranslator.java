@@ -38,7 +38,7 @@ public class JavaSetTitleTextTranslator extends PacketTranslator<ServerSetTitleT
     @Override
     public void translate(GeyserSession session, ServerSetTitleTextPacket packet) {
         String text;
-        if (packet.getText() == null) { //TODO 1.17 can this happen?
+        if (packet.getText() == null) { // This can happen, see https://github.com/KyoriPowered/adventure/issues/447
             text = " ";
         } else {
             text = MessageTranslator.convertMessage(packet.getText(), session.getLocale());

@@ -25,18 +25,29 @@
 
 package org.geysermc.connector.network.translators.java.scoreboard;
 
+import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerDisplayScoreboardPacket;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.WorldCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerDisplayScoreboardPacket;
+import org.geysermc.connector.scoreboard.Scoreboard;
+import org.geysermc.connector.scoreboard.ScoreboardUpdater;
 
 @Translator(packet = ServerDisplayScoreboardPacket.class)
 public class JavaDisplayScoreboardTranslator extends PacketTranslator<ServerDisplayScoreboardPacket> {
 
     @Override
     public void translate(GeyserSession session, ServerDisplayScoreboardPacket packet) {
-        session.getWorldCache().getScoreboard()
-                .displayObjective(packet.getName(), packet.getPosition());
+        WorldCache worldCache = session.getWorldCache();
+        Scoreboard scoreboard = worldCache.getScoreboard();
+        int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();
+
+        scoreboard.displayObjective(packet.getName(), packet.getPosition());
+
+        // ScoreboardUpdater will handle it for us if the packets per second
+        // (for score and team packets) is higher than the first threshold
+        if (pps < ScoreboardUpdater.FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
+            scoreboard.onUpdate();
+        }
     }
 }

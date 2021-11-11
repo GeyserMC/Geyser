@@ -26,19 +26,19 @@
 package org.geysermc.connector.network.translators.java.world.border;
 
 import com.github.steveice10.mc.protocol.packet.ingame.server.world.border.ServerSetBorderCenterPacket;
-import com.nukkitx.math.vector.Vector2f;
+import com.nukkitx.math.vector.Vector2d;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.WorldBorder;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
 @Translator(packet = ServerSetBorderCenterPacket.class)
-public class JavaSetBorderCenterPacket extends PacketTranslator<ServerSetBorderCenterPacket> {
+public class JavaSetBorderCenterTranslator extends PacketTranslator<ServerSetBorderCenterPacket> {
 
     @Override
     public void translate(GeyserSession session, ServerSetBorderCenterPacket packet) {
         WorldBorder worldBorder = session.getWorldBorder();
-        worldBorder.setCenter(Vector2f.from(packet.getNewCenterX(), packet.getNewCenterZ()));
+        worldBorder.setCenter(Vector2d.from(packet.getNewCenterX(), packet.getNewCenterZ()));
 
         worldBorder.update();
     }

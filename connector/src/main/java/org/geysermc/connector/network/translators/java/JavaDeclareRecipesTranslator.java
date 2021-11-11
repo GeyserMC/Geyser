@@ -85,6 +85,10 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                 case CRAFTING_SHAPELESS -> {
                     ShapelessRecipeData shapelessRecipeData = (ShapelessRecipeData) recipe.getData();
                     ItemData output = ItemTranslator.translateToBedrock(session, shapelessRecipeData.getResult());
+                    if (output.equals(ItemData.AIR)) {
+                        // Likely modded item that Bedrock will complain about if it persists
+                        continue;
+                    }
                     // Strip NBT - tools won't appear in the recipe book otherwise
                     output = output.toBuilder().tag(null).build();
                     ItemData[][] inputCombinations = combinations(session, shapelessRecipeData.getIngredients());
@@ -98,6 +102,10 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                 case CRAFTING_SHAPED -> {
                     ShapedRecipeData shapedRecipeData = (ShapedRecipeData) recipe.getData();
                     ItemData output = ItemTranslator.translateToBedrock(session, shapedRecipeData.getResult());
+                    if (output.equals(ItemData.AIR)) {
+                        // Likely modded item that Bedrock will complain about if it persists
+                        continue;
+                    }
                     // See above
                     output = output.toBuilder().tag(null).build();
                     ItemData[][] inputCombinations = combinations(session, shapedRecipeData.getIngredients());
@@ -136,7 +144,9 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
             // Sort the list by each output item's Java identifier - this is how it's sorted on Java, and therefore
             // We can get the correct order for button pressing
             data.getValue().sort(Comparator.comparing((stoneCuttingRecipeData ->
-                    session.getItemMappings().getItems().get(stoneCuttingRecipeData.getResult().getId()).getJavaIdentifier())));
+                    session.getItemMappings().getItems()
+                            .getOrDefault(stoneCuttingRecipeData.getResult().getId(), ItemMapping.AIR)
+                            .getJavaIdentifier())));
 
             // Now that it's sorted, let's translate these recipes
             for (StoneCuttingRecipeData stoneCuttingData : data.getValue()) {
@@ -144,6 +154,10 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                 ItemStack ingredient = stoneCuttingData.getIngredient().getOptions()[0];
                 ItemData input = ItemTranslator.translateToBedrock(session, ingredient);
                 ItemData output = ItemTranslator.translateToBedrock(session, stoneCuttingData.getResult());
+                if (input.equals(ItemData.AIR) || output.equals(ItemData.AIR)) {
+                    // Probably modded items
+                    continue;
+                }
                 UUID uuid = UUID.randomUUID();
 
                 // We need to register stonecutting recipes so they show up on Bedrock
@@ -151,12 +165,8 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
                         Collections.singletonList(input), Collections.singletonList(output), uuid, "stonecutter", 0, netId++));
 
                 // Save the recipe list for reference when crafting
-                IntList outputs = stonecutterRecipeMap.get(ingredient.getId());
-                if (outputs == null) {
-                    outputs = new IntArrayList();
-                    // Add the ingredient as the key and all possible values as the value
-                    stonecutterRecipeMap.put(ingredient.getId(), outputs);
-                }
+                // Add the ingredient as the key and all possible values as the value
+                IntList outputs = stonecutterRecipeMap.computeIfAbsent(ingredient.getId(), ($) -> new IntArrayList());
                 outputs.add(stoneCuttingData.getResult().getId());
             }
         }

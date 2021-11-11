@@ -40,8 +40,8 @@ import org.spongepowered.api.world.Location;
 import org.spongepowered.api.world.World;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,28 +53,26 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
 
     @Override
     public CommandResult process(CommandSource source, String arguments) {
+        CommandSender commandSender = new SpongeCommandSender(source);
+        GeyserSession session = getGeyserSession(commandSender);
+
         String[] args = arguments.split(" ");
         if (args.length > 0) {
             GeyserCommand command = getCommand(args[0]);
             if (command != null) {
-                CommandSender commandSender = new SpongeCommandSender(source);
                 if (!source.hasPermission(command.getPermission())) {
                     // Not ideal to use log here but we dont get a session
                     source.sendMessage(Text.of(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail")));
                     return CommandResult.success();
                 }
-                GeyserSession session = null;
-                if (command.isBedrockOnly()) {
-                    session = getGeyserSession(commandSender);
-                    if (session == null) {
-                        source.sendMessage(Text.of(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.bedrock_only")));
-                        return CommandResult.success();
-                    }
+                if (command.isBedrockOnly() && session == null) {
+                    source.sendMessage(Text.of(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.bedrock_only")));
+                    return CommandResult.success();
                 }
                 getCommand(args[0]).execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
             }
         } else {
-            getCommand("help").execute(null, new SpongeCommandSender(source), new String[0]);
+            getCommand("help").execute(session, commandSender, new String[0]);
         }
         return CommandResult.success();
     }
@@ -82,9 +80,9 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
     @Override
     public List<String> getSuggestions(CommandSource source, String arguments, @Nullable Location<World> targetPosition) {
         if (arguments.split(" ").length == 1) {
-            return connector.getCommandManager().getCommandNames();
+            return tabComplete(new SpongeCommandSender(source));
         }
-        return new ArrayList<>();
+        return Collections.emptyList();
     }
 
     @Override

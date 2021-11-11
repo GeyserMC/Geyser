@@ -29,38 +29,33 @@ import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.scoreboard.Objective;
 import org.geysermc.connector.scoreboard.Scoreboard;
-import org.geysermc.connector.scoreboard.ScoreboardUpdater;
+import org.geysermc.connector.scoreboard.ScoreboardUpdater.ScoreboardSession;
 
 @Getter
 public class WorldCache {
     private final GeyserSession session;
+    private final ScoreboardSession scoreboardSession;
+    private Scoreboard scoreboard;
     @Setter
     private Difficulty difficulty = Difficulty.EASY;
-
-    private Scoreboard scoreboard;
-    private final ScoreboardUpdater scoreboardUpdater;
 
     public WorldCache(GeyserSession session) {
         this.session = session;
         this.scoreboard = new Scoreboard(session);
-        scoreboardUpdater = new ScoreboardUpdater(this);
-        scoreboardUpdater.start();
+        scoreboardSession = new ScoreboardSession(session);
     }
 
     public void removeScoreboard() {
         if (scoreboard != null) {
-            for (Objective objective : scoreboard.getObjectives().values()) {
-                scoreboard.despawnObjective(objective);
-            }
+            scoreboard.removeScoreboard();
             scoreboard = new Scoreboard(session);
         }
     }
 
     public int increaseAndGetScoreboardPacketsPerSecond() {
-        int pendingPps = scoreboardUpdater.incrementAndGetPacketsPerSecond();
-        int pps = scoreboardUpdater.getPacketsPerSecond();
+        int pendingPps = scoreboardSession.getPendingPacketsPerSecond().incrementAndGet();
+        int pps = scoreboardSession.getPacketsPerSecond();
         return Math.max(pps, pendingPps);
     }
 }
