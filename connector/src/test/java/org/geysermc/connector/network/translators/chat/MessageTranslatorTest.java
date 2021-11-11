@@ -88,6 +88,7 @@ public class MessageTranslatorTest {
         Assert.assertEquals("Legacy formatted message is not handled properly (Style)", "Obf Bold Strikethrough Underline Italic Reset", MessageTranslator.convertToPlainText("§kObf §lBold §mStrikethrough §nUnderline §oItalic §rReset", "en_US"));
         Assert.assertEquals("Valid lenient JSON is not handled properly", "Strange", MessageTranslator.convertToPlainText("§rStrange", "en_US"));
         Assert.assertEquals("Empty message is not handled properly", "", MessageTranslator.convertToPlainText("", "en_US"));
+        Assert.assertEquals("Whitespace is not preserved", "     ", MessageTranslator.convertToPlainText("     ", "en_US"));
     }
 
     @Test
