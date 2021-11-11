@@ -50,6 +50,8 @@ public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPack
         }
         packet.setFromServer(true);
         if (session.getOpenInventory() instanceof AnvilContainer anvilContainer) {
+            anvilContainer.setNewName(packet.getText());
+
             String originalName = ItemUtils.getCustomName(anvilContainer.getInput().getNbt());
 
             String plainOriginalName = MessageTranslator.convertToPlainText(originalName, session.getLocale());
@@ -63,8 +65,9 @@ public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPack
             } else {
                 // Restore formatting for item since we're not renaming
                 packet.setText(MessageTranslator.convertMessageLenient(originalName));
-                // Java Edition sends an empty string if the client is not renaming
-                ClientRenameItemPacket renameItemPacket = new ClientRenameItemPacket("");
+                // Java Edition sends the original custom name when not renaming,
+                // if there isn't a custom name an empty string is sent
+                ClientRenameItemPacket renameItemPacket = new ClientRenameItemPacket(plainOriginalName);
                 session.sendDownstreamPacket(renameItemPacket);
             }
 

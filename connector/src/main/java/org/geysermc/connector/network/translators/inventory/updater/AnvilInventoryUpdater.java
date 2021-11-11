@@ -115,8 +115,11 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
 
             // Changing the item in the input slot resets the name field on Bedrock, but
             // does not result in a FilterTextPacket
-            ClientRenameItemPacket renameItemPacket = new ClientRenameItemPacket("");
+            String originalName = MessageTranslator.convertToPlainText(ItemUtils.getCustomName(input.getNbt()), session.getLocale());
+            ClientRenameItemPacket renameItemPacket = new ClientRenameItemPacket(originalName);
             session.sendDownstreamPacket(renameItemPacket);
+
+            anvilContainer.setNewName(null);
         }
 
         GeyserItemStack material = anvilContainer.getMaterial();
@@ -149,7 +152,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         ItemData itemData = anvilContainer.getItem(slot).getItemData(session);
         itemData = hijackRepairCost(session, anvilContainer, itemData);
 
-        if (slot == 0 && isRenaming(anvilContainer)) {
+        if (slot == 0 && isRenaming(session, anvilContainer, true)) {
             // Can't change the RepairCost because it resets the name field on Bedrock
             return;
         }
@@ -240,7 +243,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         }
 
         int totalCost = totalRepairCost + cost;
-        if (isRenaming(anvilContainer)) {
+        if (isRenaming(session, anvilContainer, bedrock)) {
             totalCost++;
             if (cost == 0 && totalCost >= MAX_LEVEL_COST) {
                 // Items can still be renamed when the level cost for renaming exceeds 40
@@ -415,13 +418,19 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return repairMaterials != null && repairMaterials.contains(material.getMapping(session).getJavaIdentifier());
     }
 
-    private boolean isRenaming(AnvilContainer anvilContainer) {
+    private boolean isRenaming(GeyserSession session, AnvilContainer anvilContainer, boolean bedrock) {
         if (anvilContainer.getResult().isEmpty()) {
             return false;
         }
-        // This should really check the name field, but that requires the localized name
+        // This should really check the name field in all cases, but that requires the localized name
         // of the item which can change depending on NBT and Minecraft Edition
-        return !Objects.equals(ItemUtils.getCustomName(anvilContainer.getInput().getNbt()), ItemUtils.getCustomName(anvilContainer.getResult().getNbt()));
+        String originalName = ItemUtils.getCustomName(anvilContainer.getInput().getNbt());
+        if (bedrock && originalName != null && anvilContainer.getNewName() != null) {
+            // Check text and formatting
+            String legacyOriginalName = MessageTranslator.convertMessageLenient(originalName, session.getLocale());
+            return !legacyOriginalName.equals(anvilContainer.getNewName());
+        }
+        return !Objects.equals(originalName, ItemUtils.getCustomName(anvilContainer.getResult().getNbt()));
     }
 
     private int getTagIntValueOr(GeyserItemStack itemStack, String tagName, int defaultValue) {

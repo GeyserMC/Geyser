@@ -46,6 +46,11 @@ public class AnvilContainer extends Container {
      */
     private boolean useJavaLevelCost = false;
 
+    /**
+     * The new name of the item as received from Bedrock
+     */
+    private String newName = null;
+
     private GeyserItemStack lastInput = GeyserItemStack.EMPTY;
     private GeyserItemStack lastMaterial = GeyserItemStack.EMPTY;
 
