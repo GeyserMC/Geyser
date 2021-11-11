@@ -93,6 +93,7 @@ import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.BlockMappings;
 import org.geysermc.connector.registry.type.ItemMappings;
+import org.geysermc.connector.skin.FakeHeadCache;
 import org.geysermc.connector.skin.FloodgateSkinUploader;
 import org.geysermc.connector.utils.*;
 import org.geysermc.cumulus.Form;
@@ -152,6 +153,7 @@ public class GeyserSession implements CommandSender {
     private final PreferencesCache preferencesCache;
     private final TagCache tagCache;
     private final WorldCache worldCache;
+    private final FakeHeadCache fakeHeadCache;
 
     private final Int2ObjectMap<TeleportCache> teleportMap = new Int2ObjectOpenHashMap<>();
 
@@ -458,6 +460,7 @@ public class GeyserSession implements CommandSender {
         this.preferencesCache = new PreferencesCache(this);
         this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
+        this.fakeHeadCache = new FakeHeadCache();
 
         this.worldBorder = new WorldBorder(this);
 

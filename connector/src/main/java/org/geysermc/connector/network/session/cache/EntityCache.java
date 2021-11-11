@@ -86,6 +86,10 @@ public class EntityCache {
     }
 
     public boolean removeEntity(Entity entity, boolean force) {
+        if(entity != null) {
+            session.getFakeHeadCache().removeEntity(entity);
+        }
+
         if (entity != null && entity.isValid() && (force || entity.despawnEntity(session))) {
             long geyserId = entityIdTranslations.remove(entity.getEntityId());
             entities.remove(geyserId);
@@ -99,6 +103,8 @@ public class EntityCache {
     }
 
     public void removeAllEntities() {
+        session.getFakeHeadCache().clear();
+
         List<Entity> entities = new ArrayList<>(session.getEntityCache().getEntities().values());
         for (Entity entity : entities) {
             session.getEntityCache().removeEntity(entity, false);

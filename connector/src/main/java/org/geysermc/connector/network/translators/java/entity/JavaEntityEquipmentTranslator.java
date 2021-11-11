@@ -27,13 +27,18 @@ package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Equipment;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityEquipmentPacket;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.LivingEntity;
+import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.registry.type.ItemMapping;
+import org.geysermc.connector.registry.type.ItemMappings;
+import org.geysermc.connector.skin.FakeHeadProvider;
 
 @Translator(packet = ServerEntityEquipmentPacket.class)
 public class JavaEntityEquipmentTranslator extends PacketTranslator<ServerEntityEquipmentPacket> {
@@ -63,7 +68,24 @@ public class JavaEntityEquipmentTranslator extends PacketTranslator<ServerEntity
             ItemData item = ItemTranslator.translateToBedrock(session, equipment.getItem());
             switch (equipment.getSlot()) {
                 case HELMET -> {
-                    livingEntity.setHelmet(item);
+                    CompoundTag profile = null;
+
+                    if(livingEntity instanceof PlayerEntity
+                            && session.getItemMappings().getMapping( item ).getJavaIdentifier().equals("minecraft:player_head")
+                            && equipment.getItem().getNbt() != null
+                            && equipment.getItem().getNbt().contains("SkullOwner")
+                            && equipment.getItem().getNbt().get( "SkullOwner" ) instanceof CompoundTag) {
+                        profile = equipment.getItem().getNbt().get( "SkullOwner" );
+                    }
+
+                    if(profile != null) {
+                        FakeHeadProvider.setHead( session, (PlayerEntity) livingEntity, profile);
+                        livingEntity.setHelmet(ItemData.AIR);
+                    } else {
+                        FakeHeadProvider.restoreOriginalSkin(session, livingEntity);
+                        livingEntity.setHelmet(item);
+                    }
+
                     armorUpdated = true;
                 }
                 case CHESTPLATE -> {
