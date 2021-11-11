@@ -96,9 +96,9 @@ public class FakeHeadProvider {
         }
 
         SkinManager.GameProfileData data = SkinManager.GameProfileData.from( entity.getProfile() );
-        String skinUrl = SkinManager.GameProfileData.from( gameProfile ).getSkinUrl();
+        String skinUrl = SkinManager.GameProfileData.from( gameProfile ).skinUrl();
 
-        SkinProvider.requestSkinAndCape( entity.getUuid(), data.getSkinUrl(), data.getCapeUrl() )
+        SkinProvider.requestSkinAndCape( entity.getUuid(), data.skinUrl(), data.capeUrl() )
                 .whenCompleteAsync( ( skinAndCape, throwable ) -> {
                     try {
                         SkinProvider.Skin skin = skinAndCape.getSkin();
@@ -132,15 +132,11 @@ public class FakeHeadProvider {
                                 BufferedImage otherSkinImage = SkinProvider.imageDataToBufferedImage( otherSkin.getSkinData(), 64, otherSkin.getSkinData().length / 4 / 64 );//ImageIO.read( otherSkinInput );
 
                                 Graphics2D graphics2D = originalSkinImage.createGraphics();
-                                graphics2D.setColor( Color.WHITE );
-                                graphics2D.drawImage( otherSkinImage, 0, 0, 16, 64, null );
-                                //graphics2D.fill( new Rectangle(0,0,64,16) );
-                                //graphics2D.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
-                                //graphics2D.clearRect( 0, 0, 64, 16 );
-                                //graphics2D.drawImage( otherSkinImage, 0, 0, 64, 16, null );
+                                graphics2D.setComposite( AlphaComposite.Clear );
+                                graphics2D.fillRect( 0, 0, 64, 16 );
+                                graphics2D.setComposite( AlphaComposite.SrcOver );
+                                graphics2D.drawImage( otherSkinImage, 0, 0, 64, 16, 0, 0, 64, 16, null );
                                 graphics2D.dispose();
-
-                                ImageIO.write( originalSkinImage, "png", new File( "cache/" + new String( Base64.getEncoder().encode( skinKey.getBytes( StandardCharsets.UTF_8 ) ) ) + ".png" ) );
 
                                 byte[] targetSkinData = SkinProvider.bufferedImageToImageData( originalSkinImage );
                                 targetSkin = new SkinProvider.Skin( entity.getUuid(), skinKey, targetSkinData, System.currentTimeMillis(), false, false );
@@ -176,7 +172,7 @@ public class FakeHeadProvider {
         SkinManager.GameProfileData data = SkinManager.GameProfileData.from( entity.getProfile() );
 
         // TODO RESET SKIN
-        SkinProvider.requestSkinAndCape( entity.getUuid(), data.getSkinUrl(), data.getCapeUrl() )
+        SkinProvider.requestSkinAndCape( entity.getUuid(), data.skinUrl(), data.capeUrl() )
                 .whenCompleteAsync( ( skinAndCape, throwable ) -> {
                     try {
                         SkinProvider.Skin skin = skinAndCape.getSkin();
