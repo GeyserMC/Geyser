@@ -25,7 +25,6 @@
 
 package org.geysermc.platform.spigot;
 
-import com.github.steveice10.packetlib.io.local.LocalServerChannelWrapper;
 import com.viaversion.viaversion.bukkit.handlers.BukkitChannelInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -33,7 +32,8 @@ import io.netty.channel.local.LocalAddress;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.bukkit.Bukkit;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
-import org.geysermc.connector.common.GeyserInjector;
+import org.geysermc.connector.common.connection.GeyserInjector;
+import org.geysermc.connector.common.connection.LocalServerChannelWrapper;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

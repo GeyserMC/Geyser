@@ -25,13 +25,13 @@
 
 package org.geysermc.platform.velocity;
 
-import com.github.steveice10.packetlib.io.local.LocalServerChannelWrapper;
 import com.velocitypowered.api.proxy.ProxyServer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.local.LocalAddress;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
-import org.geysermc.connector.common.GeyserInjector;
+import org.geysermc.connector.common.connection.GeyserInjector;
+import org.geysermc.connector.common.connection.LocalServerChannelWrapper;
 
 import java.lang.reflect.Field;
 import java.util.function.Supplier;

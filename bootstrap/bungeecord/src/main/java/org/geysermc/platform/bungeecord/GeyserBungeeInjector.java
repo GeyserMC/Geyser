@@ -25,7 +25,6 @@
 
 package org.geysermc.platform.bungeecord;
 
-import com.github.steveice10.packetlib.io.local.LocalServerChannelWrapper;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -42,7 +41,9 @@ import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.netty.PipelineUtils;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
-import org.geysermc.connector.common.GeyserInjector;
+import org.geysermc.connector.common.connection.GeyserInjector;
+import org.geysermc.connector.common.connection.LocalServerChannelWrapper;
+import org.geysermc.connector.common.connection.LocalSession;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -122,7 +123,7 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
 
         ChannelFuture channelFuture = (new ServerBootstrap()
                 .channel(LocalServerChannelWrapper.class)
-                .childHandler(new ChannelInitializer<Channel>() {
+                .childHandler(new ChannelInitializer<>() {
                     @Override
                     protected void initChannel(Channel ch) throws Exception {
                         if (proxy.getConfig().getServers() == null) {
@@ -156,6 +157,14 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
             this.proxy.getPluginManager().registerListener(this.plugin, this);
             this.eventRegistered = true;
         }
+
+        // Only affects Waterfall, but there is no sure way to differentiate between a proxy with this patch and a proxy without this patch
+        // Patch causing the issue: https://github.com/PaperMC/Waterfall/blob/7e6af4cef64d5d377a6ffd00a534379e6efa94cf/BungeeCord-Patches/0045-Don-t-use-a-bytebuf-for-packet-decoding.patch
+        // If native compression is enabled, then this line is tripped up if a heap buffer is sent over in such a situation
+        // as a new direct buffer is not created with that patch (HeapByteBufs throw an UnsupportedOperationException here):
+        // https://github.com/SpigotMC/BungeeCord/blob/a283aaf724d4c9a815540cd32f3aafaa72df9e05/native/src/main/java/net/md_5/bungee/jni/zlib/NativeZlib.java#L43
+        // This issue could be mitigated down the line by preventing Bungee from setting compression
+        LocalSession.createDirectByteBufAllocator();
     }
 
     @Override

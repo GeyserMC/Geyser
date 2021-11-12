@@ -50,6 +50,7 @@ import com.github.steveice10.packetlib.BuiltinFlags;
 import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpClientSession;
+import com.github.steveice10.packetlib.tcp.TcpSession;
 import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.*;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
@@ -76,6 +77,7 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.common.AuthType;
+import org.geysermc.connector.common.connection.LocalSession;
 import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ItemFrameEntity;
@@ -123,7 +125,7 @@ public class GeyserSession implements CommandSender {
      * If this is manually called, ensure that any exceptions are properly handled.
      */
     private final EventLoop eventLoop;
-    private TcpClientSession downstream;
+    private TcpSession downstream;
     @Setter
     private AuthData authData;
     @Setter
@@ -715,8 +717,14 @@ public class GeyserSession implements CommandSender {
         // Start ticking
         tickThread = eventLoop.scheduleAtFixedRate(this::tick, 50, 50, TimeUnit.MILLISECONDS);
 
-        downstream = new TcpClientSession(this.remoteAddress, this.remotePort, protocol);
-        disableSrvResolving();
+        if (connector.getBootstrap().getSocketAddress() != null) {
+            // We're going to connect through the JVM and not through TCP
+            downstream = new LocalSession(this.remoteAddress, this.remotePort,
+                    connector.getBootstrap().getSocketAddress(), upstream.getAddress().getAddress().getHostAddress(), this.protocol);
+        } else {
+            downstream = new TcpClientSession(this.remoteAddress, this.remotePort, this.protocol);
+            disableSrvResolving();
+        }
         if (connector.getConfig().getRemote().isUseProxyProtocol()) {
             downstream.setFlag(BuiltinFlags.ENABLE_CLIENT_PROXY_PROTOCOL, true);
             downstream.setFlag(BuiltinFlags.CLIENT_PROXIED_ADDRESS, upstream.getAddress());
@@ -793,7 +801,7 @@ public class GeyserSession implements CommandSender {
                 loggingIn = false;
                 loggedIn = true;
 
-                if (downstream.isInternallyConnecting()) {
+                if (downstream instanceof LocalSession) {
                     // Connected directly to the server
                     connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.connect_internal",
                             authData.getName(), protocol.getProfile().getName()));
@@ -860,7 +868,7 @@ public class GeyserSession implements CommandSender {
                     disconnectMessage = MessageTranslator.convertMessageLenient(event.getReason());
                 }
 
-                if (downstream != null && downstream.isInternallyConnecting()) {
+                if (downstream instanceof LocalSession) {
                     connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.disconnect_internal", authData.getName(), disconnectMessage));
                 } else {
                     connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.remote.disconnect", authData.getName(), remoteAddress, disconnectMessage));
@@ -890,26 +898,8 @@ public class GeyserSession implements CommandSender {
         if (!daylightCycle) {
             setDaylightCycle(true);
         }
-        boolean internalConnect = false;
-        if (connector.getBootstrap().getSocketAddress() != null) {
-            try {
-                // Only affects Waterfall, but there is no sure way to differentiate between a proxy with this patch and a proxy without this patch
-                // Patch causing the issue: https://github.com/PaperMC/Waterfall/blob/7e6af4cef64d5d377a6ffd00a534379e6efa94cf/BungeeCord-Patches/0045-Don-t-use-a-bytebuf-for-packet-decoding.patch
-                // If native compression is enabled, then this line is tripped up if a heap buffer is sent over in such a situation
-                // as a new direct buffer is not created with that patch (HeapByteBufs throw an UnsupportedOperationException here):
-                // https://github.com/SpigotMC/BungeeCord/blob/a283aaf724d4c9a815540cd32f3aafaa72df9e05/native/src/main/java/net/md_5/bungee/jni/zlib/NativeZlib.java#L43
-                // This issue could be mitigated down the line by preventing Bungee from setting compression
-                downstream.setFlag(BuiltinFlags.USE_ONLY_DIRECT_BUFFERS, connector.getPlatformType() == PlatformType.BUNGEECORD);
 
-                downstream.connectInternal(connector.getBootstrap().getSocketAddress(), upstream.getAddress().getAddress().getHostAddress());
-                internalConnect = true;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        if (!internalConnect) {
-            downstream.connect();
-        }
+        downstream.connect();
     }
 
     public void disconnect(String reason) {

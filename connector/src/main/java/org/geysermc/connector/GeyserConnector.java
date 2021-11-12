@@ -29,6 +29,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
+import com.github.steveice10.packetlib.tcp.TcpSession;
 import com.nukkitx.network.raknet.RakNetConstants;
 import com.nukkitx.network.util.EventLoops;
 import com.nukkitx.protocol.bedrock.BedrockServer;
@@ -46,12 +47,12 @@ import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.chat.MessageTranslator;
-import org.geysermc.connector.registry.BlockRegistries;
-import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
+import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.world.WorldManager;
+import org.geysermc.connector.registry.BlockRegistries;
+import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.scoreboard.ScoreboardUpdater;
 import org.geysermc.connector.skin.FloodgateSkinUploader;
 import org.geysermc.connector.utils.*;
@@ -70,8 +71,12 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.security.Key;
 import java.text.DecimalFormat;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -190,6 +195,9 @@ public class GeyserConnector {
                     ex.printStackTrace(); // Otherwise we can get a stack trace for any domain that doesn't have an SRV record
             }
         }
+
+        // Ensure that PacketLib does not create an event loop for handling packets; we'll do that ourselves
+        TcpSession.USE_EVENT_LOOP_FOR_PACKETS = false;
 
         TimeSyncer timeSyncer = null;
         if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {

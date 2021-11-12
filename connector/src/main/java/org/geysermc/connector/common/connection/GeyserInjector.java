@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.common;
+package org.geysermc.connector.common.connection;
 
 import io.netty.channel.ChannelFuture;
 import lombok.Getter;
@@ -47,7 +47,6 @@ public abstract class GeyserInjector {
     protected SocketAddress serverSocketAddress;
 
     /**
-     *
      * @param bootstrap the bootstrap of the Geyser instance.
      */
     public void initializeLocalChannel(GeyserBootstrap bootstrap) {
