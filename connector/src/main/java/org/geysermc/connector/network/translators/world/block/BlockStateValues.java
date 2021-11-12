@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import org.geysermc.connector.network.translators.world.block.entity.PistonBlockEntityTranslator;
 import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.registry.type.BlockMapping;
 import org.geysermc.connector.utils.Direction;
@@ -333,6 +334,26 @@ public class BlockStateValues {
      */
     public static boolean canPistonDestroyBlock(int state)  {
         return BlockRegistries.JAVA_BLOCKS.getOrDefault(state, BlockMapping.AIR).getPistonBehavior() == PistonBehavior.DESTROY;
+    }
+
+    public static boolean canPistonMoveBlock(int javaId, boolean isPushing) {
+        if (javaId == BlockStateValues.JAVA_AIR_ID) {
+            return true;
+        }
+        // Pistons can only be moved if they aren't extended
+        if (PistonBlockEntityTranslator.isBlock(javaId)) {
+            return !BlockStateValues.getPistonValues().get(javaId);
+        }
+        BlockMapping block = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.AIR);
+        // Bedrock, End portal frames, etc. can't be moved
+        if (block.getHardness() == -1.0d) {
+            return false;
+        }
+        return switch (block.getPistonBehavior()) {
+            case BLOCK, DESTROY -> false;
+            case PUSH_ONLY -> isPushing; // Glazed terracotta can only be pushed
+            default -> !block.isBlockEntity(); // Pistons can't move block entities
+        };
     }
 
     /**
