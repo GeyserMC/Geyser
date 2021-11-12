@@ -53,7 +53,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
         }
 
         long javaId = session.getPlayerEntity().getEntityId();
-        for (GeyserSession otherSession : session.getConnector().getPlayers()) {
+        for (GeyserSession otherSession : session.getConnector().getSessionManager().getSessions().values()) {
             if (otherSession != session) {
                 if (otherSession.isClosed()) continue;
                 if (otherSession.getEventLoop().inEventLoop()) {

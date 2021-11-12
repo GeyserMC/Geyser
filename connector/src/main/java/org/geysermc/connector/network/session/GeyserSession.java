@@ -486,9 +486,7 @@ public class GeyserSession implements CommandSender {
 
         if (connector.getConfig().getEmoteOffhandWorkaround() != EmoteOffhandWorkaroundOption.NO_EMOTES) {
             this.emotes = new HashSet<>();
-            // Make a copy to prevent ConcurrentModificationException
-            final List<GeyserSession> tmpPlayers = new ArrayList<>(connector.getPlayers());
-            tmpPlayers.forEach(player -> this.emotes.addAll(player.getEmotes()));
+            connector.getSessionManager().getSessions().values().forEach(player -> this.emotes.addAll(player.getEmotes()));
         } else {
             this.emotes = null;
         }
@@ -498,7 +496,7 @@ public class GeyserSession implements CommandSender {
             connector.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.disconnect", address, disconnectReason));
 
             disconnect(disconnectReason.name());
-            connector.removePlayer(this);
+            connector.getSessionManager().removeSession(this);
         });
     }
 
@@ -911,7 +909,6 @@ public class GeyserSession implements CommandSender {
         if (!internalConnect) {
             downstream.connect();
         }
-        connector.addPlayer(this);
     }
 
     public void disconnect(String reason) {
@@ -921,7 +918,7 @@ public class GeyserSession implements CommandSender {
                 downstream.disconnect(reason);
             }
             if (upstream != null && !upstream.isClosed()) {
-                connector.getPlayers().remove(this);
+                connector.getSessionManager().removeSession(this);
                 upstream.disconnect(reason);
             }
         }
@@ -1442,7 +1439,7 @@ public class GeyserSession implements CommandSender {
 
     public void refreshEmotes(List<UUID> emotes) {
         this.emotes.addAll(emotes);
-        for (GeyserSession player : connector.getPlayers()) {
+        for (GeyserSession player : connector.getSessionManager().getSessions().values()) {
             List<UUID> pieces = new ArrayList<>();
             for (UUID piece : emotes) {
                 if (!player.getEmotes().contains(piece)) {

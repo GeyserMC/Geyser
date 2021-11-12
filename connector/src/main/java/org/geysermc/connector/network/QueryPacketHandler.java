@@ -159,7 +159,7 @@ public class QueryPacketHandler {
             currentPlayerCount = String.valueOf(pingInfo.getPlayers().getOnline());
             maxPlayerCount = String.valueOf(pingInfo.getPlayers().getMax());
         } else {
-            currentPlayerCount = String.valueOf(connector.getPlayers().size());
+            currentPlayerCount = String.valueOf(connector.getSessionManager().getSessions().size());
             maxPlayerCount = String.valueOf(connector.getConfig().getMaxPlayers());
         }
 

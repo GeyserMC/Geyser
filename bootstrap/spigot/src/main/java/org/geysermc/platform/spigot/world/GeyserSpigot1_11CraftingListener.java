@@ -80,7 +80,7 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         GeyserSession session = null;
-        for (GeyserSession otherSession : connector.getPlayers()) {
+        for (GeyserSession otherSession : connector.getSessionManager().getSessions().values()) {
             if (otherSession.getName().equals(event.getPlayer().getName())) {
                 session = otherSession;
                 break;

@@ -53,7 +53,7 @@ public class CommandExecutor {
             return null;
         }
 
-        for (GeyserSession session : connector.getPlayers()) {
+        for (GeyserSession session : connector.getSessionManager().getSessions().values()) {
             if (sender.getName().equals(session.getPlayerEntity().getUsername())) {
                 return session;
             }

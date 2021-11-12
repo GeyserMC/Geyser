@@ -52,7 +52,6 @@ import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.world.WorldManager;
-import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.connector.scoreboard.ScoreboardUpdater;
 import org.geysermc.connector.skin.FloodgateSkinUploader;
 import org.geysermc.connector.utils.*;
@@ -72,10 +71,7 @@ import java.net.UnknownHostException;
 import java.security.Key;
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -100,7 +96,7 @@ public class GeyserConnector {
 
     private static final String IP_REGEX = "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b";
 
-    private final List<GeyserSession> players = new ArrayList<>();
+    private final SessionManager sessionManager = new SessionManager();
 
     private static GeyserConnector instance;
 
@@ -115,7 +111,7 @@ public class GeyserConnector {
     private FloodgateSkinUploader skinUploader;
     private final NewsHandler newsHandler;
 
-    private boolean shuttingDown = false;
+    private volatile boolean shuttingDown = false;
 
     private final ScheduledExecutorService generalThreadPool;
 
@@ -123,7 +119,7 @@ public class GeyserConnector {
     private final PlatformType platformType;
     private final GeyserBootstrap bootstrap;
 
-    private Metrics metrics;
+    private final Metrics metrics;
 
     private GeyserConnector(PlatformType platformType, GeyserBootstrap bootstrap) {
         long startupTime = System.currentTimeMillis();
@@ -277,7 +273,7 @@ public class GeyserConnector {
 
         if (config.getMetrics().isEnabled()) {
             metrics = new Metrics(this, "GeyserMC", config.getMetrics().getUniqueId(), false, java.util.logging.Logger.getLogger(""));
-            metrics.addCustomChart(new Metrics.SingleLineChart("players", players::size));
+            metrics.addCustomChart(new Metrics.SingleLineChart("players", sessionManager::size));
             // Prevent unwanted words best we can
             metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> config.getRemote().getAuthType().toString().toLowerCase()));
             metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::getPlatformName));
@@ -285,7 +281,7 @@ public class GeyserConnector {
             metrics.addCustomChart(new Metrics.SimplePie("version", () -> GeyserConnector.VERSION));
             metrics.addCustomChart(new Metrics.AdvancedPie("playerPlatform", () -> {
                 Map<String, Integer> valueMap = new HashMap<>();
-                for (GeyserSession session : players) {
+                for (GeyserSession session : sessionManager.getAllSessions()) {
                     if (session == null) continue;
                     if (session.getClientData() == null) continue;
                     String os = session.getClientData().getDeviceOs().toString();
@@ -299,7 +295,7 @@ public class GeyserConnector {
             }));
             metrics.addCustomChart(new Metrics.AdvancedPie("playerVersion", () -> {
                 Map<String, Integer> valueMap = new HashMap<>();
-                for (GeyserSession session : players) {
+                for (GeyserSession session : sessionManager.getAllSessions()) {
                     if (session == null) continue;
                     if (session.getClientData() == null) continue;
                     String version = session.getClientData().getGameVersion();
@@ -359,6 +355,8 @@ public class GeyserConnector {
                 map.put(release, entry);
                 return map;
             }));
+        } else {
+            metrics = null;
         }
 
         boolean isGui = false;
@@ -392,40 +390,10 @@ public class GeyserConnector {
         bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown"));
         shuttingDown = true;
 
-        if (players.size() >= 1) {
-            bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.log", players.size()));
-
-            // Make a copy to prevent ConcurrentModificationException
-            final List<GeyserSession> tmpPlayers = new ArrayList<>(players);
-            for (GeyserSession playerSession : tmpPlayers) {
-                playerSession.disconnect(LanguageUtils.getPlayerLocaleString("geyser.core.shutdown.kick.message", playerSession.getLocale()));
-            }
-
-            CompletableFuture<Void> future = CompletableFuture.runAsync(new Runnable() {
-                @Override
-                public void run() {
-                    // Simulate a long-running Job
-                    try {
-                        while (true) {
-                            if (players.size() == 0) {
-                                return;
-                            }
-
-                            TimeUnit.MILLISECONDS.sleep(100);
-                        }
-                    } catch (InterruptedException e) {
-                        throw new IllegalStateException(e);
-                    }
-                }
-            });
-
-            // Block and wait for the future to complete
-            try {
-                future.get();
-                bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.done"));
-            } catch (Exception e) {
-                // Quietly fail
-            }
+        if (sessionManager.size() >= 1) {
+            bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.log", sessionManager.size()));
+            sessionManager.disconnectAll("geyser.core.shutdown.kick.message");
+            bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.done"));
         }
 
         generalThreadPool.shutdown();
@@ -437,18 +405,9 @@ public class GeyserConnector {
             skinUploader.close();
         }
         newsHandler.shutdown();
-        players.clear();
         this.getCommandManager().getCommands().clear();
 
         bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.done"));
-    }
-
-    public void addPlayer(GeyserSession player) {
-        players.add(player);
-    }
-
-    public void removePlayer(GeyserSession player) {
-        players.remove(player);
     }
 
     /**
@@ -463,13 +422,7 @@ public class GeyserConnector {
             return null;
         }
 
-        for (GeyserSession session : players) {
-            if (uuid.equals(session.getPlayerEntity().getUuid())) {
-                return session;
-            }
-        }
-
-        return null;
+        return sessionManager.getSessions().get(uuid);
     }
 
     /**
@@ -480,8 +433,13 @@ public class GeyserConnector {
      */
     @SuppressWarnings("unused") // API usage
     public GeyserSession getPlayerByXuid(String xuid) {
-        for (GeyserSession session : players) {
-            if (session.getAuthData() != null && session.getAuthData().getXboxUUID().equals(xuid)) {
+        for (GeyserSession session : sessionManager.getPendingSessions()) {
+            if (session.getAuthData().getXboxUUID().equals(xuid)) {
+                return session;
+            }
+        }
+        for (GeyserSession session : sessionManager.getSessions().values()) {
+            if (session.getAuthData().getXboxUUID().equals(xuid)) {
                 return session;
             }
         }

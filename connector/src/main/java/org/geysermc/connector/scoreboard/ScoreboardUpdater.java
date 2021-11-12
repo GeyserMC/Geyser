@@ -33,6 +33,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.WorldCache;
 import org.geysermc.connector.utils.LanguageUtils;
 
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class ScoreboardUpdater extends Thread {
@@ -72,9 +73,10 @@ public final class ScoreboardUpdater extends Thread {
                 long currentTime = System.currentTimeMillis();
 
                 // reset score-packets per second every second
+                Collection<GeyserSession> sessions = connector.getSessionManager().getSessions().values();
                 if (currentTime - lastPacketsPerSecondUpdate >= 1000) {
                     lastPacketsPerSecondUpdate = currentTime;
-                    for (GeyserSession session : connector.getPlayers()) {
+                    for (GeyserSession session : sessions) {
                         ScoreboardSession scoreboardSession = session.getWorldCache().getScoreboardSession();
 
                         int oldPps = scoreboardSession.getPacketsPerSecond();
@@ -94,7 +96,7 @@ public final class ScoreboardUpdater extends Thread {
                 if (currentTime - lastUpdate >= FIRST_MILLIS_BETWEEN_UPDATES) {
                     lastUpdate = currentTime;
 
-                    for (GeyserSession session : connector.getPlayers()) {
+                    for (GeyserSession session : sessions) {
                         WorldCache worldCache = session.getWorldCache();
                         ScoreboardSession scoreboardSession = worldCache.getScoreboardSession();
 
@@ -132,7 +134,7 @@ public final class ScoreboardUpdater extends Thread {
                     if (timeSpent > 0) {
                         connector.getLogger().info(String.format(
                                 "Scoreboard updater: took %s ms. Updated %s players",
-                                timeSpent, connector.getPlayers().size()
+                                timeSpent, sessions.size()
                         ));
                     }
                 }
