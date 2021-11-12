@@ -69,49 +69,40 @@ public class ChunkUtils {
      * The minimum height Bedrock Edition will accept.
      */
     public static final int MINIMUM_ACCEPTED_HEIGHT = 0;
-    private static final int CAVES_AND_CLIFFS_MINIMUM_HEIGHT = -64;
-    public static final int MINIMUM_ACCEPTED_HEIGHT_OVERWORLD = GeyserConnector.getInstance().getConfig().isExtendedWorldHeight() ?
-            CAVES_AND_CLIFFS_MINIMUM_HEIGHT  : MINIMUM_ACCEPTED_HEIGHT;
+    public static final int MINIMUM_ACCEPTED_HEIGHT_OVERWORLD = -64;
     /**
      * The maximum chunk height Bedrock Edition will accept, from the lowest point to the highest.
      */
     private static final int MAXIMUM_ACCEPTED_HEIGHT = 256;
-    private static final int CAVES_AND_CLIFFS_MAXIMUM_HEIGHT = 384;
-    private static final int MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD = GeyserConnector.getInstance().getConfig().isExtendedWorldHeight() ?
-            CAVES_AND_CLIFFS_MAXIMUM_HEIGHT : MAXIMUM_ACCEPTED_HEIGHT;
+    private static final int MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD = 384;
 
     public static final byte[] EMPTY_CHUNK_DATA;
     public static final byte[] EMPTY_BIOME_DATA;
 
     static {
-        if (GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
-            ByteBuf byteBuf = Unpooled.buffer();
-            try {
-                BlockStorage blockStorage = new BlockStorage(0);
-                blockStorage.writeToNetwork(byteBuf);
+        ByteBuf byteBuf = Unpooled.buffer();
+        try {
+            BlockStorage blockStorage = new BlockStorage(0);
+            blockStorage.writeToNetwork(byteBuf);
 
-                EMPTY_BIOME_DATA = new byte[byteBuf.readableBytes()];
-                byteBuf.readBytes(EMPTY_BIOME_DATA);
-            } finally {
-                byteBuf.release();
+            EMPTY_BIOME_DATA = new byte[byteBuf.readableBytes()];
+            byteBuf.readBytes(EMPTY_BIOME_DATA);
+        } finally {
+            byteBuf.release();
+        }
+
+        byteBuf = Unpooled.buffer();
+        try {
+            for (int i = 0; i < 32; i++) {
+                byteBuf.writeBytes(EMPTY_BIOME_DATA);
             }
 
-            byteBuf = Unpooled.buffer();
-            try {
-                for (int i = 0; i < 32; i++) {
-                    byteBuf.writeBytes(EMPTY_BIOME_DATA);
-                }
+            byteBuf.writeByte(0); // Border
 
-                byteBuf.writeByte(0); // Border
-
-                EMPTY_CHUNK_DATA = new byte[byteBuf.readableBytes()];
-                byteBuf.readBytes(EMPTY_CHUNK_DATA);
-            } finally {
-                byteBuf.release();
-            }
-        } else {
-            EMPTY_BIOME_DATA = null; // Unused
-            EMPTY_CHUNK_DATA = new byte[257]; // 256 bytes for biomes, one for borders
+            EMPTY_CHUNK_DATA = new byte[byteBuf.readableBytes()];
+            byteBuf.readBytes(EMPTY_CHUNK_DATA);
+        } finally {
+            byteBuf.release();
         }
     }
 
@@ -441,24 +432,17 @@ public class ChunkUtils {
         }
 
         int dimension = DimensionUtils.javaToBedrock(session.getDimension());
-        boolean extendedHeight = dimension == 0 && session.getConnector().getConfig().isExtendedWorldHeight();
+        boolean extendedHeight = dimension == 0;
         session.getChunkCache().setExtendedHeight(extendedHeight);
 
         // Yell in the console if the world height is too height in the current scenario
         // The constraints change depending on if the player is in the overworld or not, and if experimental height is enabled
         if (minY < (extendedHeight ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT)
                 || maxY > (extendedHeight ? MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD : MAXIMUM_ACCEPTED_HEIGHT)) {
-            if (minY >= CAVES_AND_CLIFFS_MINIMUM_HEIGHT && maxY <= CAVES_AND_CLIFFS_MAXIMUM_HEIGHT && dimension == 0 && !session.getConnector().getConfig().isExtendedWorldHeight()) {
-                // This dimension uses heights that would be fixed by enabling the experimental toggle
-                session.getConnector().getLogger().warning(
-                        LanguageUtils.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds.caves_and_cliffs",
-                                "extended-world-height"));
-            } else {
-                session.getConnector().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds",
-                        extendedHeight ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT,
-                        extendedHeight ? MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD : MAXIMUM_ACCEPTED_HEIGHT,
-                        session.getDimension()));
-            }
+            session.getConnector().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds",
+                    extendedHeight ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT,
+                    extendedHeight ? MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD : MAXIMUM_ACCEPTED_HEIGHT,
+                    session.getDimension()));
         }
 
         session.getChunkCache().setMinY(minY);

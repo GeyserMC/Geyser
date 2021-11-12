@@ -30,6 +30,7 @@ import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.data.ExperimentData;
 import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
+import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
@@ -151,8 +152,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
                 }
 
-                if (session.getConnector().getConfig().isExtendedWorldHeight()) {
-                    // Allow extended world height in the overworld to work
+                if (session.getUpstream().getProtocolVersion() <= Bedrock_v471.V471_CODEC.getProtocolVersion()) {
+                    // Allow extended world height in the overworld to work for pre-1.18 clients
                     stackPacket.getExperiments().add(new ExperimentData("caves_and_cliffs", true));
                 }
 

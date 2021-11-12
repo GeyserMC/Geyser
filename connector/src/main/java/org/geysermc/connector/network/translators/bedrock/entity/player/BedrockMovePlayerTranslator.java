@@ -33,7 +33,6 @@ import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.common.ChatColor;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.entity.type.EntityType;
@@ -43,14 +42,9 @@ import org.geysermc.connector.network.translators.Translator;
 
 @Translator(packet = MovePlayerPacket.class)
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
-    /* The upper and lower bounds to check for the void floor that only exists in Bedrock */
-    private static final int BEDROCK_OVERWORLD_VOID_FLOOR_UPPER_Y;
-    private static final int BEDROCK_OVERWORLD_VOID_FLOOR_LOWER_Y;
-
-    static {
-        BEDROCK_OVERWORLD_VOID_FLOOR_UPPER_Y = GeyserConnector.getInstance().getConfig().isExtendedWorldHeight() ? -104 : -40;
-        BEDROCK_OVERWORLD_VOID_FLOOR_LOWER_Y = BEDROCK_OVERWORLD_VOID_FLOOR_UPPER_Y + 2;
-    }
+    /* The upper and lower bounds to check for the void floor that only exists in Bedrock. These are the constants for the overworld. */
+    private static final int BEDROCK_OVERWORLD_VOID_FLOOR_UPPER_Y = -104;
+    private static final int BEDROCK_OVERWORLD_VOID_FLOOR_LOWER_Y = BEDROCK_OVERWORLD_VOID_FLOOR_UPPER_Y + 2;
 
     @Override
     public void translate(GeyserSession session, MovePlayerPacket packet) {

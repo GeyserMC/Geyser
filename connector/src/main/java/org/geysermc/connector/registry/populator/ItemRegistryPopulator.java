@@ -35,7 +35,6 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import com.nukkitx.protocol.bedrock.v448.Bedrock_v448;
 import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
 import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -63,12 +62,6 @@ public class ItemRegistryPopulator {
 
     static {
         PALETTE_VERSIONS = new Object2ObjectOpenHashMap<>();
-        if (GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
-            PALETTE_VERSIONS.put("1_17_10.caves_and_cliffs", new PaletteVersion(Bedrock_v448.V448_CODEC.getProtocolVersion(), Collections.emptyMap()));
-        } else {
-            PALETTE_VERSIONS.put("1_17_10", new PaletteVersion(Bedrock_v448.V448_CODEC.getProtocolVersion(), Collections.emptyMap()));
-        }
-
         PALETTE_VERSIONS.put("1_17_30", new PaletteVersion(Bedrock_v465.V465_CODEC.getProtocolVersion(), Collections.emptyMap()));
         PALETTE_VERSIONS.put("1_17_40", new PaletteVersion(Bedrock_v471.V471_CODEC.getProtocolVersion(), Collections.emptyMap()));
     }
@@ -169,10 +162,7 @@ public class ItemRegistryPopulator {
                 }
 
                 String identifier = itemNode.get("id").textValue();
-                if (identifier.equals("minecraft:sculk_sensor") && !GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
-                    // https://github.com/GeyserMC/Geyser/issues/2564
-                    continue;
-                } else if (identifier.equals("minecraft:debug_stick")) {
+                if (identifier.equals("minecraft:debug_stick")) {
                     // Just shows an empty texture; either way it doesn't exist in the creative menu on Java
                     continue;
                 }
@@ -223,9 +213,6 @@ public class ItemRegistryPopulator {
             if (!usingFurnaceMinecart) {
                 javaOnlyItems.add("minecraft:furnace_minecart");
             }
-            if (!GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
-                javaOnlyItems.add("minecraft:sculk_sensor");
-            }
             // Java-only items for this version
             javaOnlyItems.addAll(palette.getValue().additionalTranslatedItems().keySet());
 
@@ -239,7 +226,8 @@ public class ItemRegistryPopulator {
                     // This items has a mapping specifically for this version of the game
                     mappingItem = entry.getValue();
                 }
-                if (javaIdentifier.equals("minecraft:sculk_sensor") && GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
+                if (javaIdentifier.equals("minecraft:sculk_sensor")) {
+                    // TODO fix in mappings
                     mappingItem.setBedrockIdentifier("minecraft:sculk_sensor");
                 }
 
