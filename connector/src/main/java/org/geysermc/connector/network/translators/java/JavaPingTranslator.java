@@ -33,7 +33,7 @@ import org.geysermc.connector.network.translators.Translator;
 
 // Why does this packet exist? Whatever, we better implement it
 @Translator(packet = ClientboundPingPacket.class)
-public class JavaPingPacket extends PacketTranslator<ClientboundPingPacket> {
+public class JavaPingTranslator extends PacketTranslator<ClientboundPingPacket> {
 
     @Override
     public void translate(GeyserSession session, ClientboundPingPacket packet) {
