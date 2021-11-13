@@ -927,6 +927,11 @@ public class GeyserSession implements CommandSender {
             tickThread.cancel(false);
         }
 
+        if (!eventLoop.isShuttingDown()) {
+            System.out.println("Shutting down session event loop");
+            eventLoop.shutdownGracefully();
+        }
+
         closed = true;
     }
 

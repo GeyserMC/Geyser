@@ -87,7 +87,7 @@ public interface CommandSender {
             return null;
         }
 
-        for (GeyserSession session : GeyserConnector.getInstance().getPlayers()) {
+        for (GeyserSession session : GeyserConnector.getInstance().getSessionManager().getSessions().values()) {
             if (getName().equals(session.getPlayerEntity().getUsername())) {
                 return session;
             }
