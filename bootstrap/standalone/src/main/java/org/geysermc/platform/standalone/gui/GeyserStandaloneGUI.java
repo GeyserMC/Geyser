@@ -306,7 +306,7 @@ public class GeyserStandaloneGUI {
                 // Update player table
                 playerTableModel.getDataVector().removeAllElements();
 
-                for (GeyserSession player : GeyserConnector.getInstance().getPlayers()) {
+                for (GeyserSession player : GeyserConnector.getInstance().getSessionManager().getSessions().values()) {
                     Vector<String> row = new Vector<>();
                     row.add(player.getSocketAddress().getHostName());
                     row.add(player.getPlayerEntity().getUsername());

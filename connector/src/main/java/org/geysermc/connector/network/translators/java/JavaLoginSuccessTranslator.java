@@ -47,6 +47,8 @@ public class JavaLoginSuccessTranslator extends PacketTranslator<LoginSuccessPac
         playerEntity.setUsername(profile.getName());
         playerEntity.setUuid(profile.getId());
 
+        session.getConnector().getSessionManager().addSession(playerEntity.getUuid(), session);
+
         // Check if they are not using a linked account
         if (remoteAuthType == AuthType.OFFLINE || playerEntity.getUuid().getMostSignificantBits() == 0) {
             SkinManager.handleBedrockSkin(playerEntity, session.getClientData());

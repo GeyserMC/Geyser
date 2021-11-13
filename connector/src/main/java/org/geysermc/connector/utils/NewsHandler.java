@@ -68,7 +68,7 @@ public class NewsHandler {
 
     private void checkNews() {
         try {
-            String body = WebUtils.getBody(Constants.NEWS_OVERVIEW_URL);
+            String body = WebUtils.getBody(Constants.NEWS_OVERVIEW_URL + Constants.NEWS_PROJECT_NAME);
             JsonArray array = gson.fromJson(body, JsonArray.class);
 
             try {
@@ -109,7 +109,7 @@ public class NewsHandler {
 //                }
                 break;
             case BROADCAST_TO_OPERATORS:
-                for (GeyserSession player : GeyserConnector.getInstance().getPlayers()) {
+                for (GeyserSession player : GeyserConnector.getInstance().getSessionManager().getSessions().values()) {
                     if (player.getOpPermissionLevel() >= 2) {
                         session.sendMessage(ChatColor.GREEN + news.getMessage());
                     }
@@ -141,10 +141,6 @@ public class NewsHandler {
         }
 
         if (!item.isActive()) {
-            return;
-        }
-
-        if (!item.isGlobal() && !Constants.NEWS_PROJECT_NAME.equals(item.getProject())) {
             return;
         }
 

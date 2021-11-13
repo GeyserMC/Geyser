@@ -59,6 +59,12 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(LoginPacket loginPacket) {
+        if (connector.isShuttingDown()) {
+            // Don't allow new players in if we're no longer operating
+            session.disconnect(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.message"));
+            return true;
+        }
+
         BedrockPacketCodec packetCodec = BedrockProtocol.getBedrockCodec(loginPacket.getProtocolVersion());
         if (packetCodec == null) {
             String supportedVersions = BedrockProtocol.getAllSupportedVersions();
@@ -85,6 +91,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
         session.sendUpstreamPacket(playStatus);
+
+        connector.getSessionManager().addPendingSession(session);
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         for(ResourcePack resourcePack : ResourcePack.PACKS.values()) {

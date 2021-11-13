@@ -49,6 +49,8 @@ import org.geysermc.connector.utils.Direction;
 import org.geysermc.platform.spigot.world.manager.GeyserSpigotWorldManager;
 
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class GeyserPistonListener implements Listener {
     private final GeyserConnector connector;
@@ -86,11 +88,12 @@ public class GeyserPistonListener implements Listener {
         Object2IntMap<Vector3i> attachedBlocks = new Object2IntOpenHashMap<>();
         boolean blocksFilled = false;
 
-        for (GeyserSession session : connector.getPlayers()) {
-            Player player = Bukkit.getPlayer(session.getPlayerEntity().getUuid());
+        for (Map.Entry<UUID, GeyserSession> entry : connector.getSessionManager().getSessions().entrySet()) {
+            Player player = Bukkit.getPlayer(entry.getKey());
             if (player == null || !player.getWorld().equals(world)) {
                 continue;
             }
+            GeyserSession session = entry.getValue();
 
             int dX = Math.abs(location.getBlockX() - player.getLocation().getBlockX()) >> 4;
             int dZ = Math.abs(location.getBlockZ() - player.getLocation().getBlockZ()) >> 4;
@@ -107,8 +110,12 @@ public class GeyserPistonListener implements Listener {
                 List<Block> blocks = isExtend ? ((BlockPistonExtendEvent) event).getBlocks() : ((BlockPistonRetractEvent) event).getBlocks();
                 for (Block block : blocks) {
                     Location attachedLocation = block.getLocation();
-                    attachedBlocks.put(getVector(attachedLocation), worldManager.getBlockNetworkId(player, block,
-                            attachedLocation.getBlockX(), attachedLocation.getBlockY(), attachedLocation.getBlockZ()));
+                    int blockId = worldManager.getBlockNetworkId(player, block,
+                            attachedLocation.getBlockX(), attachedLocation.getBlockY(), attachedLocation.getBlockZ());
+                    // Ignore blocks that will be destroyed
+                    if (BlockStateValues.canPistonMoveBlock(blockId, isExtend)) {
+                        attachedBlocks.put(getVector(attachedLocation), blockId);
+                    }
                 }
                 blocksFilled = true;
             }

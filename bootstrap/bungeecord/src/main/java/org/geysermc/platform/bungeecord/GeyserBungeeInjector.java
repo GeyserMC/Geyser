@@ -35,7 +35,12 @@ import io.netty.channel.local.LocalAddress;
 import io.netty.util.AttributeKey;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ListenerInfo;
+import net.md_5.bungee.api.event.ProxyReloadEvent;
+import net.md_5.bungee.api.plugin.Listener;
+import net.md_5.bungee.api.plugin.Plugin;
+import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.netty.PipelineUtils;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.common.GeyserInjector;
 
@@ -43,16 +48,19 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Set;
 
-public class GeyserBungeeInjector extends GeyserInjector {
+public class GeyserBungeeInjector extends GeyserInjector implements Listener {
+    private final Plugin plugin;
     private final ProxyServer proxy;
     /**
      * Set as a variable so it is only set after the proxy has finished initializing
      */
     private ChannelInitializer<Channel> channelInitializer = null;
     private Set<Channel> bungeeChannels = null;
+    private boolean eventRegistered = false;
 
-    public GeyserBungeeInjector(ProxyServer proxy) {
-        this.proxy = proxy;
+    public GeyserBungeeInjector(Plugin plugin) {
+        this.plugin = plugin;
+        this.proxy = plugin.getProxy();
     }
 
     @Override
@@ -142,6 +150,12 @@ public class GeyserBungeeInjector extends GeyserInjector {
         this.localChannel = channelFuture;
         this.bungeeChannels.add(this.localChannel.channel());
         this.serverSocketAddress = channelFuture.channel().localAddress();
+
+        if (!this.eventRegistered) {
+            // Register reload listener
+            this.proxy.getPluginManager().registerListener(this.plugin, this);
+            this.eventRegistered = true;
+        }
     }
 
     @Override
@@ -151,5 +165,18 @@ public class GeyserBungeeInjector extends GeyserInjector {
             this.bungeeChannels = null;
         }
         super.shutdown();
+    }
+
+    /**
+     * The reload process clears the listeners field. Since we need to add to the listeners for maximum compatibility,
+     * we also need to re-add and re-enable our listener if a reload is initiated.
+     */
+    @EventHandler
+    public void onProxyReload(ProxyReloadEvent event) {
+        this.bungeeChannels = null;
+        if (this.localChannel != null) {
+            shutdown();
+            initializeLocalChannel(GeyserConnector.getInstance().getBootstrap());
+        }
     }
 }

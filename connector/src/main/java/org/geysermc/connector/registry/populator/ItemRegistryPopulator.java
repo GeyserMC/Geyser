@@ -172,6 +172,9 @@ public class ItemRegistryPopulator {
                 if (identifier.equals("minecraft:sculk_sensor") && !GeyserConnector.getInstance().getConfig().isExtendedWorldHeight()) {
                     // https://github.com/GeyserMC/Geyser/issues/2564
                     continue;
+                } else if (identifier.equals("minecraft:debug_stick")) {
+                    // Just shows an empty texture; either way it doesn't exist in the creative menu on Java
+                    continue;
                 }
                 StartGamePacket.ItemEntry entry = entries.get(identifier);
                 int id = -1;
