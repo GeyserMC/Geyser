@@ -114,7 +114,7 @@ public class GeyserConnector {
     /**
      * True if the connector is shutting down or has shut down
      */
-    private volatile boolean shuttingDown = false;
+    private boolean shuttingDown = false;
 
     private final ScheduledExecutorService generalThreadPool;
 
