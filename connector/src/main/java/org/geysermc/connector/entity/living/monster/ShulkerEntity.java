@@ -26,7 +26,7 @@
 package org.geysermc.connector.entity.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockFace;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;

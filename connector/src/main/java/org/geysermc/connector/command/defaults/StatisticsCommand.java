@@ -26,7 +26,7 @@
 package org.geysermc.connector.command.defaults;
 
 import com.github.steveice10.mc.protocol.data.game.ClientRequest;
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientCommandPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
@@ -43,8 +43,8 @@ public class StatisticsCommand extends GeyserCommand {
         if (session == null) return;
 
         session.setWaitingForStatistics(true);
-        ClientRequestPacket clientRequestPacket = new ClientRequestPacket(ClientRequest.STATS);
-        session.sendDownstreamPacket(clientRequestPacket);
+        ServerboundClientCommandPacket ServerboundClientCommandPacket = new ServerboundClientCommandPacket(ClientRequest.STATS);
+        session.sendDownstreamPacket(ServerboundClientCommandPacket);
     }
 
     @Override

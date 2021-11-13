@@ -25,20 +25,22 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPositionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundMoveEntityPosPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-@Translator(packet = ServerEntityPositionPacket.class)
-public class JavaEntityPositionTranslator extends PacketTranslator<ServerEntityPositionPacket> {
+@Translator(packet = ClientboundMoveEntityPosPacket.class)
+public class JavaEntityPositionTranslator extends PacketTranslator<ClientboundMoveEntityPosPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerEntityPositionPacket packet) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+    public void translate(GeyserSession session, ClientboundMoveEntityPosPacket packet) {
+        Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
+        } else {
+            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         }
         if (entity == null) return;
 

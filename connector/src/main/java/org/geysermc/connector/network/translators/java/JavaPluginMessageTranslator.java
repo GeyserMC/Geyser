@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.network.translators.java;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPluginMessagePacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPluginMessagePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCustomPayloadPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCustomPayloadPacket;
 import com.google.common.base.Charsets;
 import com.nukkitx.protocol.bedrock.packet.TransferPacket;
 import org.geysermc.connector.GeyserConnector;
@@ -41,12 +41,12 @@ import org.geysermc.cumulus.util.FormType;
 
 import java.nio.charset.StandardCharsets;
 
-@Translator(packet = ServerPluginMessagePacket.class)
-public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMessagePacket> {
+@Translator(packet = ClientboundCustomPayloadPacket.class)
+public class JavaPluginMessageTranslator extends PacketTranslator<ClientboundCustomPayloadPacket> {
     private final GeyserLogger logger = GeyserConnector.getInstance().getLogger();
 
     @Override
-    public void translate(GeyserSession session, ServerPluginMessagePacket packet) {
+    public void translate(GeyserSession session, ClientboundCustomPayloadPacket packet) {
         // The only plugin messages it has to listen for are Floodgate plugin messages
         if (session.getRemoteAuthType() != AuthType.FLOODGATE) {
             return;
@@ -77,7 +77,7 @@ public class JavaPluginMessageTranslator extends PacketTranslator<ServerPluginMe
                 finalData[1] = data[2];
                 System.arraycopy(raw, 0, finalData, 2, raw.length);
 
-                session.sendDownstreamPacket(new ClientPluginMessagePacket(channel, finalData));
+                session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(channel, finalData));
             });
             session.sendForm(form);
 

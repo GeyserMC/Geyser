@@ -26,8 +26,8 @@
 package org.geysermc.connector.network.translators.bedrock.entity.player;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockFace;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import com.nukkitx.protocol.bedrock.packet.EmotePacket;
 import org.geysermc.connector.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.connector.entity.Entity;
@@ -43,7 +43,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
     public void translate(GeyserSession session, EmotePacket packet) {
         if (session.getConnector().getConfig().getEmoteOffhandWorkaround() != EmoteOffhandWorkaroundOption.DISABLED) {
             // Activate the workaround - we should trigger the offhand now
-            ClientPlayerActionPacket swapHandsPacket = new ClientPlayerActionPacket(PlayerAction.SWAP_HANDS, BlockUtils.POSITION_ZERO,
+            ServerboundPlayerActionPacket swapHandsPacket = new ServerboundPlayerActionPacket(PlayerAction.SWAP_HANDS, BlockUtils.POSITION_ZERO,
                     BlockFace.DOWN);
             session.sendDownstreamPacket(swapHandsPacket);
 

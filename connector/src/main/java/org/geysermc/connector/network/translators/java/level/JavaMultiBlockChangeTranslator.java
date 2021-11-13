@@ -23,27 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.network.translators.java.level;
 
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockChangeRecord;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundSectionBlocksUpdatePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.ChunkUtils;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerSpawnPositionPacket;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.SetSpawnPositionPacket;
-import org.geysermc.connector.utils.DimensionUtils;
-
-@Translator(packet = ServerSpawnPositionPacket.class)
-public class JavaSpawnPositionTranslator extends PacketTranslator<ServerSpawnPositionPacket> {
+@Translator(packet = ClientboundSectionBlocksUpdatePacket.class)
+public class JavaMultiBlockChangeTranslator extends PacketTranslator<ClientboundSectionBlocksUpdatePacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerSpawnPositionPacket packet) {
-        SetSpawnPositionPacket spawnPositionPacket = new SetSpawnPositionPacket();
-        spawnPositionPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
-        spawnPositionPacket.setSpawnForced(true);
-        spawnPositionPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
-        spawnPositionPacket.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
-        session.sendUpstreamPacket(spawnPositionPacket);
+    public void translate(GeyserSession session, ClientboundSectionBlocksUpdatePacket packet) {
+        for (BlockChangeRecord record : packet.getRecords()) {
+            ChunkUtils.updateBlock(session, record.getBlock(), record.getPosition());
+        }
     }
 }

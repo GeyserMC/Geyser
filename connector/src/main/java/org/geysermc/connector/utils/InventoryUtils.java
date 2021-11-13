@@ -27,8 +27,8 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreativeInventoryActionPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientMoveItemToHotbarPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundPickItemPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundSetCreativeModeSlotPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
@@ -210,7 +210,7 @@ public class InventoryUtils {
             }
             // If this is the item we're looking for
             if (geyserItem.getJavaId() == itemStack.getId() && Objects.equals(geyserItem.getNbt(), itemStack.getNbt())) {
-                ClientMoveItemToHotbarPacket packetToSend = new ClientMoveItemToHotbarPacket(i); // https://wiki.vg/Protocol#Pick_Item
+                ServerboundPickItemPacket packetToSend = new ServerboundPickItemPacket(i); // https://wiki.vg/Protocol#Pick_Item
                 session.sendDownstreamPacket(packetToSend);
                 return;
             }
@@ -220,7 +220,7 @@ public class InventoryUtils {
         if (session.getGameMode() == GameMode.CREATIVE) {
             int slot = findEmptyHotbarSlot(inventory);
 
-            ClientCreativeInventoryActionPacket actionPacket = new ClientCreativeInventoryActionPacket(slot,
+            ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket(slot,
                     itemStack);
             if ((slot - 36) != inventory.getHeldItemSlot()) {
                 setHotbarItem(session, slot);
@@ -275,7 +275,7 @@ public class InventoryUtils {
                 continue;
             }
 
-            ClientMoveItemToHotbarPacket packetToSend = new ClientMoveItemToHotbarPacket(i); // https://wiki.vg/Protocol#Pick_Item
+            ServerboundPickItemPacket packetToSend = new ServerboundPickItemPacket(i); // https://wiki.vg/Protocol#Pick_Item
             session.sendDownstreamPacket(packetToSend);
             return;
         }
@@ -286,7 +286,7 @@ public class InventoryUtils {
 
             ItemMapping mapping = session.getItemMappings().getMapping(itemName);
             if (mapping != null) {
-                ClientCreativeInventoryActionPacket actionPacket = new ClientCreativeInventoryActionPacket(slot,
+                ServerboundSetCreativeModeSlotPacket actionPacket = new ServerboundSetCreativeModeSlotPacket(slot,
                         new ItemStack(mapping.getJavaId()));
                 if ((slot - 36) != inventory.getHeldItemSlot()) {
                     setHotbarItem(session, slot);

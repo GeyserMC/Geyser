@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.effect;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerPlayEffectPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 
 /**
@@ -33,10 +33,10 @@ import org.geysermc.connector.network.session.GeyserSession;
  */
 public interface Effect {
     /**
-     * Translates the given {@link ServerPlayEffectPacket} into bedrock and sends it upstream.
+     * Translates the given {@link ClientboundLevelEventPacket} into bedrock and sends it upstream.
      *
      * @param session GeyserSession
      * @param packet the effect packet to handle
      */
-    void handleEffectPacket(GeyserSession session, ServerPlayEffectPacket packet);
+    void handleEffectPacket(GeyserSession session, ClientboundLevelEventPacket packet);
 }

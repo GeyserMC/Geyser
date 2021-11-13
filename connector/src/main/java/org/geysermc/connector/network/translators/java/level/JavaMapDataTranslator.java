@@ -23,14 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.network.translators.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.world.map.MapData;
-import com.github.steveice10.mc.protocol.data.game.world.map.MapIcon;
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerMapDataPacket;
+import com.github.steveice10.mc.protocol.data.game.level.map.MapData;
+import com.github.steveice10.mc.protocol.data.game.level.map.MapIcon;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundMapItemDataPacket;
 import com.nukkitx.protocol.bedrock.data.MapDecoration;
 import com.nukkitx.protocol.bedrock.data.MapTrackedObject;
-import com.nukkitx.protocol.bedrock.packet.ClientboundMapItemDataPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -38,11 +37,11 @@ import org.geysermc.connector.utils.BedrockMapIcon;
 import org.geysermc.connector.utils.DimensionUtils;
 import org.geysermc.connector.utils.MapColor;
 
-@Translator(packet = ServerMapDataPacket.class)
-public class JavaMapDataTranslator extends PacketTranslator<ServerMapDataPacket> {
+@Translator(packet = ClientboundMapItemDataPacket.class)
+public class JavaMapDataTranslator extends PacketTranslator<ClientboundMapItemDataPacket> {
     @Override
-    public void translate(GeyserSession session, ServerMapDataPacket packet) {
-        ClientboundMapItemDataPacket mapItemDataPacket = new ClientboundMapItemDataPacket();
+    public void translate(GeyserSession session, ClientboundMapItemDataPacket packet) {
+        com.nukkitx.protocol.bedrock.packet.ClientboundMapItemDataPacket mapItemDataPacket = new com.nukkitx.protocol.bedrock.packet.ClientboundMapItemDataPacket();
         boolean shouldStore = false;
 
         mapItemDataPacket.setUniqueMapId(packet.getMapId());

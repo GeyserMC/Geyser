@@ -23,11 +23,11 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.network.translators.java.level;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.world.particle.*;
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerSpawnParticlePacket;
+import com.github.steveice10.mc.protocol.data.game.level.particle.*;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelParticlesPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
@@ -46,11 +46,11 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 
-@Translator(packet = ServerSpawnParticlePacket.class)
-public class JavaSpawnParticleTranslator extends PacketTranslator<ServerSpawnParticlePacket> {
+@Translator(packet = ClientboundLevelParticlesPacket.class)
+public class JavaSpawnParticleTranslator extends PacketTranslator<ClientboundLevelParticlesPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerSpawnParticlePacket packet) {
+    public void translate(GeyserSession session, ClientboundLevelParticlesPacket packet) {
         Function<Vector3f, BedrockPacket> particleCreateFunction = createParticle(session, packet.getParticle());
         if (particleCreateFunction != null) {
             if (packet.getAmount() == 0) {

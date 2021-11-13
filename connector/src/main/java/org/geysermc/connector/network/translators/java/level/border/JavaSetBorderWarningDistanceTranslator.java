@@ -23,23 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.network.translators.java.level.border;
 
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.border.ClientboundSetBorderWarningDistancePacket;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.WorldBorder;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.ChunkUtils;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockChangeRecord;
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerMultiBlockChangePacket;
-
-@Translator(packet = ServerMultiBlockChangePacket.class)
-public class JavaMultiBlockChangeTranslator extends PacketTranslator<ServerMultiBlockChangePacket> {
+@Translator(packet = ClientboundSetBorderWarningDistancePacket.class)
+public class JavaSetBorderWarningDistanceTranslator extends PacketTranslator<ClientboundSetBorderWarningDistancePacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerMultiBlockChangePacket packet) {
-        for (BlockChangeRecord record : packet.getRecords()) {
-            ChunkUtils.updateBlock(session, record.getBlock(), record.getPosition());
-        }
+    public void translate(GeyserSession session, ClientboundSetBorderWarningDistancePacket packet) {
+        WorldBorder worldBorder = session.getWorldBorder();
+        worldBorder.setWarningBlocks(packet.getWarningBlocks());
+
+        worldBorder.update();
     }
 }

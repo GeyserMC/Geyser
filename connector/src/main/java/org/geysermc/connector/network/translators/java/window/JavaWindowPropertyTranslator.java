@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.window;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerWindowPropertyPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.window.ClientboundContainerSetDataPacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -33,11 +33,11 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 
-@Translator(packet = ServerWindowPropertyPacket.class)
-public class JavaWindowPropertyTranslator extends PacketTranslator<ServerWindowPropertyPacket> {
+@Translator(packet = ClientboundContainerSetDataPacket.class)
+public class JavaWindowPropertyTranslator extends PacketTranslator<ClientboundContainerSetDataPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerWindowPropertyPacket packet) {
+    public void translate(GeyserSession session, ClientboundContainerSetDataPacket packet) {
         Inventory inventory = InventoryUtils.getInventory(session, packet.getWindowId());
         if (inventory == null)
             return;

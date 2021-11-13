@@ -23,23 +23,22 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.network.translators.java.level.border;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerVehicleMovePacket;
-import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.connector.entity.Entity;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.border.ClientboundSetBorderWarningDelayPacket;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.WorldBorder;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-@Translator(packet = ServerVehicleMovePacket.class)
-public class JavaVehicleMoveTranslator extends PacketTranslator<ServerVehicleMovePacket> {
+@Translator(packet = ClientboundSetBorderWarningDelayPacket.class)
+public class JavaSetBorderWarningDelayTranslator extends PacketTranslator<ClientboundSetBorderWarningDelayPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerVehicleMovePacket packet) {
-        Entity entity = session.getRidingVehicleEntity();
-        if (entity == null) return;
+    public void translate(GeyserSession session, ClientboundSetBorderWarningDelayPacket packet) {
+        WorldBorder worldBorder = session.getWorldBorder();
+        worldBorder.setWarningDelay(packet.getWarningDelay());
 
-        entity.moveAbsolute(session, Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), false, true);
+        worldBorder.update();
     }
 }

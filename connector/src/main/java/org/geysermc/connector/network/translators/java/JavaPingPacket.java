@@ -25,18 +25,18 @@
 
 package org.geysermc.connector.network.translators.java;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPongPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPingPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundPongPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundPingPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
 // Why does this packet exist? Whatever, we better implement it
-@Translator(packet = ServerPingPacket.class)
-public class JavaPingPacket extends PacketTranslator<ServerPingPacket> {
+@Translator(packet = ClientboundPingPacket.class)
+public class JavaPingPacket extends PacketTranslator<ClientboundPingPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerPingPacket packet) {
-        session.sendDownstreamPacket(new ClientPongPacket(packet.getId()));
+    public void translate(GeyserSession session, ClientboundPingPacket packet) {
+        session.sendDownstreamPacket(new ServerboundPongPacket(packet.getId()));
     }
 }

@@ -30,11 +30,11 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
-import com.github.steveice10.mc.protocol.data.game.world.block.BlockFace;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerActionPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerInteractEntityPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPlaceBlockPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockFace;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
@@ -89,7 +89,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         boolean dropAll = worldAction.getToItem().getCount() > 1;
-                        ClientPlayerActionPacket dropAllPacket = new ClientPlayerActionPacket(
+                        ServerboundPlayerActionPacket dropAllPacket = new ServerboundPlayerActionPacket(
                                 dropAll ? PlayerAction.DROP_ITEM_STACK : PlayerAction.DROP_ITEM,
                                 BlockUtils.POSITION_ZERO,
                                 BlockFace.DOWN
@@ -128,9 +128,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             if (itemFrameEntity != null) {
                                 int entityId = (int) itemFrameEntity.getEntityId();
                                 Vector3f vector = packet.getClickPosition();
-                                ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket(entityId,
+                                ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(entityId,
                                         InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
-                                ClientPlayerInteractEntityPacket interactAtPacket = new ClientPlayerInteractEntityPacket(entityId,
+                                ServerboundInteractPacket interactAtPacket = new ServerboundInteractPacket(entityId,
                                         InteractAction.INTERACT_AT, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND, session.isSneaking());
                                 session.sendDownstreamPacket(interactPacket);
                                 session.sendDownstreamPacket(interactAtPacket);
@@ -190,13 +190,13 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             if (blockState == BlockStateValues.JAVA_WATER_ID) {
                                 // Otherwise causes multiple mobs to spawn - just send a use item packet
                                 // TODO when we fix mobile bucket rotation, use it for this, too
-                                ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
+                                ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND);
                                 session.sendDownstreamPacket(itemPacket);
                                 break;
                             }
                         }
 
-                        ClientPlayerPlaceBlockPacket blockPacket = new ClientPlayerPlaceBlockPacket(
+                        ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
                                 new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()),
                                 BlockFace.values()[packet.getBlockFace()],
                                 Hand.MAIN_HAND,
@@ -207,7 +207,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         if (packet.getItemInHand() != null) {
                             // Otherwise boats will not be able to be placed in survival and buckets won't work on mobile
                             if (session.getItemMappings().getBoatIds().contains(packet.getItemInHand().getId())) {
-                                ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
+                                ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND);
                                 session.sendDownstreamPacket(itemPacket);
                             } else if (session.getItemMappings().getBucketIds().contains(packet.getItemInHand().getId())) {
                                 // Let the server decide if the bucket item should change, not the client, and revert the changes the client made
@@ -216,7 +216,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 slotPacket.setSlot(packet.getHotbarSlot());
                                 slotPacket.setItem(packet.getItemInHand());
                                 session.sendUpstreamPacket(slotPacket);
-                                // Don't send ClientPlayerUseItemPacket for powder snow buckets
+                                // Don't send ServerboundUseItemPacket for powder snow buckets
                                 if (packet.getItemInHand().getId() != session.getItemMappings().getStoredItems().powderSnowBucket().getBedrockId()) {
                                     // Special check for crafting tables since clients don't send BLOCK_INTERACT when interacting
                                     int blockState = session.getConnector().getWorldManager().getBlockAt(session, packet.getBlockPosition());
@@ -224,7 +224,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                         // Delay the interaction in case the client doesn't intend to actually use the bucket
                                         // See BedrockActionTranslator.java
                                         session.setBucketScheduledFuture(session.scheduleInEventLoop(() -> {
-                                            ClientPlayerUseItemPacket itemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
+                                            ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND);
                                             session.sendDownstreamPacket(itemPacket);
                                         }, 5, TimeUnit.MILLISECONDS));
                                     }
@@ -280,7 +280,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             }
                         }
 
-                        ClientPlayerUseItemPacket useItemPacket = new ClientPlayerUseItemPacket(Hand.MAIN_HAND);
+                        ServerboundUseItemPacket useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND);
                         session.sendDownstreamPacket(useItemPacket);
                     }
                     case 2 -> {
@@ -317,7 +317,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
                         if (itemFrameEntity != null) {
-                            ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) itemFrameEntity.getEntityId(),
+                            ServerboundInteractPacket attackPacket = new ServerboundInteractPacket((int) itemFrameEntity.getEntityId(),
                                     InteractAction.ATTACK, session.isSneaking());
                             session.sendDownstreamPacket(attackPacket);
                             break;
@@ -325,7 +325,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         PlayerAction action = session.getGameMode() == GameMode.CREATIVE ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING;
                         Position pos = new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());
-                        ClientPlayerActionPacket breakPacket = new ClientPlayerActionPacket(action, pos, BlockFace.values()[packet.getBlockFace()]);
+                        ServerboundPlayerActionPacket breakPacket = new ServerboundPlayerActionPacket(action, pos, BlockFace.values()[packet.getBlockFace()]);
                         session.sendDownstreamPacket(breakPacket);
                     }
                 }
@@ -333,7 +333,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             case ITEM_RELEASE:
                 if (packet.getActionType() == 0) {
                     // Followed to the Minecraft Protocol specification outlined at wiki.vg
-                    ClientPlayerActionPacket releaseItemPacket = new ClientPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, BlockUtils.POSITION_ZERO,
+                    ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, BlockUtils.POSITION_ZERO,
                             BlockFace.DOWN);
                     session.sendDownstreamPacket(releaseItemPacket);
                 }
@@ -359,9 +359,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             break;
                         }
                         Vector3f vector = packet.getClickPosition().sub(entity.getPosition());
-                        ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
+                        ServerboundInteractPacket interactPacket = new ServerboundInteractPacket((int) entity.getEntityId(),
                                 InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
-                        ClientPlayerInteractEntityPacket interactAtPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
+                        ServerboundInteractPacket interactAtPacket = new ServerboundInteractPacket((int) entity.getEntityId(),
                                 InteractAction.INTERACT_AT, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND, session.isSneaking());
                         session.sendDownstreamPacket(interactPacket);
                         session.sendDownstreamPacket(interactAtPacket);
@@ -372,11 +372,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         if (entity.getEntityType() == EntityType.ENDER_DRAGON) {
                             // Redirects the attack to its body entity, this only happens when
                             // attacking the underbelly of the ender dragon
-                            ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId() + 3,
+                            ServerboundInteractPacket attackPacket = new ServerboundInteractPacket((int) entity.getEntityId() + 3,
                                     InteractAction.ATTACK, session.isSneaking());
                             session.sendDownstreamPacket(attackPacket);
                         } else {
-                            ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
+                            ServerboundInteractPacket attackPacket = new ServerboundInteractPacket((int) entity.getEntityId(),
                                     InteractAction.ATTACK, session.isSneaking());
                             session.sendDownstreamPacket(attackPacket);
                         }

@@ -32,7 +32,7 @@ import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.StoneCuttingRecipeData;
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareRecipesPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
@@ -58,8 +58,8 @@ import static org.geysermc.connector.utils.InventoryUtils.LAST_RECIPE_NET_ID;
  *
  * Bedrock REQUIRES a CraftingDataPacket to be sent in order to craft anything.
  */
-@Translator(packet = ServerDeclareRecipesPacket.class)
-public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclareRecipesPacket> {
+@Translator(packet = ClientboundUpdateRecipesPacket.class)
+public class JavaDeclareRecipesTranslator extends PacketTranslator<ClientboundUpdateRecipesPacket> {
     /**
      * Required to use the specified cartography table recipes
      */
@@ -71,7 +71,7 @@ public class JavaDeclareRecipesTranslator extends PacketTranslator<ServerDeclare
     );
 
     @Override
-    public void translate(GeyserSession session, ServerDeclareRecipesPacket packet) {
+    public void translate(GeyserSession session, ClientboundUpdateRecipesPacket packet) {
         Map<RecipeType, List<CraftingData>> recipeTypes = Registries.CRAFTING_DATA.forVersion(session.getUpstream().getProtocolVersion());
         // Get the last known network ID (first used for the pregenerated recipes) and increment from there.
         int netId = InventoryUtils.LAST_RECIPE_NET_ID + 1;

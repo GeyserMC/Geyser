@@ -26,8 +26,8 @@
 package org.geysermc.connector.network.translators.java.entity.player;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.PositionElement;
-import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerPositionRotationPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.player.ClientboundPlayerPositionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundAcceptTeleportationPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
@@ -46,11 +46,11 @@ import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.EntityUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 
-@Translator(packet = ServerPlayerPositionRotationPacket.class)
-public class JavaPlayerPositionRotationTranslator extends PacketTranslator<ServerPlayerPositionRotationPacket> {
+@Translator(packet = ClientboundPlayerPositionPacket.class)
+public class JavaPlayerPositionRotationTranslator extends PacketTranslator<ClientboundPlayerPositionPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerPlayerPositionRotationPacket packet) {
+    public void translate(GeyserSession session, ClientboundPlayerPositionPacket packet) {
         if (!session.isLoggedIn())
             return;
 
@@ -81,7 +81,7 @@ public class JavaPlayerPositionRotationTranslator extends PacketTranslator<Serve
             session.sendUpstreamPacket(movePlayerPacket);
             session.setSpawned(true);
 
-            ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(packet.getTeleportId());
+            ServerboundAcceptTeleportationPacket teleportConfirmPacket = new ServerboundAcceptTeleportationPacket(packet.getTeleportId());
             session.sendDownstreamPacket(teleportConfirmPacket);
 
             ChunkUtils.updateChunkPosition(session, pos.toInt());

@@ -30,12 +30,12 @@ import org.geysermc.connector.network.session.cache.BossBar;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerBossBarPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundBossEventPacket;
 
-@Translator(packet = ServerBossBarPacket.class)
-public class JavaBossBarTranslator extends PacketTranslator<ServerBossBarPacket> {
+@Translator(packet = ClientboundBossEventPacket.class)
+public class JavaBossBarTranslator extends PacketTranslator<ClientboundBossEventPacket> {
     @Override
-    public void translate(GeyserSession session, ServerBossBarPacket packet) {
+    public void translate(GeyserSession session, ClientboundBossEventPacket packet) {
         BossBar bossBar = session.getEntityCache().getBossBar(packet.getUuid());
         switch (packet.getAction()) {
             case ADD:

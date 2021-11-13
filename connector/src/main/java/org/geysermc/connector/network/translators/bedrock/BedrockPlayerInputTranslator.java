@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientSteerVehiclePacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientVehicleMovePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundPlayerInputPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.PlayerInputPacket;
@@ -47,11 +47,11 @@ public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPa
 
     @Override
     public void translate(GeyserSession session, PlayerInputPacket packet) {
-        ClientSteerVehiclePacket clientSteerVehiclePacket = new ClientSteerVehiclePacket(
+        ServerboundPlayerInputPacket playerInputPacket = new ServerboundPlayerInputPacket(
                 packet.getInputMotion().getX(), packet.getInputMotion().getY(), packet.isJumping(), packet.isSneaking()
         );
 
-        session.sendDownstreamPacket(clientSteerVehiclePacket);
+        session.sendDownstreamPacket(playerInputPacket);
 
         // Bedrock only sends movement vehicle packets while moving
         // This allows horses to take damage while standing on magma
@@ -82,11 +82,11 @@ public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPa
                     vehiclePosition = vehiclePosition.down(EntityType.BOAT.getOffset());
                 }
 
-                ClientVehicleMovePacket clientVehicleMovePacket = new ClientVehicleMovePacket(
+                ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(
                         vehiclePosition.getX(), vehiclePosition.getY(), vehiclePosition.getZ(),
                         vehicleRotation.getX() - 90, vehicleRotation.getY()
                 );
-                session.sendDownstreamPacket(clientVehicleMovePacket);
+                session.sendDownstreamPacket(moveVehiclePacket);
             }
         }
     }

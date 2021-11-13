@@ -27,8 +27,8 @@ package org.geysermc.connector.registry;
 
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
-import com.github.steveice10.mc.protocol.data.game.world.effect.SoundEffect;
-import com.github.steveice10.mc.protocol.data.game.world.particle.ParticleType;
+import com.github.steveice10.mc.protocol.data.game.level.effect.SoundEffect;
+import com.github.steveice10.mc.protocol.data.game.level.particle.ParticleType;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;

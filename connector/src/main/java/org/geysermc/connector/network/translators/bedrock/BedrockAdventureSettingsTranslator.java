@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerAbilitiesPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import com.nukkitx.protocol.bedrock.data.AdventureSetting;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
@@ -47,7 +47,7 @@ public class BedrockAdventureSettingsTranslator extends PacketTranslator<Adventu
         }
 
         session.setFlying(isFlying);
-        ClientPlayerAbilitiesPacket abilitiesPacket = new ClientPlayerAbilitiesPacket(isFlying);
+        ServerboundPlayerAbilitiesPacket abilitiesPacket = new ServerboundPlayerAbilitiesPacket(isFlying);
         session.sendDownstreamPacket(abilitiesPacket);
 
         if (isFlying && session.getPlayerEntity().getMetadata().getFlags().getFlag(EntityFlag.SWIMMING)) {

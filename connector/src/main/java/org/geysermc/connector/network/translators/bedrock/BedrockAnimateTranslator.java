@@ -26,8 +26,8 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerSwingArmPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientSteerBoatPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundPaddleBoatPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -49,7 +49,7 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
             case SWING_ARM ->
                 // Delay so entity damage can be processed first
                 session.scheduleInEventLoop(() ->
-                        session.sendDownstreamPacket(new ClientPlayerSwingArmPacket(Hand.MAIN_HAND)),
+                        session.sendDownstreamPacket(new ServerboundSwingPacket(Hand.MAIN_HAND)),
                         25,
                         TimeUnit.MILLISECONDS
                 );
@@ -57,12 +57,12 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
             case ROW_LEFT -> {
                 // Packet value is a float of how long one has been rowing, so we convert that into a boolean
                 session.setSteeringLeft(packet.getRowingTime() > 0.0);
-                ClientSteerBoatPacket steerLeftPacket = new ClientSteerBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
+                ServerboundPaddleBoatPacket steerLeftPacket = new ServerboundPaddleBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
                 session.sendDownstreamPacket(steerLeftPacket);
             }
             case ROW_RIGHT -> {
                 session.setSteeringRight(packet.getRowingTime() > 0.0);
-                ClientSteerBoatPacket steerRightPacket = new ClientSteerBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
+                ServerboundPaddleBoatPacket steerRightPacket = new ServerboundPaddleBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
                 session.sendDownstreamPacket(steerRightPacket);
             }
         }

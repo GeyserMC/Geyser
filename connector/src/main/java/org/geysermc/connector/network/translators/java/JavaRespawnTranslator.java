@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.java;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundRespawnPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
@@ -39,11 +39,11 @@ import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.utils.ChunkUtils;
 import org.geysermc.connector.utils.DimensionUtils;
 
-@Translator(packet = ServerRespawnPacket.class)
-public class JavaRespawnTranslator extends PacketTranslator<ServerRespawnPacket> {
+@Translator(packet = ClientboundRespawnPacket.class)
+public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerRespawnPacket packet) {
+    public void translate(GeyserSession session, ClientboundRespawnPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         entity.setHealth(entity.getMaxHealth());

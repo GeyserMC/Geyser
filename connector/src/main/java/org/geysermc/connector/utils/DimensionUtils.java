@@ -119,8 +119,8 @@ public class DimensionUtils {
     }
 
     /**
-     * Determines the new dimension based on the {@link CompoundTag} sent by either the {@link com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket}
-     * or {@link com.github.steveice10.mc.protocol.packet.ingame.server.ServerRespawnPacket}.
+     * Determines the new dimension based on the {@link CompoundTag} sent by either the {@link com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundLoginPacket}
+     * or {@link com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundRespawnPacket}.
      *
      * @param dimensionTag the packet's dimension tag.
      * @return the dimension identifier.

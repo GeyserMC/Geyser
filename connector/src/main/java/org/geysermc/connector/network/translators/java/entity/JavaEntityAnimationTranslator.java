@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityAnimationPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundAnimatePacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.AnimateEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
@@ -36,11 +36,11 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.DimensionUtils;
 
-@Translator(packet = ServerEntityAnimationPacket.class)
-public class JavaEntityAnimationTranslator extends PacketTranslator<ServerEntityAnimationPacket> {
+@Translator(packet = ClientboundAnimatePacket.class)
+public class JavaEntityAnimationTranslator extends PacketTranslator<ClientboundAnimatePacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerEntityAnimationPacket packet) {
+    public void translate(GeyserSession session, ClientboundAnimatePacket packet) {
         Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
@@ -56,7 +56,7 @@ public class JavaEntityAnimationTranslator extends PacketTranslator<ServerEntity
             case SWING_ARM:
                 animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
                 break;
-            case EAT_FOOD: // ACTUALLY SWING OFF HAND
+            case SWING_OFFHAND:
                 // Use the OptionalPack to trigger the animation
                 AnimateEntityPacket offHandPacket = new AnimateEntityPacket();
                 offHandPacket.setAnimation("animation.player.attack.rotations.offhand");

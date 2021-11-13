@@ -23,10 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.network.translators.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.ExplodedBlockRecord;
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerExplosionPacket;
+import com.github.steveice10.mc.protocol.data.game.level.block.ExplodedBlockRecord;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundExplodePacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
@@ -40,11 +40,11 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.utils.ChunkUtils;
 
-@Translator(packet = ServerExplosionPacket.class)
-public class JavaExplosionTranslator extends PacketTranslator<ServerExplosionPacket> {
+@Translator(packet = ClientboundExplodePacket.class)
+public class JavaExplosionTranslator extends PacketTranslator<ClientboundExplodePacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerExplosionPacket packet) {
+    public void translate(GeyserSession session, ClientboundExplodePacket packet) {
         for (ExplodedBlockRecord record : packet.getExploded()) {
             Vector3i pos = Vector3i.from(packet.getX() + record.getX(), packet.getY() + record.getY(), packet.getZ() + record.getZ());
             ChunkUtils.updateBlock(session, BlockStateValues.JAVA_AIR_ID, pos);

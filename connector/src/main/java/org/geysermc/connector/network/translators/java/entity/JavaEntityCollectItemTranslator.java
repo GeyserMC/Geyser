@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityCollectItemPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundTakeItemEntityPacket;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.TakeItemEntityPacket;
@@ -40,11 +40,11 @@ import org.geysermc.connector.network.translators.Translator;
  * In Java, this is called for item entities, experience orbs and arrows
  * Bedrock uses it for arrows and item entities, but not experience orbs.
  */
-@Translator(packet = ServerEntityCollectItemPacket.class)
-public class JavaEntityCollectItemTranslator extends PacketTranslator<ServerEntityCollectItemPacket> {
+@Translator(packet = ClientboundTakeItemEntityPacket.class)
+public class JavaEntityCollectItemTranslator extends PacketTranslator<ClientboundTakeItemEntityPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerEntityCollectItemPacket packet) {
+    public void translate(GeyserSession session, ClientboundTakeItemEntityPacket packet) {
         // Collected entity is the other entity
         Entity collectedEntity = session.getEntityCache().getEntityByJavaId(packet.getCollectedEntityId());
         if (collectedEntity == null) return;

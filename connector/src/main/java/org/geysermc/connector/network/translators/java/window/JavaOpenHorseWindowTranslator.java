@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.window;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenHorseWindowPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.window.ClientboundHorseScreenOpenPacket;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
@@ -49,8 +49,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@Translator(packet = ServerOpenHorseWindowPacket.class)
-public class JavaOpenHorseWindowTranslator extends PacketTranslator<ServerOpenHorseWindowPacket> {
+@Translator(packet = ClientboundHorseScreenOpenPacket.class)
+public class JavaOpenHorseWindowTranslator extends PacketTranslator<ClientboundHorseScreenOpenPacket> {
 
     private static final NbtMap ARMOR_SLOT;
     private static final NbtMap CARPET_SLOT;
@@ -98,7 +98,7 @@ public class JavaOpenHorseWindowTranslator extends PacketTranslator<ServerOpenHo
     }
 
     @Override
-    public void translate(GeyserSession session, ServerOpenHorseWindowPacket packet) {
+    public void translate(GeyserSession session, ClientboundHorseScreenOpenPacket packet) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) {
             return;

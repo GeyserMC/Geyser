@@ -25,17 +25,17 @@
 
 package org.geysermc.connector.network.translators.java;
 
-import com.github.steveice10.mc.protocol.packet.login.server.LoginDisconnectPacket;
+import com.github.steveice10.mc.protocol.packet.login.clientbound.ClientboundLoginDisconnectPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
-@Translator(packet = LoginDisconnectPacket.class)
-public class JavaLoginDisconnectTranslator extends PacketTranslator<LoginDisconnectPacket> {
+@Translator(packet = ClientboundLoginDisconnectPacket.class)
+public class JavaLoginDisconnectTranslator extends PacketTranslator<ClientboundLoginDisconnectPacket> {
 
     @Override
-    public void translate(GeyserSession session, LoginDisconnectPacket packet) {
+    public void translate(GeyserSession session, ClientboundLoginDisconnectPacket packet) {
         // The client doesn't manually get disconnected so we have to do it ourselves
         session.disconnect(MessageTranslator.convertMessage(packet.getReason(), session.getLocale()));
     }

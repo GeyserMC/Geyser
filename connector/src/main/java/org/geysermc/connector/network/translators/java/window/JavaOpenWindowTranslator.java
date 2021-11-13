@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.network.translators.java.window;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCloseWindowPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerOpenWindowPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.window.ClientboundOpenScreenPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundContainerClosePacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -36,23 +36,23 @@ import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 import org.geysermc.connector.utils.LocaleUtils;
 
-@Translator(packet = ServerOpenWindowPacket.class)
-public class JavaOpenWindowTranslator extends PacketTranslator<ServerOpenWindowPacket> {
+@Translator(packet = ClientboundOpenScreenPacket.class)
+public class JavaOpenWindowTranslator extends PacketTranslator<ClientboundOpenScreenPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerOpenWindowPacket packet) {
+    public void translate(GeyserSession session, ClientboundOpenScreenPacket packet) {
         if (packet.getWindowId() == 0) {
             return;
         }
 
         InventoryTranslator newTranslator = InventoryTranslator.INVENTORY_TRANSLATORS.get(packet.getType());
         Inventory openInventory = session.getOpenInventory();
-        //No translator exists for this window type. Close all windows and return.
+        // No translator exists for this window type. Close all windows and return.
         if (newTranslator == null) {
             if (openInventory != null) {
                 InventoryUtils.closeInventory(session, openInventory.getId(), true);
             }
-            ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(packet.getWindowId());
+            ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(packet.getWindowId());
             session.sendDownstreamPacket(closeWindowPacket);
             return;
         }

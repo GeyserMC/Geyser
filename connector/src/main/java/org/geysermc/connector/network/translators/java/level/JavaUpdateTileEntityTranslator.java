@@ -23,11 +23,11 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.network.translators.java.level;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.world.block.UpdatedTileType;
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTileEntityPacket;
+import com.github.steveice10.mc.protocol.data.game.level.block.UpdatedTileType;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockEntityDataPacket;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
@@ -41,11 +41,11 @@ import org.geysermc.connector.network.translators.world.block.entity.RequiresBlo
 import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.connector.utils.BlockEntityUtils;
 
-@Translator(packet = ServerUpdateTileEntityPacket.class)
-public class JavaUpdateTileEntityTranslator extends PacketTranslator<ServerUpdateTileEntityPacket> {
+@Translator(packet = ClientboundBlockEntityDataPacket.class)
+public class JavaUpdateTileEntityTranslator extends PacketTranslator<ClientboundBlockEntityDataPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerUpdateTileEntityPacket packet) {
+    public void translate(GeyserSession session, ClientboundBlockEntityDataPacket packet) {
         String id = BlockEntityUtils.getBedrockBlockEntityId(packet.getType().name());
         if (packet.getNbt().isEmpty()) { // Fixes errors in servers sending empty NBT
             BlockEntityUtils.updateBlockEntity(session, NbtMap.EMPTY, packet.getPosition());

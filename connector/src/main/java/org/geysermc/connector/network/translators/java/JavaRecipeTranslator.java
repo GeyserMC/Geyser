@@ -23,22 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world.border;
+package org.geysermc.connector.network.translators.java;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.border.ServerSetBorderWarningDelayPacket;
+import com.github.steveice10.mc.protocol.data.game.UnlockRecipesAction;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundRecipePacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.cache.WorldBorder;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-@Translator(packet = ServerSetBorderWarningDelayPacket.class)
-public class JavaSetBorderWarningDelayTranslator extends PacketTranslator<ServerSetBorderWarningDelayPacket> {
+import java.util.Arrays;
+
+/**
+ * Used to list recipes that we can definitely use the recipe book for (and therefore save on packet usage)
+ */
+@Translator(packet = ClientboundRecipePacket.class)
+public class JavaRecipeTranslator extends PacketTranslator<ClientboundRecipePacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerSetBorderWarningDelayPacket packet) {
-        WorldBorder worldBorder = session.getWorldBorder();
-        worldBorder.setWarningDelay(packet.getWarningDelay());
-
-        worldBorder.update();
+    public void translate(GeyserSession session, ClientboundRecipePacket packet) {
+        if (packet.getAction() == UnlockRecipesAction.REMOVE) {
+            session.getUnlockedRecipes().removeAll(Arrays.asList(packet.getRecipes()));
+        } else {
+            session.getUnlockedRecipes().addAll(Arrays.asList(packet.getRecipes()));
+        }
     }
 }
+

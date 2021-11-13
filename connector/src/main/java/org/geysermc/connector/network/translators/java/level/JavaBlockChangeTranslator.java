@@ -23,10 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.network.translators.java.level;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerBlockChangePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockUpdatePacket;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
@@ -38,11 +38,11 @@ import org.geysermc.connector.network.translators.sound.BlockSoundInteractionHan
 import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.utils.ChunkUtils;
 
-@Translator(packet = ServerBlockChangePacket.class)
-public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChangePacket> {
+@Translator(packet = ClientboundBlockUpdatePacket.class)
+public class JavaBlockChangeTranslator extends PacketTranslator<ClientboundBlockUpdatePacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerBlockChangePacket packet) {
+    public void translate(GeyserSession session, ClientboundBlockUpdatePacket packet) {
         Position pos = packet.getRecord().getPosition();
         boolean updatePlacement = session.getConnector().getPlatformType() != PlatformType.SPIGOT && // Spigot simply listens for the block place event
                 session.getConnector().getWorldManager().getBlockAt(session, pos) != packet.getRecord().getBlock();
@@ -53,7 +53,7 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
         this.checkInteract(session, packet);
     }
 
-    private boolean checkPlace(GeyserSession session, ServerBlockChangePacket packet) {
+    private boolean checkPlace(GeyserSession session, ClientboundBlockUpdatePacket packet) {
         Vector3i lastPlacePos = session.getLastBlockPlacePosition();
         if (lastPlacePos == null) {
             return false;
@@ -91,7 +91,7 @@ public class JavaBlockChangeTranslator extends PacketTranslator<ServerBlockChang
         return true;
     }
 
-    private void checkInteract(GeyserSession session, ServerBlockChangePacket packet) {
+    private void checkInteract(GeyserSession session, ClientboundBlockUpdatePacket packet) {
         Vector3i lastInteractPos = session.getLastInteractionBlockPosition();
         if (lastInteractPos == null || !session.isInteracting()) {
             return;

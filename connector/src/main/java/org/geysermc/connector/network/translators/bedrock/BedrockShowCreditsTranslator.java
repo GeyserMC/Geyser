@@ -30,7 +30,7 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
 import com.github.steveice10.mc.protocol.data.game.ClientRequest;
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientCommandPacket;
 import com.nukkitx.protocol.bedrock.packet.ShowCreditsPacket;
 
 @Translator(packet = ShowCreditsPacket.class)
@@ -39,7 +39,7 @@ public class BedrockShowCreditsTranslator extends PacketTranslator<ShowCreditsPa
     @Override
     public void translate(GeyserSession session, ShowCreditsPacket packet) {
         if (packet.getStatus() == ShowCreditsPacket.Status.END_CREDITS) {
-            ClientRequestPacket javaRespawnPacket = new ClientRequestPacket(ClientRequest.RESPAWN);
+            ServerboundClientCommandPacket javaRespawnPacket = new ServerboundClientCommandPacket(ClientRequest.RESPAWN);
             session.sendDownstreamPacket(javaRespawnPacket);
         }
     }

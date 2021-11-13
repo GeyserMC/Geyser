@@ -27,7 +27,7 @@ package org.geysermc.connector.network.translators.java.scoreboard;
 
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardAction;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerUpdateScorePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetScorePacket;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.GeyserConnector;
@@ -42,8 +42,8 @@ import org.geysermc.connector.scoreboard.Scoreboard;
 import org.geysermc.connector.scoreboard.ScoreboardUpdater;
 import org.geysermc.connector.utils.LanguageUtils;
 
-@Translator(packet = ServerUpdateScorePacket.class)
-public class JavaUpdateScoreTranslator extends PacketTranslator<ServerUpdateScorePacket> {
+@Translator(packet = ClientboundSetScorePacket.class)
+public class JavaUpdateScoreTranslator extends PacketTranslator<ClientboundSetScorePacket> {
     private final GeyserLogger logger;
 
     public JavaUpdateScoreTranslator() {
@@ -51,7 +51,7 @@ public class JavaUpdateScoreTranslator extends PacketTranslator<ServerUpdateScor
     }
 
     @Override
-    public void translate(GeyserSession session, ServerUpdateScorePacket packet) {
+    public void translate(GeyserSession session, ClientboundSetScorePacket packet) {
         WorldCache worldCache = session.getWorldCache();
         Scoreboard scoreboard = worldCache.getScoreboard();
         int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();

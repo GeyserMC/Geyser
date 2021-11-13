@@ -27,7 +27,7 @@ package org.geysermc.connector.network.translators.inventory.translators;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientClickWindowButtonPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundContainerButtonClickPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
@@ -79,7 +79,7 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
         // If we've already pressed the button with this item, no need to press it again!
         if (container.getStonecutterButton() != button) {
             // Getting the index of the item in the Java stonecutter list
-            ClientClickWindowButtonPacket packet = new ClientClickWindowButtonPacket(inventory.getId(), button);
+            ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(inventory.getId(), button);
             session.sendDownstreamPacket(packet);
             container.setStonecutterButton(button);
             if (inventory.getItem(1).getJavaId() != javaOutput.getId()) {

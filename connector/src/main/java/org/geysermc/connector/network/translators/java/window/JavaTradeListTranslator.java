@@ -23,11 +23,11 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.network.translators.java.window;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerTradeListPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.window.ClientboundMerchantOffersPacket;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
@@ -47,11 +47,11 @@ import org.geysermc.connector.registry.type.ItemMapping;
 import java.util.ArrayList;
 import java.util.List;
 
-@Translator(packet = ServerTradeListPacket.class)
-public class JavaTradeListTranslator extends PacketTranslator<ServerTradeListPacket> {
+@Translator(packet = ClientboundMerchantOffersPacket.class)
+public class JavaTradeListTranslator extends PacketTranslator<ClientboundMerchantOffersPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerTradeListPacket packet) {
+    public void translate(GeyserSession session, ClientboundMerchantOffersPacket packet) {
         Inventory openInventory = session.getOpenInventory();
         if (!(openInventory instanceof MerchantContainer merchantInventory && openInventory.getId() == packet.getWindowId())) {
             return;

@@ -28,7 +28,7 @@ package org.geysermc.connector.network.translators.java.scoreboard;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.NameTagVisibility;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamAction;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.TeamColor;
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerTeamPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetPlayerTeamPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.GeyserLogger;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -43,12 +43,12 @@ import org.geysermc.connector.scoreboard.UpdateType;
 import java.util.Arrays;
 import java.util.Set;
 
-@Translator(packet = ServerTeamPacket.class)
-public class JavaTeamTranslator extends PacketTranslator<ServerTeamPacket> {
+@Translator(packet = ClientboundSetPlayerTeamPacket.class)
+public class JavaTeamTranslator extends PacketTranslator<ClientboundSetPlayerTeamPacket> {
     private final GeyserLogger logger = GeyserConnector.getInstance().getLogger();
 
     @Override
-    public void translate(GeyserSession session, ServerTeamPacket packet) {
+    public void translate(GeyserSession session, ClientboundSetPlayerTeamPacket packet) {
         if (logger.isDebug()) {
             logger.debug("Team packet " + packet.getTeamName() + " " + packet.getAction() + " " + Arrays.toString(packet.getPlayers()));
         }

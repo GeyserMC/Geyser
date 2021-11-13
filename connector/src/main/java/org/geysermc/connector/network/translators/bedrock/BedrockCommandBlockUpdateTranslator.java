@@ -26,9 +26,9 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.data.game.world.block.CommandBlockMode;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientUpdateCommandBlockMinecartPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientUpdateCommandBlockPacket;
+import com.github.steveice10.mc.protocol.data.game.level.block.CommandBlockMode;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundSetCommandMinecartPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundSetCommandBlockPacket;
 import com.nukkitx.protocol.bedrock.packet.CommandBlockUpdatePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -52,12 +52,12 @@ public class BedrockCommandBlockUpdateTranslator extends PacketTranslator<Comman
             };
             boolean isConditional = packet.isConditional();
             boolean automatic = !packet.isRedstoneMode(); // Automatic = Always Active option in Java
-            ClientUpdateCommandBlockPacket commandBlockPacket = new ClientUpdateCommandBlockPacket(
+            ServerboundSetCommandBlockPacket commandBlockPacket = new ServerboundSetCommandBlockPacket(
                     new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()),
                     command, mode, outputTracked, isConditional, automatic);
             session.sendDownstreamPacket(commandBlockPacket);
         } else {
-            ClientUpdateCommandBlockMinecartPacket commandMinecartPacket = new ClientUpdateCommandBlockMinecartPacket(
+            ServerboundSetCommandMinecartPacket commandMinecartPacket = new ServerboundSetCommandMinecartPacket(
                     (int) session.getEntityCache().getEntityByGeyserId(packet.getMinecartRuntimeEntityId()).getEntityId(),
                     command, outputTracked
             );

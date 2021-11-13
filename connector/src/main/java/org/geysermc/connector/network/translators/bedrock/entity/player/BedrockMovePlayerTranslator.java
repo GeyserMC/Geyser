@@ -25,9 +25,9 @@
 
 package org.geysermc.connector.network.translators.bedrock.entity.player;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerRotationPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerRotPacket;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
@@ -81,7 +81,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         // This isn't needed, but it makes the packets closer to vanilla
         // It also means you can't "lag back" while only looking, in theory
         if (!positionChanged && rotationChanged) {
-            ClientPlayerRotationPacket playerRotationPacket = new ClientPlayerRotationPacket(
+            ServerboundMovePlayerRotPacket playerRotationPacket = new ServerboundMovePlayerRotPacket(
                     packet.isOnGround(), packet.getRotation().getY(), packet.getRotation().getX());
 
             entity.setRotation(rotation);
@@ -99,12 +99,12 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                     Packet movePacket;
                     if (rotationChanged) {
                         // Send rotation updates as well
-                        movePacket = new ClientPlayerPositionRotationPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ(),
+                        movePacket = new ServerboundMovePlayerPosRotPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ(),
                                 packet.getRotation().getY(), packet.getRotation().getX());
                         entity.setRotation(rotation);
                     } else {
                         // Rotation did not change; don't send an update with rotation
-                        movePacket = new ClientPlayerPositionPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ());
+                        movePacket = new ServerboundMovePlayerPosPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ());
                     }
 
                     // Compare positions here for void floor fix below before the player's position variable is set to the packet position

@@ -25,26 +25,26 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityPropertiesPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundUpdateAttributesPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-@Translator(packet = ServerEntityPropertiesPacket.class)
-public class JavaEntityPropertiesTranslator extends PacketTranslator<ServerEntityPropertiesPacket> {
+@Translator(packet = ClientboundUpdateAttributesPacket.class)
+public class JavaEntityPropertiesTranslator extends PacketTranslator<ClientboundUpdateAttributesPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerEntityPropertiesPacket packet) {
+    public void translate(GeyserSession session, ClientboundUpdateAttributesPacket packet) {
         Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
         } else {
             entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         }
-        if (!(entity instanceof LivingEntity)) return;
+        if (!(entity instanceof LivingEntity livingEntity)) return;
 
-        ((LivingEntity) entity).updateBedrockAttributes(session, packet.getAttributes());
+        livingEntity.updateBedrockAttributes(session, packet.getAttributes());
     }
 }

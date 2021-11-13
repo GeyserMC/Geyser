@@ -23,16 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.network.translators.java.level;
 
 import com.github.steveice10.mc.protocol.data.game.ClientRequest;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.world.notify.EnterCreditsValue;
-import com.github.steveice10.mc.protocol.data.game.world.notify.RainStrengthValue;
-import com.github.steveice10.mc.protocol.data.game.world.notify.RespawnScreenValue;
-import com.github.steveice10.mc.protocol.data.game.world.notify.ThunderStrengthValue;
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientRequestPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerNotifyClientPacket;
+import com.github.steveice10.mc.protocol.data.game.level.notify.EnterCreditsValue;
+import com.github.steveice10.mc.protocol.data.game.level.notify.RainStrengthValue;
+import com.github.steveice10.mc.protocol.data.game.level.notify.RespawnScreenValue;
+import com.github.steveice10.mc.protocol.data.game.level.notify.ThunderStrengthValue;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientCommandPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundGameEventPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
@@ -45,11 +45,11 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.inventory.translators.PlayerInventoryTranslator;
 import org.geysermc.connector.utils.LocaleUtils;
 
-@Translator(packet = ServerNotifyClientPacket.class)
-public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyClientPacket> {
+@Translator(packet = ClientboundGameEventPacket.class)
+public class JavaNotifyClientTranslator extends PacketTranslator<ClientboundGameEventPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerNotifyClientPacket packet) {
+    public void translate(GeyserSession session, ClientboundGameEventPacket packet) {
         PlayerEntity entity = session.getPlayerEntity();
 
         switch (packet.getNotification()) {
@@ -126,7 +126,7 @@ public class JavaNotifyClientTranslator extends PacketTranslator<ServerNotifyCli
             case ENTER_CREDITS:
                 switch ((EnterCreditsValue) packet.getValue()) {
                     case SEEN_BEFORE -> {
-                        ClientRequestPacket javaRespawnPacket = new ClientRequestPacket(ClientRequest.RESPAWN);
+                        ServerboundClientCommandPacket javaRespawnPacket = new ServerboundClientCommandPacket(ClientRequest.RESPAWN);
                         session.sendDownstreamPacket(javaRespawnPacket);
                     }
                     case FIRST_TIME -> {

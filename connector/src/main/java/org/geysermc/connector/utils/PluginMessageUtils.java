@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.utils;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPluginMessagePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCustomPayloadPacket;
 import com.google.common.base.Charsets;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -74,7 +74,7 @@ public class PluginMessageUtils {
     }
 
     public static void sendMessage(GeyserSession session, String channel, byte[] data) {
-        session.sendDownstreamPacket(new ClientPluginMessagePacket(channel, data));
+        session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(channel, data));
     }
 
     private static byte[] writeVarInt(int value) {

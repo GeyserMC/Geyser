@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.inventory.translators;
 
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientSetBeaconEffectPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundSetBeaconPacket;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
@@ -114,7 +114,7 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
     public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         // Input a beacon payment
         BeaconPaymentStackRequestActionData beaconPayment = (BeaconPaymentStackRequestActionData) request.getActions()[0];
-        ClientSetBeaconEffectPacket packet = new ClientSetBeaconEffectPacket(beaconPayment.getPrimaryEffect(), beaconPayment.getSecondaryEffect());
+        ServerboundSetBeaconPacket packet = new ServerboundSetBeaconPacket(beaconPayment.getPrimaryEffect(), beaconPayment.getSecondaryEffect());
         session.sendDownstreamPacket(packet);
         return acceptRequest(request, makeContainerEntries(session, inventory, Collections.emptySet()));
     }

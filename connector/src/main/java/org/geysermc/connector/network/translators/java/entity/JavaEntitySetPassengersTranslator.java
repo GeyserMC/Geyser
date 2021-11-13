@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntitySetPassengersPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundSetPassengersPacket;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
@@ -39,11 +39,11 @@ import org.geysermc.connector.utils.EntityUtils;
 
 import java.util.Arrays;
 
-@Translator(packet = ServerEntitySetPassengersPacket.class)
-public class JavaEntitySetPassengersTranslator extends PacketTranslator<ServerEntitySetPassengersPacket> {
+@Translator(packet = ClientboundSetPassengersPacket.class)
+public class JavaEntitySetPassengersTranslator extends PacketTranslator<ClientboundSetPassengersPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerEntitySetPassengersPacket packet) {
+    public void translate(GeyserSession session, ClientboundSetPassengersPacket packet) {
         Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();

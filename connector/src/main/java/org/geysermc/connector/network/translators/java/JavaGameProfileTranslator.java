@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.java;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
-import com.github.steveice10.mc.protocol.packet.login.server.LoginSuccessPacket;
+import com.github.steveice10.mc.protocol.packet.login.clientbound.ClientboundGameProfilePacket;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -34,11 +34,11 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.skin.SkinManager;
 
-@Translator(packet = LoginSuccessPacket.class)
-public class JavaLoginSuccessTranslator extends PacketTranslator<LoginSuccessPacket> {
+@Translator(packet = ClientboundGameProfilePacket.class)
+public class JavaGameProfileTranslator extends PacketTranslator<ClientboundGameProfilePacket> {
 
     @Override
-    public void translate(GeyserSession session, LoginSuccessPacket packet) {
+    public void translate(GeyserSession session, ClientboundGameProfilePacket packet) {
         PlayerEntity playerEntity = session.getPlayerEntity();
         AuthType remoteAuthType = session.getRemoteAuthType();
 

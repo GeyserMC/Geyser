@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.entity.spawn;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnLivingEntityPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddMobPacket;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.type.EntityType;
@@ -38,11 +38,11 @@ import org.geysermc.connector.utils.LanguageUtils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-@Translator(packet = ServerSpawnLivingEntityPacket.class)
-public class JavaSpawnLivingEntityTranslator extends PacketTranslator<ServerSpawnLivingEntityPacket> {
+@Translator(packet = ClientboundAddMobPacket.class)
+public class JavaSpawnLivingEntityTranslator extends PacketTranslator<ClientboundAddMobPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerSpawnLivingEntityPacket packet) {
+    public void translate(GeyserSession session, ClientboundAddMobPacket packet) {
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f motion = Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());
         Vector3f rotation = Vector3f.from(packet.getYaw(), packet.getPitch(), packet.getHeadYaw());

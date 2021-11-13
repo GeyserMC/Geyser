@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.java;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerAdvancementTabPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundSelectAdvancementsTabPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.AdvancementsCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -34,10 +34,11 @@ import org.geysermc.connector.network.translators.Translator;
 /**
  * Indicates that the client should open a particular advancement tab
  */
-@Translator(packet = ServerAdvancementTabPacket.class)
-public class JavaAdvancementsTabTranslator extends PacketTranslator<ServerAdvancementTabPacket> {
+@Translator(packet = ClientboundSelectAdvancementsTabPacket.class)
+public class JavaAdvancementsTabTranslator extends PacketTranslator<ClientboundSelectAdvancementsTabPacket> {
+
     @Override
-    public void translate(GeyserSession session, ServerAdvancementTabPacket packet) {
+    public void translate(GeyserSession session, ClientboundSelectAdvancementsTabPacket packet) {
         AdvancementsCache advancementsCache = session.getAdvancementsCache();
         advancementsCache.setCurrentAdvancementCategoryId(packet.getTabId());
         advancementsCache.buildAndShowListForm();

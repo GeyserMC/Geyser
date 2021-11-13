@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock.entity.player;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerState;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerStatePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 import com.nukkitx.protocol.bedrock.packet.RiderJumpPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.living.animal.horse.AbstractHorseEntity;
@@ -40,8 +40,8 @@ public class BedrockRiderJumpTranslator extends PacketTranslator<RiderJumpPacket
     public void translate(GeyserSession session, RiderJumpPacket packet) {
         Entity vehicle = session.getRidingVehicleEntity();
         if (vehicle instanceof AbstractHorseEntity) {
-            ClientPlayerStatePacket playerStatePacket = new ClientPlayerStatePacket((int) vehicle.getEntityId(),  PlayerState.START_HORSE_JUMP, packet.getJumpStrength());
-            session.sendDownstreamPacket(playerStatePacket);
+            ServerboundPlayerCommandPacket playerCommandPacket = new ServerboundPlayerCommandPacket((int) vehicle.getEntityId(),  PlayerState.START_HORSE_JUMP, packet.getJumpStrength());
+            session.sendDownstreamPacket(playerCommandPacket);
         }
     }
 }

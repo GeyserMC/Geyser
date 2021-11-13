@@ -25,19 +25,18 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundTeleportEntityPacket;
+import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityTeleportPacket;
-import com.nukkitx.math.vector.Vector3f;
-
-@Translator(packet = ServerEntityTeleportPacket.class)
-public class JavaEntityTeleportTranslator extends PacketTranslator<ServerEntityTeleportPacket> {
+@Translator(packet = ClientboundTeleportEntityPacket.class)
+public class JavaEntityTeleportTranslator extends PacketTranslator<ClientboundTeleportEntityPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerEntityTeleportPacket packet) {
+    public void translate(GeyserSession session, ClientboundTeleportEntityPacket packet) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();

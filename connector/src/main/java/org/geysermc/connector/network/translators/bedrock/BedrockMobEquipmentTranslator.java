@@ -26,8 +26,8 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerChangeHeldItemPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerUseItemPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundSetCarriedItemPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.packet.MobEquipmentPacket;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -54,14 +54,14 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
 
         session.getPlayerInventory().setHeldItemSlot(packet.getHotbarSlot());
 
-        ClientPlayerChangeHeldItemPacket changeHeldItemPacket = new ClientPlayerChangeHeldItemPacket(packet.getHotbarSlot());
-        session.sendDownstreamPacket(changeHeldItemPacket);
+        ServerboundSetCarriedItemPacket setCarriedItemPacket = new ServerboundSetCarriedItemPacket(packet.getHotbarSlot());
+        session.sendDownstreamPacket(setCarriedItemPacket);
 
         if (session.isSneaking() && session.getPlayerInventory().getItemInHand().getJavaId() == session.getItemMappings().getStoredItems().shield().getJavaId()) {
             // Activate shield since we are already sneaking
             // (No need to send a release item packet - Java doesn't do this when swapping items)
             // Required to do it a tick later or else it doesn't register
-            session.getConnector().getGeneralThreadPool().schedule(() -> session.sendDownstreamPacket(new ClientPlayerUseItemPacket(Hand.MAIN_HAND)),
+            session.getConnector().getGeneralThreadPool().schedule(() -> session.sendDownstreamPacket(new ServerboundUseItemPacket(Hand.MAIN_HAND)),
                     50, TimeUnit.MILLISECONDS);
         }
 

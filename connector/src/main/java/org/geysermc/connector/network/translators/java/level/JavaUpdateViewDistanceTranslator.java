@@ -23,29 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java;
+package org.geysermc.connector.network.translators.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.UnlockRecipesAction;
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerUnlockRecipesPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundSetChunkCacheRadiusPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-import java.util.Arrays;
-
-/**
- * Used to list recipes that we can definitely use the recipe book for (and therefore save on packet usage)
- */
-@Translator(packet = ServerUnlockRecipesPacket.class)
-public class JavaUnlockRecipesTranslator extends PacketTranslator<ServerUnlockRecipesPacket> {
+@Translator(packet = ClientboundSetChunkCacheRadiusPacket.class)
+public class JavaUpdateViewDistanceTranslator extends PacketTranslator<ClientboundSetChunkCacheRadiusPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerUnlockRecipesPacket packet) {
-        if (packet.getAction() == UnlockRecipesAction.REMOVE) {
-            session.getUnlockedRecipes().removeAll(Arrays.asList(packet.getRecipes()));
-        } else {
-            session.getUnlockedRecipes().addAll(Arrays.asList(packet.getRecipes()));
-        }
+    public void translate(GeyserSession session, ClientboundSetChunkCacheRadiusPacket packet) {
+        session.setRenderDistance(packet.getViewDistance());
     }
 }
-

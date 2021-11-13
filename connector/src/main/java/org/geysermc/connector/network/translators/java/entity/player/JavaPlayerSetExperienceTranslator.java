@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.entity.player;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerSetExperiencePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.player.ClientboundSetExperiencePacket;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.connector.entity.attribute.GeyserAttributeType;
@@ -36,11 +36,11 @@ import org.geysermc.connector.network.translators.Translator;
 
 import java.util.Arrays;
 
-@Translator(packet = ServerPlayerSetExperiencePacket.class)
-public class JavaPlayerSetExperienceTranslator extends PacketTranslator<ServerPlayerSetExperiencePacket> {
+@Translator(packet = ClientboundSetExperiencePacket.class)
+public class JavaPlayerSetExperienceTranslator extends PacketTranslator<ClientboundSetExperiencePacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerPlayerSetExperiencePacket packet) {
+    public void translate(GeyserSession session, ClientboundSetExperiencePacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         AttributeData experience = GeyserAttributeType.EXPERIENCE.getAttribute(packet.getExperience());

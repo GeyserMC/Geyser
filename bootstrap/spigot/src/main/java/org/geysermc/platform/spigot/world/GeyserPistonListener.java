@@ -25,7 +25,7 @@
 
 package org.geysermc.platform.spigot.world;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.value.PistonValueType;
+import com.github.steveice10.mc.protocol.data.game.level.block.value.PistonValueType;
 import com.nukkitx.math.vector.Vector3i;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;

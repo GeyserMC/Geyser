@@ -23,9 +23,9 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.network.translators.java.level;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerPlayBuiltinSoundPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundSoundPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
@@ -40,11 +40,11 @@ import org.geysermc.connector.utils.SoundUtils;
 import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.SoundMapping;
 
-@Translator(packet = ServerPlayBuiltinSoundPacket.class)
-public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ServerPlayBuiltinSoundPacket> {
+@Translator(packet = ClientboundSoundPacket.class)
+public class JavaPlayBuiltinSoundTranslator extends PacketTranslator<ClientboundSoundPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerPlayBuiltinSoundPacket packet) {
+    public void translate(GeyserSession session, ClientboundSoundPacket packet) {
         String packetSound = packet.getSound().getName();
 
         SoundMapping soundMapping = Registries.SOUNDS.get(packetSound);

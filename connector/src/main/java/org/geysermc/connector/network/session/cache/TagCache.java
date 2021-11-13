@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.session.cache;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareTagsPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateTagsPacket;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import org.geysermc.connector.registry.type.BlockMapping;
@@ -34,7 +34,7 @@ import org.geysermc.connector.registry.type.ItemMapping;
 import java.util.Map;
 
 /**
- * Manages information sent from the {@link ServerDeclareTagsPacket}. If that packet is not sent, all lists here
+ * Manages information sent from the {@link ClientboundUpdateTagsPacket}. If that packet is not sent, all lists here
  * will remain empty, matching Java Edition behavior.
  */
 public class TagCache {
@@ -61,7 +61,7 @@ public class TagCache {
         clear();
     }
 
-    public void loadPacket(ServerDeclareTagsPacket packet) {
+    public void loadPacket(ClientboundUpdateTagsPacket packet) {
         Map<String, int[]> blockTags = packet.getTags().get("minecraft:block");
         this.leaves = IntList.of(blockTags.get("minecraft:leaves"));
         this.wool = IntList.of(blockTags.get("minecraft:wool"));

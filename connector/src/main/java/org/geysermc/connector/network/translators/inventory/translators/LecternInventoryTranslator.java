@@ -26,8 +26,8 @@
 package org.geysermc.connector.network.translators.inventory.translators;
 
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientClickWindowButtonPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCloseWindowPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundContainerButtonClickPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundContainerClosePacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.nukkitx.math.vector.Vector3i;
@@ -99,7 +99,7 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
         LecternContainer lecternContainer = (LecternContainer) inventory;
         if (session.isDroppingLecternBook()) {
             // We have to enter the inventory GUI to eject the book
-            ClientClickWindowButtonPacket packet = new ClientClickWindowButtonPacket(inventory.getId(), 3);
+            ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(inventory.getId(), 3);
             session.sendDownstreamPacket(packet);
             session.setDroppingLecternBook(false);
             InventoryUtils.closeInventory(session, inventory.getId(), false);
@@ -150,7 +150,7 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
                 BlockEntityUtils.updateBlockEntity(session, blockEntityTag, position);
                 session.getLecternCache().add(position);
                 // Close the window - we will reopen it once the client has this data synced
-                ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(lecternContainer.getId());
+                ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(lecternContainer.getId());
                 session.sendDownstreamPacket(closeWindowPacket);
                 InventoryUtils.closeInventory(session, inventory.getId(), false);
             }

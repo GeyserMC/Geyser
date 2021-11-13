@@ -23,29 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world.border;
+package org.geysermc.connector.network.translators.java.level.border;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.border.ServerInitializeBorderPacket;
-import com.nukkitx.math.vector.Vector2d;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.border.ClientboundSetBorderSizePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.WorldBorder;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-@Translator(packet = ServerInitializeBorderPacket.class)
-public class JavaInitializeBorderTranslator extends PacketTranslator<ServerInitializeBorderPacket> {
+@Translator(packet = ClientboundSetBorderSizePacket.class)
+public class JavaSetBorderSizeTranslator extends PacketTranslator<ClientboundSetBorderSizePacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerInitializeBorderPacket packet) {
+    public void translate(GeyserSession session, ClientboundSetBorderSizePacket packet) {
         WorldBorder worldBorder = session.getWorldBorder();
-        worldBorder.setCenter(Vector2d.from(packet.getNewCenterX(), packet.getNewCenterZ()));
-        worldBorder.setOldDiameter(packet.getOldSize());
-        worldBorder.setNewDiameter(packet.getNewSize());
-        worldBorder.setSpeed(packet.getLerpTime());
-        worldBorder.setWarningDelay(packet.getWarningTime());
-        worldBorder.setWarningBlocks(packet.getWarningBlocks());
-        worldBorder.setResizing(packet.getLerpTime() > 0);
-        worldBorder.setAbsoluteMaxSize(packet.getNewAbsoluteMaxSize());
+        worldBorder.setOldDiameter(packet.getSize());
+        worldBorder.setNewDiameter(packet.getSize());
+        worldBorder.setResizing(false);
 
         worldBorder.update();
     }

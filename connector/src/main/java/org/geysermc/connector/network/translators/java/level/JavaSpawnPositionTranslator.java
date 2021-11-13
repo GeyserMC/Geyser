@@ -23,24 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world.border;
+package org.geysermc.connector.network.translators.java.level;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.border.ServerSetBorderSizePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundSetDefaultSpawnPositionPacket;
+import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.protocol.bedrock.packet.SetSpawnPositionPacket;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.session.cache.WorldBorder;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.utils.DimensionUtils;
 
-@Translator(packet = ServerSetBorderSizePacket.class)
-public class JavaSetBorderSizeTranslator extends PacketTranslator<ServerSetBorderSizePacket> {
+@Translator(packet = ClientboundSetDefaultSpawnPositionPacket.class)
+public class JavaSpawnPositionTranslator extends PacketTranslator<ClientboundSetDefaultSpawnPositionPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerSetBorderSizePacket packet) {
-        WorldBorder worldBorder = session.getWorldBorder();
-        worldBorder.setOldDiameter(packet.getSize());
-        worldBorder.setNewDiameter(packet.getSize());
-        worldBorder.setResizing(false);
-
-        worldBorder.update();
+    public void translate(GeyserSession session, ClientboundSetDefaultSpawnPositionPacket packet) {
+        SetSpawnPositionPacket spawnPositionPacket = new SetSpawnPositionPacket();
+        spawnPositionPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
+        spawnPositionPacket.setSpawnForced(true);
+        spawnPositionPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
+        spawnPositionPacket.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
+        session.sendUpstreamPacket(spawnPositionPacket);
     }
 }

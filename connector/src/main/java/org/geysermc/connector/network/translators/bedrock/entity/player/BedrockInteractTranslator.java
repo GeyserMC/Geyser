@@ -28,8 +28,8 @@ package org.geysermc.connector.network.translators.bedrock.entity.player;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerState;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerInteractEntityPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerStatePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
@@ -62,17 +62,17 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 if (session.getPlayerInventory().getItemInHand().getJavaId() == session.getItemMappings().getStoredItems().shield().getJavaId()) {
                     break;
                 }
-                ClientPlayerInteractEntityPacket interactPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
+                ServerboundInteractPacket interactPacket = new ServerboundInteractPacket((int) entity.getEntityId(),
                         InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
                 session.sendDownstreamPacket(interactPacket);
                 break;
             case DAMAGE:
-                ClientPlayerInteractEntityPacket attackPacket = new ClientPlayerInteractEntityPacket((int) entity.getEntityId(),
+                ServerboundInteractPacket attackPacket = new ServerboundInteractPacket((int) entity.getEntityId(),
                         InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
                 session.sendDownstreamPacket(attackPacket);
                 break;
             case LEAVE_VEHICLE:
-                ClientPlayerStatePacket sneakPacket = new ClientPlayerStatePacket((int) entity.getEntityId(), PlayerState.START_SNEAKING);
+                ServerboundPlayerCommandPacket sneakPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.sendDownstreamPacket(sneakPacket);
                 session.setRidingVehicleEntity(null);
                 break;
@@ -101,7 +101,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                     if (ridingEntity instanceof AbstractHorseEntity) {
                         if (ridingEntity.getMetadata().getFlags().getFlag(EntityFlag.TAMED)) {
                             // We should request to open the horse inventory instead
-                            ClientPlayerStatePacket openHorseWindowPacket = new ClientPlayerStatePacket((int) session.getPlayerEntity().getEntityId(), PlayerState.OPEN_HORSE_INVENTORY);
+                            ServerboundPlayerCommandPacket openHorseWindowPacket = new ServerboundPlayerCommandPacket((int) session.getPlayerEntity().getEntityId(), PlayerState.OPEN_HORSE_INVENTORY);
                             session.sendDownstreamPacket(openHorseWindowPacket);
                         }
                     } else {

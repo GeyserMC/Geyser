@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientVehicleMovePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.connector.entity.BoatEntity;
@@ -66,10 +66,10 @@ public class BedrockMoveEntityAbsoluteTranslator extends PacketTranslator<MoveEn
             // Remove the offset to prevents boats from looking like they're floating in water
             y -= EntityType.BOAT.getOffset();
         }
-        ClientVehicleMovePacket clientVehicleMovePacket = new ClientVehicleMovePacket(
+        ServerboundMoveVehiclePacket ServerboundMoveVehiclePacket = new ServerboundMoveVehiclePacket(
                 packet.getPosition().getX(), y, packet.getPosition().getZ(),
                 packet.getRotation().getY() - 90, packet.getRotation().getX()
         );
-        session.sendDownstreamPacket(clientVehicleMovePacket);
+        session.sendDownstreamPacket(ServerboundMoveVehiclePacket);
     }
 }

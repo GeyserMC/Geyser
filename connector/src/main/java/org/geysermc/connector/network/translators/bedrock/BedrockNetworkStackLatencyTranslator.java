@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientKeepAlivePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundKeepAlivePacket;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
@@ -59,7 +59,7 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
         // negative timestamps are used as hack to fix the url image loading bug
         if (packet.getTimestamp() > 0) {
             if (session.getConnector().getConfig().isForwardPlayerPing()) {
-                ClientKeepAlivePacket keepAlivePacket = new ClientKeepAlivePacket(pingId);
+                ServerboundKeepAlivePacket keepAlivePacket = new ServerboundKeepAlivePacket(pingId);
                 session.sendDownstreamPacket(keepAlivePacket);
             }
             return;

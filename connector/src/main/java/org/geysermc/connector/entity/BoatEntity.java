@@ -72,7 +72,7 @@ public class BoatEntity extends Entity {
 
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
-        // Minimal glitching when ServerVehicleMovePacket is sent
+        // Minimal glitching when ClientboundMoveVehiclePacket is sent
         moveEntityPacket.setPosition(session.getRidingVehicleEntity() == this ? position.up(EntityType.PLAYER.getOffset() - this.entityType.getOffset()) : this.position);
         moveEntityPacket.setRotation(getBedrockRotation());
         moveEntityPacket.setOnGround(isOnGround);

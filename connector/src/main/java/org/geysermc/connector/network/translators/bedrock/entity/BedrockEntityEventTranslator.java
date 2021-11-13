@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock.entity;
 
 import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientSelectTradePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundSelectTradePacket;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.Entity;
@@ -51,7 +51,7 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
                 return;
             }
             case COMPLETE_TRADE -> {
-                ClientSelectTradePacket selectTradePacket = new ClientSelectTradePacket(packet.getData());
+                ServerboundSelectTradePacket selectTradePacket = new ServerboundSelectTradePacket(packet.getData());
                 session.sendDownstreamPacket(selectTradePacket);
 
                 session.scheduleInEventLoop(() -> {

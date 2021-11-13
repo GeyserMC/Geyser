@@ -23,21 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.network.translators.java.level;
 
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundSetChunkCacheCenterPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.ChunkUtils;
-
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateViewPositionPacket;
 import com.nukkitx.math.vector.Vector3i;
 
-@Translator(packet = ServerUpdateViewPositionPacket.class)
-public class JavaUpdateViewPositionTranslator extends PacketTranslator<ServerUpdateViewPositionPacket> {
+@Translator(packet = ClientboundSetChunkCacheCenterPacket.class)
+public class JavaUpdateViewPositionTranslator extends PacketTranslator<ClientboundSetChunkCacheCenterPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerUpdateViewPositionPacket packet) {
+    public void translate(GeyserSession session, ClientboundSetChunkCacheCenterPacket packet) {
         if (!session.isSpawned() && session.getLastChunkPosition() == null) {
             ChunkUtils.updateChunkPosition(session, Vector3i.from(packet.getChunkX() << 4, 64, packet.getChunkZ() << 4));
         }

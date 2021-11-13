@@ -25,18 +25,18 @@
 
 package org.geysermc.connector.network.translators.java;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerChatPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundChatPacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
-@Translator(packet = ServerChatPacket.class)
-public class JavaChatTranslator extends PacketTranslator<ServerChatPacket> {
+@Translator(packet = ClientboundChatPacket.class)
+public class JavaChatTranslator extends PacketTranslator<ClientboundChatPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerChatPacket packet) {
+    public void translate(GeyserSession session, ClientboundChatPacket packet) {
         TextPacket textPacket = new TextPacket();
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");

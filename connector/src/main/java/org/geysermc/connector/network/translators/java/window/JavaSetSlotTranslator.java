@@ -31,7 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
-import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.window.ClientboundContainerSetSlotPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
@@ -54,11 +54,11 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-@Translator(packet = ServerSetSlotPacket.class)
-public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket> {
+@Translator(packet = ClientboundContainerSetSlotPacket.class)
+public class JavaSetSlotTranslator extends PacketTranslator<ClientboundContainerSetSlotPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerSetSlotPacket packet) {
+    public void translate(GeyserSession session, ClientboundContainerSetSlotPacket packet) {
         if (packet.getWindowId() == 255) { //cursor
             GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
             session.getPlayerInventory().setCursor(newItem, session);
@@ -92,7 +92,7 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
         }
     }
 
-    private static void updateCraftingGrid(GeyserSession session, ServerSetSlotPacket packet, Inventory inventory, InventoryTranslator translator) {
+    private static void updateCraftingGrid(GeyserSession session, ClientboundContainerSetSlotPacket packet, Inventory inventory, InventoryTranslator translator) {
         if (packet.getSlot() == 0) {
             int gridSize;
             if (translator instanceof PlayerInventoryTranslator) {

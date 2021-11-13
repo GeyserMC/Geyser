@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.utils;
 
-import com.github.steveice10.mc.protocol.data.game.world.particle.ParticleType;
+import com.github.steveice10.mc.protocol.data.game.level.particle.ParticleType;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.registry.Registries;

@@ -28,7 +28,7 @@ package org.geysermc.connector.network.translators.inventory.translators;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreativeInventoryActionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundSetCreativeModeSlotPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.*;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.*;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
@@ -327,7 +327,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         return rejectRequest(request);
                     }
 
-                    ClientCreativeInventoryActionPacket creativeDropPacket = new ClientCreativeInventoryActionPacket(-1, sourceItem.getItemStack(dropAction.getCount()));
+                    ServerboundSetCreativeModeSlotPacket creativeDropPacket = new ServerboundSetCreativeModeSlotPacket(-1, sourceItem.getItemStack(dropAction.getCount()));
                     session.sendDownstreamPacket(creativeDropPacket);
 
                     sourceItem.sub(dropAction.getCount());
@@ -456,7 +456,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         GeyserItemStack item = inventory.getItem(slot);
         ItemStack itemStack = item.isEmpty() ? new ItemStack(-1, 0, null) : item.getItemStack();
 
-        ClientCreativeInventoryActionPacket creativePacket = new ClientCreativeInventoryActionPacket(slot, itemStack);
+        ServerboundSetCreativeModeSlotPacket creativePacket = new ServerboundSetCreativeModeSlotPacket(slot, itemStack);
         session.sendDownstreamPacket(creativePacket);
     }
 

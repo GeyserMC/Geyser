@@ -25,17 +25,17 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerRemoveEntitiesPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundRemoveEntitiesPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-@Translator(packet = ServerRemoveEntitiesPacket.class)
-public class JavaRemoveEntitiesTranslator extends PacketTranslator<ServerRemoveEntitiesPacket> {
+@Translator(packet = ClientboundRemoveEntitiesPacket.class)
+public class JavaRemoveEntitiesTranslator extends PacketTranslator<ClientboundRemoveEntitiesPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerRemoveEntitiesPacket packet) {
+    public void translate(GeyserSession session, ClientboundRemoveEntitiesPacket packet) {
         for (int entityId : packet.getEntityIds()) {
             Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
             if (entity != null) {

@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.effect;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerPlayEffectPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.PlaySoundPacket;
 import lombok.Value;
@@ -68,7 +68,7 @@ public class PlaySoundEffect implements Effect {
     boolean relative;
 
     @Override
-    public void handleEffectPacket(GeyserSession session, ServerPlayEffectPacket packet) {
+    public void handleEffectPacket(GeyserSession session, ClientboundLevelEventPacket packet) {
         Random rand = ThreadLocalRandom.current();
         PlaySoundPacket playSoundPacket = new PlaySoundPacket();
         playSoundPacket.setSound(name);

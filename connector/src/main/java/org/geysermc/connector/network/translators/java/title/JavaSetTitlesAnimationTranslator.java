@@ -25,17 +25,17 @@
 
 package org.geysermc.connector.network.translators.java.title;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.title.ServerSetTitlesAnimationPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.title.ClientboundSetTitlesAnimationPacket;
 import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-@Translator(packet = ServerSetTitlesAnimationPacket.class)
-public class JavaSetTitlesAnimationTranslator extends PacketTranslator<ServerSetTitlesAnimationPacket> {
+@Translator(packet = ClientboundSetTitlesAnimationPacket.class)
+public class JavaSetTitlesAnimationTranslator extends PacketTranslator<ClientboundSetTitlesAnimationPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerSetTitlesAnimationPacket packet) {
+    public void translate(GeyserSession session, ClientboundSetTitlesAnimationPacket packet) {
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.TIMES);
         titlePacket.setText("");

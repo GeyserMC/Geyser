@@ -25,16 +25,16 @@
 
 package org.geysermc.connector.network.translators.java;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareTagsPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateTagsPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-@Translator(packet = ServerDeclareTagsPacket.class)
-public class JavaDeclareTagsTranslator extends PacketTranslator<ServerDeclareTagsPacket> {
+@Translator(packet = ClientboundUpdateTagsPacket.class)
+public class JavaDeclareTagsTranslator extends PacketTranslator<ClientboundUpdateTagsPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerDeclareTagsPacket packet) {
+    public void translate(GeyserSession session, ClientboundUpdateTagsPacket packet) {
         session.getTagCache().loadPacket(packet);
     }
 }

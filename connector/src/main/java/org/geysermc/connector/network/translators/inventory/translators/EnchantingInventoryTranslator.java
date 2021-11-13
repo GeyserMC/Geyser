@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.inventory.translators;
 
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientClickWindowButtonPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundContainerButtonClickPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.*;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.CraftRecipeStackRequestActionData;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
@@ -128,7 +128,7 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
             // Slot should be determined as 0, 1, or 2
             return rejectRequest(request);
         }
-        ClientClickWindowButtonPacket packet = new ClientClickWindowButtonPacket(inventory.getId(), javaSlot);
+        ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(inventory.getId(), javaSlot);
         session.sendDownstreamPacket(packet);
         return acceptRequest(request, makeContainerEntries(session, inventory, Collections.emptySet()));
     }

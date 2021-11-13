@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.entity.spawn;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnPlayerPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddPlayerPacket;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.player.PlayerEntity;
@@ -35,11 +35,11 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.skin.SkinManager;
 
-@Translator(packet = ServerSpawnPlayerPacket.class)
-public class JavaSpawnPlayerTranslator extends PacketTranslator<ServerSpawnPlayerPacket> {
+@Translator(packet = ClientboundAddPlayerPacket.class)
+public class JavaSpawnPlayerTranslator extends PacketTranslator<ClientboundAddPlayerPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerSpawnPlayerPacket packet) {
+    public void translate(GeyserSession session, ClientboundAddPlayerPacket packet) {
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f rotation = Vector3f.from(packet.getYaw(), packet.getPitch(), packet.getYaw());
 

@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.network.translators;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPlayerListDataPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateLightPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundTabListPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLightUpdatePacket;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import io.netty.channel.EventLoop;
@@ -73,8 +73,8 @@ public class PacketTranslatorRegistry<T> {
             }
         }
 
-        IGNORED_PACKETS.add(ServerUpdateLightPacket.class); // Light is handled on Bedrock for us
-        IGNORED_PACKETS.add(ServerPlayerListDataPacket.class); // Cant be implemented in bedrock
+        IGNORED_PACKETS.add(ClientboundLightUpdatePacket.class); // Light is handled on Bedrock for us
+        IGNORED_PACKETS.add(ClientboundTabListPacket.class); // Cant be implemented in Bedrock
     }
 
     private PacketTranslatorRegistry() {

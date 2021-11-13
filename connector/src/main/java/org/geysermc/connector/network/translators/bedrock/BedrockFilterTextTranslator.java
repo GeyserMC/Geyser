@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientRenameItemPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundRenameItemPacket;
 import com.nukkitx.protocol.bedrock.packet.FilterTextPacket;
 import org.geysermc.connector.inventory.AnvilContainer;
 import org.geysermc.connector.inventory.CartographyContainer;
@@ -51,7 +51,7 @@ public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPack
 
         if (session.getOpenInventory() instanceof AnvilContainer) {
             // Java Edition sends a packet every time an item is renamed even slightly in GUI. Fortunately, this works out for us now
-            ClientRenameItemPacket renameItemPacket = new ClientRenameItemPacket(packet.getText());
+            ServerboundRenameItemPacket renameItemPacket = new ServerboundRenameItemPacket(packet.getText());
             session.sendDownstreamPacket(renameItemPacket);
         }
     }

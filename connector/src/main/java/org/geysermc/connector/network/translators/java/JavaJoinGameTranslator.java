@@ -28,9 +28,9 @@ package org.geysermc.connector.network.translators.java;
 import com.github.steveice10.mc.protocol.data.game.entity.player.HandPreference;
 import com.github.steveice10.mc.protocol.data.game.setting.ChatVisibility;
 import com.github.steveice10.mc.protocol.data.game.setting.SkinPart;
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientPluginMessagePacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientSettingsPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerJoinGamePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientInformationPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCustomPayloadPacket;
 import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.*;
@@ -47,12 +47,12 @@ import org.geysermc.connector.utils.PluginMessageUtils;
 import java.util.Arrays;
 import java.util.List;
 
-@Translator(packet = ServerJoinGamePacket.class)
-public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacket> {
+@Translator(packet = ClientboundLoginPacket.class)
+public class JavaJoinGameTranslator extends PacketTranslator<ClientboundLoginPacket> {
     private static final List<SkinPart> SKIN_PART_VALUES = Arrays.asList(SkinPart.values());
 
     @Override
-    public void translate(GeyserSession session, ServerJoinGamePacket packet) {
+    public void translate(GeyserSession session, ClientboundLoginPacket packet) {
         PlayerEntity entity = session.getPlayerEntity();
         entity.setEntityId(packet.getEntityId());
 
@@ -100,14 +100,14 @@ public class JavaJoinGameTranslator extends PacketTranslator<ServerJoinGamePacke
 
         // We need to send our skin parts to the server otherwise java sees us with no hat, jacket etc
         String locale = session.getLocale();
-        ClientSettingsPacket clientSettingsPacket = new ClientSettingsPacket(locale, (byte) session.getRenderDistance(), ChatVisibility.FULL, true, SKIN_PART_VALUES, HandPreference.RIGHT_HAND, false);
-        session.sendDownstreamPacket(clientSettingsPacket);
+        ServerboundClientInformationPacket infoPacket = new ServerboundClientInformationPacket(locale, (byte) session.getRenderDistance(), ChatVisibility.FULL, true, SKIN_PART_VALUES, HandPreference.RIGHT_HAND, false);
+        session.sendDownstreamPacket(infoPacket);
 
-        session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:brand", PluginMessageUtils.getGeyserBrandData()));
+        session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:brand", PluginMessageUtils.getGeyserBrandData()));
 
         // register the plugin messaging channels used in Floodgate
         if (session.getRemoteAuthType() == AuthType.FLOODGATE) {
-            session.sendDownstreamPacket(new ClientPluginMessagePacket("minecraft:register", PluginMessageUtils.getFloodgateRegisterData()));
+            session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:register", PluginMessageUtils.getFloodgateRegisterData()));
         }
 
         if (!newDimension.equals(session.getDimension())) {

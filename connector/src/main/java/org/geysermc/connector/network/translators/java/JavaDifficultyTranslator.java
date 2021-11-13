@@ -25,18 +25,17 @@
 
 package org.geysermc.connector.network.translators.java;
 
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundChangeDifficultyPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDifficultyPacket;
 import com.nukkitx.protocol.bedrock.packet.SetDifficultyPacket;
 
-@Translator(packet = ServerDifficultyPacket.class)
-public class JavaDifficultyTranslator extends PacketTranslator<ServerDifficultyPacket> {
+@Translator(packet = ClientboundChangeDifficultyPacket.class)
+public class JavaDifficultyTranslator extends PacketTranslator<ClientboundChangeDifficultyPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerDifficultyPacket packet) {
+    public void translate(GeyserSession session, ClientboundChangeDifficultyPacket packet) {
         SetDifficultyPacket setDifficultyPacket = new SetDifficultyPacket();
         setDifficultyPacket.setDifficulty(packet.getDifficulty().ordinal());
         session.sendUpstreamPacket(setDifficultyPacket);

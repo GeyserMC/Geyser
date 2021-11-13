@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.session.cache;
 
 import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientAdvancementTabPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundSeenAdvancementsPacket;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -113,7 +113,7 @@ public class AdvancementsCache {
                     buildAndShowListForm();
                 } else {
                     // Send a packet indicating that we intend to open this particular advancement window
-                    ClientAdvancementTabPacket packet = new ClientAdvancementTabPacket(id);
+                    ServerboundSeenAdvancementsPacket packet = new ServerboundSeenAdvancementsPacket(id);
                     session.sendDownstreamPacket(packet);
                     // Wait for a response there
                 }
@@ -152,7 +152,7 @@ public class AdvancementsCache {
             SimpleFormResponse response = form.parseResponse(responseData);
             if (!response.isCorrect()) {
                 // Indicate that we have closed the current advancement tab
-                session.sendDownstreamPacket(new ClientAdvancementTabPacket());
+                session.sendDownstreamPacket(new ServerboundSeenAdvancementsPacket());
                 return;
             }
 
@@ -176,7 +176,7 @@ public class AdvancementsCache {
             } else {
                 buildAndShowMenuForm();
                 // Indicate that we have closed the current advancement tab
-                session.sendDownstreamPacket(new ClientAdvancementTabPacket());
+                session.sendDownstreamPacket(new ServerboundSeenAdvancementsPacket());
             }
         });
 

@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityStatusPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundEntityEventPacket;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -41,11 +41,11 @@ import org.geysermc.connector.network.translators.Translator;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-@Translator(packet = ServerEntityStatusPacket.class)
-public class JavaEntityStatusTranslator extends PacketTranslator<ServerEntityStatusPacket> {
+@Translator(packet = ClientboundEntityEventPacket.class)
+public class JavaEntityStatusTranslator extends PacketTranslator<ClientboundEntityEventPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerEntityStatusPacket packet) {
+    public void translate(GeyserSession session, ClientboundEntityEventPacket packet) {
         Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();

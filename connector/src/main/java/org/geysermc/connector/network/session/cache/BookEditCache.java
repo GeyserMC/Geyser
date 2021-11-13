@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.session.cache;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientEditBookPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundEditBookPacket;
 import lombok.Setter;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -39,7 +39,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 public class BookEditCache {
     private final GeyserSession session;
     @Setter
-    private ClientEditBookPacket packet;
+    private ServerboundEditBookPacket packet;
     /**
      * Stores the last time a book update packet was sent to the server.
      */

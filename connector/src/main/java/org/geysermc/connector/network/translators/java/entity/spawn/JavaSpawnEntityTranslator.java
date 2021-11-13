@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.object.FallingBlockDat
 import com.github.steveice10.mc.protocol.data.game.entity.object.HangingDirection;
 import com.github.steveice10.mc.protocol.data.game.entity.object.ProjectileData;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.spawn.ServerSpawnEntityPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddEntityPacket;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.*;
 import org.geysermc.connector.entity.player.PlayerEntity;
@@ -42,11 +42,11 @@ import org.geysermc.connector.utils.LanguageUtils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-@Translator(packet = ServerSpawnEntityPacket.class)
-public class JavaSpawnEntityTranslator extends PacketTranslator<ServerSpawnEntityPacket> {
+@Translator(packet = ClientboundAddEntityPacket.class)
+public class JavaSpawnEntityTranslator extends PacketTranslator<ClientboundAddEntityPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerSpawnEntityPacket packet) {
+    public void translate(GeyserSession session, ClientboundAddEntityPacket packet) {
 
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f motion = Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());

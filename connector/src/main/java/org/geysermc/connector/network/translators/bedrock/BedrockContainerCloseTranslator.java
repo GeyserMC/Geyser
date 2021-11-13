@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCloseWindowPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.inventory.MerchantContainer;
@@ -53,7 +53,7 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
         Inventory openInventory = session.getOpenInventory();
         if (openInventory != null) {
             if (windowId == openInventory.getId()) {
-                ClientCloseWindowPacket closeWindowPacket = new ClientCloseWindowPacket(windowId);
+                ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(windowId);
                 session.sendDownstreamPacket(closeWindowPacket);
                 InventoryUtils.closeInventory(session, windowId, false);
             } else if (openInventory.isPending()) {

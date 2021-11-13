@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.java;
 
 import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerAdvancementsPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateAdvancementsPacket;
 import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -38,11 +38,11 @@ import org.geysermc.connector.utils.LocaleUtils;
 
 import java.util.Map;
 
-@Translator(packet = ServerAdvancementsPacket.class)
-public class JavaAdvancementsTranslator extends PacketTranslator<ServerAdvancementsPacket> {
+@Translator(packet = ClientboundUpdateAdvancementsPacket.class)
+public class JavaAdvancementsTranslator extends PacketTranslator<ClientboundUpdateAdvancementsPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerAdvancementsPacket packet) {
+    public void translate(GeyserSession session, ClientboundUpdateAdvancementsPacket packet) {
         AdvancementsCache advancementsCache = session.getAdvancementsCache();
         if (packet.isReset()) {
             advancementsCache.getStoredAdvancements().clear();
@@ -72,7 +72,7 @@ public class JavaAdvancementsTranslator extends PacketTranslator<ServerAdvanceme
     /**
      * Handle all advancements progress updates
      */
-    public void sendToolbarAdvancementUpdates(GeyserSession session, ServerAdvancementsPacket packet) {
+    public void sendToolbarAdvancementUpdates(GeyserSession session, ClientboundUpdateAdvancementsPacket packet) {
         if (packet.isReset()) {
             // Advancements are being cleared, so they can't be granted
             return;

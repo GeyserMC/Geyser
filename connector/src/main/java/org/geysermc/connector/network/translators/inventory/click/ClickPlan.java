@@ -27,7 +27,7 @@ package org.geysermc.connector.network.translators.inventory.click;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.window.WindowAction;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientWindowActionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundContainerClickPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
@@ -122,7 +122,7 @@ public class ClickPlan {
                 affectedSlots.put(simulatedSlot.getIntKey(), simulatedSlot.getValue().getItemStack());
             }
 
-            ClientWindowActionPacket clickPacket = new ClientWindowActionPacket(
+            ServerboundContainerClickPacket clickPacket = new ServerboundContainerClickPacket(
                     inventory.getId(),
                     inventory.getStateId(),
                     action.slot,

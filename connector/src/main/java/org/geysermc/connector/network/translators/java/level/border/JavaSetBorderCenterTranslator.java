@@ -23,33 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.network.translators.java.level.border;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerUpdateTimePacket;
-import com.nukkitx.protocol.bedrock.packet.SetTimePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.border.ClientboundSetBorderCenterPacket;
+import com.nukkitx.math.vector.Vector2d;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.session.cache.WorldBorder;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-@Translator(packet = ServerUpdateTimePacket.class)
-public class JavaUpdateTimeTranslator extends PacketTranslator<ServerUpdateTimePacket> {
+@Translator(packet = ClientboundSetBorderCenterPacket.class)
+public class JavaSetBorderCenterTranslator extends PacketTranslator<ClientboundSetBorderCenterPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerUpdateTimePacket packet) {
-        // Bedrock sends a GameRulesChangedPacket if there is no daylight cycle
-        // Java just sends a negative long if there is no daylight cycle
-        long time = packet.getTime();
+    public void translate(GeyserSession session, ClientboundSetBorderCenterPacket packet) {
+        WorldBorder worldBorder = session.getWorldBorder();
+        worldBorder.setCenter(Vector2d.from(packet.getNewCenterX(), packet.getNewCenterZ()));
 
-        // https://minecraft.gamepedia.com/Day-night_cycle#24-hour_Minecraft_day
-        SetTimePacket setTimePacket = new SetTimePacket();
-        setTimePacket.setTime((int) Math.abs(time) % 24000);
-        session.sendUpstreamPacket(setTimePacket);
-        if (!session.isDaylightCycle() && time >= 0) {
-            // Client thinks there is no daylight cycle but there is
-            session.setDaylightCycle(true);
-        } else if (session.isDaylightCycle() && time < 0) {
-            // Client thinks there is daylight cycle but there isn't
-            session.setDaylightCycle(false);
-        }
+        worldBorder.update();
     }
 }

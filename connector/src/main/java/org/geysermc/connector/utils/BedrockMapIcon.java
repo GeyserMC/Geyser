@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.utils;
 
-import com.github.steveice10.mc.protocol.data.game.world.map.MapIconType;
+import com.github.steveice10.mc.protocol.data.game.level.map.MapIconType;
 import lombok.Getter;
 
 public enum BedrockMapIcon {

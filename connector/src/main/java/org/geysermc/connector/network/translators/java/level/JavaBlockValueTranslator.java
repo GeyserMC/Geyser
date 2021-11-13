@@ -23,11 +23,11 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.network.translators.java.level;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.data.game.world.block.value.*;
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerBlockValuePacket;
+import com.github.steveice10.mc.protocol.data.game.level.block.value.*;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockEventPacket;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
@@ -44,11 +44,11 @@ import org.geysermc.connector.network.translators.world.block.entity.NoteblockBl
 import org.geysermc.connector.network.translators.world.block.entity.PistonBlockEntity;
 import org.geysermc.connector.utils.Direction;
 
-@Translator(packet = ServerBlockValuePacket.class)
-public class JavaBlockValueTranslator extends PacketTranslator<ServerBlockValuePacket> {
+@Translator(packet = ClientboundBlockEventPacket.class)
+public class JavaBlockValueTranslator extends PacketTranslator<ClientboundBlockEventPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerBlockValuePacket packet) {
+    public void translate(GeyserSession session, ClientboundBlockEventPacket packet) {
         BlockEventPacket blockEventPacket = new BlockEventPacket();
         blockEventPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(),
                 packet.getPosition().getY(), packet.getPosition().getZ()));

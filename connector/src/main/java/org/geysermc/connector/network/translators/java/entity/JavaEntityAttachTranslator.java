@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityAttachPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundSetEntityLinkPacket;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -38,11 +38,11 @@ import org.geysermc.connector.network.translators.Translator;
 /**
  * Called when a leash is attached, removed or updated from an entity
  */
-@Translator(packet = ServerEntityAttachPacket.class)
-public class JavaEntityAttachTranslator extends PacketTranslator<ServerEntityAttachPacket> {
+@Translator(packet = ClientboundSetEntityLinkPacket.class)
+public class JavaEntityAttachTranslator extends PacketTranslator<ClientboundSetEntityLinkPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerEntityAttachPacket packet) {
+    public void translate(GeyserSession session, ClientboundSetEntityLinkPacket packet) {
 
         Entity holderId;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {

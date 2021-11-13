@@ -27,7 +27,7 @@ package org.geysermc.connector.network.translators.world;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatPacket;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
@@ -82,7 +82,7 @@ public class GeyserWorldManager extends WorldManager {
 
     @Override
     public void setGameRule(GeyserSession session, String name, Object value) {
-        session.sendDownstreamPacket(new ClientChatPacket("/gamerule " + name + " " + value));
+        session.sendDownstreamPacket(new ServerboundChatPacket("/gamerule " + name + " " + value));
         gameruleCache.put(name, String.valueOf(value));
     }
 
@@ -108,12 +108,12 @@ public class GeyserWorldManager extends WorldManager {
 
     @Override
     public void setPlayerGameMode(GeyserSession session, GameMode gameMode) {
-        session.sendDownstreamPacket(new ClientChatPacket("/gamemode " + gameMode.name().toLowerCase()));
+        session.sendDownstreamPacket(new ServerboundChatPacket("/gamemode " + gameMode.name().toLowerCase()));
     }
 
     @Override
     public void setDifficulty(GeyserSession session, Difficulty difficulty) {
-        session.sendDownstreamPacket(new ClientChatPacket("/difficulty " + difficulty.name().toLowerCase()));
+        session.sendDownstreamPacket(new ServerboundChatPacket("/difficulty " + difficulty.name().toLowerCase()));
     }
 
     @Override

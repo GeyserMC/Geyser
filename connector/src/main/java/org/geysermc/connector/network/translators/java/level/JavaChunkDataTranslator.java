@@ -23,10 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.network.translators.java.level;
 
 import com.github.steveice10.mc.protocol.data.game.chunk.Column;
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerChunkDataPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelChunkPacket;
 import com.nukkitx.nbt.NBTOutputStream;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
@@ -46,11 +46,11 @@ import org.geysermc.connector.utils.ChunkUtils;
 import static org.geysermc.connector.utils.ChunkUtils.MINIMUM_ACCEPTED_HEIGHT;
 import static org.geysermc.connector.utils.ChunkUtils.MINIMUM_ACCEPTED_HEIGHT_OVERWORLD;
 
-@Translator(packet = ServerChunkDataPacket.class)
-public class JavaChunkDataTranslator extends PacketTranslator<ServerChunkDataPacket> {
+@Translator(packet = ClientboundLevelChunkPacket.class)
+public class JavaChunkDataTranslator extends PacketTranslator<ClientboundLevelChunkPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerChunkDataPacket packet) {
+    public void translate(GeyserSession session, ClientboundLevelChunkPacket packet) {
         if (session.isSpawned()) {
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
         }

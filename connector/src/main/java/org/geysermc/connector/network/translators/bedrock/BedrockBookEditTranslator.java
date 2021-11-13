@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientEditBookPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundEditBookPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
@@ -137,7 +137,7 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
                 title = null;
             }
 
-            session.getBookEditCache().setPacket(new ClientEditBookPacket(session.getPlayerInventory().getHeldItemSlot(), networkPages, title));
+            session.getBookEditCache().setPacket(new ServerboundEditBookPacket(session.getPlayerInventory().getHeldItemSlot(), networkPages, title));
             // There won't be any more book updates after this, so we can try sending the edit packet immediately
             if (packet.getAction() == BookEditPacket.Action.SIGN_BOOK) {
                 session.getBookEditCache().checkForSend();

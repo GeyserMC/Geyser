@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.java;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerKeepAlivePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundKeepAlivePacket;
 import com.nukkitx.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -34,11 +34,11 @@ import org.geysermc.connector.network.translators.Translator;
 /**
  * Used to forward the keep alive packet to the client in order to get back a reliable ping.
  */
-@Translator(packet = ServerKeepAlivePacket.class)
-public class JavaKeepAliveTranslator extends PacketTranslator<ServerKeepAlivePacket> {
+@Translator(packet = ClientboundKeepAlivePacket.class)
+public class JavaKeepAliveTranslator extends PacketTranslator<ClientboundKeepAlivePacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerKeepAlivePacket packet) {
+    public void translate(GeyserSession session, ClientboundKeepAlivePacket packet) {
         if (!session.getConnector().getConfig().isForwardPlayerPing()) {
             return;
         }

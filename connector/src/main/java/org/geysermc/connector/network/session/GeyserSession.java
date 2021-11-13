@@ -40,12 +40,12 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
-import com.github.steveice10.mc.protocol.packet.handshake.client.HandshakePacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerAbilitiesPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.player.ClientPlayerPositionRotationPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientTeleportConfirmPacket;
-import com.github.steveice10.mc.protocol.packet.login.client.LoginPluginResponsePacket;
+import com.github.steveice10.mc.protocol.packet.handshake.serverbound.ClientIntentionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundAcceptTeleportationPacket;
+import com.github.steveice10.mc.protocol.packet.login.serverbound.ServerboundCustomQueryPacket;
 import com.github.steveice10.packetlib.BuiltinFlags;
 import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
@@ -376,7 +376,7 @@ public class GeyserSession implements CommandSender {
     private long lastMovementTimestamp = System.currentTimeMillis();
 
     /**
-     * Used to send a ClientVehicleMovePacket for every PlayerInputPacket after idling on a boat/horse for more than 100ms
+     * Used to send a ServerboundMoveVehiclePacket for every PlayerInputPacket after idling on a boat/horse for more than 100ms
      */
     @Setter
     private long lastVehicleMoveTimestamp = System.currentTimeMillis();
@@ -737,7 +737,7 @@ public class GeyserSession implements CommandSender {
             @Override
             public void packetSending(PacketSendingEvent event) {
                 //todo move this somewhere else
-                if (event.getPacket() instanceof HandshakePacket) {
+                if (event.getPacket() instanceof ClientIntentionPacket) {
                     String addressSuffix;
                     if (floodgate) {
                         byte[] encryptedData;
@@ -778,21 +778,16 @@ public class GeyserSession implements CommandSender {
                         addressSuffix = "";
                     }
 
-                    HandshakePacket handshakePacket = event.getPacket();
+                    ClientIntentionPacket intentionPacket = event.getPacket();
 
                     String address;
                     if (connector.getConfig().getRemote().isForwardHost()) {
                         address = clientData.getServerAddress().split(":")[0];
                     } else {
-                        address = handshakePacket.getHostname();
+                        address = intentionPacket.getHostname();
                     }
 
-                    event.setPacket(new HandshakePacket(
-                            handshakePacket.getProtocolVersion(),
-                            address + addressSuffix,
-                            handshakePacket.getPort(),
-                            handshakePacket.getIntent()
-                    ));
+                    event.setPacket(intentionPacket.withHostname(address + addressSuffix));
                 }
             }
 
@@ -963,7 +958,7 @@ public class GeyserSession implements CommandSender {
                 Vector3d position = collisionManager.adjustBedrockPosition(playerEntity.getPosition(), playerEntity.isOnGround(), false);
                 // A null return value cancels the packet
                 if (position != null) {
-                    ClientPlayerPositionPacket packet = new ClientPlayerPositionPacket(playerEntity.isOnGround(),
+                    ServerboundMovePlayerPosPacket packet = new ServerboundMovePlayerPosPacket(playerEntity.isOnGround(),
                             position.getX(), position.getY(), position.getZ());
                     sendDownstreamPacket(packet);
                 }
@@ -1242,10 +1237,10 @@ public class GeyserSession implements CommandSender {
                 TeleportCache entry = it.next().getValue();
                 int nextID = entry.getTeleportConfirmId();
                 if (nextID <= teleportID) {
-                    ClientTeleportConfirmPacket teleportConfirmPacket = new ClientTeleportConfirmPacket(nextID);
+                    ServerboundAcceptTeleportationPacket teleportConfirmPacket = new ServerboundAcceptTeleportationPacket(nextID);
                     sendDownstreamPacket(teleportConfirmPacket);
                     // Servers (especially ones like Hypixel) expect exact coordinates given back to them.
-                    ClientPlayerPositionRotationPacket positionPacket = new ClientPlayerPositionRotationPacket(playerEntity.isOnGround(),
+                    ServerboundMovePlayerPosRotPacket positionPacket = new ServerboundMovePlayerPosRotPacket(playerEntity.isOnGround(),
                             entry.getX(), entry.getY(), entry.getZ(), entry.getYaw(), entry.getPitch());
                     sendDownstreamPacket(positionPacket);
                     it.remove();
@@ -1320,7 +1315,7 @@ public class GeyserSession implements CommandSender {
     }
 
     private void sendDownstreamPacket0(Packet packet) {
-        if (protocol.getSubProtocol().equals(SubProtocol.GAME) || packet.getClass() == LoginPluginResponsePacket.class) {
+        if (protocol.getSubProtocol().equals(SubProtocol.GAME) || packet.getClass() == ServerboundCustomQueryPacket.class) {
             downstream.send(packet);
         } else {
             connector.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
@@ -1400,7 +1395,7 @@ public class GeyserSession implements CommandSender {
             if (spectator && !flying) {
                 // We're "flying locked" in this gamemode
                 flying = true;
-                ClientPlayerAbilitiesPacket abilitiesPacket = new ClientPlayerAbilitiesPacket(true);
+                ServerboundPlayerAbilitiesPacket abilitiesPacket = new ServerboundPlayerAbilitiesPacket(true);
                 sendDownstreamPacket(abilitiesPacket);
             }
             flags.add(AdventureSetting.FLYING);

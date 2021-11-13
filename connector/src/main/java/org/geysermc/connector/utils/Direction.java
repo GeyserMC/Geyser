@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.utils;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.value.PistonValue;
+import com.github.steveice10.mc.protocol.data.game.level.block.value.PistonValue;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.Getter;
 

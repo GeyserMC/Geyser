@@ -25,20 +25,22 @@
 
 package org.geysermc.connector.network.translators.java.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityHeadLookPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundRotateHeadPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-@Translator(packet = ServerEntityHeadLookPacket.class)
-public class JavaEntityHeadLookTranslator extends PacketTranslator<ServerEntityHeadLookPacket> {
+@Translator(packet = ClientboundRotateHeadPacket.class)
+public class JavaEntityHeadLookTranslator extends PacketTranslator<ClientboundRotateHeadPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerEntityHeadLookPacket packet) {
-        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+    public void translate(GeyserSession session, ClientboundRotateHeadPacket packet) {
+        Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();
+        } else {
+            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         }
 
         if (entity == null) return;

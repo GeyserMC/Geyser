@@ -25,18 +25,18 @@
 
 package org.geysermc.connector.network.translators.java.title;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.title.ServerSetTitleTextPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.title.ClientboundSetTitleTextPacket;
 import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
-@Translator(packet = ServerSetTitleTextPacket.class)
-public class JavaSetTitleTextTranslator extends PacketTranslator<ServerSetTitleTextPacket> {
+@Translator(packet = ClientboundSetTitleTextPacket.class)
+public class JavaSetTitleTextTranslator extends PacketTranslator<ClientboundSetTitleTextPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerSetTitleTextPacket packet) {
+    public void translate(GeyserSession session, ClientboundSetTitleTextPacket packet) {
         String text;
         if (packet.getText() == null) { // This can happen, see https://github.com/KyoriPowered/adventure/issues/447
             text = " ";

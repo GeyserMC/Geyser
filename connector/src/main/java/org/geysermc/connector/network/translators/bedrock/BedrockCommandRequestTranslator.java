@@ -32,7 +32,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 
-import com.github.steveice10.mc.protocol.packet.ingame.client.ClientChatPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatPacket;
 import com.nukkitx.protocol.bedrock.packet.CommandRequestPacket;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 
@@ -52,7 +52,7 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
                 return;
             }
 
-            ClientChatPacket chatPacket = new ClientChatPacket(message);
+            ServerboundChatPacket chatPacket = new ServerboundChatPacket(message);
             session.sendDownstreamPacket(chatPacket);
         }
     }

@@ -23,9 +23,9 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.network.translators.java.level;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerBlockBreakAnimPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockDestructionPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
@@ -37,11 +37,11 @@ import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.registry.type.ItemMapping;
 import org.geysermc.connector.utils.BlockUtils;
 
-@Translator(packet = ServerBlockBreakAnimPacket.class)
-public class JavaBlockBreakAnimTranslator extends PacketTranslator<ServerBlockBreakAnimPacket> {
+@Translator(packet = ClientboundBlockDestructionPacket.class)
+public class JavaBlockBreakAnimTranslator extends PacketTranslator<ClientboundBlockDestructionPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerBlockBreakAnimPacket packet) {
+    public void translate(GeyserSession session, ClientboundBlockDestructionPacket packet) {
         int state = session.getConnector().getWorldManager().getBlockAt(session, packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
         int breakTime = (int) (65535 / Math.ceil(BlockUtils.getBreakTime(session, BlockRegistries.JAVA_BLOCKS.get(state), ItemMapping.AIR, new CompoundTag(""), false) * 20));
         LevelEventPacket levelEventPacket = new LevelEventPacket();

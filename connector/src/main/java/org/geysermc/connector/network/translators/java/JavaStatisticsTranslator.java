@@ -25,17 +25,17 @@
 
 package org.geysermc.connector.network.translators.java;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerStatisticsPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundAwardStatsPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.StatisticsUtils;
 
-@Translator(packet = ServerStatisticsPacket.class)
-public class JavaStatisticsTranslator extends PacketTranslator<ServerStatisticsPacket> {
+@Translator(packet = ClientboundAwardStatsPacket.class)
+public class JavaStatisticsTranslator extends PacketTranslator<ClientboundAwardStatsPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerStatisticsPacket packet) {
+    public void translate(GeyserSession session, ClientboundAwardStatsPacket packet) {
         session.updateStatistics(packet.getStatistics());
 
         if (session.isWaitingForStatistics()) {

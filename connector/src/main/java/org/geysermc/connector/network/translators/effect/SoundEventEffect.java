@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.effect;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerPlayEffectPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
@@ -50,7 +50,7 @@ public class SoundEventEffect implements Effect {
     int extraData;
 
     @Override
-    public void handleEffectPacket(GeyserSession session, ServerPlayEffectPacket packet) {
+    public void handleEffectPacket(GeyserSession session, ClientboundLevelEventPacket packet) {
         LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
         levelSoundEvent.setSound(soundEvent);
         levelSoundEvent.setIdentifier(identifier);

@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityMetadataPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundSetEntityDataPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -34,11 +34,11 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.InteractiveTagManager;
 import org.geysermc.connector.utils.LanguageUtils;
 
-@Translator(packet = ServerEntityMetadataPacket.class)
-public class JavaEntityMetadataTranslator extends PacketTranslator<ServerEntityMetadataPacket> {
+@Translator(packet = ClientboundSetEntityDataPacket.class)
+public class JavaEntityMetadataTranslator extends PacketTranslator<ClientboundSetEntityDataPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerEntityMetadataPacket packet) {
+    public void translate(GeyserSession session, ClientboundSetEntityDataPacket packet) {
         Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();

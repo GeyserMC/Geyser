@@ -23,10 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.world;
+package org.geysermc.connector.network.translators.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.world.effect.*;
-import com.github.steveice10.mc.protocol.packet.ingame.server.world.ServerPlayEffectPacket;
+import com.github.steveice10.mc.protocol.data.game.level.effect.*;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
@@ -45,11 +45,11 @@ import org.geysermc.connector.utils.LocaleUtils;
 import java.util.Collections;
 import java.util.Locale;
 
-@Translator(packet = ServerPlayEffectPacket.class)
-public class JavaPlayEffectTranslator extends PacketTranslator<ServerPlayEffectPacket> {
+@Translator(packet = ClientboundLevelEventPacket.class)
+public class JavaPlayEffectTranslator extends PacketTranslator<ClientboundLevelEventPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerPlayEffectPacket packet) {
+    public void translate(GeyserSession session, ClientboundLevelEventPacket packet) {
         // Separate case since each RecordEffectData in Java is an individual track in Bedrock
         if (packet.getEffect() == SoundEffect.RECORD) {
             RecordEffectData recordEffectData = (RecordEffectData) packet.getData();

@@ -26,8 +26,8 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientUpdateJigsawBlockPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.client.world.ClientUpdateSignPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundSetJigsawBlockPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundSignUpdatePacket;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -105,8 +105,8 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             // Put the final line on since it isn't done in the for loop
             if (iterator < lines.length) lines[iterator] = newMessage.toString();
             Position pos = new Position(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
-            ClientUpdateSignPacket clientUpdateSignPacket = new ClientUpdateSignPacket(pos, lines);
-            session.sendDownstreamPacket(clientUpdateSignPacket);
+            ServerboundSignUpdatePacket signUpdatePacket = new ServerboundSignUpdatePacket(pos, lines);
+            session.sendDownstreamPacket(signUpdatePacket);
 
             // We set the sign text cached in the session to null to indicate there is no work-in-progress sign
             session.setLastSignMessage(null);
@@ -119,7 +119,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             String pool = tag.getString("target_pool");
             String finalState = tag.getString("final_state");
             String joint = tag.getString("joint");
-            ClientUpdateJigsawBlockPacket jigsawPacket = new ClientUpdateJigsawBlockPacket(pos, name, target, pool,
+            ServerboundSetJigsawBlockPacket jigsawPacket = new ServerboundSetJigsawBlockPacket(pos, name, target, pool,
                     finalState, joint);
             session.sendDownstreamPacket(jigsawPacket);
         }

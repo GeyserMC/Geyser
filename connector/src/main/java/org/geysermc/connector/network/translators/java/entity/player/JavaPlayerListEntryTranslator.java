@@ -27,7 +27,7 @@ package org.geysermc.connector.network.translators.java.entity.player;
 
 import com.github.steveice10.mc.protocol.data.game.PlayerListEntry;
 import com.github.steveice10.mc.protocol.data.game.PlayerListEntryAction;
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerPlayerListEntryPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundPlayerInfoPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.connector.GeyserConnector;
@@ -37,10 +37,10 @@ import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.skin.SkinManager;
 
-@Translator(packet = ServerPlayerListEntryPacket.class)
-public class JavaPlayerListEntryTranslator extends PacketTranslator<ServerPlayerListEntryPacket> {
+@Translator(packet = ClientboundPlayerInfoPacket.class)
+public class JavaPlayerListEntryTranslator extends PacketTranslator<ClientboundPlayerInfoPacket> {
     @Override
-    public void translate(GeyserSession session, ServerPlayerListEntryPacket packet) {
+    public void translate(GeyserSession session, ClientboundPlayerInfoPacket packet) {
         if (packet.getAction() != PlayerListEntryAction.ADD_PLAYER && packet.getAction() != PlayerListEntryAction.REMOVE_PLAYER)
             return;
 

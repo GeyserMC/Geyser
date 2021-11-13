@@ -27,7 +27,7 @@ package org.geysermc.connector.network.translators.java;
 
 import com.github.steveice10.mc.protocol.data.game.command.CommandNode;
 import com.github.steveice10.mc.protocol.data.game.command.CommandParser;
-import com.github.steveice10.mc.protocol.packet.ingame.server.ServerDeclareCommandsPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
 import com.nukkitx.protocol.bedrock.data.command.CommandData;
 import com.nukkitx.protocol.bedrock.data.command.CommandEnumData;
 import com.nukkitx.protocol.bedrock.data.command.CommandParam;
@@ -53,8 +53,8 @@ import org.geysermc.connector.utils.EntityUtils;
 
 import java.util.*;
 
-@Translator(packet = ServerDeclareCommandsPacket.class)
-public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclareCommandsPacket> {
+@Translator(packet = ClientboundCommandsPacket.class)
+public class JavaDeclareCommandsTranslator extends PacketTranslator<ClientboundCommandsPacket> {
 
     private static final String[] ALL_EFFECT_IDENTIFIERS = EntityUtils.getAllEffectIdentifiers();
     private static final String[] ENUM_BOOLEAN = {"true", "false"};
@@ -98,7 +98,7 @@ public class JavaDeclareCommandsTranslator extends PacketTranslator<ServerDeclar
     }
 
     @Override
-    public void translate(GeyserSession session, ServerDeclareCommandsPacket packet) {
+    public void translate(GeyserSession session, ClientboundCommandsPacket packet) {
         // Don't send command suggestions if they are disabled
         if (!session.getConnector().getConfig().isCommandSuggestions()) {
             session.getConnector().getLogger().debug("Not sending translated command suggestions as they are disabled.");

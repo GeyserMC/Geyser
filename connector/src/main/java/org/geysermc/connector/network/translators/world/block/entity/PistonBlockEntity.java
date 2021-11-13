@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
-import com.github.steveice10.mc.protocol.data.game.world.block.value.PistonValueType;
+import com.github.steveice10.mc.protocol.data.game.level.block.value.PistonValueType;
 import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;

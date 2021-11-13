@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.entity.player;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.entity.player.ServerPlayerHealthPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.player.ClientboundSetHealthPacket;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.packet.SetHealthPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
@@ -37,11 +37,11 @@ import org.geysermc.connector.network.translators.Translator;
 
 import java.util.List;
 
-@Translator(packet = ServerPlayerHealthPacket.class)
-public class JavaPlayerHealthTranslator extends PacketTranslator<ServerPlayerHealthPacket> {
+@Translator(packet = ClientboundSetHealthPacket.class)
+public class JavaPlayerHealthTranslator extends PacketTranslator<ClientboundSetHealthPacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerPlayerHealthPacket packet) {
+    public void translate(GeyserSession session, ClientboundSetHealthPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         int health = (int) Math.ceil(packet.getHealth());

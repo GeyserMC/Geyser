@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.scoreboard;
 
-import com.github.steveice10.mc.protocol.packet.ingame.server.scoreboard.ServerDisplayScoreboardPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetDisplayObjectivePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.WorldCache;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -33,11 +33,11 @@ import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.scoreboard.Scoreboard;
 import org.geysermc.connector.scoreboard.ScoreboardUpdater;
 
-@Translator(packet = ServerDisplayScoreboardPacket.class)
-public class JavaDisplayScoreboardTranslator extends PacketTranslator<ServerDisplayScoreboardPacket> {
+@Translator(packet = ClientboundSetDisplayObjectivePacket.class)
+public class JavaDisplayScoreboardTranslator extends PacketTranslator<ClientboundSetDisplayObjectivePacket> {
 
     @Override
-    public void translate(GeyserSession session, ServerDisplayScoreboardPacket packet) {
+    public void translate(GeyserSession session, ClientboundSetDisplayObjectivePacket packet) {
         WorldCache worldCache = session.getWorldCache();
         Scoreboard scoreboard = worldCache.getScoreboard();
         int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();
