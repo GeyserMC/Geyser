@@ -43,7 +43,7 @@ public class BedrockServerSettingsRequestTranslator extends PacketTranslator<Ser
         int windowId = session.getFormCache().addForm(window);
 
         // Fixes https://bugs.mojang.com/browse/MCPE-94012 because of the delay
-        session.getConnector().getGeneralThreadPool().schedule(() -> {
+        session.scheduleInEventLoop(() -> {
             ServerSettingsResponsePacket serverSettingsResponsePacket = new ServerSettingsResponsePacket();
             serverSettingsResponsePacket.setFormData(window.getJsonData());
             serverSettingsResponsePacket.setFormId(windowId);

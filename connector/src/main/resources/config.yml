@@ -110,9 +110,6 @@ max-players: 100
 # If debug messages should be sent through console
 debug-mode: false
 
-# Thread pool size
-general-thread-pool: 32
-
 # Allow third party capes to be visible. Currently allowing:
 # OptiFine capes, LabyMod capes, 5Zig capes and MinecraftCapes
 allow-third-party-capes: true

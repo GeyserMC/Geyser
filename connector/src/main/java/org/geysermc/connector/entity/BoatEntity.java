@@ -133,9 +133,7 @@ public class BoatEntity extends Entity {
                     // Get the entity by the first stored passenger and convey motion in this manner
                     Entity entity = session.getEntityCache().getEntityByJavaId(this.passengers.iterator().nextLong());
                     if (entity != null) {
-                        session.getConnector().getGeneralThreadPool().execute(() ->
-                                updateLeftPaddle(session, entity)
-                        );
+                        updateLeftPaddle(session, entity);
                     }
                 }
             } else {
@@ -150,9 +148,7 @@ public class BoatEntity extends Entity {
                 if (!this.passengers.isEmpty()) {
                     Entity entity = session.getEntityCache().getEntityByJavaId(this.passengers.iterator().nextLong());
                     if (entity != null) {
-                        session.getConnector().getGeneralThreadPool().execute(() ->
-                                updateRightPaddle(session, entity)
-                        );
+                        updateRightPaddle(session, entity);
                     }
                 }
             } else {
@@ -180,7 +176,7 @@ public class BoatEntity extends Entity {
             paddleTimeLeft += ROWING_SPEED;
             sendAnimationPacket(session, rower, AnimatePacket.Action.ROW_LEFT, paddleTimeLeft);
 
-            session.getConnector().getGeneralThreadPool().schedule(() ->
+            session.scheduleInEventLoop(() ->
                     updateLeftPaddle(session, rower),
                     100,
                     TimeUnit.MILLISECONDS
@@ -193,7 +189,7 @@ public class BoatEntity extends Entity {
             paddleTimeRight += ROWING_SPEED;
             sendAnimationPacket(session, rower, AnimatePacket.Action.ROW_RIGHT, paddleTimeRight);
 
-            session.getConnector().getGeneralThreadPool().schedule(() ->
+            session.scheduleInEventLoop(() ->
                             updateRightPaddle(session, rower),
                     100,
                     TimeUnit.MILLISECONDS

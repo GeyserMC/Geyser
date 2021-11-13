@@ -229,6 +229,8 @@ public class GeyserSession implements CommandSender {
     private Vector2i lastChunkPosition = null;
     private int renderDistance;
 
+    private boolean sentSpawnPacket;
+
     private boolean loggedIn;
     private boolean loggingIn;
 
@@ -501,6 +503,10 @@ public class GeyserSession implements CommandSender {
             disconnect(disconnectReason.name());
             connector.getSessionManager().removeSession(this);
         });
+
+        this.remoteAddress = connector.getConfig().getRemote().getAddress();
+        this.remotePort = connector.getConfig().getRemote().getPort();
+        this.remoteAuthType = connector.getConfig().getRemote().getAuthType();
     }
 
     /**
@@ -508,9 +514,7 @@ public class GeyserSession implements CommandSender {
      */
     public void connect() {
         startGame();
-        this.remoteAddress = connector.getConfig().getRemote().getAddress();
-        this.remotePort = connector.getConfig().getRemote().getPort();
-        this.remoteAuthType = connector.getConfig().getRemote().getAuthType();
+        sentSpawnPacket = true;
 
         // Set the hardcoded shield ID to the ID we just defined in StartGamePacket
         upstream.getSession().getHardcodedBlockingId().set(this.itemMappings.getStoredItems().shield().getBedrockId());
@@ -685,27 +689,36 @@ public class GeyserSession implements CommandSender {
         if (loggedIn || closed) {
             return;
         }
-        try {
-            msaAuthenticationService.login();
-            GameProfile profile = msaAuthenticationService.getSelectedProfile();
-            if (profile == null) {
-                // Java account is offline
-                disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.remote.invalid_account", clientData.getLanguageCode()));
+        CompletableFuture.supplyAsync(() -> {
+            try {
+                msaAuthenticationService.login();
+                GameProfile profile = msaAuthenticationService.getSelectedProfile();
+                if (profile == null) {
+                    // Java account is offline
+                    disconnect(LanguageUtils.getPlayerLocaleString("geyser.network.remote.invalid_account", clientData.getLanguageCode()));
+                    return null;
+                }
+
+                return new MinecraftProtocol(profile, msaAuthenticationService.getAccessToken());
+            } catch (RequestException e) {
+                throw new CompletionException(e);
+            }
+        }).whenComplete((response, ex) -> {
+            if (ex != null) {
+                if (!(ex instanceof CompletionException completionException) || !(completionException.getCause() instanceof AuthPendingException)) {
+                    connector.getLogger().error("Failed to log in with Microsoft code!", ex);
+                    disconnect(ex.toString());
+                } else {
+                    // Wait one second before trying again
+                    connector.getScheduledThread().schedule(() -> attemptCodeAuthentication(msaAuthenticationService), 1, TimeUnit.SECONDS);
+                }
                 return;
             }
-
-            protocol = new MinecraftProtocol(profile, msaAuthenticationService.getAccessToken());
-
-            connectDownstream();
-        } catch (RequestException e) {
-            if (!(e instanceof AuthPendingException)) {
-                connector.getLogger().error("Failed to log in with Microsoft code!", e);
-                disconnect(e.toString());
-            } else {
-                // Wait one second before trying again
-                connector.getGeneralThreadPool().schedule(() -> attemptCodeAuthentication(msaAuthenticationService), 1, TimeUnit.SECONDS);
+            if (!closed) {
+                this.protocol = response;
+                connectDownstream();
             }
-        }
+        });
     }
 
     /**
@@ -725,6 +738,7 @@ public class GeyserSession implements CommandSender {
             downstream = new TcpClientSession(this.remoteAddress, this.remotePort, this.protocol);
             disableSrvResolving();
         }
+
         if (connector.getConfig().getRemote().isUseProxyProtocol()) {
             downstream.setFlag(BuiltinFlags.ENABLE_CLIENT_PROXY_PROTOCOL, true);
             downstream.setFlag(BuiltinFlags.CLIENT_PROXIED_ADDRESS, upstream.getAddress());
@@ -1133,7 +1147,11 @@ public class GeyserSession implements CommandSender {
         StartGamePacket startGamePacket = new StartGamePacket();
         startGamePacket.setUniqueEntityId(playerEntity.getGeyserId());
         startGamePacket.setRuntimeEntityId(playerEntity.getGeyserId());
-        startGamePacket.setPlayerGameType(GameType.SURVIVAL);
+        startGamePacket.setPlayerGameType(switch (gameMode) {
+            case CREATIVE -> GameType.CREATIVE;
+            case ADVENTURE -> GameType.ADVENTURE;
+            default -> GameType.SURVIVAL;
+        });
         startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
         startGamePacket.setRotation(Vector2f.from(1, 1));
 

@@ -141,15 +141,12 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         // Cache entity
         session.getSkullCache().put(blockPosition, player);
 
-        // Only send to session if we are initialized, otherwise it will happen then.
-        if (session.getUpstream().isInitialized()) {
-            player.spawnEntity(session);
+        player.spawnEntity(session);
 
-            SkullSkinManager.requestAndHandleSkin(player, session, (skin -> session.scheduleInEventLoop(() -> {
-                // Delay to minimize split-second "player" pop-in
-                player.getMetadata().getFlags().setFlag(EntityFlag.INVISIBLE, false);
-                player.updateBedrockMetadata(session);
-            }, 250, TimeUnit.MILLISECONDS)));
-        }
+        SkullSkinManager.requestAndHandleSkin(player, session, (skin -> session.scheduleInEventLoop(() -> {
+            // Delay to minimize split-second "player" pop-in
+            player.getMetadata().getFlags().setFlag(EntityFlag.INVISIBLE, false);
+            player.updateBedrockMetadata(session);
+        }, 250, TimeUnit.MILLISECONDS)));
     }
 }

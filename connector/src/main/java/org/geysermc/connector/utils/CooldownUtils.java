@@ -92,7 +92,8 @@ public class CooldownUtils {
         titlePacket.setPlatformOnlineId("");
         session.sendUpstreamPacket(titlePacket);
         if (hasCooldown(session)) {
-            session.getConnector().getGeneralThreadPool().schedule(() -> computeCooldown(session, sessionPreference, lastHitTime), 50, TimeUnit.MILLISECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
+            session.scheduleInEventLoop(() ->
+                    computeCooldown(session, sessionPreference, lastHitTime), 50, TimeUnit.MILLISECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
         } else {
             SetTitlePacket removeTitlePacket = new SetTitlePacket();
             if (sessionPreference == CooldownType.ACTIONBAR) {

@@ -167,31 +167,29 @@ public class SkinManager {
                             }
                         }
 
-                        if (session.getUpstream().isInitialized()) {
-                            PlayerListPacket.Entry updatedEntry = buildEntryManually(
-                                    session,
-                                    entity.getUuid(),
-                                    entity.getUsername(),
-                                    entity.getGeyserId(),
-                                    skin.getTextureUrl(),
-                                    skin.getSkinData(),
-                                    cape.getCapeId(),
-                                    cape.getCapeData(),
-                                    geometry
-                            );
+                        PlayerListPacket.Entry updatedEntry = buildEntryManually(
+                                session,
+                                entity.getUuid(),
+                                entity.getUsername(),
+                                entity.getGeyserId(),
+                                skin.getTextureUrl(),
+                                skin.getSkinData(),
+                                cape.getCapeId(),
+                                cape.getCapeData(),
+                                geometry
+                        );
 
 
-                            PlayerListPacket playerAddPacket = new PlayerListPacket();
-                            playerAddPacket.setAction(PlayerListPacket.Action.ADD);
-                            playerAddPacket.getEntries().add(updatedEntry);
-                            session.sendUpstreamPacket(playerAddPacket);
+                        PlayerListPacket playerAddPacket = new PlayerListPacket();
+                        playerAddPacket.setAction(PlayerListPacket.Action.ADD);
+                        playerAddPacket.getEntries().add(updatedEntry);
+                        session.sendUpstreamPacket(playerAddPacket);
 
-                            if (!entity.isPlayerList()) {
-                                PlayerListPacket playerRemovePacket = new PlayerListPacket();
-                                playerRemovePacket.setAction(PlayerListPacket.Action.REMOVE);
-                                playerRemovePacket.getEntries().add(updatedEntry);
-                                session.sendUpstreamPacket(playerRemovePacket);
-                            }
+                        if (!entity.isPlayerList()) {
+                            PlayerListPacket playerRemovePacket = new PlayerListPacket();
+                            playerRemovePacket.setAction(PlayerListPacket.Action.REMOVE);
+                            playerRemovePacket.getEntries().add(updatedEntry);
+                            session.sendUpstreamPacket(playerRemovePacket);
                         }
                     } catch (Exception e) {
                         GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);

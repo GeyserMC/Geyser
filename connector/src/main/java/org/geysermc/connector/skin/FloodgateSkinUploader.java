@@ -212,14 +212,14 @@ public final class FloodgateSkinUploader {
 
     private void reconnectLater(GeyserConnector connector) {
         // we ca only reconnect when the thread pool is open
-        if (connector.getGeneralThreadPool().isShutdown() || closed) {
+        if (connector.getScheduledThread().isShutdown() || closed) {
             logger.info("The skin uploader has been closed");
             return;
         }
 
         long additionalTime = ThreadLocalRandom.current().nextInt(7);
         // we don't have to check the result. onClose will handle that for us
-        connector.getGeneralThreadPool()
+        connector.getScheduledThread()
                 .schedule(client::reconnect, 8 + additionalTime, TimeUnit.SECONDS);
     }
 

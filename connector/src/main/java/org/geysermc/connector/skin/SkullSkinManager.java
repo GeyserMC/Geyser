@@ -55,15 +55,13 @@ public class SkullSkinManager extends SkinManager {
         SkinProvider.requestSkin(entity.getUuid(), data.skinUrl(), true)
                 .whenCompleteAsync((skin, throwable) -> {
                     try {
-                        if (session.getUpstream().isInitialized()) {
-                            PlayerSkinPacket packet = new PlayerSkinPacket();
-                            packet.setUuid(entity.getUuid());
-                            packet.setOldSkinName("");
-                            packet.setNewSkinName(skin.getTextureUrl());
-                            packet.setSkin(buildSkullEntryManually(skin.getTextureUrl(), skin.getSkinData()));
-                            packet.setTrustedSkin(true);
-                            session.sendUpstreamPacket(packet);
-                        }
+                        PlayerSkinPacket packet = new PlayerSkinPacket();
+                        packet.setUuid(entity.getUuid());
+                        packet.setOldSkinName("");
+                        packet.setNewSkinName(skin.getTextureUrl());
+                        packet.setSkin(buildSkullEntryManually(skin.getTextureUrl(), skin.getSkinData()));
+                        packet.setTrustedSkin(true);
+                        session.sendUpstreamPacket(packet);
                     } catch (Exception e) {
                         GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
                     }

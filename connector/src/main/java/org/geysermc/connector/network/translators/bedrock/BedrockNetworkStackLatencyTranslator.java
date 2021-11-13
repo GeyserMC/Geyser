@@ -76,8 +76,7 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
             attributesPacket.setAttributes(Collections.singletonList(GeyserAttributeType.EXPERIENCE_LEVEL.getAttribute(0)));
         }
 
-        session.getConnector().getGeneralThreadPool().schedule(
-                () -> session.sendUpstreamPacket(attributesPacket),
+        session.scheduleInEventLoop(() -> session.sendUpstreamPacket(attributesPacket),
                 500, TimeUnit.MILLISECONDS);
     }
 }

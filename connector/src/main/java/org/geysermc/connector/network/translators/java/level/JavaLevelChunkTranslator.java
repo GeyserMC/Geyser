@@ -43,6 +43,8 @@ import org.geysermc.connector.network.translators.world.BiomeTranslator;
 import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
 import org.geysermc.connector.utils.ChunkUtils;
 
+import java.io.IOException;
+
 import static org.geysermc.connector.utils.ChunkUtils.MINIMUM_ACCEPTED_HEIGHT;
 import static org.geysermc.connector.utils.ChunkUtils.MINIMUM_ACCEPTED_HEIGHT_OVERWORLD;
 
@@ -61,85 +63,79 @@ public class JavaLevelChunkTranslator extends PacketTranslator<ClientboundLevelC
         // Ensure that, if the player is using lower world heights, the position is not offset
         int yOffset = session.getChunkCache().getChunkMinY();
 
-        GeyserConnector.getInstance().getGeneralThreadPool().execute(() -> {
-            try {
-                if (session.isClosed()) {
-                    return;
-                }
-                ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, column, yOffset);
-                ChunkSection[] sections = chunkData.sections();
+        ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, column, yOffset);
+        ChunkSection[] sections = chunkData.sections();
 
-                // Find highest section
-                int sectionCount = sections.length - 1;
-                while (sectionCount >= 0 && sections[sectionCount] == null) {
-                    sectionCount--;
-                }
-                sectionCount++;
+        // Find highest section
+        int sectionCount = sections.length - 1;
+        while (sectionCount >= 0 && sections[sectionCount] == null) {
+            sectionCount--;
+        }
+        sectionCount++;
 
-                // Estimate chunk size
-                int size = 0;
-                for (int i = 0; i < sectionCount; i++) {
-                    ChunkSection section = sections[i];
-                    size += (section != null ? section : session.getBlockMappings().getEmptyChunkSection()).estimateNetworkSize();
-                }
-                size += ChunkUtils.EMPTY_CHUNK_DATA.length; // Consists only of biome data
-                size += 1; // Border blocks
-                size += 1; // Extra data length (always 0)
-                size += chunkData.blockEntities().length * 64; // Conservative estimate of 64 bytes per tile entity
+        // Estimate chunk size
+        int size = 0;
+        for (int i = 0; i < sectionCount; i++) {
+            ChunkSection section = sections[i];
+            size += (section != null ? section : session.getBlockMappings().getEmptyChunkSection()).estimateNetworkSize();
+        }
+        size += ChunkUtils.EMPTY_CHUNK_DATA.length; // Consists only of biome data
+        size += 1; // Border blocks
+        size += 1; // Extra data length (always 0)
+        size += chunkData.blockEntities().length * 64; // Conservative estimate of 64 bytes per tile entity
 
-                // Allocate output buffer
-                ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(size);
-                byte[] payload;
-                try {
-                    for (int i = 0; i < sectionCount; i++) {
-                        ChunkSection section = sections[i];
-                        (section != null ? section : session.getBlockMappings().getEmptyChunkSection()).writeToNetwork(byteBuf);
-                    }
-
-                    // At this point we're dealing with Bedrock chunk sections
-                    boolean overworld = session.getChunkCache().isExtendedHeight();
-                    int dimensionOffset = (overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4;
-                    for (int i = 0; i < sectionCount; i++) {
-                        int biomeYOffset = dimensionOffset + i;
-                        if (biomeYOffset < yOffset) {
-                            // Ignore this biome section since it goes below the height of the Java world
-                            byteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
-                            continue;
-                        }
-                        BiomeTranslator.toNewBedrockBiome(session, column.getBiomeData(), i + (dimensionOffset - yOffset)).writeToNetwork(byteBuf);
-                    }
-
-                    // As of 1.17.10, Bedrock hardcodes to always read 32 biome sections
-                    int remainingEmptyBiomes = 32 - sectionCount;
-                    for (int i = 0; i < remainingEmptyBiomes; i++) {
-                        byteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
-                    }
-
-                    byteBuf.writeByte(0); // Border blocks - Edu edition only
-                    VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now
-
-                    // Encode tile entities into buffer
-                    NBTOutputStream nbtStream = NbtUtils.createNetworkWriter(new ByteBufOutputStream(byteBuf));
-                    for (NbtMap blockEntity : chunkData.blockEntities()) {
-                        nbtStream.writeTag(blockEntity);
-                    }
-
-                    // Copy data into byte[], because the protocol lib really likes things that are s l o w
-                    byteBuf.readBytes(payload = new byte[byteBuf.readableBytes()]);
-                } finally {
-                    byteBuf.release(); // Release buffer to allow buffer pooling to be useful
-                }
-
-                LevelChunkPacket levelChunkPacket = new LevelChunkPacket();
-                levelChunkPacket.setSubChunksLength(sectionCount);
-                levelChunkPacket.setCachingEnabled(false);
-                levelChunkPacket.setChunkX(column.getX());
-                levelChunkPacket.setChunkZ(column.getZ());
-                levelChunkPacket.setData(payload);
-                session.sendUpstreamPacket(levelChunkPacket);
-            } catch (Exception ex) {
-                ex.printStackTrace();
+        // Allocate output buffer
+        ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(size);
+        byte[] payload;
+        try {
+            for (int i = 0; i < sectionCount; i++) {
+                ChunkSection section = sections[i];
+                (section != null ? section : session.getBlockMappings().getEmptyChunkSection()).writeToNetwork(byteBuf);
             }
-        });
+
+            // At this point we're dealing with Bedrock chunk sections
+            boolean overworld = session.getChunkCache().isExtendedHeight();
+            int dimensionOffset = (overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4;
+            for (int i = 0; i < sectionCount; i++) {
+                int biomeYOffset = dimensionOffset + i;
+                if (biomeYOffset < yOffset) {
+                    // Ignore this biome section since it goes below the height of the Java world
+                    byteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
+                    continue;
+                }
+                BiomeTranslator.toNewBedrockBiome(session, column.getBiomeData(), i + (dimensionOffset - yOffset)).writeToNetwork(byteBuf);
+            }
+
+            // As of 1.17.10, Bedrock hardcodes to always read 32 biome sections
+            int remainingEmptyBiomes = 32 - sectionCount;
+            for (int i = 0; i < remainingEmptyBiomes; i++) {
+                byteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
+            }
+
+            byteBuf.writeByte(0); // Border blocks - Edu edition only
+            VarInts.writeUnsignedInt(byteBuf, 0); // extra data length, 0 for now
+
+            // Encode tile entities into buffer
+            NBTOutputStream nbtStream = NbtUtils.createNetworkWriter(new ByteBufOutputStream(byteBuf));
+            for (NbtMap blockEntity : chunkData.blockEntities()) {
+                nbtStream.writeTag(blockEntity);
+            }
+
+            // Copy data into byte[], because the protocol lib really likes things that are s l o w
+            byteBuf.readBytes(payload = new byte[byteBuf.readableBytes()]);
+        } catch (IOException e) {
+            session.getConnector().getLogger().error("IO error while encoding chunk", e);
+            return;
+        } finally {
+            byteBuf.release(); // Release buffer to allow buffer pooling to be useful
+        }
+
+        LevelChunkPacket levelChunkPacket = new LevelChunkPacket();
+        levelChunkPacket.setSubChunksLength(sectionCount);
+        levelChunkPacket.setCachingEnabled(false);
+        levelChunkPacket.setChunkX(column.getX());
+        levelChunkPacket.setChunkZ(column.getZ());
+        levelChunkPacket.setData(payload);
+        session.sendUpstreamPacket(levelChunkPacket);
     }
 }

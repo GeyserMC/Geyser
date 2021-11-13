@@ -65,8 +65,7 @@ public class FormCache {
             NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
             latencyPacket.setFromServer(true);
             latencyPacket.setTimestamp(-System.currentTimeMillis());
-            session.getConnector().getGeneralThreadPool().schedule(
-                    () -> session.sendUpstreamPacket(latencyPacket),
+            session.scheduleInEventLoop(() -> session.sendUpstreamPacket(latencyPacket),
                     500, TimeUnit.MILLISECONDS);
         }
 

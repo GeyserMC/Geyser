@@ -97,7 +97,7 @@ public final class LocalSession extends TcpSession {
                     exceptionCaught(null, future.cause());
                 }
             });
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             exceptionCaught(null, t);
         }
     }

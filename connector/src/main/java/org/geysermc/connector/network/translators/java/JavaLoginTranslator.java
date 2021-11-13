@@ -70,19 +70,25 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         BiomeTranslator.loadServerBiomes(session, packet.getDimensionCodec());
         session.getTagCache().clear();
 
+        session.setGameMode(packet.getGameMode());
+
+        boolean needsSpawnPacket = !session.isSentSpawnPacket();
+        if (needsSpawnPacket) {
+            // The player has yet to spawn so let's do that using some of the information in this Java packet
+            session.setDimension(newDimension);
+            session.connect();
+        }
+
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();
         bedrockPacket.setUniqueEntityId(session.getPlayerEntity().getGeyserId());
         bedrockPacket.setPlayerPermission(PlayerPermission.MEMBER);
         session.sendUpstreamPacket(bedrockPacket);
 
-        PlayStatusPacket playStatus = new PlayStatusPacket();
-        playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
-        // session.sendPacket(playStatus);
-
-        SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-        playerGameTypePacket.setGamemode(packet.getGameMode().ordinal());
-        session.sendUpstreamPacket(playerGameTypePacket);
-        session.setGameMode(packet.getGameMode());
+        if (!needsSpawnPacket) {
+            SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
+            playerGameTypePacket.setGamemode(packet.getGameMode().ordinal());
+            session.sendUpstreamPacket(playerGameTypePacket);
+        }
 
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(entity.getGeyserId());

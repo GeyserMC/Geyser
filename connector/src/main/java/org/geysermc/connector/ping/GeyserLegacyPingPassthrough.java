@@ -62,7 +62,7 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
             // Ensure delay is not zero
             int interval = (connector.getConfig().getPingPassthroughInterval() == 0) ? 1 : connector.getConfig().getPingPassthroughInterval();
             connector.getLogger().debug("Scheduling ping passthrough at an interval of " + interval + " second(s).");
-            connector.getGeneralThreadPool().scheduleAtFixedRate(pingPassthrough, 1, interval, TimeUnit.SECONDS);
+            connector.getScheduledThread().scheduleAtFixedRate(pingPassthrough, 1, interval, TimeUnit.SECONDS);
             return pingPassthrough;
         }
         return null;

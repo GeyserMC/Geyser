@@ -114,7 +114,7 @@ public class Metrics {
      * Starts the Scheduler which submits our data every 30 minutes.
      */
     private void startSubmitting() {
-        connector.getGeneralThreadPool().scheduleAtFixedRate(this::submitData, 1, 30, TimeUnit.MINUTES);
+        connector.getScheduledThread().scheduleAtFixedRate(this::submitData, 1, 30, TimeUnit.MINUTES);
         // Submit the data every 30 minutes, first time after 1 minutes to give other plugins enough time to start
         // WARNING: Changing the frequency has no effect but your plugin WILL be blocked/deleted!
         // WARNING: Just don't do it!

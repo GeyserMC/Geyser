@@ -61,7 +61,7 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
             // Activate shield since we are already sneaking
             // (No need to send a release item packet - Java doesn't do this when swapping items)
             // Required to do it a tick later or else it doesn't register
-            session.getConnector().getGeneralThreadPool().schedule(() -> session.sendDownstreamPacket(new ServerboundUseItemPacket(Hand.MAIN_HAND)),
+            session.scheduleInEventLoop(() -> session.sendDownstreamPacket(new ServerboundUseItemPacket(Hand.MAIN_HAND)),
                     50, TimeUnit.MILLISECONDS);
         }
 

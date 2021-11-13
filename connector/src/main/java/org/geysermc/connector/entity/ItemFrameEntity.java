@@ -42,8 +42,6 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.registry.type.ItemMapping;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * Item frames are an entity in Java but a block entity in Bedrock.
  */
@@ -99,11 +97,8 @@ public class ItemFrameEntity extends Entity {
 
         session.getItemFrameCache().put(bedrockPosition, this);
 
-        // Delay is required, or else loading in frames on chunk load is sketchy at best
-        session.getConnector().getGeneralThreadPool().schedule(() -> {
-            updateBlock(session);
-            session.getConnector().getLogger().debug("Spawned item frame at location " + bedrockPosition + " with java id " + entityId);
-        }, 500, TimeUnit.MILLISECONDS);
+        updateBlock(session);
+        session.getConnector().getLogger().debug("Spawned item frame at location " + bedrockPosition + " with java id " + entityId);
         valid = true;
     }
 

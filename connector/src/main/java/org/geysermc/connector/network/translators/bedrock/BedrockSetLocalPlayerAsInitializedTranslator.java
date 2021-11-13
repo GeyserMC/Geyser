@@ -25,14 +25,12 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.SetLocalPlayerAsInitializedPacket;
-import org.geysermc.connector.entity.player.PlayerEntity;
+import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.skin.SkinManager;
-import org.geysermc.connector.skin.SkullSkinManager;
+import org.geysermc.connector.utils.LoginEncryptionUtils;
 
 @Translator(packet = SetLocalPlayerAsInitializedPacket.class)
 public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslator<SetLocalPlayerAsInitializedPacket> {
@@ -41,23 +39,12 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
         if (session.getPlayerEntity().getGeyserId() == packet.getRuntimeEntityId()) {
             if (!session.getUpstream().isInitialized()) {
                 session.getUpstream().setInitialized(true);
-                session.login();
 
-                for (PlayerEntity entity : session.getEntityCache().getEntitiesByType(PlayerEntity.class)) {
-                    if (!entity.isValid()) {
-                        SkinManager.requestAndHandleSkinAndCape(entity, session, null);
-                        entity.sendPlayer(session);
+                if (session.getRemoteAuthType() == AuthType.ONLINE) {
+                    if (!session.isLoggedIn()) {
+                        LoginEncryptionUtils.buildAndShowLoginWindow(session);
                     }
-                }
-
-                // Send Skulls
-                for (PlayerEntity entity : session.getSkullCache().values()) {
-                    entity.spawnEntity(session);
-
-                    SkullSkinManager.requestAndHandleSkin(entity, session, (skin) ->  {
-                        entity.getMetadata().getFlags().setFlag(EntityFlag.INVISIBLE, false);
-                        entity.updateBedrockMetadata(session);
-                    });
+                    // else we were able to log the user in
                 }
             }
         }

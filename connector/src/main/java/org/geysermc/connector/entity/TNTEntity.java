@@ -29,13 +29,11 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-
-public class TNTEntity extends Entity {
+public class TNTEntity extends Entity implements Tickable {
 
     private int currentTick;
 
@@ -49,16 +47,26 @@ public class TNTEntity extends Entity {
             currentTick = (int) entityMetadata.getValue();
             metadata.getFlags().setFlag(EntityFlag.IGNITED, true);
             metadata.put(EntityData.FUSE_LENGTH, currentTick);
-            ScheduledFuture<?> future = session.getConnector().getGeneralThreadPool().scheduleAtFixedRate(() -> {
-                if (currentTick % 5 == 0) {
-                    metadata.put(EntityData.FUSE_LENGTH, currentTick);
-                }
-                currentTick--;
-                super.updateBedrockMetadata(entityMetadata, session);
-            }, 50, 50, TimeUnit.MILLISECONDS); // 5 ticks
-            session.getConnector().getGeneralThreadPool().schedule(() -> future.cancel(true), (int) entityMetadata.getValue() / 20, TimeUnit.SECONDS);
         }
 
         super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    @Override
+    public void tick(GeyserSession session) {
+        if (currentTick == 0) {
+            // No need to update the fuse when there is none
+            return;
+        }
+
+        if (currentTick % 5 == 0) {
+            metadata.put(EntityData.FUSE_LENGTH, currentTick);
+
+            SetEntityDataPacket packet = new SetEntityDataPacket();
+            packet.setRuntimeEntityId(geyserId);
+            packet.getMetadata().put(EntityData.FUSE_LENGTH, currentTick);
+            session.sendUpstreamPacket(packet);
+        }
+        currentTick--;
     }
 }

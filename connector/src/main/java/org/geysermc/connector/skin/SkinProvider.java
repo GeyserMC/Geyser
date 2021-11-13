@@ -101,7 +101,7 @@ public class SkinProvider {
 
         // Schedule Daily Image Expiry if we are caching them
         if (GeyserConnector.getInstance().getConfig().getCacheImages() > 0) {
-            GeyserConnector.getInstance().getGeneralThreadPool().scheduleAtFixedRate(() -> {
+            GeyserConnector.getInstance().getScheduledThread().scheduleAtFixedRate(() -> {
                 File cacheFolder = GeyserConnector.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("images").toFile();
                 if (!cacheFolder.exists()) {
                     return;

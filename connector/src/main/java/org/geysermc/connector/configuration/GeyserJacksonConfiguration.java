@@ -96,9 +96,6 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("debug-mode")
     private boolean debugMode = false;
 
-    @JsonProperty("general-thread-pool")
-    private int generalThreadPool = 32;
-
     @JsonProperty("allow-third-party-capes")
     private boolean allowThirdPartyCapes = true;
 
