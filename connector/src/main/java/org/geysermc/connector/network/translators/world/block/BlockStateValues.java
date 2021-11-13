@@ -337,12 +337,12 @@ public class BlockStateValues {
     }
 
     public static boolean canPistonMoveBlock(int javaId, boolean isPushing) {
-        if (javaId == BlockStateValues.JAVA_AIR_ID) {
+        if (javaId == JAVA_AIR_ID) {
             return true;
         }
         // Pistons can only be moved if they aren't extended
         if (PistonBlockEntityTranslator.isBlock(javaId)) {
-            return !BlockStateValues.getPistonValues().get(javaId);
+            return !PISTON_VALUES.get(javaId);
         }
         BlockMapping block = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.AIR);
         // Bedrock, End portal frames, etc. can't be moved
