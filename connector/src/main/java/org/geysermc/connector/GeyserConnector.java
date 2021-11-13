@@ -52,7 +52,6 @@ import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.network.translators.PacketTranslatorRegistry;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.world.WorldManager;
-import org.geysermc.connector.network.translators.world.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.connector.scoreboard.ScoreboardUpdater;
 import org.geysermc.connector.skin.FloodgateSkinUploader;
 import org.geysermc.connector.utils.*;
@@ -72,10 +71,7 @@ import java.net.UnknownHostException;
 import java.security.Key;
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -100,7 +96,7 @@ public class GeyserConnector {
 
     private static final String IP_REGEX = "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b";
 
-    private final List<GeyserSession> players = new ArrayList<>();
+    private final SessionManager sessionManager = new SessionManager();
 
     private static GeyserConnector instance;
 
@@ -362,6 +358,8 @@ public class GeyserConnector {
                 map.put(release, entry);
                 return map;
             }));
+        } else {
+            metrics = null;
         }
 
         boolean isGui = false;
@@ -410,18 +408,9 @@ public class GeyserConnector {
             skinUploader.close();
         }
         newsHandler.shutdown();
-        players.clear();
         this.getCommandManager().getCommands().clear();
 
         bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.done"));
-    }
-
-    public void addPlayer(GeyserSession player) {
-        players.add(player);
-    }
-
-    public void removePlayer(GeyserSession player) {
-        players.remove(player);
     }
 
     /**
