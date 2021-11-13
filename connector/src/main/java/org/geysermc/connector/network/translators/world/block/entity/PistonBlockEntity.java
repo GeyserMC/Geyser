@@ -43,9 +43,7 @@ import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.CollisionManager;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
-import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.registry.Registries;
-import org.geysermc.connector.registry.type.BlockMapping;
 import org.geysermc.connector.utils.*;
 
 import java.util.LinkedList;
@@ -256,7 +254,7 @@ public class PistonBlockEntity {
             if (blockId == BlockStateValues.JAVA_AIR_ID) {
                 continue;
             }
-            if (canMoveBlock(blockId, action == PistonValueType.PUSHING)) {
+            if (BlockStateValues.canPistonMoveBlock(blockId, action == PistonValueType.PUSHING)) {
                 attachedBlocks.put(blockPos, blockId);
                 if (BlockStateValues.isBlockSticky(blockId)) {
                     // For honey blocks and slime blocks check the blocks adjacent to it
@@ -276,7 +274,7 @@ public class PistonBlockEntity {
                             continue;
                         }
                         int adjacentBlockId = session.getConnector().getWorldManager().getBlockAt(session, adjacentPos);
-                        if (adjacentBlockId != BlockStateValues.JAVA_AIR_ID && BlockStateValues.isBlockAttached(blockId, adjacentBlockId) && canMoveBlock(adjacentBlockId, false)) {
+                        if (adjacentBlockId != BlockStateValues.JAVA_AIR_ID && BlockStateValues.isBlockAttached(blockId, adjacentBlockId) && BlockStateValues.canPistonMoveBlock(adjacentBlockId, false)) {
                             // If it is another slime/honey block we need to check its adjacent blocks
                             if (BlockStateValues.isBlockSticky(adjacentBlockId)) {
                                 blocksToCheck.add(adjacentPos);
@@ -301,26 +299,6 @@ public class PistonBlockEntity {
         } else {
             flattenPositions();
         }
-    }
-
-    private boolean canMoveBlock(int javaId, boolean isPushing) {
-        if (javaId == BlockStateValues.JAVA_AIR_ID) {
-            return true;
-        }
-        // Pistons can only be moved if they aren't extended
-        if (PistonBlockEntityTranslator.isBlock(javaId)) {
-            return !BlockStateValues.getPistonValues().get(javaId);
-        }
-        BlockMapping block = BlockRegistries.JAVA_BLOCKS.getOrDefault(javaId, BlockMapping.AIR);
-        // Bedrock, End portal frames, etc. can't be moved
-        if (block.getHardness() == -1.0d) {
-            return false;
-        }
-        return switch (block.getPistonBehavior()) {
-            case BLOCK, DESTROY -> false;
-            case PUSH_ONLY -> isPushing; // Glazed terracotta can only be pushed
-            default -> !block.isBlockEntity(); // Pistons can't move block entities
-        };
     }
 
     /**
