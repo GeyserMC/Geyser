@@ -119,7 +119,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public void openInventory(GeyserSession session, Inventory inventory) {
-        //Handled in JavaTradeListTranslator
+        //Handled in JavaMerchantOffersTranslator
         //TODO: send a blank inventory here in case the villager doesn't send a TradeList packet
     }
 

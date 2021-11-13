@@ -186,7 +186,7 @@ public class Entity {
     }
 
     /**
-     * Teleports an entity to a new location. Used in JavaEntityTeleportTranslator.
+     * Teleports an entity to a new location. Used in JavaTeleportEntityTranslator.
      * @param session GeyserSession.
      * @param position The new position of the entity.
      * @param yaw The new yaw of the entity.
@@ -198,7 +198,7 @@ public class Entity {
     }
 
     /**
-     * Updates an entity's head position. Used in JavaEntityHeadLookTranslator.
+     * Updates an entity's head position. Used in JavaRotateHeadTranslator.
      * @param session GeyserSession.
      * @param headYaw The new head rotation of the entity.
      */
@@ -207,7 +207,7 @@ public class Entity {
     }
 
     /**
-     * Updates an entity's position and rotation. Used in JavaEntityPositionRotationTranslator.
+     * Updates an entity's position and rotation. Used in JavaMoveEntityPosRotTranslator.
      * @param session GeyserSession
      * @param moveX The new X offset of the current position.
      * @param moveY The new Y offset of the current position.
@@ -221,7 +221,7 @@ public class Entity {
     }
 
     /**
-     * Updates an entity's rotation. Used in JavaEntityRotationTranslator.
+     * Updates an entity's rotation. Used in JavaMoveEntityRotTranslator.
      * @param session GeyserSession.
      * @param yaw The new yaw of the entity.
      * @param pitch The new pitch of the entity.
