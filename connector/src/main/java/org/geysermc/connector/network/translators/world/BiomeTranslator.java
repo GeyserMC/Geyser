@@ -25,6 +25,8 @@
 
 package org.geysermc.connector.network.translators.world;
 
+import com.github.steveice10.mc.protocol.data.game.chunk.DataPalette;
+import com.github.steveice10.mc.protocol.data.game.chunk.palette.SingletonPalette;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -98,33 +100,37 @@ public class BiomeTranslator {
         return bedrockData;
     }
 
-    public static BlockStorage toNewBedrockBiome(GeyserSession session, int[] biomeData, int ySection) {
+    public static BlockStorage toNewBedrockBiome(GeyserSession session, DataPalette biomeData) {
         Int2IntMap biomeTranslations = session.getBiomeTranslations();
         // As of 1.17.10: the client expects the same format as a chunk but filled with biomes
-        BlockStorage storage = new BlockStorage(0);
+        // As of 1.18 this is the same as Java Edition
 
-        int biomeY = ySection << 2;
-        int javaOffsetY = biomeY << 4;
-        // Each section of biome corresponding to a chunk section contains 4 * 4 * 4 entries
-        for (int i = 0; i < 64; i++) {
-            int javaId = biomeData[javaOffsetY | i];
-            int x = i & 3;
-            int y = (i >> 4) & 3;
-            int z = (i >> 2) & 3;
-            // Get the Bedrock biome ID override
-            int biomeId = biomeTranslations.get(javaId);
-            int idx = storage.idFor(biomeId);
-            // Convert biome coordinates into block coordinates
-            // Bedrock expects a full 4096 blocks
-            for (int blockX = x << 2; blockX < (x << 2) + 4; blockX++) {
-                for (int blockZ = z << 2; blockZ < (z << 2) + 4; blockZ++) {
-                    for (int blockY = y << 2; blockY < (y << 2) + 4; blockY++) {
-                        storage.getBitArray().set(ChunkSection.blockPosition(blockX, blockY, blockZ), idx);
+        if (biomeData.getPalette() instanceof SingletonPalette palette) {
+            int biomeId = biomeTranslations.get(palette.idToState(0));
+            return new BlockStorage(biomeId);
+        } else {
+            BlockStorage storage = new BlockStorage(0);
+
+            // Each section of biome corresponding to a chunk section contains 4 * 4 * 4 entries
+            for (int i = 0; i < 64; i++) {
+                int javaId = biomeData.getPalette().idToState(biomeData.getStorage().get(i));
+                int x = i & 3;
+                int y = (i >> 4) & 3;
+                int z = (i >> 2) & 3;
+                // Get the Bedrock biome ID override
+                int biomeId = biomeTranslations.get(javaId);
+                int idx = storage.idFor(biomeId);
+                // Convert biome coordinates into block coordinates
+                // Bedrock expects a full 4096 blocks
+                for (int blockX = x << 2; blockX < (x << 2) + 4; blockX++) {
+                    for (int blockZ = z << 2; blockZ < (z << 2) + 4; blockZ++) {
+                        for (int blockY = y << 2; blockY < (y << 2) + 4; blockY++) {
+                            storage.getBitArray().set(ChunkSection.blockPosition(blockX, blockY, blockZ), idx);
+                        }
                     }
                 }
             }
+            return storage;
         }
-
-        return storage;
     }
 }

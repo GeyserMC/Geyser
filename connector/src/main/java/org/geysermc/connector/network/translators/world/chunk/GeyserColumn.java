@@ -25,33 +25,21 @@
 
 package org.geysermc.connector.network.translators.world.chunk;
 
-import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
-import com.github.steveice10.mc.protocol.data.game.chunk.Column;
+import com.github.steveice10.mc.protocol.data.game.chunk.DataPalette;
 import lombok.Getter;
-import org.geysermc.connector.network.session.cache.ChunkCache;
 
 /**
- * Acts as a lightweight version of {@link Column} that doesn't store
- * biomes or heightmaps.
+ * Acts as a lightweight chunk class that doesn't store biomes, heightmaps or block entities.
  */
 public class GeyserColumn {
     @Getter
-    private final Chunk[] chunks;
+    private final DataPalette[] chunks;
 
-    private GeyserColumn(Chunk[] chunks) {
+    private GeyserColumn(DataPalette[] chunks) {
         this.chunks = chunks;
     }
 
-    public static GeyserColumn from(ChunkCache chunkCache, Column column) {
-        int chunkHeightY = chunkCache.getChunkHeightY();
-        Chunk[] chunks;
-        if (chunkHeightY < column.getChunks().length) {
-            chunks = new Chunk[chunkHeightY];
-            // TODO addresses https://github.com/Steveice10/MCProtocolLib/pull/598#issuecomment-862782392
-            System.arraycopy(column.getChunks(), 0, chunks, 0, chunks.length);
-        } else {
-            chunks = column.getChunks();
-        }
+    public static GeyserColumn from(DataPalette[] chunks) {
         return new GeyserColumn(chunks);
     }
 }

@@ -25,8 +25,7 @@
 
 package org.geysermc.connector.network.session.cache;
 
-import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
-import com.github.steveice10.mc.protocol.data.game.chunk.Column;
+import com.github.steveice10.mc.protocol.data.game.chunk.DataPalette;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.Getter;
@@ -57,14 +56,14 @@ public class ChunkCache {
         chunks = cache ? new Long2ObjectOpenHashMap<>() : null;
     }
 
-    public void addToCache(Column chunk) {
+    public void addToCache(int x, int z, DataPalette[] chunks) {
         if (!cache) {
             return;
         }
 
-        long chunkPosition = MathUtils.chunkPositionToLong(chunk.getX(), chunk.getZ());
-        GeyserColumn geyserColumn = GeyserColumn.from(this, chunk);
-        chunks.put(chunkPosition, geyserColumn);
+        long chunkPosition = MathUtils.chunkPositionToLong(x, z);
+        GeyserColumn geyserColumn = GeyserColumn.from(chunks);
+        this.chunks.put(chunkPosition, geyserColumn);
     }
 
     /**
@@ -90,11 +89,11 @@ public class ChunkCache {
             return;
         }
 
-        Chunk chunk = column.getChunks()[(y - minY) >> 4];
+        DataPalette chunk = column.getChunks()[(y - minY) >> 4];
         if (chunk == null) {
             if (block != BlockStateValues.JAVA_AIR_ID) {
                 // A previously empty chunk, which is no longer empty as a block has been added to it
-                chunk = new Chunk();
+                chunk = DataPalette.createForChunk();
                 // Fixes the chunk assuming that all blocks is the `block` variable we are updating. /shrug
                 chunk.getPalette().stateToId(BlockStateValues.JAVA_AIR_ID);
                 column.getChunks()[(y - minY) >> 4] = chunk;
@@ -122,7 +121,7 @@ public class ChunkCache {
             return BlockStateValues.JAVA_AIR_ID;
         }
 
-        Chunk chunk = column.getChunks()[(y - minY) >> 4];
+        DataPalette chunk = column.getChunks()[(y - minY) >> 4];
         if (chunk != null) {
             return chunk.get(x & 0xF, y & 0xF, z & 0xF);
         }
