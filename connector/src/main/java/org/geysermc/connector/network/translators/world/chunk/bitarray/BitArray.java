@@ -25,6 +25,9 @@
 
 package org.geysermc.connector.network.translators.world.chunk.bitarray;
 
+import com.nukkitx.network.VarInts;
+import io.netty.buffer.ByteBuf;
+
 public interface BitArray {
 
     void set(int index, int value);
@@ -32,6 +35,13 @@ public interface BitArray {
     int get(int index);
 
     int size();
+
+    /**
+     * Overridden if the bit array implementation does not require size.
+     */
+    default void writeSizeToNetwork(ByteBuf buffer, int size) {
+        VarInts.writeInt(buffer, size);
+    }
 
     int[] getWords();
 

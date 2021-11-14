@@ -36,6 +36,7 @@ import com.nukkitx.protocol.bedrock.packet.NetworkChunkPublisherUpdatePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import it.unimi.dsi.fastutil.ints.IntLists;
 import lombok.experimental.UtilityClass;
 import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.entity.player.SkullPlayerEntity;
@@ -43,6 +44,8 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.block.entity.BedrockOnlyBlockEntity;
 import org.geysermc.connector.network.translators.world.chunk.BlockStorage;
+import org.geysermc.connector.network.translators.world.chunk.GeyserChunkSection;
+import org.geysermc.connector.network.translators.world.chunk.bitarray.SingletonBitArray;
 import org.geysermc.connector.registry.BlockRegistries;
 
 import static org.geysermc.connector.network.translators.world.block.BlockStateValues.JAVA_AIR_ID;
@@ -60,13 +63,30 @@ public class ChunkUtils {
     public static final int MAXIMUM_ACCEPTED_HEIGHT = 256;
     public static final int MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD = 384;
 
+    /**
+     * An empty subchunk.
+     */
+    public static final byte[] SERIALIZED_CHUNK_DATA;
+    /**
+     * An empty chunk that can be safely passed on to a LevelChunkPacket with subcounts set to 0.
+     */
     public static final byte[] EMPTY_CHUNK_DATA;
     public static final byte[] EMPTY_BIOME_DATA;
 
     static {
         ByteBuf byteBuf = Unpooled.buffer();
         try {
-            BlockStorage blockStorage = new BlockStorage(0);
+            new GeyserChunkSection(new BlockStorage[0])
+                    .writeToNetwork(byteBuf);
+            SERIALIZED_CHUNK_DATA = new byte[byteBuf.readableBytes()];
+            byteBuf.readBytes(SERIALIZED_CHUNK_DATA);
+        } finally {
+            byteBuf.release();
+        }
+
+        byteBuf = Unpooled.buffer();
+        try {
+            BlockStorage blockStorage = new BlockStorage(SingletonBitArray.INSTANCE, IntLists.singleton(0));
             blockStorage.writeToNetwork(byteBuf);
 
             EMPTY_BIOME_DATA = new byte[byteBuf.readableBytes()];

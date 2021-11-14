@@ -23,36 +23,49 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.world.chunk;
+package org.geysermc.connector.network.translators.world.chunk.bitarray;
 
-import com.nukkitx.nbt.NBTOutputStream;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtUtils;
-import lombok.Getter;
+import io.netty.buffer.ByteBuf;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+public class SingletonBitArray implements BitArray {
+    public static final SingletonBitArray INSTANCE = new SingletonBitArray();
 
-public class EmptyChunkProvider {
-    @Getter
-    private final byte[] emptyLevelChunkData;
-    @Getter
-    private final GeyserChunkSection emptySection;
+    private static final int[] EMPTY_ARRAY = new int[0];
 
-    public EmptyChunkProvider(int airId) {
-        BlockStorage emptyStorage = new BlockStorage(airId);
-        emptySection = new GeyserChunkSection(new BlockStorage[]{emptyStorage});
+    public SingletonBitArray() {
+    }
 
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            outputStream.write(new byte[258]); // Biomes + Border Size + Extra Data Size
+    @Override
+    public void set(int index, int value) {
+    }
 
-            try (NBTOutputStream stream = NbtUtils.createNetworkWriter(outputStream)) {
-                stream.writeTag(NbtMap.EMPTY);
-            }
+    @Override
+    public int get(int index) {
+        return 0;
+    }
 
-            emptyLevelChunkData = outputStream.toByteArray();
-        } catch (IOException e) {
-            throw new AssertionError("Unable to generate empty level chunk data");
-        }
+    @Override
+    public int size() {
+        return 1;
+    }
+
+    @Override
+    public void writeSizeToNetwork(ByteBuf buffer, int size) {
+        // no-op - size is fixed
+    }
+
+    @Override
+    public int[] getWords() {
+        return EMPTY_ARRAY;
+    }
+
+    @Override
+    public BitArrayVersion getVersion() {
+        return BitArrayVersion.V0;
+    }
+
+    @Override
+    public SingletonBitArray copy() {
+        return new SingletonBitArray();
     }
 }

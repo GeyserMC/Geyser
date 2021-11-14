@@ -29,9 +29,11 @@ import com.github.steveice10.mc.protocol.data.game.chunk.DataPalette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.SingletonPalette;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntLists;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.chunk.BlockStorage;
 import org.geysermc.connector.network.translators.world.chunk.GeyserChunkSection;
+import org.geysermc.connector.network.translators.world.chunk.bitarray.SingletonBitArray;
 import org.geysermc.connector.registry.Registries;
 
 import java.util.Arrays;
@@ -107,7 +109,7 @@ public class BiomeTranslator {
 
         if (biomeData.getPalette() instanceof SingletonPalette palette) {
             int biomeId = biomeTranslations.get(palette.idToState(0));
-            return new BlockStorage(biomeId);
+            return new BlockStorage(SingletonBitArray.INSTANCE, IntLists.singleton(biomeId));
         } else {
             BlockStorage storage = new BlockStorage(0);
 

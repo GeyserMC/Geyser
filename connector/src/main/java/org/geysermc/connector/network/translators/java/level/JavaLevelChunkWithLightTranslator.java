@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.chunk.ChunkSection;
 import com.github.steveice10.mc.protocol.data.game.chunk.DataPalette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.GlobalPalette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.Palette;
+import com.github.steveice10.mc.protocol.data.game.chunk.palette.SingletonPalette;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelChunkWithLightPacket;
@@ -47,6 +48,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntLists;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -59,6 +61,7 @@ import org.geysermc.connector.network.translators.world.chunk.BlockStorage;
 import org.geysermc.connector.network.translators.world.chunk.GeyserChunkSection;
 import org.geysermc.connector.network.translators.world.chunk.bitarray.BitArray;
 import org.geysermc.connector.network.translators.world.chunk.bitarray.BitArrayVersion;
+import org.geysermc.connector.network.translators.world.chunk.bitarray.SingletonBitArray;
 import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.utils.BlockEntityUtils;
 import org.geysermc.connector.utils.ChunkUtils;
@@ -142,6 +145,22 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         }
                     }
                     sections[bedrockSectionY] = section;
+                    continue;
+                }
+
+                if (javaPalette instanceof SingletonPalette) {
+                    // There's only one block here. Very easy!
+                    int javaId = javaPalette.idToState(0);
+                    int bedrockId = session.getBlockMappings().getBedrockBlockId(javaId);
+                    BlockStorage blockStorage = new BlockStorage(SingletonBitArray.INSTANCE, IntLists.singleton(bedrockId));
+
+                    if (BlockRegistries.WATERLOGGED.get().contains(javaId)) {
+                        BlockStorage waterlogged = new BlockStorage(SingletonBitArray.INSTANCE, IntLists.singleton(session.getBlockMappings().getBedrockWaterId()));
+                        sections[bedrockSectionY] = new GeyserChunkSection(new BlockStorage[] {blockStorage, waterlogged});
+                    } else {
+                        sections[bedrockSectionY] = new GeyserChunkSection(new BlockStorage[] {blockStorage});
+                    }
+                    // If a chunk contains all of the same piston or flower pot then god help us
                     continue;
                 }
 
@@ -270,7 +289,11 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             int size = 0;
             for (int i = 0; i < sectionCount; i++) {
                 GeyserChunkSection section = sections[i];
-                size += (section != null ? section : session.getBlockMappings().getEmptyChunkSection()).estimateNetworkSize();
+                if (section != null) {
+                    size += section.estimateNetworkSize();
+                } else {
+                    size += SERIALIZED_CHUNK_DATA.length;
+                }
             }
             size += ChunkUtils.EMPTY_CHUNK_DATA.length; // Consists only of biome data
             size += 1; // Border blocks
@@ -281,7 +304,11 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             byteBuf = ByteBufAllocator.DEFAULT.buffer(size);
             for (int i = 0; i < sectionCount; i++) {
                 GeyserChunkSection section = sections[i];
-                (section != null ? section : session.getBlockMappings().getEmptyChunkSection()).writeToNetwork(byteBuf);
+                if (section != null) {
+                    section.writeToNetwork(byteBuf);
+                } else {
+                    byteBuf.writeBytes(SERIALIZED_CHUNK_DATA);
+                }
             }
 
             // At this point we're dealing with Bedrock chunk sections

@@ -78,7 +78,7 @@ public class BlockStorage {
             buffer.writeIntLE(word);
         }
 
-        VarInts.writeInt(buffer, palette.size());
+        bitArray.writeSizeToNetwork(buffer, palette.size());
         palette.forEach((IntConsumer) id -> VarInts.writeInt(buffer, id));
     }
 
