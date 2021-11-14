@@ -26,12 +26,11 @@
 package org.geysermc.connector.network.translators.world.chunk;
 
 import com.github.steveice10.mc.protocol.data.game.chunk.DataPalette;
-import lombok.Getter;
 
 /**
  * Acts as a lightweight chunk class that doesn't store biomes, heightmaps or block entities.
  */
-public record GeyserChunk(@Getter DataPalette[] sections) {
+public record GeyserChunk(DataPalette[] sections) {
 
     public static GeyserChunk from(DataPalette[] sections) {
         return new GeyserChunk(sections);
