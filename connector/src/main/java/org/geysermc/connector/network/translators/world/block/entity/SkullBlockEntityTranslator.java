@@ -85,10 +85,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         return CompletableFuture.completedFuture(null);
     }
 
-    public static void spawnPlayer(GeyserSession session, CompoundTag tag, int blockState) {
-        int posX = (int) tag.get("x").getValue();
-        int posY = (int) tag.get("y").getValue();
-        int posZ = (int) tag.get("z").getValue();
+    public static void spawnPlayer(GeyserSession session, CompoundTag tag, int posX, int posY, int posZ, int blockState) {
         float x = posX + .5f;
         float y = posY - .01f;
         float z = posZ + .5f;

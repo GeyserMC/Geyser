@@ -222,32 +222,33 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             BlockEntityInfo[] blockEntities = packet.getBlockEntities();
             NbtMap[] bedrockBlockEntities = new NbtMap[blockEntities.length + bedrockOnlyBlockEntities.size()];
             int blockEntityCount = 0;
+            final int chunkBlockX = packet.getX() << 4;
+            final int chunkBlockZ = packet.getZ() << 4;
             while (blockEntityCount < blockEntities.length) {
                 BlockEntityInfo blockEntity = blockEntities[blockEntityCount];
                 CompoundTag tag = blockEntity.getNbt();
                 BlockEntityType type = blockEntity.getType();
-                int x = blockEntity.getX();
+                int x = blockEntity.getX(); // Relative to chunk
                 int y = blockEntity.getY();
-                int z = blockEntity.getZ();
+                int z = blockEntity.getZ(); // Relative to chunk
 
                 // Get the Java block state ID from block entity position
                 DataPalette section = javaChunks[(y >> 4) - yOffset];
-                int blockState = section.get(x & 0xF, y & 0xF, z & 0xF);
+                int blockState = section.get(x, y & 0xF, z);
 
                 if (type == BlockEntityType.LECTERN && BlockStateValues.getLecternBookStates().get(blockState)) {
                     // If getLecternBookStates is false, let's just treat it like a normal block entity
-                    bedrockBlockEntities[blockEntityCount] = session.getConnector().getWorldManager().getLecternDataAt(
-                            session, blockEntity.getX(), blockEntity.getY(), blockEntity.getZ(), true);
-                    blockEntityCount++;
+                    bedrockBlockEntities[blockEntityCount++] = session.getConnector().getWorldManager().getLecternDataAt(
+                            session, x + chunkBlockX, y, z + chunkBlockZ, true);
                     continue;
                 }
 
                 BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(type);
-                bedrockBlockEntities[blockEntityCount] = blockEntityTranslator.getBlockEntityTag(type, x, y, z, tag, blockState);
+                bedrockBlockEntities[blockEntityCount] = blockEntityTranslator.getBlockEntityTag(type, x + chunkBlockX, y, z + chunkBlockZ, tag, blockState);
 
                 // Check for custom skulls
                 if (session.getPreferencesCache().showCustomSkulls() && tag != null && tag.contains("SkullOwner")) {
-                    SkullBlockEntityTranslator.spawnPlayer(session, tag, blockState);
+                    SkullBlockEntityTranslator.spawnPlayer(session, tag, x + chunkBlockX, y, z + chunkBlockZ, blockState);
                 }
                 blockEntityCount++;
             }
