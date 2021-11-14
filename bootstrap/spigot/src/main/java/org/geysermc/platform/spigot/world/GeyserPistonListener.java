@@ -110,8 +110,12 @@ public class GeyserPistonListener implements Listener {
                 List<Block> blocks = isExtend ? ((BlockPistonExtendEvent) event).getBlocks() : ((BlockPistonRetractEvent) event).getBlocks();
                 for (Block block : blocks) {
                     Location attachedLocation = block.getLocation();
-                    attachedBlocks.put(getVector(attachedLocation), worldManager.getBlockNetworkId(player, block,
-                            attachedLocation.getBlockX(), attachedLocation.getBlockY(), attachedLocation.getBlockZ()));
+                    int blockId = worldManager.getBlockNetworkId(player, block,
+                            attachedLocation.getBlockX(), attachedLocation.getBlockY(), attachedLocation.getBlockZ());
+                    // Ignore blocks that will be destroyed
+                    if (BlockStateValues.canPistonMoveBlock(blockId, isExtend)) {
+                        attachedBlocks.put(getVector(attachedLocation), blockId);
+                    }
                 }
                 blocksFilled = true;
             }
