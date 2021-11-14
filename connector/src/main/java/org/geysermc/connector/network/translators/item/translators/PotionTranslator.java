@@ -30,7 +30,7 @@ import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.network.BedrockProtocol;
+import org.geysermc.connector.network.MinecraftProtocol;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.Potion;
@@ -47,7 +47,7 @@ public class PotionTranslator extends ItemTranslator {
     private final List<ItemMapping> appliedItems;
 
     public PotionTranslator() {
-        appliedItems = Registries.ITEMS.forVersion(BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
+        appliedItems = Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
                 .getItems()
                 .values()
                 .stream()

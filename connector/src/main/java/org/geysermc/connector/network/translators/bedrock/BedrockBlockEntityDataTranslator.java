@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundSetJigsawBlockPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetJigsawBlockPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundSignUpdatePacket;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;

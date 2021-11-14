@@ -32,7 +32,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import org.geysermc.connector.network.BedrockProtocol;
+import org.geysermc.connector.network.MinecraftProtocol;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.registry.Registries;
@@ -81,7 +81,7 @@ public class BannerTranslator extends ItemTranslator {
     }
 
     public BannerTranslator() {
-        appliedItems = Registries.ITEMS.forVersion(BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
+        appliedItems = Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
                 .getItems()
                 .values()
                 .stream()

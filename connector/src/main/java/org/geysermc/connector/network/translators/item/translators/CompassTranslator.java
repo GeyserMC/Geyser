@@ -28,7 +28,7 @@ package org.geysermc.connector.network.translators.item.translators;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import org.geysermc.connector.network.BedrockProtocol;
+import org.geysermc.connector.network.MinecraftProtocol;
 import org.geysermc.connector.network.translators.ItemRemapper;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.registry.Registries;
@@ -44,7 +44,7 @@ public class CompassTranslator extends ItemTranslator {
     private final List<ItemMapping> appliedItems;
 
     public CompassTranslator() {
-        appliedItems = Registries.ITEMS.forVersion(BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
+        appliedItems = Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
                 .getItems()
                 .values()
                 .stream()

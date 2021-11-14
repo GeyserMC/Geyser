@@ -66,15 +66,15 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return true;
         }
 
-        BedrockPacketCodec packetCodec = BedrockProtocol.getBedrockCodec(loginPacket.getProtocolVersion());
+        BedrockPacketCodec packetCodec = MinecraftProtocol.getBedrockCodec(loginPacket.getProtocolVersion());
         if (packetCodec == null) {
-            String supportedVersions = BedrockProtocol.getAllSupportedVersions();
-            if (loginPacket.getProtocolVersion() > BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
+            String supportedVersions = MinecraftProtocol.getAllSupportedVersions();
+            if (loginPacket.getProtocolVersion() > MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
                 // Too early to determine session locale
                 session.getConnector().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
                 session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
                 return true;
-            } else if (loginPacket.getProtocolVersion() < BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
+            } else if (loginPacket.getProtocolVersion() < MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
                 session.getConnector().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
                 session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
                 return true;

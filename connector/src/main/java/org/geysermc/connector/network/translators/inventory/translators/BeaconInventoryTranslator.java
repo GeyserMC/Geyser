@@ -25,13 +25,12 @@
 
 package org.geysermc.connector.network.translators.inventory.translators;
 
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundSetBeaconPacket;
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetBeaconPacket;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.BeaconPaymentStackRequestActionData;
@@ -53,7 +52,7 @@ import java.util.Collections;
 
 public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator {
     public BeaconInventoryTranslator() {
-        super(1, new BlockInventoryHolder("minecraft:beacon", ContainerType.BEACON) {
+        super(1, new BlockInventoryHolder("minecraft:beacon", com.nukkitx.protocol.bedrock.data.inventory.ContainerType.BEACON) {
             @Override
             protected boolean checkInteractionPosition(GeyserSession session) {
                 // Since we can't fall back to a virtual inventory, let's make opening one easier
@@ -144,7 +143,7 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
-        return new BeaconContainer(name, windowId, this.size, windowType, playerInventory);
+    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+        return new BeaconContainer(name, windowId, this.size, containerType, playerInventory);
     }
 }

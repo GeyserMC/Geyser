@@ -23,28 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.window;
+package org.geysermc.connector.network.translators.java.inventory;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.window.ClientboundContainerSetDataPacket;
-import org.geysermc.connector.inventory.Inventory;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundContainerClosePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
 
-@Translator(packet = ClientboundContainerSetDataPacket.class)
-public class JavaContainerSetDataTranslator extends PacketTranslator<ClientboundContainerSetDataPacket> {
+@Translator(packet = ClientboundContainerClosePacket.class)
+public class JavaContainerCloseTranslator extends PacketTranslator<ClientboundContainerClosePacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundContainerSetDataPacket packet) {
-        Inventory inventory = InventoryUtils.getInventory(session, packet.getWindowId());
-        if (inventory == null)
-            return;
-
-        InventoryTranslator translator = session.getInventoryTranslator();
-        if (translator != null) {
-            translator.updateProperty(session, inventory, packet.getRawProperty(), packet.getValue());
-        }
+    public void translate(GeyserSession session, ClientboundContainerClosePacket packet) {
+        // Sometimes the server can request a window close of ID 0... when the window isn't even open
+        // Don't confirm in this instance
+        InventoryUtils.closeInventory(session, packet.getContainerId(), (session.getOpenInventory() != null && session.getOpenInventory().getId() == packet.getContainerId()));
     }
 }

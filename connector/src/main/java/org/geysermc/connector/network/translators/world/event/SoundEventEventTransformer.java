@@ -23,20 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.effect;
+package org.geysermc.connector.network.translators.world.event;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.connector.network.session.GeyserSession;
 
-/**
- * Represents an effect capable of translating itself into bedrock
- */
-public interface Effect {
-    /**
-     * Translates the given {@link ClientboundLevelEventPacket} into bedrock and sends it upstream.
-     *
-     * @param session GeyserSession
-     * @param packet the effect packet to handle
-     */
-    void handleEffectPacket(GeyserSession session, ClientboundLevelEventPacket packet);
+public record SoundEventEventTransformer(SoundEvent soundEvent,
+                                         String identifier, int extraData) implements LevelEventTransformer {
+    @Override
+    public void handleLevelEvent(GeyserSession session, ClientboundLevelEventPacket packet) {
+        LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
+        levelSoundEvent.setSound(soundEvent);
+        levelSoundEvent.setIdentifier(identifier);
+        levelSoundEvent.setExtraData(extraData);
+        levelSoundEvent.setRelativeVolumeDisabled(packet.isBroadcast());
+        levelSoundEvent.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()).add(0.5f, 0.5f, 0.5f));
+        levelSoundEvent.setBabySound(false);
+        session.sendUpstreamPacket(levelSoundEvent);
+    }
 }

@@ -31,7 +31,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.Builder;
 import lombok.Value;
-import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
+import org.geysermc.connector.network.translators.world.chunk.GeyserChunkSection;
 
 import java.util.Map;
 
@@ -44,7 +44,7 @@ public class BlockMappings {
 
     int blockStateVersion;
 
-    ChunkSection emptyChunkSection;
+    GeyserChunkSection emptyChunkSection;
 
     int[] javaToBedrockBlocks;
 

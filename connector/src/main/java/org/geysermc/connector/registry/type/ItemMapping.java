@@ -28,7 +28,7 @@ package org.geysermc.connector.registry.type;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.geysermc.connector.network.BedrockProtocol;
+import org.geysermc.connector.network.MinecraftProtocol;
 import org.geysermc.connector.registry.BlockRegistries;
 
 @Value
@@ -36,7 +36,7 @@ import org.geysermc.connector.registry.BlockRegistries;
 @EqualsAndHashCode
 public class ItemMapping {
     public static final ItemMapping AIR = new ItemMapping("minecraft:air", "minecraft:air", 0, 0, 0,
-            BlockRegistries.BLOCKS.forVersion(BedrockProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getBedrockAirId(),
+            BlockRegistries.BLOCKS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getBedrockAirId(),
             64, null, null, null);
 
     String javaIdentifier;

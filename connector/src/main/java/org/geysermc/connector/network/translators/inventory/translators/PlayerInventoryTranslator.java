@@ -27,8 +27,8 @@ package org.geysermc.connector.network.translators.inventory.translators;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundSetCreativeModeSlotPacket;
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.*;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.*;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
@@ -465,7 +465,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
+    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
         throw new UnsupportedOperationException();
     }
 

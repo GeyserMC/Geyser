@@ -25,7 +25,14 @@
 
 package org.geysermc.connector.network.translators.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.level.effect.*;
+import com.github.steveice10.mc.protocol.data.game.level.event.BonemealGrowEventData;
+import com.github.steveice10.mc.protocol.data.game.level.event.BreakBlockEventData;
+import com.github.steveice10.mc.protocol.data.game.level.event.BreakPotionEventData;
+import com.github.steveice10.mc.protocol.data.game.level.event.ComposterEventData;
+import com.github.steveice10.mc.protocol.data.game.level.event.DragonFireballEventData;
+import com.github.steveice10.mc.protocol.data.game.level.event.ParticleEvent;
+import com.github.steveice10.mc.protocol.data.game.level.event.RecordEventData;
+import com.github.steveice10.mc.protocol.data.game.level.event.SmokeEventData;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
@@ -38,7 +45,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.network.translators.effect.Effect;
+import org.geysermc.connector.network.translators.world.event.LevelEventTransformer;
 import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.utils.LocaleUtils;
 
@@ -50,10 +57,10 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
 
     @Override
     public void translate(GeyserSession session, ClientboundLevelEventPacket packet) {
-        // Separate case since each RecordEffectData in Java is an individual track in Bedrock
-        if (packet.getEffect() == SoundEffect.RECORD) {
-            RecordEffectData recordEffectData = (RecordEffectData) packet.getData();
-            SoundEvent soundEvent = Registries.RECORDS.getOrDefault(recordEffectData.getRecordId(), SoundEvent.STOP_RECORD);
+        // Separate case since each RecordEventData in Java is an individual track in Bedrock
+        if (packet.getEvent() == com.github.steveice10.mc.protocol.data.game.level.event.SoundEvent.RECORD) {
+            RecordEventData recordEventData = (RecordEventData) packet.getData();
+            SoundEvent soundEvent = Registries.RECORDS.getOrDefault(recordEventData.getRecordId(), SoundEvent.STOP_RECORD);
             Vector3f pos = Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()).add(0.5f, 0.5f, 0.5f);
 
             LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
@@ -81,26 +88,26 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             return;
         }
 
-        if (packet.getEffect() instanceof SoundEffect soundEffect) {
-            Effect geyserEffect = Registries.SOUND_EFFECTS.get(soundEffect);
-            if (geyserEffect != null) {
-                geyserEffect.handleEffectPacket(session, packet);
+        if (packet.getEvent() instanceof com.github.steveice10.mc.protocol.data.game.level.event.SoundEvent soundEvent) {
+            LevelEventTransformer transformer = Registries.SOUND_EVENTS.get(soundEvent);
+            if (transformer != null) {
+                transformer.handleLevelEvent(session, packet);
                 return;
             }
-            GeyserConnector.getInstance().getLogger().debug("Unhandled sound effect: " + soundEffect.name());
-        } else if (packet.getEffect() instanceof ParticleEffect particleEffect) {
+            GeyserConnector.getInstance().getLogger().debug("Unhandled sound event: " + soundEvent.name());
+        } else if (packet.getEvent() instanceof ParticleEvent particleEvent) {
             Vector3f pos = Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()).add(0.5f, 0.5f, 0.5f);
 
             LevelEventPacket effectPacket = new LevelEventPacket();
             effectPacket.setPosition(pos);
             effectPacket.setData(0);
-            switch (particleEffect) {
+            switch (particleEvent) {
                 case COMPOSTER -> {
                     effectPacket.setType(LevelEventType.PARTICLE_CROP_GROWTH);
 
-                    ComposterEffectData composterEffectData = (ComposterEffectData) packet.getData();
+                    ComposterEventData composterEventData = (ComposterEventData) packet.getData();
                     LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
-                    switch (composterEffectData) {
+                    switch (composterEventData) {
                         case FILL -> soundEventPacket.setSound(SoundEvent.COMPOSTER_FILL);
                         case FILL_SUCCESS -> soundEventPacket.setSound(SoundEvent.COMPOSTER_FILL_LAYER);
                     }
@@ -153,9 +160,9 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 case SMOKE -> {
                     effectPacket.setType(LevelEventType.PARTICLE_SHOOT);
 
-                    SmokeEffectData smokeEffectData = (SmokeEffectData) packet.getData();
+                    SmokeEventData smokeEventData = (SmokeEventData) packet.getData();
                     int data = 0;
-                    switch (smokeEffectData) {
+                    switch (smokeEventData) {
                         case DOWN -> {
                             data = 4;
                             pos = pos.add(0, -0.9f, 0);
@@ -189,14 +196,14 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 case BREAK_BLOCK -> {
                     effectPacket.setType(LevelEventType.PARTICLE_DESTROY_BLOCK);
 
-                    BreakBlockEffectData breakBlockEffectData = (BreakBlockEffectData) packet.getData();
-                    effectPacket.setData(session.getBlockMappings().getBedrockBlockId(breakBlockEffectData.getBlockState()));
+                    BreakBlockEventData breakBlockEventData = (BreakBlockEventData) packet.getData();
+                    effectPacket.setData(session.getBlockMappings().getBedrockBlockId(breakBlockEventData.getBlockState()));
                 }
                 case BREAK_SPLASH_POTION -> {
                     effectPacket.setType(LevelEventType.PARTICLE_POTION_SPLASH);
                     effectPacket.setPosition(pos.add(0, -0.5f, 0));
 
-                    BreakPotionEffectData splashPotionData = (BreakPotionEffectData) packet.getData();
+                    BreakPotionEventData splashPotionData = (BreakPotionEventData) packet.getData();
                     effectPacket.setData(splashPotionData.getPotionId());
 
                     LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
@@ -211,17 +218,17 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 case BREAK_EYE_OF_ENDER -> effectPacket.setType(LevelEventType.PARTICLE_EYE_OF_ENDER_DEATH);
                 case MOB_SPAWN -> effectPacket.setType(LevelEventType.PARTICLE_MOB_BLOCK_SPAWN); // TODO: Check, but I don't think I really verified this ever went into effect on Java
                 case BONEMEAL_GROW_WITH_SOUND, BONEMEAL_GROW -> {
-                    effectPacket.setType((particleEffect == ParticleEffect.BONEMEAL_GROW
+                    effectPacket.setType((particleEvent == ParticleEvent.BONEMEAL_GROW
                             && session.getUpstream().getProtocolVersion() >= Bedrock_v465.V465_CODEC.getProtocolVersion()) ? LevelEventType.PARTICLE_TURTLE_EGG : LevelEventType.PARTICLE_CROP_GROWTH);
 
-                    BonemealGrowEffectData growEffectData = (BonemealGrowEffectData) packet.getData();
-                    effectPacket.setData(growEffectData.getParticleCount());
+                    BonemealGrowEventData growEventData = (BonemealGrowEventData) packet.getData();
+                    effectPacket.setData(growEventData.getParticleCount());
                 }
                 case ENDERDRAGON_FIREBALL_EXPLODE -> {
                     effectPacket.setType(LevelEventType.PARTICLE_EYE_OF_ENDER_DEATH); // TODO
 
-                    DragonFireballEffectData fireballEffectData = (DragonFireballEffectData) packet.getData();
-                    if (fireballEffectData == DragonFireballEffectData.HAS_SOUND) {
+                    DragonFireballEventData fireballEventData = (DragonFireballEventData) packet.getData();
+                    if (fireballEventData == DragonFireballEventData.HAS_SOUND) {
                         LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
                         soundEventPacket.setSound(SoundEvent.EXPLODE);
                         soundEventPacket.setPosition(pos);
@@ -252,24 +259,13 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                     soundEventPacket.setRelativeVolumeDisabled(false);
                     session.sendUpstreamPacket(soundEventPacket);
                 }
-                case DRIPSTONE_DRIP -> {
-                    effectPacket.setType(LevelEventType.PARTICLE_DRIPSTONE_DRIP);
-                }
-                case ELECTRIC_SPARK -> {
-                    // Matches with a Bedrock server but doesn't seem to match up with Java
-                    effectPacket.setType(LevelEventType.PARTICLE_ELECTRIC_SPARK);
-                }
-                case WAX_ON -> {
-                    effectPacket.setType(LevelEventType.PARTICLE_WAX_ON);
-                }
-                case WAX_OFF -> {
-                    effectPacket.setType(LevelEventType.PARTICLE_WAX_OFF);
-                }
-                case SCRAPE -> {
-                    effectPacket.setType(LevelEventType.PARTICLE_SCRAPE);
-                }
+                case DRIPSTONE_DRIP -> effectPacket.setType(LevelEventType.PARTICLE_DRIPSTONE_DRIP);
+                case ELECTRIC_SPARK -> effectPacket.setType(LevelEventType.PARTICLE_ELECTRIC_SPARK); // Matches with a Bedrock server but doesn't seem to match up with Java
+                case WAX_ON -> effectPacket.setType(LevelEventType.PARTICLE_WAX_ON);
+                case WAX_OFF -> effectPacket.setType(LevelEventType.PARTICLE_WAX_OFF);
+                case SCRAPE -> effectPacket.setType(LevelEventType.PARTICLE_SCRAPE);
                 default -> {
-                    GeyserConnector.getInstance().getLogger().debug("Unhandled particle effect: " + particleEffect.name());
+                    GeyserConnector.getInstance().getLogger().debug("Unhandled particle event: " + particleEvent.name());
                     return;
                 }
             }

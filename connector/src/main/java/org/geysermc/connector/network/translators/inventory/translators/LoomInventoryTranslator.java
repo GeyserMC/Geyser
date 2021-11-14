@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.inventory.translators;
 
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundContainerButtonClickPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.nukkitx.nbt.NbtMap;

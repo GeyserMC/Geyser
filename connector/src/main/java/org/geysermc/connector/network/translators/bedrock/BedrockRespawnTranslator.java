@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.ClientRequest;
+import com.github.steveice10.mc.protocol.data.game.ClientCommand;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientCommandPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
@@ -68,7 +68,7 @@ public class BedrockRespawnTranslator extends PacketTranslator<RespawnPacket> {
                 session.sendUpstreamPacket(movePlayerPacket);
             }
 
-            ServerboundClientCommandPacket javaRespawnPacket = new ServerboundClientCommandPacket(ClientRequest.RESPAWN);
+            ServerboundClientCommandPacket javaRespawnPacket = new ServerboundClientCommandPacket(ClientCommand.RESPAWN);
             session.sendDownstreamPacket(javaRespawnPacket);
         }
     }

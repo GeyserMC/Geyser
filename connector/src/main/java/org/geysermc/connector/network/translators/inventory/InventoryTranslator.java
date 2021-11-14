@@ -31,7 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
@@ -64,42 +64,42 @@ import java.util.*;
 public abstract class InventoryTranslator {
 
     public static final InventoryTranslator PLAYER_INVENTORY_TRANSLATOR = new PlayerInventoryTranslator();
-    public static final Map<WindowType, InventoryTranslator> INVENTORY_TRANSLATORS = new HashMap<>() {
+    public static final Map<ContainerType, InventoryTranslator> INVENTORY_TRANSLATORS = new HashMap<>() {
         {
             /* Player Inventory */
             put(null, PLAYER_INVENTORY_TRANSLATOR);
 
             /* Chest UIs */
-            put(WindowType.GENERIC_9X1, new SingleChestInventoryTranslator(9));
-            put(WindowType.GENERIC_9X2, new SingleChestInventoryTranslator(18));
-            put(WindowType.GENERIC_9X3, new SingleChestInventoryTranslator(27));
-            put(WindowType.GENERIC_9X4, new DoubleChestInventoryTranslator(36));
-            put(WindowType.GENERIC_9X5, new DoubleChestInventoryTranslator(45));
-            put(WindowType.GENERIC_9X6, new DoubleChestInventoryTranslator(54));
+            put(ContainerType.GENERIC_9X1, new SingleChestInventoryTranslator(9));
+            put(ContainerType.GENERIC_9X2, new SingleChestInventoryTranslator(18));
+            put(ContainerType.GENERIC_9X3, new SingleChestInventoryTranslator(27));
+            put(ContainerType.GENERIC_9X4, new DoubleChestInventoryTranslator(36));
+            put(ContainerType.GENERIC_9X5, new DoubleChestInventoryTranslator(45));
+            put(ContainerType.GENERIC_9X6, new DoubleChestInventoryTranslator(54));
 
             /* Furnaces */
-            put(WindowType.FURNACE, new FurnaceInventoryTranslator());
-            put(WindowType.BLAST_FURNACE, new BlastFurnaceInventoryTranslator());
-            put(WindowType.SMOKER, new SmokerInventoryTranslator());
+            put(ContainerType.FURNACE, new FurnaceInventoryTranslator());
+            put(ContainerType.BLAST_FURNACE, new BlastFurnaceInventoryTranslator());
+            put(ContainerType.SMOKER, new SmokerInventoryTranslator());
 
             /* Specific Inventories */
-            put(WindowType.ANVIL, new AnvilInventoryTranslator());
-            put(WindowType.BEACON, new BeaconInventoryTranslator());
-            put(WindowType.BREWING_STAND, new BrewingInventoryTranslator());
-            put(WindowType.CARTOGRAPHY, new CartographyInventoryTranslator());
-            put(WindowType.CRAFTING, new CraftingInventoryTranslator());
-            put(WindowType.ENCHANTMENT, new EnchantingInventoryTranslator());
-            put(WindowType.HOPPER, new HopperInventoryTranslator());
-            put(WindowType.GENERIC_3X3, new Generic3X3InventoryTranslator());
-            put(WindowType.GRINDSTONE, new GrindstoneInventoryTranslator());
-            put(WindowType.LOOM, new LoomInventoryTranslator());
-            put(WindowType.MERCHANT, new MerchantInventoryTranslator());
-            put(WindowType.SHULKER_BOX, new ShulkerInventoryTranslator());
-            put(WindowType.SMITHING, new SmithingInventoryTranslator());
-            put(WindowType.STONECUTTER, new StonecutterInventoryTranslator());
+            put(ContainerType.ANVIL, new AnvilInventoryTranslator());
+            put(ContainerType.BEACON, new BeaconInventoryTranslator());
+            put(ContainerType.BREWING_STAND, new BrewingInventoryTranslator());
+            put(ContainerType.CARTOGRAPHY, new CartographyInventoryTranslator());
+            put(ContainerType.CRAFTING, new CraftingInventoryTranslator());
+            put(ContainerType.ENCHANTMENT, new EnchantingInventoryTranslator());
+            put(ContainerType.HOPPER, new HopperInventoryTranslator());
+            put(ContainerType.GENERIC_3X3, new Generic3X3InventoryTranslator());
+            put(ContainerType.GRINDSTONE, new GrindstoneInventoryTranslator());
+            put(ContainerType.LOOM, new LoomInventoryTranslator());
+            put(ContainerType.MERCHANT, new MerchantInventoryTranslator());
+            put(ContainerType.SHULKER_BOX, new ShulkerInventoryTranslator());
+            put(ContainerType.SMITHING, new SmithingInventoryTranslator());
+            put(ContainerType.STONECUTTER, new StonecutterInventoryTranslator());
 
             /* Lectern */
-            put(WindowType.LECTERN, new LecternInventoryTranslator());
+            put(ContainerType.LECTERN, new LecternInventoryTranslator());
         }
     };
 
@@ -118,7 +118,7 @@ public abstract class InventoryTranslator {
     public abstract int javaSlotToBedrock(int javaSlot);
     public abstract BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot);
     public abstract SlotType getSlotType(int javaSlot);
-    public abstract Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory);
+    public abstract Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory);
 
     /**
      * Should be overwritten in cases where specific inventories should reject an item being in a specific spot.

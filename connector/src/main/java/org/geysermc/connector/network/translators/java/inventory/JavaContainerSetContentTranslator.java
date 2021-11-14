@@ -23,9 +23,9 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.window;
+package org.geysermc.connector.network.translators.java.inventory;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.window.ClientboundContainerSetContentPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetContentPacket;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -39,7 +39,7 @@ public class JavaContainerSetContentTranslator extends PacketTranslator<Clientbo
 
     @Override
     public void translate(GeyserSession session, ClientboundContainerSetContentPacket packet) {
-        Inventory inventory = InventoryUtils.getInventory(session, packet.getWindowId());
+        Inventory inventory = InventoryUtils.getInventory(session, packet.getContainerId());
         if (inventory == null)
             return;
 

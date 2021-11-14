@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundContainerClosePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 import com.nukkitx.protocol.bedrock.packet.ContainerClosePacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.inventory.MerchantContainer;

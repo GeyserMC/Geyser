@@ -25,7 +25,6 @@
 
 package org.geysermc.platform.spigot;
 
-import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.data.MappingData;
 import com.viaversion.viaversion.api.protocol.ProtocolPathEntry;
@@ -39,6 +38,7 @@ import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
+import org.geysermc.connector.network.MinecraftProtocol;
 import org.geysermc.connector.network.translators.world.WorldManager;
 import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
@@ -342,7 +342,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
      */
     private boolean isViaVersionNeeded() {
         ProtocolVersion serverVersion = getServerProtocolVersion();
-        List<ProtocolPathEntry> protocolList = Via.getManager().getProtocolManager().getProtocolPath(MinecraftConstants.PROTOCOL_VERSION,
+        List<ProtocolPathEntry> protocolList = Via.getManager().getProtocolManager().getProtocolPath(MinecraftProtocol.getJavaProtocolVersion(),
                 serverVersion.getVersion());
         if (protocolList == null) {
             // No translation needed!

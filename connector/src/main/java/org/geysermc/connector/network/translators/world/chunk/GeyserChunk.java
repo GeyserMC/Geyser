@@ -23,21 +23,35 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.window;
+package org.geysermc.connector.network.translators.world.chunk;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.window.ClientboundContainerClosePacket;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.PacketTranslator;
-import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.InventoryUtils;
+import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
+import com.github.steveice10.mc.protocol.data.game.chunk.ChunkSection;
+import lombok.Getter;
+import org.geysermc.connector.network.session.cache.ChunkCache;
 
-@Translator(packet = ClientboundContainerClosePacket.class)
-public class JavaContainerCloseTranslator extends PacketTranslator<ClientboundContainerClosePacket> {
+/**
+ * Acts as a lightweight version of {@link Chunk} that doesn't store
+ * biomes or heightmaps.
+ */
+public class GeyserChunk {
+    @Getter
+    private final ChunkSection[] sections;
 
-    @Override
-    public void translate(GeyserSession session, ClientboundContainerClosePacket packet) {
-        // Sometimes the server can request a window close of ID 0... when the window isn't even open
-        // Don't confirm in this instance
-        InventoryUtils.closeInventory(session, packet.getWindowId(), (session.getOpenInventory() != null && session.getOpenInventory().getId() == packet.getWindowId()));
+    private GeyserChunk(ChunkSection[] sections) {
+        this.sections = sections;
+    }
+
+    public static GeyserChunk from(ChunkCache chunkCache, Chunk chunk) {
+        int chunkHeightY = chunkCache.getChunkHeightY();
+        ChunkSection[] sections;
+        if (chunkHeightY < chunk.getSections().length) {
+            sections = new ChunkSection[chunkHeightY];
+            // TODO addresses https://github.com/Steveice10/MCProtocolLib/pull/598#issuecomment-862782392
+            System.arraycopy(chunk.getSections(), 0, sections, 0, sections.length);
+        } else {
+            sections = chunk.getSections();
+        }
+        return new GeyserChunk(sections);
     }
 }

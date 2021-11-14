@@ -23,52 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.effect;
+package org.geysermc.connector.network.translators.world.event;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.PlaySoundPacket;
-import lombok.Value;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-@Value
-public class PlaySoundEffect implements Effect {
-    /**
-     * Bedrock playsound identifier
-     */
-    String name;
-
-    /**
-     * Volume of the sound
-     */
-    float volume;
-
-    /**
-     * If true, the initial value used for random pitch is the difference between two random floats.
-     * If false, it is a single random float
-     */
-    boolean pitchSub;
-
-    /**
-     * Multiplier for random pitch value
-     */
-    float pitchMul;
-
-    /**
-     * Constant addition to random pitch value after multiplier
-     */
-    float pitchAdd;
-
-    /**
-     * True if the sound is meant to be played in 3d space
-     */
-    boolean relative;
-
+public record PlaySoundEventTransformer(String name, float volume, boolean pitchSub, float pitchMul,
+                                        float pitchAdd, boolean relative) implements LevelEventTransformer {
     @Override
-    public void handleEffectPacket(GeyserSession session, ClientboundLevelEventPacket packet) {
+    public void handleLevelEvent(GeyserSession session, ClientboundLevelEventPacket packet) {
         Random rand = ThreadLocalRandom.current();
         PlaySoundPacket playSoundPacket = new PlaySoundPacket();
         playSoundPacket.setSound(name);

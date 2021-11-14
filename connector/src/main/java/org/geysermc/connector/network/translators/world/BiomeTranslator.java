@@ -29,7 +29,7 @@ import com.github.steveice10.opennbt.tag.builtin.*;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.chunk.BlockStorage;
-import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
+import org.geysermc.connector.network.translators.world.chunk.GeyserChunkSection;
 import org.geysermc.connector.registry.Registries;
 
 import java.util.Arrays;
@@ -119,7 +119,7 @@ public class BiomeTranslator {
             for (int blockX = x << 2; blockX < (x << 2) + 4; blockX++) {
                 for (int blockZ = z << 2; blockZ < (z << 2) + 4; blockZ++) {
                     for (int blockY = y << 2; blockY < (y << 2) + 4; blockY++) {
-                        storage.getBitArray().set(ChunkSection.blockPosition(blockX, blockY, blockZ), idx);
+                        storage.getBitArray().set(GeyserChunkSection.blockPosition(blockX, blockY, blockZ), idx);
                     }
                 }
             }

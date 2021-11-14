@@ -31,7 +31,7 @@ import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.common.ChatColor;
-import org.geysermc.connector.network.BedrockProtocol;
+import org.geysermc.connector.network.MinecraftProtocol;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.FileUtils;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -56,15 +56,15 @@ public class VersionCommand extends GeyserCommand {
     @Override
     public void execute(GeyserSession session, CommandSender sender, String[] args) {
         String bedrockVersions;
-        List<BedrockPacketCodec> supportedCodecs = BedrockProtocol.SUPPORTED_BEDROCK_CODECS;
+        List<BedrockPacketCodec> supportedCodecs = MinecraftProtocol.SUPPORTED_BEDROCK_CODECS;
         if (supportedCodecs.size() > 1) {
             bedrockVersions = supportedCodecs.get(0).getMinecraftVersion() + " - " + supportedCodecs.get(supportedCodecs.size() - 1).getMinecraftVersion();
         } else {
-            bedrockVersions = BedrockProtocol.SUPPORTED_BEDROCK_CODECS.get(0).getMinecraftVersion();
+            bedrockVersions = MinecraftProtocol.SUPPORTED_BEDROCK_CODECS.get(0).getMinecraftVersion();
         }
 
         sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.version", sender.getLocale(),
-                GeyserConnector.NAME, GeyserConnector.VERSION, GeyserConnector.MINECRAFT_VERSION, bedrockVersions));
+                GeyserConnector.NAME, GeyserConnector.VERSION, MinecraftProtocol.getJavaVersion(), bedrockVersions));
 
         // Disable update checking in dev mode and for players in Geyser Standalone
         if (GeyserConnector.getInstance().isProductionEnvironment() && !(!sender.isConsole() && connector.getPlatformType() == PlatformType.STANDALONE)) {

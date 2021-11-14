@@ -25,21 +25,23 @@
 
 package org.geysermc.connector.network.translators.inventory.click;
 
-import com.github.steveice10.mc.protocol.data.game.window.*;
+import com.github.steveice10.mc.protocol.data.game.inventory.ClickItemAction;
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerActionType;
+import com.github.steveice10.mc.protocol.data.game.inventory.*;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public enum Click {
-    LEFT(WindowAction.CLICK_ITEM, ClickItemParam.LEFT_CLICK),
-    RIGHT(WindowAction.CLICK_ITEM, ClickItemParam.RIGHT_CLICK),
-    LEFT_SHIFT(WindowAction.SHIFT_CLICK_ITEM, ShiftClickItemParam.LEFT_CLICK),
-    DROP_ONE(WindowAction.DROP_ITEM, DropItemParam.DROP_FROM_SELECTED),
-    DROP_ALL(WindowAction.DROP_ITEM, DropItemParam.DROP_SELECTED_STACK),
-    LEFT_OUTSIDE(WindowAction.CLICK_ITEM, ClickItemParam.LEFT_CLICK),
-    RIGHT_OUTSIDE(WindowAction.CLICK_ITEM, ClickItemParam.RIGHT_CLICK);
+    LEFT(ContainerActionType.CLICK_ITEM, ClickItemAction.LEFT_CLICK),
+    RIGHT(ContainerActionType.CLICK_ITEM, ClickItemAction.RIGHT_CLICK),
+    LEFT_SHIFT(ContainerActionType.SHIFT_CLICK_ITEM, ShiftClickItemAction.LEFT_CLICK),
+    DROP_ONE(ContainerActionType.DROP_ITEM, DropItemAction.DROP_FROM_SELECTED),
+    DROP_ALL(ContainerActionType.DROP_ITEM, DropItemAction.DROP_SELECTED_STACK),
+    LEFT_OUTSIDE(ContainerActionType.CLICK_ITEM, ClickItemAction.LEFT_CLICK),
+    RIGHT_OUTSIDE(ContainerActionType.CLICK_ITEM, ClickItemAction.RIGHT_CLICK);
 
     public static final int OUTSIDE_SLOT = -999;
 
-    public final WindowAction windowAction;
-    public final WindowActionParam actionParam;
+    public final ContainerActionType actionType;
+    public final ContainerAction action;
 }

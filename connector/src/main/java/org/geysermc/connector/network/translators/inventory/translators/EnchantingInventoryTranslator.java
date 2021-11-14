@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.network.translators.inventory.translators;
 
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundContainerButtonClickPacket;
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.*;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.CraftRecipeStackRequestActionData;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
@@ -47,7 +47,7 @@ import java.util.Collections;
 
 public class EnchantingInventoryTranslator extends AbstractBlockInventoryTranslator {
     public EnchantingInventoryTranslator() {
-        super(2, "minecraft:enchanting_table", ContainerType.ENCHANTMENT, UIInventoryUpdater.INSTANCE);
+        super(2, "minecraft:enchanting_table", com.nukkitx.protocol.bedrock.data.inventory.ContainerType.ENCHANTMENT, UIInventoryUpdater.INSTANCE);
     }
 
     @Override
@@ -167,7 +167,7 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
-        return new EnchantingContainer(name, windowId, this.size, windowType, playerInventory);
+    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+        return new EnchantingContainer(name, windowId, this.size, containerType, playerInventory);
     }
 }

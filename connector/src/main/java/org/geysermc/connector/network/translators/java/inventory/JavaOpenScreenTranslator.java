@@ -23,10 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.window;
+package org.geysermc.connector.network.translators.java.inventory;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.window.ClientboundOpenScreenPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundContainerClosePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundOpenScreenPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -41,7 +41,7 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
 
     @Override
     public void translate(GeyserSession session, ClientboundOpenScreenPacket packet) {
-        if (packet.getWindowId() == 0) {
+        if (packet.getContainerId() == 0) {
             return;
         }
 
@@ -52,7 +52,7 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
             if (openInventory != null) {
                 InventoryUtils.closeInventory(session, openInventory.getId(), true);
             }
-            ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(packet.getWindowId());
+            ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(packet.getContainerId());
             session.sendDownstreamPacket(closeWindowPacket);
             return;
         }
@@ -60,13 +60,13 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
         String name = MessageTranslator.convertMessageLenient(packet.getName(), session.getLocale());
         name = LocaleUtils.getLocaleString(name, session.getLocale());
 
-        Inventory newInventory = newTranslator.createInventory(name, packet.getWindowId(), packet.getType(), session.getPlayerInventory());
+        Inventory newInventory = newTranslator.createInventory(name, packet.getContainerId(), packet.getType(), session.getPlayerInventory());
         if (openInventory != null) {
             // If the window type is the same, don't close.
             // In rare cases, inventories can do funny things where it keeps the same window type up but change the contents.
-            if (openInventory.getWindowType() != packet.getType()) {
+            if (openInventory.getContainerType() != packet.getType()) {
                 // Sometimes the server can double-open an inventory with the same ID - don't confirm in that instance.
-                InventoryUtils.closeInventory(session, openInventory.getId(), openInventory.getId() != packet.getWindowId());
+                InventoryUtils.closeInventory(session, openInventory.getId(), openInventory.getId() != packet.getContainerId());
             }
         }
 

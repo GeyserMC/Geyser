@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.network.translators.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.chunk.Column;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelChunkPacket;
+import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelChunkWithLightPacket;
 import com.nukkitx.nbt.NBTOutputStream;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
@@ -35,12 +35,11 @@ import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.world.BiomeTranslator;
-import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
+import org.geysermc.connector.network.translators.world.chunk.GeyserChunkSection;
 import org.geysermc.connector.utils.ChunkUtils;
 
 import java.io.IOException;
@@ -48,23 +47,23 @@ import java.io.IOException;
 import static org.geysermc.connector.utils.ChunkUtils.MINIMUM_ACCEPTED_HEIGHT;
 import static org.geysermc.connector.utils.ChunkUtils.MINIMUM_ACCEPTED_HEIGHT_OVERWORLD;
 
-@Translator(packet = ClientboundLevelChunkPacket.class)
-public class JavaLevelChunkTranslator extends PacketTranslator<ClientboundLevelChunkPacket> {
+@Translator(packet = ClientboundLevelChunkWithLightPacket.class)
+public class JavaLevelChunkWithLightTranslator extends PacketTranslator<ClientboundLevelChunkWithLightPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundLevelChunkPacket packet) {
+    public void translate(GeyserSession session, ClientboundLevelChunkWithLightPacket packet) {
         if (session.isSpawned()) {
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
         }
 
-        session.getChunkCache().addToCache(packet.getColumn());
-        Column column = packet.getColumn();
+        session.getChunkCache().addToCache(packet.getChunk());
+        Chunk chunk = packet.getChunk();
 
         // Ensure that, if the player is using lower world heights, the position is not offset
         int yOffset = session.getChunkCache().getChunkMinY();
 
-        ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, column, yOffset);
-        ChunkSection[] sections = chunkData.sections();
+        ChunkUtils.ChunkData chunkData = ChunkUtils.translateToBedrock(session, chunk, yOffset);
+        GeyserChunkSection[] sections = chunkData.sections();
 
         // Find highest section
         int sectionCount = sections.length - 1;
@@ -76,7 +75,7 @@ public class JavaLevelChunkTranslator extends PacketTranslator<ClientboundLevelC
         // Estimate chunk size
         int size = 0;
         for (int i = 0; i < sectionCount; i++) {
-            ChunkSection section = sections[i];
+            GeyserChunkSection section = sections[i];
             size += (section != null ? section : session.getBlockMappings().getEmptyChunkSection()).estimateNetworkSize();
         }
         size += ChunkUtils.EMPTY_CHUNK_DATA.length; // Consists only of biome data
@@ -89,7 +88,7 @@ public class JavaLevelChunkTranslator extends PacketTranslator<ClientboundLevelC
         byte[] payload;
         try {
             for (int i = 0; i < sectionCount; i++) {
-                ChunkSection section = sections[i];
+                GeyserChunkSection section = sections[i];
                 (section != null ? section : session.getBlockMappings().getEmptyChunkSection()).writeToNetwork(byteBuf);
             }
 
@@ -103,7 +102,7 @@ public class JavaLevelChunkTranslator extends PacketTranslator<ClientboundLevelC
                     byteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
                     continue;
                 }
-                BiomeTranslator.toNewBedrockBiome(session, column.getBiomeData(), i + (dimensionOffset - yOffset)).writeToNetwork(byteBuf);
+                BiomeTranslator.toNewBedrockBiome(session, chunk.getBiomeData(), i + (dimensionOffset - yOffset)).writeToNetwork(byteBuf);
             }
 
             // As of 1.17.10, Bedrock hardcodes to always read 32 biome sections
@@ -133,8 +132,8 @@ public class JavaLevelChunkTranslator extends PacketTranslator<ClientboundLevelC
         LevelChunkPacket levelChunkPacket = new LevelChunkPacket();
         levelChunkPacket.setSubChunksLength(sectionCount);
         levelChunkPacket.setCachingEnabled(false);
-        levelChunkPacket.setChunkX(column.getX());
-        levelChunkPacket.setChunkZ(column.getZ());
+        levelChunkPacket.setChunkX(chunk.getX());
+        levelChunkPacket.setChunkZ(chunk.getZ());
         levelChunkPacket.setData(payload);
         session.sendUpstreamPacket(levelChunkPacket);
     }

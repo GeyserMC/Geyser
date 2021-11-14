@@ -34,7 +34,7 @@ import com.github.steveice10.mc.auth.service.MojangAuthenticationService;
 import com.github.steveice10.mc.auth.service.MsaAuthenticationService;
 import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
-import com.github.steveice10.mc.protocol.data.SubProtocol;
+import com.github.steveice10.mc.protocol.data.ProtocolState;
 import com.github.steveice10.mc.protocol.data.UnexpectedEncryptionException;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
@@ -1333,7 +1333,7 @@ public class GeyserSession implements CommandSender {
     }
 
     private void sendDownstreamPacket0(Packet packet) {
-        if (protocol.getSubProtocol().equals(SubProtocol.GAME) || packet.getClass() == ServerboundCustomQueryPacket.class) {
+        if (protocol.getState().equals(ProtocolState.GAME) || packet.getClass() == ServerboundCustomQueryPacket.class) {
             downstream.send(packet);
         } else {
             connector.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");

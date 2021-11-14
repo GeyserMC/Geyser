@@ -25,6 +25,8 @@
 
 package org.geysermc.connector.network;
 
+import com.github.steveice10.mc.protocol.codec.MinecraftCodec;
+import com.github.steveice10.mc.protocol.codec.PacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
 import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
@@ -34,9 +36,9 @@ import java.util.List;
 import java.util.StringJoiner;
 
 /**
- * Contains information about the supported Bedrock protocols in Geyser.
+ * Contains information about the supported protocols in Geyser.
  */
-public class BedrockProtocol {
+public class MinecraftProtocol {
     /**
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
@@ -46,6 +48,12 @@ public class BedrockProtocol {
      * A list of all supported Bedrock versions that can join Geyser
      */
     public static final List<BedrockPacketCodec> SUPPORTED_BEDROCK_CODECS = new ArrayList<>();
+
+    /**
+     * Java codec that is supported. We only ever support one version for
+     * Java Edition.
+     */
+    private static final PacketCodec DEFAULT_JAVA_CODEC = MinecraftCodec.CODEC;
 
     static {
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v465.V465_CODEC);
@@ -64,6 +72,33 @@ public class BedrockProtocol {
             }
         }
         return null;
+    }
+
+    /**
+     * Gets the {@link PacketCodec} for Minecraft: Java Edition.
+     *
+     * @return the packet codec for Minecraft: Java Edition
+     */
+    public static PacketCodec getJavaCodec() {
+        return DEFAULT_JAVA_CODEC;
+    }
+
+    /**
+     * Gets the supported Minecraft: Java Edition version name.
+     *
+     * @return the supported Minecraft: Java Edition version name
+     */
+    public static String getJavaVersion() {
+        return DEFAULT_JAVA_CODEC.getMinecraftVersion();
+    }
+
+    /**
+     * Gets the supported Minecraft: Java Edition protocol version.
+     *
+     * @return the supported Minecraft: Java Edition protocol version
+     */
+    public static int getJavaProtocolVersion() {
+        return DEFAULT_JAVA_CODEC.getProtocolVersion();
     }
 
     /**

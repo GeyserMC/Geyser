@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.ClientRequest;
+import com.github.steveice10.mc.protocol.data.game.ClientCommand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.level.notify.EnterCreditsValue;
 import com.github.steveice10.mc.protocol.data.game.level.notify.RainStrengthValue;
@@ -126,7 +126,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
             case ENTER_CREDITS:
                 switch ((EnterCreditsValue) packet.getValue()) {
                     case SEEN_BEFORE -> {
-                        ServerboundClientCommandPacket javaRespawnPacket = new ServerboundClientCommandPacket(ClientRequest.RESPAWN);
+                        ServerboundClientCommandPacket javaRespawnPacket = new ServerboundClientCommandPacket(ClientCommand.RESPAWN);
                         session.sendDownstreamPacket(javaRespawnPacket);
                     }
                     case FIRST_TIME -> {

@@ -23,41 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.effect;
+package org.geysermc.connector.network.translators.java.inventory;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
-import lombok.Value;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetDataPacket;
+import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.PacketTranslator;
+import org.geysermc.connector.network.translators.Translator;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.utils.InventoryUtils;
 
-@Value
-public class SoundEventEffect implements Effect {
-    /**
-     * Bedrock sound event
-     */
-    SoundEvent soundEvent;
-
-    /**
-     * Entity identifier. Usually an empty string
-     */
-    String identifier;
-
-    /**
-     * Extra data. Usually -1
-     */
-    int extraData;
+@Translator(packet = ClientboundContainerSetDataPacket.class)
+public class JavaContainerSetDataTranslator extends PacketTranslator<ClientboundContainerSetDataPacket> {
 
     @Override
-    public void handleEffectPacket(GeyserSession session, ClientboundLevelEventPacket packet) {
-        LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
-        levelSoundEvent.setSound(soundEvent);
-        levelSoundEvent.setIdentifier(identifier);
-        levelSoundEvent.setExtraData(extraData);
-        levelSoundEvent.setRelativeVolumeDisabled(packet.isBroadcast());
-        levelSoundEvent.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()).add(0.5f, 0.5f, 0.5f));
-        levelSoundEvent.setBabySound(false);
-        session.sendUpstreamPacket(levelSoundEvent);
+    public void translate(GeyserSession session, ClientboundContainerSetDataPacket packet) {
+        Inventory inventory = InventoryUtils.getInventory(session, packet.getContainerId());
+        if (inventory == null)
+            return;
+
+        InventoryTranslator translator = session.getInventoryTranslator();
+        if (translator != null) {
+            translator.updateProperty(session, inventory, packet.getRawProperty(), packet.getValue());
+        }
     }
 }

@@ -27,8 +27,8 @@ package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.level.block.CommandBlockMode;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundSetCommandMinecartPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundSetCommandBlockPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetCommandMinecartPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetCommandBlockPacket;
 import com.nukkitx.protocol.bedrock.packet.CommandBlockUpdatePacket;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;

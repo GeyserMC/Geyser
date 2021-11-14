@@ -25,7 +25,6 @@
 
 package org.geysermc.platform.spigot.world;
 
-import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
@@ -48,6 +47,7 @@ import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.MinecraftProtocol;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
 import org.geysermc.connector.utils.InventoryUtils;
@@ -73,7 +73,7 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
     public GeyserSpigot1_11CraftingListener(GeyserConnector connector) {
         this.connector = connector;
         this.mappingData1_12to1_13 = Via.getManager().getProtocolManager().getProtocol(Protocol1_13To1_12_2.class).getMappingData();
-        this.protocolList = Via.getManager().getProtocolManager().getProtocolPath(MinecraftConstants.PROTOCOL_VERSION,
+        this.protocolList = Via.getManager().getProtocolManager().getProtocolPath(MinecraftProtocol.getJavaProtocolVersion(),
                 ProtocolVersion.v1_13.getVersion());
     }
 

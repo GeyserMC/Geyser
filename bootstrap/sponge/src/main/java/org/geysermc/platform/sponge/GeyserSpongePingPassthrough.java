@@ -25,8 +25,8 @@
 
 package org.geysermc.platform.sponge;
 
-import com.github.steveice10.mc.protocol.MinecraftConstants;
 import org.geysermc.connector.common.ping.GeyserPingInfo;
+import org.geysermc.connector.network.MinecraftProtocol;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 import org.spongepowered.api.MinecraftVersion;
 import org.spongepowered.api.Sponge;
@@ -73,7 +73,7 @@ public class GeyserSpongePingPassthrough implements IGeyserPingPassthrough {
                 ),
                 new GeyserPingInfo.Version(
                         event.getResponse().getVersion().getName(),
-                        MinecraftConstants.PROTOCOL_VERSION) // thanks for also not exposing this sponge
+                        MinecraftProtocol.getJavaProtocolVersion()) // thanks for also not exposing this sponge
         );
         event.getResponse().getPlayers().get().getProfiles().stream()
                 .map(GameProfile::getName)

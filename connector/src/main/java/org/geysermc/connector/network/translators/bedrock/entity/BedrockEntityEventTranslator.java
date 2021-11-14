@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.network.translators.bedrock.entity;
 
-import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundSelectTradePacket;
+import com.github.steveice10.mc.protocol.data.game.inventory.VillagerTrade;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSelectTradePacket;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.Entity;

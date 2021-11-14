@@ -23,9 +23,9 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.window;
+package org.geysermc.connector.network.translators.java.inventory;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.window.ClientboundHorseScreenOpenPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundHorseScreenOpenPacket;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
@@ -105,7 +105,7 @@ public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundH
         }
 
         UpdateEquipPacket updateEquipPacket = new UpdateEquipPacket();
-        updateEquipPacket.setWindowId((short) packet.getWindowId());
+        updateEquipPacket.setWindowId((short) packet.getContainerId());
         updateEquipPacket.setWindowType((short) ContainerType.HORSE.getId());
         updateEquipPacket.setUniqueEntityId(entity.getGeyserId());
 
@@ -132,6 +132,6 @@ public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundH
         session.sendUpstreamPacket(updateEquipPacket);
 
         session.setInventoryTranslator(inventoryTranslator);
-        InventoryUtils.openInventory(session, new Container(entity.getMetadata().getString(EntityData.NAMETAG), packet.getWindowId(), packet.getNumberOfSlots(), null, session.getPlayerInventory()));
+        InventoryUtils.openInventory(session, new Container(entity.getMetadata().getString(EntityData.NAMETAG), packet.getContainerId(), packet.getNumberOfSlots(), null, session.getPlayerInventory()));
     }
 }

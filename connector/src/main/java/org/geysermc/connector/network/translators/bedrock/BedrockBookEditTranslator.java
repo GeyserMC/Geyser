@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundEditBookPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundEditBookPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;

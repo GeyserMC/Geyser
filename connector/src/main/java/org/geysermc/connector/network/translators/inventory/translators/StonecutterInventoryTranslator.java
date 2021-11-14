@@ -26,10 +26,9 @@
 package org.geysermc.connector.network.translators.inventory.translators;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundContainerButtonClickPacket;
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.CraftResultsDeprecatedStackRequestActionData;
@@ -49,7 +48,7 @@ import org.geysermc.connector.network.translators.item.ItemTranslator;
 
 public class StonecutterInventoryTranslator extends AbstractBlockInventoryTranslator {
     public StonecutterInventoryTranslator() {
-        super(2, "minecraft:stonecutter[facing=north]", ContainerType.STONECUTTER, UIInventoryUpdater.INSTANCE);
+        super(2, "minecraft:stonecutter[facing=north]", com.nukkitx.protocol.bedrock.data.inventory.ContainerType.STONECUTTER, UIInventoryUpdater.INSTANCE);
     }
 
     @Override
@@ -131,7 +130,7 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
-        return new StonecutterContainer(name, windowId, this.size, windowType, playerInventory);
+    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+        return new StonecutterContainer(name, windowId, this.size, containerType, playerInventory);
     }
 }

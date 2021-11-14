@@ -43,10 +43,10 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
 
     @Override
     public void translate(GeyserSession session, ClientboundBlockUpdatePacket packet) {
-        Position pos = packet.getRecord().getPosition();
+        Position pos = packet.getEntry().getPosition();
         boolean updatePlacement = session.getConnector().getPlatformType() != PlatformType.SPIGOT && // Spigot simply listens for the block place event
-                session.getConnector().getWorldManager().getBlockAt(session, pos) != packet.getRecord().getBlock();
-        ChunkUtils.updateBlock(session, packet.getRecord().getBlock(), pos);
+                session.getConnector().getWorldManager().getBlockAt(session, pos) != packet.getEntry().getBlock();
+        ChunkUtils.updateBlock(session, packet.getEntry().getBlock(), pos);
         if (updatePlacement) {
             this.checkPlace(session, packet);
         }
@@ -58,16 +58,16 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
         if (lastPlacePos == null) {
             return false;
         }
-        if ((lastPlacePos.getX() != packet.getRecord().getPosition().getX()
-                || lastPlacePos.getY() != packet.getRecord().getPosition().getY()
-                || lastPlacePos.getZ() != packet.getRecord().getPosition().getZ())) {
+        if ((lastPlacePos.getX() != packet.getEntry().getPosition().getX()
+                || lastPlacePos.getY() != packet.getEntry().getPosition().getY()
+                || lastPlacePos.getZ() != packet.getEntry().getPosition().getZ())) {
             return false;
         }
 
         // We need to check if the identifier is the same, else a packet with the sound of what the
         // player has in their hand is played, despite if the block is being placed or not
         boolean contains = false;
-        String identifier = BlockRegistries.JAVA_BLOCKS.get(packet.getRecord().getBlock()).getItemIdentifier();
+        String identifier = BlockRegistries.JAVA_BLOCKS.get(packet.getEntry().getBlock()).getItemIdentifier();
         if (identifier.equals(session.getLastBlockPlacedId())) {
             contains = true;
         }
@@ -83,7 +83,7 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
         placeBlockSoundPacket.setSound(SoundEvent.PLACE);
         placeBlockSoundPacket.setPosition(lastPlacePos.toFloat());
         placeBlockSoundPacket.setBabySound(false);
-        placeBlockSoundPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(packet.getRecord().getBlock()));
+        placeBlockSoundPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(packet.getEntry().getBlock()));
         placeBlockSoundPacket.setIdentifier(":");
         session.sendUpstreamPacket(placeBlockSoundPacket);
         session.setLastBlockPlacePosition(null);
@@ -96,12 +96,12 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
         if (lastInteractPos == null || !session.isInteracting()) {
             return;
         }
-        if ((lastInteractPos.getX() != packet.getRecord().getPosition().getX()
-                || lastInteractPos.getY() != packet.getRecord().getPosition().getY()
-                || lastInteractPos.getZ() != packet.getRecord().getPosition().getZ())) {
+        if ((lastInteractPos.getX() != packet.getEntry().getPosition().getX()
+                || lastInteractPos.getY() != packet.getEntry().getPosition().getY()
+                || lastInteractPos.getZ() != packet.getEntry().getPosition().getZ())) {
             return;
         }
-        String identifier = BlockRegistries.JAVA_IDENTIFIERS.get().get(packet.getRecord().getBlock());
+        String identifier = BlockRegistries.JAVA_IDENTIFIERS.get().get(packet.getEntry().getBlock());
         session.setInteracting(false);
         BlockSoundInteractionHandler.handleBlockInteraction(session, lastInteractPos.toFloat(), identifier);
     }

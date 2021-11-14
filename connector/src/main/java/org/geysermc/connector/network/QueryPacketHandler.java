@@ -175,7 +175,7 @@ public class QueryPacketHandler {
         gameData.put("hostname", motd);
         gameData.put("gametype", "SMP");
         gameData.put("game_id", "MINECRAFT");
-        gameData.put("version", GeyserConnector.NAME + " (" + GeyserConnector.GIT_VERSION + ") " + BedrockProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion());
+        gameData.put("version", GeyserConnector.NAME + " (" + GeyserConnector.GIT_VERSION + ") " + MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion());
         gameData.put("plugins", "");
         gameData.put("map", map);
         gameData.put("numplayers", currentPlayerCount);

@@ -39,7 +39,7 @@ import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import org.geysermc.connector.network.translators.world.chunk.BlockStorage;
-import org.geysermc.connector.network.translators.world.chunk.ChunkSection;
+import org.geysermc.connector.network.translators.world.chunk.GeyserChunkSection;
 import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.registry.type.BlockMapping;
 import org.geysermc.connector.registry.type.BlockMappings;
@@ -200,7 +200,7 @@ public class BlockRegistryPopulator {
             builder.bedrockBlockStates(blocksTag);
 
             BlockRegistries.BLOCKS.register(palette.getKey().valueInt(), builder.blockStateVersion(stateVersion)
-                    .emptyChunkSection(new ChunkSection(new BlockStorage[]{new BlockStorage(airRuntimeId)}))
+                    .emptyChunkSection(new GeyserChunkSection(new BlockStorage[]{new BlockStorage(airRuntimeId)}))
                     .javaToBedrockBlocks(javaToBedrockBlocks)
                     .javaIdentifierToBedrockTag(javaIdentifierToBedrockTag)
                     .itemFrames(itemFrames)

@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -39,8 +39,8 @@ public class StonecutterContainer extends Container {
     @Setter
     private int stonecutterButton = -1;
 
-    public StonecutterContainer(String title, int id, int size, WindowType windowType, PlayerInventory playerInventory) {
-        super(title, id, size, windowType, playerInventory);
+    public StonecutterContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
+        super(title, id, size, containerType, playerInventory);
     }
 
     @Override

@@ -25,9 +25,8 @@
 
 package org.geysermc.connector.network.translators.inventory.translators;
 
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import org.geysermc.connector.inventory.CartographyContainer;
 import org.geysermc.connector.inventory.GeyserItemStack;
@@ -39,7 +38,7 @@ import org.geysermc.connector.network.translators.inventory.updater.UIInventoryU
 
 public class CartographyInventoryTranslator extends AbstractBlockInventoryTranslator {
     public CartographyInventoryTranslator() {
-        super(3, "minecraft:cartography_table", ContainerType.CARTOGRAPHY, UIInventoryUpdater.INSTANCE);
+        super(3, "minecraft:cartography_table", com.nukkitx.protocol.bedrock.data.inventory.ContainerType.CARTOGRAPHY, UIInventoryUpdater.INSTANCE);
     }
 
     @Override
@@ -88,7 +87,7 @@ public class CartographyInventoryTranslator extends AbstractBlockInventoryTransl
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
-        return new CartographyContainer(name, windowId, this.size, windowType, playerInventory);
+    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+        return new CartographyContainer(name, windowId, this.size, containerType, playerInventory);
     }
 }

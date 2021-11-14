@@ -25,7 +25,6 @@
 
 package org.geysermc.platform.spigot.world.manager;
 
-import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
@@ -39,6 +38,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.plugin.Plugin;
+import org.geysermc.connector.network.MinecraftProtocol;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.translators.LecternInventoryTranslator;
 import org.geysermc.connector.network.translators.world.GeyserWorldManager;
@@ -57,7 +57,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     /**
      * The current client protocol version for ViaVersion usage.
      */
-    protected static final int CLIENT_PROTOCOL_VERSION = MinecraftConstants.PROTOCOL_VERSION;
+    protected static final int CLIENT_PROTOCOL_VERSION = MinecraftProtocol.getJavaProtocolVersion();
 
     private final Plugin plugin;
 

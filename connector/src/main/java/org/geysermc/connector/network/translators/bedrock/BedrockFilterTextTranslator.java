@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundRenameItemPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundRenameItemPacket;
 import com.nukkitx.protocol.bedrock.packet.FilterTextPacket;
 import org.geysermc.connector.inventory.AnvilContainer;
 import org.geysermc.connector.inventory.CartographyContainer;

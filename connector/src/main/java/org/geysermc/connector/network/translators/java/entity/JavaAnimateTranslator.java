@@ -56,7 +56,7 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
             case SWING_ARM:
                 animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
                 break;
-            case SWING_OFFHAND:
+            case EAT_FOOD:
                 // Use the OptionalPack to trigger the animation
                 AnimateEntityPacket offHandPacket = new AnimateEntityPacket();
                 offHandPacket.setAnimation("animation.player.attack.rotations.offhand");

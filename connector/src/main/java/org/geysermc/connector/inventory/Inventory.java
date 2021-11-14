@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.opennbt.tag.builtin.ByteTag;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
@@ -58,7 +58,7 @@ public class Inventory {
      * Used for smooth transitions between two windows of the same type.
      */
     @Getter
-    protected final WindowType windowType;
+    protected final ContainerType containerType;
 
     @Getter
     @Setter
@@ -81,15 +81,15 @@ public class Inventory {
     @Setter
     private boolean pending = false;
 
-    protected Inventory(int id, int size, WindowType windowType) {
-        this("Inventory", id, size, windowType);
+    protected Inventory(int id, int size, ContainerType containerType) {
+        this("Inventory", id, size, containerType);
     }
 
-    protected Inventory(String title, int id, int size, WindowType windowType) {
+    protected Inventory(String title, int id, int size, ContainerType containerType) {
         this.title = title;
         this.id = id;
         this.size = size;
-        this.windowType = windowType;
+        this.containerType = containerType;
         this.items = new GeyserItemStack[size];
         Arrays.fill(items, GeyserItemStack.EMPTY);
     }

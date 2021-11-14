@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -35,7 +35,7 @@ public class BeaconContainer extends Container {
     private int primaryId;
     private int secondaryId;
 
-    public BeaconContainer(String title, int id, int size, WindowType windowType, PlayerInventory playerInventory) {
-        super(title, id, size, windowType, playerInventory);
+    public BeaconContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
+        super(title, id, size, containerType, playerInventory);
     }
 }

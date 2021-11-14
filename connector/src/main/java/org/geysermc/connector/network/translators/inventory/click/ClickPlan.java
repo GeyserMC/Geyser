@@ -26,8 +26,8 @@
 package org.geysermc.connector.network.translators.inventory.click;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.window.WindowAction;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundContainerClickPacket;
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerActionType;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
@@ -111,7 +111,7 @@ public class ClickPlan {
             ItemStack clickedItemStack;
             if (!planIter.hasNext() && refresh) {
                 clickedItemStack = InventoryUtils.REFRESH_ITEM;
-            } else if (action.click.windowAction == WindowAction.DROP_ITEM || action.slot == Click.OUTSIDE_SLOT) {
+            } else if (action.click.actionType == ContainerActionType.DROP_ITEM || action.slot == Click.OUTSIDE_SLOT) {
                 clickedItemStack = null;
             } else {
                 clickedItemStack = getItem(action.slot).getItemStack();
@@ -126,8 +126,8 @@ public class ClickPlan {
                     inventory.getId(),
                     inventory.getStateId(),
                     action.slot,
-                    action.click.windowAction,
-                    action.click.actionParam,
+                    action.click.actionType,
+                    action.click.action,
                     clickedItemStack,
                     affectedSlots
             );

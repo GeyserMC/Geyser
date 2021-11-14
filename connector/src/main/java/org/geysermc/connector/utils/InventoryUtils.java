@@ -27,8 +27,8 @@ package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundPickItemPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundSetCreativeModeSlotPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundPickItemPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;

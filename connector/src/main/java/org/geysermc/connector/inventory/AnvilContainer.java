@@ -25,13 +25,13 @@
 
 package org.geysermc.connector.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 
 /**
  * Used to determine if rename packets should be sent.
  */
 public class AnvilContainer extends Container {
-    public AnvilContainer(String title, int id, int size, WindowType windowType, PlayerInventory playerInventory) {
-        super(title, id, size, windowType, playerInventory);
+    public AnvilContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
+        super(title, id, size, containerType, playerInventory);
     }
 }

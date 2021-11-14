@@ -25,7 +25,6 @@
 
 package org.geysermc.platform.spigot.world.manager;
 
-import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.data.MappingData;
 import com.viaversion.viaversion.api.protocol.ProtocolPathEntry;
@@ -33,6 +32,7 @@ import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntList;
+import org.geysermc.connector.network.MinecraftProtocol;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.platform.spigot.GeyserSpigotPlugin;
 
@@ -50,7 +50,7 @@ public class GeyserSpigotLegacyNativeWorldManager extends GeyserSpigotNativeWorl
         IntList allBlockStates = adapter.getAllBlockStates();
         oldToNewBlockId = new Int2IntOpenHashMap(allBlockStates.size());
         ProtocolVersion serverVersion = plugin.getServerProtocolVersion();
-        List<ProtocolPathEntry> protocolList = Via.getManager().getProtocolManager().getProtocolPath(MinecraftConstants.PROTOCOL_VERSION,
+        List<ProtocolPathEntry> protocolList = Via.getManager().getProtocolManager().getProtocolPath(MinecraftProtocol.getJavaProtocolVersion(),
                 serverVersion.getVersion());
         for (int oldBlockId : allBlockStates) {
             int newBlockId = oldBlockId;

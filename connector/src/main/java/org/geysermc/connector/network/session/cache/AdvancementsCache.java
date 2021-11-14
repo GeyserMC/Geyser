@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.session.cache;
 
 import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundSeenAdvancementsPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSeenAdvancementsPacket;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;

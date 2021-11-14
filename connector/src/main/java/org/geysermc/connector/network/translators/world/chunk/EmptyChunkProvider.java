@@ -37,11 +37,11 @@ public class EmptyChunkProvider {
     @Getter
     private final byte[] emptyLevelChunkData;
     @Getter
-    private final ChunkSection emptySection;
+    private final GeyserChunkSection emptySection;
 
     public EmptyChunkProvider(int airId) {
         BlockStorage emptyStorage = new BlockStorage(airId);
-        emptySection = new ChunkSection(new BlockStorage[]{emptyStorage});
+        emptySection = new GeyserChunkSection(new BlockStorage[]{emptyStorage});
 
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             outputStream.write(new byte[258]); // Biomes + Border Size + Extra Data Size

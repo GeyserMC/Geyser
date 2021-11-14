@@ -25,12 +25,11 @@
 
 package org.geysermc.connector.registry;
 
+import com.github.steveice10.mc.protocol.data.game.level.event.SoundEvent;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
-import com.github.steveice10.mc.protocol.data.game.level.effect.SoundEffect;
 import com.github.steveice10.mc.protocol.data.game.level.particle.ParticleType;
 import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
 import it.unimi.dsi.fastutil.Pair;
@@ -38,7 +37,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
-import org.geysermc.connector.network.translators.effect.Effect;
+import org.geysermc.connector.network.translators.world.event.LevelEventTransformer;
 import org.geysermc.connector.network.translators.sound.SoundHandler;
 import org.geysermc.connector.network.translators.sound.SoundInteractionHandler;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
@@ -110,10 +109,10 @@ public class Registries {
     public static final VersionedRegistry<Int2ObjectMap<Recipe>> RECIPES = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
     /**
-     * A mapped registry holding the available records, with the ID of the record being the key, and the {@link SoundEvent}
+     * A mapped registry holding the available records, with the ID of the record being the key, and the {@link com.nukkitx.protocol.bedrock.data.SoundEvent}
      * as the value.
      */
-    public static final SimpleMappedRegistry<Integer, SoundEvent> RECORDS = SimpleMappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
+    public static final SimpleMappedRegistry<Integer, com.nukkitx.protocol.bedrock.data.SoundEvent> RECORDS = SimpleMappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
     /**
      * A mapped registry holding sound identifiers to their corresponding {@link SoundMapping}.
@@ -121,9 +120,9 @@ public class Registries {
     public static final SimpleMappedRegistry<String, SoundMapping> SOUNDS = SimpleMappedRegistry.create("mappings/sounds.json", SoundRegistryLoader::new);
 
     /**
-     * A mapped registry holding {@link SoundEffect}s to their corresponding {@link Effect}.
+     * A mapped registry holding {@link SoundEvent}s to their corresponding {@link LevelEventTransformer}.
      */
-    public static final SimpleMappedRegistry<SoundEffect, Effect> SOUND_EFFECTS = SimpleMappedRegistry.create("mappings/effects.json", SoundEffectsRegistryLoader::new);
+    public static final SimpleMappedRegistry<SoundEvent, LevelEventTransformer> SOUND_EVENTS = SimpleMappedRegistry.create("mappings/effects.json", SoundEventsRegistryLoader::new);
 
     /**
      * A mapped registry holding {@link SoundHandler}s to their corresponding {@link SoundInteractionHandler}.

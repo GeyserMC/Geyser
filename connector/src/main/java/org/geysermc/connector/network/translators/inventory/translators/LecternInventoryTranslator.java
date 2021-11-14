@@ -25,9 +25,9 @@
 
 package org.geysermc.connector.network.translators.inventory.translators;
 
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundContainerButtonClickPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.window.ServerboundContainerClosePacket;
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.nukkitx.math.vector.Vector3i;
@@ -158,8 +158,8 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
-        return new LecternContainer(name, windowId, this.size, windowType, playerInventory);
+    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+        return new LecternContainer(name, windowId, this.size, containerType, playerInventory);
     }
 
     public static NbtMapBuilder getBaseLecternTag(int x, int y, int z, int totalPages) {

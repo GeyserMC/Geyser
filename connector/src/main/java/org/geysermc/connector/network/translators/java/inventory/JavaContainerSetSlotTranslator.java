@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.window;
+package org.geysermc.connector.network.translators.java.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
@@ -31,7 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.window.ClientboundContainerSetSlotPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetSlotPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
@@ -59,7 +59,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
 
     @Override
     public void translate(GeyserSession session, ClientboundContainerSetSlotPacket packet) {
-        if (packet.getWindowId() == 255) { //cursor
+        if (packet.getContainerId() == 255) { //cursor
             GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
             session.getPlayerInventory().setCursor(newItem, session);
             InventoryUtils.updateCursor(session);
@@ -67,7 +67,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
         }
 
         //TODO: support window id -2, should update player inventory
-        Inventory inventory = InventoryUtils.getInventory(session, packet.getWindowId());
+        Inventory inventory = InventoryUtils.getInventory(session, packet.getContainerId());
         if (inventory == null)
             return;
 
@@ -81,7 +81,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             session.setCraftingGridFuture(session.scheduleInEventLoop(() -> updateCraftingGrid(session, packet, inventory, translator), 150, TimeUnit.MILLISECONDS));
 
             GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
-            if (packet.getWindowId() == 0 && !(translator instanceof PlayerInventoryTranslator)) {
+            if (packet.getContainerId() == 0 && !(translator instanceof PlayerInventoryTranslator)) {
                 // In rare cases, the window ID can still be 0 but Java treats it as valid
                 session.getPlayerInventory().setItem(packet.getSlot(), newItem, session);
                 InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), packet.getSlot());

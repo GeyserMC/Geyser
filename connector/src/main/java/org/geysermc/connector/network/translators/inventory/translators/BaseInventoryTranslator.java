@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.network.translators.inventory.translators;
 
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import org.geysermc.connector.inventory.Container;
@@ -95,7 +95,7 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
-        return new Container(name, windowId, this.size, windowType, playerInventory);
+    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+        return new Container(name, windowId, this.size, containerType, playerInventory);
     }
 }

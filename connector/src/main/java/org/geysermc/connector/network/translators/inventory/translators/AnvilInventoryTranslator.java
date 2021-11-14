@@ -25,9 +25,8 @@
 
 package org.geysermc.connector.network.translators.inventory.translators;
 
-import com.github.steveice10.mc.protocol.data.game.window.WindowType;
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import org.geysermc.connector.inventory.AnvilContainer;
 import org.geysermc.connector.inventory.Inventory;
@@ -37,7 +36,7 @@ import org.geysermc.connector.network.translators.inventory.updater.UIInventoryU
 
 public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
     public AnvilInventoryTranslator() {
-        super(3, "minecraft:anvil[facing=north]", ContainerType.ANVIL, UIInventoryUpdater.INSTANCE,
+        super(3, "minecraft:anvil[facing=north]", com.nukkitx.protocol.bedrock.data.inventory.ContainerType.ANVIL, UIInventoryUpdater.INSTANCE,
                 "minecraft:chipped_anvil", "minecraft:damaged_anvil");
     }
 
@@ -72,7 +71,7 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, WindowType windowType, PlayerInventory playerInventory) {
-        return new AnvilContainer(name, windowId, this.size, windowType, playerInventory);
+    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+        return new AnvilContainer(name, windowId, this.size, containerType, playerInventory);
     }
 }

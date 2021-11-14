@@ -26,19 +26,19 @@
 package org.geysermc.connector.network.session.cache;
 
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
-import com.github.steveice10.mc.protocol.data.game.chunk.Column;
+import com.github.steveice10.mc.protocol.data.game.chunk.ChunkSection;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
-import org.geysermc.connector.network.translators.world.chunk.GeyserColumn;
+import org.geysermc.connector.network.translators.world.chunk.GeyserChunk;
 import org.geysermc.connector.utils.MathUtils;
 
 public class ChunkCache {
     private final boolean cache;
-    private final Long2ObjectMap<GeyserColumn> chunks;
+    private final Long2ObjectMap<GeyserChunk> chunks;
 
     @Setter
     private int minY;
@@ -57,20 +57,20 @@ public class ChunkCache {
         chunks = cache ? new Long2ObjectOpenHashMap<>() : null;
     }
 
-    public void addToCache(Column chunk) {
+    public void addToCache(Chunk chunk) {
         if (!cache) {
             return;
         }
 
         long chunkPosition = MathUtils.chunkPositionToLong(chunk.getX(), chunk.getZ());
-        GeyserColumn geyserColumn = GeyserColumn.from(this, chunk);
-        chunks.put(chunkPosition, geyserColumn);
+        GeyserChunk geyserChunk = GeyserChunk.from(this, chunk);
+        chunks.put(chunkPosition, geyserChunk);
     }
 
     /**
      * Doesn't check for cache enabled, so don't use this without checking that first!
      */
-    private GeyserColumn getChunk(int chunkX, int chunkZ) {
+    private GeyserChunk getChunk(int chunkX, int chunkZ) {
         long chunkPosition = MathUtils.chunkPositionToLong(chunkX, chunkZ);
         return chunks.getOrDefault(chunkPosition, null);
     }
@@ -80,31 +80,31 @@ public class ChunkCache {
             return;
         }
 
-        GeyserColumn column = this.getChunk(x >> 4, z >> 4);
-        if (column == null) {
+        GeyserChunk chunk = this.getChunk(x >> 4, z >> 4);
+        if (chunk == null) {
             return;
         }
 
-        if (y < minY || ((y - minY) >> 4) > column.getChunks().length - 1) {
+        if (y < minY || ((y - minY) >> 4) > chunk.getSections().length - 1) {
             // Y likely goes above or below the height limit of this world
             return;
         }
 
-        Chunk chunk = column.getChunks()[(y - minY) >> 4];
-        if (chunk == null) {
+        ChunkSection section = chunk.getSections()[(y - minY) >> 4];
+        if (section == null) {
             if (block != BlockStateValues.JAVA_AIR_ID) {
                 // A previously empty chunk, which is no longer empty as a block has been added to it
-                chunk = new Chunk();
+                section = new ChunkSection();
                 // Fixes the chunk assuming that all blocks is the `block` variable we are updating. /shrug
-                chunk.getPalette().stateToId(BlockStateValues.JAVA_AIR_ID);
-                column.getChunks()[(y - minY) >> 4] = chunk;
+                section.getPalette().stateToId(BlockStateValues.JAVA_AIR_ID);
+                chunk.getSections()[(y - minY) >> 4] = section;
             } else {
                 // Nothing to update
                 return;
             }
         }
 
-        chunk.set(x & 0xF, y & 0xF, z & 0xF, block);
+        section.set(x & 0xF, y & 0xF, z & 0xF, block);
     }
 
     public int getBlockAt(int x, int y, int z) {
@@ -112,17 +112,17 @@ public class ChunkCache {
             return BlockStateValues.JAVA_AIR_ID;
         }
 
-        GeyserColumn column = this.getChunk(x >> 4, z >> 4);
+        GeyserChunk column = this.getChunk(x >> 4, z >> 4);
         if (column == null) {
             return BlockStateValues.JAVA_AIR_ID;
         }
 
-        if (y < minY || ((y - minY) >> 4) > column.getChunks().length - 1) {
+        if (y < minY || ((y - minY) >> 4) > column.getSections().length - 1) {
             // Y likely goes above or below the height limit of this world
             return BlockStateValues.JAVA_AIR_ID;
         }
 
-        Chunk chunk = column.getChunks()[(y - minY) >> 4];
+        ChunkSection chunk = column.getSections()[(y - minY) >> 4];
         if (chunk != null) {
             return chunk.get(x & 0xF, y & 0xF, z & 0xF);
         }

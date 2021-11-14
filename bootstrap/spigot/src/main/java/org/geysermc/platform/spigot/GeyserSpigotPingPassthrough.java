@@ -25,13 +25,13 @@
 
 package org.geysermc.platform.spigot;
 
-import com.github.steveice10.mc.protocol.MinecraftConstants;
 import lombok.AllArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.server.ServerListPingEvent;
 import org.bukkit.util.CachedServerIcon;
 import org.geysermc.connector.common.ping.GeyserPingInfo;
+import org.geysermc.connector.network.MinecraftProtocol;
 import org.geysermc.connector.ping.IGeyserPingPassthrough;
 
 import javax.annotation.Nonnull;
@@ -52,7 +52,7 @@ public class GeyserSpigotPingPassthrough implements IGeyserPingPassthrough {
             Bukkit.getPluginManager().callEvent(event);
             GeyserPingInfo geyserPingInfo = new GeyserPingInfo(event.getMotd(),
                     new GeyserPingInfo.Players(event.getMaxPlayers(), event.getNumPlayers()),
-                    new GeyserPingInfo.Version(Bukkit.getVersion(), MinecraftConstants.PROTOCOL_VERSION) // thanks Spigot for not exposing this, just default to latest
+                    new GeyserPingInfo.Version(Bukkit.getVersion(), MinecraftProtocol.getJavaProtocolVersion()) // thanks Spigot for not exposing this, just default to latest
             );
             Bukkit.getOnlinePlayers().stream().map(Player::getName).forEach(geyserPingInfo.getPlayerList()::add);
             return geyserPingInfo;

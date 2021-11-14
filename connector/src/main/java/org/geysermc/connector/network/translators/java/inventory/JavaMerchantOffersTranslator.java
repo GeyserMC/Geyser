@@ -23,11 +23,11 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.network.translators.java.window;
+package org.geysermc.connector.network.translators.java.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.window.VillagerTrade;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.window.ClientboundMerchantOffersPacket;
+import com.github.steveice10.mc.protocol.data.game.inventory.VillagerTrade;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundMerchantOffersPacket;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
@@ -53,7 +53,7 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
     @Override
     public void translate(GeyserSession session, ClientboundMerchantOffersPacket packet) {
         Inventory openInventory = session.getOpenInventory();
-        if (!(openInventory instanceof MerchantContainer merchantInventory && openInventory.getId() == packet.getWindowId())) {
+        if (!(openInventory instanceof MerchantContainer merchantInventory && openInventory.getId() == packet.getContainerId())) {
             return;
         }
 
@@ -68,7 +68,7 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
         // Construct the packet that opens the trading window
         UpdateTradePacket updateTradePacket = new UpdateTradePacket();
         updateTradePacket.setTradeTier(packet.getVillagerLevel() - 1);
-        updateTradePacket.setContainerId((short) packet.getWindowId());
+        updateTradePacket.setContainerId((short) packet.getContainerId());
         updateTradePacket.setContainerType(ContainerType.TRADE);
         updateTradePacket.setDisplayName(openInventory.getTitle());
         updateTradePacket.setSize(0);

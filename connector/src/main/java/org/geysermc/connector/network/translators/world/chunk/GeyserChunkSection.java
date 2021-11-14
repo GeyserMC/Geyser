@@ -28,17 +28,17 @@ package org.geysermc.connector.network.translators.world.chunk;
 import com.nukkitx.network.util.Preconditions;
 import io.netty.buffer.ByteBuf;
 
-public class ChunkSection {
+public class GeyserChunkSection {
 
     private static final int CHUNK_SECTION_VERSION = 8;
 
     private final BlockStorage[] storage;
 
-    public ChunkSection(int airBlockId) {
+    public GeyserChunkSection(int airBlockId) {
         this(new BlockStorage[]{new BlockStorage(airBlockId), new BlockStorage(airBlockId)});
     }
 
-    public ChunkSection(BlockStorage[] storage) {
+    public GeyserChunkSection(BlockStorage[] storage) {
         this.storage = storage;
     }
 
@@ -83,12 +83,12 @@ public class ChunkSection {
         return true;
     }
 
-    public ChunkSection copy() {
+    public GeyserChunkSection copy() {
         BlockStorage[] storage = new BlockStorage[this.storage.length];
         for (int i = 0; i < storage.length; i++) {
             storage[i] = this.storage[i].copy();
         }
-        return new ChunkSection(storage);
+        return new GeyserChunkSection(storage);
     }
 
     public static int blockPosition(int x, int y, int z) {

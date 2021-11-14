@@ -28,9 +28,9 @@ package org.geysermc.connector.utils;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.steveice10.mc.protocol.MinecraftConstants;
 import lombok.Getter;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.network.MinecraftProtocol;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -69,7 +69,7 @@ public class LocaleUtils {
                 // Get the url for the latest version of the games manifest
                 String latestInfoURL = "";
                 for (Version version : versionManifest.getVersions()) {
-                    if (version.getId().equals(MinecraftConstants.GAME_VERSION)) {
+                    if (version.getId().equals(MinecraftProtocol.getJavaVersion())) {
                         latestInfoURL = version.getUrl();
                         break;
                     }

@@ -26,7 +26,7 @@
 package org.geysermc.connector.network.translators.java.level;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.level.block.UpdatedTileType;
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockEntityDataPacket;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
@@ -68,7 +68,7 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
         }
 
         // If block entity is command block, OP permission level is appropriate, player is in creative mode and the NBT is not empty
-        if (packet.getType() == UpdatedTileType.COMMAND_BLOCK && session.getOpPermissionLevel() >= 2 &&
+        if (packet.getType() == BlockEntityType.COMMAND_BLOCK && session.getOpPermissionLevel() >= 2 &&
                 session.getGameMode() == GameMode.CREATIVE && packet.getNbt().size() > 5) {
             ContainerOpenPacket openPacket = new ContainerOpenPacket();
             openPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
