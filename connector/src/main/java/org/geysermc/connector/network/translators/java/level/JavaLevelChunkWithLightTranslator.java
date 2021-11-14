@@ -82,8 +82,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
         }
 
-        //todo session.getChunkCache().addToCache(packet.getColumn());
-
         // Ensure that, if the player is using lower world heights, the position is not offset
         int yOffset = session.getChunkCache().getChunkMinY();
 
