@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.java.level;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockEntityDataPacket;
@@ -61,7 +62,9 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
         } else {
             blockState = BlockStateValues.JAVA_AIR_ID;
         }
-        BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, packet.getNbt(), blockState), packet.getPosition());
+        Position position = packet.getPosition();
+        BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, position.getX(), position.getY(), position.getZ(),
+                packet.getNbt(), blockState), packet.getPosition());
         // Check for custom skulls.
         if (session.getPreferencesCache().showCustomSkulls() && packet.getNbt().contains("SkullOwner")) {
             SkullBlockEntityTranslator.spawnPlayer(session, packet.getNbt(), blockState);

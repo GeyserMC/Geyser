@@ -43,7 +43,7 @@ import java.util.Map;
 public class BlockEntityUtils {
     /**
      * A list of all block entities that require the Java block state in order to fill out their block entity information.
-     * This list will be smaller with cache chunks on as we don't need to double-cache data
+     * This list will be smaller with cache sections on as we don't need to double-cache data
      */
     public static final ObjectArrayList<BedrockOnlyBlockEntity> BEDROCK_ONLY_BLOCK_ENTITIES = new ObjectArrayList<>();
 

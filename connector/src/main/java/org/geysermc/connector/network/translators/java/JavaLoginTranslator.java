@@ -106,7 +106,8 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
         // We need to send our skin parts to the server otherwise java sees us with no hat, jacket etc
         String locale = session.getLocale();
-        ServerboundClientInformationPacket infoPacket = new ServerboundClientInformationPacket(locale, (byte) session.getRenderDistance(), ChatVisibility.FULL, true, SKIN_PART_VALUES, HandPreference.RIGHT_HAND, false);
+        // TODO customize
+        ServerboundClientInformationPacket infoPacket = new ServerboundClientInformationPacket(locale, (byte) session.getRenderDistance(), ChatVisibility.FULL, true, SKIN_PART_VALUES, HandPreference.RIGHT_HAND, false, true);
         session.sendDownstreamPacket(infoPacket);
 
         session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:brand", PluginMessageUtils.getGeyserBrandData()));

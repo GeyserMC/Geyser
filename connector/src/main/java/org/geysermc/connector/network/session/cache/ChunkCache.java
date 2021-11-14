@@ -25,8 +25,7 @@
 
 package org.geysermc.connector.network.session.cache;
 
-import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
-import com.github.steveice10.mc.protocol.data.game.chunk.ChunkSection;
+import com.github.steveice10.mc.protocol.data.game.chunk.DataPalette;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.Getter;
@@ -57,14 +56,14 @@ public class ChunkCache {
         chunks = cache ? new Long2ObjectOpenHashMap<>() : null;
     }
 
-    public void addToCache(Chunk chunk) {
+    public void addToCache(int x, int z, DataPalette[] chunks) {
         if (!cache) {
             return;
         }
 
-        long chunkPosition = MathUtils.chunkPositionToLong(chunk.getX(), chunk.getZ());
-        GeyserChunk geyserChunk = GeyserChunk.from(this, chunk);
-        chunks.put(chunkPosition, geyserChunk);
+        long chunkPosition = MathUtils.chunkPositionToLong(x, z);
+        GeyserChunk geyserChunk = GeyserChunk.from(chunks);
+        this.chunks.put(chunkPosition, geyserChunk);
     }
 
     /**
@@ -85,26 +84,26 @@ public class ChunkCache {
             return;
         }
 
-        if (y < minY || ((y - minY) >> 4) > chunk.getSections().length - 1) {
+        if (y < minY || ((y - minY) >> 4) > chunk.sections().length - 1) {
             // Y likely goes above or below the height limit of this world
             return;
         }
 
-        ChunkSection section = chunk.getSections()[(y - minY) >> 4];
-        if (section == null) {
+        DataPalette palette = chunk.sections()[(y - minY) >> 4];
+        if (palette == null) {
             if (block != BlockStateValues.JAVA_AIR_ID) {
                 // A previously empty chunk, which is no longer empty as a block has been added to it
-                section = new ChunkSection();
+                palette = DataPalette.createForChunk();
                 // Fixes the chunk assuming that all blocks is the `block` variable we are updating. /shrug
-                section.getPalette().stateToId(BlockStateValues.JAVA_AIR_ID);
-                chunk.getSections()[(y - minY) >> 4] = section;
+                palette.getPalette().stateToId(BlockStateValues.JAVA_AIR_ID);
+                chunk.sections()[(y - minY) >> 4] = palette;
             } else {
                 // Nothing to update
                 return;
             }
         }
 
-        section.set(x & 0xF, y & 0xF, z & 0xF, block);
+        palette.set(x & 0xF, y & 0xF, z & 0xF, block);
     }
 
     public int getBlockAt(int x, int y, int z) {
@@ -117,12 +116,12 @@ public class ChunkCache {
             return BlockStateValues.JAVA_AIR_ID;
         }
 
-        if (y < minY || ((y - minY) >> 4) > column.getSections().length - 1) {
+        if (y < minY || ((y - minY) >> 4) > column.sections().length - 1) {
             // Y likely goes above or below the height limit of this world
             return BlockStateValues.JAVA_AIR_ID;
         }
 
-        ChunkSection chunk = column.getSections()[(y - minY) >> 4];
+        DataPalette chunk = column.sections()[(y - minY) >> 4];
         if (chunk != null) {
             return chunk.get(x & 0xF, y & 0xF, z & 0xF);
         }
@@ -142,7 +141,7 @@ public class ChunkCache {
     /**
      * Manually clears all entries in the chunk cache.
      * The server is responsible for clearing chunk entries if out of render distance (for example) or switching dimensions,
-     * but it is the client that must clear chunks in the event of proxy switches.
+     * but it is the client that must clear sections in the event of proxy switches.
      */
     public void clear() {
         if (!cache) {

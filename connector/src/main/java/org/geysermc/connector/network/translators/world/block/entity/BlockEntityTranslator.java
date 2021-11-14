@@ -42,11 +42,7 @@ public abstract class BlockEntityTranslator {
 
     public abstract void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState);
 
-    public NbtMap getBlockEntityTag(String id, CompoundTag tag, int blockState) {
-        int x = ((IntTag) tag.getValue().get("x")).getValue();
-        int y = ((IntTag) tag.getValue().get("y")).getValue();
-        int z = ((IntTag) tag.getValue().get("z")).getValue();
-
+    public NbtMap getBlockEntityTag(String id, int x, int y, int z, CompoundTag tag, int blockState) {
         NbtMapBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(id), x, y, z);
         translateTag(tagBuilder, tag, blockState);
         return tagBuilder.build();

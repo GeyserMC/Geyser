@@ -35,20 +35,16 @@ import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 
 public class GeyserBungeeCommandExecutor extends Command implements TabExecutor {
-
     private final CommandExecutor commandExecutor;
-    private final GeyserConnector connector;
 
     public GeyserBungeeCommandExecutor(GeyserConnector connector) {
         super("geyser");
 
         this.commandExecutor = new CommandExecutor(connector);
-        this.connector = connector;
     }
 
     @Override
