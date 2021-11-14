@@ -40,7 +40,7 @@ import org.geysermc.connector.utils.collections.LecternHasBookMap;
 /**
  * Used for block entities if the Java block state contains Bedrock block information.
  */
-public class BlockStateValues {
+public final class BlockStateValues {
     private static final Int2IntMap BANNER_COLORS = new FixedInt2IntMap();
     private static final Int2ByteMap BED_COLORS = new FixedInt2ByteMap();
     private static final Int2ByteMap COMMAND_BLOCK_VALUES = new Int2ByteOpenHashMap();
@@ -421,5 +421,8 @@ public class BlockStateValues {
             return Direction.EAST;
         }
         throw new IllegalStateException();
+    }
+
+    private BlockStateValues() {
     }
 }

@@ -25,13 +25,14 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.utils.SignUtils;
 
-@BlockEntity(name = "Sign")
+@BlockEntity(type = BlockEntityType.SIGN)
 public class SignBlockEntityTranslator extends BlockEntityTranslator {
     /**
      * Maps a color stored in a sign's Color tag to its ARGB value.

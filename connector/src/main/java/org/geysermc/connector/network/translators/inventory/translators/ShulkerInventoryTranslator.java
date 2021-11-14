@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.inventory.translators;
 
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
@@ -42,7 +43,7 @@ import org.geysermc.connector.registry.Registries;
 public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator {
     public ShulkerInventoryTranslator() {
         super(27, new BlockInventoryHolder("minecraft:shulker_box[facing=north]", ContainerType.CONTAINER) {
-            private final BlockEntityTranslator shulkerBoxTranslator = Registries.BLOCK_ENTITIES.get("ShulkerBox");
+            private final BlockEntityTranslator shulkerBoxTranslator = Registries.BLOCK_ENTITIES.get(BlockEntityType.SHULKER_BOX);
 
             @Override
             protected boolean isValidBlock(String[] javaBlockString) {

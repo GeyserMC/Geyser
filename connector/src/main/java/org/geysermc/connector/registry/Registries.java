@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.registry;
 
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.mc.protocol.data.game.level.event.SoundEvent;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
@@ -69,7 +70,7 @@ public class Registries {
     /**
      * A mapped registry which stores a block entity identifier to its {@link BlockEntityTranslator}.
      */
-    public static final SimpleMappedRegistry<String, BlockEntityTranslator> BLOCK_ENTITIES = SimpleMappedRegistry.create("org.geysermc.connector.network.translators.world.block.entity.BlockEntity", BlockEntityRegistryLoader::new);
+    public static final SimpleMappedRegistry<BlockEntityType, BlockEntityTranslator> BLOCK_ENTITIES = SimpleMappedRegistry.create("org.geysermc.connector.network.translators.world.block.entity.BlockEntity", BlockEntityRegistryLoader::new);
 
     /**
      * A mapped registry containing which holds block IDs to its {@link BlockCollision}.

@@ -25,13 +25,14 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.item.translators.BannerTranslator;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
-@BlockEntity(name = "Banner")
+@BlockEntity(type = BlockEntityType.BANNER)
 public class BannerBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {

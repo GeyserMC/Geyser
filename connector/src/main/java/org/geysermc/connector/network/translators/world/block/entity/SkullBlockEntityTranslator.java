@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.world.block.entity;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
@@ -46,7 +47,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-@BlockEntity(name = "Skull")
+@BlockEntity(type = BlockEntityType.SKULL)
 public class SkullBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     public static boolean ALLOW_CUSTOM_SKULLS;
 

@@ -25,13 +25,14 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.nbt.NbtMapBuilder;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
 import javax.annotation.Nullable;
 
-@BlockEntity(name = "ShulkerBox")
+@BlockEntity(type = BlockEntityType.SHULKER_BOX)
 public class ShulkerBoxBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     /**
      * Also used in {@link org.geysermc.connector.network.translators.inventory.translators.ShulkerInventoryTranslator}

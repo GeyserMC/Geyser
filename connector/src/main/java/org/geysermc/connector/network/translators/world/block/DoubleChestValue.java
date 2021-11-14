@@ -25,27 +25,21 @@
 
 package org.geysermc.connector.network.translators.world.block;
 
-import lombok.AllArgsConstructor;
-
 /**
  * This stores all values of double chests that are part of the Java block state.
  */
-@AllArgsConstructor
-public class DoubleChestValue {
-
-    /**
-     * If true, then chest is facing east/west; if false, south/north
-     */
-    public boolean isFacingEast;
-
-    /**
-     * If true, direction is positive (east/south); if false, direction is negative (west/north)
-     */
-    public boolean isDirectionPositive;
-
-    /**
-     * If true, chest is the left of a pair; if false, chest is the right of a pair.
-     */
-    public boolean isLeft;
+public record DoubleChestValue(
+        /**
+         * If true, then chest is facing east/west; if false, south/north
+         */
+        boolean isFacingEast,
+        /**
+         * If true, direction is positive (east/south); if false, direction is negative (west/north)
+         */
+        boolean isDirectionPositive,
+        /**
+         * If true, chest is the left of a pair; if false, chest is the right of a pair.
+         */
+        boolean isLeft) {
 
 }

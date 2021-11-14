@@ -26,6 +26,7 @@
 package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
@@ -50,41 +51,33 @@ public class BlockEntityUtils {
     /**
      * Contains a list of irregular block entity name translations that can't be fit into the regex
      */
-    public static final Map<String, String> BLOCK_ENTITY_TRANSLATIONS = new HashMap<String, String>() {
+    public static final Map<BlockEntityType, String> BLOCK_ENTITY_TRANSLATIONS = new HashMap<>() {
         {
             // Bedrock/Java differences
-            put("minecraft:enchanting_table", "EnchantTable");
-            put("minecraft:jigsaw", "JigsawBlock");
-            put("minecraft:piston_head", "PistonArm");
-            put("minecraft:trapped_chest", "Chest");
+            put(BlockEntityType.ENCHANTING_TABLE, "EnchantTable");
+            put(BlockEntityType.JIGSAW, "JigsawBlock");
+            put(BlockEntityType.PISTON, "PistonArm");
+            put(BlockEntityType.TRAPPED_CHEST, "Chest");
             // There are some legacy IDs sent but as far as I can tell they are not needed for things to work properly
         }
     };
 
-    private static final BlockEntityTranslator EMPTY_TRANSLATOR = Registries.BLOCK_ENTITIES.get("Empty");
-
     static {
         // Seeing as there are only two - and, hopefully, will only ever be two - we can hardcode this
-        BEDROCK_ONLY_BLOCK_ENTITIES.add((BedrockOnlyBlockEntity) Registries.BLOCK_ENTITIES.get().get("Chest"));
+        BEDROCK_ONLY_BLOCK_ENTITIES.add((BedrockOnlyBlockEntity) Registries.BLOCK_ENTITIES.get().get(BlockEntityType.CHEST));
         BEDROCK_ONLY_BLOCK_ENTITIES.add(new FlowerPotBlockEntityTranslator());
     }
 
-    public static String getBedrockBlockEntityId(String id) {
+    public static String getBedrockBlockEntityId(BlockEntityType type) {
         // These are the only exceptions when it comes to block entity ids
-        String value = BLOCK_ENTITY_TRANSLATIONS.get(id);
+        String value = BLOCK_ENTITY_TRANSLATIONS.get(type);
         if (value != null) {
             return value;
         }
 
-        id = id.replace("minecraft:", "")
-                .replace("_", " ");
+        String id = type.name();
         // Split at every space or capital letter - for the latter, some legacy Java block entity tags are the correct format already
-        String[] words;
-        if (!id.toUpperCase().equals(id)) { // Otherwise we get [S, K, U, L, L]
-            words = id.split("(?=[A-Z])| "); // Split at every space or note or before every capital letter
-        } else {
-            words = id.split(" ");
-        }
+        String[] words = id.split("_");;
         for (int i = 0; i < words.length; i++) {
             words[i] = words[i].substring(0, 1).toUpperCase() + words[i].substring(1).toLowerCase();
         }
@@ -92,12 +85,8 @@ public class BlockEntityUtils {
         return String.join("", words);
     }
 
-    public static BlockEntityTranslator getBlockEntityTranslator(String name) {
-        BlockEntityTranslator blockEntityTranslator = Registries.BLOCK_ENTITIES.get(name);
-        if (blockEntityTranslator != null) {
-            return blockEntityTranslator;
-        }
-        return EMPTY_TRANSLATOR;
+    public static BlockEntityTranslator getBlockEntityTranslator(BlockEntityType type) {
+         return Registries.BLOCK_ENTITIES.get(type);
     }
 
     public static void updateBlockEntity(GeyserSession session, @Nonnull NbtMap blockEntity, Position position) {

@@ -25,6 +25,7 @@
 
 package org.geysermc.connector.network.translators.world.block.entity;
 
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMapBuilder;
@@ -36,7 +37,7 @@ import org.geysermc.connector.utils.BlockEntityUtils;
 /**
  * Chests have more block entity properties in Bedrock, which is solved by implementing the BedrockOnlyBlockEntity
  */
-@BlockEntity(name = "Chest")
+@BlockEntity(type = { BlockEntityType.CHEST, BlockEntityType.TRAPPED_CHEST })
 public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator implements BedrockOnlyBlockEntity {
     @Override
     public boolean isBlock(int blockState) {
@@ -46,7 +47,7 @@ public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator impl
     @Override
     public void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         CompoundTag javaTag = getConstantJavaTag("chest", position.getX(), position.getY(), position.getZ());
-        NbtMapBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId("chest"), position.getX(), position.getY(), position.getZ());
+        NbtMapBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(BlockEntityType.CHEST), position.getX(), position.getY(), position.getZ());
         translateTag(tagBuilder, javaTag, blockState);
         BlockEntityUtils.updateBlockEntity(session, tagBuilder.build(), position);
     }
@@ -71,26 +72,26 @@ public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator impl
      */
     public static void translateChestValue(NbtMapBuilder builder, DoubleChestValue chestValues, int x, int z) {
         // Calculate the position of the other chest based on the Java block state
-        if (chestValues.isFacingEast) {
-            if (chestValues.isDirectionPositive) {
+        if (chestValues.isFacingEast()) {
+            if (chestValues.isDirectionPositive()) {
                 // East
-                z = z + (chestValues.isLeft ? 1 : -1);
+                z = z + (chestValues.isLeft() ? 1 : -1);
             } else {
                 // West
-                z = z + (chestValues.isLeft ? -1 : 1);
+                z = z + (chestValues.isLeft() ? -1 : 1);
             }
         } else {
-            if (chestValues.isDirectionPositive) {
+            if (chestValues.isDirectionPositive()) {
                 // South
-                x = x + (chestValues.isLeft ? -1 : 1);
+                x = x + (chestValues.isLeft() ? -1 : 1);
             } else {
                 // North
-                x = x + (chestValues.isLeft ? 1 : -1);
+                x = x + (chestValues.isLeft() ? 1 : -1);
             }
         }
         builder.put("pairx", x);
         builder.put("pairz", z);
-        if (!chestValues.isLeft) {
+        if (!chestValues.isLeft()) {
             builder.put("pairlead", (byte) 1);
         }
     }

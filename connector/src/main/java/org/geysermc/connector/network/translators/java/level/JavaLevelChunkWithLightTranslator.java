@@ -31,10 +31,9 @@ import com.github.steveice10.mc.protocol.data.game.chunk.DataPalette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.GlobalPalette;
 import com.github.steveice10.mc.protocol.data.game.chunk.palette.Palette;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelChunkWithLightPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.stream.StreamNetInput;
 import com.nukkitx.math.vector.Vector3i;
@@ -48,7 +47,6 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -227,41 +225,16 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             while (blockEntityCount < blockEntities.length) {
                 BlockEntityInfo blockEntity = blockEntities[blockEntityCount];
                 CompoundTag tag = blockEntity.getNbt();
-                // TODO use the actual name
-                String tagName;
-                if (tag != null) {
-                    Tag idTag = tag.get("id");
-                    if (idTag != null) {
-                        tagName = (String) idTag.getValue();
-                    } else {
-                        tagName = "Empty";
-                        // Sometimes legacy tags have their ID be a StringTag with empty value
-                        for (Tag subTag : tag) {
-                            if (subTag instanceof StringTag stringTag) {
-                                if (stringTag.getValue().isEmpty()) {
-                                    tagName = stringTag.getName();
-                                    break;
-                                }
-                            }
-                        }
-                        if (tagName.equals("Empty")) {
-                            GeyserConnector.getInstance().getLogger().debug("Got tag with no id: " + tag.getValue());
-                        }
-                    }
-                } else {
-                    tagName = "Empty";
-                }
-
-                String id = BlockEntityUtils.getBedrockBlockEntityId(tagName);
+                BlockEntityType type = blockEntity.getType();
                 int x = blockEntity.getX();
                 int y = blockEntity.getY();
                 int z = blockEntity.getZ();
 
                 // Get the Java block state ID from block entity position
-                DataPalette section = javaChunks[(blockEntity.getY() >> 4) - yOffset];
+                DataPalette section = javaChunks[(y >> 4) - yOffset];
                 int blockState = section.get(x & 0xF, y & 0xF, z & 0xF);
 
-                if (tagName.equals("minecraft:lectern") && BlockStateValues.getLecternBookStates().get(blockState)) {
+                if (type == BlockEntityType.LECTERN && BlockStateValues.getLecternBookStates().get(blockState)) {
                     // If getLecternBookStates is false, let's just treat it like a normal block entity
                     bedrockBlockEntities[blockEntityCount] = session.getConnector().getWorldManager().getLecternDataAt(
                             session, blockEntity.getX(), blockEntity.getY(), blockEntity.getZ(), true);
@@ -269,8 +242,8 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     continue;
                 }
 
-                BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(id);
-                bedrockBlockEntities[blockEntityCount] = blockEntityTranslator.getBlockEntityTag(tagName, x, y, z, tag, blockState);
+                BlockEntityTranslator blockEntityTranslator = BlockEntityUtils.getBlockEntityTranslator(type);
+                bedrockBlockEntities[blockEntityCount] = blockEntityTranslator.getBlockEntityTag(type, x, y, z, tag, blockState);
 
                 // Check for custom skulls
                 if (session.getPreferencesCache().showCustomSkulls() && tag != null && tag.contains("SkullOwner")) {

@@ -25,14 +25,38 @@
 
 package org.geysermc.connector.registry.loader;
 
+import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntity;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
+import org.geysermc.connector.network.translators.world.block.entity.EmptyBlockEntityTranslator;
+import org.geysermc.connector.utils.FileUtils;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
 /**
  * Loads block entities from the given classpath.
  */
-public class BlockEntityRegistryLoader extends AnnotatedRegistryLoader<String, BlockEntity, BlockEntityTranslator> {
-    public BlockEntityRegistryLoader() {
-        super(BlockEntity.class, BlockEntity::name);
+public class BlockEntityRegistryLoader implements RegistryLoader<String, Map<BlockEntityType, BlockEntityTranslator>> {
+
+    @Override
+    public Map<BlockEntityType, BlockEntityTranslator> load(String input) {
+        // Overridden so one translator can be applied to multiple block entity types
+        Object2ObjectMap<BlockEntityType, BlockEntityTranslator> entries = new Object2ObjectOpenHashMap<>();
+        entries.defaultReturnValue(new EmptyBlockEntityTranslator());
+        for (Class<?> clazz : FileUtils.getGeneratedClassesForAnnotation(input)) {
+            try {
+                BlockEntity annotation = clazz.getAnnotation(BlockEntity.class);
+                BlockEntityTranslator translator = (BlockEntityTranslator) clazz.getConstructor().newInstance();
+                for (BlockEntityType type : annotation.type()) {
+                    entries.put(type, translator);
+                }
+            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException ex) {
+                ex.printStackTrace();
+            }
+        }
+        return entries;
     }
 }

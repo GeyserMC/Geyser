@@ -30,7 +30,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockEntityDataPacket;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -47,13 +46,7 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
 
     @Override
     public void translate(GeyserSession session, ClientboundBlockEntityDataPacket packet) {
-        String id = BlockEntityUtils.getBedrockBlockEntityId(packet.getType().name());
-        if (packet.getNbt().isEmpty()) { // Fixes errors in servers sending empty NBT
-            BlockEntityUtils.updateBlockEntity(session, NbtMap.EMPTY, packet.getPosition());
-            return;
-        }
-
-        BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(id);
+        BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(packet.getType());
         // The Java block state is used in BlockEntityTranslator.translateTag() to make up for some inconsistencies
         // between Java block states and Bedrock block entity data
         int blockState;
@@ -62,17 +55,19 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
         } else {
             blockState = BlockStateValues.JAVA_AIR_ID;
         }
+
         Position position = packet.getPosition();
-        BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(id, position.getX(), position.getY(), position.getZ(),
+        BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(packet.getType(), position.getX(), position.getY(), position.getZ(),
                 packet.getNbt(), blockState), packet.getPosition());
         // Check for custom skulls.
-        if (session.getPreferencesCache().showCustomSkulls() && packet.getNbt().contains("SkullOwner")) {
+        if (session.getPreferencesCache().showCustomSkulls() && packet.getNbt() != null && packet.getNbt().contains("SkullOwner")) {
             SkullBlockEntityTranslator.spawnPlayer(session, packet.getNbt(), blockState);
         }
 
         // If block entity is command block, OP permission level is appropriate, player is in creative mode and the NBT is not empty
+        // TODO 1.18 re-test
         if (packet.getType() == BlockEntityType.COMMAND_BLOCK && session.getOpPermissionLevel() >= 2 &&
-                session.getGameMode() == GameMode.CREATIVE && packet.getNbt().size() > 5) {
+                session.getGameMode() == GameMode.CREATIVE && packet.getNbt() != null && packet.getNbt().size() > 5) {
             ContainerOpenPacket openPacket = new ContainerOpenPacket();
             openPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
             openPacket.setId((byte) 1);
