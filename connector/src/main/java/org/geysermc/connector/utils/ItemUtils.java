@@ -58,4 +58,19 @@ public class ItemUtils {
         }
         return original;
     }
+
+    /**
+     * @param itemTag the NBT tag of the item
+     * @return the custom name of the item
+     */
+    public static String getCustomName(CompoundTag itemTag) {
+        if (itemTag != null) {
+            if (itemTag.get("display") instanceof CompoundTag displayTag) {
+                if (displayTag.get("Name") instanceof StringTag nameTag) {
+                    return nameTag.getValue();
+                }
+            }
+        }
+        return null;
+    }
 }

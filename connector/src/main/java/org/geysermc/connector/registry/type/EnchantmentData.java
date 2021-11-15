@@ -25,23 +25,11 @@
 
 package org.geysermc.connector.registry.type;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import org.geysermc.connector.network.translators.item.Enchantment.JavaEnchantment;
 
-import java.util.List;
+import java.util.Set;
 
-/**
- * Represents Geyser's own serialized item information before being processed per-version
- */
-@Data
-public class GeyserMappingItem {
-    @JsonProperty("bedrock_identifier") String bedrockIdentifier;
-    @JsonProperty("bedrock_data") int bedrockData;
-    Integer firstBlockRuntimeId;
-    Integer lastBlockRuntimeId;
-    @JsonProperty("stack_size") int stackSize = 64;
-    @JsonProperty("tool_type") String toolType;
-    @JsonProperty("tool_tier") String toolTier;
-    @JsonProperty("max_damage") int maxDamage = 0;
-    @JsonProperty("repair_materials") List<String> repairMaterials;
+public record EnchantmentData(int rarityMultiplier, int maxLevel, Set<JavaEnchantment> incompatibleEnchantments,
+                              IntSet validItems) {
 }
