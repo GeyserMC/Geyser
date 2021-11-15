@@ -27,10 +27,7 @@ package org.geysermc.connector.command.defaults;
 
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
-import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
-import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 import org.geysermc.connector.utils.LocaleUtils;
 
 public class AdvancedTooltipsCommand extends GeyserCommand {
