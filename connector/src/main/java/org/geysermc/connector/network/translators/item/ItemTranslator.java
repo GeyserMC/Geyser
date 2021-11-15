@@ -156,7 +156,7 @@ public abstract class ItemTranslator {
 
         nbt = translateDisplayProperties(session, nbt, bedrockItem);
         if (session.isAdvancedTooltips()) {
-            nbt = addAdvancedTooltips(nbt, session.getItemMappings().getMapping(stack));
+            nbt = addAdvancedTooltips(nbt, session.getItemMappings().getMapping(stack), session.getLocale());
         }
 
         ItemStack itemStack = new ItemStack(stack.getId(), stack.getAmount(), nbt);
@@ -187,7 +187,7 @@ public abstract class ItemTranslator {
         return builder.build();
     }
 
-    private static CompoundTag addAdvancedTooltips(CompoundTag nbt, ItemMapping mapping) {
+    private static CompoundTag addAdvancedTooltips(CompoundTag nbt, ItemMapping mapping, String language) {
         CompoundTag newNbt = nbt;
         if (newNbt == null) {
             newNbt = new CompoundTag("nbt");
@@ -209,7 +209,7 @@ public abstract class ItemTranslator {
         if (maxDurability != 0) {
             int durability = maxDurability - ((IntTag) newNbt.get("Damage")).getValue();
             if (durability != maxDurability) {
-                listTag.add(new StringTag("AdvancedTooltipDurability", "§r§fDurability: " + durability + "/" + maxDurability));
+                listTag.add(new StringTag("AdvancedTooltipDurability", "§r§f" + String.format(MessageTranslator.convertMessage("item.durability", language), durability, maxDurability)));
             }
         }
 

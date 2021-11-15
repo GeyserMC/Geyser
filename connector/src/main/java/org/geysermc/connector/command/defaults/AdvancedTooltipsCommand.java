@@ -28,6 +28,8 @@ package org.geysermc.connector.command.defaults;
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
 import org.geysermc.connector.network.session.GeyserSession;
+import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
+import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
 import org.geysermc.connector.utils.LocaleUtils;
 
 public class AdvancedTooltipsCommand extends GeyserCommand {
@@ -38,13 +40,10 @@ public class AdvancedTooltipsCommand extends GeyserCommand {
     @Override
     public void execute(GeyserSession session, CommandSender sender, String[] args) {
         if (session != null) {
-            if (session.isAdvancedTooltips()) {
-                session.sendMessage("§l§e" + LocaleUtils.getLocaleString("debug.prefix", session.getLocale() + " §r" + LocaleUtils.getLocaleString("debug.advanced_tooltips.off", session.getLocale())));
-                session.setAdvancedTooltips(false);
-            } else {
-                session.sendMessage("§l§e" + LocaleUtils.getLocaleString("debug.prefix", session.getLocale() + " §r" + LocaleUtils.getLocaleString("debug.advanced_tooltips.on", session.getLocale())));
-                session.setAdvancedTooltips(true);
-            }
+            String onOrOff = session.isAdvancedTooltips() ? "on" : "off";
+            session.setAdvancedTooltips(!session.isAdvancedTooltips());
+            session.sendMessage("§l§e" + LocaleUtils.getLocaleString("debug.prefix", session.getLocale()) + " §r" + LocaleUtils.getLocaleString("debug.advanced_tooltips." + onOrOff, session.getLocale()));
+            new InventoryUpdater().updateInventory(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR, session, session.getPlayerInventory());
         }
     }
 
