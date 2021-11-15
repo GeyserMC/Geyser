@@ -39,12 +39,14 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 import org.geysermc.connector.network.translators.world.event.LevelEventTransformer;
+import org.geysermc.connector.network.translators.item.Enchantment.JavaEnchantment;
 import org.geysermc.connector.network.translators.sound.SoundHandler;
 import org.geysermc.connector.network.translators.sound.SoundInteractionHandler;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
 import org.geysermc.connector.registry.loader.*;
 import org.geysermc.connector.registry.populator.ItemRegistryPopulator;
 import org.geysermc.connector.registry.populator.RecipeRegistryPopulator;
+import org.geysermc.connector.registry.type.EnchantmentData;
 import org.geysermc.connector.registry.type.ItemMappings;
 import org.geysermc.connector.registry.type.ParticleMapping;
 import org.geysermc.connector.registry.type.SoundMapping;
@@ -81,6 +83,11 @@ public class Registries {
      * A versioned registry which holds a {@link RecipeType} to a corresponding list of {@link CraftingData}.
      */
     public static final VersionedRegistry<Map<RecipeType, List<CraftingData>>> CRAFTING_DATA = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
+
+    /**
+     * A registry holding data of all the known enchantments.
+     */
+    public static final SimpleMappedRegistry<JavaEnchantment, EnchantmentData> ENCHANTMENTS;
 
     /**
      * A registry holding a CompoundTag of the known entity identifiers.
@@ -140,5 +147,6 @@ public class Registries {
 
         // Create registries that require other registries to load first
         POTION_MIXES = SimpleRegistry.create(PotionMixRegistryLoader::new);
+        ENCHANTMENTS = SimpleMappedRegistry.create("mappings/enchantments.json", EnchantmentRegistryLoader::new);
     }
 }

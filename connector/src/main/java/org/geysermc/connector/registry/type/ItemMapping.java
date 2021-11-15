@@ -31,13 +31,15 @@ import lombok.Value;
 import org.geysermc.connector.network.MinecraftProtocol;
 import org.geysermc.connector.registry.BlockRegistries;
 
+import java.util.Set;
+
 @Value
 @Builder
 @EqualsAndHashCode
 public class ItemMapping {
     public static final ItemMapping AIR = new ItemMapping("minecraft:air", "minecraft:air", 0, 0, 0,
             BlockRegistries.BLOCKS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getBedrockAirId(),
-            64, null, null, null);
+            64, null, null, null, 0, null);
 
     String javaIdentifier;
     String bedrockIdentifier;
@@ -56,6 +58,10 @@ public class ItemMapping {
     String toolTier;
 
     String translationString;
+
+    int maxDamage;
+
+    Set<String> repairMaterials;
 
     /**
      * Gets if this item is a block.
