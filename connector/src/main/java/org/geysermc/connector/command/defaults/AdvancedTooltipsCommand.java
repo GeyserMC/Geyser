@@ -27,6 +27,7 @@ package org.geysermc.connector.command.defaults;
 
 import org.geysermc.connector.command.CommandSender;
 import org.geysermc.connector.command.GeyserCommand;
+import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.updater.InventoryUpdater;
@@ -43,7 +44,7 @@ public class AdvancedTooltipsCommand extends GeyserCommand {
             String onOrOff = session.isAdvancedTooltips() ? "on" : "off";
             session.setAdvancedTooltips(!session.isAdvancedTooltips());
             session.sendMessage("§l§e" + LocaleUtils.getLocaleString("debug.prefix", session.getLocale()) + " §r" + LocaleUtils.getLocaleString("debug.advanced_tooltips." + onOrOff, session.getLocale()));
-            new InventoryUpdater().updateInventory(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR, session, session.getPlayerInventory());
+            session.getInventoryTranslator().updateInventory(session, session.getPlayerInventory());
         }
     }
 
