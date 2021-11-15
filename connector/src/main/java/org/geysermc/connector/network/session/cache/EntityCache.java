@@ -89,7 +89,7 @@ public class EntityCache {
     }
 
     public boolean removeEntity(Entity entity, boolean force) {
-        if(entity != null) {
+        if (entity != null) {
             session.getFakeHeadCache().removeEntity(entity);
         }
 

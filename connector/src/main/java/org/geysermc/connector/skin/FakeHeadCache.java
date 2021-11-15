@@ -33,27 +33,23 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * @author Jan / qlow (11.11.21)
- */
 public class FakeHeadCache {
 
     @Getter
-    private final Set<UUID> playersWithCustomSkin = new HashSet<>();
+    private final Set<UUID> playersWithFakeHeads = new HashSet<>();
 
-    public void addCustomSkin( UUID uuid ) {
-        this.playersWithCustomSkin.add( uuid );
+    public void addFakeHeadPlayer(UUID uuid) {
+        this.playersWithFakeHeads.add(uuid);
     }
 
-    public void removeEntity( Entity entity ) {
-        if ( entity instanceof PlayerEntity ) {
-            this.playersWithCustomSkin.remove( ( ( PlayerEntity ) entity ).getUuid() );
+    public void removeEntity(Entity entity) {
+        if (entity instanceof PlayerEntity) {
+            this.playersWithFakeHeads.remove(((PlayerEntity) entity).getUuid());
         }
     }
 
     public void clear() {
-        this.playersWithCustomSkin.clear();
+        this.playersWithFakeHeads.clear();
     }
-
 
 }

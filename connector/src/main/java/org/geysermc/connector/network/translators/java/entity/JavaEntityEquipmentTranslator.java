@@ -36,8 +36,6 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
-import org.geysermc.connector.registry.type.ItemMapping;
-import org.geysermc.connector.registry.type.ItemMappings;
 import org.geysermc.connector.skin.FakeHeadProvider;
 
 @Translator(packet = ServerEntityEquipmentPacket.class)
@@ -70,16 +68,16 @@ public class JavaEntityEquipmentTranslator extends PacketTranslator<ServerEntity
                 case HELMET -> {
                     CompoundTag profile = null;
 
-                    if(livingEntity instanceof PlayerEntity
-                            && session.getItemMappings().getMapping( item ).getJavaIdentifier().equals("minecraft:player_head")
+                    if (livingEntity instanceof PlayerEntity
+                            && session.getItemMappings().getMapping(item).getJavaIdentifier().equals("minecraft:player_head")
                             && equipment.getItem().getNbt() != null
                             && equipment.getItem().getNbt().contains("SkullOwner")
-                            && equipment.getItem().getNbt().get( "SkullOwner" ) instanceof CompoundTag) {
-                        profile = equipment.getItem().getNbt().get( "SkullOwner" );
+                            && equipment.getItem().getNbt().get("SkullOwner") instanceof CompoundTag) {
+                        profile = equipment.getItem().getNbt().get("SkullOwner");
                     }
 
-                    if(profile != null) {
-                        FakeHeadProvider.setHead( session, (PlayerEntity) livingEntity, profile);
+                    if (profile != null) {
+                        FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, profile);
                         livingEntity.setHelmet(ItemData.AIR);
                     } else {
                         FakeHeadProvider.restoreOriginalSkin(session, livingEntity);
