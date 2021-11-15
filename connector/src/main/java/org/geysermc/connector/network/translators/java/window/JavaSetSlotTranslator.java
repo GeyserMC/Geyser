@@ -32,11 +32,13 @@ import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
 import com.github.steveice10.mc.protocol.packet.ingame.server.window.ServerSetSlotPacket;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
+import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -46,6 +48,7 @@ import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.translators.CraftingInventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.translators.PlayerInventoryTranslator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.skin.FakeHeadProvider;
 import org.geysermc.connector.utils.InventoryUtils;
 
 import java.util.Arrays;
@@ -86,8 +89,29 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
                 session.getPlayerInventory().setItem(packet.getSlot(), newItem, session);
                 InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), packet.getSlot());
             } else {
-                inventory.setItem(packet.getSlot(), newItem, session);
-                translator.updateSlot(session, inventory, packet.getSlot());
+                if(packet.getWindowId() == 0 && packet.getSlot() == 5) {
+                    CompoundTag profile = null;
+
+                    if (session.getItemMappings().getMapping(newItem.getItemData(session)).getJavaIdentifier().equals("minecraft:player_head")
+                            && newItem.getNbt() != null
+                            && newItem.getNbt().contains("SkullOwner")
+                            && newItem.getNbt().get("SkullOwner") instanceof CompoundTag) {
+                        profile = newItem.getNbt().get("SkullOwner");
+                    }
+
+                    if (profile != null) {
+                        FakeHeadProvider.setHead(session, session.getPlayerEntity(), profile);
+                        inventory.setItem(packet.getSlot(), GeyserItemStack.EMPTY,session);
+                        translator.updateSlot(session,inventory,packet.getSlot());
+                    } else {
+                        FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
+                        inventory.setItem(packet.getSlot(), newItem, session);
+                        translator.updateSlot(session, inventory, packet.getSlot());
+                    }
+                } else {
+                    inventory.setItem(packet.getSlot(), newItem, session);
+                    translator.updateSlot(session, inventory, packet.getSlot());
+                }
             }
         }
     }

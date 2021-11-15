@@ -35,6 +35,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.nukkitx.protocol.bedrock.data.skin.ImageData;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
+import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerSkinPacket;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -108,13 +109,7 @@ public class FakeHeadProvider {
                 SkinProvider.SkinData mergedSkinData = mergedSkinsLoadingCache.get(new FakeHeadEntry(entity.getUuid(), fakeHeadSkinUrl, entity));
 
                 if (session.getUpstream().isInitialized()) {
-                    PlayerSkinPacket packet = new PlayerSkinPacket();
-                    packet.setUuid(entity.getUuid());
-                    packet.setOldSkinName("");
-                    packet.setNewSkinName(mergedSkinData.getSkin().getTextureUrl());
-                    packet.setSkin(getSkin(mergedSkinData.getSkin().getTextureUrl(), mergedSkinData.getSkin(), mergedSkinData.getCape(), mergedSkinData.getGeometry()));
-                    packet.setTrustedSkin(true);
-                    session.sendUpstreamPacket(packet);
+                    sendSkinPacket(session, entity, mergedSkinData);
                 }
             } catch (ExecutionException e) {
                 GeyserConnector.getInstance().getLogger().error("Couldn't merge skin of " + entity.getUsername() + " with head skin url " + fakeHeadSkinUrl, e);
@@ -140,15 +135,42 @@ public class FakeHeadProvider {
             }
 
             if (session.getUpstream().isInitialized()) {
-                PlayerSkinPacket packet = new PlayerSkinPacket();
-                packet.setUuid(entity.getUuid());
-                packet.setOldSkinName("");
-                packet.setNewSkinName(skinData.getSkin().getTextureUrl());
-                packet.setSkin(getSkin(skinData.getSkin().getTextureUrl(), skinData.getSkin(), skinData.getCape(), skinData.getGeometry()));
-                packet.setTrustedSkin(true);
-                session.sendUpstreamPacket(packet);
+                sendSkinPacket(session, entity, skinData);
             }
         });
+    }
+
+    private static void sendSkinPacket(GeyserSession session, PlayerEntity entity, SkinProvider.SkinData skinData) {
+        SkinProvider.Skin skin = skinData.getSkin();
+        SkinProvider.Cape cape = skinData.getCape();
+        SkinProvider.SkinGeometry geometry = skinData.getGeometry();
+
+        if (entity.getUuid().equals(session.getPlayerEntity().getUuid())) {
+            PlayerListPacket.Entry updatedEntry = SkinManager.buildEntryManually(
+                    session,
+                    entity.getUuid(),
+                    entity.getUsername(),
+                    entity.getGeyserId(),
+                    skin.getTextureUrl(),
+                    skin.getSkinData(),
+                    cape.getCapeId(),
+                    cape.getCapeData(),
+                    geometry
+            );
+
+            PlayerListPacket playerAddPacket = new PlayerListPacket();
+            playerAddPacket.setAction(PlayerListPacket.Action.ADD);
+            playerAddPacket.getEntries().add(updatedEntry);
+            session.sendUpstreamPacket(playerAddPacket);
+        } else {
+            PlayerSkinPacket packet = new PlayerSkinPacket();
+            packet.setUuid(entity.getUuid());
+            packet.setOldSkinName("");
+            packet.setNewSkinName(skin.getTextureUrl());
+            packet.setSkin(getSkin(skin.getTextureUrl(), skin, cape, geometry));
+            packet.setTrustedSkin(true);
+            session.sendUpstreamPacket(packet);
+        }
     }
 
     private static SerializedSkin getSkin(String skinId, SkinProvider.Skin skin, SkinProvider.Cape cape, SkinProvider.SkinGeometry geometry) {
