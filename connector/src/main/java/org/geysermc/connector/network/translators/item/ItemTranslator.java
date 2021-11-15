@@ -155,6 +155,9 @@ public abstract class ItemTranslator {
         }
 
         nbt = translateDisplayProperties(session, nbt, bedrockItem);
+        if (session.isAdvancedTooltips()) {
+            nbt = addAdvancedTooltips(nbt, session.getItemMappings().getMapping(stack));
+        }
 
         ItemStack itemStack = new ItemStack(stack.getId(), stack.getAmount(), nbt);
 
@@ -182,6 +185,41 @@ public abstract class ItemTranslator {
         }
 
         return builder.build();
+    }
+
+    private static CompoundTag addAdvancedTooltips(CompoundTag nbt, ItemMapping mapping) {
+        CompoundTag newNbt = nbt;
+        if (newNbt == null) {
+            newNbt = new CompoundTag("nbt");
+            CompoundTag display = new CompoundTag("display");
+            display.put(new ListTag("Lore"));
+            newNbt.put(display);
+        }
+        CompoundTag compoundTag = newNbt.get("display");
+        if (compoundTag == null) {
+            compoundTag = new CompoundTag("display");
+        }
+        ListTag listTag = compoundTag.get("Lore");
+
+        if (listTag == null) {
+            listTag = new ListTag("Lore");
+        }
+        int maxDurability = mapping.getMaxDamage();
+
+        if (maxDurability != 0) {
+            int durability = maxDurability - ((IntTag) newNbt.get("Damage")).getValue();
+            if (durability != maxDurability) {
+                listTag.add(new StringTag("AdvancedTooltipDurability", "§r§fDurability: " + durability + "/" + maxDurability));
+            }
+        }
+
+        listTag.add(new StringTag("AdvancedTooltipItemId", "§r§8" + mapping.getJavaIdentifier()));
+        if (nbt != null) {
+            listTag.add(new StringTag("AdvancedTooltipNBTTagCount", "§r§8" + "NBT: " + nbt.size() + " tag(s)"));
+        }
+        compoundTag.put(listTag);
+        newNbt.put(compoundTag);
+        return newNbt;
     }
 
     /**
