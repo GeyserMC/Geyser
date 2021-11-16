@@ -19,7 +19,7 @@ permissions:
   geyser.command.advancements:
     description: Shows the advancements of the player on the server.
     default: true
-  geyser.command.advancedtooltips:
+  geyser.command.tooltips:
     description: Toggles showing advanced tooltips on your items.
     default: true
   geyser.command.statistics:
