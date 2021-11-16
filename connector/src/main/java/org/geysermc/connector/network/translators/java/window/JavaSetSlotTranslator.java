@@ -99,12 +99,7 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
                         profile = newItem.getNbt().get("SkullOwner");
                     }
 
-                    if (profile != null) {
-                        FakeHeadProvider.setHead(session, session.getPlayerEntity(), profile);
-                        inventory.setItem(packet.getSlot(), GeyserItemStack.EMPTY,session);
-                        translator.updateSlot(session,inventory,packet.getSlot());
-                    } else {
-                        FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
+                    if(!session.getFakeHeadCache().setOwnFakeHead(newItem, profile)) {
                         inventory.setItem(packet.getSlot(), newItem, session);
                         translator.updateSlot(session, inventory, packet.getSlot());
                     }

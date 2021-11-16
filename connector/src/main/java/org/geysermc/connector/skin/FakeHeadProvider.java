@@ -53,6 +53,9 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Responsible for modifying a player's skin when wearing a player head
+ */
 public class FakeHeadProvider {
 
     private static final LoadingCache<FakeHeadEntry, SkinProvider.SkinData> mergedSkinsLoadingCache = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).maximumSize(10000)
@@ -181,7 +184,9 @@ public class FakeHeadProvider {
     }
 
     private static GameProfile getProfileByTag(CompoundTag profileTag) {
-        GameProfile gameProfile = new GameProfile(UUID.randomUUID(), ((StringTag) profileTag.get("Name")).getValue());
+        GameProfile gameProfile = new GameProfile(UUID.randomUUID(), profileTag.contains("Name")
+                ? ((StringTag) profileTag.get("Name")).getValue()
+                : UUID.randomUUID().toString().substring(0, 16).replace("-", ""));
 
         if (profileTag.contains("Properties")) {
             List<GameProfile.Property> properties = new ArrayList<>();

@@ -166,7 +166,6 @@ public class GeyserSession implements CommandSender {
     private boolean isInWorldBorderWarningArea = false;
 
     private final PlayerInventory playerInventory;
-    @Setter
     private Inventory openInventory;
     @Setter
     private boolean closingInventory;
@@ -462,7 +461,7 @@ public class GeyserSession implements CommandSender {
         this.preferencesCache = new PreferencesCache(this);
         this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
-        this.fakeHeadCache = new FakeHeadCache();
+        this.fakeHeadCache = new FakeHeadCache(this);
 
         this.worldBorder = new WorldBorder(this);
 
@@ -1457,6 +1456,17 @@ public class GeyserSession implements CommandSender {
             emoteList.setRuntimeEntityId(player.getPlayerEntity().getGeyserId());
             emoteList.getPieceIds().addAll(pieces);
             player.sendUpstreamPacket(emoteList);
+        }
+    }
+
+    public void setOpenInventory(Inventory openInventory) {
+        Inventory prevInventory = this.openInventory;
+        this.openInventory = openInventory;
+
+        if(prevInventory == getPlayerInventory() && openInventory != getPlayerInventory()) {
+            this.fakeHeadCache.onPlayerInventoryClose();
+        } else if(prevInventory != getPlayerInventory() && openInventory == getPlayerInventory()) {
+            this.fakeHeadCache.onPlayerInventoryOpen();
         }
     }
 }
