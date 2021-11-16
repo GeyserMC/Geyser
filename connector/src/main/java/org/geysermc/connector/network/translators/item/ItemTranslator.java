@@ -215,7 +215,7 @@ public abstract class ItemTranslator {
 
         listTag.add(new StringTag("AdvancedTooltipItemId", "§r§8" + mapping.getJavaIdentifier()));
         if (nbt != null) {
-            listTag.add(new StringTag("AdvancedTooltipNBTTagCount", "§r§8" + "NBT: " + nbt.size() + " tag(s)"));
+            listTag.add(new StringTag("AdvancedTooltipNBTTagCount", "§r§8" + String.format(MessageTranslator.convertMessage("item.nbt_tags", language), nbt.size())));
         }
         compoundTag.put(listTag);
         newNbt.put(compoundTag);
