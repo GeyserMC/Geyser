@@ -66,17 +66,12 @@ public class JavaEntityEquipmentTranslator extends PacketTranslator<ServerEntity
             ItemData item = ItemTranslator.translateToBedrock(session, equipment.getItem());
             switch (equipment.getSlot()) {
                 case HELMET -> {
-                    CompoundTag profile = null;
-
                     if (livingEntity instanceof PlayerEntity
                             && session.getItemMappings().getMapping(item).getJavaIdentifier().equals("minecraft:player_head")
                             && equipment.getItem().getNbt() != null
                             && equipment.getItem().getNbt().contains("SkullOwner")
                             && equipment.getItem().getNbt().get("SkullOwner") instanceof CompoundTag) {
-                        profile = equipment.getItem().getNbt().get("SkullOwner");
-                    }
-
-                    if (profile != null) {
+                        CompoundTag profile = equipment.getItem().getNbt().get("SkullOwner");
                         FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, profile);
                         livingEntity.setHelmet(ItemData.AIR);
                     } else {
