@@ -72,13 +72,13 @@ public class FakeHeadProvider {
                         throw new Exception("Couldn't load player's original skin");
                     }
 
-                    if (skinData.getGeometry() == null) {
+                    if (skinData.geometry() == null) {
                         throw new Exception("Couldn't load player's original geometry");
                     }
 
-                    SkinProvider.Skin skin = skinData.getSkin();
-                    SkinProvider.Cape cape = skinData.getCape();
-                    SkinProvider.SkinGeometry geometry = skinData.getGeometry();
+                    SkinProvider.Skin skin = skinData.skin();
+                    SkinProvider.Cape cape = skinData.cape();
+                    SkinProvider.SkinGeometry geometry = skinData.geometry();
 
                     String skinKey = fakeHeadEntry.getFakeHeadSkinUrl() + "_" + fakeHeadEntry.getEntity().getUuid();
 
@@ -144,9 +144,9 @@ public class FakeHeadProvider {
     }
 
     private static void sendSkinPacket(GeyserSession session, PlayerEntity entity, SkinProvider.SkinData skinData) {
-        SkinProvider.Skin skin = skinData.getSkin();
-        SkinProvider.Cape cape = skinData.getCape();
-        SkinProvider.SkinGeometry geometry = skinData.getGeometry();
+        SkinProvider.Skin skin = skinData.skin();
+        SkinProvider.Cape cape = skinData.cape();
+        SkinProvider.SkinGeometry geometry = skinData.geometry();
 
         if (entity.getUuid().equals(session.getPlayerEntity().getUuid())) {
             PlayerListPacket.Entry updatedEntry = SkinManager.buildEntryManually(

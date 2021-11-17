@@ -123,10 +123,10 @@ public class SkinManager {
                 return;
             }
 
-            if (skinData.getGeometry() != null) {
-                SkinProvider.Skin skin = skinData.getSkin();
-                SkinProvider.Cape cape = skinData.getCape();
-                SkinProvider.SkinGeometry geometry = skinData.getGeometry();
+            if (skinData.geometry() != null) {
+                SkinProvider.Skin skin = skinData.skin();
+                SkinProvider.Cape cape = skinData.cape();
+                SkinProvider.SkinGeometry geometry = skinData.geometry();
 
                 if (session.getUpstream().isInitialized()) {
                     PlayerListPacket.Entry updatedEntry = buildEntryManually(
@@ -157,7 +157,7 @@ public class SkinManager {
             }
 
             if (skinAndCapeConsumer != null) {
-                skinAndCapeConsumer.accept(new SkinProvider.SkinAndCape(skinData.getSkin(), skinData.getCape()));
+                skinAndCapeConsumer.accept(new SkinProvider.SkinAndCape(skinData.skin(), skinData.cape()));
             }
         });
     }

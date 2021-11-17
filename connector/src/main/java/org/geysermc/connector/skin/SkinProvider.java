@@ -110,7 +110,7 @@ public class SkinProvider {
                 }
 
                 int count = 0;
-                final long expireTime = ((long)GeyserConnector.getInstance().getConfig().getCacheImages()) * ((long)1000 * 60 * 60 * 24);
+                final long expireTime = ((long) GeyserConnector.getInstance().getConfig().getCacheImages()) * ((long) 1000 * 60 * 60 * 24);
                 for (File imageFile : Objects.requireNonNull(cacheFolder.listFiles())) {
                     if (imageFile.lastModified() < System.currentTimeMillis() - expireTime) {
                         //noinspection ResultOfMethodCallIgnored
@@ -303,7 +303,8 @@ public class SkinProvider {
         CompletableFuture<Skin> future;
         if (newThread) {
             future = CompletableFuture.supplyAsync(() -> supplyEars(skin, earsUrl), EXECUTOR_SERVICE)
-                    .whenCompleteAsync((outSkin, throwable) -> { });
+                    .whenCompleteAsync((outSkin, throwable) -> {
+                    });
         } else {
             Skin ears = supplyEars(skin, earsUrl); // blocking
             future = CompletableFuture.completedFuture(ears);
@@ -315,9 +316,9 @@ public class SkinProvider {
      * Try and find an ear texture for a Java player
      *
      * @param officialSkin The current players skin
-     * @param playerId The players UUID
-     * @param username The players username
-     * @param newThread Should we start in a new thread
+     * @param playerId     The players UUID
+     * @param username     The players username
+     * @param newThread    Should we start in a new thread
      * @return The updated skin with ears
      */
     public static CompletableFuture<Skin> requestUnofficialEars(Skin officialSkin, UUID playerId, String username, boolean newThread) {
@@ -375,7 +376,7 @@ public class SkinProvider {
      * Stores the geometry for a Java player with ears
      *
      * @param playerID The UUID to cache it against
-     * @param isSlim If the player is using an slim base
+     * @param isSlim   If the player is using an slim base
      */
     public static void storeEarGeometry(UUID playerID, boolean isSlim) {
         cachedGeometry.put(playerID, SkinGeometry.getEars(isSlim));
@@ -385,7 +386,8 @@ public class SkinProvider {
         try {
             byte[] skin = requestImage(textureUrl, null);
             return new Skin(uuid, textureUrl, skin, System.currentTimeMillis(), false, false);
-        } catch (Exception ignored) {} // just ignore I guess
+        } catch (Exception ignored) {
+        } // just ignore I guess
 
         return new Skin(uuid, "empty", EMPTY_SKIN.getSkinData(), System.currentTimeMillis(), false, false);
     }
@@ -394,7 +396,8 @@ public class SkinProvider {
         byte[] cape = EMPTY_CAPE.getCapeData();
         try {
             cape = requestImage(capeUrl, provider);
-        } catch (Exception ignored) {} // just ignore I guess
+        } catch (Exception ignored) {
+        } // just ignore I guess
 
         String[] urlSection = capeUrl.split("/"); // A real url is expected at this stage
 
@@ -411,7 +414,7 @@ public class SkinProvider {
      * Get the ears texture and place it on the skin from the given URL
      *
      * @param existingSkin The players current skin
-     * @param earsUrl The URL to get the ears texture from
+     * @param earsUrl      The URL to get the ears texture from
      * @return The updated skin with ears
      */
     private static Skin supplyEars(Skin existingSkin, String earsUrl) {
@@ -443,7 +446,8 @@ public class SkinProvider {
                     true,
                     true
             );
-        } catch (Exception ignored) {} // just ignore I guess
+        } catch (Exception ignored) {
+        } // just ignore I guess
 
         return existingSkin;
     }
@@ -459,7 +463,8 @@ public class SkinProvider {
                 GeyserConnector.getInstance().getLogger().debug("Reading cached image from file " + imageFile.getPath() + " for " + imageUrl);
                 imageFile.setLastModified(System.currentTimeMillis());
                 image = ImageIO.read(imageFile);
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+            }
         }
 
         // If no image we download it
@@ -516,6 +521,7 @@ public class SkinProvider {
 
     /**
      * If a skull has a username but no textures, request them.
+     *
      * @param skullOwner the CompoundTag of the skull with no textures
      * @return a completable GameProfile with textures included
      */
@@ -604,7 +610,7 @@ public class SkinProvider {
      * Get the RGBA int for a given index in some image data
      *
      * @param index Index to get
-     * @param data Image data to find in
+     * @param data  Image data to find in
      * @return An int representing RGBA
      */
     private static int getRGBA(int index, byte[] data) {
@@ -615,8 +621,8 @@ public class SkinProvider {
     /**
      * Convert a byte[] to a BufferedImage
      *
-     * @param imageData The byte[] to convert
-     * @param imageWidth The width of the target image
+     * @param imageData   The byte[] to convert
+     * @param imageWidth  The width of the target image
      * @param imageHeight The height of the target image
      * @return The converted BufferedImage
      */
@@ -656,7 +662,8 @@ public class SkinProvider {
     public static <T> T getOrDefault(CompletableFuture<T> future, T defaultValue, int timeoutInSeconds) {
         try {
             return future.get(timeoutInSeconds, TimeUnit.SECONDS);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return defaultValue;
     }
 
@@ -667,8 +674,6 @@ public class SkinProvider {
         private final Cape cape;
     }
 
-    @AllArgsConstructor
-    @Getter
     public record SkinData(Skin skin,
                            Cape cape,
                            SkinGeometry geometry) {
