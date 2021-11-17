@@ -669,10 +669,9 @@ public class SkinProvider {
 
     @AllArgsConstructor
     @Getter
-    public static class SkinData {
-        private final Skin skin;
-        private final Cape cape;
-        private final SkinGeometry geometry;
+    public record SkinData(Skin skin,
+                           Cape cape,
+                           SkinGeometry geometry) {
     }
 
     @AllArgsConstructor

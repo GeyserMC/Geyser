@@ -70,8 +70,7 @@ public class JavaEntityEquipmentTranslator extends PacketTranslator<ServerEntity
                             && session.getItemMappings().getMapping(item).getJavaIdentifier().equals("minecraft:player_head")
                             && equipment.getItem().getNbt() != null
                             && equipment.getItem().getNbt().contains("SkullOwner")
-                            && equipment.getItem().getNbt().get("SkullOwner") instanceof CompoundTag) {
-                        CompoundTag profile = equipment.getItem().getNbt().get("SkullOwner");
+                            && equipment.getItem().getNbt().get("SkullOwner") instanceof CompoundTag profile) {
                         FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, profile);
                         livingEntity.setHelmet(ItemData.AIR);
                     } else {
