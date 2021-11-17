@@ -94,7 +94,6 @@ public class JavaSetSlotTranslator extends PacketTranslator<ServerSetSlotPacket>
 
                     if (session.getItemMappings().getMapping(newItem.getItemData(session)).getJavaIdentifier().equals("minecraft:player_head")
                             && newItem.getNbt() != null
-                            && newItem.getNbt().contains("SkullOwner")
                             && newItem.getNbt().get("SkullOwner") instanceof CompoundTag) {
                         profile = newItem.getNbt().get("SkullOwner");
                     }
