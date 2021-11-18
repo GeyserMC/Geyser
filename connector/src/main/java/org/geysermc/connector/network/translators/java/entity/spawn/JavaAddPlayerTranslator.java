@@ -41,12 +41,14 @@ public class JavaAddPlayerTranslator extends PacketTranslator<ClientboundAddPlay
     @Override
     public void translate(GeyserSession session, ClientboundAddPlayerPacket packet) {
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
-        Vector3f rotation = Vector3f.from(packet.getYaw(), packet.getPitch(), packet.getYaw());
+        float yaw = packet.getYaw();
+        float pitch = packet.getPitch();
+        float headYaw = packet.getYaw();
 
         PlayerEntity entity;
         if (packet.getUuid().equals(session.getPlayerEntity().getUuid())) {
             // Server is sending a fake version of the current player
-            entity = new PlayerEntity(session.getPlayerEntity().getProfile(), packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), position, Vector3f.ZERO, rotation);
+            entity = new PlayerEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), session.getPlayerEntity().getProfile(), position, Vector3f.ZERO, yaw, pitch, headYaw);
         } else {
             entity = session.getEntityCache().getPlayerEntity(packet.getUuid());
             if (entity == null) {
@@ -56,11 +58,13 @@ public class JavaAddPlayerTranslator extends PacketTranslator<ClientboundAddPlay
 
             entity.setEntityId(packet.getEntityId());
             entity.setPosition(position);
-            entity.setRotation(rotation);
+            entity.setYaw(yaw);
+            entity.setPitch(pitch);
+            entity.setHeadYaw(headYaw);
         }
         session.getEntityCache().cacheEntity(entity);
 
-        entity.sendPlayer(session);
+        entity.sendPlayer();
         SkinManager.requestAndHandleSkinAndCape(entity, session, null);
     }
 }

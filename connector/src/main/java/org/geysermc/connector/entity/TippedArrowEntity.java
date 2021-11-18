@@ -26,38 +26,35 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.TippedArrowPotion;
+
+import java.util.UUID;
 
 /**
  * Internally this is known as TippedArrowEntity but is used with tipped arrows and normal arrows
  */
 public class TippedArrowEntity extends AbstractArrowEntity {
 
-    public TippedArrowEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public TippedArrowEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        // Arrow potion effect color
-        if (entityMetadata.getId() == 10) {
-            int potionColor = (int) entityMetadata.getValue();
-            // -1 means no color
-            if (potionColor == -1) {
-                metadata.put(EntityData.CUSTOM_DISPLAY, 0);
+    public void setPotionEffectColor(EntityMetadata<Integer> entityMetadata) {
+        int potionColor = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+        // -1 means no color
+        if (potionColor == -1) {
+            dirtyMetadata.put(EntityData.CUSTOM_DISPLAY, 0);
+        } else {
+            TippedArrowPotion potion = TippedArrowPotion.getByJavaColor(potionColor);
+            if (potion != null && potion.getJavaColor() != -1) {
+                dirtyMetadata.put(EntityData.CUSTOM_DISPLAY, (byte) potion.getBedrockId());
             } else {
-                TippedArrowPotion potion = TippedArrowPotion.getByJavaColor(potionColor);
-                if (potion != null && potion.getJavaColor() != -1) {
-                    metadata.put(EntityData.CUSTOM_DISPLAY, (byte) potion.getBedrockId());
-                } else {
-                    metadata.put(EntityData.CUSTOM_DISPLAY, 0);
-                }
+                dirtyMetadata.put(EntityData.CUSTOM_DISPLAY, 0);
             }
         }
-        super.updateBedrockMetadata(entityMetadata, session);
     }
 }

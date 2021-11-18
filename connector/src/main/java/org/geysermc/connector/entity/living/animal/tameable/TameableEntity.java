@@ -26,46 +26,51 @@
 package org.geysermc.connector.entity.living.animal.tameable;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import lombok.Getter;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.entity.living.animal.AnimalEntity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.UUID;
 
 public class TameableEntity extends AnimalEntity {
+    /**
+     * Used in the interactive tag manager to track if the session player owns this entity
+     */
+    @Getter
+    protected long ownerBedrockId;
 
-    public TameableEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public TameableEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 17) {
-            byte xd = (byte) entityMetadata.getValue();
-            metadata.getFlags().setFlag(EntityFlag.SITTING, (xd & 0x01) == 0x01);
-            metadata.getFlags().setFlag(EntityFlag.ANGRY, (xd & 0x02) == 0x02);
-            metadata.getFlags().setFlag(EntityFlag.TAMED, (xd & 0x04) == 0x04);
-        }
+    public void setTameableFlags(EntityMetadata<Byte> entityMetadata) {
+        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+        setFlag(EntityFlag.SITTING, (xd & 0x01) == 0x01);
+        setFlag(EntityFlag.ANGRY, (xd & 0x02) == 0x02);
+        setFlag(EntityFlag.TAMED, (xd & 0x04) == 0x04);
+    }
 
+    public void setOwner(EntityMetadata<UUID> entityMetadata) {
         // Note: Must be set for wolf collar color to work
-        if (entityMetadata.getId() == 18) {
-            if (entityMetadata.getValue() != null) {
-                // Owner UUID of entity
-                Entity entity = session.getEntityCache().getPlayerEntity((UUID) entityMetadata.getValue());
-                // Used as both a check since the player isn't in the entity cache and a normal fallback
-                if (entity == null) {
-                    entity = session.getPlayerEntity();
-                }
-                // Translate to entity ID
-                metadata.put(EntityData.OWNER_EID, entity.getGeyserId());
-            } else {
-                metadata.put(EntityData.OWNER_EID, 0L); // Reset
+        if (entityMetadata.getValue() != null) {
+            // Owner UUID of entity
+            Entity entity = session.getEntityCache().getPlayerEntity(entityMetadata.getValue());
+            // Used as both a check since the player isn't in the entity cache and a normal fallback
+            if (entity == null) {
+                entity = session.getPlayerEntity();
             }
+            // Translate to entity ID
+            ownerBedrockId = entity.getGeyserId();
+        } else {
+            // Reset
+            ownerBedrockId = 0L;
         }
-        super.updateBedrockMetadata(entityMetadata, session);
+        dirtyMetadata.put(EntityData.OWNER_EID, ownerBedrockId);
     }
 }

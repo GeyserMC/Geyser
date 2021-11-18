@@ -27,26 +27,28 @@ package org.geysermc.connector.entity.living.monster.raid;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.registry.type.ItemMapping;
 
+import java.util.UUID;
+
 public class PillagerEntity extends AbstractIllagerEntity {
 
-    public PillagerEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public PillagerEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
-    public void updateMainHand(GeyserSession session) {
-        checkForCrossbow(session);
+    public void updateMainHand(GeyserSession session) { //TODO
+        checkForCrossbow();
 
         super.updateMainHand(session);
     }
 
     @Override
     public void updateOffHand(GeyserSession session) {
-        checkForCrossbow(session);
+        checkForCrossbow();
 
         super.updateOffHand(session);
     }
@@ -54,15 +56,13 @@ public class PillagerEntity extends AbstractIllagerEntity {
     /**
      * Check for a crossbow in either the mainhand or offhand. If one exists, indicate that the pillager should be posing
      */
-    protected void checkForCrossbow(GeyserSession session) {
+    protected void checkForCrossbow() {
         ItemMapping crossbow = session.getItemMappings().getStoredItems().crossbow();
         boolean hasCrossbow = this.hand.getId() == crossbow.getBedrockId()
                 || this.offHand.getId() == crossbow.getBedrockId();
-        boolean usingItemChanged = metadata.getFlags().setFlag(EntityFlag.USING_ITEM, hasCrossbow);
-        boolean chargedChanged = metadata.getFlags().setFlag(EntityFlag.CHARGED, hasCrossbow);
+        setFlag(EntityFlag.USING_ITEM, hasCrossbow);
+        setFlag(EntityFlag.CHARGED, hasCrossbow);
 
-        if (usingItemChanged || chargedChanged) {
-            updateBedrockMetadata(session);
-        }
+        updateBedrockMetadata();
     }
 }

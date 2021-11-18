@@ -29,7 +29,8 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.Serverb
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.connector.entity.BoatEntity;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.EntityDefinitions;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -44,27 +45,28 @@ public class BedrockMoveEntityAbsoluteTranslator extends PacketTranslator<MoveEn
     public void translate(GeyserSession session, MoveEntityAbsolutePacket packet) {
         session.setLastVehicleMoveTimestamp(System.currentTimeMillis());
 
-        if (session.getRidingVehicleEntity() != null && session.getWorldBorder().isPassingIntoBorderBoundaries(packet.getPosition(), false)) {
-            Vector3f position = Vector3f.from(session.getRidingVehicleEntity().getPosition().getX(), packet.getPosition().getY(),
-                    session.getRidingVehicleEntity().getPosition().getZ());
-            if (session.getRidingVehicleEntity() instanceof BoatEntity) {
+        Entity ridingEntity = session.getRidingVehicleEntity();
+        if (ridingEntity != null && session.getWorldBorder().isPassingIntoBorderBoundaries(packet.getPosition(), false)) {
+            Vector3f position = Vector3f.from(ridingEntity.getPosition().getX(), packet.getPosition().getY(),
+                    ridingEntity.getPosition().getZ());
+            if (ridingEntity instanceof BoatEntity) {
                 // Undo the changes usually applied to the boat
-                session.getRidingVehicleEntity().as(BoatEntity.class).moveAbsoluteWithoutAdjustments(session,
-                        position, session.getRidingVehicleEntity().getRotation(),
-                        session.getRidingVehicleEntity().isOnGround(), true);
+                ridingEntity.as(BoatEntity.class)
+                        .moveAbsoluteWithoutAdjustments(position, ridingEntity.getYaw(),
+                        ridingEntity.isOnGround(), true);
             } else {
                 // This doesn't work if teleported is false
-                session.getRidingVehicleEntity().moveAbsolute(session, position,
-                        session.getRidingVehicleEntity().getRotation(),
-                        session.getRidingVehicleEntity().isOnGround(), true);
+                ridingEntity.moveAbsolute(position,
+                        ridingEntity.getYaw(), ridingEntity.getPitch(), ridingEntity.getHeadYaw(),
+                        ridingEntity.isOnGround(), true);
             }
             return;
         }
 
         float y = packet.getPosition().getY();
-        if (session.getRidingVehicleEntity() instanceof BoatEntity) {
+        if (ridingEntity instanceof BoatEntity) {
             // Remove the offset to prevents boats from looking like they're floating in water
-            y -= EntityType.BOAT.getOffset();
+            y -= EntityDefinitions.BOAT.offset();
         }
         ServerboundMoveVehiclePacket ServerboundMoveVehiclePacket = new ServerboundMoveVehiclePacket(
                 packet.getPosition().getX(), y, packet.getPosition().getZ(),

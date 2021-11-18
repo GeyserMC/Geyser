@@ -121,7 +121,7 @@ public class PistonCache {
             SessionPlayerEntity playerEntity = session.getPlayerEntity();
             boolean isOnGround = playerDisplacement.getY() > 0 || playerEntity.isOnGround();
             Vector3d position = session.getCollisionManager().getPlayerBoundingBox().getBottomCenter();
-            playerEntity.moveAbsolute(session, position.toFloat(), playerEntity.getRotation(), isOnGround, true);
+            playerEntity.moveAbsolute(position.toFloat(), playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), isOnGround, true);
         }
     }
 

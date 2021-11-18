@@ -45,6 +45,6 @@ public class JavaRotateHeadTranslator extends PacketTranslator<ClientboundRotate
 
         if (entity == null) return;
 
-        entity.updateHeadLookRotation(session, packet.getHeadYaw());
+        entity.updateHeadLookRotation(packet.getHeadYaw());
     }
 }

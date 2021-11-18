@@ -26,32 +26,30 @@
 package org.geysermc.connector.entity.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.DimensionUtils;
+
+import java.util.UUID;
 
 public class BasePiglinEntity extends MonsterEntity {
     private boolean isImmuneToZombification;
 
-    public BasePiglinEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public BasePiglinEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    }
+
+    public void setImmuneToZombification(EntityMetadata<Boolean> entityMetadata) {
+        // Apply shaking effect if not in the nether and zombification is possible
+        this.isImmuneToZombification = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+        setFlag(EntityFlag.SHAKING, isShaking());
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
-            // Immune to zombification?
-            // Apply shaking effect if not in the nether and zombification is possible
-            this.isImmuneToZombification = (boolean) entityMetadata.getValue();
-            metadata.getFlags().setFlag(EntityFlag.SHAKING, isShaking(session));
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
-    }
-
-    @Override
-    protected boolean isShaking(GeyserSession session) {
-        return (!isImmuneToZombification && !session.getDimension().equals(DimensionUtils.NETHER)) || super.isShaking(session);
+    protected boolean isShaking() {
+        return (!isImmuneToZombification && !session.getDimension().equals(DimensionUtils.NETHER)) || super.isShaking();
     }
 }

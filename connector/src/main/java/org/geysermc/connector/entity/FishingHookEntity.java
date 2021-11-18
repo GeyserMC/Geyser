@@ -26,12 +26,12 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.PlaySoundPacket;
 import org.geysermc.connector.entity.player.PlayerEntity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
@@ -40,6 +40,7 @@ import org.geysermc.connector.registry.BlockRegistries;
 import org.geysermc.connector.utils.BlockPositionIterator;
 import org.geysermc.connector.utils.BlockUtils;
 
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class FishingHookEntity extends ThrowableEntity {
@@ -50,41 +51,44 @@ public class FishingHookEntity extends ThrowableEntity {
 
     private boolean inWater = false;
 
-    public FishingHookEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation, PlayerEntity owner) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public FishingHookEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, Vector3f position, Vector3f motion, float yaw, float pitch, PlayerEntity owner) {
+        super(session, entityId, geyserId, uuid, EntityDefinitions.FISHING_BOBBER, position, motion, yaw, pitch, 0f);
 
         this.boundingBox = new BoundingBox(0.125, 0.125, 0.125, 0.25, 0.25, 0.25);
 
         // In Java, the splash sound depends on the entity's velocity, but in Bedrock the volume doesn't change.
         // This splash can be confused with the sound from catching a fish. This silences the splash from Bedrock,
         // so that it can be handled by moveAbsoluteImmediate.
-        this.metadata.putFloat(EntityData.BOUNDING_BOX_HEIGHT, 128);
+        this.dirtyMetadata.putFloat(EntityData.BOUNDING_BOX_HEIGHT, 128);
 
-        this.metadata.put(EntityData.OWNER_EID, owner.getGeyserId());
+        this.dirtyMetadata.put(EntityData.OWNER_EID, owner.getGeyserId());
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 8) { // Hooked entity
-            int hookedEntityId = (int) entityMetadata.getValue() - 1;
-            Entity entity = session.getEntityCache().getEntityByJavaId(hookedEntityId);
-            if (entity == null && session.getPlayerEntity().getEntityId() == hookedEntityId) {
-                entity = session.getPlayerEntity();
-            }
+    public void spawnEntity() {
 
-            if (entity != null) {
-                metadata.put(EntityData.TARGET_EID, entity.getGeyserId());
-                hooked = true;
-            } else {
-                hooked = false;
-            }
+        super.spawnEntity();
+    }
+
+    public void setHookedEntity(EntityMetadata<Integer> entityMetadata) {
+        int hookedEntityId = ((IntEntityMetadata) entityMetadata).getPrimitiveValue() - 1;
+        Entity entity;
+        if (session.getPlayerEntity().getEntityId() == hookedEntityId) {
+            entity = session.getPlayerEntity();
+        } else {
+            entity = session.getEntityCache().getEntityByJavaId(hookedEntityId);
         }
 
-        super.updateBedrockMetadata(entityMetadata, session);
+        if (entity != null) {
+            dirtyMetadata.put(EntityData.TARGET_EID, entity.getGeyserId());
+            hooked = true;
+        } else {
+            hooked = false;
+        }
     }
 
     @Override
-    protected void moveAbsoluteImmediate(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+    protected void moveAbsoluteImmediate(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         boundingBox.setMiddleX(position.getX());
         boundingBox.setMiddleY(position.getY() + boundingBox.getSizeY() / 2);
         boundingBox.setMiddleZ(position.getZ());
@@ -123,14 +127,14 @@ public class FishingHookEntity extends ThrowableEntity {
         inWater = touchingWater;
 
         if (!collided) {
-            super.moveAbsoluteImmediate(session, position, rotation, isOnGround, teleported);
+            super.moveAbsoluteImmediate(position, yaw, pitch, headYaw, isOnGround, teleported);
         } else {
-            super.moveAbsoluteImmediate(session, this.position, rotation, true, true);
+            super.moveAbsoluteImmediate(this.position, yaw, pitch, headYaw, true, true);
         }
     }
 
     private void sendSplashSound(GeyserSession session) {
-        if (!metadata.getFlags().getFlag(EntityFlag.SILENT)) {
+        if (!getFlag(EntityFlag.SILENT)) {
             float volume = (float) (0.2f * Math.sqrt(0.2 * (motion.getX() * motion.getX() + motion.getZ() * motion.getZ()) + motion.getY() * motion.getY()));
             if (volume > 1) {
                 volume = 1;
@@ -145,39 +149,38 @@ public class FishingHookEntity extends ThrowableEntity {
     }
 
     @Override
-    public void tick(GeyserSession session) {
-        if (hooked || !isInAir(session) && !isInWater(session) || isOnGround()) {
+    public void tick() {
+        if (hooked || !isInAir() && !isInWater() || isOnGround()) {
             motion = Vector3f.ZERO;
             return;
         }
-        float gravity = getGravity(session);
+        float gravity = getGravity();
         motion = motion.down(gravity);
 
-        moveAbsoluteImmediate(session, position.add(motion), rotation, onGround, false);
+        moveAbsoluteImmediate(position.add(motion), yaw, pitch, headYaw, onGround, false);
 
-        float drag = getDrag(session);
+        float drag = getDrag();
         motion = motion.mul(drag);
     }
 
     @Override
-    protected float getGravity(GeyserSession session) {
-        if (!isInWater(session) && !onGround) {
+    protected float getGravity() {
+        if (!isInWater() && !onGround) {
             return 0.03f;
         }
         return 0;
     }
 
     /**
-     * @param session the session of the Bedrock client.
      * @return true if this entity is currently in air.
      */
-    protected boolean isInAir(GeyserSession session) {
+    protected boolean isInAir() {
         int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
         return block == BlockStateValues.JAVA_AIR_ID;
     }
 
     @Override
-    protected float getDrag(GeyserSession session) {
+    protected float getDrag() {
         return 0.92f;
     }
 }

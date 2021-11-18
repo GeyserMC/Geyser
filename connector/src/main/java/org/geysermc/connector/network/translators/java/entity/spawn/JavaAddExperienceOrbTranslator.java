@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.spawn.
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.ExpOrbEntity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -42,8 +41,7 @@ public class JavaAddExperienceOrbTranslator extends PacketTranslator<Clientbound
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
 
         Entity entity = new ExpOrbEntity(
-                packet.getExp(), packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                EntityType.EXPERIENCE_ORB, position, Vector3f.ZERO, Vector3f.ZERO
+                session, packet.getExp(), packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), position
         );
 
         session.getEntityCache().spawnEntity(entity);

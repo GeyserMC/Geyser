@@ -25,11 +25,12 @@
 
 package org.geysermc.connector.registry;
 
+import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.mc.protocol.data.game.level.event.SoundEvent;
+import com.github.steveice10.mc.protocol.data.game.level.particle.ParticleType;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
-import com.github.steveice10.mc.protocol.data.game.level.particle.ParticleType;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
@@ -37,12 +38,14 @@ import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
-import org.geysermc.connector.network.translators.world.event.LevelEventTransformer;
 import org.geysermc.connector.network.translators.item.Enchantment.JavaEnchantment;
 import org.geysermc.connector.network.translators.sound.SoundHandler;
 import org.geysermc.connector.network.translators.sound.SoundInteractionHandler;
 import org.geysermc.connector.network.translators.world.block.entity.BlockEntityTranslator;
+import org.geysermc.connector.network.translators.world.event.LevelEventTransformer;
 import org.geysermc.connector.registry.loader.*;
 import org.geysermc.connector.registry.populator.ItemRegistryPopulator;
 import org.geysermc.connector.registry.populator.RecipeRegistryPopulator;
@@ -51,6 +54,7 @@ import org.geysermc.connector.registry.type.ItemMappings;
 import org.geysermc.connector.registry.type.ParticleMapping;
 import org.geysermc.connector.registry.type.SoundMapping;
 
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,6 +63,11 @@ import java.util.Set;
  * Holds all the common registries in Geyser.
  */
 public class Registries {
+    /**
+     * A registry holding a CompoundTag of the known entity identifiers.
+     */
+    public static final SimpleRegistry<NbtMap> BEDROCK_ENTITY_IDENTIFIERS = SimpleRegistry.create("bedrock/entity_identifiers.dat", RegistryLoaders.NBT);
+
     /**
      * A registry holding a CompoundTag of all the known biomes.
      */
@@ -90,9 +99,14 @@ public class Registries {
     public static final SimpleMappedRegistry<JavaEnchantment, EnchantmentData> ENCHANTMENTS;
 
     /**
-     * A registry holding a CompoundTag of the known entity identifiers.
+     * A map containing all entity types and their respective Geyser definitions
      */
-    public static final SimpleRegistry<NbtMap> ENTITY_IDENTIFIERS = SimpleRegistry.create("bedrock/entity_identifiers.dat", RegistryLoaders.NBT);
+    public static final SimpleMappedRegistry<EntityType, EntityDefinition<?>> ENTITY_DEFINITIONS = SimpleMappedRegistry.create(RegistryLoaders.empty(() -> new EnumMap<>(EntityType.class)));
+
+    /**
+     * A map containing all Java entity identifiers and their respective Geyser definitions
+     */
+    public static final SimpleMappedRegistry<String, EntityDefinition<?>> JAVA_ENTITY_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
      * A versioned registry which holds {@link ItemMappings} for each version. These item mappings contain

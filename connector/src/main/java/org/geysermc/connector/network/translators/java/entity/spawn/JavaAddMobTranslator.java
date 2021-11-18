@@ -28,15 +28,13 @@ package org.geysermc.connector.network.translators.java.entity.spawn;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddMobPacket;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
+import org.geysermc.connector.entity.factory.BaseEntityFactory;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.EntityUtils;
+import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.utils.LanguageUtils;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 
 @Translator(packet = ClientboundAddMobPacket.class)
 public class JavaAddMobTranslator extends PacketTranslator<ClientboundAddMobPacket> {
@@ -45,25 +43,16 @@ public class JavaAddMobTranslator extends PacketTranslator<ClientboundAddMobPack
     public void translate(GeyserSession session, ClientboundAddMobPacket packet) {
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f motion = Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());
-        Vector3f rotation = Vector3f.from(packet.getYaw(), packet.getPitch(), packet.getHeadYaw());
 
-        EntityType type = EntityUtils.toBedrockEntity(packet.getType());
-        if (type == null) {
+        EntityDefinition<?> definition = Registries.ENTITY_DEFINITIONS.get(packet.getType());
+        if (definition == null) {
             session.getConnector().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.entity.type_null", packet.getType()));
             return;
         }
 
-        Class<? extends Entity> entityClass = type.getEntityClass();
-        try {
-            Constructor<? extends Entity> entityConstructor = entityClass.getConstructor(long.class, long.class, EntityType.class,
-                    Vector3f.class, Vector3f.class, Vector3f.class);
-
-            Entity entity = entityConstructor.newInstance(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                    type, position, motion, rotation
-            );
-            session.getEntityCache().spawnEntity(entity);
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
-            ex.printStackTrace();
-        }
+        Entity entity = ((BaseEntityFactory<?>) definition.factory()).create(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+                packet.getUuid(), definition, position, motion, packet.getYaw(), packet.getPitch(), packet.getHeadYaw()
+        );
+        session.getEntityCache().spawnEntity(entity);
     }
 }

@@ -44,7 +44,7 @@ public class FeedBabySoundInteractionHandler implements EntitySoundInteractionHa
     public void handleInteraction(GeyserSession session, Vector3f position, Entity entity) {
         if (entity instanceof AnimalEntity && !(entity instanceof CatEntity || entity instanceof OcelotEntity)) {
             String handIdentifier = session.getPlayerInventory().getItemInHand().getMapping(session).getJavaIdentifier();
-            boolean isBaby = entity.getMetadata().getFlags().getFlag(EntityFlag.BABY);
+            boolean isBaby = entity.getDirtyMetadata().getFlags().getFlag(EntityFlag.BABY);
             if (isBaby && ((AnimalEntity) entity).canEat(session, handIdentifier.replace("minecraft:", ""),
                     session.getPlayerInventory().getItemInHand().getMapping(session))) {
                 // Play the "feed child" effect

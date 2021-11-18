@@ -26,6 +26,7 @@
 package org.geysermc.connector.entity.living.merchant;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.VillagerData;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
@@ -34,12 +35,12 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import org.geysermc.connector.entity.type.EntityType;
+import lombok.Getter;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.registry.BlockRegistries;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.UUID;
 
 public class VillagerEntity extends AbstractMerchantEntity {
 
@@ -79,32 +80,41 @@ public class VillagerEntity extends AbstractMerchantEntity {
         VILLAGER_REGIONS.put(6, 6);
     }
 
-    public VillagerEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    private Vector3i bedPosition;
+    /**
+     * Used in the interactive tag manager
+     */
+    @Getter
+    private boolean canTradeWith;
+
+    public VillagerEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    }
+
+    public void setVillagerData(EntityMetadata<VillagerData> entityMetadata) {
+        VillagerData villagerData = entityMetadata.getValue();
+        // Profession
+        int profession = VILLAGER_PROFESSIONS.get(villagerData.getProfession());
+        canTradeWith = profession != 14 && profession != 0; // Not a notwit and not professionless
+        dirtyMetadata.put(EntityData.VARIANT, profession);
+        //metadata.put(EntityData.SKIN_ID, villagerData.getType()); Looks like this is modified but for any reason?
+        // Region
+        dirtyMetadata.put(EntityData.MARK_VARIANT, VILLAGER_REGIONS.get(villagerData.getType()));
+        // Trade tier - different indexing in Bedrock
+        dirtyMetadata.put(EntityData.TRADE_TIER, villagerData.getLevel() - 1);
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 18) {
-            VillagerData villagerData = (VillagerData) entityMetadata.getValue();
-            // Profession
-            metadata.put(EntityData.VARIANT, VILLAGER_PROFESSIONS.get(villagerData.getProfession()));
-            //metadata.put(EntityData.SKIN_ID, villagerData.getType()); Looks like this is modified but for any reason?
-            // Region
-            metadata.put(EntityData.MARK_VARIANT, VILLAGER_REGIONS.get(villagerData.getType()));
-            // Trade tier - different indexing in Bedrock
-            metadata.put(EntityData.TRADE_TIER, villagerData.getLevel() - 1);
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
+    public Vector3i setBedPosition(EntityMetadata<Position> entityMetadata) {
+        return bedPosition = super.setBedPosition(entityMetadata);
     }
 
     @Override
-    public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         // The bed block position, if it exists
-        Vector3i bedPosition;
-        if (!metadata.getFlags().getFlag(EntityFlag.SLEEPING) || (bedPosition = metadata.getPos(EntityData.BED_POSITION, null)) == null) {
+        if (!getFlag(EntityFlag.SLEEPING) || bedPosition == null) {
             // No need to worry about extra processing to compensate for sleeping
-            super.moveRelative(session, relX, relY, relZ, rotation, isOnGround);
+            super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
             return;
         }
         
@@ -133,7 +143,9 @@ public class VillagerEntity extends AbstractMerchantEntity {
             zOffset = .5f;
         }
 
-        setRotation(rotation);
+        setYaw(yaw);
+        setPitch(pitch);
+        setHeadYaw(headYaw);
         setOnGround(isOnGround);
         this.position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
 

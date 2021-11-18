@@ -28,11 +28,14 @@ package org.geysermc.connector.network.translators.java.entity;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundSetEntityDataPacket;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.EntityMetadataTranslator;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.InteractiveTagManager;
 import org.geysermc.connector.utils.LanguageUtils;
+
+import java.util.List;
 
 @Translator(packet = ClientboundSetEntityDataPacket.class)
 public class JavaSetEntityDataTranslator extends PacketTranslator<ClientboundSetEntityDataPacket> {
@@ -47,22 +50,30 @@ public class JavaSetEntityDataTranslator extends PacketTranslator<ClientboundSet
         }
         if (entity == null) return;
 
-        for (EntityMetadata metadata : packet.getMetadata()) {
-            try {
-                entity.updateBedrockMetadata(metadata, session);
-            } catch (ClassCastException e) {
-                // Class cast exceptions are really the only ones we're going to get in normal gameplay
-                // Because some entity rewriters forget about some values
-                // Any other errors are actual bugs
-                session.getConnector().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.network.translator.metadata.failed", metadata, entity.getEntityType()));
-                session.getConnector().getLogger().debug("Entity Java ID: " + entity.getEntityId() + ", Geyser ID: " + entity.getGeyserId());
+        List<EntityMetadataTranslator<?, ?>> translators = (List<EntityMetadataTranslator<?, ?>>) entity.getDefinition().translators();
+
+        for (EntityMetadata<?> metadata : packet.getMetadata()) {
+            if (metadata.getId() >= translators.size()) {
+                session.getConnector().getLogger().warning("Metadata ID " + metadata.getId() + " is out of bounds of known entity metadata size " + translators.size() + " for entity type " + entity.getDefinition().entityType());
                 if (session.getConnector().getConfig().isDebugMode()) {
-                    e.printStackTrace();
+                    session.getConnector().getLogger().debug(metadata.toString());
                 }
+                continue;
             }
+
+            EntityMetadataTranslator<? super Entity, ?> translator = (EntityMetadataTranslator<? super Entity, ?>) translators.get(metadata.getId());
+            if (translator == null) {
+                // This can safely happen; it means we don't translate this entity metadata
+                continue;
+            }
+            if (translator.acceptedType() != metadata.getType()) {
+                session.getConnector().getLogger().warning("Metadata ID " + metadata.getId() + " was received with type " + metadata.getType() + " but we expected " + translator.acceptedType() + " for " + entity.getDefinition().entityType());
+                continue;
+            }
+            translator.translateFunction().accept(entity, metadata);
         }
 
-        entity.updateBedrockMetadata(session);
+        entity.updateBedrockMetadata();
 
         // Update the interactive tag, if necessary
         if (session.getMouseoverEntity() != null && session.getMouseoverEntity().getEntityId() == entity.getEntityId()) {

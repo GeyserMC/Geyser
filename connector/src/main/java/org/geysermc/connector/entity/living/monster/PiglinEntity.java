@@ -26,44 +26,40 @@
 package org.geysermc.connector.entity.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 public class PiglinEntity extends BasePiglinEntity {
 
-    public PiglinEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public PiglinEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 17) {
-            boolean isBaby = (boolean) entityMetadata.getValue();
-            if (isBaby) {
-                metadata.put(EntityData.SCALE, .55f);
-                metadata.getFlags().setFlag(EntityFlag.BABY, true);
-            }
-        }
-        if (entityMetadata.getId() == 18) {
-            metadata.getFlags().setFlag(EntityFlag.CHARGING, (boolean) entityMetadata.getValue());
-        }
-        if (entityMetadata.getId() == 19) {
-            metadata.getFlags().setFlag(EntityFlag.DANCING, (boolean) entityMetadata.getValue());
-        }
+    public void setBaby(EntityMetadata<Boolean> entityMetadata) {
+        boolean isBaby = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+        dirtyMetadata.put(EntityData.SCALE, isBaby? .55f : 1f);
+        setFlag(EntityFlag.BABY, isBaby);
+    }
 
-        super.updateBedrockMetadata(entityMetadata, session);
+    public void setChargingCrossbow(EntityMetadata<Boolean> entityMetadata) {
+        setFlag(EntityFlag.CHARGING, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue());
+    }
+
+    public void setDancing(EntityMetadata<Boolean> entityMetadata) {
+        setFlag(EntityFlag.DANCING, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue());
     }
 
     @Override
     public void updateOffHand(GeyserSession session) {
         // Check if the Piglin is holding Gold and set the ADMIRING flag accordingly so its pose updates
-        boolean changed = metadata.getFlags().setFlag(EntityFlag.ADMIRING, session.getTagCache().shouldPiglinAdmire(session.getItemMappings().getMapping(this.offHand)));
-        if (changed) {
-            super.updateBedrockMetadata(session);
-        }
+        setFlag(EntityFlag.ADMIRING, session.getTagCache().shouldPiglinAdmire(session.getItemMappings().getMapping(this.offHand)));
+        super.updateBedrockMetadata();
 
         super.updateOffHand(session);
     }

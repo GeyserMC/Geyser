@@ -26,11 +26,11 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockFace;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 import com.nukkitx.protocol.bedrock.packet.LecternUpdatePacket;
 import org.geysermc.connector.inventory.LecternContainer;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -54,7 +54,7 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
             // Emulate an interact packet
             ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
                     new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()),
-                    BlockFace.DOWN,
+                    Direction.DOWN,
                     Hand.MAIN_HAND,
                     0, 0, 0, // Java doesn't care about these when dealing with a lectern
                     false);

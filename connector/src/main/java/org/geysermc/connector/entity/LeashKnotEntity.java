@@ -26,13 +26,15 @@
 package org.geysermc.connector.entity;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 public class LeashKnotEntity extends Entity {
 
-    public LeashKnotEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
+    public LeashKnotEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         // Position is incorrect by default
-        super(entityId, geyserId, entityType, position.add(0.5f, 0.25f, 0.5f), motion, rotation);
+        super(session, entityId, geyserId, uuid, definition, position.add(0.5f, 0.25f, 0.5f), motion, yaw, pitch, headYaw);
     }
 
 }

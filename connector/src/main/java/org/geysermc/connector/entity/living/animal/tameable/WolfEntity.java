@@ -26,15 +26,18 @@
 package org.geysermc.connector.entity.living.animal.tameable;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.google.common.collect.ImmutableSet;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.registry.type.ItemMapping;
 
 import java.util.Set;
+import java.util.UUID;
 
 public class WolfEntity extends TameableEntity {
     /**
@@ -47,49 +50,45 @@ public class WolfEntity extends TameableEntity {
 
     private byte collarColor;
 
-    public WolfEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public WolfEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        //Reset wolf color
-        if (entityMetadata.getId() == 17) {
-            byte xd = (byte) entityMetadata.getValue();
-            boolean angry = (xd & 0x02) == 0x02;
-            if (angry) {
-                metadata.put(EntityData.COLOR, (byte) 0);
-            }
+    public void setTameableFlags(EntityMetadata<Byte> entityMetadata) {
+        super.setFlags(entityMetadata);
+        // Reset wolf color
+        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+        boolean angry = (xd & 0x02) == 0x02;
+        if (angry) {
+            dirtyMetadata.put(EntityData.COLOR, (byte) 0);
+        }
+    }
+
+    public void setCollarColor(EntityMetadata<Integer> entityMetadata) {
+        collarColor = (byte) ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+        if (getFlag(EntityFlag.ANGRY)) {
+            return;
         }
 
-        // "Begging" on wiki.vg, "Interested" in Nukkit - the tilt of the head
-        if (entityMetadata.getId() == 19) {
-            metadata.getFlags().setFlag(EntityFlag.INTERESTED, (boolean) entityMetadata.getValue());
+        dirtyMetadata.put(EntityData.COLOR, collarColor);
+        if (ownerBedrockId == 0) {
+            // If a color is set and there is no owner entity ID, set one.
+            // Otherwise, the entire wolf is set to that color: https://user-images.githubusercontent.com/9083212/99209989-92691200-2792-11eb-911d-9a315c955be9.png
+            dirtyMetadata.put(EntityData.OWNER_EID, session.getPlayerEntity().getGeyserId());
         }
+    }
 
-        // Wolf collar color
-        // Relies on EntityData.OWNER_EID being set in TameableEntity.java
-        if (entityMetadata.getId() == 20 && !metadata.getFlags().getFlag(EntityFlag.ANGRY)) {
-            metadata.put(EntityData.COLOR, collarColor = (byte) (int) entityMetadata.getValue());
-            if (!metadata.containsKey(EntityData.OWNER_EID)) {
-                // If a color is set and there is no owner entity ID, set one.
-                // Otherwise, the entire wolf is set to that color: https://user-images.githubusercontent.com/9083212/99209989-92691200-2792-11eb-911d-9a315c955be9.png
-                metadata.put(EntityData.OWNER_EID, session.getPlayerEntity().getGeyserId());
-            }
-        }
-
-        // Wolf anger (1.16+)
-        if (entityMetadata.getId() == 21) {
-            metadata.getFlags().setFlag(EntityFlag.ANGRY, (int) entityMetadata.getValue() != 0);
-            metadata.put(EntityData.COLOR, (int) entityMetadata.getValue() != 0 ? (byte) 0 : collarColor);
-        }
-
-        super.updateBedrockMetadata(entityMetadata, session);
+    // 1.16+
+    public void setWolfAngerTime(EntityMetadata<Integer> entityMetadata) {
+        int time = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+        setFlag(EntityFlag.ANGRY, time != 0);
+        dirtyMetadata.put(EntityData.COLOR, time != 0 ? (byte) 0 : collarColor);
     }
 
     @Override
     public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemMapping mapping) {
         // Cannot be a baby to eat these foods
-        return WOLF_FOODS.contains(javaIdentifierStripped) && !metadata.getFlags().getFlag(EntityFlag.BABY);
+        return WOLF_FOODS.contains(javaIdentifierStripped) && !getFlag(EntityFlag.BABY);
     }
 }

@@ -26,70 +26,70 @@
 package org.geysermc.connector.entity.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.registry.type.ItemMapping;
+
+import java.util.UUID;
 
 public class StriderEntity extends AnimalEntity {
 
     private boolean isCold = false;
 
-    public StriderEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public StriderEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
 
-        metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
-        metadata.getFlags().setFlag(EntityFlag.BREATHING, true);
+        setFlag(EntityFlag.FIRE_IMMUNE, true);
+        setFlag(EntityFlag.BREATHING, true);
+    }
+
+    public void setCold(EntityMetadata<Boolean> entityMetadata) {
+        isCold = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+    }
+
+    public void setSaddled(EntityMetadata<Boolean> entityMetadata) {
+        setFlag(EntityFlag.SADDLED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue());
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 18) {
-            isCold = (boolean) entityMetadata.getValue();
-        }
-        if (entityMetadata.getId() == 19) {
-            metadata.getFlags().setFlag(EntityFlag.SADDLED, (boolean) entityMetadata.getValue());
-        }
-
-        super.updateBedrockMetadata(entityMetadata, session);
-    }
-
-    @Override
-    public void updateBedrockMetadata(GeyserSession session) {
+    public void updateBedrockMetadata() {
         // Make sure they are not shaking when riding another entity
         // Needs to copy the parent state
-        if (metadata.getFlags().getFlag(EntityFlag.RIDING)) {
+        if (getFlag(EntityFlag.RIDING)) {
             boolean parentShaking = false;
+            //TODO optimize
             for (Entity ent : session.getEntityCache().getEntities().values()) {
                 if (ent.getPassengers().contains(entityId) && ent instanceof StriderEntity) {
-                    parentShaking = ent.getMetadata().getFlags().getFlag(EntityFlag.SHAKING);
+                    parentShaking = ent.getFlag(EntityFlag.SHAKING);
                     break;
                 }
             }
     
-            metadata.getFlags().setFlag(EntityFlag.BREATHING, !parentShaking);
-            metadata.getFlags().setFlag(EntityFlag.SHAKING, parentShaking);
+            setFlag(EntityFlag.BREATHING, !parentShaking);
+            setFlag(EntityFlag.SHAKING, parentShaking);
         } else {
-            metadata.getFlags().setFlag(EntityFlag.BREATHING, !isCold);
-            metadata.getFlags().setFlag(EntityFlag.SHAKING, isShaking(session));
+            setFlag(EntityFlag.BREATHING, !isCold);
+            setFlag(EntityFlag.SHAKING, isShaking());
         }
 
         // Update the passengers if we have any
         for (long passenger : passengers) {
             Entity passengerEntity = session.getEntityCache().getEntityByJavaId(passenger);
             if (passengerEntity != null) {
-                passengerEntity.updateBedrockMetadata(session);
+                passengerEntity.updateBedrockMetadata();
             }
         }
 
-        super.updateBedrockMetadata(session);
+        super.updateBedrockMetadata();
     }
 
     @Override
-    protected boolean isShaking(GeyserSession session) {
-        return isCold || super.isShaking(session);
+    protected boolean isShaking() {
+        return isCold || super.isShaking();
     }
 
     @Override

@@ -26,11 +26,11 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockFace;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
@@ -42,8 +42,8 @@ import com.nukkitx.protocol.bedrock.data.inventory.*;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.CommandBlockMinecartEntity;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.EntityDefinitions;
 import org.geysermc.connector.entity.ItemFrameEntity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -92,7 +92,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         ServerboundPlayerActionPacket dropAllPacket = new ServerboundPlayerActionPacket(
                                 dropAll ? PlayerAction.DROP_ITEM_STACK : PlayerAction.DROP_ITEM,
                                 BlockUtils.POSITION_ZERO,
-                                BlockFace.DOWN
+                                Direction.DOWN
                         );
                         session.sendDownstreamPacket(dropAllPacket);
 
@@ -156,13 +156,13 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         // Adjust position for current eye height
                         switch (session.getPose()) {
                             case SNEAKING ->
-                                playerPosition = playerPosition.sub(0, (EntityType.PLAYER.getOffset() - 1.27f), 0);
+                                playerPosition = playerPosition.sub(0, (EntityDefinitions.PLAYER.offset() - 1.27f), 0);
                             case SWIMMING,
                                 FALL_FLYING, // Elytra
                                 SPIN_ATTACK -> // Trident spin attack
-                                playerPosition = playerPosition.sub(0, (EntityType.PLAYER.getOffset() - 0.4f), 0);
+                                playerPosition = playerPosition.sub(0, (EntityDefinitions.PLAYER.offset() - 0.4f), 0);
                             case SLEEPING ->
-                                playerPosition = playerPosition.sub(0, (EntityType.PLAYER.getOffset() - 0.2f), 0);
+                                playerPosition = playerPosition.sub(0, (EntityDefinitions.PLAYER.offset() - 0.2f), 0);
                         } // else, we don't have to modify the position
 
                         float diffX = playerPosition.getX() - packet.getBlockPosition().getX();
@@ -175,7 +175,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         // Vanilla check
-                        if (!(session.getPlayerEntity().getPosition().sub(0, EntityType.PLAYER.getOffset(), 0)
+                        if (!(session.getPlayerEntity().getPosition().sub(0, EntityDefinitions.PLAYER.offset(), 0)
                                 .distanceSquared(packet.getBlockPosition().toFloat().add(0.5f, 0.5f, 0.5f)) < MAXIMUM_BLOCK_PLACING_DISTANCE)) {
                             // The client thinks that its blocks have been successfully placed. Restore the server's blocks instead.
                             restoreCorrectBlock(session, blockPos, packet);
@@ -198,7 +198,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
                                 new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()),
-                                BlockFace.values()[packet.getBlockFace()],
+                                Direction.VALUES[packet.getBlockFace()],
                                 Hand.MAIN_HAND,
                                 packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
                                 false);
@@ -300,7 +300,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         Vector3f playerPosition = session.getPlayerEntity().getPosition();
                         Vector3f floatBlockPosition = packet.getBlockPosition().toFloat();
                         float diffX = playerPosition.getX() - (floatBlockPosition.getX() + 0.5f);
-                        float diffY = (playerPosition.getY() - EntityType.PLAYER.getOffset()) - (floatBlockPosition.getY() + 0.5f) + 1.5f;
+                        float diffY = (playerPosition.getY() - EntityDefinitions.PLAYER.offset()) - (floatBlockPosition.getY() + 0.5f) + 1.5f;
                         float diffZ = playerPosition.getZ() - (floatBlockPosition.getZ() + 0.5f);
                         float distanceSquared = diffX * diffX + diffY * diffY + diffZ * diffZ;
                         if (distanceSquared > MAXIMUM_BLOCK_DESTROYING_DISTANCE) {
@@ -325,7 +325,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         PlayerAction action = session.getGameMode() == GameMode.CREATIVE ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING;
                         Position pos = new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());
-                        ServerboundPlayerActionPacket breakPacket = new ServerboundPlayerActionPacket(action, pos, BlockFace.values()[packet.getBlockFace()]);
+                        ServerboundPlayerActionPacket breakPacket = new ServerboundPlayerActionPacket(action, pos, Direction.VALUES[packet.getBlockFace()]);
                         session.sendDownstreamPacket(breakPacket);
                     }
                 }
@@ -334,7 +334,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 if (packet.getActionType() == 0) {
                     // Followed to the Minecraft Protocol specification outlined at wiki.vg
                     ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, BlockUtils.POSITION_ZERO,
-                            BlockFace.DOWN);
+                            Direction.DOWN);
                     session.sendDownstreamPacket(releaseItemPacket);
                 }
                 break;
@@ -369,7 +369,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         EntitySoundInteractionHandler.handleEntityInteraction(session, packet.getClickPosition(), entity);
                         break;
                     case 1: //Attack
-                        if (entity.getEntityType() == EntityType.ENDER_DRAGON) {
+                        if (entity.getDefinition() == EntityDefinitions.ENDER_DRAGON) {
                             // Redirects the attack to its body entity, this only happens when
                             // attacking the underbelly of the ender dragon
                             ServerboundInteractPacket attackPacket = new ServerboundInteractPacket((int) entity.getEntityId() + 3,

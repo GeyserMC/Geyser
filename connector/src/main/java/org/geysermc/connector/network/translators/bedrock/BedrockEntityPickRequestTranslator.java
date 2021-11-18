@@ -26,14 +26,16 @@
 package org.geysermc.connector.network.translators.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.EntityPickRequestPacket;
+import org.geysermc.connector.entity.BoatEntity;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.registry.type.ItemMapping;
 import org.geysermc.connector.utils.InventoryUtils;
+
+import java.util.Locale;
 
 /**
  * Called when the Bedrock user uses the pick block button on an entity
@@ -49,10 +51,10 @@ public class BedrockEntityPickRequestTranslator extends PacketTranslator<EntityP
 
         // Get the corresponding item
         String itemName;
-        switch (entity.getEntityType()) {
+        switch (entity.getDefinition().entityType()) {
             case BOAT -> {
                 // Include type of boat in the name
-                int variant = entity.getMetadata().getInt(EntityData.VARIANT);
+                int variant = ((BoatEntity) entity).getVariant();
                 String typeOfBoat = switch (variant) {
                     case 1 -> "spruce";
                     case 2 -> "birch";
@@ -65,15 +67,16 @@ public class BedrockEntityPickRequestTranslator extends PacketTranslator<EntityP
             }
             case LEASH_KNOT -> itemName = "lead";
             case MINECART_CHEST, MINECART_COMMAND_BLOCK, MINECART_FURNACE, MINECART_HOPPER, MINECART_TNT ->
-                    // Move MINECART to the end of the name
-                    itemName = entity.getEntityType().toString().toLowerCase().replace("minecart_", "") + "_minecart";
+                    // The Bedrock identifier matches the item name which moves MINECART to the end of the name
+                    // TODO test
+                    itemName = entity.getDefinition().identifier();
             case MINECART_SPAWNER -> itemName = "minecart"; // Turns into a normal minecart
             //case ITEM_FRAME -> Not an entity in Bedrock Edition
             //case GLOW_ITEM_FRAME ->
             case ARMOR_STAND, END_CRYSTAL, MINECART, PAINTING ->
                     // No spawn egg, just an item
-                    itemName = entity.getEntityType().toString().toLowerCase();
-            default -> itemName = entity.getEntityType().toString().toLowerCase() + "_spawn_egg";
+                    itemName = entity.getDefinition().entityType().toString().toLowerCase(Locale.ROOT);
+            default -> itemName = entity.getDefinition().entityType().toString().toLowerCase(Locale.ROOT) + "_spawn_egg";
         }
 
         String fullItemName = "minecraft:" + itemName;

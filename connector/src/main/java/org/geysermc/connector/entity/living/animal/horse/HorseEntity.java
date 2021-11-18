@@ -26,24 +26,23 @@
 package org.geysermc.connector.entity.living.animal.horse;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 public class HorseEntity extends AbstractHorseEntity {
 
-    public HorseEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public HorseEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 19) {
-            metadata.put(EntityData.VARIANT, ((int) entityMetadata.getValue()) & 255);
-            metadata.put(EntityData.MARK_VARIANT, (((int) entityMetadata.getValue()) >> 8) % 5);
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
+    public void setHorseVariant(EntityMetadata<Integer> entityMetadata) {
+        int value = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+        dirtyMetadata.put(EntityData.VARIANT, value & 255);
+        dirtyMetadata.put(EntityData.MARK_VARIANT, (value >> 8) % 5);
     }
-
 }

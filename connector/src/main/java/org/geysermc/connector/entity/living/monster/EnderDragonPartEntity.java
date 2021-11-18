@@ -29,15 +29,17 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinitions;
+import org.geysermc.connector.network.session.GeyserSession;
 
 public class EnderDragonPartEntity extends Entity {
-    public EnderDragonPartEntity(long entityId, long geyserId, EntityType entityType, float width, float height) {
-        super(entityId, geyserId, entityType, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
 
-        metadata.put(EntityData.BOUNDING_BOX_WIDTH, width);
-        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
-        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
-        metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
+    public EnderDragonPartEntity(GeyserSession session, long entityId, long geyserId, float width, float height) {
+        super(session, entityId, geyserId, null, EntityDefinitions.ENDER_DRAGON_PART, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
+
+        dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, width);
+        dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
+        setFlag(EntityFlag.INVISIBLE, true);
+        setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 }

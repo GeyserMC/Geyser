@@ -27,19 +27,20 @@ package org.geysermc.connector.entity;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
+import java.util.UUID;
+
 public class SpawnerMinecartEntity extends DefaultBlockMinecartEntity {
 
-    public SpawnerMinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public SpawnerMinecartEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
-    public void updateDefaultBlockMetadata(GeyserSession session) {
-        metadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId(BlockStateValues.JAVA_SPAWNER_ID));
-        metadata.put(EntityData.DISPLAY_OFFSET, 6);
+    public void updateDefaultBlockMetadata() {
+        dirtyMetadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId(BlockStateValues.JAVA_SPAWNER_ID));
+        dirtyMetadata.put(EntityData.DISPLAY_OFFSET, 6);
     }
 }

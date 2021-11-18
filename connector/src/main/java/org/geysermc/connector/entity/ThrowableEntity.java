@@ -25,14 +25,16 @@
 
 package org.geysermc.connector.entity;
 
+import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityDeltaPacket;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+
+import java.util.UUID;
 
 /**
  * Used as a class for any object-like entity that moves as a projectile
@@ -41,8 +43,8 @@ public class ThrowableEntity extends Entity implements Tickable {
 
     protected Vector3f lastJavaPosition;
 
-    public ThrowableEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public ThrowableEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
         this.lastJavaPosition = position;
     }
 
@@ -52,14 +54,14 @@ public class ThrowableEntity extends Entity implements Tickable {
      * Java clients assume the next positions of moving items. Bedrock needs to be explicitly told positions
      */
     @Override
-    public void tick(GeyserSession session) {
-        moveAbsoluteImmediate(session, position.add(motion), rotation, onGround, false);
-        float drag = getDrag(session);
-        float gravity = getGravity(session);
+    public void tick() {
+        moveAbsoluteImmediate(position.add(motion), yaw, pitch, headYaw, onGround, false);
+        float drag = getDrag();
+        float gravity = getGravity();
         motion = motion.mul(drag).down(gravity);
     }
 
-    protected void moveAbsoluteImmediate(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+    protected void moveAbsoluteImmediate(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
         moveEntityDeltaPacket.setRuntimeEntityId(geyserId);
 
@@ -86,19 +88,21 @@ public class ThrowableEntity extends Entity implements Tickable {
         }
         setPosition(position);
 
-        if (this.rotation.getX() != rotation.getX()) {
+        if (this.yaw != yaw) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
-            moveEntityDeltaPacket.setYaw(rotation.getX());
+            moveEntityDeltaPacket.setYaw(yaw);
+            this.yaw = yaw;
         }
-        if (this.rotation.getY() != rotation.getY()) {
+        if (this.pitch != pitch) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
-            moveEntityDeltaPacket.setPitch(rotation.getY());
+            moveEntityDeltaPacket.setPitch(pitch);
+            this.pitch = pitch;
         }
-        if (this.rotation.getZ() != rotation.getZ()) {
+        if (this.headYaw != headYaw) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
-            moveEntityDeltaPacket.setHeadYaw(rotation.getZ());
+            moveEntityDeltaPacket.setHeadYaw(headYaw);
+            this.headYaw = headYaw;
         }
-        setRotation(rotation);
 
         if (!moveEntityDeltaPacket.getFlags().isEmpty()) {
             session.sendUpstreamPacket(moveEntityDeltaPacket);
@@ -108,14 +112,12 @@ public class ThrowableEntity extends Entity implements Tickable {
     /**
      * Get the gravity of this entity type. Used for applying gravity while the entity is in motion.
      *
-     * @param session the session of the Bedrock client.
      * @return the amount of gravity to apply to this entity while in motion.
      */
-    protected float getGravity(GeyserSession session) {
-        if (metadata.getFlags().getFlag(EntityFlag.HAS_GRAVITY)) {
-            switch (entityType) {
+    protected float getGravity() {
+        if (getFlag(EntityFlag.HAS_GRAVITY)) {
+            switch (definition.entityType()) {
                 case THROWN_POTION:
-                case LINGERING_POTION:
                     return 0.05f;
                 case THROWN_EXP_BOTTLE:
                     return 0.07f;
@@ -134,16 +136,14 @@ public class ThrowableEntity extends Entity implements Tickable {
     }
 
     /**
-     * @param session the session of the Bedrock client.
      * @return the drag that should be multiplied to the entity's motion
      */
-    protected float getDrag(GeyserSession session) {
-        if (isInWater(session)) {
+    protected float getDrag() {
+        if (isInWater()) {
             return 0.8f;
         } else {
-            switch (entityType) {
+            switch (definition.entityType()) {
                 case THROWN_POTION:
-                case LINGERING_POTION:
                 case THROWN_EXP_BOTTLE:
                 case SNOWBALL:
                 case THROWN_EGG:
@@ -162,34 +162,33 @@ public class ThrowableEntity extends Entity implements Tickable {
     }
 
     /**
-     * @param session the session of the Bedrock client.
      * @return true if this entity is currently in water.
      */
-    protected boolean isInWater(GeyserSession session) {
+    protected boolean isInWater() {
         int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());
         return BlockStateValues.getWaterLevel(block) != -1;
     }
 
     @Override
-    public boolean despawnEntity(GeyserSession session) {
-        if (entityType == EntityType.THROWN_ENDERPEARL) {
+    public boolean despawnEntity() {
+        if (definition.entityType() == EntityType.THROWN_ENDERPEARL) {
             LevelEventPacket particlePacket = new LevelEventPacket();
             particlePacket.setType(LevelEventType.PARTICLE_TELEPORT);
             particlePacket.setPosition(position);
             session.sendUpstreamPacket(particlePacket);
         }
-        return super.despawnEntity(session);
+        return super.despawnEntity();
     }
 
     @Override
-    public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
-        moveAbsoluteImmediate(session, lastJavaPosition.add(relX, relY, relZ), rotation, isOnGround, false);
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        moveAbsoluteImmediate(lastJavaPosition.add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
         lastJavaPosition = position;
     }
 
     @Override
-    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
-        moveAbsoluteImmediate(session, position, rotation, isOnGround, teleported);
+    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        moveAbsoluteImmediate(position, yaw, pitch, headYaw, isOnGround, teleported);
         lastJavaPosition = position;
     }
 }

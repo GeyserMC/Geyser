@@ -25,11 +25,9 @@
 
 package org.geysermc.connector.entity;
 
-import org.geysermc.connector.network.session.GeyserSession;
-
 /**
  * Implemented onto anything that should have code ran every Minecraft tick - 50 milliseconds.
  */
 public interface Tickable {
-    void tick(GeyserSession session);
+    void tick();
 }

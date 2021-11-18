@@ -44,6 +44,6 @@ public class JavaMoveEntityPosTranslator extends PacketTranslator<ClientboundMov
         }
         if (entity == null) return;
 
-        entity.moveRelative(session, packet.getMoveX(), packet.getMoveY(), packet.getMoveZ(), entity.getRotation(), packet.isOnGround());
+        entity.moveRelative(packet.getMoveX(), packet.getMoveY(), packet.getMoveZ(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), packet.isOnGround());
     }
 }

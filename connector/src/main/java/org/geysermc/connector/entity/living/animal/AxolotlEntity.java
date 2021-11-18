@@ -26,32 +26,33 @@
 package org.geysermc.connector.entity.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.registry.type.ItemMapping;
 
+import java.util.UUID;
+
 public class AxolotlEntity extends AnimalEntity {
-    public AxolotlEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public AxolotlEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        super.updateBedrockMetadata(entityMetadata, session);
-        if (entityMetadata.getId() == 17) {
-            int variant = (int) entityMetadata.getValue();
-            switch (variant) {
-                case 1 -> variant = 3; // Java - "Wild" (brown)
-                case 3 -> variant = 1; // Java - cyan
-            }
-            metadata.put(EntityData.VARIANT, variant);
+    public void setVariant(EntityMetadata<Integer> entityMetadata) {
+        int variant = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+        switch (variant) {
+            case 1 -> variant = 3; // Java - "Wild" (brown)
+            case 3 -> variant = 1; // Java - cyan
         }
-        else if (entityMetadata.getId() == 18) {
-            metadata.getFlags().setFlag(EntityFlag.PLAYING_DEAD, (boolean) entityMetadata.getValue());
-        }
+        dirtyMetadata.put(EntityData.VARIANT, variant);
+    }
+
+    public void setPlayingDead(EntityMetadata<Boolean> entityMetadata) {
+        setFlag(EntityFlag.PLAYING_DEAD, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue());
     }
 
     @Override

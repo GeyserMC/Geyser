@@ -26,43 +26,44 @@
 package org.geysermc.connector.entity.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.registry.type.ItemMapping;
 
+import java.util.UUID;
+
 public class BeeEntity extends AnimalEntity {
 
-    public BeeEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public BeeEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 17) {
-            byte xd = (byte) entityMetadata.getValue();
-            // Bee is performing sting attack; trigger animation
-            if ((xd & 0x02) == 0x02) {
-                EntityEventPacket packet = new EntityEventPacket();
-                packet.setRuntimeEntityId(geyserId);
-                packet.setType(EntityEventType.ATTACK_START);
-                packet.setData(0);
-                session.sendUpstreamPacket(packet);
-            }
-            // If the bee has stung
-            metadata.put(EntityData.MARK_VARIANT, (xd & 0x04) == 0x04 ? 1 : 0);
-            // If the bee has nectar or not
-            metadata.getFlags().setFlag(EntityFlag.POWERED, (xd & 0x08) == 0x08);
+    public void setBeeFlags(EntityMetadata<Byte> entityMetadata) {
+        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+        // Bee is performing sting attack; trigger animation
+        if ((xd & 0x02) == 0x02) {
+            EntityEventPacket packet = new EntityEventPacket();
+            packet.setRuntimeEntityId(geyserId);
+            packet.setType(EntityEventType.ATTACK_START);
+            packet.setData(0);
+            session.sendUpstreamPacket(packet);
         }
-        if (entityMetadata.getId() == 18) {
-            // Converting "anger time" to a boolean
-            metadata.getFlags().setFlag(EntityFlag.ANGRY, (int) entityMetadata.getValue() > 0);
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
+        // If the bee has stung
+        dirtyMetadata.put(EntityData.MARK_VARIANT, (xd & 0x04) == 0x04 ? 1 : 0);
+        // If the bee has nectar or not
+        setFlag(EntityFlag.POWERED, (xd & 0x08) == 0x08);
+    }
+
+    public void setAngerTime(EntityMetadata<Integer> entityMetadata) {
+        // Converting "anger time" to a boolean
+        setFlag(EntityFlag.ANGRY, ((IntEntityMetadata) entityMetadata).getPrimitiveValue() > 0);
     }
 
     @Override

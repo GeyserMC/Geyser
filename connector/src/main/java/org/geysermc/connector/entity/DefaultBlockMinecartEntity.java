@@ -26,10 +26,13 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 /**
  * This class is used as a base for minecarts with a default block to display like furnaces and spawners
@@ -40,53 +43,48 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
     public int customBlockOffset = 0;
     public boolean showCustomBlock = false;
 
-    public DefaultBlockMinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public DefaultBlockMinecartEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
 
-        metadata.put(EntityData.CUSTOM_DISPLAY, (byte) 1);
+        dirtyMetadata.put(EntityData.CUSTOM_DISPLAY, (byte) 1);
     }
 
     @Override
-    public void spawnEntity(GeyserSession session) {
-        updateDefaultBlockMetadata(session);
-        super.spawnEntity(session);
+    public void spawnEntity() {
+        updateDefaultBlockMetadata();
+        super.spawnEntity();
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+    public void setCustomBlock(EntityMetadata<Integer> entityMetadata) {
+        customBlock = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
 
-        // Custom block
-        if (entityMetadata.getId() == 11) {
-            customBlock = (int) entityMetadata.getValue();
-
-            if (showCustomBlock) {
-                metadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId(customBlock));
-            }
+        if (showCustomBlock) {
+            dirtyMetadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId(customBlock));
         }
-
-        // Custom block offset
-        if (entityMetadata.getId() == 12) {
-            customBlockOffset = (int) entityMetadata.getValue();
-
-            if (showCustomBlock) {
-                metadata.put(EntityData.DISPLAY_OFFSET, customBlockOffset);
-            }
-        }
-
-        // If the custom block should be enabled
-        if (entityMetadata.getId() == 13) {
-            if ((boolean) entityMetadata.getValue()) {
-                showCustomBlock = true;
-                metadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId(customBlock));
-                metadata.put(EntityData.DISPLAY_OFFSET, customBlockOffset);
-            } else {
-                showCustomBlock = false;
-                updateDefaultBlockMetadata(session);
-            }
-        }
-
-        super.updateBedrockMetadata(entityMetadata, session);
     }
 
-    public void updateDefaultBlockMetadata(GeyserSession session) { }
+    @Override
+    public void setCustomBlockOffset(EntityMetadata<Integer> entityMetadata) {
+        customBlockOffset = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+
+        if (showCustomBlock) {
+            dirtyMetadata.put(EntityData.DISPLAY_OFFSET, customBlockOffset);
+        }
+    }
+
+    @Override
+    public void setShowCustomBlock(EntityMetadata<Boolean> entityMetadata) {
+        if (((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()) {
+            showCustomBlock = true;
+            dirtyMetadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId(customBlock));
+            dirtyMetadata.put(EntityData.DISPLAY_OFFSET, customBlockOffset);
+        } else {
+            showCustomBlock = false;
+            updateDefaultBlockMetadata();
+        }
+    }
+
+    public void updateDefaultBlockMetadata() {
+    }
 }

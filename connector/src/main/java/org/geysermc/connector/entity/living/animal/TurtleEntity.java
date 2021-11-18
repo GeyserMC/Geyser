@@ -26,26 +26,27 @@
 package org.geysermc.connector.entity.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.registry.type.ItemMapping;
 
+import java.util.UUID;
+
 public class TurtleEntity extends AnimalEntity {
 
-    public TurtleEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public TurtleEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 18) {
-            metadata.getFlags().setFlag(EntityFlag.IS_PREGNANT, (boolean) entityMetadata.getValue());
-        } else if (entityMetadata.getId() == 19) {
-            metadata.getFlags().setFlag(EntityFlag.LAYING_EGG, (boolean) entityMetadata.getValue());
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
+    public void setPregnant(EntityMetadata<Boolean> entityMetadata) {
+        setFlag(EntityFlag.IS_PREGNANT, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue());
+    }
+
+    public void setLayingEgg(EntityMetadata<Boolean> entityMetadata) {
+        setFlag(EntityFlag.LAYING_EGG, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue());
     }
 
     @Override

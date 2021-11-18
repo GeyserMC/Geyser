@@ -30,21 +30,21 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.EntityDefinitions;
 import org.geysermc.connector.entity.player.PlayerEntity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.cache.PistonCache;
 import org.geysermc.connector.network.translators.collision.translators.BlockCollision;
 import org.geysermc.connector.network.translators.collision.translators.ScaffoldingCollision;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
+import org.geysermc.connector.utils.Axis;
 import org.geysermc.connector.utils.BlockPositionIterator;
 import org.geysermc.connector.utils.BlockUtils;
-import org.geysermc.connector.utils.Axis;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -121,7 +121,7 @@ public class CollisionManager {
         // - In Bedrock Edition, the height becomes 1.65 blocks, allowing movement through spaces as small as 1.75 (2 - 1⁄4) blocks high.
         // - In Java Edition, the height becomes 1.5 blocks.
         // Other instances have the player's bounding box become as small as 0.6 or 0.2.
-        double playerHeight = session.getPlayerEntity().getMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT);
+        double playerHeight = session.getPlayerEntity().getDirtyMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT);
         playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() - (playerBoundingBox.getSizeY() / 2.0) + (playerHeight / 2.0));
         playerBoundingBox.setSizeY(playerHeight);
     }
@@ -143,7 +143,7 @@ public class CollisionManager {
         }
         // We need to parse the float as a string since casting a float to a double causes us to
         // lose precision and thus, causes players to get stuck when walking near walls
-        double javaY = bedrockPosition.getY() - EntityType.PLAYER.getOffset();
+        double javaY = bedrockPosition.getY() - EntityDefinitions.PLAYER.offset();
 
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY,
                 Double.parseDouble(Float.toString(bedrockPosition.getZ())));
@@ -172,7 +172,7 @@ public class CollisionManager {
         if (onGround != newOnGround || movement.distanceSquared(adjustedMovement) > INCORRECT_MOVEMENT_THRESHOLD) {
             PlayerEntity playerEntity = session.getPlayerEntity();
             if (pistonCache.getPlayerMotion().equals(Vector3f.ZERO) && !pistonCache.isPlayerSlimeCollision()) {
-                playerEntity.moveAbsolute(session, position.toFloat(), playerEntity.getRotation(), newOnGround, true);
+                playerEntity.moveAbsolute(position.toFloat(), playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), newOnGround, true);
             }
         }
 
@@ -190,7 +190,7 @@ public class CollisionManager {
         // Gravity might need to be reset...
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
-        entityDataPacket.getMetadata().putAll(entity.getMetadata());
+        entityDataPacket.getMetadata().putAll(entity.getDirtyMetadata());
         session.sendUpstreamPacket(entityDataPacket);
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
@@ -376,9 +376,9 @@ public class CollisionManager {
             // at the current location.
             double originalY = playerBoundingBox.getMiddleY();
             double originalHeight = playerBoundingBox.getSizeY();
-            double standingY = originalY - (originalHeight / 2.0) + (EntityType.PLAYER.getHeight() / 2.0);
+            double standingY = originalY - (originalHeight / 2.0) + (EntityDefinitions.PLAYER.height() / 2.0);
 
-            playerBoundingBox.setSizeY(EntityType.PLAYER.getHeight());
+            playerBoundingBox.setSizeY(EntityDefinitions.PLAYER.height());
             playerBoundingBox.setMiddleY(standingY);
             boolean result = collision.checkIntersection(position, playerBoundingBox);
             result |= session.getPistonCache().checkCollision(position, playerBoundingBox);
@@ -403,18 +403,17 @@ public class CollisionManager {
      * @param updateMetadata whether we should update metadata if something changed
      */
     public void updateScaffoldingFlags(boolean updateMetadata) {
-        EntityFlags flags = session.getPlayerEntity().getMetadata().getFlags();
-        boolean flagsChanged;
+        Entity entity = session.getPlayerEntity();
         boolean isSneakingWithScaffolding = (touchingScaffolding || onScaffolding) && session.isSneaking();
 
-        flagsChanged = flags.setFlag(EntityFlag.OVER_DESCENDABLE_BLOCK, onScaffolding);
-        flagsChanged |= flags.setFlag(EntityFlag.IN_ASCENDABLE_BLOCK, touchingScaffolding);
-        flagsChanged |= flags.setFlag(EntityFlag.OVER_SCAFFOLDING, isSneakingWithScaffolding);
+        entity.setFlag(EntityFlag.OVER_DESCENDABLE_BLOCK, onScaffolding);
+        entity.setFlag(EntityFlag.IN_ASCENDABLE_BLOCK, touchingScaffolding);
+        entity.setFlag(EntityFlag.OVER_SCAFFOLDING, isSneakingWithScaffolding);
 
-        flagsChanged |= flags.setFlag(EntityFlag.IN_SCAFFOLDING, touchingScaffolding);
+        entity.setFlag(EntityFlag.IN_SCAFFOLDING, touchingScaffolding);
 
-        if (flagsChanged && updateMetadata) {
-            session.getPlayerEntity().updateBedrockMetadata(session);
+        if (updateMetadata) {
+            session.getPlayerEntity().updateBedrockMetadata();
         }
     }
 }

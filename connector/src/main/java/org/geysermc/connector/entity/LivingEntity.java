@@ -29,6 +29,8 @@ import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
@@ -43,7 +45,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.entity.attribute.GeyserAttributeType;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.registry.type.ItemMapping;
 import org.geysermc.connector.utils.AttributeUtils;
@@ -52,6 +53,7 @@ import org.geysermc.connector.utils.ChunkUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -74,82 +76,87 @@ public class LivingEntity extends Entity {
      */
     private boolean isMaxFrozenState = false;
 
-    public LivingEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public LivingEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    }
 
+    @Override
+    protected void initializeMetadata() {
+        super.initializeMetadata();
         // Matches Bedrock behavior; is always set to this
-        metadata.put(EntityData.HEALTH, 1);
+        dirtyMetadata.put(EntityData.HEALTH, 1);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        switch (entityMetadata.getId()) {
-            case 8 -> { // blocking
-                byte xd = (byte) entityMetadata.getValue();
+    public void setLivingEntityFlags(EntityMetadata<Byte> entityMetadata) {
+        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
 
-                //blocking gets triggered when using a bow, but if we set USING_ITEM for all items, it may look like
-                //you're "mining" with ex. a shield.
-                ItemMapping shield = session.getItemMappings().getStoredItems().shield();
-                boolean isUsingShield = (getHand().getId() == shield.getBedrockId() ||
-                        getHand().equals(ItemData.AIR) && getOffHand().getId() == shield.getBedrockId());
-                metadata.getFlags().setFlag(EntityFlag.USING_ITEM, (xd & 0x01) == 0x01 && !isUsingShield);
-                metadata.getFlags().setFlag(EntityFlag.BLOCKING, (xd & 0x01) == 0x01);
+        // Blocking gets triggered when using a bow, but if we set USING_ITEM for all items, it may look like
+        // you're "mining" with ex. a shield.
+        ItemMapping shield = session.getItemMappings().getStoredItems().shield();
+        boolean isUsingShield = (getHand().getId() == shield.getBedrockId() ||
+                getHand().equals(ItemData.AIR) && getOffHand().getId() == shield.getBedrockId());
+        setFlag(EntityFlag.USING_ITEM, (xd & 0x01) == 0x01 && !isUsingShield);
+        setFlag(EntityFlag.BLOCKING, (xd & 0x01) == 0x01);
 
-                // Riptide spin attack
-                metadata.getFlags().setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, (xd & 0x04) == 0x04);
-            }
-            case 9 -> {
-                this.health = (float) entityMetadata.getValue();
+        // Riptide spin attack
+        setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, (xd & 0x04) == 0x04);
+    }
 
-                AttributeData healthData = createHealthAttribute();
-                UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-                attributesPacket.setRuntimeEntityId(geyserId);
-                attributesPacket.setAttributes(Collections.singletonList(healthData));
-                session.sendUpstreamPacket(attributesPacket);
-            }
-            case 10 -> metadata.put(EntityData.EFFECT_COLOR, entityMetadata.getValue());
-            case 11 -> metadata.put(EntityData.EFFECT_AMBIENT, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
-            case 14 -> { // Bed Position
-                Position bedPosition = (Position) entityMetadata.getValue();
-                if (bedPosition != null) {
-                    metadata.put(EntityData.BED_POSITION, Vector3i.from(bedPosition.getX(), bedPosition.getY(), bedPosition.getZ()));
-                    int bed = session.getConnector().getWorldManager().getBlockAt(session, bedPosition);
-                    // Bed has to be updated, or else player is floating in the air
-                    ChunkUtils.updateBlock(session, bed, bedPosition);
-                    // Indicate that the player should enter the sleep cycle
-                    // Has to be a byte or it does not work
-                    // (Bed position is what actually triggers sleep - "pose" is only optional)
-                    metadata.put(EntityData.PLAYER_FLAGS, (byte) 2);
-                } else {
-                    // Player is no longer sleeping
-                    metadata.put(EntityData.PLAYER_FLAGS, (byte) 0);
-                }
-            }
+    public void setHealth(EntityMetadata<Float> entityMetadata) {
+        this.health = ((FloatEntityMetadata) entityMetadata).getPrimitiveValue();
+
+        AttributeData healthData = createHealthAttribute();
+        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+        attributesPacket.setRuntimeEntityId(geyserId);
+        attributesPacket.setAttributes(Collections.singletonList(healthData));
+        session.sendUpstreamPacket(attributesPacket);
+    }
+
+    public Vector3i setBedPosition(EntityMetadata<Position> entityMetadata) {
+        Position bedPosition = entityMetadata.getValue();
+        if (bedPosition != null) {
+            Vector3i vector = Vector3i.from(bedPosition.getX(), bedPosition.getY(), bedPosition.getZ());
+            dirtyMetadata.put(EntityData.BED_POSITION, vector);
+            int bed = session.getConnector().getWorldManager().getBlockAt(session, bedPosition);
+            // Bed has to be updated, or else player is floating in the air
+            ChunkUtils.updateBlock(session, bed, bedPosition);
+            // Indicate that the player should enter the sleep cycle
+            // Has to be a byte or it does not work
+            // (Bed position is what actually triggers sleep - "pose" is only optional)
+            dirtyMetadata.put(EntityData.PLAYER_FLAGS, (byte) 2);
+            return vector;
+        } else {
+            // Player is no longer sleeping
+            dirtyMetadata.put(EntityData.PLAYER_FLAGS, (byte) 0);
+            return null;
         }
-
-        super.updateBedrockMetadata(entityMetadata, session);
     }
 
     @Override
-    protected boolean isShaking(GeyserSession session) {
+    protected boolean isShaking() {
         return isMaxFrozenState;
     }
 
     @Override
     protected void setDimensions(Pose pose) {
         if (pose == Pose.SLEEPING) {
-            metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.2f);
-            metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.2f);
+            boundingBoxWidth = 0.2f;
+            boundingBoxHeight = 0.2f;
+            if (boundingBoxWidth != definition.width() || boundingBoxHeight != definition.height()) {
+                dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, boundingBoxWidth);
+                dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, boundingBoxHeight);
+            }
         } else {
             super.setDimensions(pose);
         }
     }
 
     @Override
-    protected void setFreezing(GeyserSession session, float amount) {
-        super.setFreezing(session, amount);
-        this.isMaxFrozenState = amount >= 1.0f;
-        metadata.getFlags().setFlag(EntityFlag.SHAKING, isShaking(session));
+    public float setFreezing(EntityMetadata<Integer> entityMetadata) {
+        float freezingPercentage = super.setFreezing(entityMetadata);
+        this.isMaxFrozenState = freezingPercentage >= 1.0f;
+        setFlag(EntityFlag.SHAKING, isShaking());
+        return freezingPercentage;
     }
 
     /**

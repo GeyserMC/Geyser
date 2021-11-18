@@ -117,7 +117,7 @@ public final class Scoreboard {
                     continue;
                 }
 
-                entity.setBelowNameText(session, objective);
+                entity.setBelowNameText(objective);
             }
         }
     }
@@ -368,7 +368,7 @@ public final class Scoreboard {
             for (Entity entity : session.getEntityCache().getEntities().values()) {
                 // This more complex logic is for the future to iterate over all entities, not just players
                 if (entity instanceof PlayerEntity player && names.remove(player.getUsername())) {
-                    player.updateDisplayName(session, team, true);
+                    player.updateDisplayName(team, true);
                     if (names.isEmpty()) {
                         break;
                     }
@@ -384,7 +384,7 @@ public final class Scoreboard {
         for (Entity entity : session.getEntityCache().getEntities().values()) {
             if (entity instanceof PlayerEntity player) {
                 Team playerTeam = session.getWorldCache().getScoreboard().getTeamFor(player.getUsername());
-                player.updateDisplayName(session, playerTeam, true);
+                player.updateDisplayName(playerTeam, true);
             }
         }
     }

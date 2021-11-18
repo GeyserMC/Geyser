@@ -27,22 +27,21 @@ package org.geysermc.connector.entity;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
 public class ExpOrbEntity extends Entity {
 
     private final int amount;
 
-    public ExpOrbEntity(int amount, long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public ExpOrbEntity(GeyserSession session, int amount, long entityId, long geyserId, Vector3f position) {
+        super(session, entityId, geyserId, null, EntityDefinitions.EXPERIENCE_ORB, position, Vector3f.ZERO, 0, 0, 0);
 
         this.amount = amount;
     }
 
     @Override
-    public void spawnEntity(GeyserSession session) {
-        this.metadata.put(EntityData.EXPERIENCE_VALUE, amount);
-        super.spawnEntity(session);
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+        this.dirtyMetadata.put(EntityData.EXPERIENCE_VALUE, amount);
     }
 }

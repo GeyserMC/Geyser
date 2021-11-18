@@ -26,6 +26,7 @@
 package org.geysermc.connector.entity.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -33,17 +34,18 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.Data;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.entity.Tickable;
-import org.geysermc.connector.entity.living.InsentientEntity;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.living.MobEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.DimensionUtils;
 
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class EnderDragonEntity extends InsentientEntity implements Tickable {
+public class EnderDragonEntity extends MobEntity implements Tickable {
     /**
      * The Ender Dragon has multiple hit boxes, which
      * are each its own invisible entity
@@ -78,46 +80,47 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
     private float wingPosition;
     private float lastWingPosition;
 
-    public EnderDragonEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
-
-        metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
+    public EnderDragonEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) { // Phase
-            phase = (int) entityMetadata.getValue();
-            phaseTicks = 0;
-            metadata.getFlags().setFlag(EntityFlag.SITTING, isSitting());
-        }
-
-        super.updateBedrockMetadata(entityMetadata, session);
-
-        if (entityMetadata.getId() == 9) {
-            if (phase == 9 && this.health <= 0) { // Dying phase
-                EntityEventPacket entityEventPacket = new EntityEventPacket();
-                entityEventPacket.setType(EntityEventType.ENDER_DRAGON_DEATH);
-                entityEventPacket.setRuntimeEntityId(geyserId);
-                entityEventPacket.setData(0);
-                session.sendUpstreamPacket(entityEventPacket);
-            }
-        }
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+        setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 
     @Override
-    public void spawnEntity(GeyserSession session) {
-        super.spawnEntity(session);
+    public void setHealth(EntityMetadata<Float> entityMetadata) {
+        super.setHealth(entityMetadata);
+        if (phase == 9 && this.health <= 0) { // Dying phase
+            EntityEventPacket entityEventPacket = new EntityEventPacket();
+            entityEventPacket.setType(EntityEventType.ENDER_DRAGON_DEATH);
+            entityEventPacket.setRuntimeEntityId(geyserId);
+            entityEventPacket.setData(0);
+            session.sendUpstreamPacket(entityEventPacket);
+        }
+    }
+
+    public void setPhase(EntityMetadata<Integer> entityMetadata) {
+        phase = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+        phaseTicks = 0;
+        setFlag(EntityFlag.SITTING, isSitting());
+    }
+
+    @Override
+    public void spawnEntity() {
+        super.spawnEntity();
 
         AtomicLong nextEntityId = session.getEntityCache().getNextEntityId();
-        head = new EnderDragonPartEntity(entityId + 1, nextEntityId.incrementAndGet(), EntityType.ENDER_DRAGON_PART, 1, 1);
-        neck = new EnderDragonPartEntity(entityId + 2, nextEntityId.incrementAndGet(), EntityType.ENDER_DRAGON_PART, 3, 3);
-        body = new EnderDragonPartEntity(entityId + 3, nextEntityId.incrementAndGet(), EntityType.ENDER_DRAGON_PART, 5, 3);
-        leftWing = new EnderDragonPartEntity(entityId + 4, nextEntityId.incrementAndGet(), EntityType.ENDER_DRAGON_PART, 4, 2);
-        rightWing = new EnderDragonPartEntity(entityId + 5, nextEntityId.incrementAndGet(), EntityType.ENDER_DRAGON_PART, 4, 2);
+        head = new EnderDragonPartEntity(session, entityId + 1, nextEntityId.incrementAndGet(), 1, 1);
+        neck = new EnderDragonPartEntity(session, entityId + 2, nextEntityId.incrementAndGet(), 3, 3);
+        body = new EnderDragonPartEntity(session, entityId + 3, nextEntityId.incrementAndGet(), 5, 3);
+        leftWing = new EnderDragonPartEntity(session, entityId + 4, nextEntityId.incrementAndGet(), 4, 2);
+        rightWing = new EnderDragonPartEntity(session, entityId + 5, nextEntityId.incrementAndGet(), 4, 2);
         tail = new EnderDragonPartEntity[3];
         for (int i = 0; i < 3; i++) {
-            tail[i] = new EnderDragonPartEntity(entityId + 6 + i, nextEntityId.incrementAndGet(), EntityType.ENDER_DRAGON_PART, 2, 2);
+            tail[i] = new EnderDragonPartEntity(session, entityId + 6 + i, nextEntityId.incrementAndGet(), 2, 2);
         }
 
         allParts = new EnderDragonPartEntity[]{head, neck, body, leftWing, rightWing, tail[0], tail[1], tail[2]};
@@ -128,7 +131,7 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
 
         for (int i = 0; i < segmentHistory.length; i++) {
             segmentHistory[i] = new Segment();
-            segmentHistory[i].yaw = rotation.getZ();
+            segmentHistory[i].yaw = headYaw;
             segmentHistory[i].y = position.getY();
         }
     }
@@ -141,29 +144,27 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
     }
 
     @Override
-    public boolean despawnEntity(GeyserSession session) {
+    public boolean despawnEntity() {
         for (EnderDragonPartEntity part : allParts) {
-            part.despawnEntity(session);
+            part.despawnEntity();
         }
-        return super.despawnEntity(session);
+        return super.despawnEntity();
     }
 
     @Override
-    public void tick(GeyserSession session) {
-        effectTick(session);
-        if (!metadata.getFlags().getFlag(EntityFlag.NO_AI) && isAlive()) {
+    public void tick() {
+        effectTick();
+        if (!getFlag(EntityFlag.NO_AI) && isAlive()) {
             pushSegment();
-            updateBoundingBoxes(session);
+            updateBoundingBoxes();
         }
     }
 
     /**
      * Updates the positions of the Ender Dragon's multiple bounding boxes
-     *
-     * @param session GeyserSession.
      */
-    private void updateBoundingBoxes(GeyserSession session) {
-        Vector3f facingDir = Vector3f.createDirectionDeg(0, rotation.getZ());
+    private void updateBoundingBoxes() {
+        Vector3f facingDir = Vector3f.createDirectionDeg(0, headYaw);
         Segment baseSegment = getSegment(5);
         // Used to angle the head, neck, and tail when the dragon flies up/down
         float pitch = (float) Math.toRadians(10 * (baseSegment.getY() - getSegment(10).getY()));
@@ -182,7 +183,7 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
         neck.setPosition(facingDir.up(pitchY).mul(pitchXZ, 1, -pitchXZ).mul(5.5f).up(headDuck));
         body.setPosition(facingDir.mul(0.5f, 0f, -0.5f));
 
-        Vector3f wingPos = Vector3f.createDirectionDeg(0, 90f - rotation.getZ()).mul(4.5f).up(2f);
+        Vector3f wingPos = Vector3f.createDirectionDeg(0, 90f - headYaw).mul(4.5f).up(2f);
         rightWing.setPosition(wingPos);
         leftWing.setPosition(wingPos.mul(-1, 1, -1)); // Mirror horizontally
 
@@ -191,24 +192,23 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
             float distance = (i + 1) * 2f;
             // Curls the tail when the dragon turns
             Segment targetSegment = getSegment(12 + 2 * i);
-            float angle = rotation.getZ() + targetSegment.yaw - baseSegment.yaw;
+            float angle = headYaw + targetSegment.yaw - baseSegment.yaw;
 
             float tailYOffset = targetSegment.y - baseSegment.y - (distance + 1.5f) * pitchY + 1.5f;
             tail[i].setPosition(Vector3f.createDirectionDeg(0, angle).mul(distance).add(tailBase).mul(-pitchXZ, 1, pitchXZ).up(tailYOffset));
         }
         // Send updated positions
         for (EnderDragonPartEntity part : allParts) {
-             part.moveAbsolute(session, part.getPosition().add(position), Vector3f.ZERO, false, false);
+             part.moveAbsolute(part.getPosition().add(position), 0, 0, 0, false, false);
         }
     }
 
     /**
      * Handles the particles and sounds of the Ender Dragon
-     * @param session GeyserSession.
      */
-    private void effectTick(GeyserSession session) {
+    private void effectTick() {
         Random random = ThreadLocalRandom.current();
-        if (!metadata.getFlags().getFlag(EntityFlag.SILENT)) {
+        if (!getFlag(EntityFlag.SILENT)) {
             if (Math.cos(wingPosition * 2f * Math.PI) <= -0.3f && Math.cos(lastWingPosition * 2f * Math.PI) >= -0.3f) {
                 PlaySoundPacket playSoundPacket = new PlaySoundPacket();
                 playSoundPacket.setSound("mob.enderdragon.flap");
@@ -219,14 +219,14 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
             }
 
             if (!isSitting() && !isHovering() && ticksTillNextGrowl-- == 0) {
-                playGrowlSound(session);
+                playGrowlSound();
                 ticksTillNextGrowl = 200 + random.nextInt(200);
             }
 
             lastWingPosition = wingPosition;
         }
         if (isAlive()) {
-            if (metadata.getFlags().getFlag(EntityFlag.NO_AI)) {
+            if (getFlag(EntityFlag.NO_AI)) {
                 wingPosition = 0.5f;
             } else if (isHovering() || isSitting()) {
                 wingPosition += 0.1f;
@@ -237,7 +237,7 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
 
             phaseTicks++;
             if (phase == 3) { // Landing Phase
-                float headHeight = head.getMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT);
+                float headHeight = head.getDirtyMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT); //TODO
                 Vector3f headCenter = head.getPosition().up(headHeight * 0.5f);
 
                 for (int i = 0; i < 8; i++) {
@@ -262,7 +262,7 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
                     }
                 }
             } else if (phase == 7) { // Sitting Attacking Phase
-                playGrowlSound(session);
+                playGrowlSound();
             } else if (phase == 9) { // Dying Phase
                 // Send explosion particles as the dragon move towards the end portal
                 if (phaseTicks % 10 == 0) {
@@ -279,7 +279,7 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
         }
     }
 
-    private void playGrowlSound(GeyserSession session) {
+    private void playGrowlSound() {
         Random random = ThreadLocalRandom.current();
         PlaySoundPacket playSoundPacket = new PlaySoundPacket();
         playSoundPacket.setSound("mob.enderdragon.growl");
@@ -306,7 +306,7 @@ public class EnderDragonEntity extends InsentientEntity implements Tickable {
      */
     private void pushSegment() {
         latestSegment = (latestSegment + 1) % segmentHistory.length;
-        segmentHistory[latestSegment].yaw = rotation.getZ();
+        segmentHistory[latestSegment].yaw = headYaw;
         segmentHistory[latestSegment].y = position.getY();
     }
 

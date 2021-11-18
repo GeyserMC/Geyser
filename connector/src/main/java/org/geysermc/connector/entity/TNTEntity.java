@@ -26,41 +26,37 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
-public class TNTEntity extends Entity implements Tickable {
+import java.util.UUID;
 
+public class TNTEntity extends Entity implements Tickable {
     private int currentTick;
 
-    public TNTEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public TNTEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    }
+
+    public void setFuseLength(EntityMetadata<Integer> entityMetadata) {
+        currentTick = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+        setFlag(EntityFlag.IGNITED, true);
+        dirtyMetadata.put(EntityData.FUSE_LENGTH, currentTick);
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 8) {
-            currentTick = (int) entityMetadata.getValue();
-            metadata.getFlags().setFlag(EntityFlag.IGNITED, true);
-            metadata.put(EntityData.FUSE_LENGTH, currentTick);
-        }
-
-        super.updateBedrockMetadata(entityMetadata, session);
-    }
-
-    @Override
-    public void tick(GeyserSession session) {
+    public void tick() {
         if (currentTick == 0) {
             // No need to update the fuse when there is none
             return;
         }
 
         if (currentTick % 5 == 0) {
-            metadata.put(EntityData.FUSE_LENGTH, currentTick);
+            dirtyMetadata.put(EntityData.FUSE_LENGTH, currentTick);
 
             SetEntityDataPacket packet = new SetEntityDataPacket();
             packet.setRuntimeEntityId(geyserId);

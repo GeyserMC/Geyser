@@ -25,16 +25,16 @@
 
 package org.geysermc.connector.network.translators.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundPlayerInputPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundPlayerInputPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.PlayerInputPacket;
 import org.geysermc.connector.entity.BoatEntity;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.EntityDefinitions;
 import org.geysermc.connector.entity.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.connector.entity.living.animal.horse.LlamaEntity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -65,7 +65,7 @@ public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPa
                 sendMovement = true;
             } else {
                 // Check if the player is the front rider
-                Vector3f seatPos = session.getPlayerEntity().getMetadata().getVector3f(EntityData.RIDER_SEAT_POSITION, null);
+                Vector3f seatPos = session.getPlayerEntity().getDirtyMetadata().getVector3f(EntityData.RIDER_SEAT_POSITION, null);
                 if (seatPos != null && seatPos.getX() > 0) {
                     sendMovement = true;
                 }
@@ -75,16 +75,15 @@ public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPa
             long timeSinceVehicleMove = System.currentTimeMillis() - session.getLastVehicleMoveTimestamp();
             if (timeSinceVehicleMove >= 100) {
                 Vector3f vehiclePosition = vehicle.getPosition();
-                Vector3f vehicleRotation = vehicle.getRotation();
 
                 if (vehicle instanceof BoatEntity) {
                     // Remove some Y position to prevents boats flying up
-                    vehiclePosition = vehiclePosition.down(EntityType.BOAT.getOffset());
+                    vehiclePosition = vehiclePosition.down(EntityDefinitions.BOAT.offset());
                 }
 
                 ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(
                         vehiclePosition.getX(), vehiclePosition.getY(), vehiclePosition.getZ(),
-                        vehicleRotation.getX() - 90, vehicleRotation.getY()
+                        vehicle.getYaw() - 90, vehicle.getPitch()
                 );
                 session.sendDownstreamPacket(moveVehiclePacket);
             }

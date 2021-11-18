@@ -45,7 +45,7 @@ public class JavaForgetLevelChunkTranslator extends PacketTranslator<Clientbound
         while (iterator.hasNext()) {
             Vector3i position = iterator.next();
             if ((position.getX() >> 4) == packet.getX() && (position.getZ() >> 4) == packet.getZ()) {
-                session.getSkullCache().get(position).despawnEntity(session);
+                session.getSkullCache().get(position).despawnEntity();
                 iterator.remove();
             }
         }

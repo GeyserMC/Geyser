@@ -63,12 +63,13 @@ public class JavaPlayerInfoTranslator extends PacketTranslator<ClientboundPlayer
                     if (playerEntity == null) {
                         // It's a new player
                         playerEntity = new PlayerEntity(
-                                entry.getProfile(),
+                                session,
                                 -1,
                                 session.getEntityCache().getNextEntityId().incrementAndGet(),
+                                entry.getProfile(),
                                 Vector3f.ZERO,
                                 Vector3f.ZERO,
-                                Vector3f.ZERO
+                                0, 0, 0
                         );
 
                         session.getEntityCache().addPlayerEntity(playerEntity);

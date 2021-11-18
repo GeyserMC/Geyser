@@ -26,27 +26,24 @@
 package org.geysermc.connector.entity.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 public class ZoglinEntity extends MonsterEntity {
 
-    public ZoglinEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public ZoglinEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
-            boolean isBaby = (boolean) entityMetadata.getValue();
-            if (isBaby) {
-                metadata.put(EntityData.SCALE, .55f);
-                metadata.getFlags().setFlag(EntityFlag.BABY, true);
-            }
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
+    public void setBaby(EntityMetadata<Boolean> entityMetadata) {
+        boolean isBaby = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+        dirtyMetadata.put(EntityData.SCALE, isBaby? .55f : 1f);
+        setFlag(EntityFlag.BABY, isBaby);
     }
 }

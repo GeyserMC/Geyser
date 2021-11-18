@@ -26,31 +26,32 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 public class FallingBlockEntity extends Entity {
     private final int javaId;
 
-    public FallingBlockEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation, int javaId) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public FallingBlockEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, Vector3f position, Vector3f motion, float yaw, float pitch, int javaId) {
+        super(session, entityId, geyserId, uuid, EntityDefinitions.FALLING_BLOCK, position, motion, yaw, pitch, 0f);
         this.javaId = javaId;
     }
 
     @Override
-    public void spawnEntity(GeyserSession session) {
-        this.metadata.put(EntityData.VARIANT, session.getBlockMappings().getBedrockBlockId(javaId));
-        super.spawnEntity(session);
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+        this.dirtyMetadata.put(EntityData.VARIANT, session.getBlockMappings().getBedrockBlockId(javaId));
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+    public void setGravity(EntityMetadata<Boolean> entityMetadata) {
+        super.setGravity(entityMetadata);
         // Set the NO_AI flag based on the no gravity flag to prevent movement
-        if (entityMetadata.getId() == 5) {
-            this.metadata.getFlags().setFlag(EntityFlag.NO_AI, (boolean) entityMetadata.getValue());
-        }
+        setFlag(EntityFlag.NO_AI, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue());
     }
 }

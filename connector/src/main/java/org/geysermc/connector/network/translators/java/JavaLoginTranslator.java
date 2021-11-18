@@ -92,7 +92,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
-        entityDataPacket.getMetadata().putAll(entity.getMetadata());
+        entityDataPacket.getMetadata().putAll(entity.getDirtyMetadata());
         session.sendUpstreamPacket(entityDataPacket);
 
         // Send if client should show respawn screen

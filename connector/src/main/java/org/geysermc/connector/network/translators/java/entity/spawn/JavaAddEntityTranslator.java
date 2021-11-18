@@ -25,78 +25,65 @@
 
 package org.geysermc.connector.network.translators.java.entity.spawn;
 
+import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import com.github.steveice10.mc.protocol.data.game.entity.object.FallingBlockData;
-import com.github.steveice10.mc.protocol.data.game.entity.object.HangingDirection;
 import com.github.steveice10.mc.protocol.data.game.entity.object.ProjectileData;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddEntityPacket;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.entity.*;
+import org.geysermc.connector.entity.factory.BaseEntityFactory;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
-import org.geysermc.connector.utils.EntityUtils;
+import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.utils.LanguageUtils;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 
 @Translator(packet = ClientboundAddEntityPacket.class)
 public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEntityPacket> {
 
     @Override
     public void translate(GeyserSession session, ClientboundAddEntityPacket packet) {
-
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f motion = Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());
-        Vector3f rotation = Vector3f.from(packet.getYaw(), packet.getPitch(), 0);
+        float yaw = packet.getYaw();
+        float pitch = packet.getPitch();
 
-        org.geysermc.connector.entity.type.EntityType type = EntityUtils.toBedrockEntity(packet.getType());
-        if (type == null) {
+        EntityDefinition<?> definition = Registries.ENTITY_DEFINITIONS.get(packet.getType());
+        if (definition == null) {
             session.getConnector().getLogger().warning(LanguageUtils.getLocaleStringLog("geyser.entity.type_null", packet.getType()));
             return;
         }
 
-        Class<? extends Entity> entityClass = type.getEntityClass();
-        try {
-            Entity entity;
-            if (packet.getType() == EntityType.FALLING_BLOCK) {
-                entity = new FallingBlockEntity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                        type, position, motion, rotation, ((FallingBlockData) packet.getData()).getId());
-            } else if (packet.getType() == EntityType.ITEM_FRAME || packet.getType() == EntityType.GLOW_ITEM_FRAME) {
-                // Item frames need the hanging direction
-                entity = new ItemFrameEntity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                        type, position, motion, rotation, (HangingDirection) packet.getData());
-            } else if (packet.getType() == EntityType.FISHING_BOBBER) {
-                // Fishing bobbers need the owner for the line
-                int ownerEntityId = ((ProjectileData) packet.getData()).getOwnerId();
-                Entity owner = session.getEntityCache().getEntityByJavaId(ownerEntityId);
-                if (owner == null && session.getPlayerEntity().getEntityId() == ownerEntityId) {
-                    owner = session.getPlayerEntity();
-                }
-                // Java clients only spawn fishing hooks with a player as its owner
-                if (owner instanceof PlayerEntity) {
-                    entity = new FishingHookEntity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                            type, position, motion, rotation, (PlayerEntity) owner);
-                } else {
-                    return;
-                }
-            } else if (packet.getType() == EntityType.BOAT) {
-                // Initial rotation is incorrect
-                entity = new BoatEntity(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                        type, position, motion, Vector3f.from(packet.getYaw(), 0, packet.getYaw()));
+        Entity entity;
+        if (packet.getType() == EntityType.FALLING_BLOCK) {
+            entity = new FallingBlockEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), packet.getUuid(),
+                    position, motion, yaw, pitch, ((FallingBlockData) packet.getData()).getId());
+        } else if (packet.getType() == EntityType.ITEM_FRAME || packet.getType() == EntityType.GLOW_ITEM_FRAME) {
+            // Item frames need the hanging direction
+            entity = new ItemFrameEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), packet.getUuid(),
+                    definition, position, motion, yaw, pitch, (Direction) packet.getData());
+        } else if (packet.getType() == EntityType.FISHING_BOBBER) {
+            // Fishing bobbers need the owner for the line
+            int ownerEntityId = ((ProjectileData) packet.getData()).getOwnerId();
+            Entity owner;
+            if (session.getPlayerEntity().getEntityId() == ownerEntityId) {
+                owner = session.getPlayerEntity();
             } else {
-                Constructor<? extends Entity> entityConstructor = entityClass.getConstructor(long.class, long.class, org.geysermc.connector.entity.type.EntityType.class,
-                        Vector3f.class, Vector3f.class, Vector3f.class);
-
-                entity = entityConstructor.newInstance(packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                        type, position, motion, rotation
-                );
+                owner = session.getEntityCache().getEntityByJavaId(ownerEntityId);
             }
-            session.getEntityCache().spawnEntity(entity);
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
-            ex.printStackTrace();
+            // Java clients only spawn fishing hooks with a player as its owner
+            if (owner instanceof PlayerEntity) {
+                entity = new FishingHookEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), packet.getUuid(),
+                        position, motion, yaw, pitch, (PlayerEntity) owner);
+            } else {
+                return;
+            }
+        } else {
+            entity = ((BaseEntityFactory<?>) definition.factory()).create(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+                    packet.getUuid(), definition, position, motion, yaw, pitch, 0f);
         }
+        session.getEntityCache().spawnEntity(entity);
     }
 }

@@ -27,13 +27,16 @@ package org.geysermc.connector.entity.living.monster;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
+import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 public class GiantEntity extends MonsterEntity {
 
-    public GiantEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public GiantEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
 
-        metadata.put(EntityData.SCALE, 6f);
+        dirtyMetadata.put(EntityData.SCALE, 6f);
     }
 }

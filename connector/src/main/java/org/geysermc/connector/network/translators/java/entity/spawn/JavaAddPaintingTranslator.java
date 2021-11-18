@@ -40,9 +40,9 @@ public class JavaAddPaintingTranslator extends PacketTranslator<ClientboundAddPa
     public void translate(GeyserSession session, ClientboundAddPaintingPacket packet) {
         Vector3f position = Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
 
-        PaintingEntity entity = new PaintingEntity(packet.getEntityId(),
-                session.getEntityCache().getNextEntityId().incrementAndGet(),
-                position, PaintingType.getByPaintingType(packet.getPaintingType()), packet.getDirection().ordinal());
+        PaintingEntity entity = new PaintingEntity(session, packet.getEntityId(),
+                session.getEntityCache().getNextEntityId().incrementAndGet(), packet.getUuid(),
+                position, PaintingType.getByPaintingType(packet.getPaintingType()), packet.getDirection().getHorizontalIndex());
 
         session.getEntityCache().spawnEntity(entity);
     }

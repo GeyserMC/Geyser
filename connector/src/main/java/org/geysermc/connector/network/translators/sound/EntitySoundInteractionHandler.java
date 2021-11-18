@@ -57,7 +57,7 @@ public interface EntitySoundInteractionHandler extends SoundInteractionHandler<E
             if (interactionEntry.getKey().entities().length != 0) {
                 boolean contains = false;
                 for (String entityIdentifier : interactionEntry.getKey().entities()) {
-                    if (entity.getEntityType().name().toLowerCase().contains(entityIdentifier)) {
+                    if (entity.getDefinition().entityType().name().toLowerCase().contains(entityIdentifier)) {
                         contains = true;
                         break;
                     }

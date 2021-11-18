@@ -60,10 +60,10 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
         // Retrieve the fake villager involved in the trade, and update its metadata to match with the window information
         merchantInventory.setVillagerTrades(packet.getTrades());
         Entity villager = merchantInventory.getVillager();
-        villager.getMetadata().put(EntityData.TRADE_TIER, packet.getVillagerLevel() - 1);
-        villager.getMetadata().put(EntityData.MAX_TRADE_TIER, 4);
-        villager.getMetadata().put(EntityData.TRADE_XP, packet.getExperience());
-        villager.updateBedrockMetadata(session);
+        villager.getDirtyMetadata().put(EntityData.TRADE_TIER, packet.getVillagerLevel() - 1);
+        villager.getDirtyMetadata().put(EntityData.MAX_TRADE_TIER, 4);
+        villager.getDirtyMetadata().put(EntityData.TRADE_XP, packet.getExperience());
+        villager.updateBedrockMetadata();
 
         // Construct the packet that opens the trading window
         UpdateTradePacket updateTradePacket = new UpdateTradePacket();

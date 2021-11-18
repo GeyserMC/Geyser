@@ -34,7 +34,6 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import lombok.Getter;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
 /**
@@ -49,31 +48,34 @@ public class SkullPlayerEntity extends PlayerEntity {
     @Getter
     private final int blockState;
 
-    public SkullPlayerEntity(GameProfile gameProfile, long geyserId, Vector3f position, Vector3f rotation, int blockState) {
-        super(gameProfile, 0, geyserId, position, Vector3f.ZERO, rotation);
+    public SkullPlayerEntity(GeyserSession session, long geyserId, GameProfile gameProfile, Vector3f position, float rotation, int blockState) {
+        super(session, 0, geyserId, gameProfile, position, Vector3f.ZERO, rotation, 0, rotation);
         this.blockState = blockState;
         setPlayerList(false);
+    }
 
-        //Set bounding box to almost nothing so the skull is able to be broken and not cause entity to cast a shadow
-        metadata.clear();
-        metadata.put(EntityData.SCALE, 1.08f);
-        metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.001f);
-        metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.001f);
-        metadata.getOrCreateFlags().setFlag(EntityFlag.CAN_SHOW_NAME, false);
-        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true); // Until the skin is loaded
+    @Override
+    protected void initializeMetadata() {
+        // Deliberately do not call super
+        // Set bounding box to almost nothing so the skull is able to be broken and not cause entity to cast a shadow
+        dirtyMetadata.put(EntityData.SCALE, 1.08f);
+        dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.001f);
+        dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.001f);
+        setFlag(EntityFlag.CAN_SHOW_NAME, false);
+        setFlag(EntityFlag.INVISIBLE, true); // Until the skin is loaded
     }
 
     /**
      * Overwritten so each entity doesn't check for a linked entity
      */
     @Override
-    public void spawnEntity(GeyserSession session) {
+    public void spawnEntity() {
         AddPlayerPacket addPlayerPacket = new AddPlayerPacket();
         addPlayerPacket.setUuid(getUuid());
         addPlayerPacket.setUsername(getUsername());
         addPlayerPacket.setRuntimeEntityId(geyserId);
         addPlayerPacket.setUniqueEntityId(geyserId);
-        addPlayerPacket.setPosition(position.sub(0, EntityType.PLAYER.getOffset(), 0));
+        addPlayerPacket.setPosition(position.sub(0, definition.offset(), 0));
         addPlayerPacket.setRotation(getBedrockRotation());
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(hand);
@@ -81,14 +83,18 @@ public class SkullPlayerEntity extends PlayerEntity {
         addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
-        addPlayerPacket.getMetadata().putAll(metadata);
+        addPlayerPacket.getMetadata().putAll(dirtyMetadata);
+        addPlayerPacket.getMetadata().putFlags(flags);
+
+        dirtyMetadata.clear();
+        setFlagsDirty(false);
 
         valid = true;
         session.sendUpstreamPacket(addPlayerPacket);
     }
 
-    public void despawnEntity(GeyserSession session, Vector3i position) {
-        this.despawnEntity(session);
+    public void despawnEntity(Vector3i position) {
+        this.despawnEntity();
         session.getSkullCache().remove(position, this);
     }
 }

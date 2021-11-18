@@ -37,7 +37,6 @@ import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.connector.entity.player.PlayerEntity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.FireworkColor;
 import org.geysermc.connector.utils.MathUtils;
@@ -46,118 +45,116 @@ import org.geysermc.floodgate.util.DeviceOs;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalInt;
+import java.util.UUID;
 
 public class FireworkEntity extends Entity {
 
-    public FireworkEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public FireworkEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 8) {
-            ItemStack item = (ItemStack) entityMetadata.getValue();
-            if (item == null) {
-                return;
-            }
-            CompoundTag tag = item.getNbt();
+    public void setFireworkItem(EntityMetadata<ItemStack> entityMetadata) {
+        ItemStack item = entityMetadata.getValue();
+        if (item == null) {
+            return;
+        }
+        CompoundTag tag = item.getNbt();
 
-            if (tag == null) {
-                return;
-            }
+        if (tag == null) {
+            return;
+        }
 
-            // TODO: Remove once Mojang fixes bugs with fireworks crashing clients on these specific devices.
-            // https://bugs.mojang.com/browse/MCPE-89115
-            if (session.getClientData().getDeviceOs() == DeviceOs.XBOX
-                    || session.getClientData().getDeviceOs() == DeviceOs.PS4) {
-                return;
-            }
+        // TODO: Remove once Mojang fixes bugs with fireworks crashing clients on these specific devices.
+        // https://bugs.mojang.com/browse/MCPE-89115
+        if (session.getClientData().getDeviceOs() == DeviceOs.XBOX
+                || session.getClientData().getDeviceOs() == DeviceOs.PS4) {
+            return;
+        }
 
-            CompoundTag fireworks = tag.get("Fireworks");
-            if (fireworks == null) {
-                // Thank you Mineplex very cool
-                return;
-            }
+        CompoundTag fireworks = tag.get("Fireworks");
+        if (fireworks == null) {
+            // Thank you Mineplex very cool
+            return;
+        }
 
-            NbtMapBuilder fireworksBuilder = NbtMap.builder();
-            if (fireworks.get("Flight") != null) {
-                fireworksBuilder.putByte("Flight", MathUtils.getNbtByte(fireworks.get("Flight").getValue()));
-            }
+        NbtMapBuilder fireworksBuilder = NbtMap.builder();
+        if (fireworks.get("Flight") != null) {
+            fireworksBuilder.putByte("Flight", MathUtils.getNbtByte(fireworks.get("Flight").getValue()));
+        }
 
-            List<NbtMap> explosions = new ArrayList<>();
-            if (fireworks.get("Explosions") != null) {
-                for (Tag effect : ((ListTag) fireworks.get("Explosions")).getValue()) {
-                    CompoundTag effectData = (CompoundTag) effect;
-                    NbtMapBuilder effectBuilder = NbtMap.builder();
+        List<NbtMap> explosions = new ArrayList<>();
+        if (fireworks.get("Explosions") != null) {
+            for (Tag effect : ((ListTag) fireworks.get("Explosions")).getValue()) {
+                CompoundTag effectData = (CompoundTag) effect;
+                NbtMapBuilder effectBuilder = NbtMap.builder();
 
-                    if (effectData.get("Type") != null) {
-                        effectBuilder.putByte("FireworkType", MathUtils.getNbtByte(effectData.get("Type").getValue()));
-                    }
-
-                    if (effectData.get("Colors") != null) {
-                        int[] oldColors = (int[]) effectData.get("Colors").getValue();
-                        byte[] colors = new byte[oldColors.length];
-
-                        int i = 0;
-                        for (int color : oldColors) {
-                            colors[i++] = FireworkColor.fromJavaRGB(color);
-                        }
-
-                        effectBuilder.putByteArray("FireworkColor", colors);
-                    }
-
-                    if (effectData.get("FadeColors") != null) {
-                        int[] oldColors = (int[]) effectData.get("FadeColors").getValue();
-                        byte[] colors = new byte[oldColors.length];
-
-                        int i = 0;
-                        for (int color : oldColors) {
-                            colors[i++] = FireworkColor.fromJavaRGB(color);
-                        }
-
-                        effectBuilder.putByteArray("FireworkFade", colors);
-                    }
-
-                    if (effectData.get("Trail") != null) {
-                        effectBuilder.putByte("FireworkTrail", MathUtils.getNbtByte(effectData.get("Trail").getValue()));
-                    }
-
-                    if (effectData.get("Flicker") != null) {
-                        effectBuilder.putByte("FireworkFlicker", MathUtils.getNbtByte(effectData.get("Flicker").getValue()));
-                    }
-
-                    explosions.add(effectBuilder.build());
+                if (effectData.get("Type") != null) {
+                    effectBuilder.putByte("FireworkType", MathUtils.getNbtByte(effectData.get("Type").getValue()));
                 }
-            }
 
-            fireworksBuilder.putList("Explosions", NbtType.COMPOUND, explosions);
+                if (effectData.get("Colors") != null) {
+                    int[] oldColors = (int[]) effectData.get("Colors").getValue();
+                    byte[] colors = new byte[oldColors.length];
 
-            NbtMapBuilder builder = NbtMap.builder();
-            builder.put("Fireworks", fireworksBuilder.build());
-            metadata.put(EntityData.DISPLAY_ITEM, builder.build());
-        } else if (entityMetadata.getId() == 9) {
-            OptionalInt optional = (OptionalInt) entityMetadata.getValue();
-            // Checks if the firework has an entity ID (used when a player is gliding)
-            // and checks to make sure the player that is gliding is the one getting sent the packet
-            // or else every player near the gliding player will boost too.
-            if (optional.isPresent() && optional.getAsInt() == session.getPlayerEntity().getEntityId()) {
-                PlayerEntity entity = session.getPlayerEntity();
-                float yaw = entity.getRotation().getX();
-                float pitch = entity.getRotation().getY();
-                // Uses math from NukkitX
-                entity.setMotion(Vector3f.from(
-                        -Math.sin(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * 2,
-                        -Math.sin(Math.toRadians(pitch)) * 2,
-                        Math.cos(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * 2));
-                // Need to update the EntityMotionPacket or else the player won't boost
-                SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
-                entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());
-                entityMotionPacket.setMotion(entity.getMotion());
+                    int i = 0;
+                    for (int color : oldColors) {
+                        colors[i++] = FireworkColor.fromJavaRGB(color);
+                    }
 
-                session.sendUpstreamPacket(entityMotionPacket);
+                    effectBuilder.putByteArray("FireworkColor", colors);
+                }
+
+                if (effectData.get("FadeColors") != null) {
+                    int[] oldColors = (int[]) effectData.get("FadeColors").getValue();
+                    byte[] colors = new byte[oldColors.length];
+
+                    int i = 0;
+                    for (int color : oldColors) {
+                        colors[i++] = FireworkColor.fromJavaRGB(color);
+                    }
+
+                    effectBuilder.putByteArray("FireworkFade", colors);
+                }
+
+                if (effectData.get("Trail") != null) {
+                    effectBuilder.putByte("FireworkTrail", MathUtils.getNbtByte(effectData.get("Trail").getValue()));
+                }
+
+                if (effectData.get("Flicker") != null) {
+                    effectBuilder.putByte("FireworkFlicker", MathUtils.getNbtByte(effectData.get("Flicker").getValue()));
+                }
+
+                explosions.add(effectBuilder.build());
             }
         }
 
-        super.updateBedrockMetadata(entityMetadata, session);
+        fireworksBuilder.putList("Explosions", NbtType.COMPOUND, explosions);
+
+        NbtMapBuilder builder = NbtMap.builder();
+        builder.put("Fireworks", fireworksBuilder.build());
+        dirtyMetadata.put(EntityData.DISPLAY_ITEM, builder.build());
+    }
+
+    public void setPlayerGliding(EntityMetadata<OptionalInt> entityMetadata) {
+        OptionalInt optional = entityMetadata.getValue();
+        // Checks if the firework has an entity ID (used when a player is gliding)
+        // and checks to make sure the player that is gliding is the one getting sent the packet
+        // or else every player near the gliding player will boost too.
+        if (optional.isPresent() && optional.getAsInt() == session.getPlayerEntity().getEntityId()) {
+            PlayerEntity entity = session.getPlayerEntity();
+            float yaw = entity.getYaw();
+            float pitch = entity.getPitch();
+            // Uses math from NukkitX
+            entity.setMotion(Vector3f.from(
+                    -Math.sin(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * 2,
+                    -Math.sin(Math.toRadians(pitch)) * 2,
+                    Math.cos(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch)) * 2));
+            // Need to update the EntityMotionPacket or else the player won't boost
+            SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
+            entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());
+            entityMotionPacket.setMotion(entity.getMotion());
+
+            session.sendUpstreamPacket(entityMotionPacket);
+        }
     }
 }

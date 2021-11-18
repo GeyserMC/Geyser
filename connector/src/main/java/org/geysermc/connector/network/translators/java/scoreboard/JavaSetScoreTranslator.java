@@ -117,7 +117,7 @@ public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScore
         String displayString = count + " " + objective.getDisplayName();
 
         // Of note: unlike Bedrock, if there is an objective in the below name slot, everyone has a display
-        entity.getMetadata().put(EntityData.SCORE_TAG, displayString);
+        entity.getDirtyMetadata().put(EntityData.SCORE_TAG, displayString);
         SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
         entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
         entityDataPacket.getMetadata().put(EntityData.SCORE_TAG, displayString);

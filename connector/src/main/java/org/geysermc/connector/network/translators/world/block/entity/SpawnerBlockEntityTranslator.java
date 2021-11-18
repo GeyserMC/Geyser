@@ -29,7 +29,8 @@ import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
+import org.geysermc.connector.registry.Registries;
 
 @BlockEntity(type = BlockEntityType.MOB_SPAWNER)
 public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
@@ -72,10 +73,10 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
                     .getValue();
             builder.put("EntityIdentifier", entityID);
 
-            EntityType type = EntityType.getFromIdentifier(entityID);
-            if (type != null) {
-                builder.put("DisplayEntityWidth", type.getWidth());
-                builder.put("DisplayEntityHeight", type.getHeight());
+            EntityDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityID);
+            if (definition != null) {
+                builder.put("DisplayEntityWidth", definition.width());
+                builder.put("DisplayEntityHeight", definition.height());
                 builder.put("DisplayEntityScale", 1.0f);
             }
         }

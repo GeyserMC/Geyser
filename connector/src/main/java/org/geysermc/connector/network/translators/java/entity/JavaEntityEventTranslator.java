@@ -33,8 +33,8 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.EntityDefinitions;
 import org.geysermc.connector.entity.LivingEntity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -96,7 +96,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 break;
             case LIVING_DEATH:
                 entityEventPacket.setType(EntityEventType.DEATH);
-                if (entity.getEntityType() == EntityType.THROWN_EGG) {
+                if (entity.getDefinition() == EntityDefinitions.THROWN_EGG) {
                     LevelEventPacket particlePacket = new LevelEventPacket();
                     particlePacket.setType(LevelEventType.PARTICLE_ITEM_BREAK);
                     particlePacket.setData(session.getItemMappings().getStoredItems().egg().getBedrockId() << 16);
@@ -104,7 +104,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                     for (int i = 0; i < 6; i++) {
                         session.sendUpstreamPacket(particlePacket);
                     }
-                } else if (entity.getEntityType() == EntityType.SNOWBALL) {
+                } else if (entity.getDefinition() == EntityDefinitions.SNOWBALL) {
                     LevelEventPacket particlePacket = new LevelEventPacket();
                     particlePacket.setType(LevelEventType.PARTICLE_SNOWBALL_POOF);
                     particlePacket.setPosition(entity.getPosition());
@@ -122,9 +122,9 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case FISHING_HOOK_PULL_PLAYER:
                 // Player is pulled from a fishing rod
                 // The physics of this are clientside on Java
-                long pulledById = entity.getMetadata().getLong(EntityData.TARGET_EID);
+                long pulledById = entity.getDirtyMetadata().getLong(EntityData.TARGET_EID);
                 if (session.getPlayerEntity().getGeyserId() == pulledById) {
-                    Entity hookOwner = session.getEntityCache().getEntityByGeyserId(entity.getMetadata().getLong(EntityData.OWNER_EID));
+                    Entity hookOwner = session.getEntityCache().getEntityByGeyserId(entity.getDirtyMetadata().getLong(EntityData.OWNER_EID));
                     if (hookOwner != null) {
                         // https://minecraft.gamepedia.com/Fishing_Rod#Hooking_mobs_and_other_entities
                         SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
@@ -169,7 +169,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 session.sendUpstreamPacket(playSoundPacket);
                 break;
             case SHEEP_GRAZE_OR_TNT_CART_EXPLODE:
-                if (entity.getEntityType() == EntityType.SHEEP) {
+                if (entity.getDefinition() == EntityDefinitions.SHEEP) {
                     entityEventPacket.setType(EntityEventType.EAT_GRASS);
                 } else {
                     entityEventPacket.setType(EntityEventType.PRIME_TNT_MINECART);
@@ -182,12 +182,12 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 entityEventPacket.setType(EntityEventType.GOLEM_FLOWER_WITHDRAW);
                 break;
             case IRON_GOLEM_ATTACK:
-                if (entity.getEntityType() == EntityType.IRON_GOLEM) {
+                if (entity.getDefinition() == EntityDefinitions.IRON_GOLEM) {
                     entityEventPacket.setType(EntityEventType.ATTACK_START);
                 }
                 break;
             case RABBIT_JUMP_OR_MINECART_SPAWNER_DELAY_RESET:
-                if (entity.getEntityType() == EntityType.RABBIT) {
+                if (entity.getDefinition() == EntityDefinitions.RABBIT) {
                     // This doesn't match vanilla Bedrock behavior but I'm unsure how to make it better
                     // I assume part of the problem is that Bedrock uses a duration and Java just says the rabbit is jumping
                     SetEntityDataPacket dataPacket = new SetEntityDataPacket();
@@ -223,12 +223,12 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 }
                 return;
             case GOAT_LOWERING_HEAD:
-                if (entity.getEntityType() == EntityType.GOAT) {
+                if (entity.getDefinition() == EntityDefinitions.GOAT) {
                     entityEventPacket.setType(EntityEventType.ATTACK_START);
                 }
                 break;
             case GOAT_STOP_LOWERING_HEAD:
-                if (entity.getEntityType() == EntityType.GOAT) {
+                if (entity.getDefinition() == EntityDefinitions.GOAT) {
                     entityEventPacket.setType(EntityEventType.ATTACK_STOP);
                 }
                 break;

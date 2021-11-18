@@ -27,8 +27,9 @@ package org.geysermc.connector.entity;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 /**
  * Used as a class for any projectile entity that looks like an item
@@ -40,37 +41,37 @@ public class ThrowableItemEntity extends ThrowableEntity {
     private int age;
     private boolean invisible;
 
-    public ThrowableItemEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
-        metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
+    public ThrowableItemEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+        setFlag(EntityFlag.INVISIBLE, true);
         invisible = false;
     }
 
-    private void checkVisibility(GeyserSession session) {
-        if (invisible != metadata.getFlags().getFlag(EntityFlag.INVISIBLE)) {
+    private void checkVisibility() {
+        if (invisible != getFlag(EntityFlag.INVISIBLE)) {
             if (!invisible) {
                 Vector3f playerPos = session.getPlayerEntity().getPosition();
                 // Prevent projectiles from blocking the player's screen
                 if (age >= 4 || position.distanceSquared(playerPos) > 16) {
-                    metadata.getFlags().setFlag(EntityFlag.INVISIBLE, false);
-                    updateBedrockMetadata(session);
+                    setFlag(EntityFlag.INVISIBLE, false);
+                    updateBedrockMetadata();
                 }
             } else {
-                metadata.getFlags().setFlag(EntityFlag.INVISIBLE, true);
-                updateBedrockMetadata(session);
+                setFlag(EntityFlag.INVISIBLE, true);
+                updateBedrockMetadata();
             }
         }
         age++;
     }
 
     @Override
-    public void tick(GeyserSession session) {
-        checkVisibility(session);
-        super.tick(session);
+    public void tick() {
+        checkVisibility();
+        super.tick();
     }
 
     @Override
-    protected void setInvisible(GeyserSession session, boolean value) {
+    protected void setInvisible(boolean value) {
         invisible = value;
     }
 }

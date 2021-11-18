@@ -26,14 +26,14 @@
 package org.geysermc.connector.utils;
 
 import com.github.steveice10.mc.protocol.data.game.entity.Effect;
+import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.EntityDefinitions;
 import org.geysermc.connector.entity.living.ArmorStandEntity;
 import org.geysermc.connector.entity.living.animal.AnimalEntity;
-import org.geysermc.connector.entity.type.EntityType;
-import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.Locale;
 
@@ -69,24 +69,10 @@ public final class EntityUtils {
         };
     }
 
-    /**
-     * Converts a MobType to a Bedrock edition EntityType, returns null if the EntityType is not found
-     *
-     * @param type The MobType to convert
-     * @return Converted EntityType
-     */
-    public static EntityType toBedrockEntity(com.github.steveice10.mc.protocol.data.game.entity.type.EntityType type) {
-        try {
-            return EntityType.valueOf(type.name());
-        } catch (IllegalArgumentException ex) {
-            return null;
-        }
-    }
-
     private static float getMountedHeightOffset(Entity mount) {
-        float height = mount.getMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT);
+        float height = mount.getDirtyMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT);
         float mountedHeightOffset = height * 0.75f;
-        switch (mount.getEntityType()) {
+        switch (mount.getDefinition().entityType()) {
             case CHICKEN, SPIDER -> mountedHeightOffset = height * 0.5f;
             case DONKEY, MULE -> mountedHeightOffset -= 0.25f;
             case LLAMA -> mountedHeightOffset = height * 0.67f;
@@ -94,7 +80,7 @@ public final class EntityUtils {
                     MINECART_COMMAND_BLOCK -> mountedHeightOffset = 0;
             case BOAT -> mountedHeightOffset = -0.1f;
             case HOGLIN, ZOGLIN -> {
-                boolean isBaby = mount.getMetadata().getFlags().getFlag(EntityFlag.BABY);
+                boolean isBaby = mount.getDirtyMetadata().getFlags().getFlag(EntityFlag.BABY);
                 mountedHeightOffset = height - (isBaby ? 0.2f : 0.15f);
             }
             case PIGLIN -> mountedHeightOffset = height * 0.92f;
@@ -107,7 +93,7 @@ public final class EntityUtils {
 
     private static float getHeightOffset(Entity passenger) {
         boolean isBaby;
-        switch (passenger.getEntityType()) {
+        switch (passenger.getDefinition().entityType()) {
             case SKELETON:
             case STRAY:
             case WITHER_SKELETON:
@@ -124,10 +110,10 @@ public final class EntityUtils {
             case PIGLIN:
             case PIGLIN_BRUTE:
             case ZOMBIFIED_PIGLIN:
-                isBaby = passenger.getMetadata().getFlags().getFlag(EntityFlag.BABY);
+                isBaby = passenger.getDirtyMetadata().getFlags().getFlag(EntityFlag.BABY);
                 return isBaby ? -0.05f : -0.45f;
             case ZOMBIE:
-                isBaby = passenger.getMetadata().getFlags().getFlag(EntityFlag.BABY);
+                isBaby = passenger.getDirtyMetadata().getFlags().getFlag(EntityFlag.BABY);
                 return isBaby ? 0.0f : -0.45f;
             case EVOKER:
             case ILLUSIONER:
@@ -148,8 +134,8 @@ public final class EntityUtils {
     /**
      * Adjust an entity's height if they have mounted/dismounted an entity.
      */
-    public static void updateMountOffset(Entity passenger, Entity mount, GeyserSession session, boolean rider, boolean riding, boolean moreThanOneEntity) {
-        passenger.getMetadata().getFlags().setFlag(EntityFlag.RIDING, riding);
+    public static void updateMountOffset(Entity passenger, Entity mount, boolean rider, boolean riding, boolean moreThanOneEntity) {
+        passenger.setFlag(EntityFlag.RIDING, riding);
         if (riding) {
             // Without the Y offset, Bedrock players will find themselves in the floor when mounting
             float mountedHeightOffset = getMountedHeightOffset(mount);
@@ -158,7 +144,7 @@ public final class EntityUtils {
             float xOffset = 0;
             float yOffset = mountedHeightOffset + heightOffset;
             float zOffset = 0;
-            switch (mount.getEntityType()) {
+            switch (mount.getDefinition().entityType()) {
                 case BOAT:
                     // Without the X offset, more than one entity on a boat is stacked on top of each other
                     if (rider && moreThanOneEntity) {
@@ -180,17 +166,17 @@ public final class EntityUtils {
              * Horses are tinier
              * Players, Minecarts, and Boats have different origins
              */
-            if (passenger.getEntityType() == EntityType.PLAYER && mount.getEntityType() != EntityType.PLAYER) {
-                yOffset += EntityType.PLAYER.getOffset();
+            if (passenger.getDefinition().entityType() == EntityType.PLAYER && mount.getDefinition().entityType() != EntityType.PLAYER) {
+                yOffset += EntityDefinitions.PLAYER.offset();
             }
-            switch (mount.getEntityType()) {
+            switch (mount.getDefinition().entityType()) {
                 case MINECART, MINECART_HOPPER, MINECART_TNT, MINECART_CHEST, MINECART_FURNACE, MINECART_SPAWNER,
-                        MINECART_COMMAND_BLOCK, BOAT -> yOffset -= mount.getEntityType().getHeight() * 0.5f;
+                        MINECART_COMMAND_BLOCK, BOAT -> yOffset -= mount.getDefinition().height() * 0.5f;
             }
             Vector3f offset = Vector3f.from(xOffset, yOffset, zOffset);
-            passenger.getMetadata().put(EntityData.RIDER_SEAT_POSITION, offset);
+            passenger.getDirtyMetadata().put(EntityData.RIDER_SEAT_POSITION, offset);
         }
-        passenger.updateBedrockMetadata(session);
+        passenger.updateBedrockMetadata();
     }
 
     private EntityUtils() {

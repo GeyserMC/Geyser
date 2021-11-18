@@ -532,7 +532,7 @@ public class GeyserSession implements CommandSender {
         upstream.sendPacket(biomeDefinitionListPacket);
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
-        entityPacket.setIdentifiers(Registries.ENTITY_IDENTIFIERS.get());
+        entityPacket.setIdentifiers(Registries.BEDROCK_ENTITY_IDENTIFIERS.get());
         upstream.sendPacket(entityPacket);
 
         CreativeContentPacket creativePacket = new CreativeContentPacket();
@@ -999,7 +999,7 @@ public class GeyserSession implements CommandSender {
 
 
             for (Tickable entity : entityCache.getTickableEntities()) {
-                entity.tick(this);
+                entity.tick();
             }
         } catch (Throwable throwable) {
             throwable.printStackTrace();
@@ -1030,7 +1030,7 @@ public class GeyserSession implements CommandSender {
             collisionManager.updateScaffoldingFlags(false);
         }
 
-        playerEntity.updateBedrockMetadata(this);
+        playerEntity.updateBedrockMetadata();
 
         if (mouseoverEntity != null) {
             // Horses, etc can change their property depending on if you're sneaking
@@ -1040,17 +1040,17 @@ public class GeyserSession implements CommandSender {
 
     private void setSneakingPose(boolean sneaking) {
         this.pose = sneaking ? Pose.SNEAKING : Pose.STANDING;
-        playerEntity.getMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, sneaking ? 1.5f : playerEntity.getEntityType().getHeight());
-        playerEntity.getMetadata().getFlags().setFlag(EntityFlag.SNEAKING, sneaking);
+        playerEntity.getDirtyMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, sneaking ? 1.5f : playerEntity.getDefinition().height());
+        playerEntity.setFlag(EntityFlag.SNEAKING, sneaking);
 
         collisionManager.updatePlayerBoundingBox();
     }
 
     public void setSwimming(boolean swimming) {
         this.pose = swimming ? Pose.SWIMMING : Pose.STANDING;
-        playerEntity.getMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, swimming ? 0.6f : playerEntity.getEntityType().getHeight());
-        playerEntity.getMetadata().getFlags().setFlag(EntityFlag.SWIMMING, swimming);
-        playerEntity.updateBedrockMetadata(this);
+        playerEntity.getDirtyMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, swimming ? 0.6f : playerEntity.getDefinition().height());
+        playerEntity.setFlag(EntityFlag.SWIMMING, swimming);
+        playerEntity.updateBedrockMetadata();
     }
 
     public void setFlying(boolean flying) {
@@ -1059,7 +1059,7 @@ public class GeyserSession implements CommandSender {
         if (sneaking) {
             // update bounding box as it is not reduced when flying
             setSneakingPose(!flying);
-            playerEntity.updateBedrockMetadata(this);
+            playerEntity.updateBedrockMetadata();
         }
     }
 
@@ -1072,7 +1072,7 @@ public class GeyserSession implements CommandSender {
         AttributeData currentPlayerSpeed = playerEntity.getAttributes().get(GeyserAttributeType.MOVEMENT_SPEED);
         if (currentPlayerSpeed != null) {
             if ((pose.equals(Pose.SNEAKING) && !sneaking && collisionManager.isUnderSlab()) ||
-                    (!swimmingInWater && playerEntity.getMetadata().getFlags().getFlag(EntityFlag.SWIMMING) && !collisionManager.isPlayerInWater())) {
+                    (!swimmingInWater && playerEntity.getDirtyMetadata().getFlags().getFlag(EntityFlag.SWIMMING) && !collisionManager.isPlayerInWater())) {
                 // Either of those conditions means that Bedrock goes zoom when they shouldn't be
                 AttributeData speedAttribute = GeyserAttributeType.MOVEMENT_SPEED.getAttribute(originalSpeedAttribute / 3.32f);
                 playerEntity.getAttributes().put(GeyserAttributeType.MOVEMENT_SPEED, speedAttribute);
@@ -1282,7 +1282,7 @@ public class GeyserSession implements CommandSender {
             if (resendID != -1) {
                 connector.getLogger().debug("Resending teleport " + resendID);
                 TeleportCache teleport = teleportMap.get(resendID);
-                getPlayerEntity().moveAbsolute(this, Vector3f.from(teleport.getX(), teleport.getY(), teleport.getZ()),
+                getPlayerEntity().moveAbsolute(Vector3f.from(teleport.getX(), teleport.getY(), teleport.getZ()),
                         teleport.getYaw(), teleport.getPitch(), playerEntity.isOnGround(), true);
             }
         }

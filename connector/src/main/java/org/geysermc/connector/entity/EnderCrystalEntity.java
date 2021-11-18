@@ -31,33 +31,31 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 public class EnderCrystalEntity extends Entity {
 
-    public EnderCrystalEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
-
-        // Bedrock 1.16.100+ - prevents the entity from appearing on fire itself when fire is underneath it
-        metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
+    public EnderCrystalEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+        // Bedrock 1.16.100+ - prevents the entity from appearing on fire itself when fire is underneath it
+        dirtyMetadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
+    }
+
+    public void setBlockTarget(EntityMetadata<Position> entityMetadata) {
         // Show beam
         // Usually performed client-side on Bedrock except for Ender Dragon respawn event
-        if (entityMetadata.getId() == 8) {
-            if (entityMetadata.getValue() instanceof Position pos) {
-                metadata.put(EntityData.BLOCK_TARGET, Vector3i.from(pos.getX(), pos.getY(), pos.getZ()));
-            } else {
-                metadata.put(EntityData.BLOCK_TARGET, Vector3i.ZERO);
-            }
+        Position position = entityMetadata.getValue();
+        if (position != null) {
+            dirtyMetadata.put(EntityData.BLOCK_TARGET, Vector3i.from(position.getX(), position.getY(), position.getZ()));
+        } else {
+            dirtyMetadata.put(EntityData.BLOCK_TARGET, Vector3i.ZERO);
         }
-        // There is a base located on the ender crystal
-        if (entityMetadata.getId() == 9) {
-            metadata.getFlags().setFlag(EntityFlag.SHOW_BOTTOM, (boolean) entityMetadata.getValue());
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
     }
 }

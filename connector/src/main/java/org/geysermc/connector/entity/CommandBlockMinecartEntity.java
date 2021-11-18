@@ -25,42 +25,33 @@
 
 package org.geysermc.connector.entity;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import net.kyori.adventure.text.Component;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.chat.MessageTranslator;
+
+import java.util.UUID;
 
 public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
 
-    public CommandBlockMinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
-        // Required, or else the GUI will not open
-        metadata.put(EntityData.CONTAINER_TYPE, (byte) 16);
-        metadata.put(EntityData.CONTAINER_BASE_SIZE, 1);
-        // Required, or else the client does not bother to send a packet back with the new information
-        metadata.put(EntityData.COMMAND_BLOCK_ENABLED, (byte) 1);
+    public CommandBlockMinecartEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 14) {
-            metadata.put(EntityData.COMMAND_BLOCK_COMMAND, entityMetadata.getValue());
-        }
-        if (entityMetadata.getId() == 15) {
-            metadata.put(EntityData.COMMAND_BLOCK_LAST_OUTPUT, MessageTranslator.convertMessage((Component) entityMetadata.getValue()));
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
+    protected void initializeMetadata() {
+        // Required, or else the GUI will not open
+        dirtyMetadata.put(EntityData.CONTAINER_TYPE, (byte) 16);
+        dirtyMetadata.put(EntityData.CONTAINER_BASE_SIZE, 1);
+        // Required, or else the client does not bother to send a packet back with the new information
+        dirtyMetadata.put(EntityData.COMMAND_BLOCK_ENABLED, (byte) 1);
     }
 
     /**
      * By default, the command block shown is purple on Bedrock, which does not match Java Edition's orange.
      */
     @Override
-    public void updateDefaultBlockMetadata(GeyserSession session) {
-        metadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getCommandBlockRuntimeId());
-        metadata.put(EntityData.DISPLAY_OFFSET, 6);
+    public void updateDefaultBlockMetadata() {
+        dirtyMetadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getCommandBlockRuntimeId());
+        dirtyMetadata.put(EntityData.DISPLAY_OFFSET, 6);
     }
 }

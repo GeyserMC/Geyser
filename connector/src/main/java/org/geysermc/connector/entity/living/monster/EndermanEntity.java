@@ -26,41 +26,46 @@
 package org.geysermc.connector.entity.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEvent2Packet;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 public class EndermanEntity extends MonsterEntity {
 
-    public EndermanEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public EndermanEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        // Held block
-        if (entityMetadata.getId() == 16) {
-            metadata.put(EntityData.CARRIED_BLOCK, session.getBlockMappings().getBedrockBlockId((int) entityMetadata.getValue()));
+    public void setCarriedBlock(EntityMetadata<Integer> entityMetadata) {
+        dirtyMetadata.put(EntityData.CARRIED_BLOCK, session.getBlockMappings().getBedrockBlockId(((IntEntityMetadata) entityMetadata).getPrimitiveValue()));
+    }
+
+    /**
+     * Controls the screaming sound
+     */
+    public void setScreaming(EntityMetadata<Boolean> entityMetadata) {
+        //TODO see if Bedrock controls this differently
+        // Java Edition this controls which ambient sound is used
+        if (((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()) {
+            LevelSoundEvent2Packet packet = new LevelSoundEvent2Packet();
+            packet.setSound(SoundEvent.STARE);
+            packet.setPosition(this.position);
+            packet.setExtraData(-1);
+            packet.setIdentifier("minecraft:enderman");
+            session.sendUpstreamPacket(packet);
         }
-        // "Is screaming" - controls sound
-        if (entityMetadata.getId() == 17) {
-            if ((boolean) entityMetadata.getValue()) {
-                LevelSoundEvent2Packet packet = new LevelSoundEvent2Packet();
-                packet.setSound(SoundEvent.STARE);
-                packet.setPosition(this.position);
-                packet.setExtraData(-1);
-                packet.setIdentifier("minecraft:enderman");
-                session.sendUpstreamPacket(packet);
-            }
-        }
+    }
+
+    public void setAngry(EntityMetadata<Boolean> entityMetadata) {
         // "Is staring/provoked" - controls visuals
-        if (entityMetadata.getId() == 18) {
-            metadata.getFlags().setFlag(EntityFlag.ANGRY, (boolean) entityMetadata.getValue());
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
+        setFlag(EntityFlag.ANGRY, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue());
     }
 }

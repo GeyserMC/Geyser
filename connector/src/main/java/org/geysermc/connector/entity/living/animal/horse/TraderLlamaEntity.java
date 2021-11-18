@@ -27,18 +27,20 @@ package org.geysermc.connector.entity.living.animal.horse;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 public class TraderLlamaEntity extends LlamaEntity {
 
-    public TraderLlamaEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public TraderLlamaEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
-    public void spawnEntity(GeyserSession session) {
-        this.metadata.put(EntityData.MARK_VARIANT, 1);
-        super.spawnEntity(session);
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+        this.dirtyMetadata.put(EntityData.MARK_VARIANT, 1);
     }
 }

@@ -26,54 +26,47 @@
 package org.geysermc.connector.entity.living.animal.horse;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.MobArmorEquipmentPacket;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.registry.type.ItemMapping;
 
+import java.util.UUID;
+
 public class LlamaEntity extends ChestedHorseEntity {
 
-    public LlamaEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public LlamaEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
 
-        metadata.put(EntityData.CONTAINER_STRENGTH_MODIFIER, 3); // Presumably 3 slots for every 1 strength
+        dirtyMetadata.put(EntityData.CONTAINER_STRENGTH_MODIFIER, 3); // Presumably 3 slots for every 1 strength
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        // Strength
-        if (entityMetadata.getId() == 20) {
-            metadata.put(EntityData.STRENGTH, entityMetadata.getValue());
+    /**
+     * Color equipped on the llama
+     */
+    public void setCarpetedColor(EntityMetadata<Integer> entityMetadata) {
+        // Bedrock treats llama decoration as armor
+        MobArmorEquipmentPacket equipmentPacket = new MobArmorEquipmentPacket();
+        equipmentPacket.setRuntimeEntityId(geyserId);
+        // -1 means no armor
+        int carpetIndex = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+        if (carpetIndex > -1 && carpetIndex <= 15) {
+            // The damage value is the dye color that Java sends us, for pre-1.16.220
+            // The item is always going to be a carpet
+            equipmentPacket.setChestplate(session.getItemMappings().getCarpets().get(carpetIndex));
+        } else {
+            equipmentPacket.setChestplate(ItemData.AIR);
         }
-        // Color equipped on the llama
-        if (entityMetadata.getId() == 21) {
-            // Bedrock treats llama decoration as armor
-            MobArmorEquipmentPacket equipmentPacket = new MobArmorEquipmentPacket();
-            equipmentPacket.setRuntimeEntityId(geyserId);
-            // -1 means no armor
-            int carpetIndex = (int) entityMetadata.getValue();
-            if (carpetIndex > -1 && carpetIndex <= 15) {
-                // The damage value is the dye color that Java sends us, for pre-1.16.220
-                // The item is always going to be a carpet
-                equipmentPacket.setChestplate(session.getItemMappings().getCarpets().get(carpetIndex));
-            } else {
-                equipmentPacket.setChestplate(ItemData.AIR);
-            }
-            // Required to fill out the rest of the equipment or Bedrock ignores it, including above else statement if removing armor
-            equipmentPacket.setBoots(ItemData.AIR);
-            equipmentPacket.setHelmet(ItemData.AIR);
-            equipmentPacket.setLeggings(ItemData.AIR);
+        // Required to fill out the rest of the equipment or Bedrock ignores it, including above else statement if removing armor
+        equipmentPacket.setBoots(ItemData.AIR);
+        equipmentPacket.setHelmet(ItemData.AIR);
+        equipmentPacket.setLeggings(ItemData.AIR);
 
-            session.sendUpstreamPacket(equipmentPacket);
-        }
-        // Color of the llama
-        if (entityMetadata.getId() == 22) {
-            metadata.put(EntityData.VARIANT, entityMetadata.getValue());
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
+        session.sendUpstreamPacket(equipmentPacket);
     }
 
     @Override

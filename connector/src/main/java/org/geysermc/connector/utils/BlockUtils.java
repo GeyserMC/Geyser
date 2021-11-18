@@ -196,7 +196,7 @@ public class BlockUtils {
     /**
      * Given a position, return the position if a block were located on the specified block face.
      * @param blockPos the block position
-     * @param face the face of the block - see {@link com.github.steveice10.mc.protocol.data.game.level.block.BlockFace}
+     * @param face the face of the block - see {@link com.github.steveice10.mc.protocol.data.game.entity.object.Direction}
      * @return the block position with the block face accounted for
      */
     public static Vector3i getBlockPosition(Vector3i blockPos, int face) {

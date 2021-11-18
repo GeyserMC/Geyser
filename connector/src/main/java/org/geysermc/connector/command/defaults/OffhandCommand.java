@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.command.defaults;
 
+import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockFace;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.command.CommandSender;
@@ -47,7 +47,7 @@ public class OffhandCommand extends GeyserCommand {
         }
 
         ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.SWAP_HANDS, BlockUtils.POSITION_ZERO,
-                BlockFace.DOWN);
+                Direction.DOWN);
         session.sendDownstreamPacket(releaseItemPacket);
     }
 

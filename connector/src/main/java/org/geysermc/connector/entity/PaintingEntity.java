@@ -27,23 +27,24 @@ package org.geysermc.connector.entity;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.AddPaintingPacket;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.PaintingType;
+
+import java.util.UUID;
 
 public class PaintingEntity extends Entity {
     private static final double OFFSET = -0.46875;
     private final PaintingType paintingName;
     private final int direction;
 
-    public PaintingEntity(long entityId, long geyserId, Vector3f position, PaintingType paintingName, int direction) {
-        super(entityId, geyserId, EntityType.PAINTING, position, Vector3f.ZERO, Vector3f.ZERO);
+    public PaintingEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, Vector3f position, PaintingType paintingName, int direction) {
+        super(session, entityId, geyserId, uuid, EntityDefinitions.PAINTING, position, Vector3f.ZERO, 0f, 0f, 0f);
         this.paintingName = paintingName;
         this.direction = direction;
     }
 
     @Override
-    public void spawnEntity(GeyserSession session) {
+    public void spawnEntity() {
         AddPaintingPacket addPaintingPacket = new AddPaintingPacket();
         addPaintingPacket.setUniqueEntityId(geyserId);
         addPaintingPacket.setRuntimeEntityId(geyserId);
@@ -58,7 +59,7 @@ public class PaintingEntity extends Entity {
     }
 
     @Override
-    public void updateHeadLookRotation(GeyserSession session, float headYaw) {
+    public void updateHeadLookRotation(float headYaw) {
         // Do nothing, as head look messes up paintings
     }
 

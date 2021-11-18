@@ -26,38 +26,38 @@
 package org.geysermc.connector.entity.living.monster.raid;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
+import org.geysermc.connector.entity.EntityDefinitions;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 public class SpellcasterIllagerEntity extends AbstractIllagerEntity {
     private static final int SUMMON_VEX_PARTICLE_COLOR = (179 << 16) | (179 << 8) | 204;
     private static final int ATTACK_PARTICLE_COLOR = (102 << 16) | (77 << 8) | 89;
     private static final int WOLOLO_PARTICLE_COLOR = (179 << 16) | (128 << 8) | 51;
 
-    public SpellcasterIllagerEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public SpellcasterIllagerEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
         // OptionalPack usage
-        metadata.getFlags().setFlag(EntityFlag.BRIBED, this.entityType == EntityType.ILLUSIONER);
+        dirtyMetadata.getFlags().setFlag(EntityFlag.BRIBED, this.definition == EntityDefinitions.ILLUSIONER);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 17) {
-            int spellType = (int) (byte) entityMetadata.getValue();
-            // Summon vex, attack, or wololo
-            metadata.getFlags().setFlag(EntityFlag.CASTING, spellType == 1 || spellType == 2 || spellType == 3);
-            int rgbData = switch (spellType) {
-                // Set the spell color based on Java values
-                case 1 -> SUMMON_VEX_PARTICLE_COLOR;
-                case 2 -> ATTACK_PARTICLE_COLOR;
-                case 3 -> WOLOLO_PARTICLE_COLOR;
-                default -> 0;
-            };
-            metadata.put(EntityData.EVOKER_SPELL_COLOR, rgbData);
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
+    public void setSpellType(EntityMetadata<Byte> entityMetadata) {
+        int spellType = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+        // Summon vex, attack, or wololo
+        setFlag(EntityFlag.CASTING, spellType == 1 || spellType == 2 || spellType == 3);
+        int rgbData = switch (spellType) {
+            // Set the spell color based on Java values
+            case 1 -> SUMMON_VEX_PARTICLE_COLOR;
+            case 2 -> ATTACK_PARTICLE_COLOR;
+            case 3 -> WOLOLO_PARTICLE_COLOR;
+            default -> 0;
+        };
+        dirtyMetadata.put(EntityData.EVOKER_SPELL_COLOR, rgbData);
     }
 }

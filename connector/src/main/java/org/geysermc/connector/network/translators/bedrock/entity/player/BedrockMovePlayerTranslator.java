@@ -34,8 +34,8 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.connector.common.ChatColor;
+import org.geysermc.connector.entity.EntityDefinitions;
 import org.geysermc.connector.entity.player.SessionPlayerEntity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -68,14 +68,17 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         session.getBookEditCache().checkForSend();
 
         if (!session.getTeleportMap().isEmpty()) {
-            session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityType.PLAYER.getOffset(), 0));
+            session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityDefinitions.PLAYER.offset(), 0));
             return;
         }
         // head yaw, pitch, head yaw
         Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
+        float yaw = packet.getRotation().getY();
+        float pitch = packet.getRotation().getX();
+        float headYaw = packet.getRotation().getY();
 
         boolean positionChanged = !entity.getPosition().equals(packet.getPosition());
-        boolean rotationChanged = !entity.getRotation().equals(rotation);
+        boolean rotationChanged = entity.getYaw() != yaw || entity.getPitch() != pitch || entity.getHeadYaw() != headYaw;
 
         // If only the pitch and yaw changed
         // This isn't needed, but it makes the packets closer to vanilla
@@ -84,7 +87,9 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             ServerboundMovePlayerRotPacket playerRotationPacket = new ServerboundMovePlayerRotPacket(
                     packet.isOnGround(), packet.getRotation().getY(), packet.getRotation().getX());
 
-            entity.setRotation(rotation);
+            entity.setYaw(yaw);
+            entity.setPitch(pitch);
+            entity.setHeadYaw(headYaw);
             entity.setOnGround(packet.isOnGround());
 
             session.sendDownstreamPacket(playerRotationPacket);
@@ -101,7 +106,9 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                         // Send rotation updates as well
                         movePacket = new ServerboundMovePlayerPosRotPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ(),
                                 packet.getRotation().getY(), packet.getRotation().getX());
-                        entity.setRotation(rotation);
+                        entity.setYaw(yaw);
+                        entity.setPitch(pitch);
+                        entity.setHeadYaw(headYaw);
                     } else {
                         // Rotation did not change; don't send an update with rotation
                         movePacket = new ServerboundMovePlayerPosPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ());
@@ -145,10 +152,10 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         // Move parrots to match if applicable
         if (entity.getLeftParrot() != null) {
-            entity.getLeftParrot().moveAbsolute(session, entity.getPosition(), entity.getRotation(), true, false);
+            entity.getLeftParrot().moveAbsolute(entity.getPosition(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
         }
         if (entity.getRightParrot() != null) {
-            entity.getRightParrot().moveAbsolute(session, entity.getPosition(), entity.getRotation(), true, false);
+            entity.getRightParrot().moveAbsolute(entity.getPosition(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
         }
     }
 

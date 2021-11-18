@@ -26,37 +26,43 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 public class AbstractArrowEntity extends Entity {
 
-    public AbstractArrowEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public AbstractArrowEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
 
         // Set the correct texture if using the resource pack
-        metadata.getFlags().setFlag(EntityFlag.BRIBED, entityType == EntityType.SPECTRAL_ARROW);
+        dirtyMetadata.getFlags().setFlag(EntityFlag.BRIBED, definition.entityType() == EntityType.SPECTRAL_ARROW);
 
         setMotion(motion);
     }
 
+    public void setArrowFlags(EntityMetadata<Byte> entityMetadata) {
+        byte data = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+
+        setFlag(EntityFlag.CRITICAL, (data & 0x01) == 0x01);
+    }
+
+    // Ignore the rotation sent by the Java server since the
+    // Java client calculates the rotation from the motion
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 8) {
-            byte data = (byte) entityMetadata.getValue();
-
-            metadata.getFlags().setFlag(EntityFlag.CRITICAL, (data & 0x01) == 0x01);
-        }
-
-        super.updateBedrockMetadata(entityMetadata, session);
+    public void setYaw(float yaw) {
     }
 
     @Override
-    public void setRotation(Vector3f rotation) {
-        // Ignore the rotation sent by the Java server since the
-        // Java client calculates the rotation from the motion
+    public void setPitch(float pitch) {
+    }
+
+    @Override
+    public void setHeadYaw(float headYaw) {
     }
 
     @Override
@@ -64,8 +70,8 @@ public class AbstractArrowEntity extends Entity {
         super.setMotion(motion);
 
         double horizontalSpeed = Math.sqrt(motion.getX() * motion.getX() + motion.getZ() * motion.getZ());
-        float yaw = (float) Math.toDegrees(Math.atan2(motion.getX(), motion.getZ()));
-        float pitch = (float) Math.toDegrees(Math.atan2(motion.getY(), horizontalSpeed));
-        rotation = Vector3f.from(yaw, pitch, yaw);
+        this.yaw = (float) Math.toDegrees(Math.atan2(motion.getX(), motion.getZ()));
+        this.pitch = (float) Math.toDegrees(Math.atan2(motion.getY(), horizontalSpeed));
+        this.headYaw = yaw;
     }
 }

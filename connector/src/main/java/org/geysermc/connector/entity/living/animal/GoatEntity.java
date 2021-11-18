@@ -27,11 +27,14 @@ package org.geysermc.connector.entity.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import lombok.Getter;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 public class GoatEntity extends AnimalEntity {
     private static final float LONG_JUMPING_HEIGHT = 1.3f * 0.7f;
@@ -40,24 +43,20 @@ public class GoatEntity extends AnimalEntity {
     @Getter
     private boolean isScreamer;
 
-    public GoatEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public GoatEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        super.updateBedrockMetadata(entityMetadata, session);
-        if (entityMetadata.getId() == 17) {
-            // Not used in Bedrock Edition
-            isScreamer = (boolean) entityMetadata.getValue();
-        }
+    public void setScreamer(EntityMetadata<Boolean> entityMetadata) {
+        // Metadata not used in Bedrock Edition
+        isScreamer = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
     }
 
     @Override
     protected void setDimensions(Pose pose) {
         if (pose == Pose.LONG_JUMPING) {
-            metadata.put(EntityData.BOUNDING_BOX_WIDTH, LONG_JUMPING_WIDTH);
-            metadata.put(EntityData.BOUNDING_BOX_HEIGHT, LONG_JUMPING_HEIGHT);
+            dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, LONG_JUMPING_WIDTH);
+            dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, LONG_JUMPING_HEIGHT);
         } else {
             super.setDimensions(pose);
         }

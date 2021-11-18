@@ -26,63 +26,42 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 public class MinecartEntity extends Entity {
 
-    public MinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position.add(0d, entityType.getOffset(), 0d), motion, rotation);
+    public MinecartEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position.add(0d, definition.offset(), 0d), motion, yaw, pitch, headYaw);
+    }
+
+    public void setCustomBlock(EntityMetadata<Integer> entityMetadata) {
+        dirtyMetadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId(((IntEntityMetadata) entityMetadata).getPrimitiveValue()));
+    }
+
+    public void setCustomBlockOffset(EntityMetadata<Integer> entityMetadata) {
+        dirtyMetadata.put(EntityData.DISPLAY_OFFSET, entityMetadata.getValue());
+    }
+
+    public void setShowCustomBlock(EntityMetadata<Boolean> entityMetadata) {
+        // If the custom block should be enabled
+        // Needs a byte based off of Java's boolean
+        dirtyMetadata.put(EntityData.CUSTOM_DISPLAY, (byte) (((BooleanEntityMetadata) entityMetadata).getPrimitiveValue() ? 1 : 0));
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-
-        if (entityMetadata.getId() == 8) {
-            metadata.put(EntityData.HEALTH, entityMetadata.getValue());
-        }
-
-        // Direction in which the minecart is shaking
-        if (entityMetadata.getId() == 9) {
-            metadata.put(EntityData.HURT_DIRECTION, entityMetadata.getValue());
-        }
-
-        // Power in Java, time in Bedrock
-        if (entityMetadata.getId() == 10) {
-            metadata.put(EntityData.HURT_TIME, Math.min((int) (float) entityMetadata.getValue(), 15));
-        }
-
-        if (!(this instanceof DefaultBlockMinecartEntity)) { // Handled in the DefaultBlockMinecartEntity class
-            // Custom block
-            if (entityMetadata.getId() == 11) {
-                metadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId((int) entityMetadata.getValue()));
-            }
-
-            // Custom block offset
-            if (entityMetadata.getId() == 12) {
-                metadata.put(EntityData.DISPLAY_OFFSET, entityMetadata.getValue());
-            }
-
-            // If the custom block should be enabled
-            if (entityMetadata.getId() == 13) {
-                // Needs a byte based off of Java's boolean
-                metadata.put(EntityData.CUSTOM_DISPLAY, (byte) ((boolean) entityMetadata.getValue() ? 1 : 0));
-            }
-        }
-
-        super.updateBedrockMetadata(entityMetadata, session);
-    }
-
-    @Override
-    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(session, position.add(0d, this.entityType.getOffset(), 0d), rotation, isOnGround, teleported);
+    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsolute(position.add(0d, this.definition.offset(), 0d), yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     @Override
     public Vector3f getBedrockRotation() {
         // Note: minecart rotation on rails does not care about the actual rotation value
-        return Vector3f.from(0, rotation.getX(), 0);
+        return Vector3f.from(0, yaw, 0);
     }
 }

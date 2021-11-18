@@ -27,20 +27,20 @@ package org.geysermc.connector.entity;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.PlaySoundPacket;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class LightningEntity extends Entity {
 
-    public LightningEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public LightningEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
-    public void spawnEntity(GeyserSession session) {
-        super.spawnEntity(session);
+    public void spawnEntity() {
+        super.spawnEntity();
 
         // Add these two sound effects - they're done completely clientside on Java Edition as of 1.17.1
         ThreadLocalRandom random = ThreadLocalRandom.current();

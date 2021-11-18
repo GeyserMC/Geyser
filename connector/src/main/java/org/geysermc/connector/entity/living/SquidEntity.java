@@ -28,28 +28,25 @@ package org.geysermc.connector.entity.living;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityDeltaPacket;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.entity.Tickable;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
+import java.util.UUID;
+
 public class SquidEntity extends WaterEntity implements Tickable {
-
-    private float pitch;
-    private float yaw;
-
     private float targetPitch;
     private float targetYaw;
 
     private boolean inWater;
 
-    public SquidEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
-        this.yaw = rotation.getX();
+    public SquidEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
-    public void tick(GeyserSession session) {
+    public void tick() {
         boolean pitchChanged;
         boolean yawChanged;
         float oldPitch = pitch;
@@ -82,23 +79,31 @@ public class SquidEntity extends WaterEntity implements Tickable {
     }
 
     @Override
-    public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
-        super.moveRelative(session, relX, relY, relZ, rotation, isOnGround);
-        checkInWater(session);
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+        checkInWater();
     }
 
     @Override
-    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(session, position, rotation, isOnGround, teleported);
-        checkInWater(session);
+    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
+        checkInWater();
     }
 
     @Override
-    public void setRotation(Vector3f rotation) {
+    public void setYaw(float yaw) {
         // Let the Java server control yaw when the squid is out of water
         if (!inWater) {
-            yaw = rotation.getX();
+            this.yaw = yaw;
         }
+    }
+
+    @Override
+    public void setPitch(float pitch) {
+    }
+
+    @Override
+    public void setHeadYaw(float headYaw) {
     }
 
     @Override
@@ -115,8 +120,8 @@ public class SquidEntity extends WaterEntity implements Tickable {
         return Vector3f.from(pitch, yaw, yaw);
     }
 
-    private void checkInWater(GeyserSession session) {
-        if (getMetadata().getFlags().getFlag(EntityFlag.RIDING)) {
+    private void checkInWater() {
+        if (getFlag(EntityFlag.RIDING)) {
             inWater = false;
         } else {
             int block = session.getConnector().getWorldManager().getBlockAt(session, position.toInt());

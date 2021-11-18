@@ -26,38 +26,34 @@
 package org.geysermc.connector.entity.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
 
-public class CreeperEntity extends MonsterEntity {
+import java.util.UUID;
 
+public class CreeperEntity extends MonsterEntity {
     /**
-     * Whether the creeper has been ignited and is using ID 17.
-     * In this instance we ignore ID 15 since it's sending us -1 which confuses poor Bedrock.
+     * Whether the creeper has been ignited and is using {@link #setIgnited(EntityMetadata)}.
+     * In this instance we ignore {@link #setSwelling(EntityMetadata)} since it's sending us -1 which confuses poor Bedrock.
      */
     private boolean ignitedByFlintAndSteel = false;
 
-    public CreeperEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public CreeperEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
-            if (!ignitedByFlintAndSteel) {
-                metadata.getFlags().setFlag(EntityFlag.IGNITED, (int) entityMetadata.getValue() == 1);
-            }
+    public void setSwelling(EntityMetadata<Integer> entityMetadata) {
+        if (!ignitedByFlintAndSteel) {
+            setFlag(EntityFlag.IGNITED, ((IntEntityMetadata) entityMetadata).getPrimitiveValue() == 1);
         }
-        if (entityMetadata.getId() == 17) {
-            metadata.getFlags().setFlag(EntityFlag.POWERED, (boolean) entityMetadata.getValue());
-        }
-        if (entityMetadata.getId() == 18) {
-            ignitedByFlintAndSteel = (boolean) entityMetadata.getValue();
-            metadata.getFlags().setFlag(EntityFlag.IGNITED, ignitedByFlintAndSteel);
-        }
+    }
 
-        super.updateBedrockMetadata(entityMetadata, session);
+    public void setIgnited(EntityMetadata<Boolean> entityMetadata) {
+        ignitedByFlintAndSteel = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+        setFlag(EntityFlag.IGNITED, ignitedByFlintAndSteel);
     }
 }

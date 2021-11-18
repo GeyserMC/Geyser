@@ -26,8 +26,9 @@
 package org.geysermc.connector.entity;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 public class ItemedFireballEntity extends ThrowableEntity {
     private final Vector3f acceleration;
@@ -37,8 +38,8 @@ public class ItemedFireballEntity extends ThrowableEntity {
      */
     protected int futureTicks = 3;
 
-    public ItemedFireballEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, Vector3f.ZERO, rotation);
+    public ItemedFireballEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, Vector3f.ZERO, yaw, pitch, headYaw);
 
         float magnitude = motion.length();
         if (magnitude != 0) {
@@ -48,28 +49,28 @@ public class ItemedFireballEntity extends ThrowableEntity {
         }
     }
 
-    private Vector3f tickMovement(GeyserSession session, Vector3f position) {
+    private Vector3f tickMovement(Vector3f position) {
         position = position.add(motion);
-        float drag = getDrag(session);
+        float drag = getDrag();
         motion = motion.add(acceleration).mul(drag);
         return position;
     }
 
     @Override
-    protected void moveAbsoluteImmediate(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+    protected void moveAbsoluteImmediate(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         // Advance the position by a few ticks before sending it to Bedrock
         Vector3f lastMotion = motion;
         Vector3f newPosition = position;
         for (int i = 0; i < futureTicks; i++) {
-            newPosition = tickMovement(session, newPosition);
+            newPosition = tickMovement(newPosition);
         }
-        super.moveAbsoluteImmediate(session, newPosition, rotation, isOnGround, teleported);
+        super.moveAbsoluteImmediate(newPosition, yaw, pitch, headYaw, isOnGround, teleported);
         this.position = position;
         this.motion = lastMotion;
     }
 
     @Override
-    public void tick(GeyserSession session) {
-        moveAbsoluteImmediate(session, tickMovement(session, position), rotation, false, false);
+    public void tick() {
+        moveAbsoluteImmediate(tickMovement(position), yaw, pitch, headYaw, false, false);
     }
 }

@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
 import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeType;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -62,21 +63,21 @@ public class SessionPlayerEntity extends PlayerEntity {
     private final GeyserSession session;
 
     public SessionPlayerEntity(GeyserSession session) {
-        super(new GameProfile(UUID.randomUUID(), "unknown"), 1, 1, Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
+        super(session, 1, 1, new GameProfile(UUID.randomUUID(), "unknown"), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
 
         valid = true;
         this.session = session;
     }
 
     @Override
-    public void spawnEntity(GeyserSession session) {
+    public void spawnEntity() {
         // Already logged in
     }
 
     @Override
-    public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
-        super.moveRelative(session, relX, relY, relZ, rotation, isOnGround);
-        session.getCollisionManager().updatePlayerBoundingBox(this.position.down(entityType.getOffset()));
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+        session.getCollisionManager().updatePlayerBoundingBox(this.position.down(definition.offset()));
     }
 
     @Override
@@ -99,24 +100,25 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        super.updateBedrockMetadata(entityMetadata, session);
-        if (entityMetadata.getId() == 0) {
-            session.setSwimmingInWater((((byte) entityMetadata.getValue()) & 0x10) == 0x10 && metadata.getFlags().getFlag(EntityFlag.SPRINTING));
-            refreshSpeed = true;
-        } else if (entityMetadata.getId() == 6) {
-            session.setPose((Pose) entityMetadata.getValue());
-            refreshSpeed = true;
-        }
+    public void setFlags(EntityMetadata<Byte> entityMetadata) {
+        super.setFlags(entityMetadata);
+        session.setSwimmingInWater((((ByteEntityMetadata) entityMetadata).getPrimitiveValue() & 0x10) == 0x10 && getFlag(EntityFlag.SPRINTING));
+        refreshSpeed = true;
+    }
+
+    @Override
+    public void setPose(EntityMetadata<Pose> entityMetadata) {
+        super.setPose(entityMetadata);
+        session.setPose(entityMetadata.getValue());
+        refreshSpeed = true;
     }
 
     public float getMaxHealth() {
         return maxHealth;
     }
 
-    @Override
     public void setHealth(float health) {
-        super.setHealth(health);
+        this.health = health;
     }
 
     @Override
@@ -138,8 +140,8 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    public void updateBedrockMetadata(GeyserSession session) {
-        super.updateBedrockMetadata(session);
+    public void updateBedrockMetadata() {
+        super.updateBedrockMetadata();
         if (refreshSpeed) {
             AttributeData speedAttribute = session.adjustSpeed();
             if (speedAttribute != null) {

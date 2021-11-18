@@ -27,32 +27,34 @@ package org.geysermc.connector.entity.living;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 public class MagmaCubeEntity extends SlimeEntity {
 
-    public MagmaCubeEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public MagmaCubeEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
-    public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
-        updateJump(session, isOnGround);
-        super.moveRelative(session, relX, relY, relZ, rotation, isOnGround);
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        updateJump(isOnGround);
+        super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
     }
 
     @Override
-    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
-        updateJump(session, isOnGround);
-        super.moveAbsolute(session, position, rotation, isOnGround, teleported);
+    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        updateJump(isOnGround);
+        super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
     }
 
-    public void updateJump(GeyserSession session, boolean newOnGround) {
+    public void updateJump(boolean newOnGround) {
         if (newOnGround != onGround) {
             // Add the jumping effect to the magma cube
-            metadata.put(EntityData.CLIENT_EVENT, (byte) (newOnGround ? 1 : 2));
-            updateBedrockMetadata(session);
+            dirtyMetadata.put(EntityData.CLIENT_EVENT, (byte) (newOnGround ? 1 : 2));
+            updateBedrockMetadata();
         }
     }
 }

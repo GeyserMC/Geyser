@@ -26,35 +26,34 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 public class WitherSkullEntity extends ItemedFireballEntity {
     private boolean isCharged;
 
-    public WitherSkullEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public WitherSkullEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
 
         this.futureTicks = 1;
     }
 
-    @Override
-    protected float getDrag(GeyserSession session) {
-        return isCharged ? 0.73f : super.getDrag(session);
+    public void setDangerous(EntityMetadata<Boolean> entityMetadata) {
+        boolean newDangerous = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+        if (newDangerous != isCharged) {
+            isCharged = newDangerous;
+            // Is an entirely new entity in Bedrock but just a metadata type in Java
+            definition = isCharged ? EntityDefinitions.WITHER_SKULL_DANGEROUS : EntityDefinitions.WITHER_SKULL;
+            despawnEntity();
+            spawnEntity();
+        }
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 8) {
-            boolean newIsCharged = (boolean) entityMetadata.getValue();
-            if (newIsCharged != isCharged) {
-                isCharged = newIsCharged;
-                entityType = isCharged ? EntityType.WITHER_SKULL_DANGEROUS : EntityType.WITHER_SKULL;
-                despawnEntity(session);
-                spawnEntity(session);
-            }
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
+    protected float getDrag() {
+        return isCharged ? 0.73f : super.getDrag();
     }
 }

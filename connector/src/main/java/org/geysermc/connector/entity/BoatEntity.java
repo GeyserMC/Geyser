@@ -26,13 +26,16 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
-import org.geysermc.connector.entity.type.EntityType;
+import lombok.Getter;
 import org.geysermc.connector.network.session.GeyserSession;
 
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class BoatEntity extends Entity {
@@ -52,28 +55,36 @@ public class BoatEntity extends Entity {
     private boolean isPaddlingRight;
     private float paddleTimeRight;
 
+    /**
+     * Saved for using the "pick" functionality on a boat.
+     */
+    @Getter
+    private int variant;
+
     // Looks too fast and too choppy with 0.1f, which is how I believe the Microsoftian client handles it
     private final float ROWING_SPEED = 0.05f;
 
-    public BoatEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position.add(0d, entityType.getOffset(), 0d), motion, rotation.add(90, 0, 90));
+    public BoatEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        // Initial rotation is incorrect
+        super(session, entityId, geyserId, uuid, definition, position.add(0d, definition.offset(), 0d), motion, yaw + 90, 0, yaw + 90);
 
         // Required to be able to move on land 1.16.200+ or apply gravity not in the water 1.16.100+
-        metadata.put(EntityData.IS_BUOYANT, (byte) 1);
-        metadata.put(EntityData.BUOYANCY_DATA, BUOYANCY_DATA);
+        dirtyMetadata.put(EntityData.IS_BUOYANT, (byte) 1);
+        dirtyMetadata.put(EntityData.BUOYANCY_DATA, BUOYANCY_DATA);
     }
 
     @Override
-    public void moveAbsolute(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
+    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         // We don't include the rotation (y) as it causes the boat to appear sideways
-        setPosition(position.add(0d, this.entityType.getOffset(), 0d));
-        setRotation(Vector3f.from(rotation.getX() + 90, 0, rotation.getX() + 90));
+        setPosition(position.add(0d, this.definition.offset(), 0d));
+        this.yaw = yaw + 90;
+        this.headYaw = yaw + 90;
         setOnGround(isOnGround);
 
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
         // Minimal glitching when ClientboundMoveVehiclePacket is sent
-        moveEntityPacket.setPosition(session.getRidingVehicleEntity() == this ? position.up(EntityType.PLAYER.getOffset() - this.entityType.getOffset()) : this.position);
+        moveEntityPacket.setPosition(session.getRidingVehicleEntity() == this ? position.up(EntityDefinitions.PLAYER.offset() - this.definition.offset()) : this.position);
         moveEntityPacket.setRotation(getBedrockRotation());
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(teleported);
@@ -84,91 +95,62 @@ public class BoatEntity extends Entity {
     /**
      * Move the boat without making the adjustments needed to translate from Java
      */
-    public void moveAbsoluteWithoutAdjustments(GeyserSession session, Vector3f position, Vector3f rotation, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(session, position, Vector3f.from(rotation.getX(), 0, rotation.getX()), isOnGround, teleported);
+    public void moveAbsoluteWithoutAdjustments(Vector3f position, float yaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsolute(position, yaw, 0, yaw, isOnGround, teleported);
     }
 
     @Override
-    public void moveRelative(GeyserSession session, double relX, double relY, double relZ, Vector3f rotation, boolean isOnGround) {
-        super.moveRelative(session, relX, relY, relZ, Vector3f.from(rotation.getX(), 0, rotation.getX()), isOnGround);
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        super.moveRelative(relX, relY, relZ, yaw, 0, yaw, isOnGround);
     }
 
     @Override
-    public void updatePositionAndRotation(GeyserSession session, double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(session, moveX, moveY, moveZ, yaw + 90, pitch, isOnGround);
+    public void updatePositionAndRotation(double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
+        moveRelative(moveX, moveY, moveZ, yaw + 90, pitch, isOnGround);
     }
 
     @Override
-    public void updateRotation(GeyserSession session, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(session, 0, 0, 0, Vector3f.from(yaw + 90, 0, 0), isOnGround);
+    public void updateRotation(float yaw, float pitch, boolean isOnGround) {
+        moveRelative(0, 0, 0, yaw + 90, 0, 0, isOnGround);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        // Time since last hit
-        if (entityMetadata.getId() == 8) {
-            metadata.put(EntityData.HURT_TIME, entityMetadata.getValue());
-        }
+    public void setVariant(EntityMetadata<Integer> entityMetadata) {
+        variant = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+        dirtyMetadata.put(EntityData.VARIANT, variant);
+    }
 
-        // Rocking direction
-        if (entityMetadata.getId() == 9) {
-            metadata.put(EntityData.HURT_DIRECTION, entityMetadata.getValue());
-        }
-
-        // 'Health' in Bedrock, damage taken in Java
-        if (entityMetadata.getId() == 10) {
-            // Not exactly health but it makes motion in Bedrock
-            metadata.put(EntityData.HEALTH, 40 - ((int) (float) entityMetadata.getValue()));
-        }
-
-        if (entityMetadata.getId() == 11) {
-            metadata.put(EntityData.VARIANT, entityMetadata.getValue());
-        } else if (entityMetadata.getId() == 12) {
-            isPaddlingLeft = (boolean) entityMetadata.getValue();
-            if (isPaddlingLeft) {
-                // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
-                // This is an asynchronous method that emulates Bedrock rowing until "false" is sent.
-                paddleTimeLeft = 0f;
-                if (!this.passengers.isEmpty()) {
-                    // Get the entity by the first stored passenger and convey motion in this manner
-                    Entity entity = session.getEntityCache().getEntityByJavaId(this.passengers.iterator().nextLong());
-                    if (entity != null) {
-                        updateLeftPaddle(session, entity);
-                    }
+    public void setPaddlingLeft(EntityMetadata<Boolean> entityMetadata) {
+        isPaddlingLeft = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+        if (isPaddlingLeft) {
+            // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
+            // This is an asynchronous method that emulates Bedrock rowing until "false" is sent.
+            paddleTimeLeft = 0f;
+            if (!this.passengers.isEmpty()) {
+                // Get the entity by the first stored passenger and convey motion in this manner
+                Entity entity = session.getEntityCache().getEntityByJavaId(this.passengers.iterator().nextLong());
+                if (entity != null) {
+                    updateLeftPaddle(session, entity);
                 }
-            } else {
-                // Indicate that the row position should be reset
-                metadata.put(EntityData.ROW_TIME_LEFT, 0.0f);
             }
+        } else {
+            // Indicate that the row position should be reset
+            dirtyMetadata.put(EntityData.ROW_TIME_LEFT, 0.0f);
         }
-        else if (entityMetadata.getId() == 13) {
-            isPaddlingRight = (boolean) entityMetadata.getValue();
-            if (isPaddlingRight) {
-                paddleTimeRight = 0f;
-                if (!this.passengers.isEmpty()) {
-                    Entity entity = session.getEntityCache().getEntityByJavaId(this.passengers.iterator().nextLong());
-                    if (entity != null) {
-                        updateRightPaddle(session, entity);
-                    }
-                }
-            } else {
-                metadata.put(EntityData.ROW_TIME_RIGHT, 0.0f);
-            }
-        } else if (entityMetadata.getId() == 14) {
-            // Possibly - I don't think this does anything?
-            metadata.put(EntityData.BOAT_BUBBLE_TIME, entityMetadata.getValue());
-        }
-
-        super.updateBedrockMetadata(entityMetadata, session);
     }
 
-    @Override
-    public void updateBedrockMetadata(GeyserSession session) {
-        super.updateBedrockMetadata(session);
-
-        // As these indicate to reset rowing, remove them until it is time to send them out again.
-        metadata.remove(EntityData.ROW_TIME_LEFT);
-        metadata.remove(EntityData.ROW_TIME_RIGHT);
+    public void setPaddlingRight(EntityMetadata<Boolean> entityMetadata) {
+        isPaddlingRight = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+        if (isPaddlingRight) {
+            paddleTimeRight = 0f;
+            if (!this.passengers.isEmpty()) {
+                Entity entity = session.getEntityCache().getEntityByJavaId(this.passengers.iterator().nextLong());
+                if (entity != null) {
+                    updateRightPaddle(session, entity);
+                }
+            }
+        } else {
+            dirtyMetadata.put(EntityData.ROW_TIME_RIGHT, 0.0f);
+        }
     }
 
     private void updateLeftPaddle(GeyserSession session, Entity rower) {

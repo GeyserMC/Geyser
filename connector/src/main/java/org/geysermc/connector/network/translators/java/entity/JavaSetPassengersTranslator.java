@@ -31,7 +31,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinitions;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -61,7 +61,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
                 passenger = session.getPlayerEntity();
                 session.setRidingVehicleEntity(entity);
                 // We need to confirm teleports before entering a vehicle, or else we will likely exit right out
-                session.confirmTeleport(passenger.getPosition().sub(0, EntityType.PLAYER.getOffset(), 0).toDouble());
+                session.confirmTeleport(passenger.getPosition().sub(0, EntityDefinitions.PLAYER.offset(), 0).toDouble());
             }
             // Passenger hasn't loaded in (likely since we're waiting for a skin response)
             // and entity link needs to be set later
@@ -79,18 +79,18 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             passengers.add(passengerId);
 
             // Head rotation on boats
-            if (entity.getEntityType() == EntityType.BOAT) {
-                passenger.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 1);
-                passenger.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 90f);
-                passenger.getMetadata().put(EntityData.RIDER_MIN_ROTATION, 1f);
-                passenger.getMetadata().put(EntityData.RIDER_ROTATION_OFFSET, -90f);
+            if (entity.getDefinition() == EntityDefinitions.BOAT) {
+                passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 1);
+                passenger.getDirtyMetadata().put(EntityData.RIDER_MAX_ROTATION, 90f);
+                passenger.getDirtyMetadata().put(EntityData.RIDER_MIN_ROTATION, 1f);
+                passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_OFFSET, -90f);
             } else {
-                passenger.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 0);
-                passenger.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
-                passenger.getMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
+                passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 0);
+                passenger.getDirtyMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
+                passenger.getDirtyMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
             }
 
-            passenger.updateBedrockMetadata(session);
+            passenger.updateBedrockMetadata();
             rider = false;
         }
 
@@ -109,24 +109,24 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
                 linkPacket.setEntityLink(new EntityLinkData(entity.getGeyserId(), passenger.getGeyserId(), EntityLinkData.Type.REMOVE, false));
                 session.sendUpstreamPacket(linkPacket);
                 passengers.remove(passenger.getEntityId());
-                passenger.getMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 0);
-                passenger.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
-                passenger.getMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
-                passenger.getMetadata().put(EntityData.RIDER_ROTATION_OFFSET, 0f);
+                passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 0);
+                passenger.getDirtyMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
+                passenger.getDirtyMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
+                passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_OFFSET, 0f);
 
-                EntityUtils.updateMountOffset(passenger, entity, session, false, false, (packet.getPassengerIds().length > 1));
+                EntityUtils.updateMountOffset(passenger, entity, false, false, (packet.getPassengerIds().length > 1));
             } else {
-                EntityUtils.updateMountOffset(passenger, entity, session, (packet.getPassengerIds()[0] == passengerId), true, (packet.getPassengerIds().length > 1));
+                EntityUtils.updateMountOffset(passenger, entity, (packet.getPassengerIds()[0] == passengerId), true, (packet.getPassengerIds().length > 1));
             }
 
             // Force an update to the passenger metadata
-            passenger.updateBedrockMetadata(session);
+            passenger.updateBedrockMetadata();
         }
 
-        switch (entity.getEntityType()) {
+        switch (entity.getDefinition().entityType()) {
             case HORSE, SKELETON_HORSE, DONKEY, MULE, RAVAGER -> {
-                entity.getMetadata().put(EntityData.RIDER_MAX_ROTATION, 181.0f);
-                entity.updateBedrockMetadata(session);
+                entity.getDirtyMetadata().put(EntityData.RIDER_MAX_ROTATION, 181.0f);
+                entity.updateBedrockMetadata();
             }
         }
     }

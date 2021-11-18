@@ -152,7 +152,7 @@ public class ChunkUtils {
         ItemFrameEntity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, position);
         if (itemFrameEntity != null) {
             if (blockState == JAVA_AIR_ID) { // Item frame is still present and no block overrides that; refresh it
-                itemFrameEntity.updateBlock(session);
+                itemFrameEntity.updateBlock();
                 // Still update the chunk cache with the new block
                 session.getChunkCache().updateBlock(position.getX(), position.getY(), position.getZ(), blockState);
                 return;
@@ -163,7 +163,7 @@ public class ChunkUtils {
         SkullPlayerEntity skull = session.getSkullCache().get(position);
         if (skull != null && blockState != skull.getBlockState()) {
             // Skull is gone
-            skull.despawnEntity(session, position);
+            skull.despawnEntity(position);
         }
 
         // Prevent moving_piston from being placed

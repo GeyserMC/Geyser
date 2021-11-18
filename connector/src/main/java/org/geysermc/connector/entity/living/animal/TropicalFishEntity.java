@@ -26,15 +26,17 @@
 package org.geysermc.connector.entity.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.google.common.collect.ImmutableList;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import it.unimi.dsi.fastutil.ints.IntList;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.entity.living.AbstractFishEntity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import java.util.List;
+import java.util.UUID;
 
 public class TropicalFishEntity extends AbstractFishEntity {
 
@@ -47,21 +49,17 @@ public class TropicalFishEntity extends AbstractFishEntity {
     private static final List<String> VARIANT_NAMES = ImmutableList.of("kob", "sunstreak", "snooper", "dasher", "brinely", "spotty", "flopper", "stripey", "glitter", "blockfish", "betty", "clayfish");
     private static final List<String> COLOR_NAMES = ImmutableList.of("white", "orange", "magenta", "light_blue", "yellow", "lime", "pink", "gray", "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black");
 
-    public TropicalFishEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public TropicalFishEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 17) {
-            int varNumber = (int) entityMetadata.getValue();
+    public void setFishVariant(EntityMetadata<Integer> entityMetadata) {
+        int varNumber = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
 
-            metadata.put(EntityData.VARIANT, getShape(varNumber)); // Shape 0-1
-            metadata.put(EntityData.MARK_VARIANT, getPattern(varNumber)); // Pattern 0-5
-            metadata.put(EntityData.COLOR, getBaseColor(varNumber)); // Base color 0-15
-            metadata.put(EntityData.COLOR_2, getPatternColor(varNumber)); // Pattern color 0-15
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
+        dirtyMetadata.put(EntityData.VARIANT, getShape(varNumber)); // Shape 0-1
+        dirtyMetadata.put(EntityData.MARK_VARIANT, getPattern(varNumber)); // Pattern 0-5
+        dirtyMetadata.put(EntityData.COLOR, getBaseColor(varNumber)); // Base color 0-15
+        dirtyMetadata.put(EntityData.COLOR_2, getPatternColor(varNumber)); // Pattern color 0-15
     }
 
     public static int getShape(int variant) {

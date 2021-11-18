@@ -25,14 +25,17 @@
 
 package org.geysermc.connector.utils;
 
+import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import lombok.Getter;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.living.MobEntity;
 import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.entity.living.animal.horse.HorseEntity;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.living.animal.tameable.CatEntity;
+import org.geysermc.connector.entity.living.animal.tameable.WolfEntity;
+import org.geysermc.connector.entity.living.merchant.VillagerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.registry.type.ItemMapping;
 
@@ -60,26 +63,26 @@ public class InteractiveTagManager {
      * @param interactEntity the entity that the client is currently facing.
      */
     public static void updateTag(GeyserSession session, Entity interactEntity) {
-        EntityDataMap entityMetadata = interactEntity.getMetadata();
         ItemMapping mapping = session.getPlayerInventory().getItemInHand().getMapping(session);
         String javaIdentifierStripped = mapping.getJavaIdentifier().replace("minecraft:", "");
+        EntityType entityType = interactEntity.getDefinition().entityType();
 
         InteractiveTag interactiveTag = InteractiveTag.NONE;
 
-        if (entityMetadata.getLong(EntityData.LEASH_HOLDER_EID) == session.getPlayerEntity().getGeyserId()) {
+        if (interactEntity instanceof MobEntity mobEntity && mobEntity.getLeashHolderBedrockId() == session.getPlayerEntity().getGeyserId()) {
             // Unleash the entity
             interactiveTag = InteractiveTag.REMOVE_LEASH;
-        } else if (javaIdentifierStripped.equals("saddle") && !entityMetadata.getFlags().getFlag(EntityFlag.SADDLED) &&
-                ((SADDLEABLE_WHEN_TAMED_MOB_TYPES.contains(interactEntity.getEntityType()) && entityMetadata.getFlags().getFlag(EntityFlag.TAMED) && !session.isSneaking()) ||
-                        interactEntity.getEntityType() == EntityType.PIG || interactEntity.getEntityType() == EntityType.STRIDER)) {
+        } else if (javaIdentifierStripped.equals("saddle") && !interactEntity.getFlag(EntityFlag.SADDLED) &&
+                ((SADDLEABLE_WHEN_TAMED_MOB_TYPES.contains(entityType) && interactEntity.getFlag(EntityFlag.TAMED) && !session.isSneaking()) ||
+                        entityType == EntityType.PIG || entityType == EntityType.STRIDER)) {
             // Entity can be saddled and the conditions meet (entity can be saddled and, if needed, is tamed)
             interactiveTag = InteractiveTag.SADDLE;
         } else if (javaIdentifierStripped.equals("name_tag") && session.getPlayerInventory().getItemInHand().getNbt() != null &&
                 session.getPlayerInventory().getItemInHand().getNbt().contains("display")) {
             // Holding a named name tag
             interactiveTag = InteractiveTag.NAME;
-        } else if (javaIdentifierStripped.equals("lead") && LEASHABLE_MOB_TYPES.contains(interactEntity.getEntityType()) &&
-                entityMetadata.getLong(EntityData.LEASH_HOLDER_EID, -1L) == -1L) {
+        } else if (interactEntity instanceof MobEntity mobEntity &&javaIdentifierStripped.equals("lead")
+                && LEASHABLE_MOB_TYPES.contains(entityType) && mobEntity.getLeashHolderBedrockId() == -1L) {
             // Holding a leash and the mob is leashable for sure
             // (Plugins can change this behavior so that's something to look into in the far far future)
             interactiveTag = InteractiveTag.LEASH;
@@ -87,17 +90,17 @@ public class InteractiveTagManager {
             // This animal can be fed
             interactiveTag = InteractiveTag.FEED;
         } else {
-            switch (interactEntity.getEntityType()) {
+            switch (interactEntity.getDefinition().entityType()) {
                 case BOAT:
                     if (interactEntity.getPassengers().size() < 2) {
                         interactiveTag = InteractiveTag.BOARD_BOAT;
                     }
                     break;
                 case CAT:
-                    if (entityMetadata.getFlags().getFlag(EntityFlag.TAMED) &&
-                            entityMetadata.getLong(EntityData.OWNER_EID) == session.getPlayerEntity().getGeyserId()) {
+                    if (interactEntity.getFlag(EntityFlag.TAMED) &&
+                            ((CatEntity) interactEntity).getOwnerBedrockId() == session.getPlayerEntity().getGeyserId()) {
                         // Tamed and owned by player - can sit/stand
-                        interactiveTag = entityMetadata.getFlags().getFlag(EntityFlag.SITTING) ? InteractiveTag.STAND : InteractiveTag.SIT;
+                        interactiveTag = interactEntity.getFlag(EntityFlag.SITTING) ? InteractiveTag.STAND : InteractiveTag.SIT;
                         break;
                     }
                     break;
@@ -128,7 +131,7 @@ public class InteractiveTagManager {
                 case DONKEY:
                 case LLAMA:
                 case MULE:
-                    if (entityMetadata.getFlags().getFlag(EntityFlag.TAMED) && !entityMetadata.getFlags().getFlag(EntityFlag.CHESTED)
+                    if (interactEntity.getFlag(EntityFlag.TAMED) && !interactEntity.getFlag(EntityFlag.CHESTED)
                             && javaIdentifierStripped.equals("chest")) {
                         // Can attach a chest
                         interactiveTag = InteractiveTag.ATTACH_CHEST;
@@ -139,12 +142,12 @@ public class InteractiveTagManager {
                 case SKELETON_HORSE:
                 case TRADER_LLAMA:
                 case ZOMBIE_HORSE:
-                    boolean tamed = entityMetadata.getFlags().getFlag(EntityFlag.TAMED);
-                    if (session.isSneaking() && tamed && (interactEntity instanceof HorseEntity || entityMetadata.getFlags().getFlag(EntityFlag.CHESTED))) {
+                    boolean tamed = interactEntity.getFlag(EntityFlag.TAMED);
+                    if (session.isSneaking() && tamed && (interactEntity instanceof HorseEntity || interactEntity.getFlag(EntityFlag.CHESTED))) {
                         interactiveTag = InteractiveTag.OPEN_CONTAINER;
                         break;
                     }
-                    if (!entityMetadata.getFlags().getFlag(EntityFlag.BABY)) {
+                    if (!interactEntity.getFlag(EntityFlag.BABY)) {
                         // Can't ride a baby
                         if (tamed) {
                             interactiveTag = InteractiveTag.RIDE_HORSE;
@@ -165,17 +168,17 @@ public class InteractiveTagManager {
                     interactiveTag = InteractiveTag.OPEN_CONTAINER;
                     break;
                 case PIG:
-                    if (entityMetadata.getFlags().getFlag(EntityFlag.SADDLED)) {
+                    if (interactEntity.getFlag(EntityFlag.SADDLED)) {
                         interactiveTag = InteractiveTag.MOUNT;
                     }
                     break;
                 case PIGLIN:
-                    if (!entityMetadata.getFlags().getFlag(EntityFlag.BABY) && javaIdentifierStripped.equals("gold_ingot")) {
+                    if (!interactEntity.getFlag(EntityFlag.BABY) && javaIdentifierStripped.equals("gold_ingot")) {
                         interactiveTag = InteractiveTag.BARTER;
                     }
                     break;
                 case SHEEP:
-                    if (!entityMetadata.getFlags().getFlag(EntityFlag.SHEARED)) {
+                    if (!interactEntity.getFlag(EntityFlag.SHEARED)) {
                         if (javaIdentifierStripped.equals("shears")) {
                             // Shear the sheep
                             interactiveTag = InteractiveTag.SHEAR;
@@ -186,13 +189,13 @@ public class InteractiveTagManager {
                     }
                     break;
                 case STRIDER:
-                    if (entityMetadata.getFlags().getFlag(EntityFlag.SADDLED)) {
+                    if (interactEntity.getFlag(EntityFlag.SADDLED)) {
                         interactiveTag = InteractiveTag.RIDE_STRIDER;
                     }
                     break;
                 case VILLAGER:
-                    if (entityMetadata.getInt(EntityData.VARIANT) != 14 && entityMetadata.getInt(EntityData.VARIANT) != 0
-                            && entityMetadata.getFloat(EntityData.SCALE) >= 0.75f) { // Not a nitwit, has a profession and is not a baby
+                    VillagerEntity villager = (VillagerEntity) interactEntity;
+                    if (villager.isCanTradeWith() && !villager.isBaby()) { // Not a nitwit, has a profession and is not a baby
                         interactiveTag = InteractiveTag.TRADE;
                     }
                     break;
@@ -200,13 +203,13 @@ public class InteractiveTagManager {
                     interactiveTag = InteractiveTag.TRADE; // Since you can always trade with a wandering villager, presumably.
                     break;
                 case WOLF:
-                    if (javaIdentifierStripped.equals("bone") && !entityMetadata.getFlags().getFlag(EntityFlag.TAMED)) {
+                    if (javaIdentifierStripped.equals("bone") && !interactEntity.getFlag(EntityFlag.TAMED)) {
                         // Bone and untamed - can tame
                         interactiveTag = InteractiveTag.TAME;
-                    } else if (entityMetadata.getFlags().getFlag(EntityFlag.TAMED) &&
-                            entityMetadata.getLong(EntityData.OWNER_EID) == session.getPlayerEntity().getGeyserId()) {
+                    } else if (interactEntity.getFlag(EntityFlag.TAMED) &&
+                            ((WolfEntity) interactEntity).getOwnerBedrockId() == session.getPlayerEntity().getGeyserId()) {
                         // Tamed and owned by player - can sit/stand
-                        interactiveTag = entityMetadata.getFlags().getFlag(EntityFlag.SITTING) ? InteractiveTag.STAND : InteractiveTag.SIT;
+                        interactiveTag = interactEntity.getFlag(EntityFlag.SITTING) ? InteractiveTag.STAND : InteractiveTag.SIT;
                     }
                     break;
                 case ZOMBIE_VILLAGER:
@@ -219,15 +222,15 @@ public class InteractiveTagManager {
                     break;
             }
         }
-        session.getPlayerEntity().getMetadata().put(EntityData.INTERACTIVE_TAG, interactiveTag.getValue());
-        session.getPlayerEntity().updateBedrockMetadata(session);
+        session.getPlayerEntity().getDirtyMetadata().put(EntityData.INTERACTIVE_TAG, interactiveTag.getValue());
+        session.getPlayerEntity().updateBedrockMetadata();
     }
 
     /**
      * All interactive tags in enum form. For potential API usage.
      */
     public enum InteractiveTag {
-        NONE(true),
+        NONE((Void) null),
         IGNITE_CREEPER("creeper"),
         EDIT,
         LEAVE_BOAT("exit.boat"),
@@ -271,7 +274,7 @@ public class InteractiveTagManager {
         @Getter
         private final String value;
 
-        InteractiveTag(boolean isNone) {
+        InteractiveTag(Void isNone) {
             this.value = "";
         }
 

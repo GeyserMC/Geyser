@@ -44,6 +44,7 @@ import org.geysermc.connector.bootstrap.GeyserBootstrap;
 import org.geysermc.connector.command.CommandManager;
 import org.geysermc.connector.common.AuthType;
 import org.geysermc.connector.configuration.GeyserConfiguration;
+import org.geysermc.connector.entity.EntityDefinitions;
 import org.geysermc.connector.metrics.Metrics;
 import org.geysermc.connector.network.ConnectorServerEventHandler;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -153,6 +154,7 @@ public class GeyserConnector {
         BlockRegistries.init();
         Registries.init();
 
+        EntityDefinitions.init();
         ItemTranslator.init();
         MessageTranslator.init();
         LocaleUtils.init();

@@ -26,58 +26,71 @@
 package org.geysermc.connector.entity.living.animal.tameable;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.registry.type.ItemMapping;
+
+import java.util.UUID;
 
 public class CatEntity extends TameableEntity {
 
     private byte collarColor;
 
-    public CatEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public CatEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
-    public void updateRotation(GeyserSession session, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(session, 0, 0, 0, Vector3f.from(this.rotation.getX(), pitch, yaw), isOnGround);
+    public void updateRotation(float yaw, float pitch, boolean isOnGround) {
+        moveRelative(0, 0, 0, yaw, pitch, yaw, isOnGround);
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        super.updateBedrockMetadata(entityMetadata, session);
-        if (entityMetadata.getId() == 16) {
-            metadata.put(EntityData.SCALE, (boolean) entityMetadata.getValue() ? 0.4f : 0.8f);
-        } else if (entityMetadata.getId() == 17) {
-            // Update collar color if tamed
-            if (metadata.getFlags().getFlag(EntityFlag.TAMED)) {
-                metadata.put(EntityData.COLOR, collarColor);
-            }
+    protected float getAdultSize() {
+        return 0.8f;
+    }
+
+    @Override
+    protected float getBabySize() {
+        return 0.4f;
+    }
+
+    @Override
+    public void setTameableFlags(EntityMetadata<Byte> entityMetadata) {
+        super.setTameableFlags(entityMetadata);
+        // Update collar color if tamed
+        if (getFlag(EntityFlag.TAMED)) {
+            dirtyMetadata.put(EntityData.COLOR, collarColor);
         }
-        if (entityMetadata.getId() == 19) {
-            // Different colors in Java and Bedrock for some reason
-            int metadataValue = (int) entityMetadata.getValue();
-            int variantColor = switch (metadataValue) {
-                case 0 -> 8;
-                case 8 -> 0;
-                case 9 -> 10;
-                case 10 -> 9;
-                default -> metadataValue;
-            };
-            metadata.put(EntityData.VARIANT, variantColor);
-        }
-        if (entityMetadata.getId() == 20) {
-            metadata.getFlags().setFlag(EntityFlag.RESTING, (boolean) entityMetadata.getValue());
-        }
-        if (entityMetadata.getId() == 22) {
-            collarColor = (byte) (int) entityMetadata.getValue();
-            // Needed or else wild cats are a red color
-            if (metadata.getFlags().getFlag(EntityFlag.TAMED)) {
-                metadata.put(EntityData.COLOR, collarColor);
-            }
+    }
+
+    public void setCatVariant(EntityMetadata<Integer> entityMetadata) {
+        // Different colors in Java and Bedrock for some reason
+        int metadataValue = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+        int variantColor = switch (metadataValue) {
+            case 0 -> 8;
+            case 8 -> 0;
+            case 9 -> 10;
+            case 10 -> 9;
+            default -> metadataValue;
+        };
+        dirtyMetadata.put(EntityData.VARIANT, variantColor);
+    }
+
+    public void setResting(EntityMetadata<Boolean> entityMetadata) {
+        setFlag(EntityFlag.RESTING, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue());
+    }
+
+    public void setCollarColor(EntityMetadata<Integer> entityMetadata) {
+        collarColor = (byte) ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+        // Needed or else wild cats are a red color
+        if (getFlag(EntityFlag.TAMED)) {
+            dirtyMetadata.put(EntityData.COLOR, collarColor);
         }
     }
 

@@ -28,7 +28,6 @@ package org.geysermc.connector.network.translators.inventory.translators;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
@@ -36,7 +35,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.connector.entity.Entity;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinitions;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.inventory.MerchantContainer;
 import org.geysermc.connector.inventory.PlayerInventory;
@@ -99,14 +98,15 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
             long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
             Vector3f pos = session.getPlayerEntity().getPosition().sub(0, 3, 0);
 
-            EntityDataMap metadata = new EntityDataMap();
-            metadata.put(EntityData.SCALE, 0f);
-            metadata.put(EntityData.BOUNDING_BOX_WIDTH, 0f);
-            metadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0f);
-
-            Entity villager = new Entity(0, geyserId, EntityType.VILLAGER, pos, Vector3f.ZERO, Vector3f.ZERO);
-            villager.setMetadata(metadata);
-            villager.spawnEntity(session);
+            Entity villager = new Entity(session, 0, geyserId, null, EntityDefinitions.VILLAGER, pos, Vector3f.ZERO, 0f, 0f, 0f) {
+                @Override
+                protected void initializeMetadata() {
+                    dirtyMetadata.put(EntityData.SCALE, 0f);
+                    dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, 0f);
+                    dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0f);
+                }
+            };
+            villager.spawnEntity();
 
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             EntityLinkData.Type type = EntityLinkData.Type.PASSENGER;
@@ -127,7 +127,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     public void closeInventory(GeyserSession session, Inventory inventory) {
         MerchantContainer merchantInventory = (MerchantContainer) inventory;
         if (merchantInventory.getVillager() != null) {
-            merchantInventory.getVillager().despawnEntity(session);
+            merchantInventory.getVillager().despawnEntity();
         }
     }
 

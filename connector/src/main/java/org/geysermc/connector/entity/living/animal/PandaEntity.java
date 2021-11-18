@@ -26,57 +26,60 @@
 package org.geysermc.connector.entity.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.registry.type.ItemMapping;
 
-public class PandaEntity extends AnimalEntity {
+import java.util.UUID;
 
+public class PandaEntity extends AnimalEntity {
     private int mainGene;
     private int hiddenGene;
 
-    public PandaEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public PandaEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 19) {
-            metadata.getFlags().setFlag(EntityFlag.EATING, (int) entityMetadata.getValue() > 0);
-            metadata.put(EntityData.EATING_COUNTER, entityMetadata.getValue());
-            if ((int) entityMetadata.getValue() != 0) {
-                // Particles and sound
-                EntityEventPacket packet = new EntityEventPacket();
-                packet.setRuntimeEntityId(geyserId);
-                packet.setType(EntityEventType.EATING_ITEM);
-                packet.setData(session.getItemMappings().getStoredItems().bamboo().getBedrockId() << 16);
-                session.sendUpstreamPacket(packet);
-            }
+    public void setEatingCounter(EntityMetadata<Integer> entityMetadata) {
+        int count = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+        setFlag(EntityFlag.EATING, count > 0);
+        dirtyMetadata.put(EntityData.EATING_COUNTER, count);
+        if (count != 0) {
+            // Particles and sound
+            EntityEventPacket packet = new EntityEventPacket();
+            packet.setRuntimeEntityId(geyserId);
+            packet.setType(EntityEventType.EATING_ITEM);
+            packet.setData(session.getItemMappings().getStoredItems().bamboo().getBedrockId() << 16);
+            session.sendUpstreamPacket(packet);
         }
-        if (entityMetadata.getId() == 20) {
-            mainGene = (int) (byte) entityMetadata.getValue();
-            updateAppearance();
-        }
-        if (entityMetadata.getId() == 21) {
-            hiddenGene = (int) (byte) entityMetadata.getValue();
-            updateAppearance();
-        }
-        if (entityMetadata.getId() == 22) {
-            byte xd = (byte) entityMetadata.getValue();
-            metadata.getFlags().setFlag(EntityFlag.SNEEZING, (xd & 0x02) == 0x02);
-            metadata.getFlags().setFlag(EntityFlag.ROLLING, (xd & 0x04) == 0x04);
-            metadata.getFlags().setFlag(EntityFlag.SITTING, (xd & 0x08) == 0x08);
-            // Required to put these both for sitting to actually show
-            metadata.put(EntityData.SITTING_AMOUNT, (xd & 0x08) == 0x08 ? 1f : 0f);
-            metadata.put(EntityData.SITTING_AMOUNT_PREVIOUS, (xd & 0x08) == 0x08 ? 1f : 0f);
-            metadata.getFlags().setFlag(EntityFlag.LAYING_DOWN, (xd & 0x10) == 0x10);
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
+    }
+
+    public void setMainGene(EntityMetadata<Byte> entityMetadata) {
+        mainGene = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+        updateAppearance();
+    }
+
+    public void setHiddenGene(EntityMetadata<Byte> entityMetadata) {
+        hiddenGene = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+        updateAppearance();
+    }
+
+    public void setPandaFlags(EntityMetadata<Byte> entityMetadata) {
+        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+        setFlag(EntityFlag.SNEEZING, (xd & 0x02) == 0x02);
+        setFlag(EntityFlag.ROLLING, (xd & 0x04) == 0x04);
+        setFlag(EntityFlag.SITTING, (xd & 0x08) == 0x08);
+        // Required to put these both for sitting to actually show
+        dirtyMetadata.put(EntityData.SITTING_AMOUNT, (xd & 0x08) == 0x08 ? 1f : 0f);
+        dirtyMetadata.put(EntityData.SITTING_AMOUNT_PREVIOUS, (xd & 0x08) == 0x08 ? 1f : 0f);
+        setFlag(EntityFlag.LAYING_DOWN, (xd & 0x10) == 0x10);
     }
 
     @Override
@@ -93,14 +96,14 @@ public class PandaEntity extends AnimalEntity {
             // Main gene is a recessive trait
             if (mainGene == hiddenGene) {
                 // Main and hidden genes match; this is what the panda looks like.
-                metadata.put(EntityData.VARIANT, mainGene);
+                dirtyMetadata.put(EntityData.VARIANT, mainGene);
             } else {
                 // Genes have no effect on appearance
-                metadata.put(EntityData.VARIANT, 0);
+                dirtyMetadata.put(EntityData.VARIANT, 0);
             }
         } else {
             // No need to worry about hidden gene
-            metadata.put(EntityData.VARIANT, mainGene);
+            dirtyMetadata.put(EntityData.VARIANT, mainGene);
         }
     }
 }

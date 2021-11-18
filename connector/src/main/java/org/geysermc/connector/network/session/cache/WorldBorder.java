@@ -33,8 +33,8 @@ import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerFogPacket;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.connector.entity.EntityDefinitions;
 import org.geysermc.connector.entity.player.PlayerEntity;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 
 import javax.annotation.Nonnull;
@@ -150,9 +150,8 @@ public class WorldBorder {
             PlayerEntity playerEntity = session.getPlayerEntity();
             // Move the player back, but allow gravity to take place
             // Teleported = true makes going back better, but disconnects the player from their mounted entity
-            playerEntity.moveAbsolute(session,
-                    Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - EntityType.PLAYER.getOffset()), playerEntity.getPosition().getZ()),
-                    playerEntity.getRotation(), playerEntity.isOnGround(), session.getRidingVehicleEntity() == null);
+            playerEntity.moveAbsolute(Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - EntityDefinitions.PLAYER.offset()), playerEntity.getPosition().getZ()),
+                    playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), session.getRidingVehicleEntity() == null);
         }
         return isInWorldBorder;
     }
@@ -261,7 +260,7 @@ public class WorldBorder {
     }
 
     private void drawWall(Vector3f position, boolean drawWallX) {
-        int initialY = (int) (position.getY() - EntityType.PLAYER.getOffset() - 1);
+        int initialY = (int) (position.getY() - EntityDefinitions.PLAYER.offset() - 1);
         for (int y = initialY; y < (initialY + 5); y++) {
             if (drawWallX) {
                 float x = position.getX();

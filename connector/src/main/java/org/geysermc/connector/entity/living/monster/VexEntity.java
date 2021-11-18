@@ -26,25 +26,24 @@
 package org.geysermc.connector.entity.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 public class VexEntity extends MonsterEntity {
 
-    public VexEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public VexEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
-            byte xd = (byte) entityMetadata.getValue();
-            // Set the target to the player to force the attack animation
-            // even if the player isn't the target as we dont get the target on Java
-            metadata.put(EntityData.TARGET_EID, (xd & 0x01) == 0x01 ? session.getPlayerEntity().getGeyserId() : 0);
-        }
-        super.updateBedrockMetadata(entityMetadata, session);
+    public void setVexFlags(EntityMetadata<Byte> entityMetadata) {
+        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+        // Set the target to the player to force the attack animation
+        // even if the player isn't the target as we dont get the target on Java
+        dirtyMetadata.put(EntityData.TARGET_EID, (xd & 0x01) == 0x01 ? session.getPlayerEntity().getGeyserId() : 0);
     }
 }

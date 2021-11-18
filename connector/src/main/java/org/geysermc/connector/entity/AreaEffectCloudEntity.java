@@ -26,44 +26,47 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.level.particle.Particle;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.EffectUtils;
 
+import java.util.UUID;
+
 public class AreaEffectCloudEntity extends Entity {
 
-    public AreaEffectCloudEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
-
-        // Without this the cloud doesn't appear,
-        metadata.put(EntityData.AREA_EFFECT_CLOUD_DURATION, 600);
-
-        // This disabled client side shrink of the cloud
-        metadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, 0.0f);
-        metadata.put(EntityData.AREA_EFFECT_CLOUD_CHANGE_RATE, -0.005f);
-        metadata.put(EntityData.AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP, -0.5f);
-
-        metadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
+    public AreaEffectCloudEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 8) {
-            metadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, entityMetadata.getValue());
-            metadata.put(EntityData.BOUNDING_BOX_WIDTH, 2.0f * (float) entityMetadata.getValue());
-        } else if (entityMetadata.getId() == 9) {
-            metadata.put(EntityData.EFFECT_COLOR, entityMetadata.getValue());
-        } else if (entityMetadata.getId() == 11) {
-            Particle particle = (Particle) entityMetadata.getValue();
-            int particleId = EffectUtils.getParticleId(session, particle.getType());
-            if (particleId != -1) {
-                metadata.put(EntityData.AREA_EFFECT_CLOUD_PARTICLE_ID, particleId);
-            }
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+        // Without this the cloud doesn't appear,
+        dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_DURATION, 600);
+
+        // This disabled client side shrink of the cloud
+        dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, 0.0f);
+        dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_CHANGE_RATE, -0.005f);
+        dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP, -0.5f);
+
+        setFlag(EntityFlag.FIRE_IMMUNE, true);
+    }
+
+    public void setRadius(EntityMetadata<Float> entityMetadata) {
+        float value = ((FloatEntityMetadata) entityMetadata).getPrimitiveValue();
+        dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, value);
+        dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, 2.0f * value);
+    }
+
+    public void setParticle(EntityMetadata<Particle> entityMetadata) {
+        Particle particle = entityMetadata.getValue();
+        int particleId = EffectUtils.getParticleId(session, particle.getType());
+        if (particleId != -1) {
+            dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_PARTICLE_ID, particleId);
         }
-        super.updateBedrockMetadata(entityMetadata, session);
     }
 }

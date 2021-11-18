@@ -31,7 +31,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.Tickable;
@@ -46,8 +45,6 @@ import java.util.concurrent.atomic.AtomicLong;
  * for that player (e.g. seeing vanished players from /vanish)
  */
 public class EntityCache {
-    private final GeyserSession session;
-
     @Getter
     private final Long2ObjectMap<Entity> entities = new Long2ObjectOpenHashMap<>();
     /**
@@ -63,13 +60,12 @@ public class EntityCache {
     private final AtomicLong nextEntityId = new AtomicLong(2L);
 
     public EntityCache(GeyserSession session) {
-        this.session = session;
         cachedPlayerEntityLinks.defaultReturnValue(-1L);
     }
 
     public void spawnEntity(Entity entity) {
         if (cacheEntity(entity)) {
-            entity.spawnEntity(session);
+            entity.spawnEntity();
 
             if (entity instanceof Tickable) {
                 // Start ticking it
@@ -89,7 +85,7 @@ public class EntityCache {
     }
 
     public boolean removeEntity(Entity entity, boolean force) {
-        if (entity != null && entity.isValid() && (force || entity.despawnEntity(session))) {
+        if (entity != null && entity.isValid() && (force || entity.despawnEntity())) {
             long geyserId = entityIdTranslations.remove(entity.getEntityId());
             entities.remove(geyserId);
 
@@ -102,9 +98,9 @@ public class EntityCache {
     }
 
     public void removeAllEntities() {
-        List<Entity> entities = new ArrayList<>(session.getEntityCache().getEntities().values());
+        List<Entity> entities = new ArrayList<>(this.entities.values());
         for (Entity entity : entities) {
-            session.getEntityCache().removeEntity(entity, false);
+            removeEntity(entity, false);
         }
 
         // As a precaution
@@ -117,16 +113,6 @@ public class EntityCache {
 
     public Entity getEntityByJavaId(long javaId) {
         return entities.get(entityIdTranslations.get(javaId));
-    }
-
-    public <T extends Entity> Set<T> getEntitiesByType(Class<T> entityType) {
-        Set<T> entitiesOfType = new ObjectOpenHashSet<>();
-        for (Entity entity : (entityType == PlayerEntity.class ? playerEntities : entities).values()) {
-            if (entity.is(entityType)) {
-                entitiesOfType.add(entity.as(entityType));
-            }
-        }
-        return entitiesOfType;
     }
 
     public void addPlayerEntity(PlayerEntity entity) {

@@ -73,7 +73,7 @@ public class JavaSetObjectiveTranslator extends PacketTranslator<ClientboundSetO
                         // Other places we check for the entity being valid,
                         // but we must set the below name text as null for all players
                         // or else PlayerEntity#spawnEntity will find a null objective and not touch EntityData#SCORE_TAG
-                        entity.setBelowNameText(session, null);
+                        entity.setBelowNameText(null);
                     }
                 }
             }

@@ -26,33 +26,29 @@
 package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 
-public class FurnaceMinecartEntity extends DefaultBlockMinecartEntity {
+import java.util.UUID;
 
+public class FurnaceMinecartEntity extends DefaultBlockMinecartEntity {
     private boolean hasFuel = false;
 
-    public FurnaceMinecartEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public FurnaceMinecartEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    }
+
+    public void setHasFuel(EntityMetadata<Boolean> entityMetadata) {
+        hasFuel = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+        updateDefaultBlockMetadata();
     }
 
     @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 14 && !showCustomBlock) {
-            hasFuel = (boolean) entityMetadata.getValue();
-            updateDefaultBlockMetadata(session);
-        }
-
-        super.updateBedrockMetadata(entityMetadata, session);
-    }
-
-    @Override
-    public void updateDefaultBlockMetadata(GeyserSession session) {
-        metadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId(hasFuel ? BlockStateValues.JAVA_FURNACE_LIT_ID : BlockStateValues.JAVA_FURNACE_ID));
-        metadata.put(EntityData.DISPLAY_OFFSET, 6);
+    public void updateDefaultBlockMetadata() {
+        dirtyMetadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId(hasFuel ? BlockStateValues.JAVA_FURNACE_LIT_ID : BlockStateValues.JAVA_FURNACE_ID));
+        dirtyMetadata.put(EntityData.DISPLAY_OFFSET, 6);
     }
 }

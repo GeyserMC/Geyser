@@ -27,50 +27,44 @@ package org.geysermc.connector.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.entity.type.EntityType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.item.Potion;
 import org.geysermc.connector.registry.type.ItemMapping;
 
 import java.util.EnumSet;
+import java.util.UUID;
 
 public class ThrownPotionEntity extends ThrowableItemEntity {
     private static final EnumSet<Potion> NON_ENCHANTED_POTIONS = EnumSet.of(Potion.WATER, Potion.MUNDANE, Potion.THICK, Potion.AWKWARD);
 
-    public ThrownPotionEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public ThrownPotionEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 8 && entityMetadata.getType() == MetadataType.ITEM) {
-            ItemStack itemStack = (ItemStack) entityMetadata.getValue();
-            ItemMapping mapping = session.getItemMappings().getMapping(itemStack);
-            if (mapping.getJavaIdentifier().endsWith("potion") && itemStack.getNbt() != null) {
-                Tag potionTag = itemStack.getNbt().get("Potion");
-                if (potionTag instanceof StringTag) {
-                    Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
-                    if (potion != null) {
-                        metadata.put(EntityData.POTION_AUX_VALUE, potion.getBedrockId());
-                        metadata.getFlags().setFlag(EntityFlag.ENCHANTED, !NON_ENCHANTED_POTIONS.contains(potion));
-                    } else {
-                        metadata.put(EntityData.POTION_AUX_VALUE, 0);
-                        GeyserConnector.getInstance().getLogger().debug("Unknown java potion: " + potionTag.getValue());
-                    }
+    public void setPotion(EntityMetadata<ItemStack> entityMetadata) {
+        ItemStack itemStack = entityMetadata.getValue();
+        ItemMapping mapping = session.getItemMappings().getMapping(itemStack);
+        if (mapping.getJavaIdentifier().endsWith("potion") && itemStack.getNbt() != null) {
+            Tag potionTag = itemStack.getNbt().get("Potion");
+            if (potionTag instanceof StringTag) {
+                Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
+                if (potion != null) {
+                    dirtyMetadata.put(EntityData.POTION_AUX_VALUE, potion.getBedrockId());
+                    setFlag(EntityFlag.ENCHANTED, !NON_ENCHANTED_POTIONS.contains(potion));
+                } else {
+                    dirtyMetadata.put(EntityData.POTION_AUX_VALUE, 0);
+                    GeyserConnector.getInstance().getLogger().debug("Unknown java potion: " + potionTag.getValue());
                 }
-
-                boolean isLingering = mapping.getJavaIdentifier().equals("minecraft:lingering_potion");
-                metadata.getFlags().setFlag(EntityFlag.LINGERING, isLingering);
             }
-        }
 
-        super.updateBedrockMetadata(entityMetadata, session);
+            boolean isLingering = mapping.getJavaIdentifier().equals("minecraft:lingering_potion");
+            setFlag(EntityFlag.LINGERING, isLingering);
+        }
     }
 }

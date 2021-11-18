@@ -26,29 +26,46 @@
 package org.geysermc.connector.entity.living;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.connector.entity.type.EntityType;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
+
+import java.util.UUID;
 
 public class AgeableEntity extends CreatureEntity {
 
-    public AgeableEntity(long entityId, long geyserId, EntityType entityType, Vector3f position, Vector3f motion, Vector3f rotation) {
-        super(entityId, geyserId, entityType, position, motion, rotation);
+    public AgeableEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    @Override
-    public void updateBedrockMetadata(EntityMetadata entityMetadata, GeyserSession session) {
-        if (entityMetadata.getId() == 16) {
-            boolean isBaby = (boolean) entityMetadata.getValue();
-            metadata.put(EntityData.SCALE, isBaby ? .55f : 1f);
-            metadata.getFlags().setFlag(EntityFlag.BABY, isBaby);
+    public void setBaby(EntityMetadata<Boolean> entityMetadata) {
+        boolean isBaby = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+        dirtyMetadata.put(EntityData.SCALE, isBaby ? getBabySize() : getAdultSize());
+        setFlag(EntityFlag.BABY, isBaby);
 
-            metadata.put(EntityData.BOUNDING_BOX_HEIGHT, entityType.getHeight() * (isBaby ? 0.55f : 1f));
-            metadata.put(EntityData.BOUNDING_BOX_WIDTH, entityType.getWidth() * (isBaby ? 0.55f : 1f));
-        }
+        // TODO save this?
+        dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, definition.height() * (isBaby ? getBabySize() : getAdultSize()));
+        dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, definition.width() * (isBaby ? getBabySize() : getAdultSize()));
+    }
 
-        super.updateBedrockMetadata(entityMetadata, session);
+    /**
+     * The scale that should be used when this entity is not a baby.
+     */
+    protected float getAdultSize() {
+        return 1f;
+    }
+
+    /**
+     * The scale that should be used when this entity is a baby.
+     */
+    protected float getBabySize() {
+        return 0.55f;
+    }
+
+    public boolean isBaby() {
+        return getFlag(EntityFlag.BABY);
     }
 }
