@@ -32,6 +32,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.connector.registry.type.ParticleMapping;
 
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -49,12 +50,10 @@ public class ParticleTypesRegistryLoader extends EffectRegistryLoader<Map<Partic
             while (particlesIterator.hasNext()) {
                 Map.Entry<String, JsonNode> entry = particlesIterator.next();
                 JsonNode bedrockId = entry.getValue().get("bedrockId");
-                JsonNode bedrockIdNumeric = entry.getValue().get("bedrockNumericId");
                 JsonNode eventType = entry.getValue().get("eventType");
-                particles.put(ParticleType.valueOf(entry.getKey().toUpperCase()), new ParticleMapping(
-                        eventType == null ? null : LevelEventType.valueOf(eventType.asText().toUpperCase()),
-                        bedrockId == null ? null : bedrockId.asText(),
-                        bedrockIdNumeric == null ? -1 : bedrockIdNumeric.asInt())
+                particles.put(ParticleType.valueOf(entry.getKey().toUpperCase(Locale.ROOT)), new ParticleMapping(
+                        eventType == null ? null : LevelEventType.valueOf(eventType.asText().toUpperCase(Locale.ROOT)),
+                        bedrockId == null ? null : bedrockId.asText())
                 );
             }
         } catch (Exception e) {

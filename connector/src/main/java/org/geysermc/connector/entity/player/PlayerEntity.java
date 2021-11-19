@@ -28,6 +28,7 @@ package org.geysermc.connector.entity.player;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
@@ -66,6 +67,8 @@ public class PlayerEntity extends LivingEntity {
     private GameProfile profile;
     private String username;
     private boolean playerList = true;  // Player is in the player list
+
+    private Vector3i bedPosition;
 
     /**
      * Saves the parrot currently on the player's left shoulder; otherwise null
@@ -114,10 +117,9 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
-        addPlayerPacket.getMetadata().putAll(dirtyMetadata);
         addPlayerPacket.getMetadata().putFlags(flags);
+        dirtyMetadata.apply(addPlayerPacket.getMetadata());
 
-        dirtyMetadata.clear();
         setFlagsDirty(false);
 
         long linkedEntityId = session.getEntityCache().getCachedPlayerEntityLink(entityId);
@@ -189,8 +191,7 @@ public class PlayerEntity extends LivingEntity {
         movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
         // If the player is moved while sleeping, we have to adjust their y, so it appears
         // correctly on Bedrock. This fixes GSit's lay.
-        if (dirtyMetadata.getFlags().getFlag(EntityFlag.SLEEPING)) {
-            Vector3i bedPosition = dirtyMetadata.getPos(EntityData.BED_POSITION);
+        if (getFlag(EntityFlag.SLEEPING)) {
             if (bedPosition != null && (bedPosition.getY() == 0 || bedPosition.distanceSquared(position.toInt()) > 4)) {
                 // Force the player movement by using a teleport
                 movePlayerPacket.setPosition(Vector3f.from(position.getX(), position.getY() - definition.offset() + 0.2f, position.getZ()));
@@ -251,6 +252,11 @@ public class PlayerEntity extends LivingEntity {
     @Override
     public void setPosition(Vector3f position) {
         super.setPosition(position.add(0, definition.offset(), 0));
+    }
+
+    @Override
+    public Vector3i setBedPosition(EntityMetadata<Position> entityMetadata) {
+        return bedPosition = super.setBedPosition(entityMetadata);
     }
 
     public void setAbsorptionHearts(EntityMetadata<Float> entityMetadata) {
@@ -358,11 +364,12 @@ public class PlayerEntity extends LivingEntity {
                 // The name is not visible to the session player; clear name
                 newDisplayName = "";
             }
-            needsUpdate = useGivenTeam && !newDisplayName.equals(dirtyMetadata.getString(EntityData.NAMETAG, null));
+            needsUpdate = useGivenTeam && !newDisplayName.equals(nametag);
+            nametag = newDisplayName;
             dirtyMetadata.put(EntityData.NAMETAG, newDisplayName);
         } else if (useGivenTeam) {
             // The name has reset, if it was previously something else
-            needsUpdate = !newDisplayName.equals(dirtyMetadata.getString(EntityData.NAMETAG));
+            needsUpdate = !newDisplayName.equals(nametag);
             dirtyMetadata.put(EntityData.NAMETAG, this.username);
         } else {
             needsUpdate = false;
@@ -393,10 +400,8 @@ public class PlayerEntity extends LivingEntity {
                 return;
             }
         }
-        if (height != boundingBoxHeight || definition.width() != boundingBoxWidth) {
-            dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, definition.width());
-            dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, height);
-        }
+        setBoundingBoxWidth(definition.width());
+        setBoundingBoxHeight(height);
     }
 
     public void setBelowNameText(Objective objective) {
@@ -410,7 +415,6 @@ public class PlayerEntity extends LivingEntity {
             }
             String displayString = amount + " " + objective.getDisplayName();
 
-            dirtyMetadata.put(EntityData.SCORE_TAG, displayString);
             if (valid) {
                 // Already spawned - we still need to run the rest of this code because the spawn packet will be
                 // providing the information
@@ -419,15 +423,11 @@ public class PlayerEntity extends LivingEntity {
                 packet.getMetadata().put(EntityData.SCORE_TAG, displayString);
                 session.sendUpstreamPacket(packet);
             }
-        } else {
-            // Always remove the score tag first, then check for valid.
-            // That way the score tag is removed if the player was spawned, then despawned, and is being respawned
-            if (dirtyMetadata.remove(EntityData.SCORE_TAG) != null && valid) {
-                SetEntityDataPacket packet = new SetEntityDataPacket();
-                packet.setRuntimeEntityId(geyserId);
-                packet.getMetadata().put(EntityData.SCORE_TAG, "");
-                session.sendUpstreamPacket(packet);
-            }
+        } else if (valid) {
+            SetEntityDataPacket packet = new SetEntityDataPacket();
+            packet.setRuntimeEntityId(geyserId);
+            packet.getMetadata().put(EntityData.SCORE_TAG, "");
+            session.sendUpstreamPacket(packet);
         }
     }
 }

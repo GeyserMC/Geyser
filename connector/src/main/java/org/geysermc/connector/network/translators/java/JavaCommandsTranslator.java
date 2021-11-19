@@ -220,7 +220,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case BLOCK_STATE -> BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.get().keySet().toArray(new String[0]);
             case ITEM_STACK -> session.getItemMappings().getItemNames();
             case ITEM_ENCHANTMENT -> Enchantment.JavaEnchantment.ALL_JAVA_IDENTIFIERS;
-            case ENTITY_SUMMON -> Registries.JAVA_ENTITY_IDENTIFIERS.get().keySet().toArray(new String[0]); //TODO add Marker
+            case ENTITY_SUMMON -> Registries.JAVA_ENTITY_IDENTIFIERS.get().keySet().toArray(new String[0]);
             case COLOR -> VALID_COLORS;
             case SCOREBOARD_SLOT -> VALID_SCOREBOARD_SLOTS;
             case MOB_EFFECT -> ALL_EFFECT_IDENTIFIERS;

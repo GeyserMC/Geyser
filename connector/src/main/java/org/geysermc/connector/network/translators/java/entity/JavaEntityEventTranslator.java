@@ -34,6 +34,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.EntityDefinitions;
+import org.geysermc.connector.entity.FishingHookEntity;
 import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -122,9 +123,9 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case FISHING_HOOK_PULL_PLAYER:
                 // Player is pulled from a fishing rod
                 // The physics of this are clientside on Java
-                long pulledById = entity.getDirtyMetadata().getLong(EntityData.TARGET_EID);
-                if (session.getPlayerEntity().getGeyserId() == pulledById) {
-                    Entity hookOwner = session.getEntityCache().getEntityByGeyserId(entity.getDirtyMetadata().getLong(EntityData.OWNER_EID));
+                FishingHookEntity fishingHook = (FishingHookEntity) entity;
+                if (fishingHook.isOwnerSessionPlayer()) {
+                    Entity hookOwner = session.getEntityCache().getEntityByGeyserId(fishingHook.getBedrockTargetId());
                     if (hookOwner != null) {
                         // https://minecraft.gamepedia.com/Fishing_Rod#Hooking_mobs_and_other_entities
                         SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();

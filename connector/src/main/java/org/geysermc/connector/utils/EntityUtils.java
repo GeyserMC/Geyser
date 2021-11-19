@@ -28,7 +28,6 @@ package org.geysermc.connector.utils;
 import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.EntityDefinitions;
@@ -70,7 +69,7 @@ public final class EntityUtils {
     }
 
     private static float getMountedHeightOffset(Entity mount) {
-        float height = mount.getDirtyMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT);
+        float height = mount.getBoundingBoxHeight();
         float mountedHeightOffset = height * 0.75f;
         switch (mount.getDefinition().entityType()) {
             case CHICKEN, SPIDER -> mountedHeightOffset = height * 0.5f;
@@ -80,7 +79,7 @@ public final class EntityUtils {
                     MINECART_COMMAND_BLOCK -> mountedHeightOffset = 0;
             case BOAT -> mountedHeightOffset = -0.1f;
             case HOGLIN, ZOGLIN -> {
-                boolean isBaby = mount.getDirtyMetadata().getFlags().getFlag(EntityFlag.BABY);
+                boolean isBaby = mount.getFlag(EntityFlag.BABY);
                 mountedHeightOffset = height - (isBaby ? 0.2f : 0.15f);
             }
             case PIGLIN -> mountedHeightOffset = height * 0.92f;
@@ -110,10 +109,10 @@ public final class EntityUtils {
             case PIGLIN:
             case PIGLIN_BRUTE:
             case ZOMBIFIED_PIGLIN:
-                isBaby = passenger.getDirtyMetadata().getFlags().getFlag(EntityFlag.BABY);
+                isBaby = passenger.getFlag(EntityFlag.BABY);
                 return isBaby ? -0.05f : -0.45f;
             case ZOMBIE:
-                isBaby = passenger.getDirtyMetadata().getFlags().getFlag(EntityFlag.BABY);
+                isBaby = passenger.getFlag(EntityFlag.BABY);
                 return isBaby ? 0.0f : -0.45f;
             case EVOKER:
             case ILLUSIONER:
@@ -174,7 +173,7 @@ public final class EntityUtils {
                         MINECART_COMMAND_BLOCK, BOAT -> yOffset -= mount.getDefinition().height() * 0.5f;
             }
             Vector3f offset = Vector3f.from(xOffset, yOffset, zOffset);
-            passenger.getDirtyMetadata().put(EntityData.RIDER_SEAT_POSITION, offset);
+            passenger.setRiderSeatPosition(offset);
         }
         passenger.updateBedrockMetadata();
     }

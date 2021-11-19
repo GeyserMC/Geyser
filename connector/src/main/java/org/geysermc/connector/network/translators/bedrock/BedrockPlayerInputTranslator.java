@@ -28,7 +28,6 @@ package org.geysermc.connector.network.translators.bedrock;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundPlayerInputPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.PlayerInputPacket;
 import org.geysermc.connector.entity.BoatEntity;
 import org.geysermc.connector.entity.Entity;
@@ -65,8 +64,7 @@ public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPa
                 sendMovement = true;
             } else {
                 // Check if the player is the front rider
-                Vector3f seatPos = session.getPlayerEntity().getDirtyMetadata().getVector3f(EntityData.RIDER_SEAT_POSITION, null);
-                if (seatPos != null && seatPos.getX() > 0) {
+                if (session.getPlayerEntity().isRidingInFront()) {
                     sendMovement = true;
                 }
             }

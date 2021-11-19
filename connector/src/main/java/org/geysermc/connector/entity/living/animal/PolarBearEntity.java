@@ -39,7 +39,7 @@ public class PolarBearEntity extends AnimalEntity {
     }
 
     @Override
-    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemMapping mapping) {
+    public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
         return false;
     }
 }

@@ -43,7 +43,7 @@ public class MilkEntitySoundInteractionHandler implements EntitySoundInteraction
         if (!session.getPlayerInventory().getItemInHand().getMapping(session).getJavaIdentifier().equals("minecraft:bucket")) {
             return;
         }
-        if (value.getDirtyMetadata().getFlags().getFlag(EntityFlag.BABY)) {
+        if (value.getFlag(EntityFlag.BABY)) {
             return;
         }
 

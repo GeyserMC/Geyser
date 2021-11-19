@@ -56,7 +56,7 @@ public class WolfEntity extends TameableEntity {
 
     @Override
     public void setTameableFlags(EntityMetadata<Byte> entityMetadata) {
-        super.setFlags(entityMetadata);
+        super.setTameableFlags(entityMetadata);
         // Reset wolf color
         byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
         boolean angry = (xd & 0x02) == 0x02;
@@ -87,8 +87,8 @@ public class WolfEntity extends TameableEntity {
     }
 
     @Override
-    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemMapping mapping) {
+    public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
         // Cannot be a baby to eat these foods
-        return WOLF_FOODS.contains(javaIdentifierStripped) && !getFlag(EntityFlag.BABY);
+        return WOLF_FOODS.contains(javaIdentifierStripped) && !isBaby();
     }
 }

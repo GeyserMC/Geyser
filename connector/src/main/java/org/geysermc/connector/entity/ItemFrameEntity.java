@@ -104,7 +104,7 @@ public class ItemFrameEntity extends Entity {
 
     @Override
     public void spawnEntity() {
-        updateBlock();
+        updateBlock(true);
         session.getConnector().getLogger().debug("Spawned item frame at location " + bedrockPosition + " with java id " + entityId);
         valid = true;
     }
@@ -174,14 +174,14 @@ public class ItemFrameEntity extends Entity {
 
     @Override
     public void updateBedrockMetadata() {
-        updateBlock();
+        updateBlock(false);
     }
 
     /**
      * Updates the item frame as a block
      */
-    public void updateBlock() {
-        if (!changed) {
+    public void updateBlock(boolean force) {
+        if (!changed && !force) {
             // Don't send a block update packet - nothing changed
             return;
         }

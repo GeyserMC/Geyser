@@ -30,7 +30,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCl
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -54,11 +53,7 @@ public class BedrockRespawnTranslator extends PacketTranslator<RespawnPacket> {
             if (session.isSpawned()) {
                 // Client might be stuck; resend spawn information
                 PlayerEntity entity = session.getPlayerEntity();
-                if (entity == null) return;
-                SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
-                entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
-                entityDataPacket.getMetadata().putAll(entity.getDirtyMetadata());
-                session.sendUpstreamPacket(entityDataPacket);
+                entity.updateBedrockMetadata(); // TODO test?
 
                 MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
                 movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());

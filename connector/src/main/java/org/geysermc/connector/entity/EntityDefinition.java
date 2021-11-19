@@ -46,7 +46,7 @@ import java.util.function.BiConsumer;
  *
  * @param <T> the entity type this definition represents
  */
-public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, EntityType entityType, int bedrockId, String identifier,
+public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, EntityType entityType, String identifier,
                                                  float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?>> translators) {
 
     public static <T extends Entity> Builder<T> inherited(BaseEntityFactory<T> factory, EntityDefinition<? super T> parent) {
@@ -54,7 +54,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
     }
 
     public static <T extends Entity> Builder<T> inherited(EntityFactory<T> factory, EntityDefinition<? super T> parent) {
-        return new Builder<>(factory, parent.entityType, parent.bedrockId, parent.identifier, parent.width, parent.height, parent.offset, new ObjectArrayList<>(parent.translators));
+        return new Builder<>(factory, parent.entityType, parent.identifier, parent.width, parent.height, parent.offset, new ObjectArrayList<>(parent.translators));
     }
 
     public static <T extends Entity> Builder<T> builder(EntityFactory<T> factory) {
@@ -66,7 +66,6 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
     public static class Builder<T extends Entity> {
         private final EntityFactory<T> factory;
         private EntityType type;
-        private int bedrockId;
         private String identifier;
         private float width;
         private float height;
@@ -78,10 +77,9 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             translators = new ObjectArrayList<>();
         }
 
-        public Builder(EntityFactory<T> factory, EntityType type, int bedrockId, String identifier, float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?>> translators) {
+        public Builder(EntityFactory<T> factory, EntityType type, String identifier, float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?>> translators) {
             this.factory = factory;
             this.type = type;
-            this.bedrockId = bedrockId;
             this.identifier = identifier;
             this.width = width;
             this.height = height;
@@ -129,10 +127,10 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             if (identifier == null && type != null) {
                 identifier = "minecraft:" + type.name().toLowerCase(Locale.ROOT);
             }
-            EntityDefinition<T> definition = new EntityDefinition<>(factory, type, bedrockId, identifier, width, height, offset, translators);
+            EntityDefinition<T> definition = new EntityDefinition<>(factory, type, identifier, width, height, offset, translators);
             if (register && definition.entityType() != null) {
                 Registries.ENTITY_DEFINITIONS.get().putIfAbsent(definition.entityType(), definition);
-                Registries.JAVA_ENTITY_IDENTIFIERS.get().putIfAbsent(definition.identifier(), definition);
+                Registries.JAVA_ENTITY_IDENTIFIERS.get().putIfAbsent("minecraft:" + type.name().toLowerCase(Locale.ROOT), definition);
             }
             return definition;
         }

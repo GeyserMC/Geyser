@@ -32,7 +32,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEnti
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
 import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
@@ -83,13 +82,15 @@ public class Entity {
     protected float boundingBoxHeight;
     @Setter(AccessLevel.NONE)
     protected float boundingBoxWidth;
+    @Setter(AccessLevel.NONE)
+    protected String nametag = "";
     /* Metadata end */
 
     protected LongOpenHashSet passengers = new LongOpenHashSet();
     /**
      * A container to store temporary metadata before it's sent to Bedrock.
      */
-    protected final EntityDataMap dirtyMetadata = new EntityDataMap();
+    protected final GeyserDirtyMetadata dirtyMetadata = new GeyserDirtyMetadata();
     /**
      * The entity flags for the Bedrock entity.
      * These must always be saved - if flags are updated and the other values aren't present, the Bedrock client will
@@ -146,15 +147,13 @@ public class Entity {
         addEntityPacket.setPosition(position);
         addEntityPacket.setMotion(motion);
         addEntityPacket.setRotation(getBedrockRotation());
-        addEntityPacket.setEntityType(definition.bedrockId());
-        addEntityPacket.getMetadata().putFlags(flags)
-                .putAll(dirtyMetadata);
+        addEntityPacket.getMetadata().putFlags(flags);
+        dirtyMetadata.apply(addEntityPacket.getMetadata());
         addAdditionalSpawnData(addEntityPacket);
 
         valid = true;
         session.sendUpstreamPacket(addEntityPacket);
 
-        dirtyMetadata.clear();
         flagsDirty = false;
 
         session.getConnector().getLogger().debug("Spawned entity " + getClass().getName() + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
@@ -293,15 +292,15 @@ public class Entity {
             return;
         }
 
-        if (!dirtyMetadata.isEmpty() || flagsDirty) {
+        if (dirtyMetadata.hasEntries() || flagsDirty) {
             SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
             entityDataPacket.setRuntimeEntityId(geyserId);
-            entityDataPacket.getMetadata().putFlags(flags);
-            entityDataPacket.getMetadata().putAll(dirtyMetadata);
+            if (flagsDirty) {
+                entityDataPacket.getMetadata().putFlags(flags);
+                flagsDirty = false;
+            }
+            dirtyMetadata.apply(entityDataPacket.getMetadata());
             session.sendUpstreamPacket(entityDataPacket);
-
-            dirtyMetadata.clear();
-            flagsDirty = false;
         }
     }
 
@@ -343,9 +342,9 @@ public class Entity {
     public void setDisplayName(EntityMetadata<Component> entityMetadata) {
         Component name = entityMetadata.getValue();
         if (name != null) {
-            String displayName = MessageTranslator.convertMessage(name, session.getLocale());
-            dirtyMetadata.put(EntityData.NAMETAG, displayName);
-        } else if (!dirtyMetadata.getString(EntityData.NAMETAG).isEmpty()) { //TODO
+            nametag = MessageTranslator.convertMessage(name, session.getLocale());
+            dirtyMetadata.put(EntityData.NAMETAG, nametag);
+        } else if (!nametag.isEmpty()) {
             // Clear nametag
             dirtyMetadata.put(EntityData.NAMETAG, "");
         }
@@ -376,11 +375,21 @@ public class Entity {
      */
     protected void setDimensions(Pose pose) {
         // No flexibility options for basic entities
-        if (boundingBoxHeight != definition.height() || boundingBoxWidth != definition.width()) {
-            boundingBoxWidth = definition.width();
-            boundingBoxHeight = definition.height();
-            dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, boundingBoxWidth);
+        setBoundingBoxHeight(definition.height());
+        setBoundingBoxWidth(definition.width());
+    }
+
+    public void setBoundingBoxHeight(float height) {
+        if (height != boundingBoxHeight) {
+            boundingBoxHeight = height;
             dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, boundingBoxHeight);
+        }
+    }
+
+    public void setBoundingBoxWidth(float width) {
+        if (width != boundingBoxWidth) {
+            boundingBoxWidth = width;
+            dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, boundingBoxWidth);
         }
     }
 
@@ -394,6 +403,10 @@ public class Entity {
         float freezingPercentage = freezingTicks / 140f;
         dirtyMetadata.put(EntityData.FREEZING_EFFECT_STRENGTH, freezingPercentage);
         return freezingPercentage;
+    }
+
+    public void setRiderSeatPosition(Vector3f position) {
+        dirtyMetadata.put(EntityData.RIDER_SEAT_POSITION, position);
     }
 
     /**

@@ -44,7 +44,7 @@ public class AnimalEntity extends AgeableEntity {
      *                               <code>wheat</code>.
      * @return true if this is a valid item to breed with for this animal.
      */
-    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemMapping mapping) {
+    public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
         // This is what it defaults to. OK.
         return javaIdentifierStripped.equals("wheat");
     }

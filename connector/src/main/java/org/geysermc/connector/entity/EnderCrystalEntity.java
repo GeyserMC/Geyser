@@ -45,7 +45,7 @@ public class EnderCrystalEntity extends Entity {
     protected void initializeMetadata() {
         super.initializeMetadata();
         // Bedrock 1.16.100+ - prevents the entity from appearing on fire itself when fire is underneath it
-        dirtyMetadata.getFlags().setFlag(EntityFlag.FIRE_IMMUNE, true);
+        setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 
     public void setBlockTarget(EntityMetadata<Position> entityMetadata) {

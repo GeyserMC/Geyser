@@ -26,14 +26,9 @@
 package org.geysermc.connector.registry.type;
 
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import lombok.Value;
 
 import javax.annotation.ParametersAreNullableByDefault;
 
-@Value
 @ParametersAreNullableByDefault
-public class ParticleMapping {
-    LevelEventType levelEventType;
-    String identifier;
-    int id;
+public record ParticleMapping(LevelEventType levelEventType, String identifier) {
 }

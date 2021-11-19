@@ -41,7 +41,6 @@ import org.geysermc.connector.network.translators.world.block.BlockStateValues;
 import java.util.UUID;
 
 public class ItemEntity extends ThrowableEntity {
-
     protected ItemData item;
 
     private int waterLevel = -1;
@@ -63,7 +62,11 @@ public class ItemEntity extends ThrowableEntity {
         itemPacket.setMotion(motion);
         itemPacket.setFromFishing(false);
         itemPacket.setItemInHand(item);
-        itemPacket.getMetadata().putAll(dirtyMetadata);
+        itemPacket.getMetadata().putFlags(this.flags);
+        dirtyMetadata.apply(itemPacket.getMetadata());
+
+        setFlagsDirty(false);
+
         session.sendUpstreamPacket(itemPacket);
     }
 

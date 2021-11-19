@@ -86,7 +86,7 @@ public class InteractiveTagManager {
             // Holding a leash and the mob is leashable for sure
             // (Plugins can change this behavior so that's something to look into in the far far future)
             interactiveTag = InteractiveTag.LEASH;
-        } else if (interactEntity instanceof AnimalEntity && ((AnimalEntity) interactEntity).canEat(session, javaIdentifierStripped, mapping)) {
+        } else if (interactEntity instanceof AnimalEntity && ((AnimalEntity) interactEntity).canEat(javaIdentifierStripped, mapping)) {
             // This animal can be fed
             interactiveTag = InteractiveTag.FEED;
         } else {

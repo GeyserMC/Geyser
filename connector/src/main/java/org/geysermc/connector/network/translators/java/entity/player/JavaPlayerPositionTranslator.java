@@ -33,7 +33,6 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.EntityDefinitions;
@@ -69,10 +68,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             respawnPacket.setState(RespawnPacket.State.SERVER_READY);
             session.sendUpstreamPacket(respawnPacket);
 
-            SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
-            entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
-            entityDataPacket.getMetadata().putAll(entity.getDirtyMetadata());
-            session.sendUpstreamPacket(entityDataPacket);
+            entity.updateBedrockMetadata();
 
             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
             movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());

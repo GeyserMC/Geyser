@@ -116,7 +116,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                         useItemPacket = new ServerboundUseItemPacket(Hand.OFF_HAND);
                     }
                     session.sendDownstreamPacket(useItemPacket);
-                    session.getPlayerEntity().getDirtyMetadata().getFlags().setFlag(EntityFlag.BLOCKING, true);
+                    session.getPlayerEntity().setFlag(EntityFlag.BLOCKING, true);
                     // metadata will be updated when sneaking
                 }
 
@@ -127,10 +127,10 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.sendDownstreamPacket(stopSneakPacket);
 
                 // Stop shield, if necessary
-                if (session.getPlayerEntity().getDirtyMetadata().getFlags().getFlag(EntityFlag.BLOCKING)) {
+                if (session.getPlayerEntity().getFlag(EntityFlag.BLOCKING)) {
                     ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, BlockUtils.POSITION_ZERO, Direction.DOWN);
                     session.sendDownstreamPacket(releaseItemPacket);
-                    session.getPlayerEntity().getDirtyMetadata().getFlags().setFlag(EntityFlag.BLOCKING, false);
+                    session.getPlayerEntity().setFlag(EntityFlag.BLOCKING, false);
                     // metadata will be updated when sneaking
                 }
 

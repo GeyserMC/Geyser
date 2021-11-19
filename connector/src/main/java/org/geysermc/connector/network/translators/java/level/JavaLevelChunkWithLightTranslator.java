@@ -49,6 +49,7 @@ import io.netty.buffer.ByteBufOutputStream;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
+import org.geysermc.connector.entity.ItemFrameEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
@@ -68,9 +69,7 @@ import org.geysermc.connector.utils.ChunkUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.List;
+import java.util.*;
 
 import static org.geysermc.connector.utils.ChunkUtils.*;
 
@@ -85,11 +84,12 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
         // Ensure that, if the player is using lower world heights, the position is not offset
         int yOffset = session.getChunkCache().getChunkMinY();
+        int chunkSize = session.getChunkCache().getChunkHeightY();
 
         // Temporarily stores compound tags of Bedrock-only block entities
         List<NbtMap> bedrockOnlyBlockEntities = new ArrayList<>();
-        DataPalette[] javaChunks = new DataPalette[session.getChunkCache().getChunkHeightY()];
-        DataPalette[] javaBiomes = new DataPalette[session.getChunkCache().getChunkHeightY()];
+        DataPalette[] javaChunks = new DataPalette[chunkSize];
+        DataPalette[] javaBiomes = new DataPalette[chunkSize];
 
         BitSet waterloggedPaletteIds = new BitSet();
         BitSet pistonOrFlowerPaletteIds = new BitSet();
@@ -100,20 +100,20 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         int sectionCount;
         byte[] payload;
         ByteBuf byteBuf = null;
-        GeyserChunkSection[] sections = new GeyserChunkSection[javaChunks.length - yOffset];
+        GeyserChunkSection[] sections = new GeyserChunkSection[javaChunks.length - (yOffset + ((overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4))];
 
         try {
             NetInput in = new StreamNetInput(new ByteArrayInputStream(packet.getChunkData()));
-            for (int sectionY = 0; sectionY < session.getChunkCache().getChunkHeightY(); sectionY++) {
+            for (int sectionY = 0; sectionY < chunkSize; sectionY++) {
+                ChunkSection javaSection = ChunkSection.read(in);
+                javaChunks[sectionY] = javaSection.getChunkData();
+                javaBiomes[sectionY] = javaSection.getBiomeData();
+
                 int bedrockSectionY = sectionY + (yOffset - ((overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4));
                 if (bedrockSectionY < 0 || maxBedrockSectionY < bedrockSectionY) {
                     // Ignore this chunk section since it goes outside the bounds accepted by the Bedrock client
                     continue;
                 }
-
-                ChunkSection javaSection = ChunkSection.read(in);
-                javaChunks[sectionY] = javaSection.getChunkData();
-                javaBiomes[sectionY] = javaSection.getBiomeData();
 
                 // No need to encode an empty section...
                 if (javaSection.isBlockCountEmpty()) {
@@ -316,11 +316,11 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             for (int i = 0; i < sectionCount; i++) {
                 int biomeYOffset = dimensionOffset + i;
                 if (biomeYOffset < yOffset) {
-                    // Ignore this biome section since it goes below the height of the Java world
+                    // Ignore this biome section since it goes above or below the height of the Java world
                     byteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
                     continue;
                 }
-                BiomeTranslator.toNewBedrockBiome(session, javaBiomes[i]).writeToNetwork(byteBuf);
+                BiomeTranslator.toNewBedrockBiome(session, javaBiomes[i + (dimensionOffset - yOffset)]).writeToNetwork(byteBuf);
             }
 
             // As of 1.17.10, Bedrock hardcodes to always read 32 biome sections
@@ -356,5 +356,14 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         levelChunkPacket.setChunkZ(packet.getZ());
         levelChunkPacket.setData(payload);
         session.sendUpstreamPacket(levelChunkPacket);
+
+        for (Map.Entry<Vector3i, ItemFrameEntity> entry : session.getItemFrameCache().entrySet()) {
+            Vector3i position = entry.getKey();
+            if ((position.getX() >> 4) == packet.getX() && (position.getZ() >> 4) == packet.getZ()) {
+                // Update this item frame so it doesn't get lost in the abyss
+                //TODO optimize
+                entry.getValue().updateBlock(true);
+            }
+        }
     }
 }

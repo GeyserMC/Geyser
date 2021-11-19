@@ -83,10 +83,9 @@ public class SkullPlayerEntity extends PlayerEntity {
         addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
-        addPlayerPacket.getMetadata().putAll(dirtyMetadata);
         addPlayerPacket.getMetadata().putFlags(flags);
+        dirtyMetadata.apply(addPlayerPacket.getMetadata());
 
-        dirtyMetadata.clear();
         setFlagsDirty(false);
 
         valid = true;

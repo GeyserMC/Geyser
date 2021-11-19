@@ -27,7 +27,6 @@ package org.geysermc.connector.network.translators.sound.entity;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.living.animal.AnimalEntity;
@@ -42,10 +41,10 @@ public class FeedBabySoundInteractionHandler implements EntitySoundInteractionHa
 
     @Override
     public void handleInteraction(GeyserSession session, Vector3f position, Entity entity) {
-        if (entity instanceof AnimalEntity && !(entity instanceof CatEntity || entity instanceof OcelotEntity)) {
+        if (entity instanceof AnimalEntity animalEntity && !(entity instanceof CatEntity || entity instanceof OcelotEntity)) {
             String handIdentifier = session.getPlayerInventory().getItemInHand().getMapping(session).getJavaIdentifier();
-            boolean isBaby = entity.getDirtyMetadata().getFlags().getFlag(EntityFlag.BABY);
-            if (isBaby && ((AnimalEntity) entity).canEat(session, handIdentifier.replace("minecraft:", ""),
+            boolean isBaby = animalEntity.isBaby();
+            if (isBaby && animalEntity.canEat(handIdentifier.replace("minecraft:", ""),
                     session.getPlayerInventory().getItemInHand().getMapping(session))) {
                 // Play the "feed child" effect
                 EntityEventPacket feedEvent = new EntityEventPacket();

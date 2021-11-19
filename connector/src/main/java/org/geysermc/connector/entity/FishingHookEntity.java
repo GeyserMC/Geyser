@@ -31,6 +31,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.PlaySoundPacket;
+import lombok.Getter;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.collision.BoundingBox;
@@ -46,10 +47,14 @@ import java.util.concurrent.ThreadLocalRandom;
 public class FishingHookEntity extends ThrowableEntity {
 
     private boolean hooked = false;
+    private boolean inWater = false;
+
+    @Getter
+    private final boolean isOwnerSessionPlayer;
+    @Getter
+    private long bedrockTargetId;
 
     private final BoundingBox boundingBox;
-
-    private boolean inWater = false;
 
     public FishingHookEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, Vector3f position, Vector3f motion, float yaw, float pitch, PlayerEntity owner) {
         super(session, entityId, geyserId, uuid, EntityDefinitions.FISHING_BOBBER, position, motion, yaw, pitch, 0f);
@@ -59,8 +64,9 @@ public class FishingHookEntity extends ThrowableEntity {
         // In Java, the splash sound depends on the entity's velocity, but in Bedrock the volume doesn't change.
         // This splash can be confused with the sound from catching a fish. This silences the splash from Bedrock,
         // so that it can be handled by moveAbsoluteImmediate.
-        this.dirtyMetadata.putFloat(EntityData.BOUNDING_BOX_HEIGHT, 128);
+        setBoundingBoxHeight(128);
 
+        isOwnerSessionPlayer = owner.getGeyserId() == session.getPlayerEntity().getGeyserId();
         this.dirtyMetadata.put(EntityData.OWNER_EID, owner.getGeyserId());
     }
 
@@ -80,7 +86,8 @@ public class FishingHookEntity extends ThrowableEntity {
         }
 
         if (entity != null) {
-            dirtyMetadata.put(EntityData.TARGET_EID, entity.getGeyserId());
+            bedrockTargetId = entity.getGeyserId();
+            dirtyMetadata.put(EntityData.TARGET_EID, bedrockTargetId);
             hooked = true;
         } else {
             hooked = false;

@@ -95,7 +95,7 @@ public class CatEntity extends TameableEntity {
     }
 
     @Override
-    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemMapping mapping) {
+    public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
         return javaIdentifierStripped.equals("cod") || javaIdentifierStripped.equals("salmon");
     }
 }

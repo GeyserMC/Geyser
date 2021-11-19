@@ -294,8 +294,7 @@ public class ArmorStandEntity extends LivingEntity {
             }
             return;
         }
-        //boolean isNametagEmpty = metadata.getString(EntityData.NAMETAG).isEmpty() || metadata.getByte(EntityData.NAMETAG_ALWAYS_SHOW, (byte) -1) == (byte) 0; - may not be necessary?
-        boolean isNametagEmpty = dirtyMetadata.getString(EntityData.NAMETAG).isEmpty(); // TODO
+        boolean isNametagEmpty = nametag.isEmpty();
         if (!isNametagEmpty && (!helmet.equals(ItemData.AIR) || !chestplate.equals(ItemData.AIR) || !leggings.equals(ItemData.AIR)
                 || !boots.equals(ItemData.AIR) || !hand.equals(ItemData.AIR) || !offHand.equals(ItemData.AIR))) {
             // If the second entity exists, no need to recreate it.
@@ -313,7 +312,7 @@ public class ArmorStandEntity extends LivingEntity {
             }
             // Copy metadata
             secondEntity.isSmall = isSmall;
-            secondEntity.getDirtyMetadata().putAll(dirtyMetadata); //TODO check
+            //secondEntity.getDirtyMetadata().putAll(dirtyMetadata); //TODO check
             secondEntity.flags.merge(this.flags);
             // Guarantee this copy is NOT invisible
             secondEntity.setFlag(EntityFlag.INVISIBLE, false);

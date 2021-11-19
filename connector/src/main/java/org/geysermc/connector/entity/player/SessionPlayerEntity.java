@@ -33,6 +33,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -59,6 +60,15 @@ public class SessionPlayerEntity extends PlayerEntity {
      * Whether to check for updated speed after all entity metadata has been processed
      */
     private boolean refreshSpeed = false;
+    /**
+     * Used in PlayerInputTranslator for movement checks.
+     */
+    @Getter
+    private boolean isRidingInFront;
+    /**
+     * Used for villager inventory emulation.
+     */
+    private int fakeTradeXp;
 
     private final GeyserSession session;
 
@@ -128,6 +138,17 @@ public class SessionPlayerEntity extends PlayerEntity {
         } else {
             super.setAir(amount);
         }
+    }
+
+    @Override
+    public void setRiderSeatPosition(Vector3f position) {
+        super.setRiderSeatPosition(position);
+        this.isRidingInFront = position != null && position.getX() > 0;
+    }
+
+    public void addFakeTradeExperience(int tradeXp) {
+        fakeTradeXp += tradeXp;
+        dirtyMetadata.put(EntityData.TRADE_XP, fakeTradeXp);
     }
 
     @Override

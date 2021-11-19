@@ -23,11 +23,33 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.connector.entity.type;
+package org.geysermc.connector.entity;
 
-import lombok.Getter;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityDataMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 
-@Getter
-public enum EntityType {
+import java.util.Map;
 
+/**
+ * A write-only wrapper for temporarily storing entity metadata that will be sent to Bedrock.
+ */
+public class GeyserDirtyMetadata {
+    private final Map<EntityData, Object> metadata = new Object2ObjectLinkedOpenHashMap<>();
+
+    public void put(EntityData entityData, Object value) {
+        metadata.put(entityData, value);
+    }
+
+    /**
+     * Applies the contents of the dirty metadata into the input and clears the contents of our map.
+     */
+    public void apply(EntityDataMap map) {
+        map.putAll(metadata);
+        metadata.clear();
+    }
+
+    public boolean hasEntries() {
+        return !metadata.isEmpty();
+    }
 }

@@ -27,9 +27,8 @@ package org.geysermc.connector.network.translators.bedrock.entity;
 
 import com.github.steveice10.mc.protocol.data.game.inventory.VillagerTrade;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSelectTradePacket;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
-import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.player.SessionPlayerEntity;
 import org.geysermc.connector.inventory.GeyserItemStack;
 import org.geysermc.connector.inventory.Inventory;
 import org.geysermc.connector.inventory.MerchantContainer;
@@ -55,14 +54,15 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
                 session.sendDownstreamPacket(selectTradePacket);
 
                 session.scheduleInEventLoop(() -> {
-                    Entity villager = session.getPlayerEntity();
+                    SessionPlayerEntity villager = session.getPlayerEntity();
                     Inventory openInventory = session.getOpenInventory();
                     if (openInventory instanceof MerchantContainer merchantInventory) {
                         VillagerTrade[] trades = merchantInventory.getVillagerTrades();
                         if (trades != null && packet.getData() >= 0 && packet.getData() < trades.length) {
                             VillagerTrade trade = merchantInventory.getVillagerTrades()[packet.getData()];
                             openInventory.setItem(2, GeyserItemStack.from(trade.getOutput()), session);
-                            villager.getDirtyMetadata().put(EntityData.TRADE_XP, trade.getXp() + villager.getDirtyMetadata().getInt(EntityData.TRADE_XP));
+                            // TODO this logic doesn't add up
+                            villager.addFakeTradeExperience(trade.getXp());
                             villager.updateBedrockMetadata();
                         }
                     }

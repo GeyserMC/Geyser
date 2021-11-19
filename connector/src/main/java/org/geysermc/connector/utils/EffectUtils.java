@@ -50,7 +50,7 @@ public class EffectUtils {
             return -1;
         }
 
-        LevelEventType levelEventType = mapping.getLevelEventType();
+        LevelEventType levelEventType = mapping.levelEventType();
         if (levelEventType == null) {
             return -1;
         }

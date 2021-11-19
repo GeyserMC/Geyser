@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.Cli
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.UpdateEquipPacket;
 import org.geysermc.connector.entity.Entity;
@@ -132,6 +131,6 @@ public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundH
         session.sendUpstreamPacket(updateEquipPacket);
 
         session.setInventoryTranslator(inventoryTranslator);
-        InventoryUtils.openInventory(session, new Container(entity.getDirtyMetadata().getString(EntityData.NAMETAG), packet.getContainerId(), packet.getNumberOfSlots(), null, session.getPlayerInventory()));
+        InventoryUtils.openInventory(session, new Container(entity.getNametag(), packet.getContainerId(), packet.getNumberOfSlots(), null, session.getPlayerInventory()));
     }
 }

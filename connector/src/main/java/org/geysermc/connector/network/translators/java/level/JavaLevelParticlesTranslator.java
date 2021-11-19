@@ -136,18 +136,18 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                     return null;
                 }
 
-                if (particleMapping.getLevelEventType() != null) {
+                if (particleMapping.levelEventType() != null) {
                     return (position) -> {
                         LevelEventPacket packet = new LevelEventPacket();
-                        packet.setType(particleMapping.getLevelEventType());
+                        packet.setType(particleMapping.levelEventType());
                         packet.setPosition(position);
                         return packet;
                     };
-                } else if (particleMapping.getIdentifier() != null) {
+                } else if (particleMapping.identifier() != null) {
                     int dimensionId = DimensionUtils.javaToBedrock(session.getDimension());
                     return (position) -> {
                         SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
-                        stringPacket.setIdentifier(particleMapping.getIdentifier());
+                        stringPacket.setIdentifier(particleMapping.identifier());
                         stringPacket.setDimensionId(dimensionId);
                         stringPacket.setPosition(position);
                         return stringPacket;

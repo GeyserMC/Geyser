@@ -226,6 +226,8 @@ public class ItemRegistryPopulator {
                 if (javaIdentifier.equals("minecraft:sculk_sensor")) {
                     // TODO fix in mappings
                     mappingItem.setBedrockIdentifier("minecraft:sculk_sensor");
+                } else if (javaIdentifier.equals("minecraft:music_disc_otherside") && palette.getValue().protocolVersion() <= Bedrock_v471.V471_CODEC.getProtocolVersion()) {
+                    mappingItem.setBedrockIdentifier("minecraft:music_disc_pigstep");
                 }
 
                 if (usingFurnaceMinecart && javaIdentifier.equals("minecraft:furnace_minecart")) {
@@ -398,7 +400,7 @@ public class ItemRegistryPopulator {
                             .count(1)
                             .blockRuntimeId(mapping.getBedrockBlockId())
                             .build());
-                } else if (javaIdentifier.startsWith("minecraft:music_disc_")) {
+                } else if (javaIdentifier.startsWith("minecraft:music_disc_") && !javaIdentifier.equals("minecraft:music_disc_otherside")) { // TODO TEMPORARY
                     // The Java record level event uses the item ID as the "key" to play the record
                     Registries.RECORDS.register(itemIndex, SoundEvent.valueOf("RECORD_" +
                             javaIdentifier.replace("minecraft:music_disc_", "").toUpperCase(Locale.ENGLISH)));

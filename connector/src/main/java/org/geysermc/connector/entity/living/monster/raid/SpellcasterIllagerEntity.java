@@ -44,7 +44,7 @@ public class SpellcasterIllagerEntity extends AbstractIllagerEntity {
     public SpellcasterIllagerEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
         // OptionalPack usage
-        dirtyMetadata.getFlags().setFlag(EntityFlag.BRIBED, this.definition == EntityDefinitions.ILLUSIONER);
+        setFlag(EntityFlag.BRIBED, this.definition == EntityDefinitions.ILLUSIONER);
     }
 
     public void setSpellType(EntityMetadata<Byte> entityMetadata) {

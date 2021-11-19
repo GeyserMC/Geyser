@@ -70,7 +70,7 @@ public class LlamaEntity extends ChestedHorseEntity {
     }
 
     @Override
-    public boolean canEat(GeyserSession session, String javaIdentifierStripped, ItemMapping mapping) {
+    public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
         return javaIdentifierStripped.equals("wheat") || javaIdentifierStripped.equals("hay_block");
     }
 }

@@ -50,7 +50,7 @@ public class BedrockAdventureSettingsTranslator extends PacketTranslator<Adventu
         ServerboundPlayerAbilitiesPacket abilitiesPacket = new ServerboundPlayerAbilitiesPacket(isFlying);
         session.sendDownstreamPacket(abilitiesPacket);
 
-        if (isFlying && session.getPlayerEntity().getDirtyMetadata().getFlags().getFlag(EntityFlag.SWIMMING)) {
+        if (isFlying && session.getPlayerEntity().getFlag(EntityFlag.SWIMMING)) {
             // Bedrock can fly and swim at the same time? Make sure that can't happen
             session.setSwimming(false);
         }

@@ -28,10 +28,8 @@ package org.geysermc.connector.network.translators.collision;
 import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.connector.entity.Entity;
@@ -121,7 +119,7 @@ public class CollisionManager {
         // - In Bedrock Edition, the height becomes 1.65 blocks, allowing movement through spaces as small as 1.75 (2 - 1⁄4) blocks high.
         // - In Java Edition, the height becomes 1.5 blocks.
         // Other instances have the player's bounding box become as small as 0.6 or 0.2.
-        double playerHeight = session.getPlayerEntity().getDirtyMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT);
+        double playerHeight = session.getPlayerEntity().getBoundingBoxHeight();
         playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() - (playerBoundingBox.getSizeY() / 2.0) + (playerHeight / 2.0));
         playerBoundingBox.setSizeY(playerHeight);
     }
@@ -188,10 +186,7 @@ public class CollisionManager {
     public void recalculatePosition() {
         PlayerEntity entity = session.getPlayerEntity();
         // Gravity might need to be reset...
-        SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
-        entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
-        entityDataPacket.getMetadata().putAll(entity.getDirtyMetadata());
-        session.sendUpstreamPacket(entityDataPacket);
+        entity.updateBedrockMetadata(); // TODO may not be necessary
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());

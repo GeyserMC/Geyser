@@ -33,7 +33,6 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.utils.InteractiveTagManager;
-import org.geysermc.connector.utils.LanguageUtils;
 
 import java.util.List;
 
@@ -61,16 +60,19 @@ public class JavaSetEntityDataTranslator extends PacketTranslator<ClientboundSet
                 continue;
             }
 
-            EntityMetadataTranslator<? super Entity, ?> translator = (EntityMetadataTranslator<? super Entity, ?>) translators.get(metadata.getId());
+            EntityMetadataTranslator<? super Entity, Object> translator = (EntityMetadataTranslator<? super Entity, Object>) translators.get(metadata.getId());
             if (translator == null) {
                 // This can safely happen; it means we don't translate this entity metadata
                 continue;
             }
             if (translator.acceptedType() != metadata.getType()) {
                 session.getConnector().getLogger().warning("Metadata ID " + metadata.getId() + " was received with type " + metadata.getType() + " but we expected " + translator.acceptedType() + " for " + entity.getDefinition().entityType());
+                if (session.getConnector().getConfig().isDebugMode()) {
+                    session.getConnector().getLogger().debug(metadata.toString());
+                }
                 continue;
             }
-            translator.translateFunction().accept(entity, metadata);
+            translator.translateFunction().accept(entity, (EntityMetadata<Object>) metadata);
         }
 
         entity.updateBedrockMetadata();

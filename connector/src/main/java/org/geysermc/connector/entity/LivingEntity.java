@@ -140,12 +140,8 @@ public class LivingEntity extends Entity {
     @Override
     protected void setDimensions(Pose pose) {
         if (pose == Pose.SLEEPING) {
-            boundingBoxWidth = 0.2f;
-            boundingBoxHeight = 0.2f;
-            if (boundingBoxWidth != definition.width() || boundingBoxHeight != definition.height()) {
-                dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, boundingBoxWidth);
-                dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, boundingBoxHeight);
-            }
+            setBoundingBoxWidth(0.2f);
+            setBoundingBoxHeight(0.2f);
         } else {
             super.setDimensions(pose);
         }

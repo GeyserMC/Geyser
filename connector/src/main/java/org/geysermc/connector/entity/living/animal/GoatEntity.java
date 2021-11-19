@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import lombok.Getter;
 import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -55,8 +54,8 @@ public class GoatEntity extends AnimalEntity {
     @Override
     protected void setDimensions(Pose pose) {
         if (pose == Pose.LONG_JUMPING) {
-            dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, LONG_JUMPING_WIDTH);
-            dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, LONG_JUMPING_HEIGHT);
+            setBoundingBoxWidth(LONG_JUMPING_WIDTH);
+            setBoundingBoxHeight(LONG_JUMPING_HEIGHT);
         } else {
             super.setDimensions(pose);
         }

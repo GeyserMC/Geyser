@@ -90,10 +90,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             session.sendUpstreamPacket(playerGameTypePacket);
         }
 
-        SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
-        entityDataPacket.setRuntimeEntityId(entity.getGeyserId());
-        entityDataPacket.getMetadata().putAll(entity.getDirtyMetadata());
-        session.sendUpstreamPacket(entityDataPacket);
+        entity.updateBedrockMetadata();
 
         // Send if client should show respawn screen
         GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();

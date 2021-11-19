@@ -99,7 +99,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 if (session.getOpenInventory() == null) {
                     Entity ridingEntity = session.getRidingVehicleEntity();
                     if (ridingEntity instanceof AbstractHorseEntity) {
-                        if (ridingEntity.getDirtyMetadata().getFlags().getFlag(EntityFlag.TAMED)) {
+                        if (ridingEntity.getFlag(EntityFlag.TAMED)) {
                             // We should request to open the horse inventory instead
                             ServerboundPlayerCommandPacket openHorseWindowPacket = new ServerboundPlayerCommandPacket((int) session.getPlayerEntity().getEntityId(), PlayerState.OPEN_HORSE_INVENTORY);
                             session.sendDownstreamPacket(openHorseWindowPacket);

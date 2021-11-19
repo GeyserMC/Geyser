@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
@@ -237,7 +236,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
 
             phaseTicks++;
             if (phase == 3) { // Landing Phase
-                float headHeight = head.getDirtyMetadata().getFloat(EntityData.BOUNDING_BOX_HEIGHT); //TODO
+                float headHeight = head.getBoundingBoxHeight();
                 Vector3f headCenter = head.getPosition().up(headHeight * 0.5f);
 
                 for (int i = 0; i < 8; i++) {
