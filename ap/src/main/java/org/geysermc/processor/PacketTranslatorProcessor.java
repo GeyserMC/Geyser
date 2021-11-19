@@ -30,7 +30,7 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 
 @SupportedAnnotationTypes("*")
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
+@SupportedSourceVersion(SourceVersion.RELEASE_16)
 public class PacketTranslatorProcessor extends ClassProcessor {
     public PacketTranslatorProcessor() {
         super("org.geysermc.connector.network.translators.Translator");
