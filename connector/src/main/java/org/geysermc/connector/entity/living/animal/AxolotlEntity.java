@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.animal;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
@@ -42,8 +41,8 @@ public class AxolotlEntity extends AnimalEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setVariant(EntityMetadata<Integer> entityMetadata) {
-        int variant = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setVariant(IntEntityMetadata entityMetadata) {
+        int variant = entityMetadata.getPrimitiveValue();
         switch (variant) {
             case 1 -> variant = 3; // Java - "Wild" (brown)
             case 3 -> variant = 1; // Java - cyan
@@ -51,8 +50,8 @@ public class AxolotlEntity extends AnimalEntity {
         dirtyMetadata.put(EntityData.VARIANT, variant);
     }
 
-    public void setPlayingDead(EntityMetadata<Boolean> entityMetadata) {
-        setFlag(EntityFlag.PLAYING_DEAD, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue());
+    public void setPlayingDead(BooleanEntityMetadata entityMetadata) {
+        setFlag(EntityFlag.PLAYING_DEAD, entityMetadata.getPrimitiveValue());
     }
 
     @Override

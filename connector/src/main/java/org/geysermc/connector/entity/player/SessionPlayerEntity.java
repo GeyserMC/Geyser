@@ -110,14 +110,14 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    public void setFlags(EntityMetadata<Byte> entityMetadata) {
+    public void setFlags(ByteEntityMetadata entityMetadata) {
         super.setFlags(entityMetadata);
-        session.setSwimmingInWater((((ByteEntityMetadata) entityMetadata).getPrimitiveValue() & 0x10) == 0x10 && getFlag(EntityFlag.SPRINTING));
+        session.setSwimmingInWater((entityMetadata.getPrimitiveValue() & 0x10) == 0x10 && getFlag(EntityFlag.SPRINTING));
         refreshSpeed = true;
     }
 
     @Override
-    public void setPose(EntityMetadata<Pose> entityMetadata) {
+    public void setPose(EntityMetadata<Pose, ?> entityMetadata) {
         super.setPose(entityMetadata);
         session.setPose(entityMetadata.getValue());
         refreshSpeed = true;
@@ -132,11 +132,11 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    protected void setAir(int amount) {
+    protected void setAirSupply(int amount) {
         if (amount == getMaxAir()) {
-            super.setAir(0); // Hide the bubble counter from the UI for the player
+            super.setAirSupply(0); // Hide the bubble counter from the UI for the player
         } else {
-            super.setAir(amount);
+            super.setAirSupply(amount);
         }
     }
 

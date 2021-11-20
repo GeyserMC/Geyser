@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.monster;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
@@ -37,8 +36,8 @@ import java.util.UUID;
 
 public class CreeperEntity extends MonsterEntity {
     /**
-     * Whether the creeper has been ignited and is using {@link #setIgnited(EntityMetadata)}.
-     * In this instance we ignore {@link #setSwelling(EntityMetadata)} since it's sending us -1 which confuses poor Bedrock.
+     * Whether the creeper has been ignited and is using {@link #setIgnited(BooleanEntityMetadata)}.
+     * In this instance we ignore {@link #setSwelling(IntEntityMetadata)} since it's sending us -1 which confuses poor Bedrock.
      */
     private boolean ignitedByFlintAndSteel = false;
 
@@ -46,14 +45,14 @@ public class CreeperEntity extends MonsterEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setSwelling(EntityMetadata<Integer> entityMetadata) {
+    public void setSwelling(IntEntityMetadata entityMetadata) {
         if (!ignitedByFlintAndSteel) {
-            setFlag(EntityFlag.IGNITED, ((IntEntityMetadata) entityMetadata).getPrimitiveValue() == 1);
+            setFlag(EntityFlag.IGNITED, entityMetadata.getPrimitiveValue() == 1);
         }
     }
 
-    public void setIgnited(EntityMetadata<Boolean> entityMetadata) {
-        ignitedByFlintAndSteel = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setIgnited(BooleanEntityMetadata entityMetadata) {
+        ignitedByFlintAndSteel = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.IGNITED, ignitedByFlintAndSteel);
     }
 }

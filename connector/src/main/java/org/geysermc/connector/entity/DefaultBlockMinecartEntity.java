@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
@@ -56,7 +55,7 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
     }
 
     @Override
-    public void setCustomBlock(EntityMetadata<Integer> entityMetadata) {
+    public void setCustomBlock(IntEntityMetadata entityMetadata) {
         customBlock = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
 
         if (showCustomBlock) {
@@ -65,8 +64,8 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
     }
 
     @Override
-    public void setCustomBlockOffset(EntityMetadata<Integer> entityMetadata) {
-        customBlockOffset = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setCustomBlockOffset(IntEntityMetadata entityMetadata) {
+        customBlockOffset = entityMetadata.getPrimitiveValue();
 
         if (showCustomBlock) {
             dirtyMetadata.put(EntityData.DISPLAY_OFFSET, customBlockOffset);
@@ -74,8 +73,8 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
     }
 
     @Override
-    public void setShowCustomBlock(EntityMetadata<Boolean> entityMetadata) {
-        if (((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()) {
+    public void setShowCustomBlock(BooleanEntityMetadata entityMetadata) {
+        if (entityMetadata.getPrimitiveValue()) {
             showCustomBlock = true;
             dirtyMetadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId(customBlock));
             dirtyMetadata.put(EntityData.DISPLAY_OFFSET, customBlockOffset);

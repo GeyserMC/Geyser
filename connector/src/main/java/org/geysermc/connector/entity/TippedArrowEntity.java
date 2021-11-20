@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -43,8 +42,8 @@ public class TippedArrowEntity extends AbstractArrowEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setPotionEffectColor(EntityMetadata<Integer> entityMetadata) {
-        int potionColor = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setPotionEffectColor(IntEntityMetadata entityMetadata) {
+        int potionColor = entityMetadata.getPrimitiveValue();
         // -1 means no color
         if (potionColor == -1) {
             dirtyMetadata.put(EntityData.CUSTOM_DISPLAY, 0);

@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.animal;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -47,12 +46,12 @@ public class StriderEntity extends AnimalEntity {
         setFlag(EntityFlag.BREATHING, true);
     }
 
-    public void setCold(EntityMetadata<Boolean> entityMetadata) {
-        isCold = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setCold(BooleanEntityMetadata entityMetadata) {
+        isCold = entityMetadata.getPrimitiveValue();
     }
 
-    public void setSaddled(EntityMetadata<Boolean> entityMetadata) {
-        setFlag(EntityFlag.SADDLED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue());
+    public void setSaddled(BooleanEntityMetadata entityMetadata) {
+        setFlag(EntityFlag.SADDLED, entityMetadata.getPrimitiveValue());
     }
 
     @Override

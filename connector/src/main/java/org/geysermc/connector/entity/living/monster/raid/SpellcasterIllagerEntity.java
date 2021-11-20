@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.monster.raid;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -47,8 +46,8 @@ public class SpellcasterIllagerEntity extends AbstractIllagerEntity {
         setFlag(EntityFlag.BRIBED, this.definition == EntityDefinitions.ILLUSIONER);
     }
 
-    public void setSpellType(EntityMetadata<Byte> entityMetadata) {
-        int spellType = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setSpellType(ByteEntityMetadata entityMetadata) {
+        int spellType = entityMetadata.getPrimitiveValue();
         // Summon vex, attack, or wololo
         setFlag(EntityFlag.CASTING, spellType == 1 || spellType == 2 || spellType == 3);
         int rgbData = switch (spellType) {

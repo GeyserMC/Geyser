@@ -40,6 +40,7 @@ import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.registry.BlockRegistries;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class VillagerEntity extends AbstractMerchantEntity {
@@ -91,7 +92,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setVillagerData(EntityMetadata<VillagerData> entityMetadata) {
+    public void setVillagerData(EntityMetadata<VillagerData, ?> entityMetadata) {
         VillagerData villagerData = entityMetadata.getValue();
         // Profession
         int profession = VILLAGER_PROFESSIONS.get(villagerData.getProfession());
@@ -105,7 +106,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
     }
 
     @Override
-    public Vector3i setBedPosition(EntityMetadata<Position> entityMetadata) {
+    public Vector3i setBedPosition(EntityMetadata<Optional<Position>, ?> entityMetadata) {
         return bedPosition = super.setBedPosition(entityMetadata);
     }
 

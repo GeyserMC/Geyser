@@ -44,13 +44,13 @@ public class ZombieVillagerEntity extends ZombieEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setTransforming(EntityMetadata<Boolean> entityMetadata) {
-        isTransforming = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setTransforming(BooleanEntityMetadata entityMetadata) {
+        isTransforming = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.IS_TRANSFORMING, isTransforming);
         setFlag(EntityFlag.SHAKING, isShaking());
     }
 
-    public void setZombieVillagerData(EntityMetadata<VillagerData> entityMetadata) {
+    public void setZombieVillagerData(EntityMetadata<VillagerData, ?> entityMetadata) {
         VillagerData villagerData = entityMetadata.getValue();
         dirtyMetadata.put(EntityData.VARIANT, VillagerEntity.VILLAGER_PROFESSIONS.get(villagerData.getProfession())); // Actually works properly with the OptionalPack
         dirtyMetadata.put(EntityData.MARK_VARIANT, VillagerEntity.VILLAGER_REGIONS.get(villagerData.getType()));

@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.entity.living.animal;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -43,12 +43,12 @@ public class RabbitEntity extends AnimalEntity {
     }
 
     @Override
-    public void setBaby(EntityMetadata<Boolean> entityMetadata) {
+    public void setBaby(BooleanEntityMetadata entityMetadata) {
         super.setBaby(entityMetadata);
     }
 
-    public void setRabbitVariant(EntityMetadata<Integer> entityMetadata) {
-        int variant = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setRabbitVariant(IntEntityMetadata entityMetadata) {
+        int variant = entityMetadata.getPrimitiveValue();
 
         // Change the killer bunny to display as white since it only exists on Java Edition
         boolean isKillerBunny = variant == 99;

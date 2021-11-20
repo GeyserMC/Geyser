@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.monster;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -40,8 +39,8 @@ public class SpiderEntity extends MonsterEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setSpiderFlags(EntityMetadata<Byte> entityMetadata) {
-        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setSpiderFlags(ByteEntityMetadata entityMetadata) {
+        byte xd = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.WALL_CLIMBING, (xd & 0x01) == 0x01);
     }
 }

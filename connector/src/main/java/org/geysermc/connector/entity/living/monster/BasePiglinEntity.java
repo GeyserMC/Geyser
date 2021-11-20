@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.monster;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -42,9 +41,9 @@ public class BasePiglinEntity extends MonsterEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setImmuneToZombification(EntityMetadata<Boolean> entityMetadata) {
+    public void setImmuneToZombification(BooleanEntityMetadata entityMetadata) {
         // Apply shaking effect if not in the nether and zombification is possible
-        this.isImmuneToZombification = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+        this.isImmuneToZombification = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.SHAKING, isShaking());
     }
 

@@ -41,7 +41,7 @@ public class SheepEntity extends AnimalEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setSheepFlags(EntityMetadata<Byte> entityMetadata) {
+    public void setSheepFlags(ByteEntityMetadata entityMetadata) {
         byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
         setFlag(EntityFlag.SHEARED, (xd & 0x10) == 0x10);
         dirtyMetadata.put(EntityData.COLOR, xd);

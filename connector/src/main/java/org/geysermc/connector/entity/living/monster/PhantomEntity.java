@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.monster;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -40,8 +39,8 @@ public class PhantomEntity extends FlyingEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setPhantomScale(EntityMetadata<Integer> entityMetadata) {
-        int size = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setPhantomScale(IntEntityMetadata entityMetadata) {
+        int size = entityMetadata.getPrimitiveValue();
         float modelScale = 1f + 0.15f * size;
         float boundsScale = (1f + (0.2f * size) / definition.width()) / modelScale;
 

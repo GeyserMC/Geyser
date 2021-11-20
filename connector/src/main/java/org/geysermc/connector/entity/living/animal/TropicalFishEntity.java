@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.animal;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.google.common.collect.ImmutableList;
 import com.nukkitx.math.vector.Vector3f;
@@ -53,8 +52,8 @@ public class TropicalFishEntity extends AbstractFishEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setFishVariant(EntityMetadata<Integer> entityMetadata) {
-        int varNumber = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setFishVariant(IntEntityMetadata entityMetadata) {
+        int varNumber = entityMetadata.getPrimitiveValue();
 
         dirtyMetadata.put(EntityData.VARIANT, getShape(varNumber)); // Shape 0-1
         dirtyMetadata.put(EntityData.MARK_VARIANT, getPattern(varNumber)); // Pattern 0-5

@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -40,7 +39,7 @@ public class SlimeEntity extends MobEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setScale(EntityMetadata<Integer> entityMetadata) {
-        dirtyMetadata.put(EntityData.SCALE, 0.10f + ((IntEntityMetadata) entityMetadata).getPrimitiveValue());
+    public void setScale(IntEntityMetadata entityMetadata) {
+        dirtyMetadata.put(EntityData.SCALE, 0.10f + entityMetadata.getPrimitiveValue());
     }
 }

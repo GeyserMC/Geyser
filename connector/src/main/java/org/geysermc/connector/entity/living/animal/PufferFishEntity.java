@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.animal;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -41,8 +40,8 @@ public class PufferFishEntity extends AbstractFishEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setPufferfishSize(EntityMetadata<Integer> entityMetadata) {
-        int puffsize = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setPufferfishSize(IntEntityMetadata entityMetadata) {
+        int puffsize = entityMetadata.getPrimitiveValue();
         dirtyMetadata.put(EntityData.PUFFERFISH_SIZE, (byte) puffsize);
         dirtyMetadata.put(EntityData.VARIANT, puffsize);
     }

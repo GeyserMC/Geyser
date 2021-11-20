@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.factory.BaseEntityFactory;
 import org.geysermc.connector.entity.factory.EntityFactory;
 import org.geysermc.connector.registry.Registries;
@@ -47,7 +48,7 @@ import java.util.function.BiConsumer;
  * @param <T> the entity type this definition represents
  */
 public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, EntityType entityType, String identifier,
-                                                 float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?>> translators) {
+                                                 float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
 
     public static <T extends Entity> Builder<T> inherited(BaseEntityFactory<T> factory, EntityDefinition<? super T> parent) {
         return inherited((EntityFactory<T>) factory, parent);
@@ -61,6 +62,25 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
         return new Builder<>(factory);
     }
 
+
+    public <M> void translateMetadata(T entity, EntityMetadata<M, ? extends MetadataType<M>> metadata) {
+        EntityMetadataTranslator<? super T, M, EntityMetadata<M, ? extends MetadataType<M>>> translator = (EntityMetadataTranslator<? super T, M, EntityMetadata<M, ? extends MetadataType<M>>>) this.translators.get(metadata.getId());
+        if (translator == null) {
+            // This can safely happen; it means we don't translate this entity metadata
+            return;
+        }
+
+        if (translator.acceptedType() != metadata.getType()) {
+            GeyserConnector.getInstance().getLogger().warning("Metadata ID " + metadata.getId() + " was received with type " + metadata.getType() + " but we expected " + translator.acceptedType() + " for " + entity.getDefinition().entityType());
+            if (GeyserConnector.getInstance().getConfig().isDebugMode()) {
+                GeyserConnector.getInstance().getLogger().debug(metadata.toString());
+            }
+            return;
+        }
+
+        translator.translateFunction().accept(entity, metadata);
+    }
+
     @Setter
     @Accessors(fluent = true, chain = true)
     public static class Builder<T extends Entity> {
@@ -70,14 +90,14 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
         private float width;
         private float height;
         private float offset;
-        private final List<EntityMetadataTranslator<? super T, ?>> translators;
+        private final List<EntityMetadataTranslator<? super T, ?, ?>> translators;
 
         private Builder(EntityFactory<T> factory) {
             this.factory = factory;
             translators = new ObjectArrayList<>();
         }
 
-        public Builder(EntityFactory<T> factory, EntityType type, String identifier, float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?>> translators) {
+        public Builder(EntityFactory<T> factory, EntityType type, String identifier, float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
             this.factory = factory;
             this.type = type;
             this.identifier = identifier;
@@ -105,12 +125,12 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             return this;
         }
 
-        public <U> Builder<T> addTranslator(MetadataType type, BiConsumer<T, EntityMetadata<U>> translateFunction) {
+        public <U, EM extends EntityMetadata<U, ? extends MetadataType<U>>> Builder<T> addTranslator(MetadataType<U> type, BiConsumer<T, EM> translateFunction) {
             translators.add(new EntityMetadataTranslator<>(type, translateFunction));
             return this;
         }
 
-        public Builder<T> addTranslator(EntityMetadataTranslator<T, ?> translator) {
+        public Builder<T> addTranslator(EntityMetadataTranslator<T, ?, ?> translator) {
             translators.add(translator);
             return this;
         }

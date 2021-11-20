@@ -84,7 +84,7 @@ public class ItemEntity extends ThrowableEntity {
         }
     }
 
-    public void setItem(EntityMetadata<ItemStack> entityMetadata) {
+    public void setItem(EntityMetadata<ItemStack, ?> entityMetadata) {
         ItemData item = ItemTranslator.translateToBedrock(session, entityMetadata.getValue());
         if (this.item == null) {
             this.item = item;

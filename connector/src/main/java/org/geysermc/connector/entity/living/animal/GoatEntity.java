@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.animal;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
@@ -46,9 +45,9 @@ public class GoatEntity extends AnimalEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setScreamer(EntityMetadata<Boolean> entityMetadata) {
+    public void setScreamer(BooleanEntityMetadata entityMetadata) {
         // Metadata not used in Bedrock Edition
-        isScreamer = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+        isScreamer = entityMetadata.getPrimitiveValue();
     }
 
     @Override

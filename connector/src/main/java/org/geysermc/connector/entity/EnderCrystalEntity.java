@@ -33,6 +33,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.network.session.GeyserSession;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class EnderCrystalEntity extends Entity {
@@ -48,12 +49,13 @@ public class EnderCrystalEntity extends Entity {
         setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 
-    public void setBlockTarget(EntityMetadata<Position> entityMetadata) {
+    public void setBlockTarget(EntityMetadata<Optional<Position>, ?> entityMetadata) {
         // Show beam
         // Usually performed client-side on Bedrock except for Ender Dragon respawn event
-        Position position = entityMetadata.getValue();
-        if (position != null) {
-            dirtyMetadata.put(EntityData.BLOCK_TARGET, Vector3i.from(position.getX(), position.getY(), position.getZ()));
+        Optional<Position> optionalPos = entityMetadata.getValue();
+        if (optionalPos.isPresent()) {
+            Position pos = optionalPos.get();
+            dirtyMetadata.put(EntityData.BLOCK_TARGET, Vector3i.from(pos.getX(), pos.getY(), pos.getZ()));
         } else {
             dirtyMetadata.put(EntityData.BLOCK_TARGET, Vector3i.ZERO);
         }

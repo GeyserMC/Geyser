@@ -53,7 +53,7 @@ public class FireworkEntity extends Entity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setFireworkItem(EntityMetadata<ItemStack> entityMetadata) {
+    public void setFireworkItem(EntityMetadata<ItemStack, ?> entityMetadata) {
         ItemStack item = entityMetadata.getValue();
         if (item == null) {
             return;
@@ -135,7 +135,7 @@ public class FireworkEntity extends Entity {
         dirtyMetadata.put(EntityData.DISPLAY_ITEM, builder.build());
     }
 
-    public void setPlayerGliding(EntityMetadata<OptionalInt> entityMetadata) {
+    public void setPlayerGliding(EntityMetadata<OptionalInt, ?> entityMetadata) {
         OptionalInt optional = entityMetadata.getValue();
         // Checks if the firework has an entity ID (used when a player is gliding)
         // and checks to make sure the player that is gliding is the one getting sent the packet

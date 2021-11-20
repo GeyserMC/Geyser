@@ -36,6 +36,7 @@ import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.entity.living.animal.AnimalEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class TameableEntity extends AnimalEntity {
@@ -49,18 +50,18 @@ public class TameableEntity extends AnimalEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setTameableFlags(EntityMetadata<Byte> entityMetadata) {
-        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setTameableFlags(ByteEntityMetadata entityMetadata) {
+        byte xd = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.SITTING, (xd & 0x01) == 0x01);
         setFlag(EntityFlag.ANGRY, (xd & 0x02) == 0x02);
         setFlag(EntityFlag.TAMED, (xd & 0x04) == 0x04);
     }
 
-    public void setOwner(EntityMetadata<UUID> entityMetadata) {
+    public void setOwner(EntityMetadata<Optional<UUID>, ?> entityMetadata) {
         // Note: Must be set for wolf collar color to work
-        if (entityMetadata.getValue() != null) {
+        if (entityMetadata.getValue().isPresent()) {
             // Owner UUID of entity
-            Entity entity = session.getEntityCache().getPlayerEntity(entityMetadata.getValue());
+            Entity entity = session.getEntityCache().getPlayerEntity(entityMetadata.getValue().get());
             // Used as both a check since the player isn't in the entity cache and a normal fallback
             if (entity == null) {
                 entity = session.getPlayerEntity();

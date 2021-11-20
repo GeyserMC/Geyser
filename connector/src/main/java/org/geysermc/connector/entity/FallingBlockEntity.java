@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -49,9 +48,9 @@ public class FallingBlockEntity extends Entity {
     }
 
     @Override
-    public void setGravity(EntityMetadata<Boolean> entityMetadata) {
+    public void setGravity(BooleanEntityMetadata entityMetadata) {
         super.setGravity(entityMetadata);
         // Set the NO_AI flag based on the no gravity flag to prevent movement
-        setFlag(EntityFlag.NO_AI, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue());
+        setFlag(EntityFlag.NO_AI, entityMetadata.getPrimitiveValue());
     }
 }

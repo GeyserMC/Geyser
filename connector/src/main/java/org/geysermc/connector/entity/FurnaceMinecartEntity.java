@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -41,8 +40,8 @@ public class FurnaceMinecartEntity extends DefaultBlockMinecartEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setHasFuel(EntityMetadata<Boolean> entityMetadata) {
-        hasFuel = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setHasFuel(BooleanEntityMetadata entityMetadata) {
+        hasFuel = entityMetadata.getPrimitiveValue();
         updateDefaultBlockMetadata();
     }
 

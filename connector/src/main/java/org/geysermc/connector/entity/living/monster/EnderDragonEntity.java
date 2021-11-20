@@ -25,7 +25,7 @@
 
 package org.geysermc.connector.entity.living.monster;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
@@ -90,7 +90,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
     }
 
     @Override
-    public void setHealth(EntityMetadata<Float> entityMetadata) {
+    public void setHealth(FloatEntityMetadata entityMetadata) {
         super.setHealth(entityMetadata);
         if (phase == 9 && this.health <= 0) { // Dying phase
             EntityEventPacket entityEventPacket = new EntityEventPacket();
@@ -101,8 +101,8 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
         }
     }
 
-    public void setPhase(EntityMetadata<Integer> entityMetadata) {
-        phase = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setPhase(IntEntityMetadata entityMetadata) {
+        phase = entityMetadata.getPrimitiveValue();
         phaseTicks = 0;
         setFlag(EntityFlag.SITTING, isSitting());
     }

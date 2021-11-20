@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.entity.living.animal.tameable;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -61,7 +61,7 @@ public class CatEntity extends TameableEntity {
     }
 
     @Override
-    public void setTameableFlags(EntityMetadata<Byte> entityMetadata) {
+    public void setTameableFlags(ByteEntityMetadata entityMetadata) {
         super.setTameableFlags(entityMetadata);
         // Update collar color if tamed
         if (getFlag(EntityFlag.TAMED)) {
@@ -69,9 +69,9 @@ public class CatEntity extends TameableEntity {
         }
     }
 
-    public void setCatVariant(EntityMetadata<Integer> entityMetadata) {
+    public void setCatVariant(IntEntityMetadata entityMetadata) {
         // Different colors in Java and Bedrock for some reason
-        int metadataValue = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+        int metadataValue = entityMetadata.getPrimitiveValue();
         int variantColor = switch (metadataValue) {
             case 0 -> 8;
             case 8 -> 0;
@@ -82,12 +82,12 @@ public class CatEntity extends TameableEntity {
         dirtyMetadata.put(EntityData.VARIANT, variantColor);
     }
 
-    public void setResting(EntityMetadata<Boolean> entityMetadata) {
-        setFlag(EntityFlag.RESTING, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue());
+    public void setResting(BooleanEntityMetadata entityMetadata) {
+        setFlag(EntityFlag.RESTING, entityMetadata.getPrimitiveValue());
     }
 
-    public void setCollarColor(EntityMetadata<Integer> entityMetadata) {
-        collarColor = (byte) ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setCollarColor(IntEntityMetadata entityMetadata) {
+        collarColor = (byte) entityMetadata.getPrimitiveValue();
         // Needed or else wild cats are a red color
         if (getFlag(EntityFlag.TAMED)) {
             dirtyMetadata.put(EntityData.COLOR, collarColor);

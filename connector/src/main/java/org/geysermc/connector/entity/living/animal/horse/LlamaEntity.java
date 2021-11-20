@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.animal.horse;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -48,12 +47,12 @@ public class LlamaEntity extends ChestedHorseEntity {
     /**
      * Color equipped on the llama
      */
-    public void setCarpetedColor(EntityMetadata<Integer> entityMetadata) {
+    public void setCarpetedColor(IntEntityMetadata entityMetadata) {
         // Bedrock treats llama decoration as armor
         MobArmorEquipmentPacket equipmentPacket = new MobArmorEquipmentPacket();
         equipmentPacket.setRuntimeEntityId(geyserId);
         // -1 means no armor
-        int carpetIndex = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+        int carpetIndex = entityMetadata.getPrimitiveValue();
         if (carpetIndex > -1 && carpetIndex <= 15) {
             // The damage value is the dye color that Java sends us, for pre-1.16.220
             // The item is always going to be a carpet

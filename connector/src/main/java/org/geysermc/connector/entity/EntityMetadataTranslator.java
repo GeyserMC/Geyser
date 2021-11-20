@@ -33,8 +33,7 @@ import java.util.function.BiConsumer;
 /**
  * Translates a given Java {@link EntityMetadata} into a similar/same construct for Bedrock
  */
-
-public record EntityMetadataTranslator<E extends Entity, T>(
-        MetadataType acceptedType,
-        BiConsumer<E, EntityMetadata<T>> translateFunction) {
+public record EntityMetadataTranslator<E extends Entity, T, EM extends EntityMetadata<T, ? extends MetadataType<T>>>(
+        MetadataType<T> acceptedType,
+        BiConsumer<E, EM> translateFunction) {
 }

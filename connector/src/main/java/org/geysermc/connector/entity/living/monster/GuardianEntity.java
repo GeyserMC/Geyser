@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.monster;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -41,8 +40,8 @@ public class GuardianEntity extends MonsterEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setGuardianTarget(EntityMetadata<Integer> entityMetadata) {
-        int entityId = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setGuardianTarget(IntEntityMetadata entityMetadata) {
+        int entityId = entityMetadata.getPrimitiveValue();
         Entity entity;
         if (session.getPlayerEntity().getEntityId() == entityId) {
             entity = session.getPlayerEntity();

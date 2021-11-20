@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.nukkitx.math.vector.Vector3f;
@@ -45,8 +44,8 @@ public class AbstractArrowEntity extends Entity {
         setMotion(motion);
     }
 
-    public void setArrowFlags(EntityMetadata<Byte> entityMetadata) {
-        byte data = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setArrowFlags(ByteEntityMetadata entityMetadata) {
+        byte data = entityMetadata.getPrimitiveValue();
 
         setFlag(EntityFlag.CRITICAL, (data & 0x01) == 0x01);
     }

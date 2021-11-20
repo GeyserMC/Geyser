@@ -27,13 +27,13 @@ package org.geysermc.connector.entity.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.entity.living.GolemEntity;
 import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.Direction;
 
 import java.util.UUID;
 
@@ -45,17 +45,17 @@ public class ShulkerEntity extends GolemEntity {
         setFlag(EntityFlag.BRIBED, true);
     }
 
-    public void setAttachedFace(EntityMetadata<Direction> entityMetadata) {
+    public void setAttachedFace(EntityMetadata<Direction, ?> entityMetadata) {
         Direction direction = entityMetadata.getValue();
         dirtyMetadata.put(EntityData.SHULKER_ATTACH_FACE, (byte) direction.ordinal());
     }
 
-    public void setShulkerHeight(EntityMetadata<Byte> entityMetadata) {
-        int height = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setShulkerHeight(ByteEntityMetadata entityMetadata) {
+        int height = entityMetadata.getPrimitiveValue();
         dirtyMetadata.put(EntityData.SHULKER_PEEK_ID, height);
     }
 
-    public void setShulkerColor(EntityMetadata<Byte> entityMetadata) {
+    public void setShulkerColor(ByteEntityMetadata entityMetadata) {
         byte color = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
         if (color == 16) {
             // 16 is default on both editions

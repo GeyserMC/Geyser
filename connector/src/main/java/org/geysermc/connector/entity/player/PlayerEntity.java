@@ -29,6 +29,7 @@ import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.scoreboard.ScoreboardPosition;
@@ -60,6 +61,7 @@ import org.geysermc.connector.scoreboard.UpdateType;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Getter @Setter
@@ -255,33 +257,33 @@ public class PlayerEntity extends LivingEntity {
     }
 
     @Override
-    public Vector3i setBedPosition(EntityMetadata<Position> entityMetadata) {
+    public Vector3i setBedPosition(EntityMetadata<Optional<Position>, ?> entityMetadata) {
         return bedPosition = super.setBedPosition(entityMetadata);
     }
 
-    public void setAbsorptionHearts(EntityMetadata<Float> entityMetadata) {
+    public void setAbsorptionHearts(FloatEntityMetadata entityMetadata) {
         // Extra hearts - is not metadata but an attribute on Bedrock
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
         attributesPacket.setRuntimeEntityId(geyserId);
         // Setting to a higher maximum since plugins/datapacks can probably extend the Bedrock soft limit
         attributesPacket.setAttributes(Collections.singletonList(
-                new AttributeData("minecraft:absorption", 0.0f, 1024f, ((FloatEntityMetadata) entityMetadata).getPrimitiveValue(), 0.0f)));
+                new AttributeData("minecraft:absorption", 0.0f, 1024f, entityMetadata.getPrimitiveValue(), 0.0f)));
         session.sendUpstreamPacket(attributesPacket);
     }
 
-    public void setSkinVisibility(EntityMetadata<Byte> entityMetadata) {
+    public void setSkinVisibility(ByteEntityMetadata entityMetadata) {
         // OptionalPack usage for toggling skin bits
         // In Java Edition, a bit being set means that part should be enabled
         // However, to ensure that the pack still works on other servers, we invert the bit so all values by default
         // are true (0).
-        dirtyMetadata.put(EntityData.MARK_VARIANT, ~((ByteEntityMetadata) entityMetadata).getPrimitiveValue() & 0xff);
+        dirtyMetadata.put(EntityData.MARK_VARIANT, ~entityMetadata.getPrimitiveValue() & 0xff);
     }
 
-    public void setLeftParrot(EntityMetadata<CompoundTag> entityMetadata) {
+    public void setLeftParrot(EntityMetadata<CompoundTag, ?> entityMetadata) {
         setParrot(entityMetadata.getValue(), true);
     }
 
-    public void setRightParrot(EntityMetadata<CompoundTag> entityMetadata) {
+    public void setRightParrot(EntityMetadata<CompoundTag, ?> entityMetadata) {
         setParrot(entityMetadata.getValue(), false);
     }
 
@@ -330,7 +332,7 @@ public class PlayerEntity extends LivingEntity {
     }
 
     @Override
-    public void setDisplayName(EntityMetadata<Component> entityMetadata) {
+    public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
         // Doesn't do anything for players
     }
 
@@ -385,7 +387,7 @@ public class PlayerEntity extends LivingEntity {
     }
 
     @Override
-    public void setDisplayNameVisible(EntityMetadata<Boolean> entityMetadata) {
+    public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
         // Doesn't do anything for players
     }
 

@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.monster;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -40,8 +39,8 @@ public class VexEntity extends MonsterEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setVexFlags(EntityMetadata<Byte> entityMetadata) {
-        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setVexFlags(ByteEntityMetadata entityMetadata) {
+        byte xd = entityMetadata.getPrimitiveValue();
         // Set the target to the player to force the attack animation
         // even if the player isn't the target as we dont get the target on Java
         dirtyMetadata.put(EntityData.TARGET_EID, (xd & 0x01) == 0x01 ? session.getPlayerEntity().getGeyserId() : 0);

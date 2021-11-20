@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
@@ -53,6 +54,7 @@ import org.geysermc.connector.utils.ChunkUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Getter
@@ -87,8 +89,8 @@ public class LivingEntity extends Entity {
         dirtyMetadata.put(EntityData.HEALTH, 1);
     }
 
-    public void setLivingEntityFlags(EntityMetadata<Byte> entityMetadata) {
-        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
+        byte xd = entityMetadata.getPrimitiveValue();
 
         // Blocking gets triggered when using a bow, but if we set USING_ITEM for all items, it may look like
         // you're "mining" with ex. a shield.
@@ -102,8 +104,8 @@ public class LivingEntity extends Entity {
         setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, (xd & 0x04) == 0x04);
     }
 
-    public void setHealth(EntityMetadata<Float> entityMetadata) {
-        this.health = ((FloatEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setHealth(FloatEntityMetadata entityMetadata) {
+        this.health = entityMetadata.getPrimitiveValue();
 
         AttributeData healthData = createHealthAttribute();
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
@@ -112,9 +114,10 @@ public class LivingEntity extends Entity {
         session.sendUpstreamPacket(attributesPacket);
     }
 
-    public Vector3i setBedPosition(EntityMetadata<Position> entityMetadata) {
-        Position bedPosition = entityMetadata.getValue();
-        if (bedPosition != null) {
+    public Vector3i setBedPosition(EntityMetadata<Optional<Position>, ?> entityMetadata) {
+        Optional<Position> optionalPos = entityMetadata.getValue();
+        if (optionalPos.isPresent()) {
+            Position bedPosition = optionalPos.get();
             Vector3i vector = Vector3i.from(bedPosition.getX(), bedPosition.getY(), bedPosition.getZ());
             dirtyMetadata.put(EntityData.BED_POSITION, vector);
             int bed = session.getConnector().getWorldManager().getBlockAt(session, bedPosition);
@@ -148,7 +151,7 @@ public class LivingEntity extends Entity {
     }
 
     @Override
-    public float setFreezing(EntityMetadata<Integer> entityMetadata) {
+    public float setFreezing(IntEntityMetadata entityMetadata) {
         float freezingPercentage = super.setFreezing(entityMetadata);
         this.isMaxFrozenState = freezingPercentage >= 1.0f;
         setFlag(EntityFlag.SHAKING, isShaking());

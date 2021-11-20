@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.monster;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
@@ -44,17 +43,17 @@ public class EndermanEntity extends MonsterEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setCarriedBlock(EntityMetadata<Integer> entityMetadata) {
-        dirtyMetadata.put(EntityData.CARRIED_BLOCK, session.getBlockMappings().getBedrockBlockId(((IntEntityMetadata) entityMetadata).getPrimitiveValue()));
+    public void setCarriedBlock(IntEntityMetadata entityMetadata) {
+        dirtyMetadata.put(EntityData.CARRIED_BLOCK, session.getBlockMappings().getBedrockBlockId(entityMetadata.getPrimitiveValue()));
     }
 
     /**
      * Controls the screaming sound
      */
-    public void setScreaming(EntityMetadata<Boolean> entityMetadata) {
+    public void setScreaming(BooleanEntityMetadata entityMetadata) {
         //TODO see if Bedrock controls this differently
         // Java Edition this controls which ambient sound is used
-        if (((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()) {
+        if (entityMetadata.getPrimitiveValue()) {
             LevelSoundEvent2Packet packet = new LevelSoundEvent2Packet();
             packet.setSound(SoundEvent.STARE);
             packet.setPosition(this.position);
@@ -64,8 +63,8 @@ public class EndermanEntity extends MonsterEntity {
         }
     }
 
-    public void setAngry(EntityMetadata<Boolean> entityMetadata) {
+    public void setAngry(BooleanEntityMetadata entityMetadata) {
         // "Is staring/provoked" - controls visuals
-        setFlag(EntityFlag.ANGRY, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue());
+        setFlag(EntityFlag.ANGRY, entityMetadata.getPrimitiveValue());
     }
 }

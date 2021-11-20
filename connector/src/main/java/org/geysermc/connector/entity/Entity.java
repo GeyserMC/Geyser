@@ -47,6 +47,7 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.chat.MessageTranslator;
 import org.geysermc.connector.utils.MathUtils;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Getter
@@ -120,7 +121,7 @@ public class Entity {
         this.valid = false;
 
         setPosition(position);
-        setAir(getMaxAir());
+        setAirSupply(getMaxAir());
 
         initializeMetadata();
     }
@@ -304,8 +305,8 @@ public class Entity {
         }
     }
 
-    public void setFlags(EntityMetadata<Byte> entityMetadata) {
-        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setFlags(ByteEntityMetadata entityMetadata) {
+        byte xd = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.ON_FIRE, ((xd & 0x01) == 0x01) && !getFlag(EntityFlag.FIRE_IMMUNE)); // Otherwise immune entities sometimes flicker onfire
         setFlag(EntityFlag.SNEAKING, (xd & 0x02) == 0x02);
         setFlag(EntityFlag.SPRINTING, (xd & 0x08) == 0x08);
@@ -327,11 +328,11 @@ public class Entity {
     /**
      * Set an int from 0 - this entity's maximum air - (air / maxAir) represents the percentage of bubbles left
      */
-    public final void setAir(EntityMetadata<?> entityMetadata) {
-        setAir(((IntEntityMetadata) entityMetadata).getPrimitiveValue());
+    public final void setAir(IntEntityMetadata entityMetadata) {
+        setAirSupply(entityMetadata.getPrimitiveValue());
     }
 
-    protected void setAir(int amount) {
+    protected void setAirSupply(int amount) {
         dirtyMetadata.put(EntityData.AIR_SUPPLY, (short) MathUtils.constrain(amount, 0, getMaxAir()));
     }
 
@@ -339,10 +340,10 @@ public class Entity {
         return 300;
     }
 
-    public void setDisplayName(EntityMetadata<Component> entityMetadata) {
-        Component name = entityMetadata.getValue();
-        if (name != null) {
-            nametag = MessageTranslator.convertMessage(name, session.getLocale());
+    public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
+        Optional<Component> name = entityMetadata.getValue();
+        if (name.isPresent()) {
+            nametag = MessageTranslator.convertMessage(name.get(), session.getLocale());
             dirtyMetadata.put(EntityData.NAMETAG, nametag);
         } else if (!nametag.isEmpty()) {
             // Clear nametag
@@ -350,18 +351,18 @@ public class Entity {
         }
     }
 
-    public void setDisplayNameVisible(EntityMetadata<Boolean> entityMetadata) {
-        dirtyMetadata.put(EntityData.NAMETAG_ALWAYS_SHOW, (byte) (((BooleanEntityMetadata) entityMetadata).getPrimitiveValue() ? 1 : 0));
+    public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
+        dirtyMetadata.put(EntityData.NAMETAG_ALWAYS_SHOW, (byte) (entityMetadata.getPrimitiveValue() ? 1 : 0));
     }
 
-    public void setGravity(EntityMetadata<Boolean> entityMetadata) {
-        setFlag(EntityFlag.HAS_GRAVITY, !((BooleanEntityMetadata) entityMetadata).getPrimitiveValue());
+    public void setGravity(BooleanEntityMetadata entityMetadata) {
+        setFlag(EntityFlag.HAS_GRAVITY, !entityMetadata.getPrimitiveValue());
     }
 
     /**
      * Usually used for bounding box and not animation.
      */
-    public void setPose(EntityMetadata<Pose> entityMetadata) {
+    public void setPose(EntityMetadata<Pose, ?> entityMetadata) {
         Pose pose = entityMetadata.getValue();
 
         setFlag(EntityFlag.SLEEPING, pose.equals(Pose.SLEEPING));
@@ -396,7 +397,7 @@ public class Entity {
     /**
      * Set a float from 0-1 - how strong the "frozen" overlay should be on screen.
      */
-    public float setFreezing(EntityMetadata<Integer> entityMetadata) {
+    public float setFreezing(IntEntityMetadata entityMetadata) {
         // The value that Java edition gives us is in ticks, but Bedrock uses a float percentage of the strength 0.0 -> 1.0
         // The Java client caps its freezing tick percentage at 140
         int freezingTicks = Math.min(((IntEntityMetadata) entityMetadata).getPrimitiveValue(), 140);

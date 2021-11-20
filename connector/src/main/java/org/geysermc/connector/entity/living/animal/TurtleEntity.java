@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.animal;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -41,12 +40,12 @@ public class TurtleEntity extends AnimalEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setPregnant(EntityMetadata<Boolean> entityMetadata) {
-        setFlag(EntityFlag.IS_PREGNANT, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue());
+    public void setPregnant(BooleanEntityMetadata entityMetadata) {
+        setFlag(EntityFlag.IS_PREGNANT, entityMetadata.getPrimitiveValue());
     }
 
-    public void setLayingEgg(EntityMetadata<Boolean> entityMetadata) {
-        setFlag(EntityFlag.LAYING_EGG, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue());
+    public void setLayingEgg(BooleanEntityMetadata entityMetadata) {
+        setFlag(EntityFlag.LAYING_EGG, entityMetadata.getPrimitiveValue());
     }
 
     @Override

@@ -109,7 +109,7 @@ public class ItemFrameEntity extends Entity {
         valid = true;
     }
 
-    public void setItemInFrame(EntityMetadata<ItemStack> entityMetadata) {
+    public void setItemInFrame(EntityMetadata<ItemStack, ?> entityMetadata) {
         if (entityMetadata.getValue() != null) {
             this.heldItem = entityMetadata.getValue();
             ItemData itemData = ItemTranslator.translateToBedrock(session, heldItem);
@@ -134,8 +134,8 @@ public class ItemFrameEntity extends Entity {
         }
     }
 
-    public void setItemRotation(EntityMetadata<Integer> entityMetadata) {
-        rotation = ((IntEntityMetadata) entityMetadata).getPrimitiveValue() * 45;
+    public void setItemRotation(IntEntityMetadata entityMetadata) {
+        rotation = entityMetadata.getPrimitiveValue() * 45;
         if (cachedTag == null) {
             return;
         }

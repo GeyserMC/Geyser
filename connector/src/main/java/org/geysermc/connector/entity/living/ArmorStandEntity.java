@@ -40,6 +40,7 @@ import org.geysermc.connector.entity.EntityDefinitions;
 import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class ArmorStandEntity extends LivingEntity {
@@ -117,13 +118,13 @@ public class ArmorStandEntity extends LivingEntity {
     }
 
     @Override
-    public void setDisplayName(EntityMetadata<Component> entityMetadata) {
+    public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
         super.setDisplayName(entityMetadata);
         updateSecondEntityStatus(false);
     }
 
-    public void setArmorStandFlags(EntityMetadata<Byte> entityMetadata) {
-        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setArmorStandFlags(ByteEntityMetadata entityMetadata) {
+        byte xd = entityMetadata.getPrimitiveValue();
 
         // isSmall
         boolean newIsSmall = (xd & 0x01) == 0x01;
@@ -161,27 +162,27 @@ public class ArmorStandEntity extends LivingEntity {
         setFlag(EntityFlag.ADMIRING, (xd & 0x08) == 0x08); // Has no baseplate
     }
 
-    public void setHeadRotation(EntityMetadata<Rotation> entityMetadata) {
+    public void setHeadRotation(EntityMetadata<Rotation, ?> entityMetadata) {
         onRotationUpdate(EntityData.MARK_VARIANT, EntityFlag.INTERESTED, EntityFlag.CHARGED, EntityFlag.POWERED, entityMetadata.getValue());
     }
 
-    public void setBodyRotation(EntityMetadata<Rotation> entityMetadata) {
+    public void setBodyRotation(EntityMetadata<Rotation, ?> entityMetadata) {
         onRotationUpdate(EntityData.VARIANT, EntityFlag.IN_LOVE, EntityFlag.CELEBRATING, EntityFlag.CELEBRATING_SPECIAL, entityMetadata.getValue());
     }
 
-    public void setLeftArmRotation(EntityMetadata<Rotation> entityMetadata) {
+    public void setLeftArmRotation(EntityMetadata<Rotation, ?> entityMetadata) {
         onRotationUpdate(EntityData.TRADE_TIER, EntityFlag.CHARGING, EntityFlag.CRITICAL, EntityFlag.DANCING, entityMetadata.getValue());
     }
 
-    public void setRightArmRotation(EntityMetadata<Rotation> entityMetadata) {
+    public void setRightArmRotation(EntityMetadata<Rotation, ?> entityMetadata) {
         onRotationUpdate(EntityData.MAX_TRADE_TIER, EntityFlag.ELDER, EntityFlag.EMOTING, EntityFlag.IDLING, entityMetadata.getValue());
     }
 
-    public void setLeftLegRotation(EntityMetadata<Rotation> entityMetadata) {
+    public void setLeftLegRotation(EntityMetadata<Rotation, ?> entityMetadata) {
         onRotationUpdate(EntityData.SKIN_ID, EntityFlag.IS_ILLAGER_CAPTAIN, EntityFlag.IS_IN_UI, EntityFlag.LINGERING, entityMetadata.getValue());
     }
 
-    public void setRightLegRotation(EntityMetadata<Rotation> entityMetadata) {
+    public void setRightLegRotation(EntityMetadata<Rotation, ?> entityMetadata) {
         onRotationUpdate(EntityData.HURT_DIRECTION, EntityFlag.IS_PREGNANT, EntityFlag.SHEARED, EntityFlag.STALKING, entityMetadata.getValue());
     }
 

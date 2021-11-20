@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.animal.tameable;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.google.common.collect.ImmutableSet;
@@ -55,18 +54,18 @@ public class WolfEntity extends TameableEntity {
     }
 
     @Override
-    public void setTameableFlags(EntityMetadata<Byte> entityMetadata) {
+    public void setTameableFlags(ByteEntityMetadata entityMetadata) {
         super.setTameableFlags(entityMetadata);
         // Reset wolf color
-        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+        byte xd = entityMetadata.getPrimitiveValue();
         boolean angry = (xd & 0x02) == 0x02;
         if (angry) {
             dirtyMetadata.put(EntityData.COLOR, (byte) 0);
         }
     }
 
-    public void setCollarColor(EntityMetadata<Integer> entityMetadata) {
-        collarColor = (byte) ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setCollarColor(IntEntityMetadata entityMetadata) {
+        collarColor = (byte) entityMetadata.getPrimitiveValue();
         if (getFlag(EntityFlag.ANGRY)) {
             return;
         }
@@ -80,8 +79,8 @@ public class WolfEntity extends TameableEntity {
     }
 
     // 1.16+
-    public void setWolfAngerTime(EntityMetadata<Integer> entityMetadata) {
-        int time = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setWolfAngerTime(IntEntityMetadata entityMetadata) {
+        int time = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.ANGRY, time != 0);
         dirtyMetadata.put(EntityData.COLOR, time != 0 ? (byte) 0 : collarColor);
     }

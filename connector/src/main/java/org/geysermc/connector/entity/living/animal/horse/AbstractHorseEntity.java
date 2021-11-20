@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.animal.horse;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.google.common.collect.ImmutableSet;
 import com.nukkitx.math.vector.Vector3f;
@@ -79,8 +78,8 @@ public class AbstractHorseEntity extends AnimalEntity {
         session.sendUpstreamPacket(attributesPacket);
     }
 
-    public void setHorseFlags(EntityMetadata<Byte> entityMetadata) {
-        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setHorseFlags(ByteEntityMetadata entityMetadata) {
+        byte xd = entityMetadata.getPrimitiveValue();
         boolean tamed = (xd & 0x02) == 0x02;
         boolean saddled = (xd & 0x04) == 0x04;
         setFlag(EntityFlag.TAMED, tamed);

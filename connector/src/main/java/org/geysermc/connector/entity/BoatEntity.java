@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
@@ -114,13 +113,13 @@ public class BoatEntity extends Entity {
         moveRelative(0, 0, 0, yaw + 90, 0, 0, isOnGround);
     }
 
-    public void setVariant(EntityMetadata<Integer> entityMetadata) {
-        variant = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setVariant(IntEntityMetadata entityMetadata) {
+        variant = entityMetadata.getPrimitiveValue();
         dirtyMetadata.put(EntityData.VARIANT, variant);
     }
 
-    public void setPaddlingLeft(EntityMetadata<Boolean> entityMetadata) {
-        isPaddlingLeft = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setPaddlingLeft(BooleanEntityMetadata entityMetadata) {
+        isPaddlingLeft = entityMetadata.getPrimitiveValue();
         if (isPaddlingLeft) {
             // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
             // This is an asynchronous method that emulates Bedrock rowing until "false" is sent.
@@ -138,8 +137,8 @@ public class BoatEntity extends Entity {
         }
     }
 
-    public void setPaddlingRight(EntityMetadata<Boolean> entityMetadata) {
-        isPaddlingRight = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setPaddlingRight(BooleanEntityMetadata entityMetadata) {
+        isPaddlingRight = entityMetadata.getPrimitiveValue();
         if (isPaddlingRight) {
             paddleTimeRight = 0f;
             if (!this.passengers.isEmpty()) {

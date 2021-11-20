@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.animal;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
@@ -45,8 +44,8 @@ public class BeeEntity extends AnimalEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setBeeFlags(EntityMetadata<Byte> entityMetadata) {
-        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setBeeFlags(ByteEntityMetadata entityMetadata) {
+        byte xd = entityMetadata.getPrimitiveValue();
         // Bee is performing sting attack; trigger animation
         if ((xd & 0x02) == 0x02) {
             EntityEventPacket packet = new EntityEventPacket();
@@ -61,9 +60,9 @@ public class BeeEntity extends AnimalEntity {
         setFlag(EntityFlag.POWERED, (xd & 0x08) == 0x08);
     }
 
-    public void setAngerTime(EntityMetadata<Integer> entityMetadata) {
+    public void setAngerTime(IntEntityMetadata entityMetadata) {
         // Converting "anger time" to a boolean
-        setFlag(EntityFlag.ANGRY, ((IntEntityMetadata) entityMetadata).getPrimitiveValue() > 0);
+        setFlag(EntityFlag.ANGRY, entityMetadata.getPrimitiveValue() > 0);
     }
 
     @Override

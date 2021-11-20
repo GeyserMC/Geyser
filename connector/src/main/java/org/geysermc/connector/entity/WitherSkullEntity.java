@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.connector.network.session.GeyserSession;
@@ -41,8 +40,8 @@ public class WitherSkullEntity extends ItemedFireballEntity {
         this.futureTicks = 1;
     }
 
-    public void setDangerous(EntityMetadata<Boolean> entityMetadata) {
-        boolean newDangerous = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setDangerous(BooleanEntityMetadata entityMetadata) {
+        boolean newDangerous = entityMetadata.getPrimitiveValue();
         if (newDangerous != isCharged) {
             isCharged = newDangerous;
             // Is an entirely new entity in Bedrock but just a metadata type in Java

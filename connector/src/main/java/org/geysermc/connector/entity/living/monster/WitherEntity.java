@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.monster;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -47,20 +46,20 @@ public class WitherEntity extends MonsterEntity {
         dirtyMetadata.put(EntityData.WITHER_AERIAL_ATTACK, (short) 1);
     }
 
-    public void setTarget1(EntityMetadata<Integer> entityMetadata) {
+    public void setTarget1(IntEntityMetadata entityMetadata) {
         setTargetId(EntityData.WITHER_TARGET_1, entityMetadata);
     }
 
-    public void setTarget2(EntityMetadata<Integer> entityMetadata) {
+    public void setTarget2(IntEntityMetadata entityMetadata) {
         setTargetId(EntityData.WITHER_TARGET_2, entityMetadata);
     }
 
-    public void setTarget3(EntityMetadata<Integer> entityMetadata) {
+    public void setTarget3(IntEntityMetadata entityMetadata) {
         setTargetId(EntityData.WITHER_TARGET_3, entityMetadata);
     }
 
-    private void setTargetId(EntityData entityData, EntityMetadata<Integer> entityMetadata) {
-        int entityId = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+    private void setTargetId(EntityData entityData, IntEntityMetadata entityMetadata) {
+        int entityId = entityMetadata.getPrimitiveValue();
         Entity entity;
         if (session.getPlayerEntity().getEntityId() == entityId) {
             entity = session.getPlayerEntity();
@@ -73,8 +72,8 @@ public class WitherEntity extends MonsterEntity {
         }
     }
 
-    public void setInvulnerableTicks(EntityMetadata<Integer> entityMetadata) {
-        int value = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setInvulnerableTicks(IntEntityMetadata entityMetadata) {
+        int value = entityMetadata.getPrimitiveValue();
         dirtyMetadata.put(EntityData.WITHER_INVULNERABLE_TICKS, value);
 
         // Show the shield for the first few seconds of spawning (like Java)

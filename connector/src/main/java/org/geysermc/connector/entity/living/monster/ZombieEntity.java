@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.monster;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -42,14 +41,14 @@ public class ZombieEntity extends MonsterEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setZombieBaby(EntityMetadata<Boolean> entityMetadata) {
-        boolean isBaby = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setZombieBaby(BooleanEntityMetadata entityMetadata) {
+        boolean isBaby = entityMetadata.getPrimitiveValue();
         dirtyMetadata.put(EntityData.SCALE, isBaby ? .55f : 1.0f);
         setFlag(EntityFlag.BABY, isBaby);
     }
 
-    public void setConvertingToDrowned(EntityMetadata<Boolean> entityMetadata) {
-        convertingToDrowned = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setConvertingToDrowned(BooleanEntityMetadata entityMetadata) {
+        convertingToDrowned = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.SHAKING, isShaking());
     }
 

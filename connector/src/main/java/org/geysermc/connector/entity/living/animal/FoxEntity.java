@@ -25,8 +25,8 @@
 
 package org.geysermc.connector.entity.living.animal;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -42,12 +42,12 @@ public class FoxEntity extends AnimalEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setFoxVariant(EntityMetadata<Integer> entityMetadata) {
-        dirtyMetadata.put(EntityData.VARIANT, entityMetadata.getValue());
+    public void setFoxVariant(IntEntityMetadata entityMetadata) {
+        dirtyMetadata.put(EntityData.VARIANT, entityMetadata.getPrimitiveValue());
     }
 
-    public void setFoxFlags(EntityMetadata<Byte> entityMetadata) {
-        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setFoxFlags(ByteEntityMetadata entityMetadata) {
+        byte xd = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.SITTING, (xd & 0x01) == 0x01);
         setFlag(EntityFlag.SNEAKING, (xd & 0x04) == 0x04);
         setFlag(EntityFlag.INTERESTED, (xd & 0x08) == 0x08);

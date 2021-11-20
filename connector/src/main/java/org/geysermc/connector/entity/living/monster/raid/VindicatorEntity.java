@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.monster.raid;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -41,10 +40,10 @@ public class VindicatorEntity extends AbstractIllagerEntity {
     }
 
     @Override
-    public void setMobFlags(EntityMetadata<Byte> entityMetadata) {
+    public void setMobFlags(ByteEntityMetadata entityMetadata) {
         super.setMobFlags(entityMetadata);
         // Allow the axe to be shown if necessary
-        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+        byte xd = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.ANGRY, (xd & 4) == 4);
     }
 }

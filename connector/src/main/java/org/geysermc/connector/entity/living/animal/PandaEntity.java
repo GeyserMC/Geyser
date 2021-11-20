@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.animal;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
@@ -47,8 +46,8 @@ public class PandaEntity extends AnimalEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setEatingCounter(EntityMetadata<Integer> entityMetadata) {
-        int count = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setEatingCounter(IntEntityMetadata entityMetadata) {
+        int count = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.EATING, count > 0);
         dirtyMetadata.put(EntityData.EATING_COUNTER, count);
         if (count != 0) {
@@ -61,18 +60,18 @@ public class PandaEntity extends AnimalEntity {
         }
     }
 
-    public void setMainGene(EntityMetadata<Byte> entityMetadata) {
-        mainGene = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setMainGene(ByteEntityMetadata entityMetadata) {
+        mainGene = entityMetadata.getPrimitiveValue();
         updateAppearance();
     }
 
-    public void setHiddenGene(EntityMetadata<Byte> entityMetadata) {
-        hiddenGene = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setHiddenGene(ByteEntityMetadata entityMetadata) {
+        hiddenGene = entityMetadata.getPrimitiveValue();
         updateAppearance();
     }
 
-    public void setPandaFlags(EntityMetadata<Byte> entityMetadata) {
-        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setPandaFlags(ByteEntityMetadata entityMetadata) {
+        byte xd = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.SNEEZING, (xd & 0x02) == 0x02);
         setFlag(EntityFlag.ROLLING, (xd & 0x04) == 0x04);
         setFlag(EntityFlag.SITTING, (xd & 0x08) == 0x08);

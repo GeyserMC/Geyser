@@ -56,13 +56,13 @@ public class AreaEffectCloudEntity extends Entity {
         setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 
-    public void setRadius(EntityMetadata<Float> entityMetadata) {
-        float value = ((FloatEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setRadius(FloatEntityMetadata entityMetadata) {
+        float value = entityMetadata.getPrimitiveValue();
         dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, value);
         dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, 2.0f * value);
     }
 
-    public void setParticle(EntityMetadata<Particle> entityMetadata) {
+    public void setParticle(EntityMetadata<Particle, ?> entityMetadata) {
         Particle particle = entityMetadata.getValue();
         int particleId = EffectUtils.getParticleId(session, particle.getType());
         if (particleId != -1) {

@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -76,8 +75,8 @@ public class FishingHookEntity extends ThrowableEntity {
         super.spawnEntity();
     }
 
-    public void setHookedEntity(EntityMetadata<Integer> entityMetadata) {
-        int hookedEntityId = ((IntEntityMetadata) entityMetadata).getPrimitiveValue() - 1;
+    public void setHookedEntity(IntEntityMetadata entityMetadata) {
+        int hookedEntityId = entityMetadata.getPrimitiveValue() - 1;
         Entity entity;
         if (session.getPlayerEntity().getEntityId() == hookedEntityId) {
             entity = session.getPlayerEntity();

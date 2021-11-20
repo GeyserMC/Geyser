@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.monster;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -41,8 +40,8 @@ public class SkeletonEntity extends AbstractSkeletonEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setConvertingToStray(EntityMetadata<Boolean> entityMetadata) {
-        this.convertingToStray = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setConvertingToStray(BooleanEntityMetadata entityMetadata) {
+        this.convertingToStray = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.SHAKING, isShaking());
     }
 

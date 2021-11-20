@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.monster;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -41,9 +40,9 @@ public class AbstractSkeletonEntity extends MonsterEntity {
     }
 
     @Override
-    public void setMobFlags(EntityMetadata<Byte> entityMetadata) {
+    public void setMobFlags(ByteEntityMetadata entityMetadata) {
         super.setMobFlags(entityMetadata);
-        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+        byte xd = entityMetadata.getPrimitiveValue();
         // A bit of a loophole so the hands get raised - set the target ID to its own ID
         dirtyMetadata.put(EntityData.TARGET_EID, ((xd & 4) == 4) ? geyserId : 0);
     }

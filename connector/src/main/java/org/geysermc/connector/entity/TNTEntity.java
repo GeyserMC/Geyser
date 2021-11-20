@@ -42,7 +42,7 @@ public class TNTEntity extends Entity implements Tickable {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setFuseLength(EntityMetadata<Integer> entityMetadata) {
+    public void setFuseLength(IntEntityMetadata entityMetadata) {
         currentTick = ((IntEntityMetadata) entityMetadata).getPrimitiveValue();
         setFlag(EntityFlag.IGNITED, true);
         dirtyMetadata.put(EntityData.FUSE_LENGTH, currentTick);

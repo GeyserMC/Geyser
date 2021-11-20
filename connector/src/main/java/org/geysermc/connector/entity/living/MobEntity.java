@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -54,8 +53,8 @@ public class MobEntity extends LivingEntity {
         setLeashHolderBedrockId(-1);
     }
 
-    public void setMobFlags(EntityMetadata<Byte> entityMetadata) {
-        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setMobFlags(ByteEntityMetadata entityMetadata) {
+        byte xd = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.NO_AI, (xd & 0x01) == 0x01);
     }
 

@@ -26,8 +26,10 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundSetEntityDataPacket;
 import org.geysermc.connector.entity.Entity;
+import org.geysermc.connector.entity.EntityDefinition;
 import org.geysermc.connector.entity.EntityMetadataTranslator;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
@@ -39,6 +41,7 @@ import java.util.List;
 @Translator(packet = ClientboundSetEntityDataPacket.class)
 public class JavaSetEntityDataTranslator extends PacketTranslator<ClientboundSetEntityDataPacket> {
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void translate(GeyserSession session, ClientboundSetEntityDataPacket packet) {
         Entity entity;
@@ -49,30 +52,17 @@ public class JavaSetEntityDataTranslator extends PacketTranslator<ClientboundSet
         }
         if (entity == null) return;
 
-        List<EntityMetadataTranslator<?, ?>> translators = (List<EntityMetadataTranslator<?, ?>>) entity.getDefinition().translators();
-
-        for (EntityMetadata<?> metadata : packet.getMetadata()) {
-            if (metadata.getId() >= translators.size()) {
-                session.getConnector().getLogger().warning("Metadata ID " + metadata.getId() + " is out of bounds of known entity metadata size " + translators.size() + " for entity type " + entity.getDefinition().entityType());
+        EntityDefinition<?> definition = entity.getDefinition();
+        for (EntityMetadata<?, ?> metadata : packet.getMetadata()) {
+            if (metadata.getId() >= definition.translators().size()) {
+                session.getConnector().getLogger().warning("Metadata ID " + metadata.getId() + " is out of bounds of known entity metadata size " + definition.translators().size() + " for entity type " + entity.getDefinition().entityType());
                 if (session.getConnector().getConfig().isDebugMode()) {
                     session.getConnector().getLogger().debug(metadata.toString());
                 }
                 continue;
             }
 
-            EntityMetadataTranslator<? super Entity, Object> translator = (EntityMetadataTranslator<? super Entity, Object>) translators.get(metadata.getId());
-            if (translator == null) {
-                // This can safely happen; it means we don't translate this entity metadata
-                continue;
-            }
-            if (translator.acceptedType() != metadata.getType()) {
-                session.getConnector().getLogger().warning("Metadata ID " + metadata.getId() + " was received with type " + metadata.getType() + " but we expected " + translator.acceptedType() + " for " + entity.getDefinition().entityType());
-                if (session.getConnector().getConfig().isDebugMode()) {
-                    session.getConnector().getLogger().debug(metadata.toString());
-                }
-                continue;
-            }
-            translator.translateFunction().accept(entity, (EntityMetadata<Object>) metadata);
+            ((EntityDefinition) definition).translateMetadata(entity, metadata);
         }
 
         entity.updateBedrockMetadata();

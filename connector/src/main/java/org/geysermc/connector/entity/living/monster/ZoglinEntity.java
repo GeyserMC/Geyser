@@ -25,7 +25,6 @@
 
 package org.geysermc.connector.entity.living.monster;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -41,8 +40,8 @@ public class ZoglinEntity extends MonsterEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setBaby(EntityMetadata<Boolean> entityMetadata) {
-        boolean isBaby = ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue();
+    public void setBaby(BooleanEntityMetadata entityMetadata) {
+        boolean isBaby = entityMetadata.getPrimitiveValue();
         dirtyMetadata.put(EntityData.SCALE, isBaby? .55f : 1f);
         setFlag(EntityFlag.BABY, isBaby);
     }
