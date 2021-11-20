@@ -25,26 +25,30 @@
 
 package org.geysermc.connector.network.session.auth;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.geysermc.connector.GeyserConnector;
-
 import java.util.UUID;
 
-@RequiredArgsConstructor
+/**
+ * Deprecated, legacy code. Serves as a wrapper around
+ * the class used now.
+ *
+ * @deprecated legacy code
+ */
 public class AuthData {
-    @Getter private final String name;
-    @Getter private final UUID UUID;
-    @Getter private final String xboxUUID;
+    private final org.geysermc.geyser.network.session.auth.AuthData handle;
 
-    private final JsonNode certChainData;
-    private final String clientData;
+    public AuthData(org.geysermc.geyser.network.session.auth.AuthData handle) {
+        this.handle = handle;
+    }
 
-    public void upload(GeyserConnector connector) {
-        // we can't upload the skin in LoginEncryptionUtil since the global server would return
-        // the skin too fast, that's why we upload it after we know for sure that the target server
-        // is ready to handle the result of the global server
-        connector.getSkinUploader().uploadSkin(certChainData, clientData);
+    public String getName() {
+        return this.handle.getName();
+    }
+
+    public UUID getUUID() {
+        return this.handle.getUuid();
+    }
+
+    public String getXboxUUID() {
+        return this.handle.getXuid();
     }
 }

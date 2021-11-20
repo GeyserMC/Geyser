@@ -40,7 +40,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Main-Class>org.geysermc.platform.sponge.GeyserSpongeMain</Main-Class>
+                            <Main-Class>org.geysermc.geyser.platform.sponge.GeyserSpongeMain</Main-Class>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -59,27 +59,27 @@
                             <relocations>
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>
-                                    <shadedPattern>org.geysermc.platform.sponge.shaded.jackson</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.sponge.shaded.jackson</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>io.netty</pattern>
-                                    <shadedPattern>org.geysermc.platform.sponge.shaded.netty</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.sponge.shaded.netty</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>it.unimi.dsi.fastutil</pattern>
-                                    <shadedPattern>org.geysermc.platform.sponge.shaded.fastutil</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.sponge.shaded.fastutil</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>org.geysermc.platform.sponge.shaded.google.common</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.sponge.shaded.google.common</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.google.guava</pattern>
-                                    <shadedPattern>org.geysermc.platform.sponge.shaded.google.guava</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.sponge.shaded.google.guava</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>net.kyori</pattern>
-                                    <shadedPattern>org.geysermc.platform.sponge.shaded.kyori</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.sponge.shaded.kyori</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

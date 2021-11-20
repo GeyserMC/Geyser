@@ -35,6 +35,7 @@
         <module>bootstrap</module>
         <module>common</module>
         <module>core</module>
+        <module>api</module>
     </modules>
 
     <pluginRepositories>

@@ -58,7 +58,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Main-Class>org.geysermc.platform.spigot.GeyserSpigotMain</Main-Class>
+                            <Main-Class>org.geysermc.geyser.platform.spigot.GeyserSpigotMain</Main-Class>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -77,19 +77,19 @@
                             <relocations>
                                 <relocation>
                                     <pattern>it.unimi.dsi.fastutil</pattern>
-                                    <shadedPattern>org.geysermc.platform.spigot.shaded.fastutil</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.spigot.shaded.fastutil</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>
-                                    <shadedPattern>org.geysermc.platform.spigot.shaded.jackson</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.spigot.shaded.jackson</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>net.kyori</pattern>
-                                    <shadedPattern>org.geysermc.platform.spigot.shaded.kyori</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.spigot.shaded.kyori</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.objectweb.asm</pattern>
-                                    <shadedPattern>org.geysermc.platform.spigot.shaded.asm</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.spigot.shaded.asm</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

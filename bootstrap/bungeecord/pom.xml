@@ -41,7 +41,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Main-Class>org.geysermc.platform.bungeecord.GeyserBungeeMain</Main-Class>
+                            <Main-Class>org.geysermc.geyser.platform.bungeecord.GeyserBungeeMain</Main-Class>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -60,21 +60,21 @@
                             <relocations>
                                 <relocation>
                                     <pattern>net.md_5.bungee.jni</pattern>
-                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.jni</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.bungeecord.shaded.jni</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>
-                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.jackson</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.bungeecord.shaded.jackson</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <!-- This is not used because relocating breaks natives, but we must include it
                                      or else we get ClassDefNotFound -->
                                     <pattern>io.netty.channel.kqueue</pattern>
-                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.io.netty.channel.kqueue</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.bungeecord.shaded.io.netty.channel.kqueue</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>net.kyori</pattern>
-                                    <shadedPattern>org.geysermc.platform.bungeecord.shaded.kyori</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.bungeecord.shaded.kyori</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

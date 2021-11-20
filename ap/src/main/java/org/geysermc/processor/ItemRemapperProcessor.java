@@ -33,6 +33,6 @@ import javax.lang.model.SourceVersion;
 @SupportedSourceVersion(SourceVersion.RELEASE_16)
 public class ItemRemapperProcessor extends ClassProcessor {
     public ItemRemapperProcessor() {
-        super("org.geysermc.connector.network.translators.ItemRemapper");
+        super("org.geysermc.geyser.network.translators.ItemRemapper");
     }
 }

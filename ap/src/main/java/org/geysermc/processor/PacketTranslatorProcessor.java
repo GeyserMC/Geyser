@@ -33,6 +33,6 @@ import javax.lang.model.SourceVersion;
 @SupportedSourceVersion(SourceVersion.RELEASE_16)
 public class PacketTranslatorProcessor extends ClassProcessor {
     public PacketTranslatorProcessor() {
-        super("org.geysermc.connector.network.translators.Translator");
+        super("org.geysermc.geyser.network.translators.Translator");
     }
 }

@@ -40,7 +40,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Main-Class>org.geysermc.platform.velocity.GeyserVelocityMain</Main-Class>
+                            <Main-Class>org.geysermc.geyser.platform.velocity.GeyserVelocityMain</Main-Class>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -59,15 +59,15 @@
                             <relocations>
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>
-                                    <shadedPattern>org.geysermc.platform.velocity.shaded.jackson</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.velocity.shaded.jackson</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>it.unimi.dsi.fastutil</pattern>
-                                    <shadedPattern>org.geysermc.platform.velocity.shaded.fastutil</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.velocity.shaded.fastutil</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>net.kyori.adventure.text.serializer.gson.legacyimpl</pattern>
-                                    <shadedPattern>org.geysermc.platform.velocity.shaded.kyori.legacyimpl</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.velocity.shaded.kyori.legacyimpl</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>

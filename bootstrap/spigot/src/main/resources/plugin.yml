@@ -1,4 +1,4 @@
-main: org.geysermc.platform.spigot.GeyserSpigotPlugin
+main: org.geysermc.geyser.platform.spigot.GeyserSpigotPlugin
 name: ${outputName}-Spigot
 author: ${project.organization.name}
 website: ${project.organization.url}

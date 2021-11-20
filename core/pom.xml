@@ -26,6 +26,12 @@
         </dependency>
         <dependency>
             <groupId>org.geysermc</groupId>
+            <artifactId>api</artifactId>
+            <version>1.4.3-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.geysermc</groupId>
             <artifactId>common</artifactId>
             <version>1.4.3-SNAPSHOT</version>
             <scope>compile</scope>
@@ -308,7 +314,7 @@
                         </goals>
                         <configuration>
                             <includes>
-                                <include>${project.basedir}/src/main/java/org/geysermc/connector/GeyserConnector.java</include>
+                                <include>${project.basedir}/src/main/java/org/geysermc/geyser/GeyserConnector.java</include>
                             </includes>
                             <replacements>
                                 <replacement>
@@ -332,7 +338,7 @@
                         </goals>
                         <configuration>
                             <includes>
-                                <include>${project.basedir}/src/main/java/org/geysermc/connector/GeyserConnector.java</include>
+                                <include>${project.basedir}/src/main/java/org/geysermc/geyser/GeyserConnector.java</include>
                             </includes>
                             <replacements>
                                 <replacement>
