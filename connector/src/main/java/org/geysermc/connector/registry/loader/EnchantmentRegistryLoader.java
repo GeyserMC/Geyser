@@ -39,7 +39,6 @@ import org.geysermc.connector.utils.FileUtils;
 import java.io.InputStream;
 import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
