@@ -28,7 +28,6 @@ package org.geysermc.geyser.ping;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.nukkitx.nbt.util.VarInts;
-import org.geysermc.geyser.common.ping.GeyserPingInfo;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.network.MinecraftProtocol;
 

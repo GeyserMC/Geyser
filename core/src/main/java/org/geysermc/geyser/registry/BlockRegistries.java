@@ -33,7 +33,7 @@ import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.registry.populator.BlockRegistryPopulator;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.BlockMappings;
-import org.geysermc.geyser.utils.collections.Object2IntBiMap;
+import org.geysermc.geyser.util.collection.Object2IntBiMap;
 
 /**
  * Holds all the block registries in Geyser.

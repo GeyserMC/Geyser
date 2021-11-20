@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import org.geysermc.geyser.network.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSession;
 
 public class StonecutterContainer extends Container {
     /**

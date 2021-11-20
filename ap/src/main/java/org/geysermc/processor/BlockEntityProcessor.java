@@ -33,6 +33,6 @@ import javax.lang.model.SourceVersion;
 @SupportedSourceVersion(SourceVersion.RELEASE_16)
 public class BlockEntityProcessor extends ClassProcessor {
     public BlockEntityProcessor() {
-        super("org.geysermc.geyser.network.translators.world.block.entity.BlockEntity");
+        super("org.geysermc.geyser.translator.level.block.entity.BlockEntity");
     }
 }

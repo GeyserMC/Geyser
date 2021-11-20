@@ -40,15 +40,15 @@ import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.bootstrap.GeyserBootstrap;
+import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.command.CommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.utils.FileUtils;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.standalone.command.GeyserCommandManager;
 import org.geysermc.geyser.platform.standalone.gui.GeyserStandaloneGUI;
 
@@ -102,19 +102,19 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                 case "--nogui", "nogui" -> useGuiOpts = false;
                 case "--config", "-c" -> {
                     if (i >= args.length - 1) {
-                        System.err.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.config_not_specified"), "-c"));
+                        System.err.println(MessageFormat.format(GeyserLocale.getLocaleStringLog("geyser.bootstrap.args.config_not_specified"), "-c"));
                         return;
                     }
                     configFilenameOpt = args[i + 1];
                     i++;
-                    System.out.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.config_specified"), configFilenameOpt));
+                    System.out.println(MessageFormat.format(GeyserLocale.getLocaleStringLog("geyser.bootstrap.args.config_specified"), configFilenameOpt));
                 }
                 case "--help", "-h" -> {
-                    System.out.println(MessageFormat.format(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.usage"), "[java -jar] Geyser.jar [opts]"));
-                    System.out.println("  " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.options"));
-                    System.out.println("    -c, --config [file]    " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.config"));
-                    System.out.println("    -h, --help             " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.help"));
-                    System.out.println("    --gui, --nogui         " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.gui"));
+                    System.out.println(MessageFormat.format(GeyserLocale.getLocaleStringLog("geyser.bootstrap.args.usage"), "[java -jar] Geyser.jar [opts]"));
+                    System.out.println("  " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.args.options"));
+                    System.out.println("    -c, --config [file]    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.args.config"));
+                    System.out.println("    -h, --help             " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.args.help"));
+                    System.out.println("    --gui, --nogui         " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.args.gui"));
                     return;
                 }
                 default -> {
@@ -153,7 +153,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                             }
                         }
                     }
-                    System.err.println(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.unrecognised", arg));
+                    System.err.println(GeyserLocale.getLocaleStringLog("geyser.bootstrap.args.unrecognised", arg));
                     return;
                 }
             }
@@ -198,7 +198,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                 geyserConfig.getRemote().setAddress("127.0.0.1");
             }
         } catch (IOException ex) {
-            geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
+            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             if (gui == null) {
                 System.exit(1);
             } else {
@@ -345,7 +345,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                         // Loop through the sub property if the first part matches
                         for (BeanPropertyDefinition subProperty : getPOJOForClass(property.getRawPrimaryType())) {
                             if (configKeyParts[1].equals(subProperty.getName())) {
-                                geyserLogger.info(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.set_config_option", configKey.getKey(), configKey.getValue()));
+                                geyserLogger.info(GeyserLocale.getLocaleStringLog("geyser.bootstrap.args.set_config_option", configKey.getKey(), configKey.getValue()));
 
                                 // Set the sub property value on the config
                                 try {
@@ -359,7 +359,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                             }
                         }
                     } else {
-                        geyserLogger.info(LanguageUtils.getLocaleStringLog("geyser.bootstrap.args.set_config_option", configKey.getKey(), configKey.getValue()));
+                        geyserLogger.info(GeyserLocale.getLocaleStringLog("geyser.bootstrap.args.set_config_option", configKey.getKey(), configKey.getValue()));
 
                         // Set the property value on the config
                         try {

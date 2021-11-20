@@ -30,11 +30,11 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.network.MinecraftProtocol;
-import org.geysermc.geyser.network.translators.item.Enchantment.JavaEnchantment;
+import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.EnchantmentData;
 import org.geysermc.geyser.registry.type.ItemMapping;
-import org.geysermc.geyser.utils.FileUtils;
+import org.geysermc.geyser.util.FileUtils;
 
 import java.io.InputStream;
 import java.util.EnumMap;

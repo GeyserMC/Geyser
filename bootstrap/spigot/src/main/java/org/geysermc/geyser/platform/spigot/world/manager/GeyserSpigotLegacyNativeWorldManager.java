@@ -33,7 +33,7 @@ import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.geysermc.geyser.network.MinecraftProtocol;
-import org.geysermc.geyser.network.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.platform.spigot.GeyserSpigotPlugin;
 
 import java.util.List;

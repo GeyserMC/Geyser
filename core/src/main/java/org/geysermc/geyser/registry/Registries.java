@@ -31,7 +31,9 @@ import com.github.steveice10.mc.protocol.data.game.level.event.SoundEvent;
 import com.github.steveice10.mc.protocol.data.game.level.particle.ParticleType;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
+import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
 import it.unimi.dsi.fastutil.Pair;
@@ -40,12 +42,13 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.network.translators.collision.translators.BlockCollision;
-import org.geysermc.geyser.network.translators.item.Enchantment.JavaEnchantment;
-import org.geysermc.geyser.network.translators.sound.SoundHandler;
-import org.geysermc.geyser.network.translators.sound.SoundInteractionHandler;
-import org.geysermc.geyser.network.translators.world.block.entity.BlockEntityTranslator;
-import org.geysermc.geyser.network.translators.world.event.LevelEventTransformer;
+import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
+import org.geysermc.geyser.translator.collision.BlockCollision;
+import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
+import org.geysermc.geyser.translator.sound.SoundTranslator;
+import org.geysermc.geyser.translator.sound.SoundInteractionTranslator;
+import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
+import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
 import org.geysermc.geyser.registry.loader.*;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.RecipeRegistryPopulator;
@@ -69,6 +72,11 @@ public class Registries {
     public static final SimpleRegistry<NbtMap> BEDROCK_ENTITY_IDENTIFIERS = SimpleRegistry.create("bedrock/entity_identifiers.dat", RegistryLoaders.NBT);
 
     /**
+     * A registry containing all the Bedrock packet translators.
+     */
+    public static final PacketTranslatorRegistry<BedrockPacket> BEDROCK_PACKET_TRANSLATORS = PacketTranslatorRegistry.create();
+
+    /**
      * A registry holding a CompoundTag of all the known biomes.
      */
     public static final SimpleRegistry<NbtMap> BIOMES_NBT = SimpleRegistry.create("bedrock/biome_definitions.dat", RegistryLoaders.NBT);
@@ -81,12 +89,12 @@ public class Registries {
     /**
      * A mapped registry which stores a block entity identifier to its {@link BlockEntityTranslator}.
      */
-    public static final SimpleMappedRegistry<BlockEntityType, BlockEntityTranslator> BLOCK_ENTITIES = SimpleMappedRegistry.create("org.geysermc.geyser.network.translators.world.block.entity.BlockEntity", BlockEntityRegistryLoader::new);
+    public static final SimpleMappedRegistry<BlockEntityType, BlockEntityTranslator> BLOCK_ENTITIES = SimpleMappedRegistry.create("org.geysermc.geyser.translator.level.block.entity.BlockEntity", BlockEntityRegistryLoader::new);
 
     /**
      * A mapped registry containing which holds block IDs to its {@link BlockCollision}.
      */
-    public static final SimpleMappedRegistry<Integer, BlockCollision> COLLISIONS = SimpleMappedRegistry.create(Pair.of("org.geysermc.geyser.network.translators.collision.translators.Translator", "mappings/collision.json"), CollisionRegistryLoader::new);
+    public static final SimpleMappedRegistry<Integer, BlockCollision> COLLISIONS = SimpleMappedRegistry.create(Pair.of("org.geysermc.geyser.translator.collision.CollisionRemapper", "mappings/collision.json"), CollisionRegistryLoader::new);
 
     /**
      * A versioned registry which holds a {@link RecipeType} to a corresponding list of {@link CraftingData}.
@@ -107,6 +115,11 @@ public class Registries {
      * A map containing all Java entity identifiers and their respective Geyser definitions
      */
     public static final SimpleMappedRegistry<String, EntityDefinition<?>> JAVA_ENTITY_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
+
+    /**
+     * A registry containing all the Java packet translators.
+     */
+    public static final PacketTranslatorRegistry<Packet> JAVA_PACKET_TRANSLATORS = PacketTranslatorRegistry.create();
 
     /**
      * A versioned registry which holds {@link ItemMappings} for each version. These item mappings contain
@@ -142,20 +155,21 @@ public class Registries {
     public static final SimpleMappedRegistry<String, SoundMapping> SOUNDS = SimpleMappedRegistry.create("mappings/sounds.json", SoundRegistryLoader::new);
 
     /**
-     * A mapped registry holding {@link SoundEvent}s to their corresponding {@link LevelEventTransformer}.
+     * A mapped registry holding {@link SoundEvent}s to their corresponding {@link LevelEventTranslator}.
      */
-    public static final SimpleMappedRegistry<SoundEvent, LevelEventTransformer> SOUND_EVENTS = SimpleMappedRegistry.create("mappings/effects.json", SoundEventsRegistryLoader::new);
+    public static final SimpleMappedRegistry<SoundEvent, LevelEventTranslator> SOUND_EVENTS = SimpleMappedRegistry.create("mappings/effects.json", SoundEventsRegistryLoader::new);
 
     /**
-     * A mapped registry holding {@link SoundHandler}s to their corresponding {@link SoundInteractionHandler}.
+     * A mapped registry holding {@link SoundTranslator}s to their corresponding {@link SoundInteractionTranslator}.
      */
-    public static final SimpleMappedRegistry<SoundHandler, SoundInteractionHandler<?>> SOUND_HANDLERS = SimpleMappedRegistry.create("org.geysermc.geyser.network.translators.sound.SoundHandler", SoundHandlerRegistryLoader::new);
+    public static final SimpleMappedRegistry<SoundTranslator, SoundInteractionTranslator<?>> SOUND_TRANSLATORS = SimpleMappedRegistry.create("org.geysermc.geyser.translator.sound.SoundTranslator", SoundTranslatorRegistryLoader::new);
 
     public static void init() {
         // no-op
     }
 
     static {
+        PacketRegistryPopulator.populate();
         ItemRegistryPopulator.populate();
         RecipeRegistryPopulator.populate();
 

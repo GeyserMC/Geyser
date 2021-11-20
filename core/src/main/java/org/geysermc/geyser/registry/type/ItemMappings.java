@@ -34,7 +34,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.Builder;
 import lombok.Value;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.translators.item.StoredItemMappings;
+import org.geysermc.geyser.inventory.item.StoredItemMappings;
 
 import javax.annotation.Nullable;
 import java.util.List;

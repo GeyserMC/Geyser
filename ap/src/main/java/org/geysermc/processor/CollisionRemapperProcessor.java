@@ -33,6 +33,6 @@ import javax.lang.model.SourceVersion;
 @SupportedSourceVersion(SourceVersion.RELEASE_16)
 public class CollisionRemapperProcessor extends ClassProcessor {
     public CollisionRemapperProcessor() {
-        super("org.geysermc.geyser.network.translators.collision.CollisionRemapper");
+        super("org.geysermc.geyser.translator.collision.CollisionRemapper");
     }
 }

@@ -29,9 +29,9 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandExecutor;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.common.ChatColor;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.text.ChatColor;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.spongepowered.api.command.CommandCallable;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -62,11 +62,11 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
             if (command != null) {
                 if (!source.hasPermission(command.getPermission())) {
                     // Not ideal to use log here but we dont get a session
-                    source.sendMessage(Text.of(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail")));
+                    source.sendMessage(Text.of(ChatColor.RED + GeyserLocale.getLocaleStringLog("geyser.bootstrap.command.permission_fail")));
                     return CommandResult.success();
                 }
                 if (command.isBedrockOnly() && session == null) {
-                    source.sendMessage(Text.of(ChatColor.RED + LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.bedrock_only")));
+                    source.sendMessage(Text.of(ChatColor.RED + GeyserLocale.getLocaleStringLog("geyser.bootstrap.command.bedrock_only")));
                     return CommandResult.success();
                 }
                 getCommand(args[0]).execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);

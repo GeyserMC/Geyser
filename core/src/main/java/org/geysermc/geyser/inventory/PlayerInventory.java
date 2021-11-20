@@ -29,7 +29,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSession;
 
 public class PlayerInventory extends Inventory {
 

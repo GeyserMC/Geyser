@@ -31,9 +31,9 @@ import io.netty.channel.*;
 import io.netty.channel.local.LocalAddress;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.bukkit.Bukkit;
-import org.geysermc.geyser.bootstrap.GeyserBootstrap;
-import org.geysermc.geyser.common.connection.GeyserInjector;
-import org.geysermc.geyser.common.connection.LocalServerChannelWrapper;
+import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.network.netty.GeyserInjector;
+import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

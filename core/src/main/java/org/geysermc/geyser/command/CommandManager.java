@@ -30,8 +30,8 @@ import lombok.Getter;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.defaults.*;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.*;
 
@@ -61,7 +61,7 @@ public abstract class CommandManager {
 
     public void registerCommand(GeyserCommand command) {
         commands.put(command.getName(), command);
-        geyser.getLogger().debug(LanguageUtils.getLocaleStringLog("geyser.commands.registered", command.getName()));
+        geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.commands.registered", command.getName()));
 
         if (command.getAliases().isEmpty())
             return;
@@ -89,7 +89,7 @@ public abstract class CommandManager {
 
         GeyserCommand cmd = commands.get(label);
         if (cmd == null) {
-            geyser.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.commands.invalid"));
+            geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.invalid"));
             return;
         }
 
@@ -99,7 +99,7 @@ public abstract class CommandManager {
             if (!cmd.isBedrockOnly()) {
                 cmd.execute(null, sender, args);
             } else {
-                geyser.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.bedrock_only"));
+                geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.bootstrap.command.bedrock_only"));
             }
         }
     }

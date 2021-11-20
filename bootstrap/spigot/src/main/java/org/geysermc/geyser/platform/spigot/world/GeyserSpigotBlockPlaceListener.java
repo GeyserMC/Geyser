@@ -33,8 +33,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.network.translators.world.block.BlockStateValues;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotWorldManager;
 

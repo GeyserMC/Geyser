@@ -37,13 +37,13 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.translators.world.block.BlockStateValues;
+import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.BlockMappings;
-import org.geysermc.geyser.utils.BlockUtils;
-import org.geysermc.geyser.utils.FileUtils;
-import org.geysermc.geyser.utils.PistonBehavior;
+import org.geysermc.geyser.util.BlockUtils;
+import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.level.physics.PistonBehavior;
 
 import java.io.DataInputStream;
 import java.io.InputStream;

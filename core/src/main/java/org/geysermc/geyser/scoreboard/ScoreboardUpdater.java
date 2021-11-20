@@ -29,9 +29,9 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.network.session.cache.WorldCache;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.WorldCache;
+import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -118,8 +118,8 @@ public final class ScoreboardUpdater extends Thread {
                                             FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD;
 
                                     geyser.getLogger().info(
-                                            LanguageUtils.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached.log", session.getName(), threshold, pps) +
-                                                    LanguageUtils.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached", (millisBetweenUpdates / 1000.0))
+                                            GeyserLocale.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached.log", session.getName(), threshold, pps) +
+                                                    GeyserLocale.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached", (millisBetweenUpdates / 1000.0))
                                     );
 
                                     scoreboardSession.lastLog = currentTime;

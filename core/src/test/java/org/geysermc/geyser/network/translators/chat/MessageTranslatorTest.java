@@ -26,6 +26,7 @@
 package org.geysermc.geyser.network.translators.chat;
 
 import com.github.steveice10.mc.protocol.data.DefaultComponentSerializer;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

@@ -28,7 +28,7 @@ package org.geysermc.geyser.registry.loader;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.type.SoundMapping;
-import org.geysermc.geyser.utils.FileUtils;
+import org.geysermc.geyser.util.FileUtils;
 
 import java.io.IOException;
 import java.io.InputStream;

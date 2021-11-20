@@ -48,9 +48,9 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.network.MinecraftProtocol;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.network.translators.item.ItemTranslator;
-import org.geysermc.geyser.utils.InventoryUtils;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
+import org.geysermc.geyser.util.InventoryUtils;
 
 import java.util.*;
 

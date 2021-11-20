@@ -34,7 +34,9 @@ import lombok.experimental.Accessors;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.factory.BaseEntityFactory;
 import org.geysermc.geyser.entity.factory.EntityFactory;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
 
 import java.util.List;
 import java.util.Locale;
@@ -78,7 +80,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             return;
         }
 
-        translator.translateFunction().accept(entity, metadata);
+        translator.translate(entity, metadata);
     }
 
     @Setter

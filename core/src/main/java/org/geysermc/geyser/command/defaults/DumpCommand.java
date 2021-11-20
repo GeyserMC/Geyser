@@ -33,12 +33,12 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.common.ChatColor;
-import org.geysermc.geyser.common.serializer.AsteriskSerializer;
+import org.geysermc.geyser.text.ChatColor;
+import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.dump.DumpInfo;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.utils.LanguageUtils;
-import org.geysermc.geyser.utils.WebUtils;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.WebUtils;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -61,7 +61,7 @@ public class DumpCommand extends GeyserCommand {
     public void execute(GeyserSession session, CommandSender sender, String[] args) {
         // Only allow the console to create dumps on Geyser Standalone
         if (!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE) {
-            sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.getLocale()));
+            sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.getLocale()));
             return;
         }
 
@@ -80,7 +80,7 @@ public class DumpCommand extends GeyserCommand {
 
         AsteriskSerializer.showSensitive = showSensitive;
 
-        sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.dump.collecting", sender.getLocale()));
+        sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.dump.collecting", sender.getLocale()));
         String dumpData;
         try {
             if (offlineDump) {
@@ -92,29 +92,29 @@ public class DumpCommand extends GeyserCommand {
                 dumpData = MAPPER.writeValueAsString(new DumpInfo(addLog));
             }
         } catch (IOException e) {
-            sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.commands.dump.collect_error", sender.getLocale()));
-            geyser.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.commands.dump.collect_error_short"), e);
+            sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.dump.collect_error", sender.getLocale()));
+            geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.dump.collect_error_short"), e);
             return;
         }
 
         String uploadedDumpUrl = "";
 
         if (offlineDump) {
-            sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.dump.writing", sender.getLocale()));
+            sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.dump.writing", sender.getLocale()));
 
             try {
                 FileOutputStream outputStream = new FileOutputStream(GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("dump.json").toFile());
                 outputStream.write(dumpData.getBytes());
                 outputStream.close();
             } catch (IOException e) {
-                sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.commands.dump.write_error", sender.getLocale()));
-                geyser.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.commands.dump.write_error_short"), e);
+                sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.dump.write_error", sender.getLocale()));
+                geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.dump.write_error_short"), e);
                 return;
             }
 
             uploadedDumpUrl = "dump.json";
         } else {
-            sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.dump.uploading", sender.getLocale()));
+            sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.dump.uploading", sender.getLocale()));
 
             String response;
             JsonNode responseNode;
@@ -122,22 +122,22 @@ public class DumpCommand extends GeyserCommand {
                 response = WebUtils.post(DUMP_URL + "documents", dumpData);
                 responseNode = MAPPER.readTree(response);
             } catch (IOException e) {
-                sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.commands.dump.upload_error", sender.getLocale()));
-                geyser.getLogger().error(LanguageUtils.getLocaleStringLog("geyser.commands.dump.upload_error_short"), e);
+                sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.dump.upload_error", sender.getLocale()));
+                geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.dump.upload_error_short"), e);
                 return;
             }
 
             if (!responseNode.has("key")) {
-                sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.commands.dump.upload_error_short", sender.getLocale()) + ": " + (responseNode.has("message") ? responseNode.get("message").asText() : response));
+                sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.dump.upload_error_short", sender.getLocale()) + ": " + (responseNode.has("message") ? responseNode.get("message").asText() : response));
                 return;
             }
 
             uploadedDumpUrl = DUMP_URL + responseNode.get("key").asText();
         }
 
-        sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.dump.message", sender.getLocale()) + " " + ChatColor.DARK_AQUA + uploadedDumpUrl);
+        sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.dump.message", sender.getLocale()) + " " + ChatColor.DARK_AQUA + uploadedDumpUrl);
         if (!sender.isConsole()) {
-            geyser.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.commands.dump.created", sender.getName(), uploadedDumpUrl));
+            geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.commands.dump.created", sender.getName(), uploadedDumpUrl));
         }
     }
 

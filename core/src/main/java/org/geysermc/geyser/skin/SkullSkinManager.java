@@ -29,9 +29,9 @@ import com.nukkitx.protocol.bedrock.data.skin.ImageData;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerSkinPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.entity.player.PlayerEntity;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Collections;
 import java.util.function.Consumer;
@@ -63,7 +63,7 @@ public class SkullSkinManager extends SkinManager {
                         packet.setTrustedSkin(true);
                         session.sendUpstreamPacket(packet);
                     } catch (Exception e) {
-                        GeyserImpl.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
+                        GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
                     }
 
                     if (skinConsumer != null) {

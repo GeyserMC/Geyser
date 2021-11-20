@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.platform.bungeecord;
 
-import org.geysermc.geyser.common.main.IGeyserMain;
+import org.geysermc.geyser.GeyserMain;
 
-public class GeyserBungeeMain extends IGeyserMain {
+public class GeyserBungeeMain extends GeyserMain {
 
     public static void main(String[] args) {
         new GeyserBungeeMain().displayMessage();

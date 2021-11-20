@@ -35,10 +35,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.common.AuthType;
-import org.geysermc.geyser.common.serializer.AsteriskSerializer;
+import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.network.CIDRMatcher;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.text.GeyserLocale;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -257,7 +257,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
             try {
                 return Integer.parseInt(value);
             } catch (NumberFormatException e) {
-                System.err.println(LanguageUtils.getLocaleStringLog("geyser.bootstrap.config.invalid_port"));
+                System.err.println(GeyserLocale.getLocaleStringLog("geyser.bootstrap.config.invalid_port"));
                 return 25565;
             }
         }

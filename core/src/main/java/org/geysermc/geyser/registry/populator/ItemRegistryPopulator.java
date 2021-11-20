@@ -40,11 +40,11 @@ import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.*;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.translators.item.StoredItemMappings;
+import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.*;
-import org.geysermc.geyser.utils.FileUtils;
+import org.geysermc.geyser.util.FileUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

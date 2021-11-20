@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.platform.sponge;
 
-import org.geysermc.geyser.common.main.IGeyserMain;
+import org.geysermc.geyser.GeyserMain;
 
-public class GeyserSpongeMain extends IGeyserMain {
+public class GeyserSpongeMain extends GeyserMain {
 
     public static void main(String[] args) {
         new GeyserSpongeMain().displayMessage();

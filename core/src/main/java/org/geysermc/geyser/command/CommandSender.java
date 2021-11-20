@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.command;
 
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.text.GeyserLocale;
 
 /**
  * Implemented on top of any class that can send a command.
@@ -49,12 +49,12 @@ public interface CommandSender {
     boolean isConsole();
 
     /**
-     * Returns the locale of the command sender. Defaults to the default locale at {@link LanguageUtils#getDefaultLocale()}.
+     * Returns the locale of the command sender. Defaults to the default locale at {@link GeyserLocale#getDefaultLocale()}.
      * 
      * @return the locale of the command sender.
      */
     default String getLocale() {
-        return LanguageUtils.getDefaultLocale();
+        return GeyserLocale.getDefaultLocale();
     }
 
     /**

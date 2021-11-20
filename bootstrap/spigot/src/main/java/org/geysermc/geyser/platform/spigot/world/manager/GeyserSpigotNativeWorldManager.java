@@ -28,8 +28,8 @@ package org.geysermc.geyser.platform.spigot.world.manager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.network.translators.world.block.BlockStateValues;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.adapters.spigot.SpigotWorldAdapter;
 

@@ -28,7 +28,7 @@ package org.geysermc.geyser.command;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.geysermc.geyser.network.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSession;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

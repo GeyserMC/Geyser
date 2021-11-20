@@ -37,16 +37,16 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.bootstrap.GeyserBootstrap;
-import org.geysermc.geyser.common.AuthType;
+import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandExecutor;
 import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandManager;
-import org.geysermc.geyser.utils.FileUtils;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
@@ -91,7 +91,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
                     "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserVelocityConfiguration.class);
         } catch (IOException ex) {
-            logger.warn(LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
+            logger.warn(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
         }
 
@@ -118,15 +118,15 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         try {
             // Should only exist on 1.0
             Class.forName("org.geysermc.floodgate.FloodgateAPI");
-            geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.outdated",
+            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated",
                     "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/"));
             return;
         } catch (ClassNotFoundException ignored) {
         }
 
         if (geyserConfig.getRemote().getAuthType() == AuthType.FLOODGATE && proxyServer.getPluginManager().getPlugin("floodgate").isEmpty()) {
-            geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
-                    + LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
+            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " "
+                    + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             return;
         } else if (geyserConfig.isAutoconfiguredRemote() && proxyServer.getPluginManager().getPlugin("floodgate").isPresent()) {
             // Floodgate installed means that the user wants Floodgate authentication

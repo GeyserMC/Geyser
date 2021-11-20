@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.inventory.VillagerTrade;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.geyser.entity.Entity;
+import org.geysermc.geyser.entity.type.Entity;
 
 @Getter
 @Setter

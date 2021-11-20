@@ -28,8 +28,8 @@ package org.geysermc.geyser.command.defaults;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.stream.Collectors;
 
@@ -45,7 +45,7 @@ public class ListCommand extends GeyserCommand {
 
     @Override
     public void execute(GeyserSession session, CommandSender sender, String[] args) {
-        String message = LanguageUtils.getPlayerLocaleString("geyser.commands.list.message", sender.getLocale(),
+        String message = GeyserLocale.getPlayerLocaleString("geyser.commands.list.message", sender.getLocale(),
                 geyser.getSessionManager().size(),
                 geyser.getSessionManager().getAllSessions().stream().map(GeyserSession::getName).collect(Collectors.joining(" ")));
 

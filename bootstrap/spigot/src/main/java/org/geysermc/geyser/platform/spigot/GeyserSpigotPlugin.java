@@ -33,18 +33,18 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.bootstrap.GeyserBootstrap;
+import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.command.CommandManager;
-import org.geysermc.geyser.common.AuthType;
+import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.network.MinecraftProtocol;
-import org.geysermc.geyser.network.translators.world.WorldManager;
+import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.utils.Constants;
-import org.geysermc.geyser.utils.FileUtils;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.Constants;
+import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.geyser.platform.spigot.command.GeyserSpigotCommandManager;
@@ -87,7 +87,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserSpigotConfiguration.class);
         } catch (IOException ex) {
-            getLogger().log(Level.WARNING, LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
+            getLogger().log(Level.WARNING, GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
         }
 
@@ -99,8 +99,8 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             // And since there are alternative ways to get Geyser working for these aging platforms, it's not worth it.
             getLogger().severe("*********************************************");
             getLogger().severe("");
-            getLogger().severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.unsupported_server.header"));
-            getLogger().severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.unsupported_server.message", "1.12.2"));
+            getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_server.header"));
+            getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_server.message", "1.12.2"));
             getLogger().severe("");
             getLogger().severe("*********************************************");
 
@@ -127,13 +127,13 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         // Remove this in like a year
         if (Bukkit.getPluginManager().getPlugin("floodgate-bukkit") != null) {
-            geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", Constants.FLOODGATE_DOWNLOAD_LOCATION));
+            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", Constants.FLOODGATE_DOWNLOAD_LOCATION));
             this.getPluginLoader().disablePlugin(this);
             return;
         }
 
         if (geyserConfig.getRemote().getAuthType() == AuthType.FLOODGATE && Bukkit.getPluginManager().getPlugin("floodgate") == null) {
-            geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
+            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             this.getPluginLoader().disablePlugin(this);
             return;
         } else if (geyserConfig.isAutoconfiguredRemote() && Bukkit.getPluginManager().getPlugin("floodgate") != null) {
@@ -163,7 +163,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 // Ensure that we have the latest 4.0.0 changes and not an older ViaVersion version
                 Class.forName("com.viaversion.viaversion.api.ViaManager");
             } catch (ClassNotFoundException e) {
-                geyserLogger.warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.viaversion.too_old",
+                geyserLogger.warning(GeyserLocale.getLocaleStringLog("geyser.bootstrap.viaversion.too_old",
                         "https://ci.viaversion.com/job/ViaVersion/"));
                 isViaVersion = false;
                 if (this.geyserConfig.isDebugMode()) {

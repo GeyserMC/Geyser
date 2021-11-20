@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.entity.factory;
 
-import org.geysermc.geyser.entity.Entity;
+import org.geysermc.geyser.entity.type.Entity;
 
 public interface EntityFactory<T extends Entity> {
 }

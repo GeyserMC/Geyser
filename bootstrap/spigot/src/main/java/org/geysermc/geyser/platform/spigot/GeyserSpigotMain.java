@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.platform.spigot;
 
-import org.geysermc.geyser.common.main.IGeyserMain;
+import org.geysermc.geyser.GeyserMain;
 
-public class GeyserSpigotMain extends IGeyserMain {
+public class GeyserSpigotMain extends GeyserMain {
 
     public static void main(String[] args) {
         new GeyserSpigotMain().displayMessage();

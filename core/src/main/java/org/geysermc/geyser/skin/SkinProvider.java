@@ -37,9 +37,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.utils.FileUtils;
-import org.geysermc.geyser.utils.WebUtils;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.WebUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

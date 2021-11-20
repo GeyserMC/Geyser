@@ -28,10 +28,10 @@ package org.geysermc.geyser.registry.loader;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import org.geysermc.geyser.network.translators.world.block.entity.BlockEntity;
-import org.geysermc.geyser.network.translators.world.block.entity.BlockEntityTranslator;
-import org.geysermc.geyser.network.translators.world.block.entity.EmptyBlockEntityTranslator;
-import org.geysermc.geyser.utils.FileUtils;
+import org.geysermc.geyser.translator.level.block.entity.BlockEntity;
+import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
+import org.geysermc.geyser.translator.level.block.entity.EmptyBlockEntityTranslator;
+import org.geysermc.geyser.util.FileUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;

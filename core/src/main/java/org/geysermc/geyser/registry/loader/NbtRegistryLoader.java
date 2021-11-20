@@ -28,7 +28,7 @@ package org.geysermc.geyser.registry.loader;
 import com.nukkitx.nbt.NBTInputStream;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
-import org.geysermc.geyser.utils.FileUtils;
+import org.geysermc.geyser.util.FileUtils;
 
 import java.io.InputStream;
 

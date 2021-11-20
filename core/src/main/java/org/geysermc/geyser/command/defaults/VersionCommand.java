@@ -30,12 +30,12 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.common.ChatColor;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.network.MinecraftProtocol;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.utils.FileUtils;
-import org.geysermc.geyser.utils.LanguageUtils;
-import org.geysermc.geyser.utils.WebUtils;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.WebUtils;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -63,12 +63,12 @@ public class VersionCommand extends GeyserCommand {
             bedrockVersions = MinecraftProtocol.SUPPORTED_BEDROCK_CODECS.get(0).getMinecraftVersion();
         }
 
-        sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.version", sender.getLocale(),
+        sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.version", sender.getLocale(),
                 GeyserImpl.NAME, GeyserImpl.VERSION, MinecraftProtocol.getJavaVersion(), bedrockVersions));
 
         // Disable update checking in dev mode and for players in Geyser Standalone
         if (GeyserImpl.getInstance().isProductionEnvironment() && !(!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE)) {
-            sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.checking", sender.getLocale()));
+            sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.checking", sender.getLocale()));
             try {
                 Properties gitProp = new Properties();
                 gitProp.load(FileUtils.getResource("git.properties"));
@@ -79,17 +79,17 @@ public class VersionCommand extends GeyserCommand {
                     int latestBuildNum = Integer.parseInt(buildXML.replaceAll("<(\\\\)?(/)?buildNumber>", "").trim());
                     int buildNum = Integer.parseInt(gitProp.getProperty("git.build.number"));
                     if (latestBuildNum == buildNum) {
-                        sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.no_updates", sender.getLocale()));
+                        sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.no_updates", sender.getLocale()));
                     } else {
-                        sender.sendMessage(LanguageUtils.getPlayerLocaleString("geyser.commands.version.outdated",
+                        sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.outdated",
                                 sender.getLocale(), (latestBuildNum - buildNum), "https://ci.geysermc.org/"));
                     }
                 } else {
                     throw new AssertionError("buildNumber missing");
                 }
             } catch (IOException | AssertionError | NumberFormatException e) {
-                GeyserImpl.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.commands.version.failed"), e);
-                sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.commands.version.failed", sender.getLocale()));
+                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.version.failed"), e);
+                sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.version.failed", sender.getLocale()));
             }
         }
     }

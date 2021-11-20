@@ -28,8 +28,8 @@ package org.geysermc.geyser.inventory;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import lombok.Getter;
 import lombok.NonNull;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.network.translators.inventory.InventoryTranslator;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 
 /**
  * Combination of {@link Inventory} and {@link PlayerInventory}

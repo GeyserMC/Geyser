@@ -26,8 +26,8 @@
 package org.geysermc.geyser.platform.spigot.world.manager;
 
 import org.bukkit.plugin.Plugin;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.network.translators.world.block.BlockStateValues;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.level.block.BlockStateValues;
 
 /**
  * Should only be used when we know {@link GeyserSpigotWorldManager#getBlockAt(GeyserSession, int, int, int)}

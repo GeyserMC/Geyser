@@ -42,23 +42,25 @@ import lombok.Setter;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.api.Geyser;
 import org.geysermc.geyser.api.logger.GeyserLogger;
-import org.geysermc.geyser.bootstrap.GeyserBootstrap;
 import org.geysermc.geyser.command.CommandManager;
-import org.geysermc.geyser.common.AuthType;
+import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.metrics.Metrics;
+import org.geysermc.geyser.pack.ResourcePack;
+import org.geysermc.geyser.session.SessionManager;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.text.MinecraftLocale;
+import org.geysermc.geyser.util.Metrics;
 import org.geysermc.geyser.network.ConnectorServerEventHandler;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.network.translators.PacketTranslatorRegistry;
-import org.geysermc.geyser.network.translators.chat.MessageTranslator;
-import org.geysermc.geyser.network.translators.item.ItemTranslator;
-import org.geysermc.geyser.network.translators.world.WorldManager;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
+import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
-import org.geysermc.geyser.utils.*;
+import org.geysermc.geyser.util.*;
 import org.geysermc.floodgate.crypto.AesCipher;
 import org.geysermc.floodgate.crypto.AesKeyProducer;
 import org.geysermc.floodgate.crypto.Base64Topping;
@@ -140,15 +142,13 @@ public class GeyserImpl extends Geyser {
 
         logger.info("******************************************");
         logger.info("");
-        logger.info(LanguageUtils.getLocaleStringLog("geyser.core.load", NAME, VERSION));
+        logger.info(GeyserLocale.getLocaleStringLog("geyser.core.load", NAME, VERSION));
         logger.info("");
         logger.info("******************************************");
 
         this.scheduledThread = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("Geyser Scheduled Thread"));
 
         logger.setDebug(config.isDebugMode());
-
-        PacketTranslatorRegistry.init();
 
         /* Initialize translators and registries */
         BlockRegistries.init();
@@ -157,7 +157,7 @@ public class GeyserImpl extends Geyser {
         EntityDefinitions.init();
         ItemTranslator.init();
         MessageTranslator.init();
-        LocaleUtils.init();
+        MinecraftLocale.init();
         ScoreboardUpdater.init();
 
         ResourcePack.loadPacks();
@@ -207,10 +207,10 @@ public class GeyserImpl extends Geyser {
                 Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
                 cipher = new AesCipher(new Base64Topping());
                 cipher.init(key);
-                logger.info(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
+                logger.info(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
                 skinUploader = new FloodgateSkinUploader(this).start();
             } catch (Exception exception) {
-                logger.severe(LanguageUtils.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
+                logger.severe(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
             }
         }
         this.timeSyncer = timeSyncer;
@@ -272,9 +272,9 @@ public class GeyserImpl extends Geyser {
         if (shouldStartListener) {
             bedrockServer.bind().whenComplete((avoid, throwable) -> {
                 if (throwable == null) {
-                    logger.info(LanguageUtils.getLocaleStringLog("geyser.core.start", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
+                    logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
                 } else {
-                    logger.severe(LanguageUtils.getLocaleStringLog("geyser.core.fail", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
+                    logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
                     throwable.printStackTrace();
                 }
             }).join();
@@ -286,7 +286,7 @@ public class GeyserImpl extends Geyser {
             // Prevent unwanted words best we can
             metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> config.getRemote().getAuthType().toString().toLowerCase()));
             metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::getPlatformName));
-            metrics.addCustomChart(new Metrics.SimplePie("defaultLocale", LanguageUtils::getDefaultLocale));
+            metrics.addCustomChart(new Metrics.SimplePie("defaultLocale", GeyserLocale::getDefaultLocale));
             metrics.addCustomChart(new Metrics.SimplePie("version", () -> GeyserImpl.VERSION));
             metrics.addCustomChart(new Metrics.AdvancedPie("playerPlatform", () -> {
                 Map<String, Integer> valueMap = new HashMap<>();
@@ -380,29 +380,29 @@ public class GeyserImpl extends Geyser {
         }
 
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
-        String message = LanguageUtils.getLocaleStringLog("geyser.core.finish.done", new DecimalFormat("#.###").format(completeTime)) + " ";
+        String message = GeyserLocale.getLocaleStringLog("geyser.core.finish.done", new DecimalFormat("#.###").format(completeTime)) + " ";
         if (isGui) {
-            message += LanguageUtils.getLocaleStringLog("geyser.core.finish.gui");
+            message += GeyserLocale.getLocaleStringLog("geyser.core.finish.gui");
         } else {
-            message += LanguageUtils.getLocaleStringLog("geyser.core.finish.console");
+            message += GeyserLocale.getLocaleStringLog("geyser.core.finish.console");
         }
         logger.info(message);
 
         if (platformType == PlatformType.STANDALONE) {
-            logger.warning(LanguageUtils.getLocaleStringLog("geyser.core.movement_warn"));
+            logger.warning(GeyserLocale.getLocaleStringLog("geyser.core.movement_warn"));
         }
 
         newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
     }
 
     public void shutdown() {
-        bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown"));
+        bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown"));
         shuttingDown = true;
 
         if (sessionManager.size() >= 1) {
-            bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.log", sessionManager.size()));
+            bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.log", sessionManager.size()));
             sessionManager.disconnectAll("geyser.core.shutdown.kick.message");
-            bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.done"));
+            bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.done"));
         }
 
         scheduledThread.shutdown();
@@ -416,7 +416,7 @@ public class GeyserImpl extends Geyser {
         newsHandler.shutdown();
         this.getCommandManager().getCommands().clear();
 
-        bootstrap.getGeyserLogger().info(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.done"));
+        bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.done"));
     }
 
     /**
@@ -442,12 +442,7 @@ public class GeyserImpl extends Geyser {
      */
     @SuppressWarnings("unused") // API usage
     public GeyserSession getPlayerByXuid(String xuid) {
-        for (GeyserSession session : sessionManager.getPendingSessions()) {
-            if (session.getAuthData().getXuid().equals(xuid)) {
-                return session;
-            }
-        }
-        for (GeyserSession session : sessionManager.getSessions().values()) {
+        for (GeyserSession session : sessionManager.getAllSessions()) {
             if (session.getAuthData().getXuid().equals(xuid)) {
                 return session;
             }

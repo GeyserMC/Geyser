@@ -27,7 +27,7 @@ package org.geysermc.geyser.registry.loader;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.utils.FileUtils;
+import org.geysermc.geyser.util.FileUtils;
 
 import java.io.InputStream;
 import java.util.Map;

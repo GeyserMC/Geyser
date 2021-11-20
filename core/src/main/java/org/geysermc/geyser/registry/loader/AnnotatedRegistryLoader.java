@@ -26,7 +26,7 @@
 package org.geysermc.geyser.registry.loader;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import org.geysermc.geyser.utils.FileUtils;
+import org.geysermc.geyser.util.FileUtils;
 
 import java.lang.annotation.Annotation;
 import java.util.Map;
@@ -45,7 +45,7 @@ import java.util.function.Function;
  * replaced with a simple <code>Function.identity()</code> if not desired.
  *
  * <p>
- * See {@link BlockEntityRegistryLoader} and {@link SoundHandlerRegistryLoader} as a
+ * See {@link BlockEntityRegistryLoader} and {@link SoundTranslatorRegistryLoader} as a
  * good example of these registry loaders in use.
  *
  * @param <R> the final result as transformed by the function

@@ -36,8 +36,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.network.translators.world.block.BlockStateValues;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.level.block.BlockStateValues;
 
 import java.util.List;
 

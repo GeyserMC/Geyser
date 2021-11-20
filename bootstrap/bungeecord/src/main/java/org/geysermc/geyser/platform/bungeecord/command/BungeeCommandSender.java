@@ -28,7 +28,7 @@ package org.geysermc.geyser.platform.bungeecord.command;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import org.geysermc.geyser.command.CommandSender;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.text.GeyserLocale;
 
 public class BungeeCommandSender implements CommandSender {
 
@@ -37,7 +37,7 @@ public class BungeeCommandSender implements CommandSender {
     public BungeeCommandSender(net.md_5.bungee.api.CommandSender handle) {
         this.handle = handle;
         // Ensure even Java players' languages are loaded
-        LanguageUtils.loadGeyserLocale(getLocale());
+        GeyserLocale.loadGeyserLocale(getLocale());
     }
 
     @Override
@@ -59,9 +59,9 @@ public class BungeeCommandSender implements CommandSender {
     public String getLocale() {
         if (handle instanceof ProxiedPlayer player) {
             String locale = player.getLocale().getLanguage() + "_" + player.getLocale().getCountry();
-            return LanguageUtils.formatLocale(locale);
+            return GeyserLocale.formatLocale(locale);
         }
-        return LanguageUtils.getDefaultLocale();
+        return GeyserLocale.getDefaultLocale();
     }
 
     @Override

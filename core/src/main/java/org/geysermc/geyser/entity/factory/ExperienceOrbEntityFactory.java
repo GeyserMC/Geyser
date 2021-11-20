@@ -26,8 +26,8 @@
 package org.geysermc.geyser.entity.factory;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.geyser.entity.ExpOrbEntity;
-import org.geysermc.geyser.network.session.GeyserSession;
+import org.geysermc.geyser.entity.type.ExpOrbEntity;
+import org.geysermc.geyser.session.GeyserSession;
 
 @FunctionalInterface
 public interface ExperienceOrbEntityFactory extends EntityFactory<ExpOrbEntity> {

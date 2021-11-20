@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.platform.standalone;
 
-import org.geysermc.geyser.common.ChatColor;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.text.ChatColor;
+import org.geysermc.geyser.text.GeyserLocale;
 
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -56,12 +56,12 @@ public class LoopbackUtil {
                     Files.write(Paths.get(System.getenv("temp") + "/loopback_minecraft.bat"), loopbackCommand.getBytes());
                     Runtime.getRuntime().exec(startScript);
 
-                    geyserLogger.info(ChatColor.AQUA + LanguageUtils.getLocaleStringLog("geyser.bootstrap.loopback.added"));
+                    geyserLogger.info(ChatColor.AQUA + GeyserLocale.getLocaleStringLog("geyser.bootstrap.loopback.added"));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
 
-                geyserLogger.error(LanguageUtils.getLocaleStringLog("geyser.bootstrap.loopback.failed"));
+                geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.bootstrap.loopback.failed"));
             }
         }
     }

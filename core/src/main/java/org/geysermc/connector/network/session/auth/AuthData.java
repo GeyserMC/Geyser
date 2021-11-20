@@ -34,9 +34,9 @@ import java.util.UUID;
  * @deprecated legacy code
  */
 public class AuthData {
-    private final org.geysermc.geyser.network.session.auth.AuthData handle;
+    private final org.geysermc.geyser.session.auth.AuthData handle;
 
-    public AuthData(org.geysermc.geyser.network.session.auth.AuthData handle) {
+    public AuthData(org.geysermc.geyser.session.auth.AuthData handle) {
         this.handle = handle;
     }
 

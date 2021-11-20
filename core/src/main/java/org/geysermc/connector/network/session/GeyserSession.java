@@ -37,9 +37,9 @@ import org.geysermc.connector.network.session.auth.AuthData;
  */
 @Deprecated
 public class GeyserSession {
-    private final org.geysermc.geyser.network.session.GeyserSession handle;
+    private final org.geysermc.geyser.session.GeyserSession handle;
 
-    public GeyserSession(org.geysermc.geyser.network.session.GeyserSession handle) {
+    public GeyserSession(org.geysermc.geyser.session.GeyserSession handle) {
         this.handle = handle;
     }
 

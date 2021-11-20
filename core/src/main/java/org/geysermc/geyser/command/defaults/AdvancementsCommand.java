@@ -27,7 +27,7 @@ package org.geysermc.geyser.command.defaults;
 
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.network.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSession;
 
 public class AdvancementsCommand extends GeyserCommand {
     public AdvancementsCommand(String name, String description, String permission) {

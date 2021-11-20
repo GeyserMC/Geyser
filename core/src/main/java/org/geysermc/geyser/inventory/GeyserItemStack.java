@@ -29,8 +29,8 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import lombok.Data;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.network.translators.item.ItemTranslator;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.registry.type.ItemMapping;
 
 import javax.annotation.Nonnull;

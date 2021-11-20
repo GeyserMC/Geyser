@@ -29,9 +29,9 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.local.LocalAddress;
-import org.geysermc.geyser.bootstrap.GeyserBootstrap;
-import org.geysermc.geyser.common.connection.GeyserInjector;
-import org.geysermc.geyser.common.connection.LocalServerChannelWrapper;
+import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.network.netty.GeyserInjector;
+import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
 
 import java.lang.reflect.Field;
 import java.util.function.Supplier;

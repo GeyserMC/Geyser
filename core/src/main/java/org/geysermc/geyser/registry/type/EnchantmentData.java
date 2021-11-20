@@ -26,7 +26,7 @@
 package org.geysermc.geyser.registry.type;
 
 import it.unimi.dsi.fastutil.ints.IntSet;
-import org.geysermc.geyser.network.translators.item.Enchantment.JavaEnchantment;
+import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
 
 import java.util.Set;
 

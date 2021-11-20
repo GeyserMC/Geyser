@@ -27,8 +27,8 @@ package org.geysermc.geyser.platform.standalone.gui;
 
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.standalone.GeyserStandaloneLogger;
 import org.geysermc.geyser.platform.standalone.command.GeyserCommandManager;
 
@@ -67,7 +67,7 @@ public class GeyserStandaloneGUI {
 
     public GeyserStandaloneGUI() {
         // Create the frame and setup basic settings
-        JFrame frame = new JFrame(LanguageUtils.getLocaleStringLog("geyser.gui.title"));
+        JFrame frame = new JFrame(GeyserLocale.getLocaleStringLog("geyser.gui.title"));
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         frame.setSize(800, 400);
         frame.setMinimumSize(frame.getSize());
@@ -82,8 +82,8 @@ public class GeyserStandaloneGUI {
             @Override
             public void windowClosing(WindowEvent we)
             {
-                String[] buttons = {LanguageUtils.getLocaleStringLog("geyser.gui.exit.confirm"), LanguageUtils.getLocaleStringLog("geyser.gui.exit.deny")};
-                int result = JOptionPane.showOptionDialog(frame, LanguageUtils.getLocaleStringLog("geyser.gui.exit.message"), frame.getTitle(), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, buttons, buttons[1]);
+                String[] buttons = {GeyserLocale.getLocaleStringLog("geyser.gui.exit.confirm"), GeyserLocale.getLocaleStringLog("geyser.gui.exit.deny")};
+                int result = JOptionPane.showOptionDialog(frame, GeyserLocale.getLocaleStringLog("geyser.gui.exit.message"), frame.getTitle(), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, buttons, buttons[1]);
                 if (result == JOptionPane.YES_OPTION) {
                     System.exit(0);
                 }
@@ -124,12 +124,12 @@ public class GeyserStandaloneGUI {
         JMenuBar menuBar = new JMenuBar();
 
         // Create 'File'
-        JMenu fileMenu = new JMenu(LanguageUtils.getLocaleStringLog("geyser.gui.menu.file"));
+        JMenu fileMenu = new JMenu(GeyserLocale.getLocaleStringLog("geyser.gui.menu.file"));
         fileMenu.setMnemonic(KeyEvent.VK_F);
         menuBar.add(fileMenu);
 
         // 'Open Geyser folder' button
-        JMenuItem openButton = new JMenuItem(LanguageUtils.getLocaleStringLog("geyser.gui.menu.file.open_folder"), KeyEvent.VK_O);
+        JMenuItem openButton = new JMenuItem(GeyserLocale.getLocaleStringLog("geyser.gui.menu.file.open_folder"), KeyEvent.VK_O);
         openButton.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK));
         openButton.addActionListener(e -> {
             try {
@@ -141,40 +141,40 @@ public class GeyserStandaloneGUI {
         fileMenu.addSeparator();
 
         // 'Exit' button
-        JMenuItem exitButton = new JMenuItem(LanguageUtils.getLocaleStringLog("geyser.gui.menu.file.exit"), KeyEvent.VK_X);
+        JMenuItem exitButton = new JMenuItem(GeyserLocale.getLocaleStringLog("geyser.gui.menu.file.exit"), KeyEvent.VK_X);
         exitButton.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_MASK));
         exitButton.addActionListener(e -> System.exit(0));
         fileMenu.add(exitButton);
 
         // Create 'Commands'
-        commandsMenu = new JMenu(LanguageUtils.getLocaleStringLog("geyser.gui.menu.commands"));
+        commandsMenu = new JMenu(GeyserLocale.getLocaleStringLog("geyser.gui.menu.commands"));
         commandsMenu.setMnemonic(KeyEvent.VK_C);
         menuBar.add(commandsMenu);
 
         // Create 'View'
-        JMenu viewMenu = new JMenu(LanguageUtils.getLocaleStringLog("geyser.gui.menu.view"));
+        JMenu viewMenu = new JMenu(GeyserLocale.getLocaleStringLog("geyser.gui.menu.view"));
         viewMenu.setMnemonic(KeyEvent.VK_V);
         menuBar.add(viewMenu);
 
         // 'Zoom in' button
-        JMenuItem zoomInButton = new JMenuItem(LanguageUtils.getLocaleStringLog("geyser.gui.menu.view.zoom_in"));
+        JMenuItem zoomInButton = new JMenuItem(GeyserLocale.getLocaleStringLog("geyser.gui.menu.view.zoom_in"));
         zoomInButton.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, InputEvent.CTRL_DOWN_MASK));
         zoomInButton.addActionListener(e -> consolePane.setFont(new Font(consolePane.getFont().getName(), consolePane.getFont().getStyle(), consolePane.getFont().getSize() + 1)));
         viewMenu.add(zoomInButton);
 
         // 'Zoom in' button
-        JMenuItem zoomOutButton = new JMenuItem(LanguageUtils.getLocaleStringLog("geyser.gui.menu.view.zoom_out"));
+        JMenuItem zoomOutButton = new JMenuItem(GeyserLocale.getLocaleStringLog("geyser.gui.menu.view.zoom_out"));
         zoomOutButton.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, InputEvent.CTRL_DOWN_MASK));
         zoomOutButton.addActionListener(e -> consolePane.setFont(new Font(consolePane.getFont().getName(), consolePane.getFont().getStyle(), consolePane.getFont().getSize() - 1)));
         viewMenu.add(zoomOutButton);
 
         // 'Reset Zoom' button
-        JMenuItem resetZoomButton = new JMenuItem(LanguageUtils.getLocaleStringLog("geyser.gui.menu.view.reset_zoom"));
+        JMenuItem resetZoomButton = new JMenuItem(GeyserLocale.getLocaleStringLog("geyser.gui.menu.view.reset_zoom"));
         resetZoomButton.addActionListener(e -> consolePane.setFont(new Font(consolePane.getFont().getName(), consolePane.getFont().getStyle(), originalFontSize)));
         viewMenu.add(resetZoomButton);
 
         // create 'Options'
-        optionsMenu = new JMenu(LanguageUtils.getLocaleStringLog("geyser.gui.menu.options"));
+        optionsMenu = new JMenu(GeyserLocale.getLocaleStringLog("geyser.gui.menu.options"));
         viewMenu.setMnemonic(KeyEvent.VK_O);
         menuBar.add(optionsMenu);
 
@@ -195,11 +195,11 @@ public class GeyserStandaloneGUI {
             ramValues.add(0);
         }
         ramGraph.setValues(ramValues);
-        ramGraph.setXLabel(LanguageUtils.getLocaleStringLog("geyser.gui.graph.loading"));
+        ramGraph.setXLabel(GeyserLocale.getLocaleStringLog("geyser.gui.graph.loading"));
         rightContentPane.add(ramGraph);
 
-        playerTableModel.addColumn(LanguageUtils.getLocaleStringLog("geyser.gui.table.ip"));
-        playerTableModel.addColumn(LanguageUtils.getLocaleStringLog("geyser.gui.table.username"));
+        playerTableModel.addColumn(GeyserLocale.getLocaleStringLog("geyser.gui.table.ip"));
+        playerTableModel.addColumn(GeyserLocale.getLocaleStringLog("geyser.gui.table.username"));
 
         JScrollPane playerScrollPane = new JScrollPane(playerTable);
         rightContentPane.add(playerScrollPane);
@@ -289,7 +289,7 @@ public class GeyserStandaloneGUI {
         }
 
         // 'Debug Mode' toggle
-        JCheckBoxMenuItem debugMode = new JCheckBoxMenuItem(LanguageUtils.getLocaleStringLog("geyser.gui.menu.options.toggle_debug_mode"));
+        JCheckBoxMenuItem debugMode = new JCheckBoxMenuItem(GeyserLocale.getLocaleStringLog("geyser.gui.menu.options.toggle_debug_mode"));
         debugMode.setSelected(geyserStandaloneLogger.isDebug());
         debugMode.addActionListener(e -> geyserStandaloneLogger.setDebug(!geyserStandaloneLogger.isDebug()));
         optionsMenu.add(debugMode);
@@ -323,7 +323,7 @@ public class GeyserStandaloneGUI {
             final int freePercent = (int)(freeMemory * 100.0 / totalMemory + 0.5);
             ramValues.add(100 - freePercent);
 
-            ramGraph.setXLabel(LanguageUtils.getLocaleStringLog("geyser.gui.graph.usage", String.format("%,d", (totalMemory - freeMemory) / MEGABYTE), freePercent));
+            ramGraph.setXLabel(GeyserLocale.getLocaleStringLog("geyser.gui.graph.usage", String.format("%,d", (totalMemory - freeMemory) / MEGABYTE), freePercent));
 
             // Trim the list
             int k = ramValues.size();

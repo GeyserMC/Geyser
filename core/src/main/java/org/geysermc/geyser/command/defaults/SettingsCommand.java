@@ -28,8 +28,8 @@ package org.geysermc.geyser.command.defaults;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.utils.SettingsUtils;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.SettingsUtils;
 
 public class SettingsCommand extends GeyserCommand {
     public SettingsCommand(GeyserImpl geyser, String name, String description, String permission) {

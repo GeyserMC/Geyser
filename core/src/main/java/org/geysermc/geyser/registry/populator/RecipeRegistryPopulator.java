@@ -40,19 +40,19 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.translators.item.ItemTranslator;
+import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
-import org.geysermc.geyser.utils.FileUtils;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.text.GeyserLocale;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
-import static org.geysermc.geyser.utils.InventoryUtils.LAST_RECIPE_NET_ID;
+import static org.geysermc.geyser.util.InventoryUtils.LAST_RECIPE_NET_ID;
 
 /**
  * Populates the recipe registry.
@@ -66,7 +66,7 @@ public class RecipeRegistryPopulator {
         try {
             items = GeyserImpl.JSON_MAPPER.readTree(stream);
         } catch (Exception e) {
-            throw new AssertionError(LanguageUtils.getLocaleStringLog("geyser.toolbox.fail.runtime_java"), e);
+            throw new AssertionError(GeyserLocale.getLocaleStringLog("geyser.toolbox.fail.runtime_java"), e);
         }
 
         int currentRecipeId = LAST_RECIPE_NET_ID;

@@ -32,8 +32,8 @@ import net.md_5.bungee.api.plugin.TabExecutor;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandExecutor;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -56,13 +56,13 @@ public class GeyserBungeeCommandExecutor extends Command implements TabExecutor 
             GeyserCommand command = this.commandExecutor.getCommand(args[0]);
             if (command != null) {
                 if (!sender.hasPermission(command.getPermission())) {
-                    String message = LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", commandSender.getLocale());
+                    String message = GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", commandSender.getLocale());
 
                     commandSender.sendMessage(ChatColor.RED + message);
                     return;
                 }
                 if (command.isBedrockOnly() && session == null) {
-                    String message = LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", commandSender.getLocale());
+                    String message = GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", commandSender.getLocale());
 
                     commandSender.sendMessage(ChatColor.RED + message);
                     return;

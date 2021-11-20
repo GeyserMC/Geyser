@@ -29,7 +29,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
 import org.geysermc.geyser.network.MinecraftProtocol;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
-import org.geysermc.geyser.network.translators.item.Potion;
+import org.geysermc.geyser.inventory.item.Potion;
 
 import java.util.ArrayList;
 import java.util.HashSet;

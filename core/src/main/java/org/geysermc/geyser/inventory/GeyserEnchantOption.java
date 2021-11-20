@@ -28,7 +28,7 @@ package org.geysermc.geyser.inventory;
 import com.nukkitx.protocol.bedrock.data.inventory.EnchantData;
 import com.nukkitx.protocol.bedrock.data.inventory.EnchantOptionData;
 import lombok.Getter;
-import org.geysermc.geyser.network.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Arrays;
 import java.util.Collections;

@@ -29,7 +29,7 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandSender;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.text.GeyserLocale;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -50,7 +50,7 @@ public class SpigotCommandSender implements CommandSender {
         this.handle = handle;
         this.locale = getSpigotLocale();
         // Ensure even Java players' languages are loaded
-        LanguageUtils.loadGeyserLocale(locale);
+        GeyserLocale.loadGeyserLocale(locale);
     }
 
     @Override
@@ -114,6 +114,6 @@ public class SpigotCommandSender implements CommandSender {
                 return player.getLocale();
             }
         }
-        return LanguageUtils.getDefaultLocale();
+        return GeyserLocale.getDefaultLocale();
     }
 }

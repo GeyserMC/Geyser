@@ -33,6 +33,6 @@ import javax.lang.model.SourceVersion;
 @SupportedSourceVersion(SourceVersion.RELEASE_16)
 public class SoundHandlerProcessor extends ClassProcessor {
     public SoundHandlerProcessor() {
-        super("org.geysermc.geyser.network.translators.sound.SoundHandler");
+        super("org.geysermc.geyser.translator.sound.SoundTranslator");
     }
 }

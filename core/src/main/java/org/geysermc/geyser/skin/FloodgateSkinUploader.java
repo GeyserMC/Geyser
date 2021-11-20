@@ -32,9 +32,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Getter;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.logger.GeyserLogger;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.utils.Constants;
-import org.geysermc.geyser.utils.PluginMessageUtils;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.Constants;
+import org.geysermc.geyser.util.PluginMessageUtils;
 import org.geysermc.floodgate.util.WebsocketEventType;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -48,7 +48,7 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
-import static org.geysermc.geyser.utils.PluginMessageUtils.getSkinChannel;
+import static org.geysermc.geyser.util.PluginMessageUtils.getSkinChannel;
 
 public final class FloodgateSkinUploader {
     private final ObjectMapper JACKSON = new ObjectMapper();

@@ -30,10 +30,10 @@ import com.github.steveice10.mc.protocol.data.game.level.event.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.translators.world.event.LevelEventTransformer;
-import org.geysermc.geyser.network.translators.world.event.PlaySoundEventTransformer;
-import org.geysermc.geyser.network.translators.world.event.SoundEventEventTransformer;
-import org.geysermc.geyser.network.translators.world.event.SoundLevelEventTransformer;
+import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
+import org.geysermc.geyser.translator.level.event.PlaySoundEventTranslator;
+import org.geysermc.geyser.translator.level.event.SoundEventEventTranslator;
+import org.geysermc.geyser.translator.level.event.SoundLevelEventTranslator;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -41,34 +41,34 @@ import java.util.Map;
 /**
  * Loads sound effects from the given resource path.
  */
-public class SoundEventsRegistryLoader extends EffectRegistryLoader<Map<SoundEvent, LevelEventTransformer>> {
+public class SoundEventsRegistryLoader extends EffectRegistryLoader<Map<SoundEvent, LevelEventTranslator>> {
 
     @Override
-    public Map<SoundEvent, LevelEventTransformer> load(String input) {
+    public Map<SoundEvent, LevelEventTranslator> load(String input) {
         this.loadFile(input);
 
         Iterator<Map.Entry<String, JsonNode>> effectsIterator = this.get(input).fields();
-        Map<SoundEvent, LevelEventTransformer> soundEffects = new Object2ObjectOpenHashMap<>();
+        Map<SoundEvent, LevelEventTranslator> soundEffects = new Object2ObjectOpenHashMap<>();
         while (effectsIterator.hasNext()) {
             Map.Entry<String, JsonNode> entry = effectsIterator.next();
             JsonNode node = entry.getValue();
             try {
                 String type = node.get("type").asText();
                 SoundEvent javaEffect = null;
-                LevelEventTransformer transformer = null;
+                LevelEventTranslator transformer = null;
                 switch (type) {
                     case "soundLevel" -> {
                         javaEffect = SoundEvent.valueOf(entry.getKey());
                         LevelEventType levelEventType = LevelEventType.valueOf(node.get("name").asText());
                         int data = node.has("data") ? node.get("data").intValue() : 0;
-                        transformer = new SoundLevelEventTransformer(levelEventType, data);
+                        transformer = new SoundLevelEventTranslator(levelEventType, data);
                     }
                     case "soundEvent" -> {
                         javaEffect = SoundEvent.valueOf(entry.getKey());
                         com.nukkitx.protocol.bedrock.data.SoundEvent soundEvent = com.nukkitx.protocol.bedrock.data.SoundEvent.valueOf(node.get("name").asText());
                         String identifier = node.has("identifier") ? node.get("identifier").asText() : "";
                         int extraData = node.has("extraData") ? node.get("extraData").intValue() : -1;
-                        transformer = new SoundEventEventTransformer(soundEvent, identifier, extraData);
+                        transformer = new SoundEventEventTranslator(soundEvent, identifier, extraData);
                     }
                     case "playSound" -> {
                         javaEffect = SoundEvent.valueOf(entry.getKey());
@@ -78,7 +78,7 @@ public class SoundEventsRegistryLoader extends EffectRegistryLoader<Map<SoundEve
                         float pitchMul = node.has("pitch_mul") ? node.get("pitch_mul").floatValue() : 1.0f;
                         float pitchAdd = node.has("pitch_add") ? node.get("pitch_add").floatValue() : 0.0f;
                         boolean relative = !node.has("relative") || node.get("relative").booleanValue();
-                        transformer = new PlaySoundEventTransformer(name, volume, pitchSub, pitchMul, pitchAdd, relative);
+                        transformer = new PlaySoundEventTranslator(name, volume, pitchSub, pitchMul, pitchAdd, relative);
                     }
                 }
                 if (javaEffect != null) {

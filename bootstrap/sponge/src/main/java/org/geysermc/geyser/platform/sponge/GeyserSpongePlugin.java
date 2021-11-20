@@ -28,14 +28,14 @@ package org.geysermc.geyser.platform.sponge;
 import com.google.inject.Inject;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.bootstrap.GeyserBootstrap;
+import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.command.CommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.utils.FileUtils;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandExecutor;
 import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandManager;
 import org.slf4j.Logger;
@@ -78,14 +78,14 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         try {
             configFile = FileUtils.fileOrCopiedFromResource(new File(configDir, "config.yml"), "config.yml", (file) -> file.replaceAll("generateduuid", UUID.randomUUID().toString()));
         } catch (IOException ex) {
-            logger.warn(LanguageUtils.getLocaleStringLog("geyser.config.failed"));
+            logger.warn(GeyserLocale.getLocaleStringLog("geyser.config.failed"));
             ex.printStackTrace();
         }
 
         try {
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserSpongeConfiguration.class);
         } catch (IOException ex) {
-            logger.warn(LanguageUtils.getLocaleStringLog("geyser.config.failed"));
+            logger.warn(GeyserLocale.getLocaleStringLog("geyser.config.failed"));
             ex.printStackTrace();
             return;
         }

@@ -30,7 +30,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.server.ServerListPingEvent;
 import org.bukkit.util.CachedServerIcon;
-import org.geysermc.geyser.common.ping.GeyserPingInfo;
+import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.network.MinecraftProtocol;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 

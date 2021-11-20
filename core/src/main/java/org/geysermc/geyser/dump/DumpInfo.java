@@ -36,13 +36,12 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.common.serializer.AsteriskSerializer;
+import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.network.MinecraftProtocol;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.utils.DockerCheck;
-import org.geysermc.geyser.utils.FileUtils;
-import org.geysermc.geyser.utils.WebUtils;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.WebUtils;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.FloodgateInfoHolder;
 
@@ -53,6 +52,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -177,7 +177,24 @@ public class DumpInfo {
                 this.internalIP = "***";
             }
 
-            this.dockerCheck = DockerCheck.checkBasic();
+            this.dockerCheck = checkDockerBasic();
+        }
+
+        // By default, Geyser now sets the IP to the local IP in all cases on plugin versions so we don't notify the user of anything
+        // However we still have this check for the potential future bug
+        private boolean checkDockerBasic() {
+            try {
+                String OS = System.getProperty("os.name").toLowerCase();
+                if (OS.indexOf("nix") >= 0 || OS.indexOf("nux") >= 0 || OS.indexOf("aix") > 0) {
+                    String output = new String(java.nio.file.Files.readAllBytes(Paths.get("/proc/1/cgroup")));
+
+                    if (output.contains("docker")) {
+                        return true;
+                    }
+                }
+            } catch (Exception ignored) { } // Ignore any errors, inc ip failed to fetch, process could not run or access denied
+
+            return false;
         }
     }
 

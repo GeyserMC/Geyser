@@ -28,9 +28,9 @@ package org.geysermc.geyser.command.defaults;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.common.ChatColor;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.text.ChatColor;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Collections;
 import java.util.Map;
@@ -56,7 +56,7 @@ public class HelpCommand extends GeyserCommand {
     public void execute(GeyserSession session, CommandSender sender, String[] args) {
         int page = 1;
         int maxPage = 1;
-        String header = LanguageUtils.getPlayerLocaleString("geyser.commands.help.header", sender.getLocale(), page, maxPage);
+        String header = GeyserLocale.getPlayerLocaleString("geyser.commands.help.header", sender.getLocale(), page, maxPage);
         sender.sendMessage(header);
 
         Map<String, GeyserCommand> cmds = geyser.getCommandManager().getCommands();
@@ -70,7 +70,7 @@ public class HelpCommand extends GeyserCommand {
                 }
 
                 sender.sendMessage(ChatColor.YELLOW + "/geyser " + cmdName + ChatColor.WHITE + ": " +
-                        LanguageUtils.getPlayerLocaleString(cmd.getDescription(), sender.getLocale()));
+                        GeyserLocale.getPlayerLocaleString(cmd.getDescription(), sender.getLocale()));
             }
         }
     }

@@ -26,9 +26,9 @@
 package org.geysermc.geyser.entity.factory;
 
 import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.geyser.entity.Entity;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.network.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.UUID;
 

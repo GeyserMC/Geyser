@@ -28,8 +28,8 @@ package org.geysermc.geyser.network;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.common.ping.GeyserPingInfo;
-import org.geysermc.geyser.network.translators.chat.MessageTranslator;
+import org.geysermc.geyser.ping.GeyserPingInfo;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

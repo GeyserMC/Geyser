@@ -27,10 +27,9 @@ package org.geysermc.geyser.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.geysermc.geyser.api.logger.GeyserLogger;
-import org.geysermc.geyser.common.AuthType;
-import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
+import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.network.CIDRMatcher;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.text.GeyserLocale;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -174,9 +173,9 @@ public interface GeyserConfiguration {
 
     static void checkGeyserConfiguration(GeyserConfiguration geyserConfig, GeyserLogger geyserLogger) {
         if (geyserConfig.getConfigVersion() < CURRENT_CONFIG_VERSION) {
-            geyserLogger.warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.config.outdated"));
+            geyserLogger.warning(GeyserLocale.getLocaleStringLog("geyser.bootstrap.config.outdated"));
         } else if (geyserConfig.getConfigVersion() > CURRENT_CONFIG_VERSION) {
-            geyserLogger.warning(LanguageUtils.getLocaleStringLog("geyser.bootstrap.config.too_new"));
+            geyserLogger.warning(GeyserLocale.getLocaleStringLog("geyser.bootstrap.config.too_new"));
         }
     }
 }

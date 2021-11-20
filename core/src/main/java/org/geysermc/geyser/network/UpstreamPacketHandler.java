@@ -32,13 +32,15 @@ import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
 import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.common.AuthType;
+import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.network.translators.PacketTranslatorRegistry;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.pack.ResourcePack;
+import org.geysermc.geyser.pack.ResourcePackManifest;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.utils.*;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.*;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -50,7 +52,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private boolean translateAndDefault(BedrockPacket packet) {
-        return PacketTranslatorRegistry.BEDROCK_TRANSLATOR.translate(packet.getClass(), packet, session);
+        return Registries.BEDROCK_PACKET_TRANSLATORS.translate(packet.getClass(), packet, session);
     }
 
     @Override
@@ -62,7 +64,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     public boolean handle(LoginPacket loginPacket) {
         if (geyser.isShuttingDown()) {
             // Don't allow new players in if we're no longer operating
-            session.disconnect(LanguageUtils.getLocaleStringLog("geyser.core.shutdown.kick.message"));
+            session.disconnect(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.message"));
             return true;
         }
 
@@ -71,12 +73,12 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             String supportedVersions = MinecraftProtocol.getAllSupportedVersions();
             if (loginPacket.getProtocolVersion() > MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
                 // Too early to determine session locale
-                session.getGeyser().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
-                session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
+                session.getGeyser().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
+                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
                 return true;
             } else if (loginPacket.getProtocolVersion() < MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
-                session.getGeyser().getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
-                session.disconnect(LanguageUtils.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
+                session.getGeyser().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
+                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
                 return true;
             }
         }
@@ -105,7 +107,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().getConfig().isForceResourcePacks());
         session.sendUpstreamPacket(resourcePacksInfo);
 
-        LanguageUtils.loadGeyserLocale(session.getLocale());
+        GeyserLocale.loadGeyserLocale(session.getLocale());
         return true;
     }
 
@@ -119,7 +121,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     // We must spawn the white world
                     session.connect();
                 }
-                geyser.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.connect", session.getAuthData().getName()));
+                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.connect", session.getAuthData().getName()));
                 break;
 
             case SEND_PACKS:
@@ -186,7 +188,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             GeyserConfiguration.IUserAuthenticationInfo info = geyser.getConfig().getUserAuths().get(bedrockUsername);
 
             if (info != null) {
-                geyser.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.auth.stored_credentials", session.getAuthData().getName()));
+                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.auth.stored_credentials", session.getAuthData().getName()));
                 session.setMicrosoftAccount(info.isMicrosoftAccount());
                 session.authenticate(info.getEmail(), info.getPassword());
                 return true;
@@ -201,7 +203,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         if (session.isLoggingIn()) {
             SetTitlePacket titlePacket = new SetTitlePacket();
             titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
-            titlePacket.setText(LanguageUtils.getPlayerLocaleString("geyser.auth.login.wait", session.getLocale()));
+            titlePacket.setText(GeyserLocale.getPlayerLocaleString("geyser.auth.login.wait", session.getLocale()));
             titlePacket.setFadeInTime(0);
             titlePacket.setFadeOutTime(1);
             titlePacket.setStayTime(2);

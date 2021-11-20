@@ -28,7 +28,7 @@ package org.geysermc.geyser.platform.velocity;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
-import org.geysermc.geyser.common.serializer.AsteriskSerializer;
+import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 
 import java.util.ArrayList;

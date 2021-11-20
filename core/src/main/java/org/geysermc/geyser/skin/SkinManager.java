@@ -31,11 +31,11 @@ import com.nukkitx.protocol.bedrock.data.skin.ImageData;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.common.AuthType;
-import org.geysermc.geyser.entity.player.PlayerEntity;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.network.session.auth.BedrockClientData;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.auth.BedrockClientData;
+import org.geysermc.geyser.text.GeyserLocale;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -192,7 +192,7 @@ public class SkinManager {
                             session.sendUpstreamPacket(playerRemovePacket);
                         }
                     } catch (Exception e) {
-                        GeyserImpl.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
+                        GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
                     }
 
                     if (skinAndCapeConsumer != null) {
@@ -204,7 +204,7 @@ public class SkinManager {
     public static void handleBedrockSkin(PlayerEntity playerEntity, BedrockClientData clientData) {
         GeyserImpl geyser = GeyserImpl.getInstance();
         if (geyser.getConfig().isDebugMode()) {
-            geyser.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.skin.bedrock.register", playerEntity.getUsername(), playerEntity.getUuid()));
+            geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.skin.bedrock.register", playerEntity.getUsername(), playerEntity.getUuid()));
         }
 
         try {
@@ -218,7 +218,7 @@ public class SkinManager {
                 SkinProvider.storeBedrockSkin(playerEntity.getUuid(), clientData.getSkinId(), skinBytes);
                 SkinProvider.storeBedrockGeometry(playerEntity.getUuid(), geometryNameBytes, geometryBytes);
             } else if (geyser.getConfig().isDebugMode()) {
-                geyser.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.skin.bedrock.fail", playerEntity.getUsername()));
+                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.skin.bedrock.fail", playerEntity.getUsername()));
                 geyser.getLogger().debug("The size of '" + playerEntity.getUsername() + "' skin is: " + clientData.getSkinImageWidth() + "x" + clientData.getSkinImageHeight());
             }
 

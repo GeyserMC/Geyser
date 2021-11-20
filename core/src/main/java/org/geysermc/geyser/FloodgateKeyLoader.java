@@ -26,9 +26,9 @@
 package org.geysermc.geyser;
 
 import org.geysermc.geyser.api.logger.GeyserLogger;
-import org.geysermc.geyser.common.AuthType;
+import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.text.GeyserLocale;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -44,10 +44,10 @@ public class FloodgateKeyLoader {
         if (floodgateDataFolder != null) {
             Path autoKey = floodgateDataFolder.resolve("key.pem");
             if (Files.exists(autoKey)) {
-                logger.info(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.auto_loaded"));
+                logger.info(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.auto_loaded"));
                 return autoKey;
             } else {
-                logger.error(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.missing_key"));
+                logger.error(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.missing_key"));
             }
         }
 
@@ -60,7 +60,7 @@ public class FloodgateKeyLoader {
         }
 
         if (!Files.exists(floodgateKey)) {
-            logger.error(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed"));
+            logger.error(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed"));
         }
 
         return floodgateKey;

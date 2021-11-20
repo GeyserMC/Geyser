@@ -29,6 +29,8 @@ import org.geysermc.geyser.registry.loader.RegistryLoader;
 
 import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * An abstract registry holding a map of various registrations as defined by {@link M}.
@@ -53,6 +55,23 @@ public abstract class AbstractMappedRegistry<K, V, M extends Map<K, V>> extends 
     @Nullable
     public V get(K key) {
         return this.mappings.get(key);
+    }
+
+    /**
+     * Returns & maps the value by the given key if present.
+     *
+     * @param key the key
+     * @param mapper the mapper
+     * @param <U> the type
+     * @return the mapped value from the given key if present
+     */
+    public <U> Optional<U> map(K key, Function<? super V, ? extends U> mapper) {
+        V value = this.get(key);
+        if (value == null) {
+            return Optional.empty();
+        } else {
+            return Optional.ofNullable(mapper.apply(value));
+        }
     }
 
     /**

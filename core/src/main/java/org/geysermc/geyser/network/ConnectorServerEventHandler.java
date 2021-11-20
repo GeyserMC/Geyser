@@ -34,12 +34,12 @@ import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.common.ping.GeyserPingInfo;
+import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.network.translators.chat.MessageTranslator;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.text.GeyserLocale;
 
 import javax.annotation.Nonnull;
 import java.net.InetSocketAddress;
@@ -82,14 +82,14 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             }
         }
 
-        geyser.getLogger().info(LanguageUtils.getLocaleStringLog("geyser.network.attempt_connect", inetSocketAddress));
+        geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", inetSocketAddress));
         return true;
     }
 
     @Override
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
         if (geyser.getConfig().isDebugMode()) {
-            geyser.getLogger().debug(LanguageUtils.getLocaleStringLog("geyser.network.pinged", inetSocketAddress));
+            geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.pinged", inetSocketAddress));
         }
 
         GeyserConfiguration config = geyser.getConfig();

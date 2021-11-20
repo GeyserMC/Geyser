@@ -33,10 +33,10 @@ import com.nukkitx.protocol.bedrock.packet.SetScorePacket;
 import lombok.Getter;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.logger.GeyserLogger;
-import org.geysermc.geyser.entity.Entity;
-import org.geysermc.geyser.entity.player.PlayerEntity;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.utils.LanguageUtils;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -125,7 +125,7 @@ public final class Scoreboard {
     public Team registerNewTeam(String teamName, String[] players) {
         Team team = teams.get(teamName);
         if (team != null) {
-            logger.info(LanguageUtils.getLocaleStringLog("geyser.network.translator.team.failed_overrides", teamName));
+            logger.info(GeyserLocale.getLocaleStringLog("geyser.network.translator.team.failed_overrides", teamName));
             return team;
         }
 

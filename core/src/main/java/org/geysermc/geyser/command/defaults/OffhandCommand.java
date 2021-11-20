@@ -31,8 +31,8 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.Server
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.utils.BlockUtils;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.BlockUtils;
 
 public class OffhandCommand extends GeyserCommand {
 

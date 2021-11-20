@@ -30,7 +30,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.utils.FileUtils;
+import org.geysermc.geyser.util.FileUtils;
 
 import java.io.IOException;
 import java.io.InputStream;

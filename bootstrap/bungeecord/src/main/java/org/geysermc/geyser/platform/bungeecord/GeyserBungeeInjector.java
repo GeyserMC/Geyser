@@ -40,10 +40,10 @@ import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.netty.PipelineUtils;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.bootstrap.GeyserBootstrap;
-import org.geysermc.geyser.common.connection.GeyserInjector;
-import org.geysermc.geyser.common.connection.LocalServerChannelWrapper;
-import org.geysermc.geyser.common.connection.LocalSession;
+import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.network.netty.GeyserInjector;
+import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
+import org.geysermc.geyser.network.netty.LocalSession;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
