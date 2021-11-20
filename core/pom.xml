@@ -8,7 +8,7 @@
         <artifactId>geyser-parent</artifactId>
         <version>1.4.3-SNAPSHOT</version>
     </parent>
-    <artifactId>connector</artifactId>
+    <artifactId>core</artifactId>
 
     <properties>
         <adventure.version>4.9.3</adventure.version>

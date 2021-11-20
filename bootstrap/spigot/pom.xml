@@ -20,7 +20,7 @@
     <dependencies>
         <dependency>
             <groupId>org.geysermc</groupId>
-            <artifactId>connector</artifactId>
+            <artifactId>core</artifactId>
             <version>1.4.3-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
