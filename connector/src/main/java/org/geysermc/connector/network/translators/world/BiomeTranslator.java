@@ -37,8 +37,6 @@ import org.geysermc.connector.network.translators.world.chunk.bitarray.Singleton
 import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.utils.MathUtils;
 
-import java.util.Arrays;
-
 // Based off of ProtocolSupport's LegacyBiomeData.java:
 // https://github.com/ProtocolSupport/ProtocolSupport/blob/b2cad35977f3fcb65bee57b9e14fc9c975f71d32/src/protocolsupport/protocol/typeremapper/legacy/LegacyBiomeData.java
 // Array index formula by https://wiki.vg/Chunk_Format
@@ -82,26 +80,6 @@ public class BiomeTranslator {
                 biomeTranslations.defaultReturnValue(bedrockId);
             }
         }
-    }
-
-    public static byte[] toBedrockBiome(GeyserSession session, int[] biomeData) {
-        byte[] bedrockData = new byte[256];
-        if (biomeData == null) {
-            return bedrockData;
-        }
-        Int2IntMap biomeTranslations = session.getBiomeTranslations();
-
-        for (int y = 0; y < 16; y += 4) {
-            for (int z = 0; z < 16; z += 4) {
-                for (int x = 0; x < 16; x += 4) {
-                    int javaId = biomeData[((y >> 2) & 63) << 4 | ((z >> 2) & 3) << 2 | ((x >> 2) & 3)];
-                    byte biomeId = (byte) biomeTranslations.getOrDefault(javaId, javaId);
-                    int offset = ((z + (y / 4)) << 4) | x;
-                    Arrays.fill(bedrockData, offset, offset + 4, biomeId);
-                }
-            }
-        }
-        return bedrockData;
     }
 
     public static BlockStorage toNewBedrockBiome(GeyserSession session, DataPalette biomeData) {
