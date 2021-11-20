@@ -252,6 +252,7 @@ public final class EntityDefinitions {
                     .identifier("minecraft:fireworks_rocket")
                     .addTranslator(MetadataType.ITEM, FireworkEntity::setFireworkItem)
                     .addTranslator(MetadataType.OPTIONAL_VARINT, FireworkEntity::setPlayerGliding)
+                    .addTranslator(null) // Shot at angle
                     .build();
             FISHING_BOBBER = EntityDefinition.<FishingHookEntity>inherited(null, entityBase)
                     .type(EntityType.FISHING_BOBBER)
