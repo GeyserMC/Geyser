@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.protocol.data.game.level.particle.ParticleType;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.registry.type.ParticleMapping;
 
 import java.util.Iterator;
@@ -49,9 +50,14 @@ public class ParticleTypesRegistryLoader extends EffectRegistryLoader<Map<Partic
         try {
             while (particlesIterator.hasNext()) {
                 Map.Entry<String, JsonNode> entry = particlesIterator.next();
+                String key = entry.getKey().toUpperCase(Locale.ROOT);
                 JsonNode bedrockId = entry.getValue().get("bedrockId");
                 JsonNode eventType = entry.getValue().get("eventType");
-                particles.put(ParticleType.valueOf(entry.getKey().toUpperCase(Locale.ROOT)), new ParticleMapping(
+                if (eventType == null && bedrockId == null) {
+                    GeyserConnector.getInstance().getLogger().debug("Skipping particle mapping " + key + " because no Bedrock equivalent exists.");
+                    continue;
+                }
+                particles.put(ParticleType.valueOf(key), new ParticleMapping(
                         eventType == null ? null : LevelEventType.valueOf(eventType.asText().toUpperCase(Locale.ROOT)),
                         bedrockId == null ? null : bedrockId.asText())
                 );

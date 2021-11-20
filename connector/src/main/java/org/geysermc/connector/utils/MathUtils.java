@@ -105,4 +105,11 @@ public class MathUtils {
     public static long chunkPositionToLong(int x, int z) {
         return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
     }
+
+    /**
+     * @return the bits per entry used when this number is the maximum amount of entries.
+     */
+    public static int getGlobalPaletteForSize(int size) {
+        return 32 - Integer.numberOfLeadingZeros(size - 1);
+    }
 }

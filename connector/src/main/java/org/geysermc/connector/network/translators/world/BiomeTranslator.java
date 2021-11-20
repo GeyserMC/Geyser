@@ -35,6 +35,7 @@ import org.geysermc.connector.network.translators.world.chunk.BlockStorage;
 import org.geysermc.connector.network.translators.world.chunk.GeyserChunkSection;
 import org.geysermc.connector.network.translators.world.chunk.bitarray.SingletonBitArray;
 import org.geysermc.connector.registry.Registries;
+import org.geysermc.connector.utils.MathUtils;
 
 import java.util.Arrays;
 
@@ -49,6 +50,7 @@ public class BiomeTranslator {
 
         CompoundTag worldGen = codec.get("minecraft:worldgen/biome");
         ListTag serverBiomes = worldGen.get("value");
+        session.setBiomeGlobalPalette(MathUtils.getGlobalPaletteForSize(serverBiomes.size()));
 
         for (Tag tag : serverBiomes) {
             CompoundTag biomeTag = (CompoundTag) tag;

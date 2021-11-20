@@ -205,6 +205,11 @@ public class GeyserSession implements CommandSender {
     private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = new Long2ObjectOpenHashMap<>();
 
     /**
+     * Required to decode biomes correctly.
+     */
+    @Setter
+    private int biomeGlobalPalette;
+    /**
      * Stores the map between Java and Bedrock biome network IDs.
      */
     private final Int2IntMap biomeTranslations = new Int2IntOpenHashMap();

@@ -85,6 +85,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         // Ensure that, if the player is using lower world heights, the position is not offset
         int yOffset = session.getChunkCache().getChunkMinY();
         int chunkSize = session.getChunkCache().getChunkHeightY();
+        int biomeGlobalPalette = session.getBiomeGlobalPalette();
 
         // Temporarily stores compound tags of Bedrock-only block entities
         List<NbtMap> bedrockOnlyBlockEntities = new ArrayList<>();
@@ -105,7 +106,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         try {
             NetInput in = new StreamNetInput(new ByteArrayInputStream(packet.getChunkData()));
             for (int sectionY = 0; sectionY < chunkSize; sectionY++) {
-                ChunkSection javaSection = ChunkSection.read(in);
+                ChunkSection javaSection = ChunkSection.read(in, biomeGlobalPalette);
                 javaChunks[sectionY] = javaSection.getChunkData();
                 javaBiomes[sectionY] = javaSection.getBiomeData();
 
@@ -266,7 +267,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 bedrockBlockEntities[blockEntityCount] = blockEntityTranslator.getBlockEntityTag(type, x + chunkBlockX, y, z + chunkBlockZ, tag, blockState);
 
                 // Check for custom skulls
-                if (session.getPreferencesCache().showCustomSkulls() && tag != null && tag.contains("SkullOwner")) {
+                if (session.getPreferencesCache().showCustomSkulls() && type == BlockEntityType.SKULL && tag != null && tag.contains("SkullOwner")) {
                     SkullBlockEntityTranslator.spawnPlayer(session, tag, x + chunkBlockX, y, z + chunkBlockZ, blockState);
                 }
                 blockEntityCount++;

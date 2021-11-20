@@ -695,6 +695,7 @@ public final class EntityDefinitions {
                     .type(EntityType.WITCH)
                     .height(1.8f).width(0.6f)
                     .offset(1.62f)
+                    .addTranslator(null) // Using item
                     .build();
         }
 
@@ -792,8 +793,12 @@ public final class EntityDefinitions {
             TURTLE = EntityDefinition.inherited(TurtleEntity::new, ageableEntityBase)
                     .type(EntityType.TURTLE)
                     .height(0.4f).width(1.2f)
+                    .addTranslator(null) // Home position
                     .addTranslator(MetadataType.BOOLEAN, TurtleEntity::setPregnant)
                     .addTranslator(MetadataType.BOOLEAN, TurtleEntity::setLayingEgg)
+                    .addTranslator(null) // Travel position
+                    .addTranslator(null) // Going home
+                    .addTranslator(null) // Travelling
                     .build();
 
             EntityDefinition<AbstractMerchantEntity> abstractVillagerEntityBase = EntityDefinition.inherited(AbstractMerchantEntity::new, ageableEntityBase)
