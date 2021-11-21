@@ -47,6 +47,7 @@ public class StoredItemMappings {
     private final ItemMapping lodestoneCompass;
     private final ItemMapping milkBucket;
     private final ItemMapping powderSnowBucket;
+    private final ItemMapping playerHead;
     private final ItemMapping egg;
     private final ItemMapping shield;
     private final ItemMapping wheat;
@@ -62,6 +63,7 @@ public class StoredItemMappings {
         this.lodestoneCompass = load(itemMappings, "lodestone_compass");
         this.milkBucket = load(itemMappings, "milk_bucket");
         this.powderSnowBucket = load(itemMappings, "powder_snow_bucket");
+        this.playerHead = load(itemMappings, "player_head");
         this.egg = load(itemMappings, "egg");
         this.shield = load(itemMappings, "shield");
         this.wheat = load(itemMappings, "wheat");

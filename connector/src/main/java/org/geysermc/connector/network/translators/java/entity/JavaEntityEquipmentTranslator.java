@@ -26,6 +26,7 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Equipment;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityEquipmentPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
@@ -66,17 +67,18 @@ public class JavaEntityEquipmentTranslator extends PacketTranslator<ServerEntity
             ItemData item = ItemTranslator.translateToBedrock(session, equipment.getItem());
             switch (equipment.getSlot()) {
                 case HELMET -> {
+                    ItemStack javaItem = equipment.getItem();
                     if (livingEntity instanceof PlayerEntity
-                            && session.getItemMappings().getMapping(item).getJavaIdentifier().equals("minecraft:player_head")
-                            && equipment.getItem().getNbt() != null
-                            && equipment.getItem().getNbt().get("SkullOwner") instanceof CompoundTag profile) {
+                            && javaItem != null
+                            && javaItem.getId() == session.getItemMappings().getStoredItems().playerHead().getJavaId()
+                            && javaItem.getNbt() != null
+                            && javaItem.getNbt().get("SkullOwner") instanceof CompoundTag profile) {
                         FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, profile);
-                        livingEntity.setHelmet(ItemData.AIR);
                     } else {
                         FakeHeadProvider.restoreOriginalSkin(session, livingEntity);
-                        livingEntity.setHelmet(item);
                     }
 
+                    livingEntity.setHelmet(item);
                     armorUpdated = true;
                 }
                 case CHESTPLATE -> {

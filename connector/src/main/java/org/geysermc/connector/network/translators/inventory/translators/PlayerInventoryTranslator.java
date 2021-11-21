@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.window.WindowType;
 import com.github.steveice10.mc.protocol.packet.ingame.client.window.ClientCreativeInventoryActionPacket;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.inventory.*;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.*;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
@@ -44,6 +45,7 @@ import org.geysermc.connector.network.translators.inventory.BedrockContainerSlot
 import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.network.translators.inventory.SlotType;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.skin.FakeHeadProvider;
 import org.geysermc.connector.utils.InventoryUtils;
 import org.geysermc.connector.utils.LanguageUtils;
 
@@ -117,6 +119,20 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
 
     @Override
     public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
+        GeyserItemStack javaItem = inventory.getItem(slot);
+        ItemData bedrockItem = javaItem.getItemData(session);
+
+        if (slot == 5) {
+            // Check for custom skull
+            if (javaItem.getJavaId() == session.getItemMappings().getStoredItems().playerHead().getJavaId()
+                    && javaItem.getNbt() != null
+                    && javaItem.getNbt().get("SkullOwner") instanceof CompoundTag profile) {
+                FakeHeadProvider.setHead(session, session.getPlayerEntity(), profile);
+            } else {
+                FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
+            }
+        }
+
         if (slot >= 1 && slot <= 44) {
             InventorySlotPacket slotPacket = new InventorySlotPacket();
             if (slot >= 9) {
@@ -133,12 +149,12 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                 slotPacket.setContainerId(ContainerId.UI);
                 slotPacket.setSlot(slot + 27);
             }
-            slotPacket.setItem(inventory.getItem(slot).getItemData(session));
+            slotPacket.setItem(bedrockItem);
             session.sendUpstreamPacket(slotPacket);
         } else if (slot == 45) {
             InventoryContentPacket offhandPacket = new InventoryContentPacket();
             offhandPacket.setContainerId(ContainerId.OFFHAND);
-            offhandPacket.setContents(Collections.singletonList(inventory.getItem(slot).getItemData(session)));
+            offhandPacket.setContents(Collections.singletonList(bedrockItem));
             session.sendUpstreamPacket(offhandPacket);
         }
     }

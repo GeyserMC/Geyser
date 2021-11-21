@@ -27,9 +27,6 @@ package org.geysermc.connector.skin;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -37,19 +34,17 @@ import com.nukkitx.protocol.bedrock.data.skin.ImageData;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerSkinPacket;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
 
+import javax.annotation.Nonnull;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.List;
-import java.util.*;
+import java.util.Collections;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -57,33 +52,25 @@ import java.util.concurrent.TimeUnit;
  * Responsible for modifying a player's skin when wearing a player head
  */
 public class FakeHeadProvider {
-
-    private static final LoadingCache<FakeHeadEntry, SkinProvider.SkinData> mergedSkinsLoadingCache = CacheBuilder.newBuilder().expireAfterAccess(1, TimeUnit.HOURS).maximumSize(10000)
+    private static final LoadingCache<FakeHeadEntry, SkinProvider.SkinData> MERGED_SKINS_LOADING_CACHE = CacheBuilder.newBuilder()
+            .expireAfterAccess(1, TimeUnit.HOURS)
+            .maximumSize(10000)
             .build(new CacheLoader<>() {
                 @Override
-                public SkinProvider.SkinData load(FakeHeadEntry fakeHeadEntry) throws Exception {
-                    if (fakeHeadEntry.getEntity() == null) {
-                        throw new NullPointerException("Entity is null");
-                    }
-
-                    SkinProvider.SkinData skinData = SkinProvider.getOrDefault(SkinProvider.requestSkinData(fakeHeadEntry.getEntity()), null, 5);
+                public SkinProvider.SkinData load(@Nonnull FakeHeadEntry fakeHeadEntry) throws Exception {
+                    SkinProvider.SkinData skinData = SkinProvider.getOrDefault(SkinProvider.requestSkinData(fakeHeadEntry.entity()), null, 5);
 
                     if (skinData == null) {
                         throw new Exception("Couldn't load player's original skin");
                     }
 
-                    if (skinData.geometry() == null) {
-                        throw new Exception("Couldn't load player's original geometry");
-                    }
-
                     SkinProvider.Skin skin = skinData.skin();
                     SkinProvider.Cape cape = skinData.cape();
-                    SkinProvider.SkinGeometry geometry = skinData.geometry();
-
-                    String skinKey = fakeHeadEntry.getFakeHeadSkinUrl() + "_" + fakeHeadEntry.getEntity().getUuid();
+                    SkinProvider.SkinGeometry geometry = skinData.geometry().getGeometryName().equals("{\"geometry\" :{\"default\" :\"geometry.humanoid.customSlim\"}}")
+                            ? SkinProvider.WEARING_CUSTOM_SKULL_SLIM : SkinProvider.WEARING_CUSTOM_SKULL;
 
                     SkinProvider.Skin headSkin = SkinProvider.getOrDefault(
-                            SkinProvider.requestSkin(fakeHeadEntry.getEntity().getUuid(), fakeHeadEntry.getFakeHeadSkinUrl(), false), SkinProvider.EMPTY_SKIN, 5);
+                            SkinProvider.requestSkin(fakeHeadEntry.entity().getUuid(), fakeHeadEntry.fakeHeadSkinUrl(), false), SkinProvider.EMPTY_SKIN, 5);
                     BufferedImage originalSkinImage = SkinProvider.imageDataToBufferedImage(skin.getSkinData(), 64, skin.getSkinData().length / 4 / 64);
                     BufferedImage headSkinImage = SkinProvider.imageDataToBufferedImage(headSkin.getSkinData(), 64, headSkin.getSkinData().length / 4 / 64);
 
@@ -94,22 +81,30 @@ public class FakeHeadProvider {
                     graphics2D.drawImage(headSkinImage, 0, 0, 64, 16, 0, 0, 64, 16, null);
                     graphics2D.dispose();
 
+                    // Make the skin key a combination of the current skin data and the new skin data
+                    // Don't tie it to a player - that player *can* change skins in-game
+                    String skinKey = "customPlayerHead_" + fakeHeadEntry.fakeHeadSkinUrl() + "_" + skin.getTextureUrl();
                     byte[] targetSkinData = SkinProvider.bufferedImageToImageData(originalSkinImage);
-                    SkinProvider.Skin mergedSkin = new SkinProvider.Skin(fakeHeadEntry.getEntity().getUuid(), skinKey, targetSkinData, System.currentTimeMillis(), false, false);
+                    SkinProvider.Skin mergedSkin = new SkinProvider.Skin(fakeHeadEntry.entity().getUuid(), skinKey, targetSkinData, System.currentTimeMillis(), false, false);
 
                     return new SkinProvider.SkinData(mergedSkin, cape, geometry);
                 }
             });
 
     public static void setHead(GeyserSession session, PlayerEntity entity, CompoundTag profileTag) {
-        session.getFakeHeadCache().addFakeHeadPlayer(entity.getUuid());
+        SkinManager.GameProfileData gameProfileData = SkinManager.GameProfileData.from(profileTag);
+        if (gameProfileData == null) {
+            return;
+        }
+        String fakeHeadSkinUrl = gameProfileData.skinUrl();
 
-        GameProfile gameProfile = getProfileByTag(profileTag);
-        String fakeHeadSkinUrl = SkinManager.GameProfileData.from(gameProfile).skinUrl();
+        session.getPlayerWithCustomHeads().add(entity.getUuid());
+
+        GameProfile.Property texturesProperty = entity.getProfile().getProperty("textures");
 
         SkinProvider.EXECUTOR_SERVICE.execute(() -> {
             try {
-                SkinProvider.SkinData mergedSkinData = mergedSkinsLoadingCache.get(new FakeHeadEntry(entity.getUuid(), fakeHeadSkinUrl, entity));
+                SkinProvider.SkinData mergedSkinData = MERGED_SKINS_LOADING_CACHE.get(new FakeHeadEntry(texturesProperty, fakeHeadSkinUrl, entity));
 
                 if (session.getUpstream().isInitialized()) {
                     sendSkinPacket(session, entity, mergedSkinData);
@@ -125,11 +120,9 @@ public class FakeHeadProvider {
             return;
         }
 
-        if (!session.getFakeHeadCache().getPlayersWithFakeHeads().contains(entity.getUuid())) {
+        if (!session.getPlayerWithCustomHeads().remove(entity.getUuid())) {
             return;
         }
-
-        session.getFakeHeadCache().removeEntity(entity);
 
         SkinProvider.requestSkinData(entity).whenCompleteAsync((skinData, throwable) -> {
             if (throwable != null) {
@@ -183,58 +176,30 @@ public class FakeHeadProvider {
                 "", true, false, false, cape.getCapeId(), skinId);
     }
 
-    private static GameProfile getProfileByTag(CompoundTag profileTag) {
-        GameProfile gameProfile = new GameProfile(UUID.randomUUID(), profileTag.contains("Name")
-                ? ((StringTag) profileTag.get("Name")).getValue()
-                : UUID.randomUUID().toString().substring(0, 16).replace("-", ""));
-
-        if (profileTag.contains("Properties")) {
-            List<GameProfile.Property> properties = new ArrayList<>();
-            CompoundTag propertiesTag = profileTag.get("Properties");
-
-            for (String key : propertiesTag.keySet()) {
-                ListTag propertyArrayTag = propertiesTag.get(key);
-
-                for (Tag tag : propertyArrayTag) {
-                    if (tag instanceof CompoundTag) {
-                        CompoundTag propertyTag = (CompoundTag) tag;
-
-                        if (propertyTag.contains("Signature")) {
-                            properties.add(new GameProfile.Property(key,
-                                    ((StringTag) propertyTag.get("Value")).getValue(),
-                                    ((StringTag) propertyTag.get("Signature")).getValue()));
-                        } else {
-                            properties.add(new GameProfile.Property(key, ((StringTag) propertyTag.get("Value")).getValue()));
-                        }
-                    }
-                }
-            }
-
-            gameProfile.setProperties(properties);
-        }
-
-        return gameProfile;
-    }
-
-    @AllArgsConstructor
-    @Getter
-    @Setter
-    public static class FakeHeadEntry {
-        private final UUID uuid;
-        private final String fakeHeadSkinUrl;
-        private PlayerEntity entity;
-
+    private static record FakeHeadEntry(GameProfile.Property texturesProperty, String fakeHeadSkinUrl, PlayerEntity entity) {
         @Override
         public boolean equals(Object o) {
+            // We don't care about the equality of the entity as that is not used for caching purposes
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             FakeHeadEntry that = (FakeHeadEntry) o;
-            return Objects.equals(uuid, that.uuid) && Objects.equals(fakeHeadSkinUrl, that.fakeHeadSkinUrl);
+            return equals(texturesProperty, that.texturesProperty) && Objects.equals(fakeHeadSkinUrl, that.fakeHeadSkinUrl);
+        }
+
+        private boolean equals(GameProfile.Property a, GameProfile.Property b) {
+            //TODO actually fix this in MCAuthLib
+            if (a == b) {
+                return true;
+            }
+            if (a == null || b == null) {
+                return false;
+            }
+            return Objects.equals(a.getName(), b.getName()) && Objects.equals(a.getValue(), b.getValue()) && Objects.equals(a.getSignature(), b.getSignature());
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(uuid, fakeHeadSkinUrl);
+            return Objects.hash(texturesProperty, fakeHeadSkinUrl);
         }
     }
 

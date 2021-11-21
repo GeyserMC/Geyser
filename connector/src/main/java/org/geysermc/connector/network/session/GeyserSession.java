@@ -94,7 +94,6 @@ import org.geysermc.connector.network.translators.inventory.InventoryTranslator;
 import org.geysermc.connector.registry.Registries;
 import org.geysermc.connector.registry.type.BlockMappings;
 import org.geysermc.connector.registry.type.ItemMappings;
-import org.geysermc.connector.skin.FakeHeadCache;
 import org.geysermc.connector.skin.FloodgateSkinUploader;
 import org.geysermc.connector.utils.*;
 import org.geysermc.cumulus.Form;
@@ -155,7 +154,6 @@ public class GeyserSession implements CommandSender {
     private final PreferencesCache preferencesCache;
     private final TagCache tagCache;
     private final WorldCache worldCache;
-    private final FakeHeadCache fakeHeadCache;
 
     private final Int2ObjectMap<TeleportCache> teleportMap = new Int2ObjectOpenHashMap<>();
 
@@ -166,6 +164,7 @@ public class GeyserSession implements CommandSender {
     private boolean isInWorldBorderWarningArea = false;
 
     private final PlayerInventory playerInventory;
+    @Setter
     private Inventory openInventory;
     @Setter
     private boolean closingInventory;
@@ -219,6 +218,12 @@ public class GeyserSession implements CommandSender {
      * for more information.
      */
     private final Set<Vector3i> lecternCache;
+
+    /**
+     * A list of all players that have a player head on with a custom texture.
+     * Our workaround for these players is to give them a custom skin and geometry to emulate wearing a custom skull.
+     */
+    private final Set<UUID> playerWithCustomHeads = new ObjectOpenHashSet<>();
 
     @Setter
     private boolean droppingLecternBook;
@@ -461,7 +466,6 @@ public class GeyserSession implements CommandSender {
         this.preferencesCache = new PreferencesCache(this);
         this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
-        this.fakeHeadCache = new FakeHeadCache(this);
 
         this.worldBorder = new WorldBorder(this);
 
@@ -1456,17 +1460,6 @@ public class GeyserSession implements CommandSender {
             emoteList.setRuntimeEntityId(player.getPlayerEntity().getGeyserId());
             emoteList.getPieceIds().addAll(pieces);
             player.sendUpstreamPacket(emoteList);
-        }
-    }
-
-    public void setOpenInventory(Inventory openInventory) {
-        Inventory prevInventory = this.openInventory;
-        this.openInventory = openInventory;
-
-        if(prevInventory == getPlayerInventory() && openInventory != getPlayerInventory()) {
-            this.fakeHeadCache.onPlayerInventoryClose();
-        } else if(prevInventory != getPlayerInventory() && openInventory == getPlayerInventory()) {
-            this.fakeHeadCache.onPlayerInventoryOpen();
         }
     }
 }

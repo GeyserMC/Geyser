@@ -27,6 +27,9 @@ package org.geysermc.connector.skin;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.auth.data.GameProfile;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.ListTag;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.protocol.bedrock.data.skin.ImageData;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
@@ -37,6 +40,8 @@ import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.session.auth.BedrockClientData;
 import org.geysermc.connector.utils.LanguageUtils;
 
+import javax.annotation.Nullable;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
@@ -193,6 +198,37 @@ public class SkinManager {
 
     public record GameProfileData(String skinUrl, String capeUrl, boolean isAlex) {
         /**
+         * Generate the GameProfileData from the given CompoundTag representing a GameProfile
+         *
+         * @param tag tag to build the GameProfileData from
+         * @return The built GameProfileData, or null if this wasn't a valid tag
+         */
+        public static @Nullable GameProfileData from(CompoundTag tag) {
+            if (!(tag.get("Properties") instanceof CompoundTag propertiesTag)) {
+                return null;
+            }
+            if (!(propertiesTag.get("textures") instanceof ListTag texturesTag) || texturesTag.size() == 0) {
+                return null;
+            }
+            if (!(texturesTag.get(0) instanceof CompoundTag texturesData)) {
+                return null;
+            }
+            if (!(texturesData.get("Value") instanceof StringTag skinDataValue)) {
+                return null;
+            }
+
+            try {
+                return loadFromJson(skinDataValue.getValue());
+            } catch (IOException e) {
+                GeyserConnector.getInstance().getLogger().debug("Something went wrong while processing skin for tag " + tag);
+                if (GeyserConnector.getInstance().getConfig().isDebugMode()) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }
+
+        /**
          * Generate the GameProfileData from the given GameProfile
          *
          * @param profile GameProfile to build the GameProfileData from
@@ -206,28 +242,32 @@ public class SkinManager {
                     // Likely offline mode
                     return loadBedrockOrOfflineSkin(profile);
                 }
-                JsonNode skinObject = GeyserConnector.JSON_MAPPER.readTree(new String(Base64.getDecoder().decode(skinProperty.getValue()), StandardCharsets.UTF_8));
-                JsonNode textures = skinObject.get("textures");
-
-                JsonNode skinTexture = textures.get("SKIN");
-                String skinUrl = skinTexture.get("url").asText().replace("http://", "https://");
-
-                boolean isAlex = skinTexture.has("metadata");
-
-                String capeUrl = null;
-                if (textures.has("CAPE")) {
-                    JsonNode capeTexture = textures.get("CAPE");
-                    capeUrl = capeTexture.get("url").asText().replace("http://", "https://");
-                }
-
-                return new GameProfileData(skinUrl, capeUrl, isAlex);
-            } catch (Exception exception) {
+                return loadFromJson(skinProperty.getValue());
+            } catch (IOException exception) {
                 GeyserConnector.getInstance().getLogger().debug("Something went wrong while processing skin for " + profile.getName());
                 if (GeyserConnector.getInstance().getConfig().isDebugMode()) {
                     exception.printStackTrace();
                 }
                 return loadBedrockOrOfflineSkin(profile);
             }
+        }
+
+        private static GameProfileData loadFromJson(String encodedJson) throws IOException {
+            JsonNode skinObject = GeyserConnector.JSON_MAPPER.readTree(new String(Base64.getDecoder().decode(encodedJson), StandardCharsets.UTF_8));
+            JsonNode textures = skinObject.get("textures");
+
+            JsonNode skinTexture = textures.get("SKIN");
+            String skinUrl = skinTexture.get("url").asText().replace("http://", "https://");
+
+            boolean isAlex = skinTexture.has("metadata");
+
+            String capeUrl = null;
+            JsonNode capeTexture = textures.get("CAPE");
+            if (capeTexture != null) {
+                capeUrl = capeTexture.get("url").asText().replace("http://", "https://");
+            }
+
+            return new GameProfileData(skinUrl, capeUrl, isAlex);
         }
 
         /**
