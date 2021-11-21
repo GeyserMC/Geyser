@@ -36,7 +36,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
 
 import java.util.List;
@@ -66,7 +66,7 @@ public class GeyserSpigot1_12WorldManager extends GeyserSpigotWorldManager {
     }
 
     @Override
-    public int getBlockAt(GeyserSession session, int x, int y, int z) {
+    public int getBlockAt(GeyserSessionImpl session, int x, int y, int z) {
         Player player = Bukkit.getPlayer(session.getPlayerEntity().getUsername());
         if (player == null) {
             return BlockStateValues.JAVA_AIR_ID;

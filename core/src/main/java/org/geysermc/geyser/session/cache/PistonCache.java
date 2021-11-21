@@ -34,7 +34,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.translator.level.block.entity.PistonBlockEntity;
 import org.geysermc.geyser.level.physics.Axis;
@@ -44,7 +44,7 @@ import java.util.Map;
 @Getter
 public class PistonCache {
     @Getter(AccessLevel.PRIVATE)
-    private final GeyserSession session;
+    private final GeyserSessionImpl session;
 
     /**
      * Maps the position of a piston to its block entity
@@ -84,7 +84,7 @@ public class PistonCache {
     @Setter
     private boolean playerAttachedToHoney = false;
 
-    public PistonCache(GeyserSession session) {
+    public PistonCache(GeyserSessionImpl session) {
         this.session = session;
     }
 

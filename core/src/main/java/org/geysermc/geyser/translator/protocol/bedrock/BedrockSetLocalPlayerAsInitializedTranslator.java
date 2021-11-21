@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 
 import com.nukkitx.protocol.bedrock.packet.SetLocalPlayerAsInitializedPacket;
 import org.geysermc.geyser.session.auth.AuthType;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
@@ -35,7 +35,7 @@ import org.geysermc.geyser.util.LoginEncryptionUtils;
 @Translator(packet = SetLocalPlayerAsInitializedPacket.class)
 public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslator<SetLocalPlayerAsInitializedPacket> {
     @Override
-    public void translate(GeyserSession session, SetLocalPlayerAsInitializedPacket packet) {
+    public void translate(GeyserSessionImpl session, SetLocalPlayerAsInitializedPacket packet) {
         if (session.getPlayerEntity().getGeyserId() == packet.getRuntimeEntityId()) {
             if (!session.getUpstream().isInitialized()) {
                 session.getUpstream().setInitialized(true);

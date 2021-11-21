@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.java;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundChatPacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -36,11 +36,11 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 public class JavaChatTranslator extends PacketTranslator<ClientboundChatPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundChatPacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundChatPacket packet) {
         TextPacket textPacket = new TextPacket();
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");
-        textPacket.setXuid(session.getAuthData().getXuid());
+        textPacket.setXuid(session.getAuthData().xuid());
         textPacket.setType(switch (packet.getType()) {
             case CHAT -> TextPacket.Type.CHAT;
             case SYSTEM -> TextPacket.Type.SYSTEM;

@@ -30,13 +30,13 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 
 import java.util.UUID;
 
 public class PiglinEntity extends BasePiglinEntity {
 
-    public PiglinEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public PiglinEntity(GeyserSessionImpl session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
@@ -55,7 +55,7 @@ public class PiglinEntity extends BasePiglinEntity {
     }
 
     @Override
-    public void updateOffHand(GeyserSession session) {
+    public void updateOffHand(GeyserSessionImpl session) {
         // Check if the Piglin is holding Gold and set the ADMIRING flag accordingly so its pose updates
         setFlag(EntityFlag.ADMIRING, session.getTagCache().shouldPiglinAdmire(session.getItemMappings().getMapping(this.offHand)));
         super.updateBedrockMetadata();

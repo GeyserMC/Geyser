@@ -39,7 +39,7 @@ import com.nukkitx.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.cumulus.CustomForm;
@@ -115,7 +115,7 @@ public class LoginEncryptionUtils {
         return mojangSigned;
     }
 
-    public static void encryptPlayerConnection(GeyserSession session, LoginPacket loginPacket) {
+    public static void encryptPlayerConnection(GeyserSessionImpl session, LoginPacket loginPacket) {
         JsonNode certData;
         try {
             certData = JSON_MAPPER.readTree(loginPacket.getChainData().toByteArray());
@@ -131,7 +131,7 @@ public class LoginEncryptionUtils {
         encryptConnectionWithCert(session, loginPacket.getSkinData().toString(), certChainData);
     }
 
-    private static void encryptConnectionWithCert(GeyserSession session, String clientData, JsonNode certChainData) {
+    private static void encryptConnectionWithCert(GeyserSessionImpl session, String clientData, JsonNode certChainData) {
         try {
             GeyserImpl geyser = session.getGeyser();
 
@@ -190,7 +190,7 @@ public class LoginEncryptionUtils {
         }
     }
 
-    private static void startEncryptionHandshake(GeyserSession session, PublicKey key) throws Exception {
+    private static void startEncryptionHandshake(GeyserSessionImpl session, PublicKey key) throws Exception {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("EC");
         generator.initialize(new ECGenParameterSpec("secp384r1"));
         KeyPair serverKeyPair = generator.generateKeyPair();
@@ -212,7 +212,7 @@ public class LoginEncryptionUtils {
         }
     }
 
-    public static void buildAndShowLoginWindow(GeyserSession session) {
+    public static void buildAndShowLoginWindow(GeyserSessionImpl session) {
         // Set DoDaylightCycle to false so the time doesn't accelerate while we're here
         session.setDaylightCycle(false);
 
@@ -256,7 +256,7 @@ public class LoginEncryptionUtils {
                         }));
     }
 
-    public static void buildAndShowLoginDetailsWindow(GeyserSession session) {
+    public static void buildAndShowLoginDetailsWindow(GeyserSessionImpl session) {
         session.sendForm(
                 CustomForm.builder()
                         .translator(GeyserLocale::getPlayerLocaleString, session.getLocale())
@@ -278,7 +278,7 @@ public class LoginEncryptionUtils {
     /**
      * Prompts the user between either OAuth code login or manual password authentication
      */
-    public static void buildAndShowMicrosoftAuthenticationWindow(GeyserSession session) {
+    public static void buildAndShowMicrosoftAuthenticationWindow(GeyserSessionImpl session) {
         session.sendForm(
                 SimpleForm.builder()
                         .translator(GeyserLocale::getPlayerLocaleString, session.getLocale())
@@ -306,7 +306,7 @@ public class LoginEncryptionUtils {
     /**
      * Shows the code that a user must input into their browser
      */
-    public static void buildAndShowMicrosoftCodeWindow(GeyserSession session, MsaAuthenticationService.MsCodeResponse msCode) {
+    public static void buildAndShowMicrosoftCodeWindow(GeyserSessionImpl session, MsaAuthenticationService.MsCodeResponse msCode) {
         session.sendForm(
                 ModalForm.builder()
                         .title("%xbox.signin")

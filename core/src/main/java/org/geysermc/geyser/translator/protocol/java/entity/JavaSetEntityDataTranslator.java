@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadat
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundSetEntityDataPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.entity.InteractiveTagManager;
@@ -39,7 +39,7 @@ public class JavaSetEntityDataTranslator extends PacketTranslator<ClientboundSet
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public void translate(GeyserSession session, ClientboundSetEntityDataPacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundSetEntityDataPacket packet) {
         Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();

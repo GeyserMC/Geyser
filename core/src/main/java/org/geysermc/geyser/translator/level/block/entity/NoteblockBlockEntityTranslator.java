@@ -28,7 +28,7 @@ package org.geysermc.geyser.translator.level.block.entity;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
 
 /**
@@ -36,7 +36,7 @@ import org.geysermc.geyser.level.block.BlockStateValues;
  */
 public class NoteblockBlockEntityTranslator {
 
-    public static void translate(GeyserSession session, Position position) {
+    public static void translate(GeyserSessionImpl session, Position position) {
         int blockState = session.getGeyser().getWorldManager().getBlockAt(session, position);
         BlockEventPacket blockEventPacket = new BlockEventPacket();
         blockEventPacket.setBlockPosition(Vector3i.from(position.getX(), position.getY(), position.getZ()));

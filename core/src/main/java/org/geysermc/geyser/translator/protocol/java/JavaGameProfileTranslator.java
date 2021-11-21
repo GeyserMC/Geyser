@@ -29,7 +29,7 @@ import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.packet.login.clientbound.ClientboundGameProfilePacket;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.skin.SkinManager;
@@ -38,7 +38,7 @@ import org.geysermc.geyser.skin.SkinManager;
 public class JavaGameProfileTranslator extends PacketTranslator<ClientboundGameProfilePacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundGameProfilePacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundGameProfilePacket packet) {
         PlayerEntity playerEntity = session.getPlayerEntity();
         AuthType remoteAuthType = session.getRemoteAuthType();
 

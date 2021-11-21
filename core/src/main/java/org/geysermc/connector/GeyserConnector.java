@@ -29,7 +29,7 @@ import com.nukkitx.protocol.bedrock.BedrockServer;
 import org.geysermc.common.PlatformType;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.Geyser;
+import org.geysermc.api.Geyser;
 
 import java.util.UUID;
 
@@ -73,14 +73,14 @@ public class GeyserConnector {
     }
 
     public GeyserSession getPlayerByXuid(String xuid) {
-        return new GeyserSession(GeyserImpl.getInstance().getPlayerByXuid(xuid));
+        return new GeyserSession(GeyserImpl.getInstance().sessionByXuid(xuid));
     }
 
     public GeyserSession getPlayerByUuid(UUID uuid) {
-        return new GeyserSession(GeyserImpl.getInstance().getPlayerByUuid(uuid));
+        return new GeyserSession(GeyserImpl.getInstance().sessionByUuid(uuid));
     }
 
     public boolean isProductionEnvironment() {
-        return GeyserImpl.getInstance().isProductionEnvironment();
+        return GeyserImpl.getInstance().productionEnvironment();
     }
 }

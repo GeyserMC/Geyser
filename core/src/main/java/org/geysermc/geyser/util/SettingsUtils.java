@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.GameRule;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.cumulus.CustomForm;
 import org.geysermc.cumulus.component.DropdownComponent;
@@ -43,7 +43,7 @@ public class SettingsUtils {
      *
      * @param session The session to build the form for
      */
-    public static CustomForm buildForm(GeyserSession session) {
+    public static CustomForm buildForm(GeyserSessionImpl session) {
         // Cache the language for cleaner access
         String language = session.getLocale();
 

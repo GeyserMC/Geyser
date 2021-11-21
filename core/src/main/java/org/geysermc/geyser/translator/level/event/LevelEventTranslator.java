@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.level.event;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 
 /**
  * Represents an event capable of translating itself into bedrock
@@ -38,5 +38,5 @@ public interface LevelEventTranslator {
      * @param session GeyserSession
      * @param packet the effect packet to handle
      */
-    void translate(GeyserSession session, ClientboundLevelEventPacket packet);
+    void translate(GeyserSessionImpl session, ClientboundLevelEventPacket packet);
 }

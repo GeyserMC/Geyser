@@ -28,7 +28,7 @@ package org.geysermc.geyser.translator.sound.block;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.sound.BlockSoundInteractionTranslator;
 import org.geysermc.geyser.translator.sound.SoundTranslator;
 
@@ -36,7 +36,7 @@ import org.geysermc.geyser.translator.sound.SoundTranslator;
 public class FlintAndSteelInteractionTranslator implements BlockSoundInteractionTranslator {
 
     @Override
-    public void translate(GeyserSession session, Vector3f position, String identifier) {
+    public void translate(GeyserSessionImpl session, Vector3f position, String identifier) {
         LevelSoundEventPacket levelSoundEventPacket = new LevelSoundEventPacket();
         levelSoundEventPacket.setPosition(position);
         levelSoundEventPacket.setBabySound(false);

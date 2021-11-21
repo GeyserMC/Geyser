@@ -45,7 +45,7 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MathUtils;
 
@@ -55,7 +55,7 @@ import java.util.UUID;
 @Getter
 @Setter
 public class Entity {
-    protected final GeyserSession session;
+    protected final GeyserSessionImpl session;
 
     protected long entityId;
     protected final long geyserId;
@@ -108,7 +108,7 @@ public class Entity {
     @Setter(AccessLevel.PROTECTED) // For players
     private boolean flagsDirty = false;
 
-    public Entity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public Entity(GeyserSessionImpl session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         this.session = session;
 
         this.entityId = entityId;

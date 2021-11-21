@@ -36,7 +36,7 @@ import lombok.Data;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.living.MobEntity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.util.DimensionUtils;
 
 import java.util.Random;
@@ -79,7 +79,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
     private float wingPosition;
     private float lastWingPosition;
 
-    public EnderDragonEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public EnderDragonEntity(GeyserSessionImpl session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 

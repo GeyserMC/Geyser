@@ -32,7 +32,7 @@ import org.geysermc.geyser.inventory.CartographyContainer;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 
@@ -42,7 +42,7 @@ public class CartographyInventoryTranslator extends AbstractBlockInventoryTransl
     }
 
     @Override
-    public boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, ContainerSlotType bedrockSourceContainer,
+    public boolean shouldRejectItemPlace(GeyserSessionImpl session, Inventory inventory, ContainerSlotType bedrockSourceContainer,
                                          int javaSourceSlot, ContainerSlotType bedrockDestinationContainer, int javaDestinationSlot) {
         if (javaDestinationSlot == 0) {
             // Bedrock Edition can use paper or an empty map in slot 0

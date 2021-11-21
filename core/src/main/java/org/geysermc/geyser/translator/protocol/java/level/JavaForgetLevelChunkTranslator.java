@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.java.level;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundForgetLevelChunkPacket;
 import com.nukkitx.math.vector.Vector3i;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -37,7 +37,7 @@ import java.util.Iterator;
 public class JavaForgetLevelChunkTranslator extends PacketTranslator<ClientboundForgetLevelChunkPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundForgetLevelChunkPacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundForgetLevelChunkPacket packet) {
         session.getChunkCache().removeChunk(packet.getX(), packet.getZ());
 
         //Checks if a skull is in an unloaded chunk then removes it

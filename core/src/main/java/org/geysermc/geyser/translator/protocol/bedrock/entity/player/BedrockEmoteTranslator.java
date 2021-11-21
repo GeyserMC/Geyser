@@ -31,7 +31,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.Server
 import com.nukkitx.protocol.bedrock.packet.EmotePacket;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.BlockUtils;
@@ -40,7 +40,7 @@ import org.geysermc.geyser.util.BlockUtils;
 public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
 
     @Override
-    public void translate(GeyserSession session, EmotePacket packet) {
+    public void translate(GeyserSessionImpl session, EmotePacket packet) {
         if (session.getGeyser().getConfig().getEmoteOffhandWorkaround() != EmoteOffhandWorkaroundOption.DISABLED) {
             // Activate the workaround - we should trigger the offhand now
             ServerboundPlayerActionPacket swapHandsPacket = new ServerboundPlayerActionPacket(PlayerAction.SWAP_HANDS, BlockUtils.POSITION_ZERO,
@@ -53,7 +53,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
         }
 
         long javaId = session.getPlayerEntity().getEntityId();
-        for (GeyserSession otherSession : session.getGeyser().getSessionManager().getSessions().values()) {
+        for (GeyserSessionImpl otherSession : session.getGeyser().getSessionManager().getSessions().values()) {
             if (otherSession != session) {
                 if (otherSession.isClosed()) continue;
                 if (otherSession.getEventLoop().inEventLoop()) {
@@ -65,7 +65,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
         }
     }
 
-    private void playEmote(GeyserSession otherSession, long javaId, String emoteId) {
+    private void playEmote(GeyserSessionImpl otherSession, long javaId, String emoteId) {
         Entity otherEntity = otherSession.getEntityCache().getEntityByJavaId(javaId); // Must be ran on same thread
         if (otherEntity == null) return;
         EmotePacket otherEmotePacket = new EmotePacket();

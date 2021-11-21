@@ -27,12 +27,12 @@ package org.geysermc.geyser.entity.factory;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.geyser.entity.type.PaintingEntity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.level.PaintingType;
 
 import java.util.UUID;
 
 public interface PaintingEntityFactory extends EntityFactory<PaintingEntity> {
 
-    PaintingEntity create(GeyserSession session, long entityId, long geyserId, UUID uuid, Vector3f position, PaintingType paintingName, int direction);
+    PaintingEntity create(GeyserSessionImpl session, long entityId, long geyserId, UUID uuid, Vector3f position, PaintingType paintingName, int direction);
 }

@@ -31,7 +31,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.SlotType;
 
@@ -41,7 +41,7 @@ public abstract class BaseInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
+    public void updateProperty(GeyserSessionImpl session, Inventory inventory, int key, int value) {
         //
     }
 

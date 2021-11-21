@@ -33,7 +33,7 @@ import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.protocol.bedrock.packet.BookEditPacket;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -49,7 +49,7 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
     private static final int MAXIMUM_TITLE_LENGTH = 128 * 4;
 
     @Override
-    public void translate(GeyserSession session, BookEditPacket packet) {
+    public void translate(GeyserSessionImpl session, BookEditPacket packet) {
         if (packet.getText() != null && !packet.getText().isEmpty() && packet.getText().getBytes(StandardCharsets.UTF_8).length > MAXIMUM_PAGE_LENGTH) {
             session.getGeyser().getLogger().warning("Page length greater than server allowed!");
             return;

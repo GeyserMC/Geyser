@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSeenAdvancementsPacket;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.level.GeyserAdvancement;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -60,9 +60,9 @@ public class AdvancementsCache {
     @Setter
     private String currentAdvancementCategoryId = null;
 
-    private final GeyserSession session;
+    private final GeyserSessionImpl session;
 
-    public AdvancementsCache(GeyserSession session) {
+    public AdvancementsCache(GeyserSessionImpl session) {
         this.session = session;
     }
 

@@ -41,7 +41,7 @@ public class BungeeCommandSender implements CommandSender {
     }
 
     @Override
-    public String getName() {
+    public String name() {
         return handle.getName();
     }
 

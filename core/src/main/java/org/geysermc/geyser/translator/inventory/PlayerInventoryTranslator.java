@@ -39,7 +39,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
@@ -58,7 +58,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public void updateInventory(GeyserSession session, Inventory inventory) {
+    public void updateInventory(GeyserSessionImpl session, Inventory inventory) {
         updateCraftingGrid(session, inventory);
 
         InventoryContentPacket inventoryContentPacket = new InventoryContentPacket();
@@ -97,7 +97,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
      * @param session Session of the player
      * @param inventory Inventory of the player
      */
-    public static void updateCraftingGrid(GeyserSession session, Inventory inventory) {
+    public static void updateCraftingGrid(GeyserSessionImpl session, Inventory inventory) {
         // Crafting grid
         for (int i = 1; i < 5; i++) {
             InventorySlotPacket slotPacket = new InventorySlotPacket();
@@ -115,7 +115,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
+    public void updateSlot(GeyserSessionImpl session, Inventory inventory, int slot) {
         if (slot >= 1 && slot <= 44) {
             InventorySlotPacket slotPacket = new InventorySlotPacket();
             if (slot >= 9) {
@@ -208,7 +208,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public ItemStackResponsePacket.Response translateRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+    public ItemStackResponsePacket.Response translateRequest(GeyserSessionImpl session, Inventory inventory, ItemStackRequest request) {
         if (session.getGameMode() != GameMode.CREATIVE) {
             return super.translateRequest(session, inventory, request);
         }
@@ -353,7 +353,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     }
                 }
                 default -> {
-                    session.getGeyser().getLogger().error("Unknown crafting state induced by " + session.getName());
+                    session.getGeyser().getLogger().error("Unknown crafting state induced by " + session.name());
                     return rejectRequest(request);
                 }
             }
@@ -365,7 +365,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public ItemStackResponsePacket.Response translateCreativeRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+    public ItemStackResponsePacket.Response translateCreativeRequest(GeyserSessionImpl session, Inventory inventory, ItemStackRequest request) {
         ItemStack javaCreativeItem = null;
         IntSet affectedSlots = new IntOpenHashSet();
         CraftState craftState = CraftState.START;
@@ -451,7 +451,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
         return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
     }
 
-    private static void sendCreativeAction(GeyserSession session, Inventory inventory, int slot) {
+    private static void sendCreativeAction(GeyserSessionImpl session, Inventory inventory, int slot) {
         GeyserItemStack item = inventory.getItem(slot);
         ItemStack itemStack = item.isEmpty() ? new ItemStack(-1, 0, null) : item.getItemStack();
 
@@ -469,18 +469,18 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
     }
 
     @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
+    public void prepareInventory(GeyserSessionImpl session, Inventory inventory) {
     }
 
     @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
+    public void openInventory(GeyserSessionImpl session, Inventory inventory) {
     }
 
     @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
+    public void closeInventory(GeyserSessionImpl session, Inventory inventory) {
     }
 
     @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
+    public void updateProperty(GeyserSessionImpl session, Inventory inventory, int key, int value) {
     }
 }

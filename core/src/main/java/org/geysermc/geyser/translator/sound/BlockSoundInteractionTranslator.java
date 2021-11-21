@@ -32,7 +32,7 @@ import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.util.BlockUtils;
 
@@ -51,7 +51,7 @@ public interface BlockSoundInteractionTranslator extends SoundInteractionTransla
      * @param position the position of the block
      * @param identifier the identifier of the block
      */
-    static void handleBlockInteraction(GeyserSession session, Vector3f position, String identifier) {
+    static void handleBlockInteraction(GeyserSessionImpl session, Vector3f position, String identifier) {
         // If we need to get the hand identifier, only get it once and save it to a variable
         String handIdentifier = null;
 
@@ -98,7 +98,7 @@ public interface BlockSoundInteractionTranslator extends SoundInteractionTransla
     /**
      * Determines if the adventure gamemode would prevent this item from actually succeeding
      */
-    static boolean canInteract(GeyserSession session, GeyserItemStack itemInHand, String blockIdentifier) {
+    static boolean canInteract(GeyserSessionImpl session, GeyserItemStack itemInHand, String blockIdentifier) {
         if (session.getGameMode() != GameMode.ADVENTURE) {
             // There are no restrictions on the item
             return true;

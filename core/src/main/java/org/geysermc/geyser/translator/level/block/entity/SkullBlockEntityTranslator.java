@@ -35,7 +35,7 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.skin.SkullSkinManager;
@@ -85,7 +85,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         return CompletableFuture.completedFuture(null);
     }
 
-    public static void spawnPlayer(GeyserSession session, CompoundTag tag, int posX, int posY, int posZ, int blockState) {
+    public static void spawnPlayer(GeyserSessionImpl session, CompoundTag tag, int posX, int posY, int posZ, int blockState) {
         float x = posX + .5f;
         float y = posY - .01f;
         float z = posZ + .5f;
@@ -123,7 +123,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         });
     }
 
-    private static void spawnPlayer(GeyserSession session, GameProfile profile, Vector3i blockPosition,
+    private static void spawnPlayer(GeyserSessionImpl session, GameProfile profile, Vector3i blockPosition,
                                     Vector3f entityPosition, float rotation, int blockState) {
         long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
 

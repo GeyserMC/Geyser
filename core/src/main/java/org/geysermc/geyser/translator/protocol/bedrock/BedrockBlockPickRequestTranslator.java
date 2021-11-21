@@ -29,7 +29,7 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.BlockPickRequestPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -40,7 +40,7 @@ import org.geysermc.geyser.util.InventoryUtils;
 public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPickRequestPacket> {
 
     @Override
-    public void translate(GeyserSession session, BlockPickRequestPacket packet) {
+    public void translate(GeyserSessionImpl session, BlockPickRequestPacket packet) {
         Vector3i vector = packet.getBlockPosition();
         int blockToPick = session.getGeyser().getWorldManager().getBlockAt(session, vector.getX(), vector.getY(), vector.getZ());
         

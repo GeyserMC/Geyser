@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatPacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -36,7 +36,7 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 public class BedrockTextTranslator extends PacketTranslator<TextPacket> {
 
     @Override
-    public void translate(GeyserSession session, TextPacket packet) {
+    public void translate(GeyserSessionImpl session, TextPacket packet) {
         String message = packet.getMessage();
 
         if (message.isBlank()) {

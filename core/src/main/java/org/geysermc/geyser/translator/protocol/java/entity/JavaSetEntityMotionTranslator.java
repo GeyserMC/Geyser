@@ -28,7 +28,7 @@ package org.geysermc.geyser.translator.protocol.java.entity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -40,7 +40,7 @@ import com.nukkitx.protocol.bedrock.packet.SetEntityMotionPacket;
 public class JavaSetEntityMotionTranslator extends PacketTranslator<ClientboundSetEntityMotionPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundSetEntityMotionPacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundSetEntityMotionPacket packet) {
         Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();

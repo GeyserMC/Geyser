@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java.level.border;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.border.ClientboundSetBorderWarningDelayPacket;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -35,7 +35,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 public class JavaSetBorderWarningDelayTranslator extends PacketTranslator<ClientboundSetBorderWarningDelayPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundSetBorderWarningDelayPacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundSetBorderWarningDelayPacket packet) {
         WorldBorder worldBorder = session.getWorldBorder();
         worldBorder.setWarningDelay(packet.getWarningDelay());
 

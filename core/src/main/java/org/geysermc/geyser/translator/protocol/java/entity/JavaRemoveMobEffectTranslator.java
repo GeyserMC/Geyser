@@ -28,7 +28,7 @@ package org.geysermc.geyser.translator.protocol.java.entity;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundRemoveMobEffectPacket;
 import com.nukkitx.protocol.bedrock.packet.MobEffectPacket;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
@@ -37,7 +37,7 @@ import org.geysermc.geyser.util.EntityUtils;
 public class JavaRemoveMobEffectTranslator extends PacketTranslator<ClientboundRemoveMobEffectPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundRemoveMobEffectPacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundRemoveMobEffectPacket packet) {
         Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();

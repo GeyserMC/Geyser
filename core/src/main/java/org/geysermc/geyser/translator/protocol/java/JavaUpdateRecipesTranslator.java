@@ -40,7 +40,7 @@ import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
 import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
@@ -71,7 +71,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
     );
 
     @Override
-    public void translate(GeyserSession session, ClientboundUpdateRecipesPacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundUpdateRecipesPacket packet) {
         Map<RecipeType, List<CraftingData>> recipeTypes = Registries.CRAFTING_DATA.forVersion(session.getUpstream().getProtocolVersion());
         // Get the last known network ID (first used for the pregenerated recipes) and increment from there.
         int netId = InventoryUtils.LAST_RECIPE_NET_ID + 1;
@@ -185,7 +185,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
      *
      * @return the Java ingredient list as an array that Bedrock can understand
      */
-    private ItemData[][] combinations(GeyserSession session, Ingredient[] ingredients) {
+    private ItemData[][] combinations(GeyserSessionImpl session, Ingredient[] ingredients) {
         Map<Set<ItemData>, IntSet> squashedOptions = new HashMap<>();
         for (int i = 0; i < ingredients.length; i++) {
             if (ingredients[i].getOptions().length == 0) {

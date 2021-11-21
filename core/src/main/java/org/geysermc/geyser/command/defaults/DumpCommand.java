@@ -36,7 +36,7 @@ import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.dump.DumpInfo;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.WebUtils;
 
@@ -58,7 +58,7 @@ public class DumpCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(GeyserSession session, CommandSender sender, String[] args) {
+    public void execute(GeyserSessionImpl session, CommandSender sender, String[] args) {
         // Only allow the console to create dumps on Geyser Standalone
         if (!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE) {
             sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.getLocale()));
@@ -137,7 +137,7 @@ public class DumpCommand extends GeyserCommand {
 
         sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.dump.message", sender.getLocale()) + " " + ChatColor.DARK_AQUA + uploadedDumpUrl);
         if (!sender.isConsole()) {
-            geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.commands.dump.created", sender.getName(), uploadedDumpUrl));
+            geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.commands.dump.created", sender.name(), uploadedDumpUrl));
         }
     }
 

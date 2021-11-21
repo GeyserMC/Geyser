@@ -37,7 +37,7 @@ import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.InteractPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.entity.InteractiveTagManager;
@@ -46,7 +46,7 @@ import org.geysermc.geyser.entity.InteractiveTagManager;
 public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> {
 
     @Override
-    public void translate(GeyserSession session, InteractPacket packet) {
+    public void translate(GeyserSessionImpl session, InteractPacket packet) {
         Entity entity;
         if (packet.getRuntimeEntityId() == session.getPlayerEntity().getGeyserId()) {
             //Player is not in entity cache

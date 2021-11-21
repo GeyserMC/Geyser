@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.spawn.
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -39,7 +39,7 @@ import org.geysermc.geyser.skin.SkinManager;
 public class JavaAddPlayerTranslator extends PacketTranslator<ClientboundAddPlayerPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundAddPlayerPacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundAddPlayerPacket packet) {
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         float yaw = packet.getYaw();
         float pitch = packet.getPitch();

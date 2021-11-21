@@ -34,7 +34,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import lombok.Getter;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 
 /**
  * A wrapper to handle skulls more effectively - skulls have to be treated as entities since there are no
@@ -48,7 +48,7 @@ public class SkullPlayerEntity extends PlayerEntity {
     @Getter
     private final int blockState;
 
-    public SkullPlayerEntity(GeyserSession session, long geyserId, GameProfile gameProfile, Vector3f position, float rotation, int blockState) {
+    public SkullPlayerEntity(GeyserSessionImpl session, long geyserId, GameProfile gameProfile, Vector3f position, float rotation, int blockState) {
         super(session, 0, geyserId, gameProfile, position, Vector3f.ZERO, rotation, 0, rotation);
         this.blockState = blockState;
         setPlayerList(false);

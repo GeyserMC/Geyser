@@ -30,7 +30,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
 
@@ -40,7 +40,7 @@ public class BrewingInventoryTranslator extends AbstractBlockInventoryTranslator
     }
 
     @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
+    public void openInventory(GeyserSessionImpl session, Inventory inventory) {
         super.openInventory(session, inventory);
         ContainerSetDataPacket dataPacket = new ContainerSetDataPacket();
         dataPacket.setWindowId((byte) inventory.getId());
@@ -50,7 +50,7 @@ public class BrewingInventoryTranslator extends AbstractBlockInventoryTranslator
     }
 
     @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
+    public void updateProperty(GeyserSessionImpl session, Inventory inventory, int key, int value) {
         ContainerSetDataPacket dataPacket = new ContainerSetDataPacket();
         dataPacket.setWindowId((byte) inventory.getId());
         switch (key) {

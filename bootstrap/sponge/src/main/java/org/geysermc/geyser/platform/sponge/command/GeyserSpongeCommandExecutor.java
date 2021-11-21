@@ -30,7 +30,7 @@ import org.geysermc.geyser.command.CommandExecutor;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.text.ChatColor;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.spongepowered.api.command.CommandCallable;
 import org.spongepowered.api.command.CommandResult;
@@ -54,7 +54,7 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
     @Override
     public CommandResult process(CommandSource source, String arguments) {
         CommandSender commandSender = new SpongeCommandSender(source);
-        GeyserSession session = getGeyserSession(commandSender);
+        GeyserSessionImpl session = getGeyserSession(commandSender);
 
         String[] args = arguments.split(" ");
         if (args.length > 0) {

@@ -34,7 +34,7 @@ import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -65,7 +65,7 @@ public class BoatEntity extends Entity {
     // Looks too fast and too choppy with 0.1f, which is how I believe the Microsoftian client handles it
     private final float ROWING_SPEED = 0.05f;
 
-    public BoatEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public BoatEntity(GeyserSessionImpl session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         // Initial rotation is incorrect
         super(session, entityId, geyserId, uuid, definition, position.add(0d, definition.offset(), 0d), motion, yaw + 90, 0, yaw + 90);
 
@@ -154,7 +154,7 @@ public class BoatEntity extends Entity {
         }
     }
 
-    private void updateLeftPaddle(GeyserSession session, Entity rower) {
+    private void updateLeftPaddle(GeyserSessionImpl session, Entity rower) {
         if (isPaddlingLeft) {
             paddleTimeLeft += ROWING_SPEED;
             sendAnimationPacket(session, rower, AnimatePacket.Action.ROW_LEFT, paddleTimeLeft);
@@ -167,7 +167,7 @@ public class BoatEntity extends Entity {
         }
     }
 
-    private void updateRightPaddle(GeyserSession session, Entity rower) {
+    private void updateRightPaddle(GeyserSessionImpl session, Entity rower) {
         if (isPaddlingRight) {
             paddleTimeRight += ROWING_SPEED;
             sendAnimationPacket(session, rower, AnimatePacket.Action.ROW_RIGHT, paddleTimeRight);
@@ -180,7 +180,7 @@ public class BoatEntity extends Entity {
         }
     }
 
-    private void sendAnimationPacket(GeyserSession session, Entity rower, AnimatePacket.Action action, float rowTime) {
+    private void sendAnimationPacket(GeyserSessionImpl session, Entity rower, AnimatePacket.Action action, float rowTime) {
         AnimatePacket packet = new AnimatePacket();
         packet.setRuntimeEntityId(rower.getGeyserId());
         packet.setAction(action);

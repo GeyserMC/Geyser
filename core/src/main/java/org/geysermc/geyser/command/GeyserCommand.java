@@ -28,7 +28,7 @@ package org.geysermc.geyser.command;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -49,7 +49,7 @@ public abstract class GeyserCommand {
     @Setter
     private List<String> aliases = new ArrayList<>();
 
-    public abstract void execute(@Nullable GeyserSession session, CommandSender sender, String[] args);
+    public abstract void execute(@Nullable GeyserSessionImpl session, CommandSender sender, String[] args);
 
     /**
      * If false, hides the command from being shown on the Geyser Standalone GUI.

@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.java.entity.player;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.player.ClientboundSetCarriedItemPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerHotbarPacket;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -35,7 +35,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 public class JavaSetCarriedItemTranslator extends PacketTranslator<ClientboundSetCarriedItemPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundSetCarriedItemPacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundSetCarriedItemPacket packet) {
         PlayerHotbarPacket hotbarPacket = new PlayerHotbarPacket();
         hotbarPacket.setContainerId(0);
         hotbarPacket.setSelectedHotbarSlot(packet.getSlot());

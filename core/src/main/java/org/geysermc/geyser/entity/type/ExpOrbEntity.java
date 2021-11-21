@@ -28,13 +28,13 @@ package org.geysermc.geyser.entity.type;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 
 public class ExpOrbEntity extends Entity {
 
     private final int amount;
 
-    public ExpOrbEntity(GeyserSession session, int amount, long entityId, long geyserId, Vector3f position) {
+    public ExpOrbEntity(GeyserSessionImpl session, int amount, long entityId, long geyserId, Vector3f position) {
         super(session, entityId, geyserId, null, EntityDefinitions.EXPERIENCE_ORB, position, Vector3f.ZERO, 0, 0, 0);
 
         this.amount = amount;

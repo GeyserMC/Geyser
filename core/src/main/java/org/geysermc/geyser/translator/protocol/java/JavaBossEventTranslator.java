@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.session.cache.BossBar;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -36,7 +36,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundBo
 public class JavaBossEventTranslator extends PacketTranslator<ClientboundBossEventPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundBossEventPacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundBossEventPacket packet) {
         BossBar bossBar = session.getEntityCache().getBossBar(packet.getUuid());
         switch (packet.getAction()) {
             case ADD:

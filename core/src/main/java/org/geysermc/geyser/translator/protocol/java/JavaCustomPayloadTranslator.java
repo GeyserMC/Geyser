@@ -30,9 +30,9 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCu
 import com.google.common.base.Charsets;
 import com.nukkitx.protocol.bedrock.packet.TransferPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.logger.GeyserLogger;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.auth.AuthType;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.cumulus.Form;
@@ -46,7 +46,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
     private final GeyserLogger logger = GeyserImpl.getInstance().getLogger();
 
     @Override
-    public void translate(GeyserSession session, ClientboundCustomPayloadPacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundCustomPayloadPacket packet) {
         // The only plugin messages it has to listen for are Floodgate plugin messages
         if (session.getRemoteAuthType() != AuthType.FLOODGATE) {
             return;

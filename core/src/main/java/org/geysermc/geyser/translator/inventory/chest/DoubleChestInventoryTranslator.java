@@ -35,7 +35,7 @@ import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.DoubleChestValue;
 import org.geysermc.geyser.translator.level.block.entity.DoubleChestBlockEntityTranslator;
@@ -50,7 +50,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
     }
 
     @Override
-    public void prepareInventory(GeyserSession session, Inventory inventory) {
+    public void prepareInventory(GeyserSessionImpl session, Inventory inventory) {
         // See BlockInventoryHolder - same concept there except we're also dealing with a specific block state
         if (session.getLastInteractionPlayerPosition().equals(session.getPlayerEntity().getPosition())) {
             int javaBlockId = session.getGeyser().getWorldManager().getBlockAt(session, session.getLastInteractionBlockPosition());
@@ -128,7 +128,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
     }
 
     @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
+    public void openInventory(GeyserSessionImpl session, Inventory inventory) {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
         containerOpenPacket.setId((byte) inventory.getId());
         containerOpenPacket.setType(ContainerType.CONTAINER);
@@ -138,7 +138,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator {
     }
 
     @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
+    public void closeInventory(GeyserSessionImpl session, Inventory inventory) {
         if (((Container) inventory).isUsingRealBlock()) {
             // No need to reset a block since we didn't change any blocks
             // But send a container close packet because we aren't destroying the original.

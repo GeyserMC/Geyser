@@ -28,7 +28,7 @@ package org.geysermc.geyser.inventory;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import lombok.Getter;
 import lombok.NonNull;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 
 /**
@@ -60,7 +60,7 @@ public class Container extends Inventory {
     }
 
     @Override
-    public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
+    public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSessionImpl session) {
         if (slot < this.size) {
             super.setItem(slot, newItem, session);
         } else {

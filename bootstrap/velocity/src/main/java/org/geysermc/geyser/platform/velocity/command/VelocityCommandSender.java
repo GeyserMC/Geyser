@@ -45,7 +45,7 @@ public class VelocityCommandSender implements CommandSender {
     }
 
     @Override
-    public String getName() {
+    public String name() {
         if (handle instanceof Player) {
             return ((Player) handle).getUsername();
         } else if (handle instanceof ConsoleCommandSource) {

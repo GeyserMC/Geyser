@@ -34,7 +34,7 @@ import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.pack.ResourcePack;
 import org.geysermc.geyser.pack.ResourcePackManifest;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -47,7 +47,7 @@ import java.io.InputStream;
 
 public class UpstreamPacketHandler extends LoggingPacketHandler {
 
-    public UpstreamPacketHandler(GeyserImpl geyser, GeyserSession session) {
+    public UpstreamPacketHandler(GeyserImpl geyser, GeyserSessionImpl session) {
         super(geyser, session);
     }
 
@@ -116,12 +116,12 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         switch (packet.getStatus()) {
             case COMPLETED:
                 if (geyser.getConfig().getRemote().getAuthType() != AuthType.ONLINE) {
-                    session.authenticate(session.getAuthData().getName());
-                } else if (!couldLoginUserByName(session.getAuthData().getName())) {
+                    session.authenticate(session.getAuthData().name());
+                } else if (!couldLoginUserByName(session.getAuthData().name())) {
                     // We must spawn the white world
                     session.connect();
                 }
-                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.connect", session.getAuthData().getName()));
+                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.connect", session.getAuthData().name()));
                 break;
 
             case SEND_PACKS:
@@ -188,7 +188,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             GeyserConfiguration.IUserAuthenticationInfo info = geyser.getConfig().getUserAuths().get(bedrockUsername);
 
             if (info != null) {
-                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.auth.stored_credentials", session.getAuthData().getName()));
+                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.auth.stored_credentials", session.getAuthData().name()));
                 session.setMicrosoftAccount(info.isMicrosoftAccount());
                 session.authenticate(info.getEmail(), info.getPassword());
                 return true;

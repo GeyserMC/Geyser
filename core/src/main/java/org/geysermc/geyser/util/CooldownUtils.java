@@ -27,7 +27,7 @@ package org.geysermc.geyser.util;
 
 import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
 import lombok.Getter;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.session.cache.PreferencesCache;
 
 import java.util.concurrent.TimeUnit;
@@ -51,7 +51,7 @@ public class CooldownUtils {
      * Starts sending the fake cooldown to the Bedrock client. If the cooldown is not disabled, the sent type is the cooldownPreference in {@link PreferencesCache}
      * @param session GeyserSession
      */
-    public static void sendCooldown(GeyserSession session) {
+    public static void sendCooldown(GeyserSessionImpl session) {
         if (DEFAULT_SHOW_COOLDOWN == CooldownType.DISABLED) return;
         CooldownType sessionPreference = session.getPreferencesCache().getCooldownPreference();
         if (sessionPreference == CooldownType.DISABLED) return;
@@ -75,7 +75,7 @@ public class CooldownUtils {
      * @param sessionPreference The type of cooldown the client prefers
      * @param lastHitTime The time of the last hit. Used to gauge how long the cooldown is taking.
      */
-    private static void computeCooldown(GeyserSession session, CooldownType sessionPreference, long lastHitTime) {
+    private static void computeCooldown(GeyserSessionImpl session, CooldownType sessionPreference, long lastHitTime) {
         if (session.isClosed()) return; // Don't run scheduled tasks if the client left
         if (lastHitTime != session.getLastHitTime()) return; // Means another cooldown has started so there's no need to continue this one
         SetTitlePacket titlePacket = new SetTitlePacket();
@@ -108,7 +108,7 @@ public class CooldownUtils {
         }
     }
 
-    private static boolean hasCooldown(GeyserSession session) {
+    private static boolean hasCooldown(GeyserSessionImpl session) {
         long time = System.currentTimeMillis() - session.getLastHitTime();
         double cooldown = restrain(((double) time) * session.getAttackSpeed() / 1000d, 1.5);
         return cooldown < 1.1;
@@ -121,7 +121,7 @@ public class CooldownUtils {
         return Math.min(x, max);
     }
 
-    private static String getTitle(GeyserSession session) {
+    private static String getTitle(GeyserSessionImpl session) {
         long time = System.currentTimeMillis() - session.getLastHitTime();
         double cooldown = restrain(((double) time) * session.getAttackSpeed() / 1000d, 1);
 

@@ -31,7 +31,7 @@ import com.nukkitx.protocol.bedrock.BedrockPacket;
 import io.netty.channel.EventLoop;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -53,7 +53,7 @@ public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? 
     }
 
     @SuppressWarnings("unchecked")
-    public <P extends T> boolean translate(Class<? extends P> clazz, P packet, GeyserSession session) {
+    public <P extends T> boolean translate(Class<? extends P> clazz, P packet, GeyserSessionImpl session) {
         if (session.getUpstream().isClosed() || session.isClosed()) {
             return false;
         }
@@ -77,7 +77,7 @@ public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? 
         }
     }
 
-    private <P extends T> void translate0(GeyserSession session, PacketTranslator<P> translator, P packet) {
+    private <P extends T> void translate0(GeyserSessionImpl session, PacketTranslator<P> translator, P packet) {
         if (session.isClosed()) {
             return;
         }

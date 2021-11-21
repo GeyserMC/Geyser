@@ -36,7 +36,7 @@ import org.geysermc.geyser.entity.type.living.animal.horse.HorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.CatEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.entity.type.living.merchant.VillagerEntity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.registry.type.ItemMapping;
 
 import java.util.EnumSet;
@@ -62,7 +62,7 @@ public class InteractiveTagManager {
      * @param session the Bedrock client session
      * @param interactEntity the entity that the client is currently facing.
      */
-    public static void updateTag(GeyserSession session, Entity interactEntity) {
+    public static void updateTag(GeyserSessionImpl session, Entity interactEntity) {
         ItemMapping mapping = session.getPlayerInventory().getItemInHand().getMapping(session);
         String javaIdentifierStripped = mapping.getJavaIdentifier().replace("minecraft:", "");
         EntityType entityType = interactEntity.getDefinition().entityType();

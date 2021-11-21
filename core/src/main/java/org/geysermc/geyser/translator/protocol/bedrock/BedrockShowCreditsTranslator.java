@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -37,7 +37,7 @@ import com.nukkitx.protocol.bedrock.packet.ShowCreditsPacket;
 public class BedrockShowCreditsTranslator extends PacketTranslator<ShowCreditsPacket> {
 
     @Override
-    public void translate(GeyserSession session, ShowCreditsPacket packet) {
+    public void translate(GeyserSessionImpl session, ShowCreditsPacket packet) {
         if (packet.getStatus() == ShowCreditsPacket.Status.END_CREDITS) {
             ServerboundClientCommandPacket javaRespawnPacket = new ServerboundClientCommandPacket(ClientCommand.RESPAWN);
             session.sendDownstreamPacket(javaRespawnPacket);

@@ -34,7 +34,7 @@ import com.nukkitx.protocol.bedrock.packet.MobEffectPacket;
 import com.nukkitx.protocol.bedrock.packet.StopSoundPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 
 import java.util.Set;
 
@@ -56,7 +56,7 @@ public class DimensionUtils {
      */
     public static final String THE_END = "minecraft:the_end";
 
-    public static void switchDimension(GeyserSession session, String javaDimension) {
+    public static void switchDimension(GeyserSessionImpl session, String javaDimension) {
         int bedrockDimension = javaToBedrock(javaDimension);
         Entity player = session.getPlayerEntity();
 

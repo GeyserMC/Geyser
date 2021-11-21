@@ -30,14 +30,14 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 
 import java.util.UUID;
 
 public class FallingBlockEntity extends Entity {
     private final int javaId;
 
-    public FallingBlockEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, Vector3f position, Vector3f motion, float yaw, float pitch, int javaId) {
+    public FallingBlockEntity(GeyserSessionImpl session, long entityId, long geyserId, UUID uuid, Vector3f position, Vector3f motion, float yaw, float pitch, int javaId) {
         super(session, entityId, geyserId, uuid, EntityDefinitions.FALLING_BLOCK, position, motion, yaw, pitch, 0f);
         this.javaId = javaId;
     }

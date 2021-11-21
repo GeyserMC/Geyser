@@ -28,7 +28,7 @@ package org.geysermc.geyser.platform.spigot;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.geyser.api.logger.GeyserLogger;
+import org.geysermc.geyser.GeyserLogger;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

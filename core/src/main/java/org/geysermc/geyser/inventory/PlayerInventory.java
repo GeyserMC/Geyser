@@ -29,7 +29,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 
 public class PlayerInventory extends Inventory {
 
@@ -50,7 +50,7 @@ public class PlayerInventory extends Inventory {
         heldItemSlot = 0;
     }
 
-    public void setCursor(@NonNull GeyserItemStack newCursor, GeyserSession session) {
+    public void setCursor(@NonNull GeyserItemStack newCursor, GeyserSessionImpl session) {
         updateItemNetId(cursor, newCursor, session);
         cursor = newCursor;
     }

@@ -30,7 +30,7 @@ import net.minecrell.terminalconsole.SimpleTerminalConsole;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.logger.GeyserLogger;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.text.ChatColor;
 
@@ -97,7 +97,7 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements Gey
     }
 
     @Override
-    public String getName() {
+    public String name() {
         return "CONSOLE";
     }
 

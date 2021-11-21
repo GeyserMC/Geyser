@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser;
 
-import org.geysermc.geyser.api.logger.GeyserLogger;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
 import org.geysermc.geyser.text.GeyserLocale;

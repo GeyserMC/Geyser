@@ -38,7 +38,7 @@ public class SpongeCommandSender implements CommandSender {
     private CommandSource handle;
 
     @Override
-    public String getName() {
+    public String name() {
         return handle.getName();
     }
 

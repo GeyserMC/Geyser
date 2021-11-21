@@ -41,7 +41,7 @@ import org.bukkit.event.block.BlockPistonEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.session.cache.PistonCache;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.translator.level.block.entity.PistonBlockEntity;
@@ -88,12 +88,12 @@ public class GeyserPistonListener implements Listener {
         Object2IntMap<Vector3i> attachedBlocks = new Object2IntOpenHashMap<>();
         boolean blocksFilled = false;
 
-        for (Map.Entry<UUID, GeyserSession> entry : geyser.getSessionManager().getSessions().entrySet()) {
+        for (Map.Entry<UUID, GeyserSessionImpl> entry : geyser.getSessionManager().getSessions().entrySet()) {
             Player player = Bukkit.getPlayer(entry.getKey());
             if (player == null || !player.getWorld().equals(world)) {
                 continue;
             }
-            GeyserSession session = entry.getValue();
+            GeyserSessionImpl session = entry.getValue();
 
             int dX = Math.abs(location.getBlockX() - player.getLocation().getBlockX()) >> 4;
             int dZ = Math.abs(location.getBlockZ() - player.getLocation().getBlockZ()) >> 4;

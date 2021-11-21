@@ -31,7 +31,7 @@ import org.geysermc.geyser.command.CommandExecutor;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.text.ChatColor;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Arrays;
@@ -47,7 +47,7 @@ public class GeyserVelocityCommandExecutor extends CommandExecutor implements Si
     @Override
     public void execute(Invocation invocation) {
         CommandSender sender = new VelocityCommandSender(invocation.source());
-        GeyserSession session = getGeyserSession(sender);
+        GeyserSessionImpl session = getGeyserSession(sender);
 
         if (invocation.arguments().length > 0) {
             GeyserCommand command = getCommand(invocation.arguments()[0]);

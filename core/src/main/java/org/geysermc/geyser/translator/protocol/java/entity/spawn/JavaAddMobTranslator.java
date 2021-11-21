@@ -30,7 +30,7 @@ import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.factory.BaseEntityFactory;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.registry.Registries;
@@ -40,7 +40,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 public class JavaAddMobTranslator extends PacketTranslator<ClientboundAddMobPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundAddMobPacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundAddMobPacket packet) {
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f motion = Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());
 

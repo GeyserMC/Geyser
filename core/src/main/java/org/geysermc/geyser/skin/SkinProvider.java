@@ -37,7 +37,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.WebUtils;
 
@@ -143,7 +143,7 @@ public class SkinProvider {
             String newSkinUrl = skinUrl;
 
             if ("steve".equals(skinUrl) || "alex".equals(skinUrl)) {
-                GeyserSession session = GeyserImpl.getInstance().getPlayerByUuid(playerId);
+                GeyserSessionImpl session = GeyserImpl.getInstance().sessionByUuid(playerId);
 
                 if (session != null) {
                     newSkinUrl = session.getClientData().getSkinId();

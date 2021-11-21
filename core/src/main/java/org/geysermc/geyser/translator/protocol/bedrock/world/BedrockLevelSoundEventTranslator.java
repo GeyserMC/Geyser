@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.bedrock.world;
 
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.CooldownUtils;
@@ -36,7 +36,7 @@ import org.geysermc.geyser.util.CooldownUtils;
 public class BedrockLevelSoundEventTranslator extends PacketTranslator<LevelSoundEventPacket> {
 
     @Override
-    public void translate(GeyserSession session, LevelSoundEventPacket packet) {
+    public void translate(GeyserSessionImpl session, LevelSoundEventPacket packet) {
         // lol what even :thinking:
         session.sendUpstreamPacket(packet);
 

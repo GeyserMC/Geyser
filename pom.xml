@@ -32,10 +32,10 @@
 
     <modules>
         <module>ap</module>
+        <module>api</module>
         <module>bootstrap</module>
         <module>common</module>
         <module>core</module>
-        <module>api</module>
     </modules>
 
     <pluginRepositories>

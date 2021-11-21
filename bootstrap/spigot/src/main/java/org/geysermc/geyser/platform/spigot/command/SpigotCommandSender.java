@@ -54,7 +54,7 @@ public class SpigotCommandSender implements CommandSender {
     }
 
     @Override
-    public String getName() {
+    public String name() {
         return handle.getName();
     }
 

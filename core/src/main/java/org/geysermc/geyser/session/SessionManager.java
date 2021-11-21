@@ -28,7 +28,6 @@ package org.geysermc.geyser.session;
 import com.google.common.collect.ImmutableList;
 import lombok.AccessLevel;
 import lombok.Getter;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.*;
@@ -39,29 +38,29 @@ public final class SessionManager {
      * A list of all players who don't currently have a permanent UUID attached yet.
      */
     @Getter(AccessLevel.PACKAGE)
-    private final Set<GeyserSession> pendingSessions = ConcurrentHashMap.newKeySet();
+    private final Set<GeyserSessionImpl> pendingSessions = ConcurrentHashMap.newKeySet();
     /**
      * A list of all players who are currently in-game.
      */
     @Getter
-    private final Map<UUID, GeyserSession> sessions = new ConcurrentHashMap<>();
+    private final Map<UUID, GeyserSessionImpl> sessions = new ConcurrentHashMap<>();
 
     /**
      * Called once the player has successfully authenticated to the Geyser server.
      */
-    public void addPendingSession(GeyserSession session) {
+    public void addPendingSession(GeyserSessionImpl session) {
         pendingSessions.add(session);
     }
 
     /**
      * Called once a player has successfully logged into their Java server.
      */
-    public void addSession(UUID uuid, GeyserSession session) {
+    public void addSession(UUID uuid, GeyserSessionImpl session) {
         pendingSessions.remove(session);
         sessions.put(uuid, session);
     }
 
-    public void removeSession(GeyserSession session) {
+    public void removeSession(GeyserSessionImpl session) {
         if (sessions.remove(session.getPlayerEntity().getUuid()) == null) {
             // Session was likely pending
             pendingSessions.remove(session);
@@ -71,16 +70,16 @@ public final class SessionManager {
     /**
      * Creates a new, immutable list containing all pending and active sessions.
      */
-    public Collection<GeyserSession> getAllSessions() {
-        return ImmutableList.<GeyserSession>builder() // builderWithExpectedSize is probably not a good idea yet as older Spigot builds probably won't have it.
+    public List<GeyserSessionImpl> getAllSessions() {
+        return ImmutableList.<GeyserSessionImpl>builder() // builderWithExpectedSize is probably not a good idea yet as older Spigot builds probably won't have it.
                 .addAll(pendingSessions)
                 .addAll(sessions.values())
                 .build();
     }
 
     public void disconnectAll(String message) {
-        Collection<GeyserSession> sessions = getAllSessions();
-        for (GeyserSession session : sessions) {
+        Collection<GeyserSessionImpl> sessions = getAllSessions();
+        for (GeyserSessionImpl session : sessions) {
             session.disconnect(GeyserLocale.getPlayerLocaleString(message, session.getLocale()));
         }
     }

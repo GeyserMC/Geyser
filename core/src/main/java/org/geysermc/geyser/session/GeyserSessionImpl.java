@@ -76,6 +76,7 @@ import lombok.Setter;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.session.GeyserSession;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.entity.InteractiveTagManager;
 import org.geysermc.geyser.session.auth.AuthType;
@@ -120,7 +121,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
-public class GeyserSession implements CommandSender {
+public class GeyserSessionImpl implements GeyserSession, CommandSender {
 
     private final GeyserImpl geyser;
     private final UpstreamSession upstream;
@@ -226,7 +227,7 @@ public class GeyserSession implements CommandSender {
 
     /**
      * Stores a list of all lectern locations and their block entity tags.
-     * See {@link WorldManager#getLecternDataAt(GeyserSession, int, int, int, boolean)}
+     * See {@link WorldManager#getLecternDataAt(GeyserSessionImpl, int, int, int, boolean)}
      * for more information.
      */
     private final Set<Vector3i> lecternCache;
@@ -458,7 +459,7 @@ public class GeyserSession implements CommandSender {
 
     private MinecraftProtocol protocol;
 
-    public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop eventLoop) {
+    public GeyserSessionImpl(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop eventLoop) {
         this.geyser = geyser;
         this.upstream = new UpstreamSession(bedrockServerSession);
         this.eventLoop = eventLoop;
@@ -579,7 +580,7 @@ public class GeyserSession implements CommandSender {
             } else {
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.auth.login.floodgate"));
             }
-            authenticate(authData.getName());
+            authenticate(authData.name());
         }
     }
 
@@ -658,7 +659,7 @@ public class GeyserSession implements CommandSender {
      */
     public void authenticateWithMicrosoftCode() {
         if (loggedIn) {
-            geyser.getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", getAuthData().getName()));
+            geyser.getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", getAuthData().name()));
             return;
         }
 
@@ -771,8 +772,8 @@ public class GeyserSession implements CommandSender {
 
                             encryptedData = cipher.encryptFromString(BedrockData.of(
                                     clientData.getGameVersion(),
-                                    authData.getName(),
-                                    authData.getXuid(),
+                                    authData.name(),
+                                    authData.xuid(),
                                     clientData.getDeviceOs().ordinal(),
                                     clientData.getLanguageCode(),
                                     clientData.getUiProfile().ordinal(),
@@ -822,18 +823,18 @@ public class GeyserSession implements CommandSender {
                 if (downstream instanceof LocalSession) {
                     // Connected directly to the server
                     geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.remote.connect_internal",
-                            authData.getName(), protocol.getProfile().getName()));
+                            authData.name(), protocol.getProfile().getName()));
                 } else {
                     // Connected to an IP address
                     geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.remote.connect",
-                            authData.getName(), protocol.getProfile().getName(), remoteAddress));
+                            authData.name(), protocol.getProfile().getName(), remoteAddress));
                 }
 
                 UUID uuid = protocol.getProfile().getId();
                 if (uuid == null) {
                     // Set what our UUID *probably* is going to be
                     if (remoteAuthType == AuthType.FLOODGATE) {
-                        uuid = new UUID(0, Long.parseLong(authData.getXuid()));
+                        uuid = new UUID(0, Long.parseLong(authData.xuid()));
                     } else {
                         uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + protocol.getProfile().getName()).getBytes(StandardCharsets.UTF_8));
                     }
@@ -887,9 +888,9 @@ public class GeyserSession implements CommandSender {
                 }
 
                 if (downstream instanceof LocalSession) {
-                    geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.remote.disconnect_internal", authData.getName(), disconnectMessage));
+                    geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.remote.disconnect_internal", authData.name(), disconnectMessage));
                 } else {
-                    geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.remote.disconnect", authData.getName(), remoteAddress, disconnectMessage));
+                    geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.remote.disconnect", authData.name(), remoteAddress, disconnectMessage));
                 }
                 if (cause != null) {
                     cause.printStackTrace();
@@ -901,7 +902,7 @@ public class GeyserSession implements CommandSender {
             @Override
             public void packetReceived(PacketReceivedEvent event) {
                 Packet packet = event.getPacket();
-                Registries.JAVA_PACKET_TRANSLATORS.translate(packet.getClass(), packet, GeyserSession.this);
+                Registries.JAVA_PACKET_TRANSLATORS.translate(packet.getClass(), packet, GeyserSessionImpl.this);
             }
 
             @Override
@@ -951,7 +952,7 @@ public class GeyserSession implements CommandSender {
             try {
                 runnable.run();
             } catch (Throwable e) {
-                geyser.getLogger().error("Error thrown in " + getName() + "'s event loop!", e);
+                geyser.getLogger().error("Error thrown in " + this.name() + "'s event loop!", e);
             }
         });
     }
@@ -964,7 +965,7 @@ public class GeyserSession implements CommandSender {
             try {
                 runnable.run();
             } catch (Throwable e) {
-                geyser.getLogger().error("Error thrown in " + getName() + "'s event loop!", e);
+                geyser.getLogger().error("Error thrown in " + this.name() + "'s event loop!", e);
             }
         }, duration, timeUnit);
     }
@@ -1104,8 +1105,18 @@ public class GeyserSession implements CommandSender {
     }
 
     @Override
-    public String getName() {
-        return authData.getName();
+    public String name() {
+        return authData.name();
+    }
+
+    @Override
+    public UUID uuid() {
+        return authData.uuid();
+    }
+
+    @Override
+    public String xuid() {
+        return authData.xuid();
     }
 
     @Override
@@ -1452,7 +1463,7 @@ public class GeyserSession implements CommandSender {
 
     public void refreshEmotes(List<UUID> emotes) {
         this.emotes.addAll(emotes);
-        for (GeyserSession player : geyser.getSessionManager().getSessions().values()) {
+        for (GeyserSessionImpl player : geyser.getSessionManager().getSessions().values()) {
             List<UUID> pieces = new ArrayList<>();
             for (UUID piece : emotes) {
                 if (!player.getEmotes().contains(piece)) {

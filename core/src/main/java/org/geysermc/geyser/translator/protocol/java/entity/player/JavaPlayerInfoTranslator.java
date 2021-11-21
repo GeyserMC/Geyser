@@ -32,7 +32,7 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.skin.SkinManager;
@@ -40,7 +40,7 @@ import org.geysermc.geyser.skin.SkinManager;
 @Translator(packet = ClientboundPlayerInfoPacket.class)
 public class JavaPlayerInfoTranslator extends PacketTranslator<ClientboundPlayerInfoPacket> {
     @Override
-    public void translate(GeyserSession session, ClientboundPlayerInfoPacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundPlayerInfoPacket packet) {
         if (packet.getAction() != PlayerListEntryAction.ADD_PLAYER && packet.getAction() != PlayerListEntryAction.REMOVE_PLAYER)
             return;
 
@@ -102,7 +102,7 @@ public class JavaPlayerInfoTranslator extends PacketTranslator<ClientboundPlayer
                     }
                     if (entity == session.getPlayerEntity()) {
                         // If removing ourself we use our AuthData UUID
-                        translate.getEntries().add(new PlayerListPacket.Entry(session.getAuthData().getUuid()));
+                        translate.getEntries().add(new PlayerListPacket.Entry(session.getAuthData().uuid()));
                     } else {
                         translate.getEntries().add(new PlayerListPacket.Entry(entry.getProfile().getId()));
                     }

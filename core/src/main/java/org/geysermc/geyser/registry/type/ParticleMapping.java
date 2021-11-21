@@ -26,14 +26,14 @@
 package org.geysermc.geyser.registry.type;
 
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 
 import javax.annotation.ParametersAreNullableByDefault;
 
 @ParametersAreNullableByDefault
 public record ParticleMapping(LevelEventType levelEventType, String identifier) {
 
-    public int getParticleId(GeyserSession session) {
+    public int getParticleId(GeyserSessionImpl session) {
         if (this.levelEventType == null) {
             return -1;
         }

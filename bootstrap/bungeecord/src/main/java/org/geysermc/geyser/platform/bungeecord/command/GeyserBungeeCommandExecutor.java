@@ -32,7 +32,7 @@ import net.md_5.bungee.api.plugin.TabExecutor;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandExecutor;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Arrays;
@@ -50,7 +50,7 @@ public class GeyserBungeeCommandExecutor extends Command implements TabExecutor 
     @Override
     public void execute(CommandSender sender, String[] args) {
         BungeeCommandSender commandSender = new BungeeCommandSender(sender);
-        GeyserSession session = this.commandExecutor.getGeyserSession(commandSender);
+        GeyserSessionImpl session = this.commandExecutor.getGeyserSession(commandSender);
 
         if (args.length > 0) {
             GeyserCommand command = this.commandExecutor.getCommand(args[0]);

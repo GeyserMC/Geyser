@@ -31,8 +31,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.logger.GeyserLogger;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.floodgate.news.NewsItem;
 import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.floodgate.news.data.AnnouncementData;
@@ -88,13 +88,13 @@ public class NewsHandler {
         } catch (JsonSyntaxException ignored) {}
     }
 
-    public void handleNews(GeyserSession session, NewsItemAction action) {
+    public void handleNews(GeyserSessionImpl session, NewsItemAction action) {
         for (NewsItem news : getActiveNews(action)) {
             handleNewsItem(session, news, action);
         }
     }
 
-    private void handleNewsItem(GeyserSession session, NewsItem news, NewsItemAction action) {
+    private void handleNewsItem(GeyserSessionImpl session, NewsItem news, NewsItemAction action) {
         switch (action) {
             case ON_SERVER_STARTED:
                 if (!firstCheck) {
@@ -110,7 +110,7 @@ public class NewsHandler {
 //                }
                 break;
             case BROADCAST_TO_OPERATORS:
-                for (GeyserSession player : GeyserImpl.getInstance().getSessionManager().getSessions().values()) {
+                for (GeyserSessionImpl player : GeyserImpl.getInstance().getSessionManager().getSessions().values()) {
                     if (player.getOpPermissionLevel() >= 2) {
                         session.sendMessage(ChatColor.GREEN + news.getMessage());
                     }

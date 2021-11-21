@@ -28,7 +28,7 @@ package org.geysermc.geyser.platform.velocity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.geyser.api.logger.GeyserLogger;
+import org.geysermc.geyser.GeyserLogger;
 import org.slf4j.Logger;
 
 @AllArgsConstructor

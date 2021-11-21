@@ -30,7 +30,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.Server
 import com.nukkitx.protocol.bedrock.data.AdventureSetting;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -38,7 +38,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 public class BedrockAdventureSettingsTranslator extends PacketTranslator<AdventureSettingsPacket> {
 
     @Override
-    public void translate(GeyserSession session, AdventureSettingsPacket packet) {
+    public void translate(GeyserSessionImpl session, AdventureSettingsPacket packet) {
         boolean isFlying = packet.getSettings().contains(AdventureSetting.FLYING);
         if (!isFlying && session.getGameMode() == GameMode.SPECTATOR) {
             // We should always be flying in spectator mode

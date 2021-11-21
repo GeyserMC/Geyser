@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.level.block.entity;
 
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 
 /**
  * Implemented only if a block is a block entity in Bedrock and not Java Edition.
@@ -46,7 +46,7 @@ public interface BedrockOnlyBlockEntity extends RequiresBlockState {
      * @param blockState The Java block state.
      * @param position The Bedrock block position.
      */
-    void updateBlock(GeyserSession session, int blockState, Vector3i position);
+    void updateBlock(GeyserSessionImpl session, int blockState, Vector3i position);
 
     /**
      * Get the tag of the Bedrock-only block entity
@@ -54,7 +54,7 @@ public interface BedrockOnlyBlockEntity extends RequiresBlockState {
      * @param blockState Java BlockState of block.
      * @return Bedrock tag, or null if not a Bedrock-only Block Entity
      */
-    static NbtMap getTag(GeyserSession session, Vector3i position, int blockState) {
+    static NbtMap getTag(GeyserSessionImpl session, Vector3i position, int blockState) {
         if (FlowerPotBlockEntityTranslator.isFlowerBlock(blockState)) {
             return FlowerPotBlockEntityTranslator.getTag(session, blockState, position);
         } else if (PistonBlockEntityTranslator.isBlock(blockState)) {

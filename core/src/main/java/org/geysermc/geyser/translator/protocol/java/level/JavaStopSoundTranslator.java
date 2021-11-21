@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.level.sound.BuiltinSound;
 import com.github.steveice10.mc.protocol.data.game.level.sound.CustomSound;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundStopSoundPacket;
 import com.nukkitx.protocol.bedrock.packet.StopSoundPacket;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.registry.Registries;
@@ -39,7 +39,7 @@ import org.geysermc.geyser.registry.type.SoundMapping;
 public class JavaStopSoundTranslator extends PacketTranslator<ClientboundStopSoundPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundStopSoundPacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundStopSoundPacket packet) {
         // Runs if all sounds are stopped
         if (packet.getSound() == null) {
             StopSoundPacket stopPacket = new StopSoundPacket();

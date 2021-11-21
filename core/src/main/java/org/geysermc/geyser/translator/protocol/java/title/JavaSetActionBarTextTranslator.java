@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.java.title;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.title.ClientboundSetActionBarTextPacket;
 import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -36,7 +36,7 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 public class JavaSetActionBarTextTranslator extends PacketTranslator<ClientboundSetActionBarTextPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundSetActionBarTextPacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundSetActionBarTextPacket packet) {
         String text;
         if (packet.getText() == null) { //TODO 1.17 can this happen?
             text = " ";

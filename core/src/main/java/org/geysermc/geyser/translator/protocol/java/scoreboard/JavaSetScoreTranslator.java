@@ -31,9 +31,9 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.scoreboard.Cl
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.logger.GeyserLogger;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -51,7 +51,7 @@ public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScore
     }
 
     @Override
-    public void translate(GeyserSession session, ClientboundSetScorePacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundSetScorePacket packet) {
         WorldCache worldCache = session.getWorldCache();
         Scoreboard scoreboard = worldCache.getScoreboard();
         int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();
@@ -108,7 +108,7 @@ public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScore
     /**
      * @param objective the objective that currently resides on the below name display slot
      */
-    private void setBelowName(GeyserSession session, Objective objective, String username, int count) {
+    private void setBelowName(GeyserSessionImpl session, Objective objective, String username, int count) {
         PlayerEntity entity = getPlayerEntity(session, username);
         if (entity == null) {
             return;
@@ -124,7 +124,7 @@ public class JavaSetScoreTranslator extends PacketTranslator<ClientboundSetScore
         session.sendUpstreamPacket(entityDataPacket);
     }
 
-    private PlayerEntity getPlayerEntity(GeyserSession session, String username) {
+    private PlayerEntity getPlayerEntity(GeyserSessionImpl session, String username) {
         // We don't care about the session player, because... they're not going to be seeing their own score
         if (session.getPlayerEntity().getUsername().equals(username)) {
             return null;

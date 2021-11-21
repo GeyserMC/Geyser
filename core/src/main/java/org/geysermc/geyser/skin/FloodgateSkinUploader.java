@@ -31,8 +31,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Getter;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.logger.GeyserLogger;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.util.PluginMessageUtils;
 import org.geysermc.floodgate.util.WebsocketEventType;
@@ -111,11 +111,11 @@ public final class FloodgateSkinUploader {
                             }
 
                             String xuid = node.get("xuid").asText();
-                            GeyserSession session = geyser.getPlayerByXuid(xuid);
+                            GeyserSessionImpl session = geyser.sessionByXuid(xuid);
 
                             if (session != null) {
                                 if (!node.get("success").asBoolean()) {
-                                    logger.info("Failed to upload skin for " + session.getName());
+                                    logger.info("Failed to upload skin for " + session.name());
                                     return;
                                 }
 

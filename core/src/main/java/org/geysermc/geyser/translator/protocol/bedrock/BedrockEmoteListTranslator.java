@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 
 import com.nukkitx.protocol.bedrock.packet.EmoteListPacket;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -35,7 +35,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 public class BedrockEmoteListTranslator extends PacketTranslator<EmoteListPacket> {
 
     @Override
-    public void translate(GeyserSession session, EmoteListPacket packet) {
+    public void translate(GeyserSessionImpl session, EmoteListPacket packet) {
         if (session.getGeyser().getConfig().getEmoteOffhandWorkaround() == EmoteOffhandWorkaroundOption.NO_EMOTES) {
             return;
         }

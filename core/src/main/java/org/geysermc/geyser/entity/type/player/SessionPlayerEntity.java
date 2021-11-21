@@ -39,7 +39,7 @@ import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.util.AttributeUtils;
 
 import java.util.Collections;
@@ -48,7 +48,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * The entity class specifically for a {@link GeyserSession}'s player.
+ * The entity class specifically for a {@link GeyserSessionImpl}'s player.
  */
 public class SessionPlayerEntity extends PlayerEntity {
     /**
@@ -70,9 +70,9 @@ public class SessionPlayerEntity extends PlayerEntity {
      */
     private int fakeTradeXp;
 
-    private final GeyserSession session;
+    private final GeyserSessionImpl session;
 
-    public SessionPlayerEntity(GeyserSession session) {
+    public SessionPlayerEntity(GeyserSessionImpl session) {
         super(session, 1, 1, new GameProfile(UUID.randomUUID(), "unknown"), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
 
         valid = true;

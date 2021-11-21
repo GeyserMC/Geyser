@@ -50,7 +50,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
@@ -77,7 +77,7 @@ import static org.geysermc.geyser.util.ChunkUtils.*;
 public class JavaLevelChunkWithLightTranslator extends PacketTranslator<ClientboundLevelChunkWithLightPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundLevelChunkWithLightPacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundLevelChunkWithLightPacket packet) {
         if (session.isSpawned()) {
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
         }

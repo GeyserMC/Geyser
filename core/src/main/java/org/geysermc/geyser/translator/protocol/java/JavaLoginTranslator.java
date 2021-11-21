@@ -36,7 +36,7 @@ import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
@@ -52,7 +52,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
     private static final List<SkinPart> SKIN_PART_VALUES = Arrays.asList(SkinPart.values());
 
     @Override
-    public void translate(GeyserSession session, ClientboundLoginPacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundLoginPacket packet) {
         PlayerEntity entity = session.getPlayerEntity();
         entity.setEntityId(packet.getEntityId());
 

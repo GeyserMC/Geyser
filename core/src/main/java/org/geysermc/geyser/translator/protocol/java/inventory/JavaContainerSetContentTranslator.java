@@ -28,7 +28,7 @@ package org.geysermc.geyser.translator.protocol.java.inventory;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetContentPacket;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
@@ -38,7 +38,7 @@ import org.geysermc.geyser.util.InventoryUtils;
 public class JavaContainerSetContentTranslator extends PacketTranslator<ClientboundContainerSetContentPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundContainerSetContentPacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundContainerSetContentPacket packet) {
         Inventory inventory = InventoryUtils.getInventory(session, packet.getContainerId());
         if (inventory == null)
             return;

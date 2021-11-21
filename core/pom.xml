@@ -26,7 +26,7 @@
         </dependency>
         <dependency>
             <groupId>org.geysermc</groupId>
-            <artifactId>api</artifactId>
+            <artifactId>geyser-api</artifactId>
             <version>1.4.3-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>

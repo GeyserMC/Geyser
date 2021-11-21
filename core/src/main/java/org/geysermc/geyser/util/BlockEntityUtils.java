@@ -31,7 +31,7 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.translator.level.block.entity.FlowerPotBlockEntityTranslator;
@@ -89,11 +89,11 @@ public class BlockEntityUtils {
          return Registries.BLOCK_ENTITIES.get(type);
     }
 
-    public static void updateBlockEntity(GeyserSession session, @Nonnull NbtMap blockEntity, Position position) {
+    public static void updateBlockEntity(GeyserSessionImpl session, @Nonnull NbtMap blockEntity, Position position) {
         updateBlockEntity(session, blockEntity, Vector3i.from(position.getX(), position.getY(), position.getZ()));
     }
 
-    public static void updateBlockEntity(GeyserSession session, @Nonnull NbtMap blockEntity, Vector3i position) {
+    public static void updateBlockEntity(GeyserSessionImpl session, @Nonnull NbtMap blockEntity, Vector3i position) {
         BlockEntityDataPacket blockEntityPacket = new BlockEntityDataPacket();
         blockEntityPacket.setBlockPosition(position);
         blockEntityPacket.setData(blockEntity);

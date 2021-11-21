@@ -32,7 +32,7 @@ import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.network.MinecraftProtocol;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.WebUtils;
@@ -54,7 +54,7 @@ public class VersionCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(GeyserSession session, CommandSender sender, String[] args) {
+    public void execute(GeyserSessionImpl session, CommandSender sender, String[] args) {
         String bedrockVersions;
         List<BedrockPacketCodec> supportedCodecs = MinecraftProtocol.SUPPORTED_BEDROCK_CODECS;
         if (supportedCodecs.size() > 1) {
@@ -67,7 +67,7 @@ public class VersionCommand extends GeyserCommand {
                 GeyserImpl.NAME, GeyserImpl.VERSION, MinecraftProtocol.getJavaVersion(), bedrockVersions));
 
         // Disable update checking in dev mode and for players in Geyser Standalone
-        if (GeyserImpl.getInstance().isProductionEnvironment() && !(!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE)) {
+        if (GeyserImpl.getInstance().productionEnvironment() && !(!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE)) {
             sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.checking", sender.getLocale()));
             try {
                 Properties gitProp = new Properties();

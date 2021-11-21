@@ -30,7 +30,7 @@ import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -40,7 +40,7 @@ import java.util.Arrays;
 public class JavaSetExperienceTranslator extends PacketTranslator<ClientboundSetExperiencePacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundSetExperiencePacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundSetExperiencePacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         AttributeData experience = GeyserAttributeType.EXPERIENCE.getAttribute(packet.getExperience());

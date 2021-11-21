@@ -30,7 +30,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCl
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 
 public class StatisticsCommand extends GeyserCommand {
 
@@ -39,7 +39,7 @@ public class StatisticsCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(GeyserSession session, CommandSender sender, String[] args) {
+    public void execute(GeyserSessionImpl session, CommandSender sender, String[] args) {
         if (session == null) return;
 
         session.setWaitingForStatistics(true);

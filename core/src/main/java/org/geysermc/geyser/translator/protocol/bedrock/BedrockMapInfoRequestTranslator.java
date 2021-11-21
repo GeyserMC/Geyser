@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 
 import com.nukkitx.protocol.bedrock.packet.ClientboundMapItemDataPacket;
 import com.nukkitx.protocol.bedrock.packet.MapInfoRequestPacket;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
 public class BedrockMapInfoRequestTranslator extends PacketTranslator<MapInfoRequestPacket> {
 
     @Override
-    public void translate(GeyserSession session, MapInfoRequestPacket packet) {
+    public void translate(GeyserSessionImpl session, MapInfoRequestPacket packet) {
         long mapId = packet.getUniqueMapId();
 
         ClientboundMapItemDataPacket mapPacket = session.getStoredMaps().remove(mapId);

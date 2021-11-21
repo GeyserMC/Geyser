@@ -41,7 +41,7 @@ import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import org.geysermc.geyser.inventory.BeaconContainer;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
@@ -53,13 +53,13 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
     public BeaconInventoryTranslator() {
         super(1, new BlockInventoryHolder("minecraft:beacon", com.nukkitx.protocol.bedrock.data.inventory.ContainerType.BEACON) {
             @Override
-            protected boolean checkInteractionPosition(GeyserSession session) {
+            protected boolean checkInteractionPosition(GeyserSessionImpl session) {
                 // Since we can't fall back to a virtual inventory, let's make opening one easier
                 return true;
             }
 
             @Override
-            public void openInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
+            public void openInventory(InventoryTranslator translator, GeyserSessionImpl session, Inventory inventory) {
                 if (!((BeaconContainer) inventory).isUsingRealBlock()) {
                     InventoryUtils.closeInventory(session, inventory.getId(), false);
                     return;
@@ -70,7 +70,7 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
     }
 
     @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
+    public void updateProperty(GeyserSessionImpl session, Inventory inventory, int key, int value) {
         //FIXME?: Beacon graphics look weird after inputting an item. This might be a Bedrock bug, since it resets to nothing
         // on BDS
         BeaconContainer beaconContainer = (BeaconContainer) inventory;
@@ -109,7 +109,7 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
     }
 
     @Override
-    public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+    public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSessionImpl session, Inventory inventory, ItemStackRequest request) {
         // Input a beacon payment
         BeaconPaymentStackRequestActionData beaconPayment = (BeaconPaymentStackRequestActionData) request.getActions()[0];
         ServerboundSetBeaconPacket packet = new ServerboundSetBeaconPacket(beaconPayment.getPrimaryEffect(), beaconPayment.getSecondaryEffect());

@@ -36,7 +36,7 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -168,7 +168,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     public void onSessionCreation(BedrockServerSession bedrockServerSession) {
         bedrockServerSession.setLogging(true);
         bedrockServerSession.setCompressionLevel(geyser.getConfig().getBedrock().getCompressionLevel());
-        bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(geyser, new GeyserSession(geyser, bedrockServerSession, eventLoopGroup.next())));
+        bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(geyser, new GeyserSessionImpl(geyser, bedrockServerSession, eventLoopGroup.next())));
         // Set the packet codec to default just in case we need to send disconnect packets.
         bedrockServerSession.setPacketCodec(MinecraftProtocol.DEFAULT_BEDROCK_CODEC);
     }

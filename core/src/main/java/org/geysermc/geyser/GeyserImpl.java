@@ -39,9 +39,12 @@ import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.internal.SystemPropertyUtil;
 import lombok.Getter;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.common.PlatformType;
-import org.geysermc.geyser.api.Geyser;
-import org.geysermc.geyser.api.logger.GeyserLogger;
+import org.geysermc.api.Geyser;
+import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.session.GeyserSession;
 import org.geysermc.geyser.command.CommandManager;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -52,7 +55,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.util.Metrics;
 import org.geysermc.geyser.network.ConnectorServerEventHandler;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.level.WorldManager;
@@ -67,7 +70,6 @@ import org.geysermc.floodgate.crypto.Base64Topping;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.floodgate.time.TimeSyncer;
-import org.jetbrains.annotations.Contract;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
@@ -77,6 +79,7 @@ import java.net.UnknownHostException;
 import java.security.Key;
 import java.text.DecimalFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -86,7 +89,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Getter
-public class GeyserImpl extends Geyser {
+public class GeyserImpl implements GeyserApi {
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper()
             .enable(JsonParser.Feature.IGNORE_UNDEFINED)
             .enable(JsonParser.Feature.ALLOW_COMMENTS)
@@ -128,12 +131,16 @@ public class GeyserImpl extends Geyser {
 
     private final Metrics metrics;
 
+    private static GeyserImpl instance;
+
     private GeyserImpl(PlatformType platformType, GeyserBootstrap bootstrap) {
         long startupTime = System.currentTimeMillis();
 
-        Geyser.setInstance(this);
-
         this.bootstrap = bootstrap;
+
+        instance = this;
+
+        Geyser.set(this);
 
         GeyserLogger logger = bootstrap.getGeyserLogger();
         GeyserConfiguration config = bootstrap.getGeyserConfig();
@@ -217,7 +224,7 @@ public class GeyserImpl extends Geyser {
 
         String branch = "unknown";
         int buildNumber = -1;
-        if (this.isProductionEnvironment()) {
+        if (this.productionEnvironment()) {
             try {
                 Properties gitProperties = new Properties();
                 gitProperties.load(FileUtils.getResource("git.properties"));
@@ -290,7 +297,7 @@ public class GeyserImpl extends Geyser {
             metrics.addCustomChart(new Metrics.SimplePie("version", () -> GeyserImpl.VERSION));
             metrics.addCustomChart(new Metrics.AdvancedPie("playerPlatform", () -> {
                 Map<String, Integer> valueMap = new HashMap<>();
-                for (GeyserSession session : sessionManager.getAllSessions()) {
+                for (GeyserSessionImpl session : sessionManager.getAllSessions()) {
                     if (session == null) continue;
                     if (session.getClientData() == null) continue;
                     String os = session.getClientData().getDeviceOs().toString();
@@ -304,7 +311,7 @@ public class GeyserImpl extends Geyser {
             }));
             metrics.addCustomChart(new Metrics.AdvancedPie("playerVersion", () -> {
                 Map<String, Integer> valueMap = new HashMap<>();
-                for (GeyserSession session : sessionManager.getAllSessions()) {
+                for (GeyserSessionImpl session : sessionManager.getAllSessions()) {
                     if (session == null) continue;
                     if (session.getClientData() == null) continue;
                     String version = session.getClientData().getGameVersion();
@@ -395,6 +402,40 @@ public class GeyserImpl extends Geyser {
         newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
     }
 
+    @Override
+    public @Nullable GeyserSessionImpl sessionByName(@NonNull String name) {
+        for (GeyserSessionImpl session : sessionManager.getAllSessions()) {
+            if (session.name().equals(name) || session.getProtocol().getProfile().getName().equals(name)) {
+                return session;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public @NonNull List<GeyserSession> onlineSessions() {
+        return (List<GeyserSession>) (List<? extends GeyserSession>) this.sessionManager.getAllSessions();
+    }
+
+    @Override
+    public @Nullable GeyserSessionImpl sessionByUuid(@NonNull UUID uuid) {
+        return this.sessionManager.getSessions().get(uuid);
+    }
+
+    @Override
+    public @Nullable GeyserSessionImpl sessionByXuid(@NonNull String xuid) {
+        for (GeyserSessionImpl session : sessionManager.getAllSessions()) {
+            if (session.xuid().equals(xuid)) {
+                return session;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
     public void shutdown() {
         bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown"));
         shuttingDown = true;
@@ -419,45 +460,26 @@ public class GeyserImpl extends Geyser {
         bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.done"));
     }
 
-    /**
-     * Gets a player by their current UUID
-     *
-     * @param uuid the uuid
-     * @return the player or <code>null</code> if there is no player online with this UUID
-     */
-    @Contract("null -> null")
-    public GeyserSession getPlayerByUuid(UUID uuid) {
-        if (uuid == null) {
-            return null;
-        }
-
-        return sessionManager.getSessions().get(uuid);
+    @Override
+    public void reload() {
+        shutdown();
+        bootstrap.onEnable();
     }
 
     /**
-     * Gets a player by their Xbox user identifier
+     * Returns false if this Geyser instance is running in an IDE. This only needs to be used in cases where files
+     * expected to be in a jarfile are not present.
      *
-     * @param xuid the Xbox user identifier
-     * @return the player or <code>null</code> if there is no player online with this xuid
+     * @return true if the version number is not 'DEV'.
      */
-    @SuppressWarnings("unused") // API usage
-    public GeyserSession getPlayerByXuid(String xuid) {
-        for (GeyserSession session : sessionManager.getAllSessions()) {
-            if (session.getAuthData().getXuid().equals(xuid)) {
-                return session;
-            }
-        }
-
-        return null;
+    @Override
+    public boolean productionEnvironment() {
+        //noinspection ConstantConditions - changes in production
+        return !"DEV".equals(GeyserImpl.VERSION);
     }
 
     public static GeyserImpl start(PlatformType platformType, GeyserBootstrap bootstrap) {
         return new GeyserImpl(platformType, bootstrap);
-    }
-
-    public void reload() {
-        shutdown();
-        bootstrap.onEnable();
     }
 
     public GeyserLogger getLogger() {
@@ -480,18 +502,7 @@ public class GeyserImpl extends Geyser {
         return timeSyncer;
     }
 
-    /**
-     * Returns false if this Geyser instance is running in an IDE. This only needs to be used in cases where files
-     * expected to be in a jarfile are not present.
-     *
-     * @return true if the version number is not 'DEV'.
-     */
-    public boolean isProductionEnvironment() {
-        //noinspection ConstantConditions - changes in production
-        return !"DEV".equals(GeyserImpl.VERSION);
-    }
-
     public static GeyserImpl getInstance() {
-        return (GeyserImpl) Geyser.getInstance();
+        return instance;
     }
 }

@@ -30,7 +30,7 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3i;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.registry.Registries;
@@ -43,7 +43,7 @@ public class BlockUtils {
      */
     public static final Position POSITION_ZERO = new Position(0, 0, 0);
 
-    private static boolean correctTool(GeyserSession session, BlockMapping blockMapping, String itemToolType) {
+    private static boolean correctTool(GeyserSessionImpl session, BlockMapping blockMapping, String itemToolType) {
         switch (itemToolType) {
             case "axe":
                 return session.getTagCache().isAxeEffective(blockMapping);
@@ -78,7 +78,7 @@ public class BlockUtils {
         };
     }
 
-    private static boolean canToolTierBreakBlock(GeyserSession session, BlockMapping blockMapping, String toolTier) {
+    private static boolean canToolTierBreakBlock(GeyserSessionImpl session, BlockMapping blockMapping, String toolTier) {
         if (toolTier.equals("netherite") || toolTier.equals("diamond")) {
             // As of 1.17, these tiers can mine everything that is mineable
             return true;
@@ -139,7 +139,7 @@ public class BlockUtils {
         return 1.0 / speed;
     }
 
-    public static double getBreakTime(GeyserSession session, BlockMapping blockMapping, ItemMapping item, CompoundTag nbtData, boolean isSessionPlayer) {
+    public static double getBreakTime(GeyserSessionImpl session, BlockMapping blockMapping, ItemMapping item, CompoundTag nbtData, boolean isSessionPlayer) {
         boolean isShearsEffective = session.getTagCache().isShearsEffective(blockMapping); //TODO called twice
         boolean canHarvestWithHand = blockMapping.isCanBreakWithHand();
         String toolType = "";
@@ -178,7 +178,7 @@ public class BlockUtils {
                 outOfWaterButNotOnGround, insideWaterNotOnGround);
     }
 
-    public static double getSessionBreakTime(GeyserSession session, BlockMapping blockMapping) {
+    public static double getSessionBreakTime(GeyserSessionImpl session, BlockMapping blockMapping) {
         PlayerInventory inventory = session.getPlayerInventory();
         GeyserItemStack item = inventory.getItemInHand();
         ItemMapping mapping;
@@ -234,11 +234,11 @@ public class BlockUtils {
         return Registries.COLLISIONS.get(blockId);
     }
 
-    public static BlockCollision getCollisionAt(GeyserSession session, Vector3i blockPos) {
+    public static BlockCollision getCollisionAt(GeyserSessionImpl session, Vector3i blockPos) {
         return getCollision(session.getGeyser().getWorldManager().getBlockAt(session, blockPos));
     }
 
-    public static BlockCollision getCollisionAt(GeyserSession session, int x, int y, int z) {
+    public static BlockCollision getCollisionAt(GeyserSessionImpl session, int x, int y, int z) {
         return getCollision(session.getGeyser().getWorldManager().getBlockAt(session, x, y, z));
     }
 }

@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import lombok.Data;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.registry.type.ItemMapping;
 
@@ -91,14 +91,14 @@ public class GeyserItemStack {
         return isEmpty() ? null : new ItemStack(javaId, newAmount, nbt);
     }
 
-    public ItemData getItemData(GeyserSession session) {
+    public ItemData getItemData(GeyserSessionImpl session) {
         ItemData itemData = ItemTranslator.translateToBedrock(session, getItemStack());
         itemData.setNetId(getNetId());
         itemData.setUsingNetId(true); // Seems silly - this should probably be on the protocol level
         return itemData;
     }
 
-    public ItemMapping getMapping(GeyserSession session) {
+    public ItemMapping getMapping(GeyserSessionImpl session) {
         return session.getItemMappings().getMapping(this.javaId);
     }
 

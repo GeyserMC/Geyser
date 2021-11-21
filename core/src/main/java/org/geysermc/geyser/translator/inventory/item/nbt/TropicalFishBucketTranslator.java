@@ -31,7 +31,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.geysermc.geyser.entity.type.living.animal.TropicalFishEntity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
@@ -47,7 +47,7 @@ public class TropicalFishBucketTranslator extends NbtItemStackTranslator {
     private static final Style LORE_STYLE = Style.style(NamedTextColor.GRAY, TextDecoration.ITALIC);
 
     @Override
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
+    public void translateToBedrock(GeyserSessionImpl session, CompoundTag itemTag, ItemMapping mapping) {
         // Prevent name from appearing as "Bucket of"
         itemTag.put(new ByteTag("AppendCustomName", (byte) 1));
         itemTag.put(new StringTag("CustomName", MinecraftLocale.getLocaleString("entity.minecraft.tropical_fish", session.getLocale())));

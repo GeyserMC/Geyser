@@ -26,20 +26,12 @@
 package org.geysermc.geyser.session.auth;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.geysermc.geyser.GeyserImpl;
 
 import java.util.UUID;
 
-@RequiredArgsConstructor
-public class AuthData {
-    @Getter private final String name;
-    @Getter private final UUID uuid;
-    @Getter private final String xuid;
-
-    private final JsonNode certChainData;
-    private final String clientData;
+public record AuthData(String name, UUID uuid, String xuid,
+                       JsonNode certChainData, String clientData) {
 
     public void upload(GeyserImpl geyser) {
         // we can't upload the skin in LoginEncryptionUtil since the global server would return

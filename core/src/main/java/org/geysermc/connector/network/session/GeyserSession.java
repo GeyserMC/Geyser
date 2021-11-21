@@ -28,6 +28,7 @@ package org.geysermc.connector.network.session;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import org.geysermc.connector.network.session.auth.AuthData;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 
 /**
  * Deprecated, legacy code. Serves as a wrapper around
@@ -37,9 +38,9 @@ import org.geysermc.connector.network.session.auth.AuthData;
  */
 @Deprecated
 public class GeyserSession {
-    private final org.geysermc.geyser.session.GeyserSession handle;
+    private final GeyserSessionImpl handle;
 
-    public GeyserSession(org.geysermc.geyser.session.GeyserSession handle) {
+    public GeyserSession(GeyserSessionImpl handle) {
         this.handle = handle;
     }
 
@@ -128,7 +129,7 @@ public class GeyserSession {
     }
 
     public String getName() {
-        return this.handle.getName();
+        return this.handle.name();
     }
 
     public boolean isConsole() {

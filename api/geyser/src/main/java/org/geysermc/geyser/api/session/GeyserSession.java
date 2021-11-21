@@ -23,37 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api;
+package org.geysermc.geyser.api.session;
 
-import org.geysermc.geyser.api.logger.GeyserLogger;
+import org.geysermc.api.session.Session;
 
 /**
- * General API class for Geyser.
+ * Represents a player session used in Geyser.
  */
-public abstract class Geyser {
-    private static Geyser instance;
-
-    /**
-     * Gets the logger used by Geyser.
-     *
-     * @return the logger used by Geyser
-     */
-    public abstract GeyserLogger getLogger();
-
-    /**
-     * Returns the current {@link Geyser} instance.
-     *
-     * @return the current Geyser instance
-     */
-    public static Geyser getInstance() {
-        return instance;
-    }
-
-    protected static void setInstance(Geyser instance) {
-        if (Geyser.instance != null) {
-            throw new RuntimeException("Cannot redefine singleton Geyser!");
-        }
-
-        Geyser.instance = instance;
-    }
+public interface GeyserSession extends Session {
 }

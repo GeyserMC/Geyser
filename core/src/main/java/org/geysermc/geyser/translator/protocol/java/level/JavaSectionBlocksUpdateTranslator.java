@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.java.level;
 
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockChangeEntry;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundSectionBlocksUpdatePacket;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
@@ -36,7 +36,7 @@ import org.geysermc.geyser.util.ChunkUtils;
 public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<ClientboundSectionBlocksUpdatePacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundSectionBlocksUpdatePacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundSectionBlocksUpdatePacket packet) {
         for (BlockChangeEntry entry : packet.getEntries()) {
             ChunkUtils.updateBlock(session, entry.getBlock(), entry.getPosition());
         }

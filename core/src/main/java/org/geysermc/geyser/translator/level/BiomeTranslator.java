@@ -35,7 +35,7 @@ import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.BitArray;
@@ -47,7 +47,7 @@ import org.geysermc.geyser.util.MathUtils;
 // Array index formula by https://wiki.vg/Chunk_Format
 public class BiomeTranslator {
 
-    public static void loadServerBiomes(GeyserSession session, CompoundTag codec) {
+    public static void loadServerBiomes(GeyserSessionImpl session, CompoundTag codec) {
         Int2IntMap biomeTranslations = session.getBiomeTranslations();
         biomeTranslations.clear();
 
@@ -87,7 +87,7 @@ public class BiomeTranslator {
         }
     }
 
-    public static BlockStorage toNewBedrockBiome(GeyserSession session, DataPalette biomeData) {
+    public static BlockStorage toNewBedrockBiome(GeyserSessionImpl session, DataPalette biomeData) {
         Int2IntMap biomeTranslations = session.getBiomeTranslations();
         // As of 1.17.10: the client expects the same format as a chunk but filled with biomes
         // As of 1.18 this is the same as Java Edition

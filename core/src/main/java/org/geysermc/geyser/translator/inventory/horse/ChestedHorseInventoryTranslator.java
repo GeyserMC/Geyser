@@ -31,7 +31,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 
 import java.util.Arrays;
@@ -85,7 +85,7 @@ public abstract class ChestedHorseInventoryTranslator extends AbstractHorseInven
     }
 
     @Override
-    public void updateInventory(GeyserSession session, Inventory inventory) {
+    public void updateInventory(GeyserSessionImpl session, Inventory inventory) {
         ItemData[] bedrockItems = new ItemData[36];
         for (int i = 0; i < 36; i++) {
             final int offset = i < 9 ? 27 : -9;

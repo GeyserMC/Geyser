@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.inventory.chest;
 
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.translator.inventory.BaseInventoryTranslator;
 import org.geysermc.geyser.inventory.updater.ChestInventoryUpdater;
@@ -42,7 +42,7 @@ public abstract class ChestInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, ContainerSlotType bedrockSourceContainer,
+    public boolean shouldRejectItemPlace(GeyserSessionImpl session, Inventory inventory, ContainerSlotType bedrockSourceContainer,
                                          int javaSourceSlot, ContainerSlotType bedrockDestinationContainer, int javaDestinationSlot) {
         // Reject any item placements that occur in the unusable inventory space
         if (bedrockSourceContainer == ContainerSlotType.CONTAINER && javaSourceSlot >= this.size) {
@@ -52,12 +52,12 @@ public abstract class ChestInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public void updateInventory(GeyserSession session, Inventory inventory) {
+    public void updateInventory(GeyserSessionImpl session, Inventory inventory) {
         updater.updateInventory(this, session, inventory);
     }
 
     @Override
-    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
+    public void updateSlot(GeyserSessionImpl session, Inventory inventory, int slot) {
         updater.updateSlot(this, session, inventory, slot);
     }
 

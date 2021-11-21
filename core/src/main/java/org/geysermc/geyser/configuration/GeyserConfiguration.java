@@ -26,7 +26,7 @@
 package org.geysermc.geyser.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.geysermc.geyser.api.logger.GeyserLogger;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.network.CIDRMatcher;
 import org.geysermc.geyser.text.GeyserLocale;

@@ -31,7 +31,7 @@ import com.nukkitx.protocol.bedrock.packet.AnimateEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
 import com.nukkitx.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.DimensionUtils;
@@ -40,7 +40,7 @@ import org.geysermc.geyser.util.DimensionUtils;
 public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundAnimatePacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundAnimatePacket packet) {
         Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();

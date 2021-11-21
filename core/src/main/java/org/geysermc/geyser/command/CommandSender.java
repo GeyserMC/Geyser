@@ -33,7 +33,7 @@ import org.geysermc.geyser.text.GeyserLocale;
  */
 public interface CommandSender {
 
-    String getName();
+    String name();
 
     default void sendMessage(String[] messages) {
         for (String message : messages) {

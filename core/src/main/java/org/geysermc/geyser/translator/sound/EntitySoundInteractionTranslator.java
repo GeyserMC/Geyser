@@ -28,7 +28,7 @@ package org.geysermc.geyser.translator.sound;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.registry.Registries;
 
 import java.util.Map;
@@ -46,7 +46,7 @@ public interface EntitySoundInteractionTranslator extends SoundInteractionTransl
      * @param position the position of the block
      * @param entity the entity interacted with
      */
-    static void handleEntityInteraction(GeyserSession session, Vector3f position, Entity entity) {
+    static void handleEntityInteraction(GeyserSessionImpl session, Vector3f position, Entity entity) {
         // If we need to get the hand identifier, only get it once and save it to a variable
         String handIdentifier = null;
 

@@ -33,7 +33,7 @@ import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.geysermc.geyser.network.MinecraftProtocol;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.platform.spigot.GeyserSpigotPlugin;
 
 import java.util.List;
@@ -66,7 +66,7 @@ public class GeyserSpigotLegacyNativeWorldManager extends GeyserSpigotNativeWorl
     }
 
     @Override
-    public int getBlockAt(GeyserSession session, int x, int y, int z) {
+    public int getBlockAt(GeyserSessionImpl session, int x, int y, int z) {
         int nativeBlockId = super.getBlockAt(session, x, y, z);
         return oldToNewBlockId.getOrDefault(nativeBlockId, nativeBlockId);
     }

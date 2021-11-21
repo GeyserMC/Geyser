@@ -28,7 +28,7 @@ package org.geysermc.geyser.translator.inventory.item.nbt;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.opennbt.tag.builtin.*;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
@@ -38,7 +38,7 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 public class CrossbowTranslator extends NbtItemStackTranslator {
 
     @Override
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
+    public void translateToBedrock(GeyserSessionImpl session, CompoundTag itemTag, ItemMapping mapping) {
         if (itemTag.get("ChargedProjectiles") != null) {
             ListTag chargedProjectiles = itemTag.get("ChargedProjectiles");
             if (!chargedProjectiles.getValue().isEmpty()) {

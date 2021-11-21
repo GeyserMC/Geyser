@@ -28,7 +28,7 @@ package org.geysermc.geyser.translator.inventory.item.nbt;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
 import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -38,7 +38,7 @@ import org.geysermc.geyser.text.MinecraftLocale;
 public class PlayerHeadTranslator extends NbtItemStackTranslator {
 
     @Override
-    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
+    public void translateToBedrock(GeyserSessionImpl session, CompoundTag itemTag, ItemMapping mapping) {
         if (!itemTag.contains("display") || !((CompoundTag) itemTag.get("display")).contains("Name")) {
             if (itemTag.contains("SkullOwner")) {
                 StringTag name;

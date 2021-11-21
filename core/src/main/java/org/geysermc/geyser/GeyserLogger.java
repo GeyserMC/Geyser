@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.logger;
+package org.geysermc.geyser;
 
 public interface GeyserLogger {
 

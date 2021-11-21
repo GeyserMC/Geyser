@@ -27,7 +27,7 @@ package org.geysermc.geyser.command.defaults;
 
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 
 public class AdvancementsCommand extends GeyserCommand {
     public AdvancementsCommand(String name, String description, String permission) {
@@ -35,7 +35,7 @@ public class AdvancementsCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(GeyserSession session, CommandSender sender, String[] args) {
+    public void execute(GeyserSessionImpl session, CommandSender sender, String[] args) {
         if (session != null) {
             session.getAdvancementsCache().buildAndShowMenuForm();
         }

@@ -31,7 +31,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import org.geysermc.geyser.inventory.AnvilContainer;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.updater.AnvilInventoryUpdater;
 
@@ -77,7 +77,7 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
     }
 
     @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
+    public void updateProperty(GeyserSessionImpl session, Inventory inventory, int key, int value) {
         // The only property sent by Java is key 0 which is the level cost
         if (key != 0) return;
         AnvilContainer anvilContainer = (AnvilContainer) inventory;

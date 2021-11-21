@@ -31,7 +31,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.GoatEntity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.sound.EntitySoundInteractionTranslator;
 import org.geysermc.geyser.translator.sound.SoundTranslator;
 
@@ -39,7 +39,7 @@ import org.geysermc.geyser.translator.sound.SoundTranslator;
 public class MilkEntitySoundInteractionTranslator implements EntitySoundInteractionTranslator {
 
     @Override
-    public void translate(GeyserSession session, Vector3f position, Entity value) {
+    public void translate(GeyserSessionImpl session, Vector3f position, Entity value) {
         if (!session.getPlayerInventory().getItemInHand().getMapping(session).getJavaIdentifier().equals("minecraft:bucket")) {
             return;
         }

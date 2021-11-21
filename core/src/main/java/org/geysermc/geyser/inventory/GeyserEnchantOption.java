@@ -28,7 +28,7 @@ package org.geysermc.geyser.inventory;
 import com.nukkitx.protocol.bedrock.data.inventory.EnchantData;
 import com.nukkitx.protocol.bedrock.data.inventory.EnchantOptionData;
 import lombok.Getter;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -70,7 +70,7 @@ public class GeyserEnchantOption {
         this.javaIndex = javaIndex;
     }
 
-    public EnchantOptionData build(GeyserSession session) {
+    public EnchantOptionData build(GeyserSessionImpl session) {
         this.hasChanged = false;
         return new EnchantOptionData(xpCost, javaIndex + 16, EMPTY,
                 enchantLevel == -1 ? EMPTY : Collections.singletonList(new EnchantData(bedrockEnchantIndex, enchantLevel)), EMPTY,

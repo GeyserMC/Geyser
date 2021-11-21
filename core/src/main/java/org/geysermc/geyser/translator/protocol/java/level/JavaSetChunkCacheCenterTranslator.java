@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java.level;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundSetChunkCacheCenterPacket;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
@@ -36,7 +36,7 @@ import com.nukkitx.math.vector.Vector3i;
 public class JavaSetChunkCacheCenterTranslator extends PacketTranslator<ClientboundSetChunkCacheCenterPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundSetChunkCacheCenterPacket packet) {
+    public void translate(GeyserSessionImpl session, ClientboundSetChunkCacheCenterPacket packet) {
         if (!session.isSpawned() && session.getLastChunkPosition() == null) {
             ChunkUtils.updateChunkPosition(session, Vector3i.from(packet.getChunkX() << 4, 64, packet.getChunkZ() << 4));
         }

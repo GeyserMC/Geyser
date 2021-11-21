@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 
 public class StonecutterContainer extends Container {
     /**
@@ -44,7 +44,7 @@ public class StonecutterContainer extends Container {
     }
 
     @Override
-    public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
+    public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSessionImpl session) {
         if (slot == 0 && newItem.getJavaId() != items[slot].getJavaId()) {
             // The pressed stonecutter button output resets whenever the input item changes
             this.stonecutterButton = -1;

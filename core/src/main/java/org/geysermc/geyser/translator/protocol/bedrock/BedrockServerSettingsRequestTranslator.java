@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 
 import com.nukkitx.protocol.bedrock.packet.ServerSettingsRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerSettingsResponsePacket;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSessionImpl;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.SettingsUtils;
@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 @Translator(packet = ServerSettingsRequestPacket.class)
 public class BedrockServerSettingsRequestTranslator extends PacketTranslator<ServerSettingsRequestPacket> {
     @Override
-    public void translate(GeyserSession session, ServerSettingsRequestPacket packet) {
+    public void translate(GeyserSessionImpl session, ServerSettingsRequestPacket packet) {
         CustomForm window = SettingsUtils.buildForm(session);
         int windowId = session.getFormCache().addForm(window);
 

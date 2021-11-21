@@ -41,14 +41,14 @@ public class AuthData {
     }
 
     public String getName() {
-        return this.handle.getName();
+        return this.handle.name();
     }
 
     public UUID getUUID() {
-        return this.handle.getUuid();
+        return this.handle.uuid();
     }
 
     public String getXboxUUID() {
-        return this.handle.getXuid();
+        return this.handle.xuid();
     }
 }
