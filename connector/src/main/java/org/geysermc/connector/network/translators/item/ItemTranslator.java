@@ -209,13 +209,13 @@ public abstract class ItemTranslator {
         if (maxDurability != 0) {
             int durability = maxDurability - ((IntTag) newNbt.get("Damage")).getValue();
             if (durability != maxDurability) {
-                listTag.add(new StringTag("AdvancedTooltipDurability", "§r§f" + String.format(MessageTranslator.convertMessage("item.durability", language), durability, maxDurability)));
+                listTag.add(new StringTag("", "§r§f" + String.format(MessageTranslator.convertMessage("item.durability", language), durability, maxDurability)));
             }
         }
 
-        listTag.add(new StringTag("AdvancedTooltipItemId", "§r§8" + mapping.getJavaIdentifier()));
+        listTag.add(new StringTag("", "§r§8" + mapping.getJavaIdentifier()));
         if (nbt != null) {
-            listTag.add(new StringTag("AdvancedTooltipNBTTagCount", "§r§8" + String.format(MessageTranslator.convertMessage("item.nbt_tags", language), nbt.size())));
+            listTag.add(new StringTag("", "§r§8" + String.format(MessageTranslator.convertMessage("item.nbt_tags", language), nbt.size())));
         }
         compoundTag.put(listTag);
         newNbt.put(compoundTag);
