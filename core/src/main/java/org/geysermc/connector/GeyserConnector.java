@@ -73,11 +73,21 @@ public class GeyserConnector {
     }
 
     public GeyserSession getPlayerByXuid(String xuid) {
-        return new GeyserSession(GeyserImpl.getInstance().connectionByXuid(xuid));
+        org.geysermc.geyser.session.GeyserSession session = GeyserImpl.getInstance().connectionByXuid(xuid);
+        if (session != null) {
+            return new GeyserSession(session);
+        } else {
+            return null;
+        }
     }
 
     public GeyserSession getPlayerByUuid(UUID uuid) {
-        return new GeyserSession(GeyserImpl.getInstance().connectionByUuid(uuid));
+        org.geysermc.geyser.session.GeyserSession session = GeyserImpl.getInstance().connectionByUuid(uuid);
+        if (session != null) {
+            return new GeyserSession(session);
+        } else {
+            return null;
+        }
     }
 
     public boolean isProductionEnvironment() {
