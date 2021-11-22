@@ -40,7 +40,7 @@ import it.unimi.dsi.fastutil.ints.IntLists;
 import lombok.experimental.UtilityClass;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
@@ -115,7 +115,7 @@ public class ChunkUtils {
         return (yzx >> 8) | (yzx & 0x0F0) | ((yzx & 0x00F) << 8);
     }
 
-    public static void updateChunkPosition(GeyserSessionImpl session, Vector3i position) {
+    public static void updateChunkPosition(GeyserSession session, Vector3i position) {
         Vector2i chunkPos = session.getLastChunkPosition();
         Vector2i newChunkPos = Vector2i.from(position.getX() >> 4, position.getZ() >> 4);
 
@@ -136,7 +136,7 @@ public class ChunkUtils {
      * @param blockState the Java block state of the block
      * @param position the position of the block
      */
-    public static void updateBlock(GeyserSessionImpl session, int blockState, Position position) {
+    public static void updateBlock(GeyserSession session, int blockState, Position position) {
         Vector3i pos = Vector3i.from(position.getX(), position.getY(), position.getZ());
         updateBlock(session, blockState, pos);
     }
@@ -148,7 +148,7 @@ public class ChunkUtils {
      * @param blockState the Java block state of the block
      * @param position the position of the block
      */
-    public static void updateBlock(GeyserSessionImpl session, int blockState, Vector3i position) {
+    public static void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         // Checks for item frames so they aren't tripped up and removed
         ItemFrameEntity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, position);
         if (itemFrameEntity != null) {
@@ -205,7 +205,7 @@ public class ChunkUtils {
         session.getChunkCache().updateBlock(position.getX(), position.getY(), position.getZ(), blockState);
     }
 
-    public static void sendEmptyChunks(GeyserSessionImpl session, Vector3i position, int radius, boolean forceUpdate) {
+    public static void sendEmptyChunks(GeyserSession session, Vector3i position, int radius, boolean forceUpdate) {
         int chunkX = position.getX() >> 4;
         int chunkZ = position.getZ() >> 4;
         for (int x = -radius; x <= radius; x++) {
@@ -234,7 +234,7 @@ public class ChunkUtils {
      * Process the minimum and maximum heights for this dimension, and processes the world coordinate scale.
      * This must be done after the player has switched dimensions so we know what their dimension is
      */
-    public static void loadDimensionTag(GeyserSessionImpl session, CompoundTag dimensionTag) {
+    public static void loadDimensionTag(GeyserSession session, CompoundTag dimensionTag) {
         int minY = ((IntTag) dimensionTag.get("min_y")).getValue();
         int maxY = ((IntTag) dimensionTag.get("height")).getValue();
         // Logical height can be ignored probably - seems to be for artificial limits like the Nether.

@@ -29,7 +29,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.text.GeyserLocale;
 
@@ -73,10 +73,10 @@ public final class ScoreboardUpdater extends Thread {
                 long currentTime = System.currentTimeMillis();
 
                 // reset score-packets per second every second
-                Collection<GeyserSessionImpl> sessions = geyser.getSessionManager().getSessions().values();
+                Collection<GeyserSession> sessions = geyser.getSessionManager().getSessions().values();
                 if (currentTime - lastPacketsPerSecondUpdate >= 1000) {
                     lastPacketsPerSecondUpdate = currentTime;
-                    for (GeyserSessionImpl session : sessions) {
+                    for (GeyserSession session : sessions) {
                         ScoreboardSession scoreboardSession = session.getWorldCache().getScoreboardSession();
 
                         int oldPps = scoreboardSession.getPacketsPerSecond();
@@ -96,7 +96,7 @@ public final class ScoreboardUpdater extends Thread {
                 if (currentTime - lastUpdate >= FIRST_MILLIS_BETWEEN_UPDATES) {
                     lastUpdate = currentTime;
 
-                    for (GeyserSessionImpl session : sessions) {
+                    for (GeyserSession session : sessions) {
                         WorldCache worldCache = session.getWorldCache();
                         ScoreboardSession scoreboardSession = worldCache.getScoreboardSession();
 
@@ -172,7 +172,7 @@ public final class ScoreboardUpdater extends Thread {
     @RequiredArgsConstructor
     @Getter
     public static final class ScoreboardSession {
-        private final GeyserSessionImpl session;
+        private final GeyserSession session;
         private final AtomicInteger pendingPacketsPerSecond = new AtomicInteger(0);
         private int packetsPerSecond;
         private long lastUpdate;

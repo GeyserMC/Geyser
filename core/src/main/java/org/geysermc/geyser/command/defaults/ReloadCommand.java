@@ -29,7 +29,7 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
 public class ReloadCommand extends GeyserCommand {
@@ -42,7 +42,7 @@ public class ReloadCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(GeyserSessionImpl session, CommandSender sender, String[] args) {
+    public void execute(GeyserSession session, CommandSender sender, String[] args) {
         if (!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE) {
             return;
         }

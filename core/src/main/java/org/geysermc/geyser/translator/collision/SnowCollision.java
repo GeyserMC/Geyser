@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.collision;
 
 import lombok.EqualsAndHashCode;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.physics.BoundingBox;
 
 @EqualsAndHashCode(callSuper = true)
@@ -61,7 +61,7 @@ public class SnowCollision extends BlockCollision {
     }
 
     @Override
-    public boolean correctPosition(GeyserSessionImpl session, int x, int y, int z, BoundingBox playerCollision) {
+    public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
         if (layers == 1) {
             // 1 layer of snow does not have collision
             return true;

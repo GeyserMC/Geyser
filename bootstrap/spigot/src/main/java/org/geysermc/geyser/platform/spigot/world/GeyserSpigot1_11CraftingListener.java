@@ -48,7 +48,7 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.network.MinecraftProtocol;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
 
@@ -79,8 +79,8 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        GeyserSessionImpl session = null;
-        for (GeyserSessionImpl otherSession : geyser.getSessionManager().getSessions().values()) {
+        GeyserSession session = null;
+        for (GeyserSession otherSession : geyser.getSessionManager().getSessions().values()) {
             if (otherSession.name().equals(event.getPlayer().getName())) {
                 session = otherSession;
                 break;
@@ -93,7 +93,7 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
         sendServerRecipes(session);
     }
 
-    public void sendServerRecipes(GeyserSessionImpl session) {
+    public void sendServerRecipes(GeyserSession session) {
         int netId = InventoryUtils.LAST_RECIPE_NET_ID;
 
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
@@ -161,7 +161,7 @@ public class GeyserSpigot1_11CraftingListener implements Listener {
     }
 
     @SuppressWarnings("deprecation")
-    private Pair<ItemStack, ItemData> translateToBedrock(GeyserSessionImpl session, org.bukkit.inventory.ItemStack itemStack) {
+    private Pair<ItemStack, ItemData> translateToBedrock(GeyserSession session, org.bukkit.inventory.ItemStack itemStack) {
         if (itemStack != null && itemStack.getData() != null) {
             if (itemStack.getType().getId() == 0) {
                 return new Pair<>(null, ItemData.AIR);

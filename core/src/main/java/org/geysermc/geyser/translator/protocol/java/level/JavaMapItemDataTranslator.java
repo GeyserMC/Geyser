@@ -30,7 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.level.map.MapIcon;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundMapItemDataPacket;
 import com.nukkitx.protocol.bedrock.data.MapDecoration;
 import com.nukkitx.protocol.bedrock.data.MapTrackedObject;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.level.BedrockMapIcon;
@@ -41,7 +41,7 @@ import org.geysermc.geyser.level.MapColor;
 public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapItemDataPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundMapItemDataPacket packet) {
+    public void translate(GeyserSession session, ClientboundMapItemDataPacket packet) {
         com.nukkitx.protocol.bedrock.packet.ClientboundMapItemDataPacket mapItemDataPacket = new com.nukkitx.protocol.bedrock.packet.ClientboundMapItemDataPacket();
         boolean shouldStore = false;
 

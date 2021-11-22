@@ -39,7 +39,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.plugin.Plugin;
 import org.geysermc.geyser.network.MinecraftProtocol;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
 import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -66,7 +66,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     }
 
     @Override
-    public int getBlockAt(GeyserSessionImpl session, int x, int y, int z) {
+    public int getBlockAt(GeyserSession session, int x, int y, int z) {
         Player bukkitPlayer;
         if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUsername())) == null) {
             return BlockStateValues.JAVA_AIR_ID;
@@ -90,7 +90,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     }
 
     @Override
-    public NbtMap getLecternDataAt(GeyserSessionImpl session, int x, int y, int z, boolean isChunkLoad) {
+    public NbtMap getLecternDataAt(GeyserSession session, int x, int y, int z, boolean isChunkLoad) {
         // Run as a task to prevent async issues
         Runnable lecternInfoGet = () -> {
             Player bukkitPlayer;
@@ -158,7 +158,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
         return true;
     }
 
-    public Boolean getGameRuleBool(GeyserSessionImpl session, GameRule gameRule) {
+    public Boolean getGameRuleBool(GeyserSession session, GameRule gameRule) {
         String value = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getGameRuleValue(gameRule.getJavaID());
         if (!value.isEmpty()) {
             return Boolean.parseBoolean(value);
@@ -167,7 +167,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     }
 
     @Override
-    public int getGameRuleInt(GeyserSessionImpl session, GameRule gameRule) {
+    public int getGameRuleInt(GeyserSession session, GameRule gameRule) {
         String value = Bukkit.getPlayer(session.getPlayerEntity().getUsername()).getWorld().getGameRuleValue(gameRule.getJavaID());
         if (!value.isEmpty()) {
             return Integer.parseInt(value);
@@ -176,7 +176,7 @@ public class GeyserSpigotWorldManager extends GeyserWorldManager {
     }
 
     @Override
-    public boolean hasPermission(GeyserSessionImpl session, String permission) {
+    public boolean hasPermission(GeyserSession session, String permission) {
         return Bukkit.getPlayer(session.getPlayerEntity().getUsername()).hasPermission(permission);
     }
 

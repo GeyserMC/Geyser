@@ -30,7 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 
 /**
  * Class that manages or retrieves various information
@@ -48,7 +48,7 @@ public abstract class WorldManager {
      * @param position the position
      * @return the block state at the specified location
      */
-    public int getBlockAt(GeyserSessionImpl session, Position position) {
+    public int getBlockAt(GeyserSession session, Position position) {
         return this.getBlockAt(session, position.getX(), position.getY(), position.getZ());
     }
 
@@ -59,7 +59,7 @@ public abstract class WorldManager {
      * @param vector the position
      * @return the block state at the specified location
      */
-    public int getBlockAt(GeyserSessionImpl session, Vector3i vector) {
+    public int getBlockAt(GeyserSession session, Vector3i vector) {
         return this.getBlockAt(session, vector.getX(), vector.getY(), vector.getZ());
     }
 
@@ -72,7 +72,7 @@ public abstract class WorldManager {
      * @param z the z coordinate to get the block at
      * @return the block state at the specified location
      */
-    public abstract int getBlockAt(GeyserSessionImpl session, int x, int y, int z);
+    public abstract int getBlockAt(GeyserSession session, int x, int y, int z);
 
     /**
      * Checks whether or not this world manager requires a separate chunk cache/has access to more block data than the chunk cache.
@@ -103,7 +103,7 @@ public abstract class WorldManager {
      * @return the Bedrock lectern block entity tag. This may not be the exact block entity tag - for example, Spigot's
      * block handled must be done on the server thread, so we send the tag manually there.
      */
-    public abstract NbtMap getLecternDataAt(GeyserSessionImpl session, int x, int y, int z, boolean isChunkLoad);
+    public abstract NbtMap getLecternDataAt(GeyserSession session, int x, int y, int z, boolean isChunkLoad);
 
     /**
      * @return whether we should expect lectern data to update, or if we have to fall back on a workaround.
@@ -117,7 +117,7 @@ public abstract class WorldManager {
      * @param name The gamerule to change
      * @param value The new value for the gamerule
      */
-    public abstract void setGameRule(GeyserSessionImpl session, String name, Object value);
+    public abstract void setGameRule(GeyserSession session, String name, Object value);
 
     /**
      * Gets a gamerule value as a boolean
@@ -126,7 +126,7 @@ public abstract class WorldManager {
      * @param gameRule The gamerule to fetch the value of
      * @return The boolean representation of the value
      */
-    public abstract Boolean getGameRuleBool(GeyserSessionImpl session, GameRule gameRule);
+    public abstract Boolean getGameRuleBool(GeyserSession session, GameRule gameRule);
 
     /**
      * Get a gamerule value as an integer
@@ -135,7 +135,7 @@ public abstract class WorldManager {
      * @param gameRule The gamerule to fetch the value of
      * @return The integer representation of the value
      */
-    public abstract int getGameRuleInt(GeyserSessionImpl session, GameRule gameRule);
+    public abstract int getGameRuleInt(GeyserSession session, GameRule gameRule);
 
     /**
      * Change the game mode of the given session
@@ -143,7 +143,7 @@ public abstract class WorldManager {
      * @param session The session of the player to change the game mode of
      * @param gameMode The game mode to change the player to
      */
-    public abstract void setPlayerGameMode(GeyserSessionImpl session, GameMode gameMode);
+    public abstract void setPlayerGameMode(GeyserSession session, GameMode gameMode);
 
     /**
      * Change the difficulty of the Java server
@@ -151,7 +151,7 @@ public abstract class WorldManager {
      * @param session The session of the user that requested the change
      * @param difficulty The difficulty to change to
      */
-    public abstract void setDifficulty(GeyserSessionImpl session, Difficulty difficulty);
+    public abstract void setDifficulty(GeyserSession session, Difficulty difficulty);
 
     /**
      * Checks if the given session's player has a permission
@@ -160,5 +160,5 @@ public abstract class WorldManager {
      * @param permission The permission node to check
      * @return True if the player has the requested permission, false if not
      */
-    public abstract boolean hasPermission(GeyserSessionImpl session, String permission);
+    public abstract boolean hasPermission(GeyserSession session, String permission);
 }

@@ -23,55 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api;
+package org.geysermc.api.geyser;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.api.session.Session;
-
-import java.util.List;
-import java.util.UUID;
+import org.geysermc.api.session.Connection;
 
 /**
- * The base API class.
+ * Represents a player session used in Geyser.
  */
-public interface Api {
-
-    /**
-     * Gets the session from the given
-     * UUID, if applicable.
-     *
-     * @param uuid the UUID of the session
-     * @return the session from the given UUID, if applicable
-     */
-    @Nullable
-    Session sessionByUuid(@NonNull UUID uuid);
-
-    /**
-     * Gets the session from the given
-     * XUID, if applicable.
-     *
-     * @param xuid the XUID of the session
-     * @return the session from the given UUID, if applicable
-     */
-    @Nullable
-    Session sessionByXuid(@NonNull String xuid);
-
-    /**
-     * Gets the session from the given
-     * name, if applicable.
-     *
-     * @param name the uuid of the session
-     * @return the session from the given name, if applicable
-     */
-    @Nullable
-    Session sessionByName(@NonNull String name);
-
-    /**
-     * Gets all the online sessions.
-     *
-     * @return all the online sessions
-     */
-    @NonNull
-    List<? extends Session> onlineSessions();
+public interface GeyserConnection extends Connection {
 }

@@ -29,7 +29,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.translator.inventory.AbstractBlockInventoryTranslator;
@@ -41,7 +41,7 @@ public abstract class AbstractFurnaceInventoryTranslator extends AbstractBlockIn
     }
 
     @Override
-    public void updateProperty(GeyserSessionImpl session, Inventory inventory, int key, int value) {
+    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
         ContainerSetDataPacket dataPacket = new ContainerSetDataPacket();
         dataPacket.setWindowId((byte) inventory.getId());
         switch (key) {

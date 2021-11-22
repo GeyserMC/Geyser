@@ -35,7 +35,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -114,9 +114,9 @@ public class WorldBorder {
      */
     private long lastUpdatedWorldBorderTime = 0;
 
-    private final GeyserSessionImpl session;
+    private final GeyserSession session;
 
-    public WorldBorder(GeyserSessionImpl session) {
+    public WorldBorder(GeyserSession session) {
         this.session = session;
         // Initialize all min/max/warning variables
         update();
@@ -300,7 +300,7 @@ public class WorldBorder {
     /**
      * Send the following fog IDs to the client
      */
-    public static void sendFog(GeyserSessionImpl session, String... fogNameSpaces) {
+    public static void sendFog(GeyserSession session, String... fogNameSpaces) {
         PlayerFogPacket packet = new PlayerFogPacket();
         Collections.addAll(packet.getFogStack(), fogNameSpaces);
         session.sendUpstreamPacket(packet);
@@ -309,7 +309,7 @@ public class WorldBorder {
     /**
      * Clear any additional fog sent to the client
      */
-    public static void removeFog(GeyserSessionImpl session) {
+    public static void removeFog(GeyserSession session) {
         session.sendUpstreamPacket(new PlayerFogPacket());
     }
 

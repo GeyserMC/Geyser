@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundMoveEntityPosPacket;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -35,7 +35,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 public class JavaMoveEntityPosTranslator extends PacketTranslator<ClientboundMoveEntityPosPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundMoveEntityPosPacket packet) {
+    public void translate(GeyserSession session, ClientboundMoveEntityPosPacket packet) {
         Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();

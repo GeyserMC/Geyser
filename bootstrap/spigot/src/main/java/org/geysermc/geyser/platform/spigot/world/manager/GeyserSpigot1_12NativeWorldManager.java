@@ -30,7 +30,7 @@ import com.viaversion.viaversion.protocols.protocol1_13to1_12_2.storage.BlockSto
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.adapters.spigot.SpigotWorldAdapter;
@@ -48,7 +48,7 @@ public class GeyserSpigot1_12NativeWorldManager extends GeyserSpigot1_12WorldMan
     }
 
     @Override
-    public int getBlockAt(GeyserSessionImpl session, int x, int y, int z) {
+    public int getBlockAt(GeyserSession session, int x, int y, int z) {
         Player player = Bukkit.getPlayer(session.getPlayerEntity().getUsername());
         if (player == null) {
             return BlockStateValues.JAVA_AIR_ID;

@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.collision;
 
 import lombok.EqualsAndHashCode;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
 
@@ -67,7 +67,7 @@ public class TrapdoorCollision extends BlockCollision {
     }
 
     @Override
-    public boolean correctPosition(GeyserSessionImpl session, int x, int y, int z, BoundingBox playerCollision) {
+    public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
         boolean result = super.correctPosition(session, x, y, z, playerCollision);
         // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
         if (this.checkIntersection(x, y, z, playerCollision)) {

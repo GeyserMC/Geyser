@@ -30,11 +30,11 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 
 public class EnderDragonPartEntity extends Entity {
 
-    public EnderDragonPartEntity(GeyserSessionImpl session, long entityId, long geyserId, float width, float height) {
+    public EnderDragonPartEntity(GeyserSession session, long entityId, long geyserId, float width, float height) {
         super(session, entityId, geyserId, null, EntityDefinitions.ENDER_DRAGON_PART, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
 
         dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, width);

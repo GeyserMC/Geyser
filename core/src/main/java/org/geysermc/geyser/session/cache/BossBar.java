@@ -32,12 +32,12 @@ import com.nukkitx.protocol.bedrock.packet.BossEventPacket;
 import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
 import lombok.AllArgsConstructor;
 import net.kyori.adventure.text.Component;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
 @AllArgsConstructor
 public class BossBar {
-    private final GeyserSessionImpl session;
+    private final GeyserSession session;
 
     private final long entityId;
     private Component title;

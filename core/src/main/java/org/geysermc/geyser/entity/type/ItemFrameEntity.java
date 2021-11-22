@@ -40,7 +40,7 @@ import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
 import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.registry.type.ItemMapping;
 
@@ -77,7 +77,7 @@ public class ItemFrameEntity extends Entity {
      */
     private boolean changed = true;
 
-    public ItemFrameEntity(GeyserSessionImpl session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, Direction direction) {
+    public ItemFrameEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, Direction direction) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, 0f);
 
         NbtMapBuilder blockBuilder = NbtMap.builder()
@@ -211,10 +211,10 @@ public class ItemFrameEntity extends Entity {
     /**
      * Finds the Java entity ID of an item frame from its Bedrock position.
      * @param position position of item frame in Bedrock.
-     * @param session GeyserSession.
+     * @param session GeyserConnection.
      * @return Java entity ID or -1 if not found.
      */
-    public static ItemFrameEntity getItemFrameEntity(GeyserSessionImpl session, Vector3i position) {
+    public static ItemFrameEntity getItemFrameEntity(GeyserSession session, Vector3i position) {
         return session.getItemFrameCache().get(position);
     }
 }

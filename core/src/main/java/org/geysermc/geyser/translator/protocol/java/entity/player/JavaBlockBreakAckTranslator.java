@@ -30,7 +30,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.player
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -40,7 +40,7 @@ import org.geysermc.geyser.util.ChunkUtils;
 public class JavaBlockBreakAckTranslator extends PacketTranslator<ClientboundBlockBreakAckPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundBlockBreakAckPacket packet) {
+    public void translate(GeyserSession session, ClientboundBlockBreakAckPacket packet) {
         ChunkUtils.updateBlock(session, packet.getNewState(), packet.getPosition());
         if (packet.getAction() == PlayerAction.START_DIGGING && !packet.isSuccessful()) {
             LevelEventPacket stopBreak = new LevelEventPacket();

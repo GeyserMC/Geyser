@@ -32,7 +32,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.Clientb
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -45,7 +45,7 @@ import org.geysermc.geyser.util.BlockEntityUtils;
 public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundBlockEntityDataPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundBlockEntityDataPacket packet) {
+    public void translate(GeyserSession session, ClientboundBlockEntityDataPacket packet) {
         BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(packet.getType());
         // The Java block state is used in BlockEntityTranslator.translateTag() to make up for some inconsistencies
         // between Java block states and Bedrock block entity data

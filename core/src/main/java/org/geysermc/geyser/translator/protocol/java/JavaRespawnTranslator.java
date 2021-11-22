@@ -32,7 +32,7 @@ import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
@@ -43,7 +43,7 @@ import org.geysermc.geyser.util.DimensionUtils;
 public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundRespawnPacket packet) {
+    public void translate(GeyserSession session, ClientboundRespawnPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         entity.setHealth(entity.getMaxHealth());

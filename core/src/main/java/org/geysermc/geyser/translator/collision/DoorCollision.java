@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.collision;
 
 import lombok.EqualsAndHashCode;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.physics.BoundingBox;
 
 @EqualsAndHashCode(callSuper = true)
@@ -59,7 +59,7 @@ public class DoorCollision extends BlockCollision {
     }
 
     @Override
-    public boolean correctPosition(GeyserSessionImpl session, int x, int y, int z, BoundingBox playerCollision) {
+    public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
         boolean result = super.correctPosition(session, x, y, z, playerCollision);
         // Hack to prevent false positives
         playerCollision.setSizeX(playerCollision.getSizeX() - 0.0001);

@@ -41,35 +41,33 @@ import lombok.Getter;
 import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.common.PlatformType;
 import org.geysermc.api.Geyser;
-import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.session.GeyserSession;
-import org.geysermc.geyser.command.CommandManager;
-import org.geysermc.geyser.session.auth.AuthType;
-import org.geysermc.geyser.configuration.GeyserConfiguration;
-import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.pack.ResourcePack;
-import org.geysermc.geyser.session.SessionManager;
-import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.text.MinecraftLocale;
-import org.geysermc.geyser.util.Metrics;
-import org.geysermc.geyser.network.ConnectorServerEventHandler;
-import org.geysermc.geyser.session.GeyserSessionImpl;
-import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
-import org.geysermc.geyser.level.WorldManager;
-import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
-import org.geysermc.geyser.skin.FloodgateSkinUploader;
-import org.geysermc.geyser.util.*;
+import org.geysermc.api.geyser.GeyserExtensionApi;
+import org.geysermc.common.PlatformType;
 import org.geysermc.floodgate.crypto.AesCipher;
 import org.geysermc.floodgate.crypto.AesKeyProducer;
 import org.geysermc.floodgate.crypto.Base64Topping;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.floodgate.time.TimeSyncer;
+import org.geysermc.geyser.command.CommandManager;
+import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.level.WorldManager;
+import org.geysermc.geyser.network.ConnectorServerEventHandler;
+import org.geysermc.geyser.pack.ResourcePack;
+import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.SessionManager;
+import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.skin.FloodgateSkinUploader;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.text.MinecraftLocale;
+import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
+import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.*;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
@@ -78,18 +76,14 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.security.Key;
 import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Getter
-public class GeyserImpl implements GeyserApi {
+public class GeyserImpl implements GeyserExtensionApi {
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper()
             .enable(JsonParser.Feature.IGNORE_UNDEFINED)
             .enable(JsonParser.Feature.ALLOW_COMMENTS)
@@ -297,7 +291,7 @@ public class GeyserImpl implements GeyserApi {
             metrics.addCustomChart(new Metrics.SimplePie("version", () -> GeyserImpl.VERSION));
             metrics.addCustomChart(new Metrics.AdvancedPie("playerPlatform", () -> {
                 Map<String, Integer> valueMap = new HashMap<>();
-                for (GeyserSessionImpl session : sessionManager.getAllSessions()) {
+                for (GeyserSession session : sessionManager.getAllSessions()) {
                     if (session == null) continue;
                     if (session.getClientData() == null) continue;
                     String os = session.getClientData().getDeviceOs().toString();
@@ -311,7 +305,7 @@ public class GeyserImpl implements GeyserApi {
             }));
             metrics.addCustomChart(new Metrics.AdvancedPie("playerVersion", () -> {
                 Map<String, Integer> valueMap = new HashMap<>();
-                for (GeyserSessionImpl session : sessionManager.getAllSessions()) {
+                for (GeyserSession session : sessionManager.getAllSessions()) {
                     if (session == null) continue;
                     if (session.getClientData() == null) continue;
                     String version = session.getClientData().getGameVersion();
@@ -403,8 +397,8 @@ public class GeyserImpl implements GeyserApi {
     }
 
     @Override
-    public @Nullable GeyserSessionImpl sessionByName(@NonNull String name) {
-        for (GeyserSessionImpl session : sessionManager.getAllSessions()) {
+    public @Nullable GeyserSession connectionByName(@NonNull String name) {
+        for (GeyserSession session : sessionManager.getAllSessions()) {
             if (session.name().equals(name) || session.getProtocol().getProfile().getName().equals(name)) {
                 return session;
             }
@@ -414,18 +408,18 @@ public class GeyserImpl implements GeyserApi {
     }
 
     @Override
-    public @NonNull List<GeyserSessionImpl> onlineSessions() {
+    public @NonNull List<GeyserSession> onlineConnections() {
         return this.sessionManager.getAllSessions();
     }
 
     @Override
-    public @Nullable GeyserSessionImpl sessionByUuid(@NonNull UUID uuid) {
+    public @Nullable GeyserSession connectionByUuid(@NonNull UUID uuid) {
         return this.sessionManager.getSessions().get(uuid);
     }
 
     @Override
-    public @Nullable GeyserSessionImpl sessionByXuid(@NonNull String xuid) {
-        for (GeyserSessionImpl session : sessionManager.getAllSessions()) {
+    public @Nullable GeyserSession connectionByXuid(@NonNull String xuid) {
+        for (GeyserSession session : sessionManager.getAllSessions()) {
             if (session.xuid().equals(xuid)) {
                 return session;
             }

@@ -40,7 +40,7 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.StonecutterContainer;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
@@ -57,7 +57,7 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
     }
 
     @Override
-    public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSessionImpl session, Inventory inventory, ItemStackRequest request) {
+    public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         // TODO: Also surely to change in the future
         StackRequestActionData data = request.getActions()[1];
         if (!(data instanceof CraftResultsDeprecatedStackRequestActionData craftData)) {

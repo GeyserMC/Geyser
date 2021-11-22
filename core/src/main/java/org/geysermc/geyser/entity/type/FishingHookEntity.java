@@ -33,7 +33,7 @@ import com.nukkitx.protocol.bedrock.packet.PlaySoundPacket;
 import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -56,7 +56,7 @@ public class FishingHookEntity extends ThrowableEntity {
 
     private final BoundingBox boundingBox;
 
-    public FishingHookEntity(GeyserSessionImpl session, long entityId, long geyserId, UUID uuid, Vector3f position, Vector3f motion, float yaw, float pitch, PlayerEntity owner) {
+    public FishingHookEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, Vector3f position, Vector3f motion, float yaw, float pitch, PlayerEntity owner) {
         super(session, entityId, geyserId, uuid, EntityDefinitions.FISHING_BOBBER, position, motion, yaw, pitch, 0f);
 
         this.boundingBox = new BoundingBox(0.125, 0.125, 0.125, 0.25, 0.25, 0.25);
@@ -140,7 +140,7 @@ public class FishingHookEntity extends ThrowableEntity {
         }
     }
 
-    private void sendSplashSound(GeyserSessionImpl session) {
+    private void sendSplashSound(GeyserSession session) {
         if (!getFlag(EntityFlag.SILENT)) {
             float volume = (float) (0.2f * Math.sqrt(0.2 * (motion.getX() * motion.getX() + motion.getZ() * motion.getZ()) + motion.getY() * motion.getY()));
             if (volume > 1) {

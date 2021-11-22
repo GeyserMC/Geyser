@@ -27,14 +27,14 @@ package org.geysermc.geyser.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import lombok.Getter;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.Generic3X3InventoryTranslator;
 
 public class Generic3X3Container extends Container {
     /**
      * Whether we need to set the container type as {@link com.nukkitx.protocol.bedrock.data.inventory.ContainerType#DROPPER}.
      *
-     * Used at {@link Generic3X3InventoryTranslator#openInventory(GeyserSessionImpl, Inventory)}
+     * Used at {@link Generic3X3InventoryTranslator#openInventory(GeyserSession, Inventory)}
      */
     @Getter
     private boolean isDropper = false;

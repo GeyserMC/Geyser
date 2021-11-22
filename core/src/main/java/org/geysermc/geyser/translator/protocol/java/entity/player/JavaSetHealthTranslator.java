@@ -31,7 +31,7 @@ import com.nukkitx.protocol.bedrock.packet.SetHealthPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -41,7 +41,7 @@ import java.util.List;
 public class JavaSetHealthTranslator extends PacketTranslator<ClientboundSetHealthPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundSetHealthPacket packet) {
+    public void translate(GeyserSession session, ClientboundSetHealthPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         int health = (int) Math.ceil(packet.getHealth());

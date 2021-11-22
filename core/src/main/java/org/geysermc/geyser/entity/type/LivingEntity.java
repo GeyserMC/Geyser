@@ -47,7 +47,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.ChunkUtils;
@@ -79,7 +79,7 @@ public class LivingEntity extends Entity {
      */
     private boolean isMaxFrozenState = false;
 
-    public LivingEntity(GeyserSessionImpl session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public LivingEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
@@ -168,7 +168,7 @@ public class LivingEntity extends Entity {
         return new AttributeData(GeyserAttributeType.HEALTH.getBedrockIdentifier(), 0f, this.maxHealth, (float) Math.ceil(this.health), this.maxHealth);
     }
 
-    public void updateArmor(GeyserSessionImpl session) {
+    public void updateArmor(GeyserSession session) {
         if (!valid) return;
 
         ItemData helmet = this.helmet;
@@ -194,7 +194,7 @@ public class LivingEntity extends Entity {
         session.sendUpstreamPacket(armorEquipmentPacket);
     }
 
-    public void updateMainHand(GeyserSessionImpl session) {
+    public void updateMainHand(GeyserSession session) {
         if (!valid) return;
 
         MobEquipmentPacket handPacket = new MobEquipmentPacket();
@@ -207,7 +207,7 @@ public class LivingEntity extends Entity {
         session.sendUpstreamPacket(handPacket);
     }
 
-    public void updateOffHand(GeyserSessionImpl session) {
+    public void updateOffHand(GeyserSession session) {
         if (!valid) return;
 
         MobEquipmentPacket offHandPacket = new MobEquipmentPacket();
@@ -226,7 +226,7 @@ public class LivingEntity extends Entity {
      *
      * @param attributes the Java list of attributes sent from the server
      */
-    public void updateBedrockAttributes(GeyserSessionImpl session, List<Attribute> attributes) {
+    public void updateBedrockAttributes(GeyserSession session, List<Attribute> attributes) {
         if (!valid) return;
 
         List<AttributeData> newAttributes = new ArrayList<>();

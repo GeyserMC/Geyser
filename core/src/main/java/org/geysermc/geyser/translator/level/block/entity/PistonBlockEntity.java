@@ -39,7 +39,7 @@ import lombok.Getter;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.Direction;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PistonCache;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
@@ -54,7 +54,7 @@ import java.util.Queue;
 import java.util.Set;
 
 public class PistonBlockEntity {
-    private final GeyserSessionImpl session;
+    private final GeyserSession session;
     @Getter
     private final Vector3i position;
     private final Direction orientation;
@@ -104,7 +104,7 @@ public class PistonBlockEntity {
         HONEY_BOUNDING_BOX = new BoundingBox(0.5, honeyHeight + boundingBoxHeight / 2, 0.5, blockBoundingBox.getSizeX(), boundingBoxHeight, blockBoundingBox.getSizeZ());
     }
 
-    public PistonBlockEntity(GeyserSessionImpl session, Vector3i position, Direction orientation, boolean sticky, boolean extended) {
+    public PistonBlockEntity(GeyserSession session, Vector3i position, Direction orientation, boolean sticky, boolean extended) {
         this.session = session;
         this.position = position;
         this.orientation = orientation;

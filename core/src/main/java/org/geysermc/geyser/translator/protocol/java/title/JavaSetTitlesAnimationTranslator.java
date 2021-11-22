@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.java.title;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.title.ClientboundSetTitlesAnimationPacket;
 import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -35,7 +35,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 public class JavaSetTitlesAnimationTranslator extends PacketTranslator<ClientboundSetTitlesAnimationPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundSetTitlesAnimationPacket packet) {
+    public void translate(GeyserSession session, ClientboundSetTitlesAnimationPacket packet) {
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.TIMES);
         titlePacket.setText("");

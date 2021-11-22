@@ -35,7 +35,7 @@ import lombok.Getter;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -59,7 +59,7 @@ public class EntityCache {
     @Getter
     private final AtomicLong nextEntityId = new AtomicLong(2L);
 
-    public EntityCache(GeyserSessionImpl session) {
+    public EntityCache(GeyserSession session) {
         cachedPlayerEntityLinks.defaultReturnValue(-1L);
     }
 

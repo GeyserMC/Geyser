@@ -37,7 +37,7 @@ import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.BlockRegistries;
 
 import java.util.Optional;
@@ -88,7 +88,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
     @Getter
     private boolean canTradeWith;
 
-    public VillagerEntity(GeyserSessionImpl session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public VillagerEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 

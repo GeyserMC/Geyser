@@ -36,7 +36,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.LivingEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -46,7 +46,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntityEventPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundEntityEventPacket packet) {
+    public void translate(GeyserSession session, ClientboundEntityEventPacket packet) {
         Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();

@@ -29,7 +29,7 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Collections;
@@ -46,7 +46,7 @@ public class StopCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(GeyserSessionImpl session, CommandSender sender, String[] args) {
+    public void execute(GeyserSession session, CommandSender sender, String[] args) {
         if (!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE) {
             sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.getLocale()));
             return;

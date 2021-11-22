@@ -35,7 +35,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.ChestedHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
 import org.geysermc.geyser.inventory.Container;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
@@ -97,7 +97,7 @@ public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundH
     }
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundHorseScreenOpenPacket packet) {
+    public void translate(GeyserSession session, ClientboundHorseScreenOpenPacket packet) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) {
             return;

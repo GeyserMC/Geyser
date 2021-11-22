@@ -32,7 +32,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
 import org.geysermc.geyser.entity.type.living.animal.OcelotEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.CatEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.sound.EntitySoundInteractionTranslator;
 import org.geysermc.geyser.translator.sound.SoundTranslator;
 
@@ -40,7 +40,7 @@ import org.geysermc.geyser.translator.sound.SoundTranslator;
 public class FeedBabySoundInteractionTranslator implements EntitySoundInteractionTranslator {
 
     @Override
-    public void translate(GeyserSessionImpl session, Vector3f position, Entity entity) {
+    public void translate(GeyserSession session, Vector3f position, Entity entity) {
         if (entity instanceof AnimalEntity animalEntity && !(entity instanceof CatEntity || entity instanceof OcelotEntity)) {
             String handIdentifier = session.getPlayerInventory().getItemInHand().getMapping(session).getJavaIdentifier();
             boolean isBaby = animalEntity.isBaby();

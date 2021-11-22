@@ -30,7 +30,7 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.packet.PositionTrackingDBClientRequestPacket;
 import com.nukkitx.protocol.bedrock.packet.PositionTrackingDBServerBroadcastPacket;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.LodestoneCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -40,7 +40,7 @@ import org.geysermc.geyser.util.DimensionUtils;
 public class BedrockPositionTrackingDBClientRequestTranslator extends PacketTranslator<PositionTrackingDBClientRequestPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, PositionTrackingDBClientRequestPacket packet) {
+    public void translate(GeyserSession session, PositionTrackingDBClientRequestPacket packet) {
         PositionTrackingDBServerBroadcastPacket broadcastPacket = new PositionTrackingDBServerBroadcastPacket();
         broadcastPacket.setTrackingId(packet.getTrackingId());
 

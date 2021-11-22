@@ -25,11 +25,11 @@
 
 package org.geysermc.geyser.translator.protocol;
 
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 
 public abstract class PacketTranslator<T> {
 
-    public abstract void translate(GeyserSessionImpl session, T packet);
+    public abstract void translate(GeyserSession session, T packet);
 
     /**
      * Determines if this packet should be handled in the session's event loop. This should generally be true -

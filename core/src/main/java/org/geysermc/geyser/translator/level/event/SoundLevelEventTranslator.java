@@ -29,12 +29,12 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.Clientb
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 
 public record SoundLevelEventTranslator(LevelEventType levelEventType,
                                         int data) implements LevelEventTranslator {
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundLevelEventPacket packet) {
+    public void translate(GeyserSession session, ClientboundLevelEventPacket packet) {
         LevelEventPacket eventPacket = new LevelEventPacket();
         eventPacket.setType(levelEventType);
         eventPacket.setData(data);

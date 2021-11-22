@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.collision;
 
 import lombok.EqualsAndHashCode;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.physics.BoundingBox;
 
 /**
@@ -40,7 +40,7 @@ public class ScaffoldingCollision extends BlockCollision {
     }
 
     @Override
-    public boolean correctPosition(GeyserSessionImpl session, int x, int y, int z, BoundingBox playerCollision) {
+    public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
         // Hack to not check below the player
         playerCollision.setSizeY(playerCollision.getSizeY() - 0.001);
         playerCollision.setMiddleY(playerCollision.getMiddleY() + 0.002);

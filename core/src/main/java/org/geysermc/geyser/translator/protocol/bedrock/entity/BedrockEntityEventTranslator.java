@@ -32,7 +32,7 @@ import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.MerchantContainer;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, EntityEventPacket packet) {
+    public void translate(GeyserSession session, EntityEventPacket packet) {
         switch (packet.getType()) {
             case EATING_ITEM -> {
                 // Resend the packet so we get the eating sounds

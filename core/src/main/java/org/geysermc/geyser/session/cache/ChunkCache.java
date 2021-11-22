@@ -30,7 +30,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.chunk.GeyserChunk;
 import org.geysermc.geyser.util.MathUtils;
@@ -51,7 +51,7 @@ public class ChunkCache {
     @Setter
     private boolean isExtendedHeight = false;
 
-    public ChunkCache(GeyserSessionImpl session) {
+    public ChunkCache(GeyserSession session) {
         this.cache = !session.getGeyser().getWorldManager().hasOwnChunkCache(); // To prevent Spigot from initializing
         chunks = cache ? new Long2ObjectOpenHashMap<>() : null;
     }

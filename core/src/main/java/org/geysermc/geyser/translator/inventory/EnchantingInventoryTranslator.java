@@ -37,7 +37,7 @@ import org.geysermc.geyser.inventory.EnchantingContainer;
 import org.geysermc.geyser.inventory.GeyserEnchantOption;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.inventory.item.Enchantment;
@@ -51,7 +51,7 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
     }
 
     @Override
-    public void updateProperty(GeyserSessionImpl session, Inventory inventory, int key, int value) {
+    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
         int slotToUpdate;
         EnchantingContainer enchantingInventory = (EnchantingContainer) inventory;
         boolean shouldUpdate = false;
@@ -109,7 +109,7 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
     }
 
     @Override
-    public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSessionImpl session, Inventory inventory, ItemStackRequest request) {
+    public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         // Client has requested an item to be enchanted
         CraftRecipeStackRequestActionData craftRecipeData = (CraftRecipeStackRequestActionData) request.getActions()[0];
         EnchantingContainer enchantingInventory = (EnchantingContainer) inventory;

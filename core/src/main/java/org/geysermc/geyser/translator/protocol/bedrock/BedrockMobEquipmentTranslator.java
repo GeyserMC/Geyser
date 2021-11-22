@@ -30,7 +30,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.Server
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.packet.MobEquipmentPacket;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.CooldownUtils;
@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipmentPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, MobEquipmentPacket packet) {
+    public void translate(GeyserSession session, MobEquipmentPacket packet) {
         if (!session.isSpawned() || packet.getHotbarSlot() > 8 ||
                 packet.getContainerId() != ContainerId.INVENTORY || session.getPlayerInventory().getHeldItemSlot() == packet.getHotbarSlot()) {
             // For the last condition - Don't update the slot if the slot is the same - not Java Edition behavior and messes with plugins such as Grief Prevention

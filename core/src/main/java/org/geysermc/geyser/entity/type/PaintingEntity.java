@@ -28,7 +28,7 @@ package org.geysermc.geyser.entity.type;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.AddPaintingPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.PaintingType;
 
 import java.util.UUID;
@@ -38,7 +38,7 @@ public class PaintingEntity extends Entity {
     private final PaintingType paintingName;
     private final int direction;
 
-    public PaintingEntity(GeyserSessionImpl session, long entityId, long geyserId, UUID uuid, Vector3f position, PaintingType paintingName, int direction) {
+    public PaintingEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, Vector3f position, PaintingType paintingName, int direction) {
         super(session, entityId, geyserId, uuid, EntityDefinitions.PAINTING, position, Vector3f.ZERO, 0f, 0f, 0f);
         this.paintingName = paintingName;
         this.direction = direction;

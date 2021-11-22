@@ -38,31 +38,31 @@ public final class SessionManager {
      * A list of all players who don't currently have a permanent UUID attached yet.
      */
     @Getter(AccessLevel.PACKAGE)
-    private final Set<GeyserSessionImpl> pendingSessions = ConcurrentHashMap.newKeySet();
+    private final Set<GeyserSession> pendingSessions = ConcurrentHashMap.newKeySet();
     /**
      * A list of all players who are currently in-game.
      */
     @Getter
-    private final Map<UUID, GeyserSessionImpl> sessions = new ConcurrentHashMap<>();
+    private final Map<UUID, GeyserSession> sessions = new ConcurrentHashMap<>();
 
     /**
      * Called once the player has successfully authenticated to the Geyser server.
      */
-    public void addPendingSession(GeyserSessionImpl session) {
+    public void addPendingSession(GeyserSession session) {
         pendingSessions.add(session);
     }
 
     /**
      * Called once a player has successfully logged into their Java server.
      */
-    public void addSession(UUID uuid, GeyserSessionImpl session) {
+    public void addSession(UUID uuid, GeyserSession session) {
         pendingSessions.remove(session);
         sessions.put(uuid, session);
     }
 
-    public void removeSession(GeyserSessionImpl session) {
+    public void removeSession(GeyserSession session) {
         if (sessions.remove(session.getPlayerEntity().getUuid()) == null) {
-            // Session was likely pending
+            // Connection was likely pending
             pendingSessions.remove(session);
         }
     }
@@ -70,16 +70,16 @@ public final class SessionManager {
     /**
      * Creates a new, immutable list containing all pending and active sessions.
      */
-    public List<GeyserSessionImpl> getAllSessions() {
-        return ImmutableList.<GeyserSessionImpl>builder() // builderWithExpectedSize is probably not a good idea yet as older Spigot builds probably won't have it.
+    public List<GeyserSession> getAllSessions() {
+        return ImmutableList.<GeyserSession>builder() // builderWithExpectedSize is probably not a good idea yet as older Spigot builds probably won't have it.
                 .addAll(pendingSessions)
                 .addAll(sessions.values())
                 .build();
     }
 
     public void disconnectAll(String message) {
-        Collection<GeyserSessionImpl> sessions = getAllSessions();
-        for (GeyserSessionImpl session : sessions) {
+        Collection<GeyserSession> sessions = getAllSessions();
+        for (GeyserSession session : sessions) {
             session.disconnect(GeyserLocale.getPlayerLocaleString(message, session.getLocale()));
         }
     }

@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.java;
 
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundPongPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundPingPacket;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -36,7 +36,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 public class JavaPingTranslator extends PacketTranslator<ClientboundPingPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundPingPacket packet) {
+    public void translate(GeyserSession session, ClientboundPingPacket packet) {
         session.sendDownstreamPacket(new ServerboundPongPacket(packet.getId()));
     }
 }

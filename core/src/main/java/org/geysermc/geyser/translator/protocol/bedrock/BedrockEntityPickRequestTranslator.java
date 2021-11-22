@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.nukkitx.protocol.bedrock.packet.EntityPickRequestPacket;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -44,7 +44,7 @@ import java.util.Locale;
 public class BedrockEntityPickRequestTranslator extends PacketTranslator<EntityPickRequestPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, EntityPickRequestPacket packet) {
+    public void translate(GeyserSession session, EntityPickRequestPacket packet) {
         if (session.getGameMode() != GameMode.CREATIVE) return; // Apparently Java behavior
         Entity entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
         if (entity == null) return;

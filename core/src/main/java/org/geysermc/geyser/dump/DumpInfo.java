@@ -39,7 +39,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.network.MinecraftProtocol;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.WebUtils;
 import org.geysermc.floodgate.util.DeviceOs;
@@ -113,7 +113,7 @@ public class DumpInfo {
         }
 
         this.userPlatforms = new Object2IntOpenHashMap<>();
-        for (GeyserSessionImpl session : GeyserImpl.getInstance().getSessionManager().getAllSessions()) {
+        for (GeyserSession session : GeyserImpl.getInstance().getSessionManager().getAllSessions()) {
             DeviceOs device = session.getClientData().getDeviceOs();
             userPlatforms.put(device, userPlatforms.getOrDefault(device, 0) + 1);
         }

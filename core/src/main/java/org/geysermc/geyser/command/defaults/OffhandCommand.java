@@ -31,7 +31,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.Server
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockUtils;
 
 public class OffhandCommand extends GeyserCommand {
@@ -41,7 +41,7 @@ public class OffhandCommand extends GeyserCommand {
     }
 
     @Override
-    public void execute(GeyserSessionImpl session, CommandSender sender, String[] args) {
+    public void execute(GeyserSession session, CommandSender sender, String[] args) {
         if (session == null) {
             return;
         }

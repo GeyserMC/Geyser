@@ -32,7 +32,7 @@ import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
@@ -43,7 +43,7 @@ import java.util.Arrays;
 public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSetPassengersPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundSetPassengersPacket packet) {
+    public void translate(GeyserSession session, ClientboundSetPassengersPacket packet) {
         Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();

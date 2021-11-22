@@ -27,7 +27,7 @@ package org.geysermc.geyser.command;
 
 import lombok.AllArgsConstructor;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -48,12 +48,12 @@ public class CommandExecutor {
     }
 
     @Nullable
-    public GeyserSessionImpl getGeyserSession(CommandSender sender) {
+    public GeyserSession getGeyserSession(CommandSender sender) {
         if (sender.isConsole()) {
             return null;
         }
 
-        for (GeyserSessionImpl session : geyser.getSessionManager().getSessions().values()) {
+        for (GeyserSession session : geyser.getSessionManager().getSessions().values()) {
             if (sender.name().equals(session.getPlayerEntity().getUsername())) {
                 return session;
             }

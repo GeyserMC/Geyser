@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundSelectAdvancementsTabPacket;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.AdvancementsCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -38,7 +38,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 public class JavaSelectAdvancementsTabTranslator extends PacketTranslator<ClientboundSelectAdvancementsTabPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundSelectAdvancementsTabPacket packet) {
+    public void translate(GeyserSession session, ClientboundSelectAdvancementsTabPacket packet) {
         AdvancementsCache advancementsCache = session.getAdvancementsCache();
         advancementsCache.setCurrentAdvancementCategoryId(packet.getTabId());
         advancementsCache.buildAndShowListForm();

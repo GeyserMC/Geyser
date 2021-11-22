@@ -33,7 +33,7 @@ import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.MinecraftTranslationRegistry;
 import org.geysermc.geyser.text.GsonComponentSerializerWrapper;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -223,10 +223,10 @@ public class MessageTranslator {
      * Checks if the given message is over 256 characters (Java edition server chat limit) and sends a message to the user if it is
      *
      * @param message Message to check
-     * @param session {@link GeyserSessionImpl} for the user
+     * @param session {@link GeyserSession} for the user
      * @return True if the message is too long, false if not
      */
-    public static boolean isTooLong(String message, GeyserSessionImpl session) {
+    public static boolean isTooLong(String message, GeyserSession session) {
         if (message.length() > 256) {
             session.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.chat.too_long", session.getLocale(), message.length()));
             return true;

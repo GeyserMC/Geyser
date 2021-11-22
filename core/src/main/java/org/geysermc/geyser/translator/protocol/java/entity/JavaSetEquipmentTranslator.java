@@ -30,7 +30,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.Client
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
@@ -39,7 +39,7 @@ import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetEquipmentPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundSetEquipmentPacket packet) {
+    public void translate(GeyserSession session, ClientboundSetEquipmentPacket packet) {
         Entity entity;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             entity = session.getPlayerEntity();

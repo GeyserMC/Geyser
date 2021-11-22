@@ -34,7 +34,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Arrays;
 
@@ -102,7 +102,7 @@ public class Inventory {
         return items[slot];
     }
 
-    public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSessionImpl session) {
+    public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
         if (slot > this.size) {
             session.getGeyser().getLogger().debug("Tried to set an item out of bounds! " + this);
             return;
@@ -123,7 +123,7 @@ public class Inventory {
         }
     }
 
-    protected static void updateItemNetId(GeyserItemStack oldItem, GeyserItemStack newItem, GeyserSessionImpl session) {
+    protected static void updateItemNetId(GeyserItemStack oldItem, GeyserItemStack newItem, GeyserSession session) {
         if (!newItem.isEmpty()) {
             if (newItem.getItemData(session).equals(oldItem.getItemData(session), false, false, false)) {
                 newItem.setNetId(oldItem.getNetId());

@@ -39,7 +39,7 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.MerchantContainer;
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.inventory.updater.InventoryUpdater;
@@ -92,7 +92,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public void prepareInventory(GeyserSessionImpl session, Inventory inventory) {
+    public void prepareInventory(GeyserSession session, Inventory inventory) {
         MerchantContainer merchantInventory = (MerchantContainer) inventory;
         if (merchantInventory.getVillager() == null) {
             long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
@@ -118,13 +118,13 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public void openInventory(GeyserSessionImpl session, Inventory inventory) {
+    public void openInventory(GeyserSession session, Inventory inventory) {
         //Handled in JavaMerchantOffersTranslator
         //TODO: send a blank inventory here in case the villager doesn't send a TradeList packet
     }
 
     @Override
-    public void closeInventory(GeyserSessionImpl session, Inventory inventory) {
+    public void closeInventory(GeyserSession session, Inventory inventory) {
         MerchantContainer merchantInventory = (MerchantContainer) inventory;
         if (merchantInventory.getVillager() != null) {
             merchantInventory.getVillager().despawnEntity();
@@ -132,19 +132,19 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public ItemStackResponsePacket.Response translateAutoCraftingRequest(GeyserSessionImpl session, Inventory inventory, ItemStackRequest request) {
+    public ItemStackResponsePacket.Response translateAutoCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         // We're not crafting here
         // Called at least by consoles when pressing a trade option button
         return translateRequest(session, inventory, request);
     }
 
     @Override
-    public void updateInventory(GeyserSessionImpl session, Inventory inventory) {
+    public void updateInventory(GeyserSession session, Inventory inventory) {
         updater.updateInventory(this, session, inventory);
     }
 
     @Override
-    public void updateSlot(GeyserSessionImpl session, Inventory inventory, int slot) {
+    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
         updater.updateSlot(this, session, inventory, slot);
     }
 

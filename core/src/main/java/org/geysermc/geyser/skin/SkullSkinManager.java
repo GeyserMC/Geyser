@@ -30,7 +30,7 @@ import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerSkinPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Collections;
@@ -48,7 +48,7 @@ public class SkullSkinManager extends SkinManager {
         );
     }
 
-    public static void requestAndHandleSkin(PlayerEntity entity, GeyserSessionImpl session,
+    public static void requestAndHandleSkin(PlayerEntity entity, GeyserSession session,
                                             Consumer<SkinProvider.Skin> skinConsumer) {
         GameProfileData data = GameProfileData.from(entity.getProfile());
 

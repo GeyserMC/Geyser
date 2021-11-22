@@ -31,7 +31,7 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.common.PlatformType;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.sound.BlockSoundInteractionTranslator;
@@ -42,7 +42,7 @@ import org.geysermc.geyser.util.ChunkUtils;
 public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlockUpdatePacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundBlockUpdatePacket packet) {
+    public void translate(GeyserSession session, ClientboundBlockUpdatePacket packet) {
         Position pos = packet.getEntry().getPosition();
         boolean updatePlacement = session.getGeyser().getPlatformType() != PlatformType.SPIGOT && // Spigot simply listens for the block place event
                 session.getGeyser().getWorldManager().getBlockAt(session, pos) != packet.getEntry().getBlock();
@@ -53,7 +53,7 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
         this.checkInteract(session, packet);
     }
 
-    private boolean checkPlace(GeyserSessionImpl session, ClientboundBlockUpdatePacket packet) {
+    private boolean checkPlace(GeyserSession session, ClientboundBlockUpdatePacket packet) {
         Vector3i lastPlacePos = session.getLastBlockPlacePosition();
         if (lastPlacePos == null) {
             return false;
@@ -91,7 +91,7 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
         return true;
     }
 
-    private void checkInteract(GeyserSessionImpl session, ClientboundBlockUpdatePacket packet) {
+    private void checkInteract(GeyserSession session, ClientboundBlockUpdatePacket packet) {
         Vector3i lastInteractPos = session.getLastInteractionBlockPosition();
         if (lastInteractPos == null || !session.isInteracting()) {
             return;

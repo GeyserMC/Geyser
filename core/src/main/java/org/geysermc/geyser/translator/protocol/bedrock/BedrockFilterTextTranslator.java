@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.Ser
 import com.nukkitx.protocol.bedrock.packet.FilterTextPacket;
 import org.geysermc.geyser.inventory.AnvilContainer;
 import org.geysermc.geyser.inventory.CartographyContainer;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -43,7 +43,7 @@ import org.geysermc.geyser.util.ItemUtils;
 public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, FilterTextPacket packet) {
+    public void translate(GeyserSession session, FilterTextPacket packet) {
         if (session.getOpenInventory() instanceof CartographyContainer) {
             // We don't want to be able to rename in the cartography table
             return;

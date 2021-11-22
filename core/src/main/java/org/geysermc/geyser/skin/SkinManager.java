@@ -33,7 +33,7 @@ import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.text.GeyserLocale;
 
@@ -48,7 +48,7 @@ public class SkinManager {
     /**
      * Builds a Bedrock player list entry from our existing, cached Bedrock skin information
      */
-    public static PlayerListPacket.Entry buildCachedEntry(GeyserSessionImpl session, PlayerEntity playerEntity) {
+    public static PlayerListPacket.Entry buildCachedEntry(GeyserSession session, PlayerEntity playerEntity) {
         GameProfileData data = GameProfileData.from(playerEntity.getProfile());
         SkinProvider.Cape cape = SkinProvider.getCachedCape(data.capeUrl());
         SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.getLegacy(data.isAlex());
@@ -74,7 +74,7 @@ public class SkinManager {
     /**
      * With all the information needed, build a Bedrock player entry with translated skin information.
      */
-    public static PlayerListPacket.Entry buildEntryManually(GeyserSessionImpl session, UUID uuid, String username, long geyserId,
+    public static PlayerListPacket.Entry buildEntryManually(GeyserSession session, UUID uuid, String username, long geyserId,
                                                             String skinId, byte[] skinData,
                                                             String capeId, byte[] capeData,
                                                             SkinProvider.SkinGeometry geometry) {
@@ -86,7 +86,7 @@ public class SkinManager {
 
         // This attempts to find the XUID of the player so profile images show up for Xbox accounts
         String xuid = "";
-        GeyserSessionImpl playerSession = GeyserImpl.getInstance().sessionByUuid(uuid);
+        GeyserSession playerSession = GeyserImpl.getInstance().connectionByUuid(uuid);
 
         if (playerSession != null) {
             xuid = playerSession.getAuthData().xuid();
@@ -112,7 +112,7 @@ public class SkinManager {
         return entry;
     }
 
-    public static void requestAndHandleSkinAndCape(PlayerEntity entity, GeyserSessionImpl session,
+    public static void requestAndHandleSkinAndCape(PlayerEntity entity, GeyserSession session,
                                                    Consumer<SkinProvider.SkinAndCape> skinAndCapeConsumer) {
         GameProfileData data = GameProfileData.from(entity.getProfile());
 
@@ -280,7 +280,7 @@ public class SkinManager {
             String skinUrl = isAlex ? SkinProvider.EMPTY_SKIN_ALEX.getTextureUrl() : SkinProvider.EMPTY_SKIN.getTextureUrl();
             String capeUrl = SkinProvider.EMPTY_CAPE.getTextureUrl();
             if (("steve".equals(skinUrl) || "alex".equals(skinUrl)) && GeyserImpl.getInstance().getConfig().getRemote().getAuthType() != AuthType.ONLINE) {
-                GeyserSessionImpl session = GeyserImpl.getInstance().sessionByUuid(profile.getId());
+                GeyserSession session = GeyserImpl.getInstance().connectionByUuid(profile.getId());
 
                 if (session != null) {
                     skinUrl = session.getClientData().getSkinId();

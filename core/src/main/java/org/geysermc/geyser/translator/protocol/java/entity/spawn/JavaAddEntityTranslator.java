@@ -38,7 +38,7 @@ import org.geysermc.geyser.entity.type.FallingBlockEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.registry.Registries;
@@ -48,7 +48,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEntityPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundAddEntityPacket packet) {
+    public void translate(GeyserSession session, ClientboundAddEntityPacket packet) {
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f motion = Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());
         float yaw = packet.getYaw();

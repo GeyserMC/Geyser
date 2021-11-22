@@ -27,10 +27,10 @@ package org.geysermc.geyser.entity.factory;
 
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.geyser.entity.type.ExpOrbEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 
 @FunctionalInterface
 public interface ExperienceOrbEntityFactory extends EntityFactory<ExpOrbEntity> {
 
-    ExpOrbEntity create(GeyserSessionImpl session, int amount, long entityId, long geyserId, Vector3f position);
+    ExpOrbEntity create(GeyserSession session, int amount, long entityId, long geyserId, Vector3f position);
 }

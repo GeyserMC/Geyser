@@ -31,7 +31,7 @@ import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -42,7 +42,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 public class BedrockMoveEntityAbsoluteTranslator extends PacketTranslator<MoveEntityAbsolutePacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, MoveEntityAbsolutePacket packet) {
+    public void translate(GeyserSession session, MoveEntityAbsolutePacket packet) {
         session.setLastVehicleMoveTimestamp(System.currentTimeMillis());
 
         Entity ridingEntity = session.getRidingVehicleEntity();

@@ -49,7 +49,7 @@ public class EnchantingContainer extends Container {
         for (int i = 0; i < geyserEnchantOptions.length; i++) {
             geyserEnchantOptions[i] = new GeyserEnchantOption(i);
             // Options cannot be null, so we build initial options
-            // GeyserSession can be safely null here because it's only needed for net IDs
+            // GeyserConnection can be safely null here because it's only needed for net IDs
             enchantOptions[i] = geyserEnchantOptions[i].build(null);
         }
     }

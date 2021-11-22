@@ -42,7 +42,7 @@ import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
@@ -56,7 +56,7 @@ import java.util.Locale;
 public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelEventPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundLevelEventPacket packet) {
+    public void translate(GeyserSession session, ClientboundLevelEventPacket packet) {
         // Separate case since each RecordEventData in Java is an individual track in Bedrock
         if (packet.getEvent() == com.github.steveice10.mc.protocol.data.game.level.event.SoundEvent.RECORD) {
             RecordEventData recordEventData = (RecordEventData) packet.getData();

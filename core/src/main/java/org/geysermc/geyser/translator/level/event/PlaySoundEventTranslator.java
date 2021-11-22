@@ -28,7 +28,7 @@ package org.geysermc.geyser.translator.level.event;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.PlaySoundPacket;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -36,7 +36,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public record PlaySoundEventTranslator(String name, float volume, boolean pitchSub, float pitchMul,
                                        float pitchAdd, boolean relative) implements LevelEventTranslator {
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundLevelEventPacket packet) {
+    public void translate(GeyserSession session, ClientboundLevelEventPacket packet) {
         Random rand = ThreadLocalRandom.current();
         PlaySoundPacket playSoundPacket = new PlaySoundPacket();
         playSoundPacket.setSound(name);

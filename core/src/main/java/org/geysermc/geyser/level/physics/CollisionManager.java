@@ -35,7 +35,7 @@ import lombok.Setter;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PistonCache;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.translator.collision.ScaffoldingCollision;
@@ -49,7 +49,7 @@ import java.util.Locale;
 
 public class CollisionManager {
 
-    private final GeyserSessionImpl session;
+    private final GeyserSession session;
 
     @Getter
     private final BoundingBox playerBoundingBox;
@@ -85,7 +85,7 @@ public class CollisionManager {
      */
     private static final double INCORRECT_MOVEMENT_THRESHOLD = 0.08;
 
-    public CollisionManager(GeyserSessionImpl session) {
+    public CollisionManager(GeyserSession session) {
         this.session = session;
         this.playerBoundingBox = new BoundingBox(0, 0, 0, 0.6, 1.8, 0.6);
     }
@@ -224,7 +224,7 @@ public class CollisionManager {
     /**
      * Returns false if the movement is invalid, and in this case it shouldn't be sent to the server and should be
      * cancelled
-     * See {@link BlockCollision#correctPosition(GeyserSessionImpl, int, int, int, BoundingBox)} for more info
+     * See {@link BlockCollision#correctPosition(GeyserSession, int, int, int, BoundingBox)} for more info
      */
     public boolean correctPlayerPosition() {
 

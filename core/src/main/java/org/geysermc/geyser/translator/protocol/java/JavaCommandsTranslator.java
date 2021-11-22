@@ -43,7 +43,7 @@ import lombok.Getter;
 import lombok.ToString;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.inventory.item.Enchantment;
@@ -98,7 +98,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     }
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundCommandsPacket packet) {
+    public void translate(GeyserSession session, ClientboundCommandsPacket packet) {
         // Don't send command suggestions if they are disabled
         if (!session.getGeyser().getConfig().isCommandSuggestions()) {
             session.getGeyser().getLogger().debug("Not sending translated command suggestions as they are disabled.");
@@ -174,7 +174,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
      * @param allNodes    Every command node
      * @return An array of parameter option arrays
      */
-    private static CommandParamData[][] getParams(GeyserSessionImpl session, CommandNode commandNode, CommandNode[] allNodes) {
+    private static CommandParamData[][] getParams(GeyserSession session, CommandNode commandNode, CommandNode[] allNodes) {
         // Check if the command is an alias and redirect it
         if (commandNode.getRedirectIndex() != -1) {
             GeyserImpl.getInstance().getLogger().debug("Redirecting command " + commandNode.getName() + " to " + allNodes[commandNode.getRedirectIndex()].getName());
@@ -201,7 +201,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
      * @param parser Command type to convert
      * @return Bedrock parameter data type
      */
-    private static Object mapCommandType(GeyserSessionImpl session, CommandParser parser) {
+    private static Object mapCommandType(GeyserSession session, CommandParser parser) {
         if (parser == null) {
             return CommandParam.STRING;
         }
@@ -253,7 +253,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
          * @param session the session
          * @param allNodes Every command node
          */
-        public void buildChildren(GeyserSessionImpl session, CommandNode[] allNodes) {
+        public void buildChildren(GeyserSession session, CommandNode[] allNodes) {
             for (int paramID : paramNode.getChildIndices()) {
                 CommandNode paramNode = allNodes[paramID];
 

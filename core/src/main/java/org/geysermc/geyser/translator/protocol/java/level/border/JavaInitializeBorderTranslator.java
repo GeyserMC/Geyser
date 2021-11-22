@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.java.level.border;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.border.ClientboundInitializeBorderPacket;
 import com.nukkitx.math.vector.Vector2d;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -36,7 +36,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 public class JavaInitializeBorderTranslator extends PacketTranslator<ClientboundInitializeBorderPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundInitializeBorderPacket packet) {
+    public void translate(GeyserSession session, ClientboundInitializeBorderPacket packet) {
         WorldBorder worldBorder = session.getWorldBorder();
         worldBorder.setCenter(Vector2d.from(packet.getNewCenterX(), packet.getNewCenterZ()));
         worldBorder.setOldDiameter(packet.getOldSize());

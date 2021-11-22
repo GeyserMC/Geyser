@@ -31,7 +31,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.MobEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -42,7 +42,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 public class JavaSetEntityLinkTranslator extends PacketTranslator<ClientboundSetEntityLinkPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundSetEntityLinkPacket packet) {
+    public void translate(GeyserSession session, ClientboundSetEntityLinkPacket packet) {
         Entity holderId;
         if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
             holderId = session.getPlayerEntity();

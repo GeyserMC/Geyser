@@ -57,7 +57,7 @@ public final class LocalSession extends TcpSession {
     @Override
     public void connect() {
         if (this.disconnected) {
-            throw new IllegalStateException("Session has already been disconnected.");
+            throw new IllegalStateException("Connection has already been disconnected.");
         }
 
         if (DEFAULT_EVENT_LOOP_GROUP == null) {

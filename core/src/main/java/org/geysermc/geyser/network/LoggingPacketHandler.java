@@ -29,7 +29,7 @@ import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 
 /**
  * Bare bones implementation of BedrockPacketHandler suitable for extension.
@@ -39,9 +39,9 @@ import org.geysermc.geyser.session.GeyserSessionImpl;
  */
 public class LoggingPacketHandler implements BedrockPacketHandler {
     protected final GeyserImpl geyser;
-    protected final GeyserSessionImpl session;
+    protected final GeyserSession session;
 
-    LoggingPacketHandler(GeyserImpl geyser, GeyserSessionImpl session) {
+    LoggingPacketHandler(GeyserImpl geyser, GeyserSession session) {
         this.geyser = geyser;
         this.session = session;
     }

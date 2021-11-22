@@ -40,7 +40,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.AnvilContainer;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
@@ -57,7 +57,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     private static final int MAX_LEVEL_COST = 40;
 
     @Override
-    public void updateInventory(InventoryTranslator translator, GeyserSessionImpl session, Inventory inventory) {
+    public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
         super.updateInventory(translator, session, inventory);
         AnvilContainer anvilContainer = (AnvilContainer) inventory;
         updateInventoryState(session, anvilContainer);
@@ -79,7 +79,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     }
 
     @Override
-    public boolean updateSlot(InventoryTranslator translator, GeyserSessionImpl session, Inventory inventory, int javaSlot) {
+    public boolean updateSlot(InventoryTranslator translator, GeyserSession session, Inventory inventory, int javaSlot) {
         if (super.updateSlot(translator, session, inventory, javaSlot))
             return true;
         AnvilContainer anvilContainer = (AnvilContainer) inventory;
@@ -107,7 +107,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return true;
     }
 
-    private void updateInventoryState(GeyserSessionImpl session, AnvilContainer anvilContainer) {
+    private void updateInventoryState(GeyserSession session, AnvilContainer anvilContainer) {
         GeyserItemStack input = anvilContainer.getInput();
         if (!input.equals(anvilContainer.getLastInput())) {
             anvilContainer.setLastInput(input.copy());
@@ -133,7 +133,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      * @param anvilContainer the anvil inventory
      * @return the slot to change the repair cost
      */
-    private int getTargetSlot(GeyserSessionImpl session, AnvilContainer anvilContainer) {
+    private int getTargetSlot(GeyserSession session, AnvilContainer anvilContainer) {
         GeyserItemStack input = anvilContainer.getInput();
         GeyserItemStack material = anvilContainer.getMaterial();
 
@@ -148,7 +148,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return 0;
     }
 
-    private void updateTargetSlot(InventoryTranslator translator, GeyserSessionImpl session, AnvilContainer anvilContainer, int slot) {
+    private void updateTargetSlot(InventoryTranslator translator, GeyserSession session, AnvilContainer anvilContainer, int slot) {
         ItemData itemData = anvilContainer.getItem(slot).getItemData(session);
         itemData = hijackRepairCost(session, anvilContainer, itemData);
 
@@ -166,7 +166,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         session.sendUpstreamPacket(slotPacket);
     }
 
-    private ItemData hijackRepairCost(GeyserSessionImpl session, AnvilContainer anvilContainer, ItemData itemData) {
+    private ItemData hijackRepairCost(GeyserSession session, AnvilContainer anvilContainer, ItemData itemData) {
         if (itemData.isNull()) {
             return itemData;
         }
@@ -208,7 +208,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      * @param bedrock        True to count enchantments like Bedrock
      * @return the number of levels needed
      */
-    public int calcLevelCost(GeyserSessionImpl session, AnvilContainer anvilContainer, boolean bedrock) {
+    public int calcLevelCost(GeyserSession session, AnvilContainer anvilContainer, boolean bedrock) {
         GeyserItemStack input = anvilContainer.getInput();
         GeyserItemStack material = anvilContainer.getMaterial();
 
@@ -262,7 +262,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      * @param material the item's respective repair material
      * @return the number of levels needed or 0 if it is not possible to repair any further
      */
-    private int calcRepairLevelCost(GeyserSessionImpl session, GeyserItemStack input, GeyserItemStack material) {
+    private int calcRepairLevelCost(GeyserSession session, GeyserItemStack input, GeyserItemStack material) {
         int newDamage = getDamage(input);
         int unitRepair = Math.min(newDamage, input.getMapping(session).getMaxDamage() / 4);
         if (unitRepair <= 0) {
@@ -287,7 +287,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      * @param material a matching item
      * @return the number of levels needed or 0 if it is not possible to repair any further
      */
-    private int calcMergeRepairCost(GeyserSessionImpl session, GeyserItemStack input, GeyserItemStack material) {
+    private int calcMergeRepairCost(GeyserSession session, GeyserItemStack input, GeyserItemStack material) {
         // If the material item is damaged 112% or more, then the input item will not be repaired
         if (getDamage(input) > 0 && getDamage(material) < (material.getMapping(session).getMaxDamage() * 112 / 100)) {
             return 2;
@@ -304,7 +304,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
      * @param bedrock  True to count enchantments like Bedrock, False to count like Java
      * @return the number of levels needed or -1 if no enchantments can be applied
      */
-    private int calcMergeEnchantmentCost(GeyserSessionImpl session, GeyserItemStack input, GeyserItemStack material, boolean bedrock) {
+    private int calcMergeEnchantmentCost(GeyserSession session, GeyserItemStack input, GeyserItemStack material, boolean bedrock) {
         boolean hasCompatible = false;
         Object2IntMap<JavaEnchantment> combinedEnchantments = getEnchantments(session, input, bedrock);
         int cost = 0;
@@ -367,7 +367,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return cost;
     }
 
-    private Object2IntMap<JavaEnchantment> getEnchantments(GeyserSessionImpl session, GeyserItemStack itemStack, boolean bedrock) {
+    private Object2IntMap<JavaEnchantment> getEnchantments(GeyserSession session, GeyserItemStack itemStack, boolean bedrock) {
         if (itemStack.getNbt() == null) {
             return Object2IntMaps.emptyMap();
         }
@@ -405,20 +405,20 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return enchantments;
     }
 
-    private boolean isEnchantedBook(GeyserSessionImpl session, GeyserItemStack itemStack) {
+    private boolean isEnchantedBook(GeyserSession session, GeyserItemStack itemStack) {
         return itemStack.getJavaId() == session.getItemMappings().getStoredItems().enchantedBook().getJavaId();
     }
 
-    private boolean isCombining(GeyserSessionImpl session, GeyserItemStack input, GeyserItemStack material) {
+    private boolean isCombining(GeyserSession session, GeyserItemStack input, GeyserItemStack material) {
         return isEnchantedBook(session, material) || (input.getJavaId() == material.getJavaId() && hasDurability(session, input));
     }
 
-    private boolean isRepairing(GeyserSessionImpl session, GeyserItemStack input, GeyserItemStack material) {
+    private boolean isRepairing(GeyserSession session, GeyserItemStack input, GeyserItemStack material) {
         Set<String> repairMaterials = input.getMapping(session).getRepairMaterials();
         return repairMaterials != null && repairMaterials.contains(material.getMapping(session).getJavaIdentifier());
     }
 
-    private boolean isRenaming(GeyserSessionImpl session, AnvilContainer anvilContainer, boolean bedrock) {
+    private boolean isRenaming(GeyserSession session, AnvilContainer anvilContainer, boolean bedrock) {
         if (anvilContainer.getResult().isEmpty()) {
             return false;
         }
@@ -447,7 +447,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return getTagIntValueOr(itemStack, "RepairCost", 0);
     }
 
-    private boolean hasDurability(GeyserSessionImpl session, GeyserItemStack itemStack) {
+    private boolean hasDurability(GeyserSession session, GeyserItemStack itemStack) {
         if (itemStack.getMapping(session).getMaxDamage() > 0) {
             return getTagIntValueOr(itemStack, "Unbreakable", 0) == 0;
         }

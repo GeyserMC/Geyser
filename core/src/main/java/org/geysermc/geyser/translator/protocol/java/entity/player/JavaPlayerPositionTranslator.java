@@ -37,7 +37,7 @@ import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -49,7 +49,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPlayerPositionPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundPlayerPositionPacket packet) {
+    public void translate(GeyserSession session, ClientboundPlayerPositionPacket packet) {
         if (!session.isLoggedIn())
             return;
 

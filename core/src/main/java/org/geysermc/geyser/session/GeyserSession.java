@@ -76,7 +76,7 @@ import lombok.Setter;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.session.GeyserSession;
+import org.geysermc.api.geyser.GeyserConnection;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.entity.InteractiveTagManager;
 import org.geysermc.geyser.session.auth.AuthType;
@@ -121,7 +121,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
-public class GeyserSessionImpl implements GeyserSession, CommandSender {
+public class GeyserSession implements GeyserConnection, CommandSender {
 
     private final GeyserImpl geyser;
     private final UpstreamSession upstream;
@@ -227,7 +227,7 @@ public class GeyserSessionImpl implements GeyserSession, CommandSender {
 
     /**
      * Stores a list of all lectern locations and their block entity tags.
-     * See {@link WorldManager#getLecternDataAt(GeyserSessionImpl, int, int, int, boolean)}
+     * See {@link WorldManager#getLecternDataAt(GeyserSession, int, int, int, boolean)}
      * for more information.
      */
     private final Set<Vector3i> lecternCache;
@@ -459,7 +459,7 @@ public class GeyserSessionImpl implements GeyserSession, CommandSender {
 
     private MinecraftProtocol protocol;
 
-    public GeyserSessionImpl(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop eventLoop) {
+    public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop eventLoop) {
         this.geyser = geyser;
         this.upstream = new UpstreamSession(bedrockServerSession);
         this.eventLoop = eventLoop;
@@ -902,7 +902,7 @@ public class GeyserSessionImpl implements GeyserSession, CommandSender {
             @Override
             public void packetReceived(PacketReceivedEvent event) {
                 Packet packet = event.getPacket();
-                Registries.JAVA_PACKET_TRANSLATORS.translate(packet.getClass(), packet, GeyserSessionImpl.this);
+                Registries.JAVA_PACKET_TRANSLATORS.translate(packet.getClass(), packet, GeyserSession.this);
             }
 
             @Override
@@ -1463,7 +1463,7 @@ public class GeyserSessionImpl implements GeyserSession, CommandSender {
 
     public void refreshEmotes(List<UUID> emotes) {
         this.emotes.addAll(emotes);
-        for (GeyserSessionImpl player : geyser.getSessionManager().getSessions().values()) {
+        for (GeyserSession player : geyser.getSessionManager().getSessions().values()) {
             List<UUID> pieces = new ArrayList<>();
             for (UUID piece : emotes) {
                 if (!player.getEmotes().contains(piece)) {

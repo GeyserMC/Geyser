@@ -32,7 +32,7 @@ import org.bukkit.command.TabExecutor;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandExecutor;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Arrays;
@@ -48,7 +48,7 @@ public class GeyserSpigotCommandExecutor extends CommandExecutor implements TabE
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         SpigotCommandSender commandSender = new SpigotCommandSender(sender);
-        GeyserSessionImpl session = getGeyserSession(commandSender);
+        GeyserSession session = getGeyserSession(commandSender);
 
         if (args.length > 0) {
             GeyserCommand geyserCommand = getCommand(args[0]);

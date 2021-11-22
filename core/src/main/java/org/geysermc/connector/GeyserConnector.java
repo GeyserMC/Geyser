@@ -73,11 +73,11 @@ public class GeyserConnector {
     }
 
     public GeyserSession getPlayerByXuid(String xuid) {
-        return new GeyserSession(GeyserImpl.getInstance().sessionByXuid(xuid));
+        return new GeyserSession(GeyserImpl.getInstance().connectionByXuid(xuid));
     }
 
     public GeyserSession getPlayerByUuid(UUID uuid) {
-        return new GeyserSession(GeyserImpl.getInstance().sessionByUuid(uuid));
+        return new GeyserSession(GeyserImpl.getInstance().connectionByUuid(uuid));
     }
 
     public boolean isProductionEnvironment() {

@@ -45,7 +45,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.sound.EntitySoundInteractionTranslator;
@@ -70,7 +70,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     private static final float MAXIMUM_BLOCK_DESTROYING_DISTANCE = 36f;
 
     @Override
-    public void translate(GeyserSessionImpl session, InventoryTransactionPacket packet) {
+    public void translate(GeyserSession session, InventoryTransactionPacket packet) {
         // Send book updates before opening inventories
         session.getBookEditCache().checkForSend();
 
@@ -392,7 +392,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
      * @param session the session of the Bedrock client
      * @param blockPos the block position to restore
      */
-    private void restoreCorrectBlock(GeyserSessionImpl session, Vector3i blockPos, InventoryTransactionPacket packet) {
+    private void restoreCorrectBlock(GeyserSession session, Vector3i blockPos, InventoryTransactionPacket packet) {
         int javaBlockState = session.getGeyser().getWorldManager().getBlockAt(session, blockPos);
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);

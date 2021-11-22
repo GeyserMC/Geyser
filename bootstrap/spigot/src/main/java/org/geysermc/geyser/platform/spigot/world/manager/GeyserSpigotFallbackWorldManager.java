@@ -26,11 +26,11 @@
 package org.geysermc.geyser.platform.spigot.world.manager;
 
 import org.bukkit.plugin.Plugin;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.block.BlockStateValues;
 
 /**
- * Should only be used when we know {@link GeyserSpigotWorldManager#getBlockAt(GeyserSessionImpl, int, int, int)}
+ * Should only be used when we know {@link GeyserSpigotWorldManager#getBlockAt(GeyserSession, int, int, int)}
  * cannot be accurate. Typically, this is when ViaVersion is not installed but a client still manages to connect.
  * If this occurs to you somehow, please let us know!!
  */
@@ -40,7 +40,7 @@ public class GeyserSpigotFallbackWorldManager extends GeyserSpigotWorldManager {
     }
 
     @Override
-    public int getBlockAt(GeyserSessionImpl session, int x, int y, int z) {
+    public int getBlockAt(GeyserSession session, int x, int y, int z) {
         return BlockStateValues.JAVA_AIR_ID;
     }
 

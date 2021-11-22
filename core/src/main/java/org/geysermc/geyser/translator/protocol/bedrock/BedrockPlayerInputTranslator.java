@@ -34,7 +34,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -45,7 +45,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, PlayerInputPacket packet) {
+    public void translate(GeyserSession session, PlayerInputPacket packet) {
         ServerboundPlayerInputPacket playerInputPacket = new ServerboundPlayerInputPacket(
                 packet.getInputMotion().getX(), packet.getInputMotion().getY(), packet.isJumping(), packet.isSneaking()
         );

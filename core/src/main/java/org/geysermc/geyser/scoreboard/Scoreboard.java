@@ -35,7 +35,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import javax.annotation.Nullable;
@@ -46,7 +46,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.geysermc.geyser.scoreboard.UpdateType.*;
 
 public final class Scoreboard {
-    private final GeyserSessionImpl session;
+    private final GeyserSession session;
     private final GeyserLogger logger;
     @Getter
     private final AtomicLong nextId = new AtomicLong(0);
@@ -59,7 +59,7 @@ public final class Scoreboard {
     private int lastAddScoreCount = 0;
     private int lastRemoveScoreCount = 0;
 
-    public Scoreboard(GeyserSessionImpl session) {
+    public Scoreboard(GeyserSession session) {
         this.session = session;
         this.logger = GeyserImpl.getInstance().getLogger();
     }

@@ -30,7 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.level.sound.CustomSound;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundCustomSoundPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.*;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.registry.Registries;
@@ -40,7 +40,7 @@ import org.geysermc.geyser.registry.type.SoundMapping;
 public class JavaCustomSoundTranslator extends PacketTranslator<ClientboundCustomSoundPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundCustomSoundPacket packet) {
+    public void translate(GeyserSession session, ClientboundCustomSoundPacket packet) {
         String packetSound;
         if (packet.getSound() instanceof BuiltinSound) {
             packetSound = ((BuiltinSound) packet.getSound()).getName();

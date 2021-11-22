@@ -32,7 +32,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.cumulus.Form;
 import org.geysermc.cumulus.SimpleForm;
 
@@ -44,7 +44,7 @@ import java.util.function.Consumer;
 public class FormCache {
     private final AtomicInteger formId = new AtomicInteger(0);
     private final Int2ObjectMap<Form> forms = new Int2ObjectOpenHashMap<>();
-    private final GeyserSessionImpl session;
+    private final GeyserSession session;
 
     public int addForm(Form form) {
         int windowId = formId.getAndIncrement();

@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.inventory.item.nbt;
 
 import com.github.steveice10.opennbt.tag.builtin.*;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemRemapper;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
@@ -40,7 +40,7 @@ import java.util.List;
 public class BasicItemTranslator extends NbtItemStackTranslator {
 
     @Override
-    public void translateToBedrock(GeyserSessionImpl session, CompoundTag itemTag, ItemMapping mapping) {
+    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
         Tag damage = itemTag.get("Damage");
         if (damage instanceof IntTag) {
             int originalDurability = ((IntTag) damage).getValue();

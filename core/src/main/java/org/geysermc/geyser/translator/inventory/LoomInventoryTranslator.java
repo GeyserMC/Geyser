@@ -43,7 +43,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
@@ -102,7 +102,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
     }
 
     @Override
-    public boolean shouldRejectItemPlace(GeyserSessionImpl session, Inventory inventory, ContainerSlotType bedrockSourceContainer,
+    public boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, ContainerSlotType bedrockSourceContainer,
                                          int javaSourceSlot, ContainerSlotType bedrockDestinationContainer, int javaDestinationSlot) {
         if (javaDestinationSlot != 1) {
             return false;
@@ -125,7 +125,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
     }
 
     @Override
-    public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSessionImpl session, Inventory inventory, ItemStackRequest request) {
+    public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         StackRequestActionData headerData = request.getActions()[0];
         StackRequestActionData data = request.getActions()[1];
         if (!(data instanceof CraftResultsDeprecatedStackRequestActionData craftData)) {

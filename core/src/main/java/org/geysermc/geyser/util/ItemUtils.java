@@ -26,7 +26,7 @@
 package org.geysermc.geyser.util;
 
 import com.github.steveice10.opennbt.tag.builtin.*;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 
 public class ItemUtils {
 
@@ -49,7 +49,7 @@ public class ItemUtils {
     /**
      * @return the correct Bedrock durability for this item.
      */
-    public static int getCorrectBedrockDurability(GeyserSessionImpl session, int javaId, int original) {
+    public static int getCorrectBedrockDurability(GeyserSession session, int javaId, int original) {
         if (javaId == session.getItemMappings().getStoredItems().fishingRod().getJavaId()) {
             // Java durability: 64
             // Bedrock durability : 384

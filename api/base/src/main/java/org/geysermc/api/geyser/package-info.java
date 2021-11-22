@@ -23,36 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.session;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-
-import java.util.UUID;
-
 /**
- * Represents a player session.
+ *
  */
-@NonNull
-public interface Session {
-
-    /**
-     * Gets the name of the session.
-     *
-     * @return the name of the session
-     */
-    String name();
-
-    /**
-     * Gets the {@link UUID} of the session.
-     *
-     * @return the UUID of the session
-     */
-    UUID uuid();
-
-    /**
-     * Gets the XUID of the session.
-     *
-     * @return the XUID of the session
-     */
-    String xuid();
-}
+package org.geysermc.api.geyser;

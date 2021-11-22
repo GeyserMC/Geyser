@@ -33,7 +33,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.Ser
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 import com.nukkitx.protocol.bedrock.packet.LecternUpdatePacket;
 import org.geysermc.geyser.inventory.LecternContainer;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -45,7 +45,7 @@ import org.geysermc.geyser.util.InventoryUtils;
 public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpdatePacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, LecternUpdatePacket packet) {
+    public void translate(GeyserSession session, LecternUpdatePacket packet) {
         if (packet.isDroppingBook()) {
             // Bedrock drops the book outside of the GUI. Java drops it in the GUI
             // So, we enter the GUI and then drop it! :)

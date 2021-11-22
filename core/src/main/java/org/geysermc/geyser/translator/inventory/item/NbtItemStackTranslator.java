@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.inventory.item;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.type.ItemMapping;
 
 public class NbtItemStackTranslator {
@@ -37,7 +37,7 @@ public class NbtItemStackTranslator {
      * @param itemTag the item's CompoundTag
      * @param mapping Geyser's item mapping
      */
-    public void translateToBedrock(GeyserSessionImpl session, CompoundTag itemTag, ItemMapping mapping) {
+    public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
 
     }
 

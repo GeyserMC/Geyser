@@ -35,7 +35,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -126,7 +126,7 @@ public abstract class ItemTranslator {
     }
 
     @Nonnull
-    public static ItemData translateToBedrock(GeyserSessionImpl session, ItemStack stack) {
+    public static ItemData translateToBedrock(GeyserSession session, ItemStack stack) {
         if (stack == null) {
             return ItemData.AIR;
         }
@@ -402,7 +402,7 @@ public abstract class ItemTranslator {
      *
      * @return the new tag to use, should the current one be null
      */
-    public static CompoundTag translateDisplayProperties(GeyserSessionImpl session, CompoundTag tag, ItemMapping mapping) {
+    public static CompoundTag translateDisplayProperties(GeyserSession session, CompoundTag tag, ItemMapping mapping) {
         return translateDisplayProperties(session, tag, mapping, 'f');
     }
 
@@ -410,7 +410,7 @@ public abstract class ItemTranslator {
      * @param translationColor if this item is not available on Java, the color that the new name should be.
      *                         Normally, this should just be white, but for shulker boxes this should be gray.
      */
-    public static CompoundTag translateDisplayProperties(GeyserSessionImpl session, CompoundTag tag, ItemMapping mapping, char translationColor) {
+    public static CompoundTag translateDisplayProperties(GeyserSession session, CompoundTag tag, ItemMapping mapping, char translationColor) {
         boolean hasCustomName = false;
         if (tag != null) {
             CompoundTag display = tag.get("display");

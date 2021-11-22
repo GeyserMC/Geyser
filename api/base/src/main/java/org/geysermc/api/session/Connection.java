@@ -23,71 +23,37 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api;
+package org.geysermc.api.session;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.api.Api;
-import org.geysermc.api.Geyser;
-import org.geysermc.api.session.Session;
-import org.geysermc.geyser.api.session.GeyserSession;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
- * Represents the API used in Geyser.
+ * Represents a player connection.
  */
-public interface GeyserApi extends Api {
-
+@NonNull
+public interface Connection {
     /**
-     * Shuts down the current Geyser instance.
-     */
-    void shutdown();
-
-    /**
-     * Reloads the current Geyser instance.
-     */
-    void reload();
-
-    /**
-     * Gets if this Geyser instance is running in an IDE. This only needs to be used in cases where files
-     * expected to be in a jarfile are not present.
+     * Gets the name of the connection.
      *
-     * @return true if the version number is not 'DEV'.
+     * @return the name of the connection
      */
-    boolean productionEnvironment();
+    String name();
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Nullable GeyserSession sessionByUuid(@NonNull UUID uuid);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Nullable GeyserSession sessionByXuid(@NonNull String xuid);
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Nullable GeyserSession sessionByName(@NonNull String name);
-
-    /**
-     * {@inheritDoc}
-     */
-    @NonNull
-    List<? extends GeyserSession> onlineSessions();
-
-    /**
-     * Gets the {@link GeyserApi}.
+     * Gets the {@link UUID} of the connection.
      *
-     * @return the Geyser API
+     * @return the UUID of the connection
      */
-    static GeyserApi api() {
-        return Geyser.api(GeyserApi.class);
-    }
+    UUID uuid();
+
+    /**
+     * Gets the XUID of the connection.
+     *
+     * @return the XUID of the connection
+     */
+    String xuid();
+
+
 }

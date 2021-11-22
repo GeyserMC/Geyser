@@ -27,7 +27,7 @@ package org.geysermc.geyser.util.collection;
 
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.util.BlockEntityUtils;
@@ -41,7 +41,7 @@ public class LecternHasBookMap extends FixedInt2BooleanMap {
      * Update a potential lectern within the world. This is a map method so it can use the internal fields to
      * optimize lectern determining.
      */
-    public void handleBlockChange(GeyserSessionImpl session, int blockState, Vector3i position) {
+    public void handleBlockChange(GeyserSession session, int blockState, Vector3i position) {
         WorldManager worldManager = session.getGeyser().getWorldManager();
 
         int offset = blockState - this.start;

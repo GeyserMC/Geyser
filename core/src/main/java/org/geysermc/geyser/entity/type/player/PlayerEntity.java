@@ -52,7 +52,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.scoreboard.Objective;
 import org.geysermc.geyser.scoreboard.Score;
@@ -81,7 +81,7 @@ public class PlayerEntity extends LivingEntity {
      */
     private ParrotEntity rightParrot;
 
-    public PlayerEntity(GeyserSessionImpl session, long entityId, long geyserId, GameProfile gameProfile, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public PlayerEntity(GeyserSession session, long entityId, long geyserId, GameProfile gameProfile, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, gameProfile.getId(), EntityDefinitions.PLAYER, position, motion, yaw, pitch, headYaw);
 
         profile = gameProfile;

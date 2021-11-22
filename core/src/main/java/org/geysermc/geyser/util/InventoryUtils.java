@@ -41,7 +41,7 @@ import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
@@ -64,7 +64,7 @@ public class InventoryUtils {
     
     public static final ItemStack REFRESH_ITEM = new ItemStack(1, 127, new CompoundTag(""));
 
-    public static void openInventory(GeyserSessionImpl session, Inventory inventory) {
+    public static void openInventory(GeyserSession session, Inventory inventory) {
         session.setOpenInventory(inventory);
         if (session.isClosingInventory()) {
             //Wait for close confirmation from client before opening the new inventory.
@@ -75,7 +75,7 @@ public class InventoryUtils {
         displayInventory(session, inventory);
     }
 
-    public static void displayInventory(GeyserSessionImpl session, Inventory inventory) {
+    public static void displayInventory(GeyserSession session, Inventory inventory) {
         InventoryTranslator translator = session.getInventoryTranslator();
         if (translator != null) {
             translator.prepareInventory(session, inventory);
@@ -100,7 +100,7 @@ public class InventoryUtils {
         }
     }
 
-    public static void closeInventory(GeyserSessionImpl session, int windowId, boolean confirm) {
+    public static void closeInventory(GeyserSession session, int windowId, boolean confirm) {
         session.getPlayerInventory().setCursor(GeyserItemStack.EMPTY, session);
         updateCursor(session);
 
@@ -116,7 +116,7 @@ public class InventoryUtils {
         session.setOpenInventory(null);
     }
 
-    public static Inventory getInventory(GeyserSessionImpl session, int windowId) {
+    public static Inventory getInventory(GeyserSession session, int windowId) {
         if (windowId == 0) {
             return session.getPlayerInventory();
         } else {
@@ -128,7 +128,7 @@ public class InventoryUtils {
         }
     }
 
-    public static void updateCursor(GeyserSessionImpl session) {
+    public static void updateCursor(GeyserSession session) {
         InventorySlotPacket cursorPacket = new InventorySlotPacket();
         cursorPacket.setContainerId(ContainerId.UI);
         cursorPacket.setSlot(0);
@@ -177,12 +177,12 @@ public class InventoryUtils {
     }
 
     /**
-     * See {@link #findOrCreateItem(GeyserSessionImpl, String)}. This is for finding a specified {@link ItemStack}.
+     * See {@link #findOrCreateItem(GeyserSession, String)}. This is for finding a specified {@link ItemStack}.
      *
      * @param session the Bedrock client's session
      * @param itemStack the item to try to find a match for. NBT will also be accounted for.
      */
-    public static void findOrCreateItem(GeyserSessionImpl session, ItemStack itemStack) {
+    public static void findOrCreateItem(GeyserSession session, ItemStack itemStack) {
         PlayerInventory inventory = session.getPlayerInventory();
 
         if (itemStack == null || itemStack.getId() == 0) {
@@ -241,7 +241,7 @@ public class InventoryUtils {
      * @param session the Bedrock client's session
      * @param itemName the Java identifier of the item to search/select
      */
-    public static void findOrCreateItem(GeyserSessionImpl session, String itemName) {
+    public static void findOrCreateItem(GeyserSession session, String itemName) {
         // Get the inventory to choose a slot to pick
         PlayerInventory inventory = session.getPlayerInventory();
 
@@ -320,7 +320,7 @@ public class InventoryUtils {
      * @param session GeyserSession
      * @param slot inventory slot to be selected
      */
-    private static void setHotbarItem(GeyserSessionImpl session, int slot) {
+    private static void setHotbarItem(GeyserSession session, int slot) {
         PlayerHotbarPacket hotbarPacket = new PlayerHotbarPacket();
         hotbarPacket.setContainerId(0);
         // Java inventory slot to hotbar slot ID

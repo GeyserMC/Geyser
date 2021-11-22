@@ -39,7 +39,7 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.inventory.updater.InventoryUpdater;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.geyser.util.InventoryUtils;
@@ -55,19 +55,19 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public void prepareInventory(GeyserSessionImpl session, Inventory inventory) {
+    public void prepareInventory(GeyserSession session, Inventory inventory) {
     }
 
     @Override
-    public void openInventory(GeyserSessionImpl session, Inventory inventory) {
+    public void openInventory(GeyserSession session, Inventory inventory) {
     }
 
     @Override
-    public void closeInventory(GeyserSessionImpl session, Inventory inventory) {
+    public void closeInventory(GeyserSession session, Inventory inventory) {
     }
 
     @Override
-    public void updateProperty(GeyserSessionImpl session, Inventory inventory, int key, int value) {
+    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
         if (key == 0) { // Lectern page update
             LecternContainer lecternContainer = (LecternContainer) inventory;
             lecternContainer.setCurrentBedrockPage(value / 2);
@@ -77,7 +77,7 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public void updateInventory(GeyserSessionImpl session, Inventory inventory) {
+    public void updateInventory(GeyserSession session, Inventory inventory) {
         GeyserItemStack itemStack = inventory.getItem(0);
         if (!itemStack.isEmpty()) {
             updateBook(session, inventory, itemStack);
@@ -85,7 +85,7 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public void updateSlot(GeyserSessionImpl session, Inventory inventory, int slot) {
+    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
         this.updater.updateSlot(this, session, inventory, slot);
         if (slot == 0) {
             updateBook(session, inventory, inventory.getItem(0));
@@ -95,7 +95,7 @@ public class LecternInventoryTranslator extends BaseInventoryTranslator {
     /**
      * Translate the data of the book in the lectern into a block entity tag.
      */
-    private void updateBook(GeyserSessionImpl session, Inventory inventory, GeyserItemStack book) {
+    private void updateBook(GeyserSession session, Inventory inventory, GeyserItemStack book) {
         LecternContainer lecternContainer = (LecternContainer) inventory;
         if (session.isDroppingLecternBook()) {
             // We have to enter the inventory GUI to eject the book

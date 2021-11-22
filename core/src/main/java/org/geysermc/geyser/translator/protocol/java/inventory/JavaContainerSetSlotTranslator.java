@@ -39,7 +39,7 @@ import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
@@ -58,7 +58,7 @@ import java.util.concurrent.TimeUnit;
 public class JavaContainerSetSlotTranslator extends PacketTranslator<ClientboundContainerSetSlotPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, ClientboundContainerSetSlotPacket packet) {
+    public void translate(GeyserSession session, ClientboundContainerSetSlotPacket packet) {
         if (packet.getContainerId() == 255) { //cursor
             GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
             session.getPlayerInventory().setCursor(newItem, session);
@@ -92,7 +92,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
         }
     }
 
-    private static void updateCraftingGrid(GeyserSessionImpl session, ClientboundContainerSetSlotPacket packet, Inventory inventory, InventoryTranslator translator) {
+    private static void updateCraftingGrid(GeyserSession session, ClientboundContainerSetSlotPacket packet, Inventory inventory, InventoryTranslator translator) {
         if (packet.getSlot() == 0) {
             int gridSize;
             if (translator instanceof PlayerInventoryTranslator) {

@@ -28,7 +28,7 @@ package org.geysermc.geyser.session.cache;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundEditBookPacket;
 import lombok.Setter;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 
 /**
  * Manages updating the current writable book.
@@ -37,7 +37,7 @@ import org.geysermc.geyser.session.GeyserSessionImpl;
  * book packets. Because of this, we need to ensure packets are only send every second or so at maximum.
  */
 public class BookEditCache {
-    private final GeyserSessionImpl session;
+    private final GeyserSession session;
     @Setter
     private ServerboundEditBookPacket packet;
     /**
@@ -45,7 +45,7 @@ public class BookEditCache {
      */
     private long lastBookUpdate;
 
-    public BookEditCache(GeyserSessionImpl session) {
+    public BookEditCache(GeyserSession session) {
         this.session = session;
     }
 

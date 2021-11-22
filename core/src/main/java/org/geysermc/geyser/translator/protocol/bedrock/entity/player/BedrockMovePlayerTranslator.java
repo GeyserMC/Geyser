@@ -36,7 +36,7 @@ import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -47,7 +47,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
     private static final int BEDROCK_OVERWORLD_VOID_FLOOR_LOWER_Y = BEDROCK_OVERWORLD_VOID_FLOOR_UPPER_Y + 2;
 
     @Override
-    public void translate(GeyserSessionImpl session, MovePlayerPacket packet) {
+    public void translate(GeyserSession session, MovePlayerPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
         if (!session.isSpawned()) return;
 
@@ -163,7 +163,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         return Float.isNaN(val) || Float.isInfinite(val);
     }
 
-    private boolean isValidMove(GeyserSessionImpl session, Vector3f currentPosition, Vector3f newPosition) {
+    private boolean isValidMove(GeyserSession session, Vector3f currentPosition, Vector3f newPosition) {
         if (isInvalidNumber(newPosition.getX()) || isInvalidNumber(newPosition.getY()) || isInvalidNumber(newPosition.getZ())) {
             return false;
         }

@@ -35,7 +35,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import lombok.Value;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.translator.inventory.CraftingInventoryTranslator;
@@ -52,12 +52,12 @@ public class ClickPlan {
     private GeyserItemStack simulatedCursor;
     private boolean simulating;
 
-    private final GeyserSessionImpl session;
+    private final GeyserSession session;
     private final InventoryTranslator translator;
     private final Inventory inventory;
     private final int gridSize;
 
-    public ClickPlan(GeyserSessionImpl session, InventoryTranslator translator, Inventory inventory) {
+    public ClickPlan(GeyserSession session, InventoryTranslator translator, Inventory inventory) {
         this.session = session;
         this.translator = translator;
         this.inventory = inventory;

@@ -23,12 +23,34 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.session;
+package org.geysermc.api.geyser;
 
-import org.geysermc.api.session.Session;
+import org.geysermc.api.GeyserApi;
 
 /**
- * Represents a player session used in Geyser.
+ * Represents the API used in Geyser.
  */
-public interface GeyserSession extends Session {
+public interface GeyserExtensionApi extends GeyserApi {
+    /**
+     * Shuts down the current Geyser instance.
+     */
+    void shutdown();
+
+    /**
+     * Reloads the current Geyser instance.
+     */
+    void reload();
+
+    /**
+     * Gets if this Geyser instance is running in an IDE. This only needs to be used in cases where files
+     * expected to be in a jarfile are not present.
+     *
+     * @return true if the version number is not 'DEV'.
+     */
+    boolean productionEnvironment();
+
+    @Override
+    default GeyserExtensionApi asExtensionApi() {
+        return this;
+    }
 }

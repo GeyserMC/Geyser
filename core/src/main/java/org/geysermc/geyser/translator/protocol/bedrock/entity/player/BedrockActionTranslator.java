@@ -40,7 +40,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -54,7 +54,7 @@ import java.util.ArrayList;
 public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket> {
 
     @Override
-    public void translate(GeyserSessionImpl session, PlayerActionPacket packet) {
+    public void translate(GeyserSession session, PlayerActionPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         // Send book update before any player action

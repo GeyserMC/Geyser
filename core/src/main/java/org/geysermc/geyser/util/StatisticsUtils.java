@@ -28,7 +28,7 @@ package org.geysermc.geyser.util;
 import com.github.steveice10.mc.protocol.data.MagicValues;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.data.game.statistic.*;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.cumulus.SimpleForm;
@@ -49,7 +49,7 @@ public class StatisticsUtils {
      *
      * @param session The session to build the form for
      */
-    public static void buildAndSendStatisticsMenu(GeyserSessionImpl session) {
+    public static void buildAndSendStatisticsMenu(GeyserSession session) {
         // Cache the language for cleaner access
         String language = session.getLocale();
 

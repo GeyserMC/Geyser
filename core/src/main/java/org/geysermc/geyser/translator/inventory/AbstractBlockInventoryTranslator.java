@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.inventory;
 
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
 import org.geysermc.geyser.inventory.holder.InventoryHolder;
 import org.geysermc.geyser.inventory.updater.InventoryUpdater;
@@ -65,27 +65,27 @@ public abstract class AbstractBlockInventoryTranslator extends BaseInventoryTran
     }
 
     @Override
-    public void prepareInventory(GeyserSessionImpl session, Inventory inventory) {
+    public void prepareInventory(GeyserSession session, Inventory inventory) {
         holder.prepareInventory(this, session, inventory);
     }
 
     @Override
-    public void openInventory(GeyserSessionImpl session, Inventory inventory) {
+    public void openInventory(GeyserSession session, Inventory inventory) {
         holder.openInventory(this, session, inventory);
     }
 
     @Override
-    public void closeInventory(GeyserSessionImpl session, Inventory inventory) {
+    public void closeInventory(GeyserSession session, Inventory inventory) {
         holder.closeInventory(this, session, inventory);
     }
 
     @Override
-    public void updateInventory(GeyserSessionImpl session, Inventory inventory) {
+    public void updateInventory(GeyserSession session, Inventory inventory) {
         updater.updateInventory(this, session, inventory);
     }
 
     @Override
-    public void updateSlot(GeyserSessionImpl session, Inventory inventory, int slot) {
+    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
         updater.updateSlot(this, session, inventory, slot);
     }
 }

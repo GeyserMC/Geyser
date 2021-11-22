@@ -27,7 +27,7 @@ package org.geysermc.geyser.platform.standalone.gui;
 
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.session.GeyserSessionImpl;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.standalone.GeyserStandaloneLogger;
 import org.geysermc.geyser.platform.standalone.command.GeyserCommandManager;
@@ -306,7 +306,7 @@ public class GeyserStandaloneGUI {
                 // Update player table
                 playerTableModel.getDataVector().removeAllElements();
 
-                for (GeyserSessionImpl player : GeyserImpl.getInstance().getSessionManager().getSessions().values()) {
+                for (GeyserSession player : GeyserImpl.getInstance().getSessionManager().getSessions().values()) {
                     Vector<String> row = new Vector<>();
                     row.add(player.getSocketAddress().getHostName());
                     row.add(player.getPlayerEntity().getUsername());
