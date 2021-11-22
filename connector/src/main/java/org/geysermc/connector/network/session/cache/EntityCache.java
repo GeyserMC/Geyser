@@ -89,8 +89,8 @@ public class EntityCache {
     }
 
     public boolean removeEntity(Entity entity, boolean force) {
-        if (entity != null) {
-            session.getFakeHeadCache().removeEntity(entity);
+        if (entity instanceof PlayerEntity player) {
+            session.getPlayerWithCustomHeads().remove(player.getUuid());
         }
 
         if (entity != null && entity.isValid() && (force || entity.despawnEntity(session))) {
@@ -106,13 +106,12 @@ public class EntityCache {
     }
 
     public void removeAllEntities() {
-        session.getFakeHeadCache().clear();
-
         List<Entity> entities = new ArrayList<>(session.getEntityCache().getEntities().values());
         for (Entity entity : entities) {
             session.getEntityCache().removeEntity(entity, false);
         }
 
+        session.getPlayerWithCustomHeads().clear();
         // As a precaution
         cachedPlayerEntityLinks.clear();
     }

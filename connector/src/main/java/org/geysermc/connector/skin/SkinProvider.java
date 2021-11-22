@@ -59,7 +59,7 @@ import java.util.concurrent.*;
 
 public class SkinProvider {
     public static final boolean ALLOW_THIRD_PARTY_CAPES = GeyserConnector.getInstance().getConfig().isAllowThirdPartyCapes();
-    public static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(ALLOW_THIRD_PARTY_CAPES ? 21 : 14);
+    static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(ALLOW_THIRD_PARTY_CAPES ? 21 : 14);
 
     public static final byte[] STEVE_SKIN = new ProvidedSkin("bedrock/skin/skin_steve.png").getSkin();
     public static final Skin EMPTY_SKIN = new Skin(-1, "steve", STEVE_SKIN);
@@ -87,6 +87,8 @@ public class SkinProvider {
     public static final String EARS_GEOMETRY;
     public static final String EARS_GEOMETRY_SLIM;
     public static final SkinGeometry SKULL_GEOMETRY;
+    public static final SkinGeometry WEARING_CUSTOM_SKULL;
+    public static final SkinGeometry WEARING_CUSTOM_SKULL_SLIM;
 
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -100,6 +102,12 @@ public class SkinProvider {
         /* Load in the custom skull geometry */
         String skullData = new String(FileUtils.readAllBytes(FileUtils.getResource("bedrock/skin/geometry.humanoid.customskull.json")), StandardCharsets.UTF_8);
         SKULL_GEOMETRY = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.customskull\"}}", skullData, false);
+
+        /* Load in the player head skull geometry */
+        String wearingCustomSkull = new String(FileUtils.readAllBytes(FileUtils.getResource("bedrock/skin/geometry.humanoid.wearingCustomSkull.json")), StandardCharsets.UTF_8);
+        WEARING_CUSTOM_SKULL = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkull\"}}", wearingCustomSkull, false);
+        String wearingCustomSkullSlim = new String(FileUtils.readAllBytes(FileUtils.getResource("bedrock/skin/geometry.humanoid.wearingCustomSkullSlim.json")), StandardCharsets.UTF_8);
+        WEARING_CUSTOM_SKULL_SLIM = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkullSlim\"}}", wearingCustomSkullSlim, false);
 
         // Schedule Daily Image Expiry if we are caching them
         if (GeyserConnector.getInstance().getConfig().getCacheImages() > 0) {
@@ -303,8 +311,7 @@ public class SkinProvider {
         CompletableFuture<Skin> future;
         if (newThread) {
             future = CompletableFuture.supplyAsync(() -> supplyEars(skin, earsUrl), EXECUTOR_SERVICE)
-                    .whenCompleteAsync((outSkin, throwable) -> {
-                    });
+                    .whenCompleteAsync((outSkin, throwable) -> { });
         } else {
             Skin ears = supplyEars(skin, earsUrl); // blocking
             future = CompletableFuture.completedFuture(ears);
@@ -316,9 +323,9 @@ public class SkinProvider {
      * Try and find an ear texture for a Java player
      *
      * @param officialSkin The current players skin
-     * @param playerId     The players UUID
-     * @param username     The players username
-     * @param newThread    Should we start in a new thread
+     * @param playerId The players UUID
+     * @param username The players username
+     * @param newThread Should we start in a new thread
      * @return The updated skin with ears
      */
     public static CompletableFuture<Skin> requestUnofficialEars(Skin officialSkin, UUID playerId, String username, boolean newThread) {
@@ -376,7 +383,7 @@ public class SkinProvider {
      * Stores the geometry for a Java player with ears
      *
      * @param playerID The UUID to cache it against
-     * @param isSlim   If the player is using an slim base
+     * @param isSlim If the player is using an slim base
      */
     public static void storeEarGeometry(UUID playerID, boolean isSlim) {
         cachedGeometry.put(playerID, SkinGeometry.getEars(isSlim));
@@ -396,8 +403,7 @@ public class SkinProvider {
         byte[] cape = EMPTY_CAPE.getCapeData();
         try {
             cape = requestImage(capeUrl, provider);
-        } catch (Exception ignored) {
-        } // just ignore I guess
+        } catch (Exception ignored) {} // just ignore I guess
 
         String[] urlSection = capeUrl.split("/"); // A real url is expected at this stage
 
@@ -414,7 +420,7 @@ public class SkinProvider {
      * Get the ears texture and place it on the skin from the given URL
      *
      * @param existingSkin The players current skin
-     * @param earsUrl      The URL to get the ears texture from
+     * @param earsUrl The URL to get the ears texture from
      * @return The updated skin with ears
      */
     private static Skin supplyEars(Skin existingSkin, String earsUrl) {
@@ -446,8 +452,7 @@ public class SkinProvider {
                     true,
                     true
             );
-        } catch (Exception ignored) {
-        } // just ignore I guess
+        } catch (Exception ignored) {} // just ignore I guess
 
         return existingSkin;
     }
@@ -463,8 +468,7 @@ public class SkinProvider {
                 GeyserConnector.getInstance().getLogger().debug("Reading cached image from file " + imageFile.getPath() + " for " + imageUrl);
                 imageFile.setLastModified(System.currentTimeMillis());
                 image = ImageIO.read(imageFile);
-            } catch (IOException ignored) {
-            }
+            } catch (IOException ignored) {}
         }
 
         // If no image we download it
@@ -610,7 +614,7 @@ public class SkinProvider {
      * Get the RGBA int for a given index in some image data
      *
      * @param index Index to get
-     * @param data  Image data to find in
+     * @param data Image data to find in
      * @return An int representing RGBA
      */
     private static int getRGBA(int index, byte[] data) {
@@ -621,8 +625,8 @@ public class SkinProvider {
     /**
      * Convert a byte[] to a BufferedImage
      *
-     * @param imageData   The byte[] to convert
-     * @param imageWidth  The width of the target image
+     * @param imageData The byte[] to convert
+     * @param imageWidth The width of the target image
      * @param imageHeight The height of the target image
      * @return The converted BufferedImage
      */
@@ -662,8 +666,7 @@ public class SkinProvider {
     public static <T> T getOrDefault(CompletableFuture<T> future, T defaultValue, int timeoutInSeconds) {
         try {
             return future.get(timeoutInSeconds, TimeUnit.SECONDS);
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) {}
         return defaultValue;
     }
 
@@ -674,9 +677,7 @@ public class SkinProvider {
         private final Cape cape;
     }
 
-    public record SkinData(Skin skin,
-                           Cape cape,
-                           SkinGeometry geometry) {
+    public record SkinData(Skin skin, Cape cape, SkinGeometry geometry) {
     }
 
     @AllArgsConstructor
