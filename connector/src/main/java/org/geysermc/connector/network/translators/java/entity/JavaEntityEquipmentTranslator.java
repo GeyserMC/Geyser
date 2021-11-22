@@ -26,14 +26,18 @@
 package org.geysermc.connector.network.translators.java.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Equipment;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.packet.ingame.server.entity.ServerEntityEquipmentPacket;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.connector.entity.Entity;
 import org.geysermc.connector.entity.LivingEntity;
+import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.network.translators.PacketTranslator;
 import org.geysermc.connector.network.translators.Translator;
 import org.geysermc.connector.network.translators.item.ItemTranslator;
+import org.geysermc.connector.skin.FakeHeadProvider;
 
 @Translator(packet = ServerEntityEquipmentPacket.class)
 public class JavaEntityEquipmentTranslator extends PacketTranslator<ServerEntityEquipmentPacket> {
@@ -63,6 +67,17 @@ public class JavaEntityEquipmentTranslator extends PacketTranslator<ServerEntity
             ItemData item = ItemTranslator.translateToBedrock(session, equipment.getItem());
             switch (equipment.getSlot()) {
                 case HELMET -> {
+                    ItemStack javaItem = equipment.getItem();
+                    if (livingEntity instanceof PlayerEntity
+                            && javaItem != null
+                            && javaItem.getId() == session.getItemMappings().getStoredItems().playerHead().getJavaId()
+                            && javaItem.getNbt() != null
+                            && javaItem.getNbt().get("SkullOwner") instanceof CompoundTag profile) {
+                        FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, profile);
+                    } else {
+                        FakeHeadProvider.restoreOriginalSkin(session, livingEntity);
+                    }
+
                     livingEntity.setHelmet(item);
                     armorUpdated = true;
                 }
