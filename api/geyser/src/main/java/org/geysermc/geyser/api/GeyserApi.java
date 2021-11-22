@@ -25,14 +25,20 @@
 
 package org.geysermc.geyser.api;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.Api;
 import org.geysermc.api.Geyser;
+import org.geysermc.api.session.Session;
 import org.geysermc.geyser.api.session.GeyserSession;
+
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Represents the API used in Geyser.
  */
-public interface GeyserApi extends Api<GeyserSession> {
+public interface GeyserApi extends Api {
 
     /**
      * Shuts down the current Geyser instance.
@@ -51,6 +57,30 @@ public interface GeyserApi extends Api<GeyserSession> {
      * @return true if the version number is not 'DEV'.
      */
     boolean productionEnvironment();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable GeyserSession sessionByUuid(@NonNull UUID uuid);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable GeyserSession sessionByXuid(@NonNull String xuid);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable GeyserSession sessionByName(@NonNull String name);
+
+    /**
+     * {@inheritDoc}
+     */
+    @NonNull
+    List<? extends GeyserSession> onlineSessions();
 
     /**
      * Gets the {@link GeyserApi}.

@@ -34,10 +34,8 @@ import java.util.UUID;
 
 /**
  * The base API class.
- *
- * @param <S> the session type
  */
-public interface Api<S extends Session> {
+public interface Api {
 
     /**
      * Gets the session from the given
@@ -47,7 +45,7 @@ public interface Api<S extends Session> {
      * @return the session from the given UUID, if applicable
      */
     @Nullable
-    S sessionByUuid(@NonNull UUID uuid);
+    Session sessionByUuid(@NonNull UUID uuid);
 
     /**
      * Gets the session from the given
@@ -57,7 +55,7 @@ public interface Api<S extends Session> {
      * @return the session from the given UUID, if applicable
      */
     @Nullable
-    S sessionByXuid(@NonNull String xuid);
+    Session sessionByXuid(@NonNull String xuid);
 
     /**
      * Gets the session from the given
@@ -67,7 +65,7 @@ public interface Api<S extends Session> {
      * @return the session from the given name, if applicable
      */
     @Nullable
-    S sessionByName(@NonNull String name);
+    Session sessionByName(@NonNull String name);
 
     /**
      * Gets all the online sessions.
@@ -75,5 +73,5 @@ public interface Api<S extends Session> {
      * @return all the online sessions
      */
     @NonNull
-    List<S> onlineSessions();
+    List<? extends Session> onlineSessions();
 }

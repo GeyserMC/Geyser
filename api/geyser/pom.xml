@@ -18,6 +18,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.checkerframework</groupId>
+            <artifactId>checker-qual</artifactId>
+            <version>3.19.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>base-api</artifactId>
             <version>1.4.3-SNAPSHOT</version>

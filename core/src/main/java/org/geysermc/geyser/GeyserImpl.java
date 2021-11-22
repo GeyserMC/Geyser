@@ -414,9 +414,8 @@ public class GeyserImpl implements GeyserApi {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public @NonNull List<GeyserSession> onlineSessions() {
-        return (List<GeyserSession>) (List<? extends GeyserSession>) this.sessionManager.getAllSessions();
+    public @NonNull List<GeyserSessionImpl> onlineSessions() {
+        return this.sessionManager.getAllSessions();
     }
 
     @Override

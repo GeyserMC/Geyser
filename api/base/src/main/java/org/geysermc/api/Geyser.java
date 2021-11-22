@@ -32,14 +32,14 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  */
 @NonNull
 public class Geyser {
-    private static Api<?> api;
+    private static Api api;
 
     /**
      * Returns the base api.
      *
      * @return the base api
      */
-    public static Api<?> api() {
+    public static Api api() {
         if (api == null) {
             throw new RuntimeException("Api has not been registered yet!");
         }
@@ -55,7 +55,7 @@ public class Geyser {
      * @return the api of the given type
      */
     @SuppressWarnings("unchecked")
-    public static <T extends Api<?>> T api(@NonNull Class<T> apiClass) {
+    public static <T extends Api> T api(@NonNull Class<T> apiClass) {
         if (apiClass.isInstance(api)) {
             return (T) api;
         }
@@ -74,7 +74,7 @@ public class Geyser {
      *
      * @param api the api
      */
-    public static void set(@NonNull Api<?> api) {
+    public static void set(@NonNull Api api) {
         if (Geyser.api != null) {
             throw new RuntimeException("Cannot redefine already registered api!");
         }
