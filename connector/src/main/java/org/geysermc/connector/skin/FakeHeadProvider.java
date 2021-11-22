@@ -34,6 +34,9 @@ import com.nukkitx.protocol.bedrock.data.skin.ImageData;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerSkinPacket;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.entity.LivingEntity;
 import org.geysermc.connector.entity.player.PlayerEntity;
@@ -58,7 +61,7 @@ public class FakeHeadProvider {
             .build(new CacheLoader<>() {
                 @Override
                 public SkinProvider.SkinData load(@Nonnull FakeHeadEntry fakeHeadEntry) throws Exception {
-                    SkinProvider.SkinData skinData = SkinProvider.getOrDefault(SkinProvider.requestSkinData(fakeHeadEntry.entity()), null, 5);
+                    SkinProvider.SkinData skinData = SkinProvider.getOrDefault(SkinProvider.requestSkinData(fakeHeadEntry.getEntity()), null, 5);
 
                     if (skinData == null) {
                         throw new Exception("Couldn't load player's original skin");
@@ -70,7 +73,7 @@ public class FakeHeadProvider {
                             ? SkinProvider.WEARING_CUSTOM_SKULL_SLIM : SkinProvider.WEARING_CUSTOM_SKULL;
 
                     SkinProvider.Skin headSkin = SkinProvider.getOrDefault(
-                            SkinProvider.requestSkin(fakeHeadEntry.entity().getUuid(), fakeHeadEntry.fakeHeadSkinUrl(), false), SkinProvider.EMPTY_SKIN, 5);
+                            SkinProvider.requestSkin(fakeHeadEntry.getEntity().getUuid(), fakeHeadEntry.getFakeHeadSkinUrl(), false), SkinProvider.EMPTY_SKIN, 5);
                     BufferedImage originalSkinImage = SkinProvider.imageDataToBufferedImage(skin.getSkinData(), 64, skin.getSkinData().length / 4 / 64);
                     BufferedImage headSkinImage = SkinProvider.imageDataToBufferedImage(headSkin.getSkinData(), 64, headSkin.getSkinData().length / 4 / 64);
 
@@ -83,9 +86,12 @@ public class FakeHeadProvider {
 
                     // Make the skin key a combination of the current skin data and the new skin data
                     // Don't tie it to a player - that player *can* change skins in-game
-                    String skinKey = "customPlayerHead_" + fakeHeadEntry.fakeHeadSkinUrl() + "_" + skin.getTextureUrl();
+                    String skinKey = "customPlayerHead_" + fakeHeadEntry.getFakeHeadSkinUrl() + "_" + skin.getTextureUrl();
                     byte[] targetSkinData = SkinProvider.bufferedImageToImageData(originalSkinImage);
-                    SkinProvider.Skin mergedSkin = new SkinProvider.Skin(fakeHeadEntry.entity().getUuid(), skinKey, targetSkinData, System.currentTimeMillis(), false, false);
+                    SkinProvider.Skin mergedSkin = new SkinProvider.Skin(fakeHeadEntry.getEntity().getUuid(), skinKey, targetSkinData, System.currentTimeMillis(), false, false);
+
+                    // Avoiding memory leak
+                    fakeHeadEntry.setEntity(null);
 
                     return new SkinProvider.SkinData(mergedSkin, cape, geometry);
                 }
@@ -176,7 +182,14 @@ public class FakeHeadProvider {
                 "", true, false, false, cape.getCapeId(), skinId);
     }
 
-    private static record FakeHeadEntry(GameProfile.Property texturesProperty, String fakeHeadSkinUrl, PlayerEntity entity) {
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    private static class FakeHeadEntry {
+        private final GameProfile.Property texturesProperty;
+        private final String fakeHeadSkinUrl;
+        private PlayerEntity entity;
+
         @Override
         public boolean equals(Object o) {
             // We don't care about the equality of the entity as that is not used for caching purposes

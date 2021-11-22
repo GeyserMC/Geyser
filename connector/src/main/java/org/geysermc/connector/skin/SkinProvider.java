@@ -150,32 +150,32 @@ public class SkinProvider {
     public static CompletableFuture<SkinProvider.SkinData> requestSkinData(PlayerEntity entity) {
         SkinManager.GameProfileData data = SkinManager.GameProfileData.from(entity.getProfile());
 
-        return SkinProvider.requestSkinAndCape(entity.getUuid(), data.skinUrl(), data.capeUrl())
+        return requestSkinAndCape(entity.getUuid(), data.skinUrl(), data.capeUrl())
                 .thenApplyAsync(skinAndCape -> {
                     try {
-                        SkinProvider.Skin skin = skinAndCape.getSkin();
-                        SkinProvider.Cape cape = skinAndCape.getCape();
-                        SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.getLegacy(data.isAlex());
+                        Skin skin = skinAndCape.getSkin();
+                        Cape cape = skinAndCape.getCape();
+                        SkinGeometry geometry = SkinGeometry.getLegacy(data.isAlex());
 
                         if (cape.isFailed()) {
-                            cape = SkinProvider.getOrDefault(SkinProvider.requestBedrockCape(entity.getUuid()),
-                                    SkinProvider.EMPTY_CAPE, 3);
+                            cape = getOrDefault(requestBedrockCape(entity.getUuid()),
+                                    EMPTY_CAPE, 3);
                         }
 
-                        if (cape.isFailed() && SkinProvider.ALLOW_THIRD_PARTY_CAPES) {
-                            cape = SkinProvider.getOrDefault(SkinProvider.requestUnofficialCape(
+                        if (cape.isFailed() && ALLOW_THIRD_PARTY_CAPES) {
+                            cape = getOrDefault(requestUnofficialCape(
                                     cape, entity.getUuid(),
                                     entity.getUsername(), false
-                            ), SkinProvider.EMPTY_CAPE, SkinProvider.CapeProvider.VALUES.length * 3);
+                            ), EMPTY_CAPE, CapeProvider.VALUES.length * 3);
                         }
 
-                        geometry = SkinProvider.getOrDefault(SkinProvider.requestBedrockGeometry(
+                        geometry = getOrDefault(requestBedrockGeometry(
                                 geometry, entity.getUuid()
                         ), geometry, 3);
 
                         boolean isDeadmau5 = "deadmau5".equals(entity.getUsername());
                         // Not a bedrock player check for ears
-                        if (geometry.isFailed() && (SkinProvider.ALLOW_THIRD_PARTY_EARS || isDeadmau5)) {
+                        if (geometry.isFailed() && (ALLOW_THIRD_PARTY_EARS || isDeadmau5)) {
                             boolean isEars;
 
                             // Its deadmau5, gotta support his skin :)
@@ -183,7 +183,7 @@ public class SkinProvider {
                                 isEars = true;
                             } else {
                                 // Get the ears texture for the player
-                                skin = SkinProvider.getOrDefault(SkinProvider.requestUnofficialEars(
+                                skin = getOrDefault(requestUnofficialEars(
                                         skin, entity.getUuid(), entity.getUsername(), false
                                 ), skin, 3);
 
@@ -193,20 +193,20 @@ public class SkinProvider {
                             // Does the skin have an ears texture
                             if (isEars) {
                                 // Get the new geometry
-                                geometry = SkinProvider.SkinGeometry.getEars(data.isAlex());
+                                geometry = SkinGeometry.getEars(data.isAlex());
 
                                 // Store the skin and geometry for the ears
-                                SkinProvider.storeEarSkin(skin);
-                                SkinProvider.storeEarGeometry(entity.getUuid(), data.isAlex());
+                                storeEarSkin(skin);
+                                storeEarGeometry(entity.getUuid(), data.isAlex());
                             }
                         }
 
-                        return new SkinProvider.SkinData(skin, cape, geometry);
+                        return new SkinData(skin, cape, geometry);
                     } catch (Exception e) {
                         GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
                     }
 
-                    return new SkinProvider.SkinData(skinAndCape.getSkin(), skinAndCape.getCape(), null);
+                    return new SkinData(skinAndCape.getSkin(), skinAndCape.getCape(), null);
                 });
     }
 
@@ -311,7 +311,8 @@ public class SkinProvider {
         CompletableFuture<Skin> future;
         if (newThread) {
             future = CompletableFuture.supplyAsync(() -> supplyEars(skin, earsUrl), EXECUTOR_SERVICE)
-                    .whenCompleteAsync((outSkin, throwable) -> { });
+                    .whenCompleteAsync((outSkin, throwable) -> {
+                    });
         } else {
             Skin ears = supplyEars(skin, earsUrl); // blocking
             future = CompletableFuture.completedFuture(ears);
@@ -323,9 +324,9 @@ public class SkinProvider {
      * Try and find an ear texture for a Java player
      *
      * @param officialSkin The current players skin
-     * @param playerId The players UUID
-     * @param username The players username
-     * @param newThread Should we start in a new thread
+     * @param playerId     The players UUID
+     * @param username     The players username
+     * @param newThread    Should we start in a new thread
      * @return The updated skin with ears
      */
     public static CompletableFuture<Skin> requestUnofficialEars(Skin officialSkin, UUID playerId, String username, boolean newThread) {
@@ -383,7 +384,7 @@ public class SkinProvider {
      * Stores the geometry for a Java player with ears
      *
      * @param playerID The UUID to cache it against
-     * @param isSlim If the player is using an slim base
+     * @param isSlim   If the player is using an slim base
      */
     public static void storeEarGeometry(UUID playerID, boolean isSlim) {
         cachedGeometry.put(playerID, SkinGeometry.getEars(isSlim));
@@ -403,7 +404,8 @@ public class SkinProvider {
         byte[] cape = EMPTY_CAPE.getCapeData();
         try {
             cape = requestImage(capeUrl, provider);
-        } catch (Exception ignored) {} // just ignore I guess
+        } catch (Exception ignored) {
+        } // just ignore I guess
 
         String[] urlSection = capeUrl.split("/"); // A real url is expected at this stage
 
@@ -420,7 +422,7 @@ public class SkinProvider {
      * Get the ears texture and place it on the skin from the given URL
      *
      * @param existingSkin The players current skin
-     * @param earsUrl The URL to get the ears texture from
+     * @param earsUrl      The URL to get the ears texture from
      * @return The updated skin with ears
      */
     private static Skin supplyEars(Skin existingSkin, String earsUrl) {
@@ -452,7 +454,8 @@ public class SkinProvider {
                     true,
                     true
             );
-        } catch (Exception ignored) {} // just ignore I guess
+        } catch (Exception ignored) {
+        } // just ignore I guess
 
         return existingSkin;
     }
@@ -468,7 +471,8 @@ public class SkinProvider {
                 GeyserConnector.getInstance().getLogger().debug("Reading cached image from file " + imageFile.getPath() + " for " + imageUrl);
                 imageFile.setLastModified(System.currentTimeMillis());
                 image = ImageIO.read(imageFile);
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+            }
         }
 
         // If no image we download it
@@ -614,7 +618,7 @@ public class SkinProvider {
      * Get the RGBA int for a given index in some image data
      *
      * @param index Index to get
-     * @param data Image data to find in
+     * @param data  Image data to find in
      * @return An int representing RGBA
      */
     private static int getRGBA(int index, byte[] data) {
@@ -625,8 +629,8 @@ public class SkinProvider {
     /**
      * Convert a byte[] to a BufferedImage
      *
-     * @param imageData The byte[] to convert
-     * @param imageWidth The width of the target image
+     * @param imageData   The byte[] to convert
+     * @param imageWidth  The width of the target image
      * @param imageHeight The height of the target image
      * @return The converted BufferedImage
      */
@@ -666,7 +670,8 @@ public class SkinProvider {
     public static <T> T getOrDefault(CompletableFuture<T> future, T defaultValue, int timeoutInSeconds) {
         try {
             return future.get(timeoutInSeconds, TimeUnit.SECONDS);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return defaultValue;
     }
 
