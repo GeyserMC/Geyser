@@ -43,6 +43,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
+import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
@@ -325,9 +326,19 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             }
 
             // As of 1.17.10, Bedrock hardcodes to always read 32 biome sections
-            int remainingEmptyBiomes = 32 - sectionCount;
-            for (int i = 0; i < remainingEmptyBiomes; i++) {
-                byteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
+            // As of 1.18, this hardcode was lowered to 25
+            if (session.getUpstream().getProtocolVersion() >= Bedrock_v475.V475_CODEC.getProtocolVersion()) {
+                int remainingEmptyBiomes = 25 - sectionCount;
+                for (int i = 0; i < remainingEmptyBiomes; i++) {
+                    // A header that says to carry on the biome data from the previous chunk
+                    // This notably fixes biomes in the End
+                    byteBuf.writeByte((127 << 1) | 1);
+                }
+            } else {
+                int remainingEmptyBiomes = 32 - sectionCount;
+                for (int i = 0; i < remainingEmptyBiomes; i++) {
+                    byteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
+                }
             }
 
             byteBuf.writeByte(0); // Border blocks - Edu edition only
