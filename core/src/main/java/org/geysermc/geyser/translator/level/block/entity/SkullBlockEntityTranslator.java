@@ -49,7 +49,6 @@ import java.util.concurrent.TimeUnit;
 
 @BlockEntity(type = BlockEntityType.SKULL)
 public class SkullBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
-    public static boolean ALLOW_CUSTOM_SKULLS;
 
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
@@ -64,8 +63,8 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     }
 
     public static CompletableFuture<GameProfile> getProfile(CompoundTag tag) {
-        if (tag.contains("SkullOwner")) {
-            CompoundTag owner = tag.get("SkullOwner");
+        CompoundTag owner = tag.get("SkullOwner");
+        if (owner != null) {
             CompoundTag properties = owner.get("Properties");
             if (properties == null) {
                 return SkinProvider.requestTexturesFromUsername(owner);

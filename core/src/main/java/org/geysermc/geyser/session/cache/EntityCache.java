@@ -45,6 +45,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * for that player (e.g. seeing vanished players from /vanish)
  */
 public class EntityCache {
+    private final GeyserSession session;
+
     @Getter
     private final Long2ObjectMap<Entity> entities = new Long2ObjectOpenHashMap<>();
     /**
@@ -60,6 +62,8 @@ public class EntityCache {
     private final AtomicLong nextEntityId = new AtomicLong(2L);
 
     public EntityCache(GeyserSession session) {
+        this.session = session;
+
         cachedPlayerEntityLinks.defaultReturnValue(-1L);
     }
 
@@ -85,6 +89,10 @@ public class EntityCache {
     }
 
     public boolean removeEntity(Entity entity, boolean force) {
+        if (entity instanceof PlayerEntity player) {
+            session.getPlayerWithCustomHeads().remove(player.getUuid());
+        }
+
         if (entity != null && entity.isValid() && (force || entity.despawnEntity())) {
             long geyserId = entityIdTranslations.remove(entity.getEntityId());
             entities.remove(geyserId);
@@ -103,6 +111,7 @@ public class EntityCache {
             removeEntity(entity, false);
         }
 
+        session.getPlayerWithCustomHeads().clear();
         // As a precaution
         cachedPlayerEntityLinks.clear();
     }
