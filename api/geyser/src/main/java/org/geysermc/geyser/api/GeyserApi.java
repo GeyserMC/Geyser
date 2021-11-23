@@ -23,14 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.geyser;
+package org.geysermc.geyser.api;
 
-import org.geysermc.api.GeyserApi;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.api.GeyserApiBase;
+import org.geysermc.geyser.api.connection.GeyserConnection;
+
+import java.util.List;
+import java.util.UUID;
 
 /**
  * Represents the API used in Geyser.
  */
-public interface GeyserExtensionApi extends GeyserApi {
+public interface GeyserApi extends GeyserApiBase {
     /**
      * Shuts down the current Geyser instance.
      */
@@ -49,8 +55,27 @@ public interface GeyserExtensionApi extends GeyserApi {
      */
     boolean productionEnvironment();
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    default GeyserExtensionApi asExtensionApi() {
-        return this;
-    }
+    @Nullable GeyserConnection connectionByUuid(@NonNull UUID uuid);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable GeyserConnection connectionByXuid(@NonNull String xuid);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Nullable GeyserConnection connectionByName(@NonNull String name);
+
+    /**
+     * {@inheritDoc}
+     */
+    @NonNull
+    List<? extends GeyserConnection> onlineConnections();
 }

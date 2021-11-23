@@ -27,7 +27,6 @@ package org.geysermc.api;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.api.geyser.GeyserExtensionApi;
 import org.geysermc.api.session.Connection;
 
 import java.util.List;
@@ -36,7 +35,7 @@ import java.util.UUID;
 /**
  * The base API class.
  */
-public interface GeyserApi {
+public interface GeyserApiBase {
     /**
      * Gets the session from the given UUID, if applicable. The player must be logged in to the Java server
      * for this to return a non-null value.
@@ -74,15 +73,6 @@ public interface GeyserApi {
      */
     @NonNull
     List<? extends Connection> onlineConnections();
-
-    /**
-     * Returns this as the Geyser extension API, if the platform supports it.
-     *
-     * @return the extension API, if this platform supports it.
-     */
-    default GeyserExtensionApi asExtensionApi() {
-        return null;
-    }
 
     /**
      * @return the major API version. Bumped whenever a significant breaking change or feature addition is added.

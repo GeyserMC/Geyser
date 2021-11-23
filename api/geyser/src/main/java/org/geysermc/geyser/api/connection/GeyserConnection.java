@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.geyser;
+package org.geysermc.geyser.api.connection;
 
 import org.geysermc.api.session.Connection;
 
