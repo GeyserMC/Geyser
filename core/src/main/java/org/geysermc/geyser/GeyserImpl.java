@@ -42,7 +42,6 @@ import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.Geyser;
-import org.geysermc.api.geyser.GeyserExtensionApi;
 import org.geysermc.common.PlatformType;
 import org.geysermc.floodgate.crypto.AesCipher;
 import org.geysermc.floodgate.crypto.AesKeyProducer;
@@ -50,6 +49,7 @@ import org.geysermc.floodgate.crypto.Base64Topping;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.floodgate.time.TimeSyncer;
+import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.command.CommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
@@ -83,7 +83,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Getter
-public class GeyserImpl implements GeyserExtensionApi {
+public class GeyserImpl implements GeyserApi {
     public static final ObjectMapper JSON_MAPPER = new ObjectMapper()
             .enable(JsonParser.Feature.IGNORE_UNDEFINED)
             .enable(JsonParser.Feature.ALLOW_COMMENTS)
