@@ -26,6 +26,7 @@
 package org.geysermc.geyser.entity.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
+import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeType;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
@@ -251,17 +252,19 @@ public class LivingEntity extends Entity {
      * Takes the Java attribute and adds it to newAttributes as a Bedrock-formatted attribute
      */
     protected void updateAttribute(Attribute javaAttribute, List<AttributeData> newAttributes) {
-        switch (javaAttribute.getType()) {
-            case GENERIC_MAX_HEALTH -> {
-                this.maxHealth = (float) AttributeUtils.calculateValue(javaAttribute);
-                newAttributes.add(createHealthAttribute());
+        if (javaAttribute.getType() instanceof AttributeType.Builtin type) {
+            switch (type) {
+                case GENERIC_MAX_HEALTH -> {
+                    this.maxHealth = (float) AttributeUtils.calculateValue(javaAttribute);
+                    newAttributes.add(createHealthAttribute());
+                }
+                case GENERIC_ATTACK_DAMAGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.ATTACK_DAMAGE));
+                case GENERIC_FLYING_SPEED -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED));
+                case GENERIC_MOVEMENT_SPEED -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.MOVEMENT_SPEED));
+                case GENERIC_FOLLOW_RANGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FOLLOW_RANGE));
+                case GENERIC_KNOCKBACK_RESISTANCE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.KNOCKBACK_RESISTANCE));
+                case HORSE_JUMP_STRENGTH -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.HORSE_JUMP_STRENGTH));
             }
-            case GENERIC_ATTACK_DAMAGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.ATTACK_DAMAGE));
-            case GENERIC_FLYING_SPEED -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED));
-            case GENERIC_MOVEMENT_SPEED -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.MOVEMENT_SPEED));
-            case GENERIC_FOLLOW_RANGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FOLLOW_RANGE));
-            case GENERIC_KNOCKBACK_RESISTANCE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.KNOCKBACK_RESISTANCE));
-            case HORSE_JUMP_STRENGTH -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.HORSE_JUMP_STRENGTH));
         }
     }
 

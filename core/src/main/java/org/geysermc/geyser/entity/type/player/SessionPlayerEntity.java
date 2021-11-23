@@ -177,7 +177,7 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     @Override
     protected void updateAttribute(Attribute javaAttribute, List<AttributeData> newAttributes) {
-        if (javaAttribute.getType() == AttributeType.GENERIC_ATTACK_SPEED) {
+        if (javaAttribute.getType() == AttributeType.Builtin.GENERIC_ATTACK_SPEED) {
             session.setAttackSpeed(AttributeUtils.calculateValue(javaAttribute));
         } else {
             super.updateAttribute(javaAttribute, newAttributes);
@@ -188,7 +188,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     protected AttributeData calculateAttribute(Attribute javaAttribute, GeyserAttributeType type) {
         AttributeData attributeData = super.calculateAttribute(javaAttribute, type);
 
-        if (javaAttribute.getType() == AttributeType.GENERIC_MOVEMENT_SPEED) {
+        if (javaAttribute.getType() == AttributeType.Builtin.GENERIC_MOVEMENT_SPEED) {
             session.setOriginalSpeedAttribute(attributeData.getValue());
             AttributeData speedAttribute = session.adjustSpeed();
             if (speedAttribute != null) {
