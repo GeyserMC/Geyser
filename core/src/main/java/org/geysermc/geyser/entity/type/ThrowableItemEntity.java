@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.entity.type;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
@@ -74,5 +76,8 @@ public class ThrowableItemEntity extends ThrowableEntity {
     @Override
     protected void setInvisible(boolean value) {
         invisible = value;
+    }
+
+    public void setItem(EntityMetadata<ItemStack, ?> entityMetadata) {
     }
 }

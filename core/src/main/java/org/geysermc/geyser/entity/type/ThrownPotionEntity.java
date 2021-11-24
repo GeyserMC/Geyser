@@ -48,7 +48,8 @@ public class ThrownPotionEntity extends ThrowableItemEntity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    public void setPotion(EntityMetadata<ItemStack, ?> entityMetadata) {
+    @Override
+    public void setItem(EntityMetadata<ItemStack, ?> entityMetadata) {
         ItemStack itemStack = entityMetadata.getValue();
         ItemMapping mapping = session.getItemMappings().getMapping(itemStack);
         if (mapping.getJavaIdentifier().endsWith("potion") && itemStack.getNbt() != null) {

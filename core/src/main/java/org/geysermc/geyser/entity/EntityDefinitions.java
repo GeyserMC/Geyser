@@ -70,7 +70,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<AnimalEntity> COW;
     public static final EntityDefinition<ChestedHorseEntity> DONKEY;
     public static final EntityDefinition<WaterEntity> DOLPHIN;
-    public static final EntityDefinition<ItemedFireballEntity> DRAGON_FIREBALL;
+    public static final EntityDefinition<FireballEntity> DRAGON_FIREBALL;
     public static final EntityDefinition<ZombieEntity> DROWNED;
     public static final EntityDefinition<ElderGuardianEntity> ELDER_GUARDIAN;
     public static final EntityDefinition<EndermanEntity> ENDERMAN;
@@ -82,7 +82,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<ExpOrbEntity> EXPERIENCE_ORB;
     public static final EntityDefinition<Entity> EYE_OF_ENDER;
     public static final EntityDefinition<FallingBlockEntity> FALLING_BLOCK;
-    public static final EntityDefinition<ItemedFireballEntity> FIREBALL;
+    public static final EntityDefinition<FireballEntity> FIREBALL;
     public static final EntityDefinition<FishingHookEntity> FISHING_BOBBER;
     public static final EntityDefinition<FireworkEntity> FIREWORK_ROCKET;
     public static final EntityDefinition<FoxEntity> FOX;
@@ -136,7 +136,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<SkeletonEntity> SKELETON;
     public static final EntityDefinition<AbstractHorseEntity> SKELETON_HORSE;
     public static final EntityDefinition<SlimeEntity> SLIME;
-    public static final EntityDefinition<ItemedFireballEntity> SMALL_FIREBALL;
+    public static final EntityDefinition<FireballEntity> SMALL_FIREBALL;
     public static final EntityDefinition<ThrowableItemEntity> SNOWBALL;
     public static final EntityDefinition<SnowGolemEntity> SNOW_GOLEM;
     public static final EntityDefinition<AbstractArrowEntity> SPECTRAL_ARROW;
@@ -212,7 +212,7 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataType.BOOLEAN, BoatEntity::setPaddlingRight)
                     .addTranslator(MetadataType.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityData.BOAT_BUBBLE_TIME, entityMetadata.getValue())) // May not actually do anything
                     .build();
-            DRAGON_FIREBALL = EntityDefinition.inherited(ItemedFireballEntity::new, entityBase)
+            DRAGON_FIREBALL = EntityDefinition.inherited(FireballEntity::new, entityBase)
                     .type(EntityType.DRAGON_FIREBALL)
                     .heightAndWidth(1.0f)
                     .build();
@@ -236,15 +236,12 @@ public final class EntityDefinitions {
                     .type(EntityType.EYE_OF_ENDER)
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:eye_of_ender_signal")
+                    .addTranslator(null)  // Item
                     .build();
             FALLING_BLOCK = EntityDefinition.<FallingBlockEntity>inherited(null, entityBase)
                     .type(EntityType.FALLING_BLOCK)
                     .heightAndWidth(0.98f)
                     .addTranslator(null) // "start block position"
-                    .build();
-            FIREBALL = EntityDefinition.inherited(ItemedFireballEntity::new, entityBase)
-                    .type(EntityType.FIREBALL)
-                    .heightAndWidth(1.0f)
                     .build();
             FIREWORK_ROCKET = EntityDefinition.inherited(FireworkEntity::new, entityBase)
                     .type(EntityType.FIREWORK_ROCKET)
@@ -289,34 +286,45 @@ public final class EntityDefinitions {
                     .type(EntityType.SHULKER_BULLET)
                     .heightAndWidth(0.3125f)
                     .build();
-            SMALL_FIREBALL = EntityDefinition.inherited(ItemedFireballEntity::new, entityBase)
+
+            EntityDefinition<FireballEntity> fireballBase = EntityDefinition.inherited(FireballEntity::new, entityBase)
+                    .addTranslator(null) // Item
+                    .build();
+            FIREBALL = EntityDefinition.inherited(FireballEntity::new, fireballBase)
+                    .type(EntityType.FIREBALL)
+                    .heightAndWidth(1.0f)
+                    .build();
+            SMALL_FIREBALL = EntityDefinition.inherited(FireballEntity::new, fireballBase)
                     .type(EntityType.SMALL_FIREBALL)
                     .heightAndWidth(0.3125f)
                     .build();
-            SNOWBALL = EntityDefinition.inherited(ThrowableItemEntity::new, entityBase)
+
+            EntityDefinition<ThrowableItemEntity> throwableItemBase = EntityDefinition.inherited(ThrowableItemEntity::new, entityBase)
+                    .addTranslator(MetadataType.ITEM, ThrowableItemEntity::setItem)
+                    .build();
+            SNOWBALL = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(EntityType.SNOWBALL)
                     .heightAndWidth(0.25f)
                     .build();
-            THROWN_ENDERPEARL = EntityDefinition.inherited(ThrowableItemEntity::new, entityBase)
+            THROWN_ENDERPEARL = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(EntityType.THROWN_ENDERPEARL)
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:ender_pearl")
                     .build();
-            THROWN_EGG = EntityDefinition.inherited(ThrowableItemEntity::new, entityBase)
+            THROWN_EGG = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(EntityType.THROWN_EGG)
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:egg")
                     .build();
-            THROWN_EXP_BOTTLE = EntityDefinition.inherited(ThrowableItemEntity::new, entityBase)
+            THROWN_EXP_BOTTLE = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(EntityType.THROWN_EXP_BOTTLE)
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:xp_bottle")
                     .build();
-            THROWN_POTION = EntityDefinition.inherited(ThrownPotionEntity::new, entityBase)
+            THROWN_POTION = EntityDefinition.inherited(ThrownPotionEntity::new, throwableItemBase)
                     .type(EntityType.THROWN_POTION)
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:splash_potion")
-                    .addTranslator(MetadataType.ITEM, ThrownPotionEntity::setPotion)
                     .build();
 
             EntityDefinition<AbstractArrowEntity> abstractArrowBase = EntityDefinition.inherited(AbstractArrowEntity::new, entityBase)
