@@ -89,6 +89,10 @@ public class EntityCache {
     }
 
     public boolean removeEntity(Entity entity, boolean force) {
+        if (entity instanceof PlayerEntity player) {
+            session.getPlayerWithCustomHeads().remove(player.getUuid());
+        }
+
         if (entity != null && entity.isValid() && (force || entity.despawnEntity(session))) {
             long geyserId = entityIdTranslations.remove(entity.getEntityId());
             entities.remove(geyserId);
@@ -107,6 +111,7 @@ public class EntityCache {
             session.getEntityCache().removeEntity(entity, false);
         }
 
+        session.getPlayerWithCustomHeads().clear();
         // As a precaution
         cachedPlayerEntityLinks.clear();
     }

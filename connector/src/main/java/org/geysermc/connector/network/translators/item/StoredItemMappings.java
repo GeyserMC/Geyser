@@ -43,10 +43,12 @@ public class StoredItemMappings {
     private final ItemMapping barrier;
     private final ItemMapping compass;
     private final ItemMapping crossbow;
+    private final ItemMapping enchantedBook;
     private final ItemMapping fishingRod;
     private final ItemMapping lodestoneCompass;
     private final ItemMapping milkBucket;
     private final ItemMapping powderSnowBucket;
+    private final ItemMapping playerHead;
     private final ItemMapping egg;
     private final ItemMapping shield;
     private final ItemMapping wheat;
@@ -58,10 +60,12 @@ public class StoredItemMappings {
         this.barrier = load(itemMappings, "barrier");
         this.compass = load(itemMappings, "compass");
         this.crossbow = load(itemMappings, "crossbow");
+        this.enchantedBook = load(itemMappings, "enchanted_book");
         this.fishingRod = load(itemMappings, "fishing_rod");
         this.lodestoneCompass = load(itemMappings, "lodestone_compass");
         this.milkBucket = load(itemMappings, "milk_bucket");
         this.powderSnowBucket = load(itemMappings, "powder_snow_bucket");
+        this.playerHead = load(itemMappings, "player_head");
         this.egg = load(itemMappings, "egg");
         this.shield = load(itemMappings, "shield");
         this.wheat = load(itemMappings, "wheat");

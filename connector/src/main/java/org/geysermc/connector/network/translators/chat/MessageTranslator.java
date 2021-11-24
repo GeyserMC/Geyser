@@ -31,6 +31,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.geysermc.connector.GeyserConnector;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.LanguageUtils;
@@ -146,6 +147,9 @@ public class MessageTranslator {
      * @return Bedrock formatted message
      */
     public static String convertMessageLenient(String message, String locale) {
+        if (message == null) {
+            return "";
+        }
         if (message.isBlank()) {
             return message;
         }
@@ -177,6 +181,33 @@ public class MessageTranslator {
     public static String convertToJavaMessage(String message) {
         Component component = LegacyComponentSerializer.legacySection().deserialize(message);
         return GSON_SERIALIZER.serialize(component);
+    }
+
+    /**
+     * Convert JSON and legacy format message to plain text
+     *
+     * @param message Message to convert
+     * @param locale Locale to use for translation strings
+     * @return The plain text of the message
+     */
+    public static String convertToPlainText(String message, String locale) {
+        if (message == null) {
+            return "";
+        }
+        Component messageComponent = null;
+        if (message.startsWith("{") && message.endsWith("}")) {
+            // Message is a JSON object
+            try {
+                messageComponent = GSON_SERIALIZER.deserialize(message);
+                // Translate any components that require it
+                messageComponent = RENDERER.render(messageComponent, locale);
+            } catch (Exception ignored) {
+            }
+        }
+        if (messageComponent == null) {
+            messageComponent = LegacyComponentSerializer.legacySection().deserialize(message);
+        }
+        return PlainTextComponentSerializer.plainText().serialize(messageComponent);
     }
 
     /**

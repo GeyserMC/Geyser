@@ -37,8 +37,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.geysermc.connector.GeyserConnector;
+import org.geysermc.connector.entity.player.PlayerEntity;
 import org.geysermc.connector.network.session.GeyserSession;
 import org.geysermc.connector.utils.FileUtils;
+import org.geysermc.connector.utils.LanguageUtils;
 import org.geysermc.connector.utils.WebUtils;
 
 import javax.imageio.ImageIO;
@@ -57,7 +59,7 @@ import java.util.concurrent.*;
 
 public class SkinProvider {
     public static final boolean ALLOW_THIRD_PARTY_CAPES = GeyserConnector.getInstance().getConfig().isAllowThirdPartyCapes();
-    private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(ALLOW_THIRD_PARTY_CAPES ? 21 : 14);
+    static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(ALLOW_THIRD_PARTY_CAPES ? 21 : 14);
 
     public static final byte[] STEVE_SKIN = new ProvidedSkin("bedrock/skin/skin_steve.png").getSkin();
     public static final Skin EMPTY_SKIN = new Skin(-1, "steve", STEVE_SKIN);
@@ -85,6 +87,8 @@ public class SkinProvider {
     public static final String EARS_GEOMETRY;
     public static final String EARS_GEOMETRY_SLIM;
     public static final SkinGeometry SKULL_GEOMETRY;
+    public static final SkinGeometry WEARING_CUSTOM_SKULL;
+    public static final SkinGeometry WEARING_CUSTOM_SKULL_SLIM;
 
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -99,6 +103,12 @@ public class SkinProvider {
         String skullData = new String(FileUtils.readAllBytes(FileUtils.getResource("bedrock/skin/geometry.humanoid.customskull.json")), StandardCharsets.UTF_8);
         SKULL_GEOMETRY = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.customskull\"}}", skullData, false);
 
+        /* Load in the player head skull geometry */
+        String wearingCustomSkull = new String(FileUtils.readAllBytes(FileUtils.getResource("bedrock/skin/geometry.humanoid.wearingCustomSkull.json")), StandardCharsets.UTF_8);
+        WEARING_CUSTOM_SKULL = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkull\"}}", wearingCustomSkull, false);
+        String wearingCustomSkullSlim = new String(FileUtils.readAllBytes(FileUtils.getResource("bedrock/skin/geometry.humanoid.wearingCustomSkullSlim.json")), StandardCharsets.UTF_8);
+        WEARING_CUSTOM_SKULL_SLIM = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkullSlim\"}}", wearingCustomSkullSlim, false);
+
         // Schedule Daily Image Expiry if we are caching them
         if (GeyserConnector.getInstance().getConfig().getCacheImages() > 0) {
             GeyserConnector.getInstance().getGeneralThreadPool().scheduleAtFixedRate(() -> {
@@ -108,7 +118,7 @@ public class SkinProvider {
                 }
 
                 int count = 0;
-                final long expireTime = ((long)GeyserConnector.getInstance().getConfig().getCacheImages()) * ((long)1000 * 60 * 60 * 24);
+                final long expireTime = ((long) GeyserConnector.getInstance().getConfig().getCacheImages()) * ((long) 1000 * 60 * 60 * 24);
                 for (File imageFile : Objects.requireNonNull(cacheFolder.listFiles())) {
                     if (imageFile.lastModified() < System.currentTimeMillis() - expireTime) {
                         //noinspection ResultOfMethodCallIgnored
@@ -135,6 +145,69 @@ public class SkinProvider {
     public static Cape getCachedCape(String capeUrl) {
         Cape cape = capeUrl != null ? cachedCapes.getIfPresent(capeUrl) : EMPTY_CAPE;
         return cape != null ? cape : EMPTY_CAPE;
+    }
+
+    public static CompletableFuture<SkinProvider.SkinData> requestSkinData(PlayerEntity entity) {
+        SkinManager.GameProfileData data = SkinManager.GameProfileData.from(entity.getProfile());
+
+        return requestSkinAndCape(entity.getUuid(), data.skinUrl(), data.capeUrl())
+                .thenApplyAsync(skinAndCape -> {
+                    try {
+                        Skin skin = skinAndCape.getSkin();
+                        Cape cape = skinAndCape.getCape();
+                        SkinGeometry geometry = SkinGeometry.getLegacy(data.isAlex());
+
+                        if (cape.isFailed()) {
+                            cape = getOrDefault(requestBedrockCape(entity.getUuid()),
+                                    EMPTY_CAPE, 3);
+                        }
+
+                        if (cape.isFailed() && ALLOW_THIRD_PARTY_CAPES) {
+                            cape = getOrDefault(requestUnofficialCape(
+                                    cape, entity.getUuid(),
+                                    entity.getUsername(), false
+                            ), EMPTY_CAPE, CapeProvider.VALUES.length * 3);
+                        }
+
+                        geometry = getOrDefault(requestBedrockGeometry(
+                                geometry, entity.getUuid()
+                        ), geometry, 3);
+
+                        boolean isDeadmau5 = "deadmau5".equals(entity.getUsername());
+                        // Not a bedrock player check for ears
+                        if (geometry.isFailed() && (ALLOW_THIRD_PARTY_EARS || isDeadmau5)) {
+                            boolean isEars;
+
+                            // Its deadmau5, gotta support his skin :)
+                            if (isDeadmau5) {
+                                isEars = true;
+                            } else {
+                                // Get the ears texture for the player
+                                skin = getOrDefault(requestUnofficialEars(
+                                        skin, entity.getUuid(), entity.getUsername(), false
+                                ), skin, 3);
+
+                                isEars = skin.isEars();
+                            }
+
+                            // Does the skin have an ears texture
+                            if (isEars) {
+                                // Get the new geometry
+                                geometry = SkinGeometry.getEars(data.isAlex());
+
+                                // Store the skin and geometry for the ears
+                                storeEarSkin(skin);
+                                storeEarGeometry(entity.getUuid(), data.isAlex());
+                            }
+                        }
+
+                        return new SkinData(skin, cape, geometry);
+                    } catch (Exception e) {
+                        GeyserConnector.getInstance().getLogger().error(LanguageUtils.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
+                    }
+
+                    return new SkinData(skinAndCape.getSkin(), skinAndCape.getCape(), null);
+                });
     }
 
     public static CompletableFuture<SkinAndCape> requestSkinAndCape(UUID playerId, String skinUrl, String capeUrl) {
@@ -329,7 +402,8 @@ public class SkinProvider {
         byte[] cape = EMPTY_CAPE.getCapeData();
         try {
             cape = requestImage(capeUrl, provider);
-        } catch (Exception ignored) {} // just ignore I guess
+        } catch (Exception ignored) {
+        } // just ignore I guess
 
         String[] urlSection = capeUrl.split("/"); // A real url is expected at this stage
 
@@ -451,6 +525,7 @@ public class SkinProvider {
 
     /**
      * If a skull has a username but no textures, request them.
+     *
      * @param skullOwner the CompoundTag of the skull with no textures
      * @return a completable GameProfile with textures included
      */
@@ -600,6 +675,9 @@ public class SkinProvider {
     public static class SkinAndCape {
         private final Skin skin;
         private final Cape cape;
+    }
+
+    public record SkinData(Skin skin, Cape cape, SkinGeometry geometry) {
     }
 
     @AllArgsConstructor
