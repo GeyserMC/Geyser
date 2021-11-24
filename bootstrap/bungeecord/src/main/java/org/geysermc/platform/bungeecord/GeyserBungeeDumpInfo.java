@@ -52,10 +52,8 @@ public class GeyserBungeeDumpInfo extends BootstrapDumpInfo {
         this.plugins = new ArrayList<>();
 
         for (net.md_5.bungee.api.config.ListenerInfo listener : proxy.getConfig().getListeners()) {
-            String hostname;
-            if (AsteriskSerializer.showSensitive || (listener.getHost().getHostString().equals("") || listener.getHost().getHostString().equals("0.0.0.0"))) {
-                hostname = listener.getHost().getHostString();
-            } else {
+            String hostname = listener.getHost().getHostString();
+            if (!AsteriskSerializer.showSensitive && !(hostname.equals("") || hostname.equals("0.0.0.0"))) {
                 hostname = "***";
             }
             this.listeners.add(new ListenerInfo(hostname, listener.getHost().getPort()));

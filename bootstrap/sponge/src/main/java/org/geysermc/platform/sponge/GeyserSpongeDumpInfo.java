@@ -27,6 +27,7 @@ package org.geysermc.platform.sponge;
 
 import lombok.Getter;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
+import org.geysermc.connector.common.serializer.AsteriskSerializer;
 import org.geysermc.connector.dump.BootstrapDumpInfo;
 import org.spongepowered.api.Platform;
 import org.spongepowered.api.Sponge;
@@ -57,7 +58,12 @@ public class GeyserSpongeDumpInfo extends BootstrapDumpInfo {
         this.platformVersion = platformMeta.version().getQualifier();
         this.onlineMode = Sponge.server().isOnlineModeEnabled();
         Optional<InetSocketAddress> socketAddress = Sponge.server().boundAddress();
-        this.serverIP = socketAddress.map(InetSocketAddress::getHostString).orElse("unknown");
+        String hostString = socketAddress.map(InetSocketAddress::getHostString).orElse("unknown");
+        if (AsteriskSerializer.showSensitive || (hostString.equals("") || hostString.equals("0.0.0.0") || hostString.equals("unknown"))) {
+            this.serverIP = hostString;
+        } else {
+            this.serverIP = "***";
+        }
         this.serverPort = socketAddress.map(InetSocketAddress::getPort).orElse(-1);
         this.plugins = new ArrayList<>();
 
