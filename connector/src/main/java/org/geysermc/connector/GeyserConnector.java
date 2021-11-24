@@ -119,7 +119,6 @@ public class GeyserConnector {
     private final ScheduledExecutorService generalThreadPool;
 
     private final BedrockServer bedrockServer;
-    private final ConnectorServerEventHandler bedrockServerEventHandler; // Used to shutdown its eventloop
     private final PlatformType platformType;
     private final GeyserBootstrap bootstrap;
 
@@ -262,8 +261,7 @@ public class GeyserConnector {
             }
         }
 
-        bedrockServerEventHandler = new ConnectorServerEventHandler(this);
-        bedrockServer.setHandler(bedrockServerEventHandler);
+        bedrockServer.setHandler(new ConnectorServerEventHandler(this));
 
         if (shouldStartListener) {
             bedrockServer.bind().whenComplete((avoid, throwable) -> {
@@ -403,7 +401,6 @@ public class GeyserConnector {
 
         generalThreadPool.shutdown();
         bedrockServer.close();
-        bedrockServerEventHandler.shutdown();
         if (timeSyncer != null) {
             timeSyncer.shutdown();
         }

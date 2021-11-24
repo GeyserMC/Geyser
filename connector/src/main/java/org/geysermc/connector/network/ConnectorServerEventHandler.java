@@ -180,11 +180,4 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             new QueryPacketHandler(connector, packet.sender(), content);
         }
     }
-
-    public void shutdown() {
-        if (!eventLoopGroup.isShuttingDown()) {
-            System.out.println("Shutting down ConnectorServerEventHandler eventloopgroup");
-            eventLoopGroup.shutdownGracefully();
-        }
-    }
 }
