@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>geyser-parent</artifactId>
-        <version>1.4.3-SNAPSHOT</version>
+        <version>2.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>bootstrap-parent</artifactId>
     <packaging>pom</packaging>
@@ -34,7 +34,7 @@
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>ap</artifactId>
-            <version>1.4.3-SNAPSHOT</version>
+            <version>2.0.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

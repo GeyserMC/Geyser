@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>geyser-parent</artifactId>
-        <version>1.4.3-SNAPSHOT</version>
+        <version>2.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>core</artifactId>
 
@@ -21,19 +21,19 @@
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>ap</artifactId>
-            <version>1.4.3-SNAPSHOT</version>
+            <version>2.0.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>geyser-api</artifactId>
-            <version>1.4.3-SNAPSHOT</version>
+            <version>2.0.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>common</artifactId>
-            <version>1.4.3-SNAPSHOT</version>
+            <version>2.0.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <!-- Jackson JSON and YAML serialization -->
@@ -314,7 +314,7 @@
                         </goals>
                         <configuration>
                             <includes>
-                                <include>${project.basedir}/src/main/java/org/geysermc/geyser/GeyserConnector.java</include>
+                                <include>${project.basedir}/src/main/java/org/geysermc/geyser/GeyserImpl.java</include>
                             </includes>
                             <replacements>
                                 <replacement>
@@ -338,7 +338,7 @@
                         </goals>
                         <configuration>
                             <includes>
-                                <include>${project.basedir}/src/main/java/org/geysermc/geyser/GeyserConnector.java</include>
+                                <include>${project.basedir}/src/main/java/org/geysermc/geyser/GeyserImpl.java</include>
                             </includes>
                             <replacements>
                                 <replacement>
