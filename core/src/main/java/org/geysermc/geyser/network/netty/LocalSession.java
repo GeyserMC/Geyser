@@ -79,7 +79,7 @@ public final class LocalSession extends TcpSession {
                     ChannelPipeline pipeline = channel.pipeline();
                     pipeline.addLast("encryption", new TcpPacketEncryptor(LocalSession.this));
                     pipeline.addLast("sizer", new TcpPacketSizer(LocalSession.this));
-                    pipeline.addLast("codec", new TcpPacketCodec(LocalSession.this));
+                    pipeline.addLast("codec", new TcpPacketCodec(LocalSession.this, true));
                     pipeline.addLast("manager", LocalSession.this);
 
                     addHAProxySupport(pipeline);
