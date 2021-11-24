@@ -60,11 +60,17 @@ public class GeyserSpigotCommandExecutor extends CommandExecutor implements TabE
                     return true;
                 }
                 if (geyserCommand.isBedrockOnly() && session == null) {
-                    sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", commandSender.getLocale()));
+                    String message = LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", commandSender.getLocale());
+
+                    sender.sendMessage(ChatColor.RED + message);
                     return true;
                 }
                 geyserCommand.execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
                 return true;
+            } else {
+                String message = LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.not_found", commandSender.getLocale());
+
+                commandSender.sendMessage(ChatColor.RED + message);
             }
         } else {
             getCommand("help").execute(session, commandSender, new String[0]);

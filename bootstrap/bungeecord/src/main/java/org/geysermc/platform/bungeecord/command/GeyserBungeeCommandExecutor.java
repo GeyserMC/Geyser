@@ -69,6 +69,10 @@ public class GeyserBungeeCommandExecutor extends Command implements TabExecutor 
                     return;
                 }
                 command.execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
+            } else {
+                String message = LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.not_found", commandSender.getLocale());
+
+                commandSender.sendMessage(ChatColor.RED + message);
             }
         } else {
             this.commandExecutor.getCommand("help").execute(session, commandSender, new String[0]);

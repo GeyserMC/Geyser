@@ -63,7 +63,6 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
             GeyserCommand command = getCommand(args[0]);
             if (command != null) {
                 if (!cause.hasPermission(command.getPermission())) {
-                    // Not ideal to use log here but we don't get a session
                     cause.audience().sendMessage(Component.text(LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.permission_fail")).color(NamedTextColor.RED));
                     return CommandResult.success();
                 }
@@ -73,15 +72,16 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
                 }
                 command.execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
             } else {
-                cause.audience().sendMessage(Component.text(LanguageUtils.getLocaleStringLog("geyser.command.not_found")).color(NamedTextColor.RED));
+                cause.audience().sendMessage(Component.text(LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.not_found")).color(NamedTextColor.RED));
             }
         } else {
+            // Try to send help command
             GeyserCommand help = getCommand("help");
             if (help == null) {
                 // When connector has been shutdown, the command manager is cleared.
                 // If it is shutdown to do a geyser reload, and the reload fails, then the command manager will remain empty and it
                 // will not be replaced within sponge-registered executor.
-                cause.audience().sendMessage(Component.text(LanguageUtils.getLocaleStringLog("geyser.command.not_found")).color(NamedTextColor.RED));
+                cause.audience().sendMessage(Component.text(LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.not_found")).color(NamedTextColor.RED));
             } else {
                 help.execute(session, commandSender, new String[0]);
             }

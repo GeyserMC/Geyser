@@ -52,7 +52,7 @@ public class GeyserVelocityCommandExecutor extends CommandExecutor implements Si
         if (invocation.arguments().length > 0) {
             GeyserCommand command = getCommand(invocation.arguments()[0]);
             if (command != null) {
-                if (!invocation.source().hasPermission(getCommand(invocation.arguments()[0]).getPermission())) {
+                if (!invocation.source().hasPermission(command.getPermission())) {
                     sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", sender.getLocale()));
                     return;
                 }
@@ -61,6 +61,8 @@ public class GeyserVelocityCommandExecutor extends CommandExecutor implements Si
                     return;
                 }
                 command.execute(session, sender, invocation.arguments().length > 1 ? Arrays.copyOfRange(invocation.arguments(), 1, invocation.arguments().length) : new String[0]);
+            } else {
+                sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.not_found", sender.getLocale()));
             }
         } else {
             getCommand("help").execute(session, sender, new String[0]);
