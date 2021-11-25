@@ -51,22 +51,28 @@ public class ThrownPotionEntity extends ThrowableItemEntity {
     @Override
     public void setItem(EntityMetadata<ItemStack, ?> entityMetadata) {
         ItemStack itemStack = entityMetadata.getValue();
-        ItemMapping mapping = session.getItemMappings().getMapping(itemStack);
-        if (mapping.getJavaIdentifier().endsWith("potion") && itemStack.getNbt() != null) {
-            Tag potionTag = itemStack.getNbt().get("Potion");
-            if (potionTag instanceof StringTag) {
-                Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
-                if (potion != null) {
-                    dirtyMetadata.put(EntityData.POTION_AUX_VALUE, potion.getBedrockId());
-                    setFlag(EntityFlag.ENCHANTED, !NON_ENCHANTED_POTIONS.contains(potion));
-                } else {
-                    dirtyMetadata.put(EntityData.POTION_AUX_VALUE, 0);
-                    GeyserImpl.getInstance().getLogger().debug("Unknown java potion: " + potionTag.getValue());
+        if (itemStack == null) {
+            dirtyMetadata.put(EntityData.POTION_AUX_VALUE, 0);
+            setFlag(EntityFlag.ENCHANTED, false);
+            setFlag(EntityFlag.LINGERING, false);
+        } else {
+            ItemMapping mapping = session.getItemMappings().getMapping(itemStack);
+            if (mapping.getJavaIdentifier().endsWith("potion") && itemStack.getNbt() != null) {
+                Tag potionTag = itemStack.getNbt().get("Potion");
+                if (potionTag instanceof StringTag) {
+                    Potion potion = Potion.getByJavaIdentifier(((StringTag) potionTag).getValue());
+                    if (potion != null) {
+                        dirtyMetadata.put(EntityData.POTION_AUX_VALUE, potion.getBedrockId());
+                        setFlag(EntityFlag.ENCHANTED, !NON_ENCHANTED_POTIONS.contains(potion));
+                    } else {
+                        dirtyMetadata.put(EntityData.POTION_AUX_VALUE, 0);
+                        GeyserImpl.getInstance().getLogger().debug("Unknown java potion: " + potionTag.getValue());
+                    }
                 }
-            }
 
-            boolean isLingering = mapping.getJavaIdentifier().equals("minecraft:lingering_potion");
-            setFlag(EntityFlag.LINGERING, isLingering);
+                boolean isLingering = mapping.getJavaIdentifier().equals("minecraft:lingering_potion");
+                setFlag(EntityFlag.LINGERING, isLingering);
+            }
         }
     }
 }

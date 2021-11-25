@@ -255,6 +255,7 @@ public final class EntityDefinitions {
                     .type(EntityType.FISHING_BOBBER)
                     .identifier("minecraft:fishing_book")
                     .addTranslator(MetadataType.INT, FishingHookEntity::setHookedEntity)
+                    .addTranslator(null) // Biting TODO check
                     .build();
             ITEM = EntityDefinition.inherited(ItemEntity::new, entityBase)
                     .type(EntityType.ITEM)
@@ -740,6 +741,8 @@ public final class EntityDefinitions {
                     .height(0.5f).width(1.25f)
                     .addTranslator(MetadataType.INT, FoxEntity::setFoxVariant)
                     .addTranslator(MetadataType.BYTE, FoxEntity::setFoxFlags)
+                    .addTranslator(null) // Trusted player 1
+                    .addTranslator(null) // Trusted player 2
                     .build();
             HOGLIN = EntityDefinition.inherited(HoglinEntity::new, ageableEntityBase)
                     .type(EntityType.HOGLIN)
