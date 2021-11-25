@@ -71,14 +71,14 @@ public final class LocalSession extends TcpSession {
                 @Override
                 public void initChannel(LocalChannelWithRemoteAddress channel) {
                     channel.spoofedRemoteAddress(new InetSocketAddress(clientIp, 0));
-                    getPacketProtocol().newClientSession(LocalSession.this);
+                    PacketProtocol protocol = getPacketProtocol();
+                    protocol.newClientSession(LocalSession.this);
 
                     refreshReadTimeoutHandler(channel);
                     refreshWriteTimeoutHandler(channel);
 
                     ChannelPipeline pipeline = channel.pipeline();
-                    pipeline.addLast("encryption", new TcpPacketEncryptor(LocalSession.this));
-                    pipeline.addLast("sizer", new TcpPacketSizer(LocalSession.this));
+                    pipeline.addLast("sizer", new TcpPacketSizer(LocalSession.this, protocol.getPacketHeader().getLengthSize()));
                     pipeline.addLast("codec", new TcpPacketCodec(LocalSession.this, true));
                     pipeline.addLast("manager", LocalSession.this);
 
