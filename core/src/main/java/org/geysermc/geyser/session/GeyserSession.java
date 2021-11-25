@@ -47,6 +47,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.Server
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import com.github.steveice10.mc.protocol.packet.login.serverbound.ServerboundCustomQueryPacket;
 import com.github.steveice10.packetlib.BuiltinFlags;
+import com.github.steveice10.packetlib.Session;
 import com.github.steveice10.packetlib.event.session.*;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.github.steveice10.packetlib.tcp.TcpClientSession;
@@ -909,8 +910,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
             }
 
             @Override
-            public void packetReceived(PacketReceivedEvent event) {
-                Packet packet = event.getPacket();
+            public void packetReceived(Session session, Packet packet) {
                 Registries.JAVA_PACKET_TRANSLATORS.translate(packet.getClass(), packet, GeyserSession.this);
             }
 
