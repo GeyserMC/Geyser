@@ -75,8 +75,8 @@ public final class EntityUtils {
             case CHICKEN, SPIDER -> mountedHeightOffset = height * 0.5f;
             case DONKEY, MULE -> mountedHeightOffset -= 0.25f;
             case LLAMA -> mountedHeightOffset = height * 0.67f;
-            case MINECART, MINECART_HOPPER, MINECART_TNT, MINECART_CHEST, MINECART_FURNACE, MINECART_SPAWNER,
-                    MINECART_COMMAND_BLOCK -> mountedHeightOffset = 0;
+            case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
+                    COMMAND_BLOCK_MINECART -> mountedHeightOffset = 0;
             case BOAT -> mountedHeightOffset = -0.1f;
             case HOGLIN, ZOGLIN -> {
                 boolean isBaby = mount.getFlag(EntityFlag.BABY);
@@ -169,8 +169,8 @@ public final class EntityUtils {
                 yOffset += EntityDefinitions.PLAYER.offset();
             }
             switch (mount.getDefinition().entityType()) {
-                case MINECART, MINECART_HOPPER, MINECART_TNT, MINECART_CHEST, MINECART_FURNACE, MINECART_SPAWNER,
-                        MINECART_COMMAND_BLOCK, BOAT -> yOffset -= mount.getDefinition().height() * 0.5f;
+                case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
+                        COMMAND_BLOCK_MINECART, BOAT -> yOffset -= mount.getDefinition().height() * 0.5f;
             }
             Vector3f offset = Vector3f.from(xOffset, yOffset, zOffset);
             passenger.setRiderSeatPosition(offset);

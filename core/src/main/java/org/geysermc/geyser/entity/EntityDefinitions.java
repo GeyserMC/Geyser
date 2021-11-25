@@ -105,12 +105,12 @@ public final class EntityDefinitions {
     public static final EntityDefinition<ThrowableEntity> LLAMA_SPIT;
     public static final EntityDefinition<MagmaCubeEntity> MAGMA_CUBE;
     public static final EntityDefinition<MinecartEntity> MINECART;
-    public static final EntityDefinition<MinecartEntity> MINECART_CHEST;
-    public static final EntityDefinition<CommandBlockMinecartEntity> MINECART_COMMAND_BLOCK;
-    public static final EntityDefinition<MinecartEntity> MINECART_HOPPER;
-    public static final EntityDefinition<FurnaceMinecartEntity> MINECART_FURNACE; // Not present on Bedrock
-    public static final EntityDefinition<SpawnerMinecartEntity> MINECART_SPAWNER; // Not present on Bedrock
-    public static final EntityDefinition<MinecartEntity> MINECART_TNT;
+    public static final EntityDefinition<MinecartEntity> CHEST_MINECART;
+    public static final EntityDefinition<CommandBlockMinecartEntity> COMMAND_BLOCK_MINECART;
+    public static final EntityDefinition<MinecartEntity> HOPPER_MINECART;
+    public static final EntityDefinition<FurnaceMinecartEntity> FURNACE_MINECART; // Not present on Bedrock
+    public static final EntityDefinition<SpawnerMinecartEntity> SPAWNER_MINECART; // Not present on Bedrock
+    public static final EntityDefinition<MinecartEntity> TNT_MINECART;
     public static final EntityDefinition<MooshroomEntity> MOOSHROOM;
     public static final EntityDefinition<ChestedHorseEntity> MULE;
     public static final EntityDefinition<OcelotEntity> OCELOT;
@@ -124,7 +124,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<PillagerEntity> PILLAGER;
     public static final EntityDefinition<PlayerEntity> PLAYER;
     public static final EntityDefinition<PolarBearEntity> POLAR_BEAR;
-    public static final EntityDefinition<TNTEntity> PRIMED_TNT;
+    public static final EntityDefinition<TNTEntity> TNT;
     public static final EntityDefinition<PufferFishEntity> PUFFERFISH;
     public static final EntityDefinition<RabbitEntity> RABBIT;
     public static final EntityDefinition<RaidParticipantEntity> RAVAGER;
@@ -144,10 +144,10 @@ public final class EntityDefinitions {
     public static final EntityDefinition<SquidEntity> SQUID;
     public static final EntityDefinition<AbstractSkeletonEntity> STRAY;
     public static final EntityDefinition<StriderEntity> STRIDER;
-    public static final EntityDefinition<ThrowableItemEntity> THROWN_EGG;
-    public static final EntityDefinition<ThrowableItemEntity> THROWN_ENDERPEARL;
-    public static final EntityDefinition<ThrowableItemEntity> THROWN_EXP_BOTTLE;
-    public static final EntityDefinition<ThrownPotionEntity> THROWN_POTION;
+    public static final EntityDefinition<ThrowableItemEntity> EGG;
+    public static final EntityDefinition<ThrowableItemEntity> ENDER_PEARL;
+    public static final EntityDefinition<ThrowableItemEntity> EXPERIENCE_BOTTLE;
+    public static final EntityDefinition<ThrownPotionEntity> POTION;
     public static final EntityDefinition<TropicalFishEntity> TROPICAL_FISH;
     public static final EntityDefinition<TurtleEntity> TURTLE;
     public static final EntityDefinition<TraderLlamaEntity> TRADER_LLAMA;
@@ -276,8 +276,8 @@ public final class EntityDefinitions {
             PAINTING = EntityDefinition.inherited((PaintingEntityFactory) PaintingEntity::new, entityBase)
                     .type(EntityType.PAINTING)
                     .build();
-            PRIMED_TNT = EntityDefinition.inherited(TNTEntity::new, entityBase)
-                    .type(EntityType.PRIMED_TNT)
+            TNT = EntityDefinition.inherited(TNTEntity::new, entityBase)
+                    .type(EntityType.TNT)
                     .heightAndWidth(0.98f)
                     .identifier("minecraft:tnt")
                     .addTranslator(MetadataType.INT, TNTEntity::setFuseLength)
@@ -306,23 +306,23 @@ public final class EntityDefinitions {
                     .type(EntityType.SNOWBALL)
                     .heightAndWidth(0.25f)
                     .build();
-            THROWN_ENDERPEARL = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
-                    .type(EntityType.THROWN_ENDERPEARL)
+            ENDER_PEARL = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
+                    .type(EntityType.ENDER_PEARL)
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:ender_pearl")
                     .build();
-            THROWN_EGG = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
-                    .type(EntityType.THROWN_EGG)
+            EGG = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
+                    .type(EntityType.EGG)
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:egg")
                     .build();
-            THROWN_EXP_BOTTLE = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
-                    .type(EntityType.THROWN_EXP_BOTTLE)
+            EXPERIENCE_BOTTLE = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
+                    .type(EntityType.EXPERIENCE_BOTTLE)
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:xp_bottle")
                     .build();
-            THROWN_POTION = EntityDefinition.inherited(ThrownPotionEntity::new, throwableItemBase)
-                    .type(EntityType.THROWN_POTION)
+            POTION = EntityDefinition.inherited(ThrownPotionEntity::new, throwableItemBase)
+                    .type(EntityType.POTION)
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:splash_potion")
                     .build();
@@ -371,31 +371,31 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataType.INT, MinecartEntity::setCustomBlockOffset)
                     .addTranslator(MetadataType.BOOLEAN, MinecartEntity::setShowCustomBlock)
                     .build();
-            MINECART_CHEST = EntityDefinition.inherited(MINECART.factory(), MINECART)
-                    .type(EntityType.MINECART_CHEST)
+            CHEST_MINECART = EntityDefinition.inherited(MINECART.factory(), MINECART)
+                    .type(EntityType.CHEST_MINECART)
                     .identifier("minecraft:chest_minecart")
                     .build();
-            MINECART_COMMAND_BLOCK = EntityDefinition.inherited(CommandBlockMinecartEntity::new, MINECART)
-                    .type(EntityType.MINECART_COMMAND_BLOCK)
+            COMMAND_BLOCK_MINECART = EntityDefinition.inherited(CommandBlockMinecartEntity::new, MINECART)
+                    .type(EntityType.COMMAND_BLOCK_MINECART)
                     .identifier("minecraft:command_block_minecart")
                     .addTranslator(MetadataType.STRING, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityData.COMMAND_BLOCK_COMMAND, entityMetadata.getValue()))
                     .addTranslator(MetadataType.CHAT, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityData.COMMAND_BLOCK_LAST_OUTPUT, MessageTranslator.convertMessage(entityMetadata.getValue())))
                     .build();
-            MINECART_FURNACE = EntityDefinition.inherited(FurnaceMinecartEntity::new, MINECART)
-                    .type(EntityType.MINECART_FURNACE)
+            FURNACE_MINECART = EntityDefinition.inherited(FurnaceMinecartEntity::new, MINECART)
+                    .type(EntityType.FURNACE_MINECART)
                     .identifier("minecraft:minecart")
                     .addTranslator(MetadataType.BOOLEAN, FurnaceMinecartEntity::setHasFuel)
                     .build();
-            MINECART_HOPPER = EntityDefinition.inherited(MINECART.factory(), MINECART)
-                    .type(EntityType.MINECART_HOPPER)
+            HOPPER_MINECART = EntityDefinition.inherited(MINECART.factory(), MINECART)
+                    .type(EntityType.HOPPER_MINECART)
                     .identifier("minecraft:hopper_minecart")
                     .build();
-            MINECART_SPAWNER = EntityDefinition.inherited(SpawnerMinecartEntity::new, MINECART)
-                    .type(EntityType.MINECART_SPAWNER)
+            SPAWNER_MINECART = EntityDefinition.inherited(SpawnerMinecartEntity::new, MINECART)
+                    .type(EntityType.SPAWNER_MINECART)
                     .identifier("minecraft:minecart")
                     .build();
-            MINECART_TNT = EntityDefinition.inherited(MINECART.factory(), MINECART)
-                    .type(EntityType.MINECART_TNT)
+            TNT_MINECART = EntityDefinition.inherited(MINECART.factory(), MINECART)
+                    .type(EntityType.TNT_MINECART)
                     .identifier("minecraft:tnt_minecart")
                     .build();
 

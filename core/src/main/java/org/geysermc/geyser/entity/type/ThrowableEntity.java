@@ -118,16 +118,16 @@ public class ThrowableEntity extends Entity implements Tickable {
     protected float getGravity() {
         if (getFlag(EntityFlag.HAS_GRAVITY)) {
             switch (definition.entityType()) {
-                case THROWN_POTION:
+                case POTION:
                     return 0.05f;
-                case THROWN_EXP_BOTTLE:
+                case EXPERIENCE_BOTTLE:
                     return 0.07f;
                 case FIREBALL:
                 case SHULKER_BULLET:
                     return 0;
                 case SNOWBALL:
-                case THROWN_EGG:
-                case THROWN_ENDERPEARL:
+                case EGG:
+                case ENDER_PEARL:
                     return 0.03f;
                 case LLAMA_SPIT:
                     return 0.06f;
@@ -144,11 +144,11 @@ public class ThrowableEntity extends Entity implements Tickable {
             return 0.8f;
         } else {
             switch (definition.entityType()) {
-                case THROWN_POTION:
-                case THROWN_EXP_BOTTLE:
+                case POTION:
+                case EXPERIENCE_BOTTLE:
                 case SNOWBALL:
-                case THROWN_EGG:
-                case THROWN_ENDERPEARL:
+                case EGG:
+                case ENDER_PEARL:
                 case LLAMA_SPIT:
                     return 0.99f;
                 case FIREBALL:
@@ -172,7 +172,7 @@ public class ThrowableEntity extends Entity implements Tickable {
 
     @Override
     public boolean despawnEntity() {
-        if (definition.entityType() == EntityType.THROWN_ENDERPEARL) {
+        if (definition.entityType() == EntityType.ENDER_PEARL) {
             LevelEventPacket particlePacket = new LevelEventPacket();
             particlePacket.setType(LevelEventType.PARTICLE_TELEPORT);
             particlePacket.setPosition(position);
