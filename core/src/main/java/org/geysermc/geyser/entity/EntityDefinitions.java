@@ -902,7 +902,7 @@ public final class EntityDefinitions {
         // As of 1.18 these don't track entity data at all
         ENDER_DRAGON_PART = EntityDefinition.<EnderDragonPartEntity>builder(null)
                 .identifier("minecraft:armor_stand") // Emulated
-                .build();
+                .build(false); // Never sent over the network
 
         Registries.JAVA_ENTITY_IDENTIFIERS.get().put("minecraft:marker", null); // We don't need an entity definition for this as it is never sent over the network
     }
