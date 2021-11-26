@@ -63,7 +63,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<BlazeEntity> BLAZE;
     public static final EntityDefinition<BoatEntity> BOAT;
     public static final EntityDefinition<CatEntity> CAT;
-    public static final EntityDefinition<MonsterEntity> CAVE_SPIDER;
+    public static final EntityDefinition<SpiderEntity> CAVE_SPIDER;
     public static final EntityDefinition<ChickenEntity> CHICKEN;
     public static final EntityDefinition<CreeperEntity> CREEPER;
     public static final EntityDefinition<AbstractFishEntity> COD;
@@ -454,10 +454,6 @@ public final class EntityDefinitions {
                     .height(1.8f).width(0.6f)
                     .addTranslator(MetadataType.BYTE, BlazeEntity::setBlazeFlags)
                     .build();
-            CAVE_SPIDER = EntityDefinition.inherited(MonsterEntity::new, mobEntityBase)
-                    .type(EntityType.CAVE_SPIDER)
-                    .height(0.5f).width(0.7f)
-                    .build();
             CREEPER = EntityDefinition.inherited(CreeperEntity::new, mobEntityBase)
                     .type(EntityType.CREEPER)
                     .height(1.7f).width(0.6f)
@@ -538,6 +534,10 @@ public final class EntityDefinitions {
                     .height(0.9f).width(1.4f)
                     .offset(1f)
                     .addTranslator(MetadataType.BYTE, SpiderEntity::setSpiderFlags)
+                    .build();
+            CAVE_SPIDER = EntityDefinition.inherited(SpiderEntity::new, SPIDER)
+                    .type(EntityType.CAVE_SPIDER)
+                    .height(0.5f).width(0.7f)
                     .build();
             SQUID = EntityDefinition.inherited(SquidEntity::new, mobEntityBase)
                     .type(EntityType.SQUID)
