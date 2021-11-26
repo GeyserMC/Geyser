@@ -450,6 +450,12 @@ public class GeyserSession implements CommandSender {
 
     private MinecraftProtocol protocol;
 
+    /**
+     * Whether advanced tooltips will be added to the player's items.
+     */
+    @Setter
+    private boolean advancedTooltips = false;
+
     public GeyserSession(GeyserConnector connector, BedrockServerSession bedrockServerSession, EventLoop eventLoop) {
         this.connector = connector;
         this.upstream = new UpstreamSession(bedrockServerSession);
