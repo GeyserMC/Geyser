@@ -38,7 +38,7 @@ public class AdvancedTooltipsCommand extends GeyserCommand {
     @Override
     public void execute(GeyserSession session, CommandSender sender, String[] args) {
         if (session != null) {
-            String onOrOff = session.isAdvancedTooltips() ? "on" : "off";
+            String onOrOff = session.isAdvancedTooltips() ? "off" : "on";
             session.setAdvancedTooltips(!session.isAdvancedTooltips());
             session.sendMessage("§l§e" + LocaleUtils.getLocaleString("debug.prefix", session.getLocale()) + " §r" + LocaleUtils.getLocaleString("debug.advanced_tooltips." + onOrOff, session.getLocale()));
             session.getInventoryTranslator().updateInventory(session, session.getPlayerInventory());
