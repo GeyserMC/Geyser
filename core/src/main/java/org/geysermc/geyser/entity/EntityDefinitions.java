@@ -65,18 +65,23 @@ public final class EntityDefinitions {
     public static final EntityDefinition<CatEntity> CAT;
     public static final EntityDefinition<SpiderEntity> CAVE_SPIDER;
     public static final EntityDefinition<ChickenEntity> CHICKEN;
+    public static final EntityDefinition<MinecartEntity> CHEST_MINECART;
     public static final EntityDefinition<CreeperEntity> CREEPER;
     public static final EntityDefinition<AbstractFishEntity> COD;
+    public static final EntityDefinition<CommandBlockMinecartEntity> COMMAND_BLOCK_MINECART;
     public static final EntityDefinition<AnimalEntity> COW;
     public static final EntityDefinition<ChestedHorseEntity> DONKEY;
     public static final EntityDefinition<WaterEntity> DOLPHIN;
     public static final EntityDefinition<FireballEntity> DRAGON_FIREBALL;
     public static final EntityDefinition<ZombieEntity> DROWNED;
+    public static final EntityDefinition<ThrowableItemEntity> EGG;
     public static final EntityDefinition<ElderGuardianEntity> ELDER_GUARDIAN;
     public static final EntityDefinition<EndermanEntity> ENDERMAN;
     public static final EntityDefinition<MonsterEntity> ENDERMITE;
     public static final EntityDefinition<EnderDragonEntity> ENDER_DRAGON;
+    public static final EntityDefinition<ThrowableItemEntity> ENDER_PEARL;
     public static final EntityDefinition<EnderCrystalEntity> END_CRYSTAL;
+    public static final EntityDefinition<ThrowableItemEntity> EXPERIENCE_BOTTLE;
     public static final EntityDefinition<SpellcasterIllagerEntity> EVOKER;
     public static final EntityDefinition<Entity> EVOKER_FANGS;
     public static final EntityDefinition<ExpOrbEntity> EXPERIENCE_ORB;
@@ -86,6 +91,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<FishingHookEntity> FISHING_BOBBER;
     public static final EntityDefinition<FireworkEntity> FIREWORK_ROCKET;
     public static final EntityDefinition<FoxEntity> FOX;
+    public static final EntityDefinition<FurnaceMinecartEntity> FURNACE_MINECART; // Not present on Bedrock
     public static final EntityDefinition<GiantEntity> GIANT;
     public static final EntityDefinition<GhastEntity> GHAST;
     public static final EntityDefinition<ItemFrameEntity> GLOW_ITEM_FRAME;
@@ -93,6 +99,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<GoatEntity> GOAT;
     public static final EntityDefinition<GuardianEntity> GUARDIAN;
     public static final EntityDefinition<HoglinEntity> HOGLIN;
+    public static final EntityDefinition<MinecartEntity> HOPPER_MINECART;
     public static final EntityDefinition<HorseEntity> HORSE;
     public static final EntityDefinition<ZombieEntity> HUSK;
     public static final EntityDefinition<SpellcasterIllagerEntity> ILLUSIONER; // Not present on Bedrock
@@ -105,12 +112,6 @@ public final class EntityDefinitions {
     public static final EntityDefinition<ThrowableEntity> LLAMA_SPIT;
     public static final EntityDefinition<MagmaCubeEntity> MAGMA_CUBE;
     public static final EntityDefinition<MinecartEntity> MINECART;
-    public static final EntityDefinition<MinecartEntity> CHEST_MINECART;
-    public static final EntityDefinition<CommandBlockMinecartEntity> COMMAND_BLOCK_MINECART;
-    public static final EntityDefinition<MinecartEntity> HOPPER_MINECART;
-    public static final EntityDefinition<FurnaceMinecartEntity> FURNACE_MINECART; // Not present on Bedrock
-    public static final EntityDefinition<SpawnerMinecartEntity> SPAWNER_MINECART; // Not present on Bedrock
-    public static final EntityDefinition<MinecartEntity> TNT_MINECART;
     public static final EntityDefinition<MooshroomEntity> MOOSHROOM;
     public static final EntityDefinition<ChestedHorseEntity> MULE;
     public static final EntityDefinition<OcelotEntity> OCELOT;
@@ -124,7 +125,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<PillagerEntity> PILLAGER;
     public static final EntityDefinition<PlayerEntity> PLAYER;
     public static final EntityDefinition<PolarBearEntity> POLAR_BEAR;
-    public static final EntityDefinition<TNTEntity> TNT;
+    public static final EntityDefinition<ThrownPotionEntity> POTION;
     public static final EntityDefinition<PufferFishEntity> PUFFERFISH;
     public static final EntityDefinition<RabbitEntity> RABBIT;
     public static final EntityDefinition<RaidParticipantEntity> RAVAGER;
@@ -139,15 +140,14 @@ public final class EntityDefinitions {
     public static final EntityDefinition<FireballEntity> SMALL_FIREBALL;
     public static final EntityDefinition<ThrowableItemEntity> SNOWBALL;
     public static final EntityDefinition<SnowGolemEntity> SNOW_GOLEM;
+    public static final EntityDefinition<SpawnerMinecartEntity> SPAWNER_MINECART; // Not present on Bedrock
     public static final EntityDefinition<AbstractArrowEntity> SPECTRAL_ARROW;
     public static final EntityDefinition<SpiderEntity> SPIDER;
     public static final EntityDefinition<SquidEntity> SQUID;
     public static final EntityDefinition<AbstractSkeletonEntity> STRAY;
     public static final EntityDefinition<StriderEntity> STRIDER;
-    public static final EntityDefinition<ThrowableItemEntity> EGG;
-    public static final EntityDefinition<ThrowableItemEntity> ENDER_PEARL;
-    public static final EntityDefinition<ThrowableItemEntity> EXPERIENCE_BOTTLE;
-    public static final EntityDefinition<ThrownPotionEntity> POTION;
+    public static final EntityDefinition<TNTEntity> TNT;
+    public static final EntityDefinition<MinecartEntity> TNT_MINECART;
     public static final EntityDefinition<TropicalFishEntity> TROPICAL_FISH;
     public static final EntityDefinition<TurtleEntity> TURTLE;
     public static final EntityDefinition<TraderLlamaEntity> TRADER_LLAMA;
@@ -278,14 +278,14 @@ public final class EntityDefinitions {
             PAINTING = EntityDefinition.inherited((PaintingEntityFactory) PaintingEntity::new, entityBase)
                     .type(EntityType.PAINTING)
                     .build();
+            SHULKER_BULLET = EntityDefinition.inherited(ThrowableEntity::new, entityBase)
+                    .type(EntityType.SHULKER_BULLET)
+                    .heightAndWidth(0.3125f)
+                    .build();
             TNT = EntityDefinition.inherited(TNTEntity::new, entityBase)
                     .type(EntityType.TNT)
                     .heightAndWidth(0.98f)
                     .addTranslator(MetadataType.INT, TNTEntity::setFuseLength)
-                    .build();
-            SHULKER_BULLET = EntityDefinition.inherited(ThrowableEntity::new, entityBase)
-                    .type(EntityType.SHULKER_BULLET)
-                    .heightAndWidth(0.3125f)
                     .build();
 
             EntityDefinition<FireballEntity> fireballBase = EntityDefinition.inherited(FireballEntity::new, entityBase)
@@ -303,22 +303,22 @@ public final class EntityDefinitions {
             EntityDefinition<ThrowableItemEntity> throwableItemBase = EntityDefinition.inherited(ThrowableItemEntity::new, entityBase)
                     .addTranslator(MetadataType.ITEM, ThrowableItemEntity::setItem)
                     .build();
-            SNOWBALL = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
-                    .type(EntityType.SNOWBALL)
+            EGG = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
+                    .type(EntityType.EGG)
                     .heightAndWidth(0.25f)
                     .build();
             ENDER_PEARL = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(EntityType.ENDER_PEARL)
                     .heightAndWidth(0.25f)
                     .build();
-            EGG = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
-                    .type(EntityType.EGG)
-                    .heightAndWidth(0.25f)
-                    .build();
             EXPERIENCE_BOTTLE = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(EntityType.EXPERIENCE_BOTTLE)
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:xp_bottle")
+                    .build();
+            SNOWBALL = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
+                    .type(EntityType.SNOWBALL)
+                    .heightAndWidth(0.25f)
                     .build();
             POTION = EntityDefinition.inherited(ThrownPotionEntity::new, throwableItemBase)
                     .type(EntityType.POTION)
