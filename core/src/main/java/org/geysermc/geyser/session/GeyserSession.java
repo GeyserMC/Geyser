@@ -463,6 +463,12 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     private final Set<UUID> emotes;
 
     /**
+     * Whether advanced tooltips will be added to the player's items.
+     */
+    @Setter
+    private boolean advancedTooltips = false;
+
+    /**
      * The thread that will run every 50 milliseconds - one Minecraft tick.
      */
     private ScheduledFuture<?> tickThread = null;
