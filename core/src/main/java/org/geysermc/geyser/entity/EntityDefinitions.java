@@ -316,14 +316,14 @@ public final class EntityDefinitions {
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:xp_bottle")
                     .build();
-            SNOWBALL = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
-                    .type(EntityType.SNOWBALL)
-                    .heightAndWidth(0.25f)
-                    .build();
             POTION = EntityDefinition.inherited(ThrownPotionEntity::new, throwableItemBase)
                     .type(EntityType.POTION)
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:splash_potion")
+                    .build();
+            SNOWBALL = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
+                    .type(EntityType.SNOWBALL)
+                    .heightAndWidth(0.25f)
                     .build();
 
             EntityDefinition<AbstractArrowEntity> abstractArrowBase = EntityDefinition.inherited(AbstractArrowEntity::new, entityBase)
