@@ -219,6 +219,7 @@ public final class EntityDefinitions {
             END_CRYSTAL = EntityDefinition.inherited(EnderCrystalEntity::new, entityBase)
                     .type(EntityType.END_CRYSTAL)
                     .heightAndWidth(2.0f)
+                    .identifier("minecraft:ender_crystal")
                     .addTranslator(MetadataType.OPTIONAL_POSITION, EnderCrystalEntity::setBlockTarget)
                     .addTranslator(MetadataType.BOOLEAN,
                             (enderCrystalEntity, entityMetadata) -> enderCrystalEntity.setFlag(EntityFlag.SHOW_BOTTOM, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue())) // There is a base located on the ender crystal
@@ -253,7 +254,7 @@ public final class EntityDefinitions {
                     .build();
             FISHING_BOBBER = EntityDefinition.<FishingHookEntity>inherited(null, entityBase)
                     .type(EntityType.FISHING_BOBBER)
-                    .identifier("minecraft:fishing_book")
+                    .identifier("minecraft:fishing_hook")
                     .addTranslator(MetadataType.INT, FishingHookEntity::setHookedEntity)
                     .addTranslator(null) // Biting TODO check
                     .build();
@@ -280,7 +281,6 @@ public final class EntityDefinitions {
             TNT = EntityDefinition.inherited(TNTEntity::new, entityBase)
                     .type(EntityType.TNT)
                     .heightAndWidth(0.98f)
-                    .identifier("minecraft:tnt")
                     .addTranslator(MetadataType.INT, TNTEntity::setFuseLength)
                     .build();
             SHULKER_BULLET = EntityDefinition.inherited(ThrowableEntity::new, entityBase)
@@ -310,12 +310,10 @@ public final class EntityDefinitions {
             ENDER_PEARL = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(EntityType.ENDER_PEARL)
                     .heightAndWidth(0.25f)
-                    .identifier("minecraft:ender_pearl")
                     .build();
             EGG = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(EntityType.EGG)
                     .heightAndWidth(0.25f)
-                    .identifier("minecraft:egg")
                     .build();
             EXPERIENCE_BOTTLE = EntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(EntityType.EXPERIENCE_BOTTLE)
@@ -374,11 +372,9 @@ public final class EntityDefinitions {
                     .build();
             CHEST_MINECART = EntityDefinition.inherited(MINECART.factory(), MINECART)
                     .type(EntityType.CHEST_MINECART)
-                    .identifier("minecraft:chest_minecart")
                     .build();
             COMMAND_BLOCK_MINECART = EntityDefinition.inherited(CommandBlockMinecartEntity::new, MINECART)
                     .type(EntityType.COMMAND_BLOCK_MINECART)
-                    .identifier("minecraft:command_block_minecart")
                     .addTranslator(MetadataType.STRING, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityData.COMMAND_BLOCK_COMMAND, entityMetadata.getValue()))
                     .addTranslator(MetadataType.CHAT, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityData.COMMAND_BLOCK_LAST_OUTPUT, MessageTranslator.convertMessage(entityMetadata.getValue())))
                     .build();
@@ -389,7 +385,6 @@ public final class EntityDefinitions {
                     .build();
             HOPPER_MINECART = EntityDefinition.inherited(MINECART.factory(), MINECART)
                     .type(EntityType.HOPPER_MINECART)
-                    .identifier("minecraft:hopper_minecart")
                     .build();
             SPAWNER_MINECART = EntityDefinition.inherited(SpawnerMinecartEntity::new, MINECART)
                     .type(EntityType.SPAWNER_MINECART)
@@ -397,7 +392,6 @@ public final class EntityDefinitions {
                     .build();
             TNT_MINECART = EntityDefinition.inherited(MINECART.factory(), MINECART)
                     .type(EntityType.TNT_MINECART)
-                    .identifier("minecraft:tnt_minecart")
                     .build();
 
             WITHER_SKULL = EntityDefinition.inherited(WitherSkullEntity::new, entityBase)
