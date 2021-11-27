@@ -1,8 +1,8 @@
 pipeline {
     agent any
     tools {
-        maven 'Maven 3'
-        jdk 'Java 16'
+       gradle 'Gradle 7'
+       jdk 'Java 16'
     }
     options {
         buildDiscarder(logRotator(artifactNumToKeepStr: '20'))
@@ -11,11 +11,11 @@ pipeline {
         stage ('Build') {
             steps {
                 sh 'git submodule update --init --recursive'
-                sh 'mvn clean package'
+                sh './gradlew clean shadowJar'
             }
             post {
                 success {
-                    archiveArtifacts artifacts: 'bootstrap/**/target/*.jar', excludes: 'bootstrap/**/target/original-*.jar', fingerprint: true
+                    archiveArtifacts artifacts: 'bootstrap/**/build/libs/*.jar', excludes: 'bootstrap/**/build/libs/original-*.jar', fingerprint: true
                 }
             }
         }
