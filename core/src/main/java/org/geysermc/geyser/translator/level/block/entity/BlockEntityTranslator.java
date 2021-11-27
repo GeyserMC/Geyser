@@ -27,8 +27,6 @@ package org.geysermc.geyser.translator.level.block.entity;
 
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
@@ -47,15 +45,6 @@ public abstract class BlockEntityTranslator {
         NbtMapBuilder tagBuilder = getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(type), x, y, z);
         translateTag(tagBuilder, tag, blockState);
         return tagBuilder.build();
-    }
-
-    protected CompoundTag getConstantJavaTag(String javaId, int x, int y, int z) {
-        CompoundTag tag = new CompoundTag("");
-        tag.put(new IntTag("x", x));
-        tag.put(new IntTag("y", y));
-        tag.put(new IntTag("z", z));
-        tag.put(new StringTag("id", javaId));
-        return tag;
     }
 
     protected NbtMapBuilder getConstantBedrockTag(String bedrockId, int x, int y, int z) {
