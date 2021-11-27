@@ -78,13 +78,7 @@ public class FishingHookEntity extends ThrowableEntity {
 
     public void setHookedEntity(IntEntityMetadata entityMetadata) {
         int hookedEntityId = entityMetadata.getPrimitiveValue() - 1;
-        Entity entity;
-        if (session.getPlayerEntity().getEntityId() == hookedEntityId) {
-            entity = session.getPlayerEntity();
-        } else {
-            entity = session.getEntityCache().getEntityByJavaId(hookedEntityId);
-        }
-
+        Entity entity = session.getEntityCache().getEntityByJavaId(hookedEntityId);
         if (entity != null) {
             bedrockTargetId = entity.getGeyserId();
             dirtyMetadata.put(EntityData.TARGET_EID, bedrockTargetId);

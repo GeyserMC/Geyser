@@ -73,7 +73,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     private final GeyserSession session;
 
     public SessionPlayerEntity(GeyserSession session) {
-        super(session, 1, 1, new GameProfile(UUID.randomUUID(), "unknown"), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
+        super(session, -1, 1, new GameProfile(UUID.randomUUID(), "unknown"), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
 
         valid = true;
         this.session = session;

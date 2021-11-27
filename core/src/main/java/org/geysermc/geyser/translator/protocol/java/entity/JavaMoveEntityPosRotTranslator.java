@@ -37,9 +37,6 @@ public class JavaMoveEntityPosRotTranslator extends PacketTranslator<Clientbound
     @Override
     public void translate(GeyserSession session, ClientboundMoveEntityPosRotPacket packet) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
-            entity = session.getPlayerEntity();
-        }
         if (entity == null) return;
 
         entity.updatePositionAndRotation(packet.getMoveX(), packet.getMoveY(), packet.getMoveZ(), packet.getYaw(), packet.getPitch(), packet.isOnGround());

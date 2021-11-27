@@ -121,6 +121,9 @@ public class EntityCache {
     }
 
     public Entity getEntityByJavaId(long javaId) {
+        if (javaId == session.getPlayerEntity().getEntityId()) {
+            return session.getPlayerEntity();
+        }
         return entities.get(entityIdTranslations.get(javaId));
     }
 

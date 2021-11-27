@@ -43,20 +43,13 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
 
     @Override
     public void translate(GeyserSession session, ClientboundSetPassengersPacket packet) {
-        Entity entity;
-        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
-            entity = session.getPlayerEntity();
-        } else {
-            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        }
-
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) return;
 
         // Handle new/existing passengers
         for (long passengerId : packet.getPassengerIds()) {
             Entity passenger = session.getEntityCache().getEntityByJavaId(passengerId);
-            if (passengerId == session.getPlayerEntity().getEntityId()) {
-                passenger = session.getPlayerEntity();
+            if (passenger == session.getPlayerEntity()) {
                 session.setRidingVehicleEntity(entity);
                 // We need to confirm teleports before entering a vehicle, or else we will likely exit right out
                 session.confirmTeleport(passenger.getPosition().sub(0, EntityDefinitions.PLAYER.offset(), 0).toDouble());
@@ -86,9 +79,6 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
         IntList newPassengers = new IntArrayList(packet.getPassengerIds());
         for (int passengerId : entity.getPassengers()) {
             Entity passenger = session.getEntityCache().getEntityByJavaId(passengerId);
-            if (passengerId == session.getPlayerEntity().getEntityId()) {
-                passenger = session.getPlayerEntity();
-            }
             if (passenger == null) {
                 continue;
             }

@@ -43,33 +43,23 @@ public class JavaSetEntityLinkTranslator extends PacketTranslator<ClientboundSet
 
     @Override
     public void translate(GeyserSession session, ClientboundSetEntityLinkPacket packet) {
-        Entity holderId;
-        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
-            holderId = session.getPlayerEntity();
-        } else {
-            holderId = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        }
+        Entity holderId = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (!(holderId instanceof MobEntity mobEntity)) {
             return;
         }
 
-        Entity attachedToId;
-        if (packet.getAttachedToId() == session.getPlayerEntity().getEntityId()) {
-            attachedToId = session.getPlayerEntity();
-        } else {
-            attachedToId = session.getEntityCache().getEntityByJavaId(packet.getAttachedToId());
-            if ((attachedToId == null || packet.getAttachedToId() == 0)) {
-                // Is not being leashed
-                mobEntity.setFlag(EntityFlag.LEASHED, false);
-                mobEntity.setLeashHolderBedrockId(-1L);
-                mobEntity.updateBedrockMetadata();
-                EntityEventPacket eventPacket = new EntityEventPacket();
-                eventPacket.setRuntimeEntityId(holderId.getGeyserId());
-                eventPacket.setType(EntityEventType.REMOVE_LEASH);
-                eventPacket.setData(0);
-                session.sendUpstreamPacket(eventPacket);
-                return;
-            }
+        Entity attachedToId = session.getEntityCache().getEntityByJavaId(packet.getAttachedToId());
+        if (attachedToId == null || packet.getAttachedToId() == 0) {
+            // Is not being leashed
+            mobEntity.setFlag(EntityFlag.LEASHED, false);
+            mobEntity.setLeashHolderBedrockId(-1L);
+            mobEntity.updateBedrockMetadata();
+            EntityEventPacket eventPacket = new EntityEventPacket();
+            eventPacket.setRuntimeEntityId(holderId.getGeyserId());
+            eventPacket.setType(EntityEventType.REMOVE_LEASH);
+            eventPacket.setData(0);
+            session.sendUpstreamPacket(eventPacket);
+            return;
         }
 
         mobEntity.setFlag(EntityFlag.LEASHED, true);

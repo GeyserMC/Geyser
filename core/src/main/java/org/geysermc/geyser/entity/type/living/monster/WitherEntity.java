@@ -60,15 +60,11 @@ public class WitherEntity extends MonsterEntity {
 
     private void setTargetId(EntityData entityData, IntEntityMetadata entityMetadata) {
         int entityId = entityMetadata.getPrimitiveValue();
-        Entity entity;
-        if (session.getPlayerEntity().getEntityId() == entityId) {
-            entity = session.getPlayerEntity();
-        } else {
-            entity = session.getEntityCache().getEntityByJavaId(entityId);
-        }
-
+        Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
         if (entity != null) {
             dirtyMetadata.put(entityData, entity.getGeyserId());
+        } else {
+            dirtyMetadata.put(entityData, (long) 0);
         }
     }
 

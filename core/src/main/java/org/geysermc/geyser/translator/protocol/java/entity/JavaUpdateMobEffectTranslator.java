@@ -38,12 +38,9 @@ public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundU
 
     @Override
     public void translate(GeyserSession session, ClientboundUpdateMobEffectPacket packet) {
-        Entity entity;
-        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
-            entity = session.getPlayerEntity();
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        if (entity == session.getPlayerEntity()) {
             session.getEffectCache().setEffect(packet.getEffect(), packet.getAmplifier());
-        } else {
-            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         }
         if (entity == null)
             return;
