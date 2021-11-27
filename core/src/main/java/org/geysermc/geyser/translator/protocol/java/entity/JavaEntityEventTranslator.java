@@ -97,7 +97,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 break;
             case LIVING_DEATH:
                 entityEventPacket.setType(EntityEventType.DEATH);
-                if (entity.getDefinition() == EntityDefinitions.THROWN_EGG) {
+                if (entity.getDefinition() == EntityDefinitions.EGG) {
                     LevelEventPacket particlePacket = new LevelEventPacket();
                     particlePacket.setType(LevelEventType.PARTICLE_ITEM_BREAK);
                     particlePacket.setData(session.getItemMappings().getStoredItems().egg().getBedrockId() << 16);

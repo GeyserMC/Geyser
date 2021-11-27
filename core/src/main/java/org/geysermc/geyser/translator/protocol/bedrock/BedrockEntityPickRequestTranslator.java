@@ -66,11 +66,11 @@ public class BedrockEntityPickRequestTranslator extends PacketTranslator<EntityP
                 itemName = typeOfBoat + "_boat";
             }
             case LEASH_KNOT -> itemName = "lead";
-            case MINECART_CHEST, MINECART_COMMAND_BLOCK, MINECART_FURNACE, MINECART_HOPPER, MINECART_TNT ->
+            case CHEST_MINECART, COMMAND_BLOCK_MINECART, FURNACE_MINECART, HOPPER_MINECART, TNT_MINECART ->
                     // The Bedrock identifier matches the item name which moves MINECART to the end of the name
                     // TODO test
                     itemName = entity.getDefinition().identifier();
-            case MINECART_SPAWNER -> itemName = "minecart"; // Turns into a normal minecart
+            case SPAWNER_MINECART -> itemName = "minecart"; // Turns into a normal minecart
             //case ITEM_FRAME -> Not an entity in Bedrock Edition
             //case GLOW_ITEM_FRAME ->
             case ARMOR_STAND, END_CRYSTAL, MINECART, PAINTING ->

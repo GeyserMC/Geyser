@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -159,7 +160,11 @@ public class Entity {
 
         flagsDirty = false;
 
-        session.getGeyser().getLogger().debug("Spawned entity " + getClass().getName() + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
+        if (session.getGeyser().getConfig().isDebugMode()) {
+            EntityType type = definition.entityType();
+            String name = type != null ? type.name() : getClass().getSimpleName();
+            session.getGeyser().getLogger().debug("Spawned entity " + name + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
+        }
     }
 
     /**
@@ -402,7 +407,7 @@ public class Entity {
     public float setFreezing(IntEntityMetadata entityMetadata) {
         // The value that Java edition gives us is in ticks, but Bedrock uses a float percentage of the strength 0.0 -> 1.0
         // The Java client caps its freezing tick percentage at 140
-        int freezingTicks = Math.min(((IntEntityMetadata) entityMetadata).getPrimitiveValue(), 140);
+        int freezingTicks = Math.min(entityMetadata.getPrimitiveValue(), 140);
         float freezingPercentage = freezingTicks / 140f;
         dirtyMetadata.put(EntityData.FREEZING_EFFECT_STRENGTH, freezingPercentage);
         return freezingPercentage;

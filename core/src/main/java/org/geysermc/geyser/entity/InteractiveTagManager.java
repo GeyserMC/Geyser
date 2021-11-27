@@ -162,9 +162,9 @@ public class InteractiveTagManager {
                         interactiveTag = InteractiveTag.RIDE_MINECART;
                     }
                     break;
-                case MINECART_CHEST:
-                case MINECART_COMMAND_BLOCK:
-                case MINECART_HOPPER:
+                case CHEST_MINECART:
+                case COMMAND_BLOCK_MINECART:
+                case HOPPER_MINECART:
                     interactiveTag = InteractiveTag.OPEN_CONTAINER;
                     break;
                 case PIG:
