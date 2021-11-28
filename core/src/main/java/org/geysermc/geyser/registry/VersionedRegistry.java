@@ -55,17 +55,21 @@ public class VersionedRegistry<V> extends AbstractMappedRegistry<Integer, V, Int
      * @return the closest value for the specified version
      */
     public V forVersion(int version) {
-        V value = null;
+        Int2ObjectMap.Entry<V> current = null;
         for (Int2ObjectMap.Entry<V> entry : this.mappings.int2ObjectEntrySet()) {
-            if (version < entry.getIntKey()) {
+            int currentVersion = entry.getIntKey();
+            if (version < currentVersion) {
                 continue;
             }
-            if (version == entry.getIntKey()) {
+            if (version == currentVersion) {
                 return entry.getValue();
             }
-            value = entry.getValue();
+            if (current == null || current.getIntKey() < currentVersion) {
+                // This version is newer and should be prioritized
+                current = entry;
+            }
         }
-        return value;
+        return current == null ? null : current.getValue();
     }
 
     /**

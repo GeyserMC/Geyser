@@ -30,7 +30,6 @@ import com.google.common.collect.ImmutableMap;
 import com.nukkitx.nbt.*;
 import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
 import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
-import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -39,12 +38,12 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.FileUtils;
-import org.geysermc.geyser.level.physics.PistonBehavior;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
@@ -65,8 +64,7 @@ public class BlockRegistryPopulator {
     static {
         ImmutableMap.Builder<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> stateMapperBuilder = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
                 .put(ObjectIntPair.of("1_17_30", Bedrock_v465.V465_CODEC.getProtocolVersion()), EMPTY_MAPPER)
-                .put(ObjectIntPair.of("1_17_40", Bedrock_v471.V471_CODEC.getProtocolVersion()), EMPTY_MAPPER)
-                .put(ObjectIntPair.of("1_18_0", Bedrock_v475.V475_CODEC.getProtocolVersion()), EMPTY_MAPPER);
+                .put(ObjectIntPair.of("1_17_40", Bedrock_v471.V471_CODEC.getProtocolVersion()), EMPTY_MAPPER);
 
         BLOCK_MAPPERS = stateMapperBuilder.build();
     }

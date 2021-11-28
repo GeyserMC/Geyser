@@ -65,7 +65,7 @@ import java.util.Set;
 /**
  * Holds all the common registries in Geyser.
  */
-public class Registries {
+public final class Registries {
     /**
      * A registry holding a CompoundTag of the known entity identifiers.
      */
