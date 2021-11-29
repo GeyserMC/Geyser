@@ -91,7 +91,7 @@ public final class AesCipher implements FloodgateCipher {
         if (topping != null) {
             int mark = buffer.position();
 
-            // we need the first index, the second is for the optional RawSkin
+            // we need the first index, the second is for the actual data
             boolean found = false;
             while (buffer.hasRemaining() && !found) {
                 if (buffer.get() == 0x21) {

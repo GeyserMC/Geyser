@@ -130,25 +130,18 @@ public interface FloodgateCipher {
         final int identifierLength = IDENTIFIER.length;
 
         if (data.length <= HEADER_LENGTH) {
-            throw new InvalidFormatException("Data length is smaller then header." +
-                    "Needed " + HEADER_LENGTH + ", got " + data.length,
-                    true
+            throw new InvalidFormatException(
+                    "Data length is smaller then header." +
+                    "Needed " + HEADER_LENGTH + ", got " + data.length
             );
         }
 
         for (int i = 0; i < identifierLength; i++) {
             if (IDENTIFIER[i] != data[i]) {
-                StringBuilder receivedIdentifier = new StringBuilder();
-                for (byte b : IDENTIFIER) {
-                    receivedIdentifier.append(b);
-                }
-
+                String identifier = new String(IDENTIFIER, StandardCharsets.UTF_8);
+                String received = new String(data, 0, IDENTIFIER.length, StandardCharsets.UTF_8);
                 throw new InvalidFormatException(
-                        String.format("Expected identifier %s, got %s",
-                                new String(IDENTIFIER, StandardCharsets.UTF_8),
-                                receivedIdentifier.toString()
-                        ),
-                        true
+                        "Expected identifier " + identifier + ", got " + received
                 );
             }
         }
