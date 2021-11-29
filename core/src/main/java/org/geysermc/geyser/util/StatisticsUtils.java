@@ -81,33 +81,18 @@ public class StatisticsUtils {
                                     SimpleForm.builder()
                                             .translator(StatisticsUtils::translate, language);
 
-                            StringBuilder content = new StringBuilder();
+                            List<String> content = new ArrayList<>();
 
                             ItemMappings mappings = session.getItemMappings();
                             switch (response.getClickedButtonId()) {
                                 case 0:
                                     builder.title("stat.generalButton");
 
-                                    List<String> stats = new ArrayList<>();
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
                                         if (entry.getKey() instanceof GenericStatistic statistic) {
                                             String statName = statistic.name().toLowerCase();
                                             IntFunction<String> formatter = Registries.STATISTIC_FORMATS.getOrDefault(statistic, StatisticFormatters.DEFAULT);
-                                            stats.add(translateEntry("stat.minecraft." + statName, language) + ": " + formatter.apply(entry.getValue()));
-                                        }
-                                    }
-
-                                    // Statistics are sorted alphabetically in Java Edition
-                                    stats.sort(String::compareTo);
-                                    for (int i = 0; i < stats.size(); i++) {
-                                        if (i % 2 != 0) {
-                                            // Make every other line grey
-                                            content.append("\u00a77");
-                                        }
-                                        content.append(stats.get(i)).append("\n");
-                                        if (i % 2 != 0) {
-                                            // Have to reset after each line
-                                            content.append("\u00a7r");
+                                            content.add("stat.minecraft." + statName + ": " + formatter.apply(entry.getValue()));
                                         }
                                     }
                                     break;
@@ -126,7 +111,7 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<String> entry : blocksMined.object2IntEntrySet()) {
                                         String block = entry.getKey().replace("minecraft:", "block.minecraft.");
-                                        content.append(block).append(": ").append(entry.getIntValue()).append("\n");
+                                        content.add(block + ": " + entry.getIntValue());
                                     }
                                     break;
                                 case 2:
@@ -135,7 +120,7 @@ public class StatisticsUtils {
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
                                         if (entry.getKey() instanceof BreakItemStatistic statistic) {
                                             String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
-                                            content.append(getItemTranslateKey(item, language)).append(": ").append(entry.getValue()).append("\n");
+                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getValue());
                                         }
                                     }
                                     break;
@@ -145,7 +130,7 @@ public class StatisticsUtils {
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
                                         if (entry.getKey() instanceof CraftItemStatistic statistic) {
                                             String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
-                                            content.append(getItemTranslateKey(item, language)).append(": ").append(entry.getValue()).append("\n");
+                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getValue());
                                         }
                                     }
                                     break;
@@ -155,7 +140,7 @@ public class StatisticsUtils {
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
                                         if (entry.getKey() instanceof UseItemStatistic statistic) {
                                             String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
-                                            content.append(getItemTranslateKey(item, language)).append(": ").append(entry.getValue()).append("\n");
+                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getValue());
                                         }
                                     }
                                     break;
@@ -165,7 +150,7 @@ public class StatisticsUtils {
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
                                         if (entry.getKey() instanceof PickupItemStatistic statistic) {
                                             String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
-                                            content.append(getItemTranslateKey(item, language)).append(": ").append(entry.getValue()).append("\n");
+                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getValue());
                                         }
                                     }
                                     break;
@@ -175,7 +160,7 @@ public class StatisticsUtils {
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
                                         if (entry.getKey() instanceof DropItemStatistic statistic) {
                                             String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
-                                            content.append(getItemTranslateKey(item, language)).append(": ").append(entry.getValue()).append("\n");
+                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getValue());
                                         }
                                     }
                                     break;
@@ -185,7 +170,7 @@ public class StatisticsUtils {
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
                                         if (entry.getKey() instanceof KillEntityStatistic statistic) {
                                             String entityName = statistic.getEntity().name().toLowerCase();
-                                            content.append("entity.minecraft.").append(entityName).append(": ").append(entry.getValue()).append("\n");
+                                            content.add("entity.minecraft." + entityName + ": " + entry.getValue());
                                         }
                                     }
                                     break;
@@ -196,7 +181,7 @@ public class StatisticsUtils {
                                             .getStatistics().entrySet()) {
                                         if (entry.getKey() instanceof KilledByEntityStatistic statistic) {
                                             String entityName = statistic.getEntity().name().toLowerCase();
-                                            content.append("entity.minecraft.").append(entityName).append(": ").append(entry.getValue()).append("\n");
+                                            content.add("entity.minecraft." + entityName + ": " + entry.getValue());
                                         }
                                     }
                                     break;
@@ -204,12 +189,25 @@ public class StatisticsUtils {
                                     return;
                             }
 
-                            if (content.length() == 0) {
-                                content = new StringBuilder("geyser.statistics.none");
+                            StringBuilder assembledContent = new StringBuilder();
+                            if (content.size() == 0) {
+                                assembledContent.append("geyser.statistics.none");
+                            } else {
+                                // Sort statistics alphabetically
+                                content.sort(String::compareTo);
+                                for (int i = 0; i < content.size(); i++) {
+                                    assembledContent.append(content.get(i));
+                                    // Make every other line gray
+                                    if (i % 2 == 0) {
+                                        assembledContent.append("\u00a77\n");
+                                    } else {
+                                        assembledContent.append("\u00a7r\n");
+                                    }
+                                }
                             }
 
                             session.sendForm(
-                                    builder.content(content.toString())
+                                    builder.content(assembledContent.toString())
                                             .button("gui.back", FormImage.Type.PATH, "textures/gui/newgui/undo")
                                             .responseHandler((form1, subFormResponseData) -> {
                                                 SimpleFormResponse response1 = form.parseResponse(subFormResponseData);
