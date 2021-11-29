@@ -80,8 +80,8 @@ public class CommandExecutor {
         Map<String, GeyserCommand> commands = geyser.getCommandManager().getCommands();
 
         // Only show commands they have permission to use
-        for (String name : commands.keySet()) {
-            GeyserCommand geyserCommand = commands.get(name);
+        for (Map.Entry<String, GeyserCommand> entry : commands.entrySet()) {
+            GeyserCommand geyserCommand = entry.getValue();
             if (sender.hasPermission(geyserCommand.getPermission())) {
 
                 if (geyserCommand.isBedrockOnly()) {
@@ -89,7 +89,7 @@ public class CommandExecutor {
                     continue;
                 }
 
-                availableCommands.add(name);
+                availableCommands.add(entry.getKey());
             }
         }
 

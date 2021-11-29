@@ -38,7 +38,7 @@ import java.util.*;
 public abstract class CommandManager {
 
     @Getter
-    private final Map<String, GeyserCommand> commands = Collections.synchronizedMap(new HashMap<>());
+    private final Map<String, GeyserCommand> commands = new HashMap<>();
 
     private final GeyserImpl geyser;
 

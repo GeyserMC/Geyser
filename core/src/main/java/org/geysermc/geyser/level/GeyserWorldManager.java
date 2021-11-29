@@ -37,6 +37,8 @@ import org.geysermc.geyser.session.cache.ChunkCache;
 import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
 import org.geysermc.geyser.level.block.BlockStateValues;
 
+import java.util.Locale;
+
 public class GeyserWorldManager extends WorldManager {
 
     private static final Object2ObjectMap<String, String> gameruleCache = new Object2ObjectOpenHashMap<>();
@@ -107,12 +109,12 @@ public class GeyserWorldManager extends WorldManager {
 
     @Override
     public void setPlayerGameMode(GeyserSession session, GameMode gameMode) {
-        session.sendDownstreamPacket(new ServerboundChatPacket("/gamemode " + gameMode.name().toLowerCase()));
+        session.sendDownstreamPacket(new ServerboundChatPacket("/gamemode " + gameMode.name().toLowerCase(Locale.ROOT)));
     }
 
     @Override
     public void setDifficulty(GeyserSession session, Difficulty difficulty) {
-        session.sendDownstreamPacket(new ServerboundChatPacket("/difficulty " + difficulty.name().toLowerCase()));
+        session.sendDownstreamPacket(new ServerboundChatPacket("/difficulty " + difficulty.name().toLowerCase(Locale.ROOT)));
     }
 
     @Override

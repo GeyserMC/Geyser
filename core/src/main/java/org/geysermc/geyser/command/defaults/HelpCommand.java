@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.command.defaults;
 
+import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
@@ -60,16 +61,17 @@ public class HelpCommand extends GeyserCommand {
         sender.sendMessage(header);
 
         Map<String, GeyserCommand> cmds = geyser.getCommandManager().getCommands();
-        for (String cmdName : cmds.keySet()) {
-            GeyserCommand cmd = cmds.get(cmdName);
+        for (Map.Entry<String, GeyserCommand> entry : cmds.entrySet()) {
+            GeyserCommand cmd = entry.getValue();
 
-            if (sender.hasPermission(cmd.getPermission())) {
+            // Standalone hack-in since it doesn't have a concept of permissions
+            if (geyser.getPlatformType() == PlatformType.STANDALONE || sender.hasPermission(cmd.getPermission())) {
                 // Only list commands the player can actually run
                 if (cmd.isBedrockOnly() && session == null) {
                     continue;
                 }
 
-                sender.sendMessage(ChatColor.YELLOW + "/geyser " + cmdName + ChatColor.WHITE + ": " +
+                sender.sendMessage(ChatColor.YELLOW + "/geyser " + entry.getKey() + ChatColor.WHITE + ": " +
                         GeyserLocale.getPlayerLocaleString(cmd.getDescription(), sender.getLocale()));
             }
         }
