@@ -112,9 +112,7 @@ public class FakeHeadProvider {
             try {
                 SkinProvider.SkinData mergedSkinData = MERGED_SKINS_LOADING_CACHE.get(new FakeHeadEntry(texturesProperty, fakeHeadSkinUrl, entity));
 
-                if (session.getUpstream().isInitialized()) {
-                    sendSkinPacket(session, entity, mergedSkinData);
-                }
+                sendSkinPacket(session, entity, mergedSkinData);
             } catch (ExecutionException e) {
                 GeyserImpl.getInstance().getLogger().error("Couldn't merge skin of " + entity.getUsername() + " with head skin url " + fakeHeadSkinUrl, e);
             }
@@ -136,9 +134,7 @@ public class FakeHeadProvider {
                 return;
             }
 
-            if (session.getUpstream().isInitialized()) {
-                sendSkinPacket(session, entity, skinData);
-            }
+            sendSkinPacket(session, entity, skinData);
         });
     }
 
