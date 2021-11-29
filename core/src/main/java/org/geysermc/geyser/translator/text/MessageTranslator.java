@@ -34,13 +34,13 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.MinecraftTranslationRegistry;
-import org.geysermc.geyser.text.GsonComponentSerializerWrapper;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.text.GsonComponentSerializerWrapper;
+import org.geysermc.geyser.text.MinecraftTranslationRegistry;
 
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 public class MessageTranslator {
     // These are used for handling the translations of the messages
@@ -58,11 +58,6 @@ public class MessageTranslator {
 
     // Reset character
     private static final String RESET = BASE + "r";
-
-    /* Various regexes to fix formatting for Bedrock's specifications */
-    private static final Pattern STRIKETHROUGH_UNDERLINE = Pattern.compile("\u00a7[mn]");
-    private static final Pattern COLOR_CHARACTERS = Pattern.compile("\u00a7([0-9a-f])");
-    private static final Pattern DOUBLE_RESET = Pattern.compile("\u00a7r\u00a7r");
 
     static {
         TEAM_COLORS.put(TeamColor.NONE, "");
@@ -111,15 +106,34 @@ public class MessageTranslator {
 
             String legacy = LegacyComponentSerializer.legacySection().serialize(message);
 
-            // Strip strikethrough and underline as they are not supported on bedrock
-            legacy = STRIKETHROUGH_UNDERLINE.matcher(legacy).replaceAll("");
+            StringBuilder finalLegacy = new StringBuilder();
+            char[] legacyChars = legacy.toCharArray();
+            boolean lastFormatReset = false;
+            for (int i = 0; i < legacyChars.length; i++) {
+                char legacyChar = legacyChars[i];
+                if (legacyChar != ChatColor.ESCAPE || i >= legacyChars.length - 1) {
+                    // No special formatting for Bedrock needed
+                    // Or, we're at the end of the string
+                    finalLegacy.append(legacyChar);
+                    lastFormatReset = false;
+                    continue;
+                }
 
-            // Make color codes reset formatting like Java
-            // See https://minecraft.gamepedia.com/Formatting_codes#Usage
-            legacy = COLOR_CHARACTERS.matcher(legacy).replaceAll("\u00a7r\u00a7$1");
-            legacy = DOUBLE_RESET.matcher(legacy).replaceAll("\u00a7r");
+                char next = legacyChars[++i];
+                if (next != 'm' && next != 'n') {
+                    // Strikethrough and underline do not exist on Bedrock
+                    if ((next >= '0' && next <= '9') || (next >= 'a' && next <= 'f')) {
+                        // Append this color code, as well as a necessary reset code
+                        if (!lastFormatReset) {
+                            finalLegacy.append(RESET);
+                        }
+                    }
+                    finalLegacy.append(BASE).append(next);
+                }
+                lastFormatReset = next == 'r';
+            }
 
-            return legacy;
+            return finalLegacy.toString();
         } catch (Exception e) {
             GeyserImpl.getInstance().getLogger().debug(GSON_SERIALIZER.serialize(message));
             GeyserImpl.getInstance().getLogger().error("Failed to parse message", e);
