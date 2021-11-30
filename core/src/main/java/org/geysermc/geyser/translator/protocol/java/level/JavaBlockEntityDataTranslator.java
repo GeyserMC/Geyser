@@ -46,7 +46,11 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
 
     @Override
     public void translate(GeyserSession session, ClientboundBlockEntityDataPacket packet) {
-        BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(packet.getType());
+        final BlockEntityType type = packet.getType();
+        if (type == null) {
+            return;
+        }
+        BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(type);
         // The Java block state is used in BlockEntityTranslator.translateTag() to make up for some inconsistencies
         // between Java block states and Bedrock block entity data
         int blockState;
@@ -57,7 +61,7 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
         }
 
         Position position = packet.getPosition();
-        BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(packet.getType(), position.getX(), position.getY(), position.getZ(),
+        BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(type, position.getX(), position.getY(), position.getZ(),
                 packet.getNbt(), blockState), packet.getPosition());
         // Check for custom skulls.
         if (session.getPreferencesCache().showCustomSkulls() && packet.getNbt() != null && packet.getNbt().contains("SkullOwner")) {
@@ -66,7 +70,7 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
 
         // If block entity is command block, OP permission level is appropriate, player is in creative mode and the NBT is not empty
         // TODO 1.18 re-test
-        if (packet.getType() == BlockEntityType.COMMAND_BLOCK && session.getOpPermissionLevel() >= 2 &&
+        if (type == BlockEntityType.COMMAND_BLOCK && session.getOpPermissionLevel() >= 2 &&
                 session.getGameMode() == GameMode.CREATIVE && packet.getNbt() != null && packet.getNbt().size() > 5) {
             ContainerOpenPacket openPacket = new ContainerOpenPacket();
             openPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));

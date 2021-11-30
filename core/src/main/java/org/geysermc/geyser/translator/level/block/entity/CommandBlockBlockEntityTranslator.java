@@ -35,7 +35,7 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 public class CommandBlockBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
     public void translateTag(NbtMapBuilder builder, CompoundTag tag, int blockState) {
-        if (tag.size() < 5) {
+        if (tag == null || tag.size() < 5) {
             return; // These values aren't here
         }
         // Java infers from the block state, but Bedrock needs it in the tag
