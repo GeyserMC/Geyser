@@ -786,6 +786,8 @@ public class GeyserSession implements GeyserConnection, CommandSender {
                             FloodgateSkinUploader skinUploader = geyser.getSkinUploader();
                             FloodgateCipher cipher = geyser.getCipher();
 
+                            System.out.println(new String(FloodgateCipher.HEADER, StandardCharsets.UTF_8));
+
                             encryptedData = cipher.encryptFromString(BedrockData.of(
                                     clientData.getGameVersion(),
                                     authData.name(),
@@ -796,17 +798,8 @@ public class GeyserSession implements GeyserConnection, CommandSender {
                                     clientData.getCurrentInputMode().ordinal(),
                                     upstream.getAddress().getAddress().getHostAddress(),
                                     skinUploader.getId(),
-                                    skinUploader.getVerifyCode(),
-                                    geyser.getTimeSyncer()
+                                    skinUploader.getVerifyCode()
                             ).toString());
-
-                            if (!geyser.getTimeSyncer().hasUsefulOffset()) {
-                                geyser.getLogger().warning(
-                                        "We couldn't make sure that your system clock is accurate. " +
-                                        "This can cause issues with logging in."
-                                );
-                            }
-
                         } catch (Exception e) {
                             geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);
                             disconnect(GeyserLocale.getPlayerLocaleString("geyser.auth.floodgate.encryption_fail", getClientData().getLanguageCode()));

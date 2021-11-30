@@ -87,7 +87,7 @@ public final class FloodgateSkinUploader {
                     }
 
                     int typeId = node.get("event_id").asInt();
-                    WebsocketEventType type = WebsocketEventType.getById(typeId);
+                    WebsocketEventType type = WebsocketEventType.fromId(typeId);
                     if (type == null) {
                         logger.warning(String.format(
                                 "Got (unknown) type %s. Ensure that Geyser is on the latest version and report this issue!",

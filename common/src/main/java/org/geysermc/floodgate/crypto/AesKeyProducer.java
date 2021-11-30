@@ -39,7 +39,7 @@ public final class AesKeyProducer implements KeyProducer {
     public SecretKey produce() {
         try {
             KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-            keyGenerator.init(KEY_SIZE, getSecureRandom());
+            keyGenerator.init(KEY_SIZE, secureRandom());
             return keyGenerator.generateKey();
         } catch (Exception exception) {
             throw new RuntimeException(exception);
@@ -55,7 +55,7 @@ public final class AesKeyProducer implements KeyProducer {
         }
     }
 
-    private SecureRandom getSecureRandom() throws NoSuchAlgorithmException {
+    private SecureRandom secureRandom() throws NoSuchAlgorithmException {
         // use Windows-PRNG for windows (default impl is SHA1PRNG)
         if (System.getProperty("os.name").startsWith("Windows")) {
             return SecureRandom.getInstance("Windows-PRNG");
