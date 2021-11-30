@@ -787,8 +787,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
                             FloodgateSkinUploader skinUploader = geyser.getSkinUploader();
                             FloodgateCipher cipher = geyser.getCipher();
 
-                            System.out.println(new String(FloodgateCipher.HEADER, StandardCharsets.UTF_8));
-
                             encryptedData = cipher.encryptFromString(BedrockData.of(
                                     clientData.getGameVersion(),
                                     authData.name(),
