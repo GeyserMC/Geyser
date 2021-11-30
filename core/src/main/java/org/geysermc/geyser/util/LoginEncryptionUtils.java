@@ -213,6 +213,11 @@ public class LoginEncryptionUtils {
     }
 
     public static void buildAndShowLoginWindow(GeyserSession session) {
+        if (session.isLoggedIn()) {
+            // Can happen if a window is cancelled during dimension switch
+            return;
+        }
+
         // Set DoDaylightCycle to false so the time doesn't accelerate while we're here
         session.setDaylightCycle(false);
 
