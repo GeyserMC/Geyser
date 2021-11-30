@@ -26,26 +26,8 @@
 
 package org.geysermc.floodgate.util;
 
-import lombok.Getter;
-
-@Getter
 public class InvalidFormatException extends Exception {
-    private boolean header = false;
-
-    public InvalidFormatException() {
-        super();
-    }
-
     public InvalidFormatException(String message) {
         super(message);
-    }
-
-    public InvalidFormatException(String message, boolean header) {
-        super(message);
-        this.header = header;
-    }
-
-    public InvalidFormatException(String message, Throwable cause) {
-        super(message, cause);
     }
 }

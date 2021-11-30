@@ -48,7 +48,6 @@ import org.geysermc.floodgate.crypto.AesKeyProducer;
 import org.geysermc.floodgate.crypto.Base64Topping;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.news.NewsItemAction;
-import org.geysermc.floodgate.time.TimeSyncer;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.command.CommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -110,7 +109,6 @@ public class GeyserImpl implements GeyserApi {
     @Setter
     private static boolean shouldStartListener = true;
 
-    private final TimeSyncer timeSyncer;
     private FloodgateCipher cipher;
     private FloodgateSkinUploader skinUploader;
     private final NewsHandler newsHandler;
@@ -201,9 +199,7 @@ public class GeyserImpl implements GeyserApi {
         // Ensure that PacketLib does not create an event loop for handling packets; we'll do that ourselves
         TcpSession.USE_EVENT_LOOP_FOR_PACKETS = false;
 
-        TimeSyncer timeSyncer = null;
         if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
-            timeSyncer = new TimeSyncer(Constants.NTP_SERVER);
             try {
                 Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
                 cipher = new AesCipher(new Base64Topping());
@@ -214,7 +210,6 @@ public class GeyserImpl implements GeyserApi {
                 logger.severe(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
             }
         }
-        this.timeSyncer = timeSyncer;
 
         String branch = "unknown";
         int buildNumber = -1;
@@ -441,9 +436,6 @@ public class GeyserImpl implements GeyserApi {
 
         scheduledThread.shutdown();
         bedrockServer.close();
-        if (timeSyncer != null) {
-            timeSyncer.shutdown();
-        }
         if (skinUploader != null) {
             skinUploader.close();
         }
@@ -489,10 +481,6 @@ public class GeyserImpl implements GeyserApi {
 
     public WorldManager getWorldManager() {
         return bootstrap.getWorldManager();
-    }
-
-    public TimeSyncer getTimeSyncer() {
-        return timeSyncer;
     }
 
     public static GeyserImpl getInstance() {
