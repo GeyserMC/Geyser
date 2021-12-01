@@ -1499,7 +1499,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         this.fogNameSpaces.addAll(Arrays.asList(fogNameSpaces));
 
         PlayerFogPacket packet = new PlayerFogPacket();
-        Collections.addAll(packet.getFogStack(), this.fogNameSpaces.toArray(new String[0]));
+        packet.getFogStack().addAll(this.fogNameSpaces);
         sendUpstreamPacket(packet);
     }
 
@@ -1515,7 +1515,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
             this.fogNameSpaces.removeAll(Arrays.asList(fogNameSpaces));
         }
         PlayerFogPacket packet = new PlayerFogPacket();
-        Collections.addAll(packet.getFogStack(), this.fogNameSpaces.toArray(new String[0]));
+        packet.getFogStack().addAll(this.fogNameSpaces);
         sendUpstreamPacket(packet);
     }
 }
