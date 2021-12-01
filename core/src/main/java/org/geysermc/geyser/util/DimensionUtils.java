@@ -58,6 +58,8 @@ public class DimensionUtils {
 
     public static void switchDimension(GeyserSession session, String javaDimension) {
         int bedrockDimension = javaToBedrock(javaDimension);
+        int previousDimension = javaToBedrock(session.getDimension());
+
         Entity player = session.getPlayerEntity();
 
         session.getChunkCache().clear();
@@ -109,7 +111,7 @@ public class DimensionUtils {
         if (BEDROCK_NETHER_ID == 2) {
             if (bedrockDimension == BEDROCK_NETHER_ID) {
                 session.sendFog("minecraft:fog_hell");
-            } else {
+            } else if (previousDimension == BEDROCK_NETHER_ID) {
                 session.removeFog("minecraft:fog_hell");
             }
         }
