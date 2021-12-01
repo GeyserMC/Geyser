@@ -116,6 +116,8 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
         if (!newDimension.equals(session.getDimension())) {
             DimensionUtils.switchDimension(session, newDimension);
+        } else if (newDimension.equalsIgnoreCase(DimensionUtils.NETHER)) {
+            session.sendFog("minecraft:fog_hell");
         }
 
         ChunkUtils.loadDimensionTag(session, packet.getDimension());

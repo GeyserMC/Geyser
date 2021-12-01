@@ -461,6 +461,8 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     @Setter
     private boolean waitingForStatistics = false;
 
+    private final Set<String> fogNameSpaces = new HashSet<>();
+
     private final Set<UUID> emotes;
 
     /**
@@ -1006,11 +1008,11 @@ public class GeyserSession implements GeyserConnection, CommandSender {
                 // Set the mood
                 if (!isInWorldBorderWarningArea) {
                     isInWorldBorderWarningArea = true;
-                    WorldBorder.sendFog(this, "minecraft:fog_crimson_forest");
+                    sendFog("minecraft:fog_crimson_forest");
                 }
             } else if (isInWorldBorderWarningArea) {
                 // Clear fog as we are outside the world border now
-                WorldBorder.removeFog(this);
+                removeFog("minecraft:fog_crimson_forest");
                 isInWorldBorderWarningArea = false;
             }
 
@@ -1483,5 +1485,21 @@ public class GeyserSession implements GeyserConnection, CommandSender {
             emoteList.getPieceIds().addAll(pieces);
             player.sendUpstreamPacket(emoteList);
         }
+    }
+
+    public void sendFog(String... fogNameSpaces) {
+        this.fogNameSpaces.addAll(Arrays.asList(fogNameSpaces));
+
+        PlayerFogPacket packet = new PlayerFogPacket();
+        Collections.addAll(packet.getFogStack(), this.fogNameSpaces.toArray(new String[0]));
+        sendUpstreamPacket(packet);
+    }
+
+    public void removeFog(String... fogNameSpaces) {
+        this.fogNameSpaces.removeAll(Arrays.asList(fogNameSpaces));
+
+        PlayerFogPacket packet = new PlayerFogPacket();
+        Collections.addAll(packet.getFogStack(), this.fogNameSpaces.toArray(new String[0]));
+        sendUpstreamPacket(packet);
     }
 }
