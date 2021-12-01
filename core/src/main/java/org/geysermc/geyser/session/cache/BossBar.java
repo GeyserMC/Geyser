@@ -42,7 +42,7 @@ public class BossBar {
     private final long entityId;
     private Component title;
     private float health;
-    private final int color;
+    private int color;
     private final int overlay;
     private final int darkenSky;
 
@@ -82,6 +82,16 @@ public class BossBar {
         bossEventPacket.setBossUniqueEntityId(entityId);
         bossEventPacket.setAction(BossEventPacket.Action.UPDATE_PERCENTAGE);
         bossEventPacket.setHealthPercentage(health);
+
+        session.sendUpstreamPacket(bossEventPacket);
+    }
+
+    public void updateColor(int color) {
+        this.color = color;
+        BossEventPacket bossEventPacket = new BossEventPacket();
+        bossEventPacket.setBossUniqueEntityId(entityId);
+        bossEventPacket.setAction(BossEventPacket.Action.UPDATE_STYLE);
+        bossEventPacket.setColor(color);
 
         session.sendUpstreamPacket(bossEventPacket);
     }

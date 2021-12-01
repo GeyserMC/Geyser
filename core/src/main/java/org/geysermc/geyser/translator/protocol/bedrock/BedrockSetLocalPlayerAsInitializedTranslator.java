@@ -46,6 +46,10 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
                     }
                     // else we were able to log the user in
                 }
+                if (session.isLoggedIn()) {
+                    // Sigh
+                    session.getEntityCache().updateBossBars();
+                }
             }
         }
     }
