@@ -41,7 +41,7 @@ import java.util.Set;
 public class DimensionUtils {
 
     // Changes if the above-bedrock Nether building workaround is applied
-    private static int BEDROCK_NETHER_ID = 1;
+    public static int BEDROCK_NETHER_ID = 1;
 
     /**
      * String reference to vanilla Java overworld dimension identifier
@@ -103,6 +103,9 @@ public class DimensionUtils {
         // The client wants sections sent to it before it can successfully respawn.
         ChunkUtils.sendEmptyChunks(session, player.getPosition().toInt(), 3, true);
 
+        // If the bedrock nether height workaround is enabled, meaning the client is told it's in the end dimension,
+        // we check if the player is entering the nether and apply the nether fog to fake the fact that the client
+        // thinks they are in the end dimension.
         if (BEDROCK_NETHER_ID == 2) {
             if (bedrockDimension == BEDROCK_NETHER_ID) {
                 session.sendFog("minecraft:fog_hell");

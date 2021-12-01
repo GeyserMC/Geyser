@@ -1487,6 +1487,14 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         }
     }
 
+    /**
+     * Send the following fog IDs, as well as the cached ones, to the client.
+     *
+     * Fog IDs can be found here:
+     * https://wiki.bedrock.dev/documentation/fog-ids.html
+     *
+     * @param fogNameSpaces the fog ids to add
+     */
     public void sendFog(String... fogNameSpaces) {
         this.fogNameSpaces.addAll(Arrays.asList(fogNameSpaces));
 
@@ -1495,9 +1503,17 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         sendUpstreamPacket(packet);
     }
 
+    /**
+     * Removes the following fog IDs from the client and the cache.
+     *
+     * @param fogNameSpaces the fog ids to remove
+     */
     public void removeFog(String... fogNameSpaces) {
-        this.fogNameSpaces.removeAll(Arrays.asList(fogNameSpaces));
-
+        if (fogNameSpaces.length == 0) {
+            this.fogNameSpaces.clear();
+        } else {
+            this.fogNameSpaces.removeAll(Arrays.asList(fogNameSpaces));
+        }
         PlayerFogPacket packet = new PlayerFogPacket();
         Collections.addAll(packet.getFogStack(), this.fogNameSpaces.toArray(new String[0]));
         sendUpstreamPacket(packet);
