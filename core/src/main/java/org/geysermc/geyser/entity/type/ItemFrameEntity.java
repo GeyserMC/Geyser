@@ -40,6 +40,7 @@ import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
 import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -122,7 +123,7 @@ public class ItemFrameEntity extends Entity {
                 builder.put("tag", itemData.getTag());
             }
             builder.putShort("Damage", (short) itemData.getDamage());
-            builder.putString("Name", mapping.getBedrockIdentifier());
+            builder.putString("Name",  ItemRegistryPopulator.customIdMappings.get(itemData.getId()) != null ? ItemRegistryPopulator.customIdMappings.get(itemData.getId()) : mapping.getBedrockIdentifier());
             NbtMapBuilder tag = getDefaultTag().toBuilder();
             tag.put("Item", builder.build());
             tag.putFloat("ItemDropChance", 1.0f);

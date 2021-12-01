@@ -27,6 +27,7 @@ package org.geysermc.geyser.registry.populator;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
@@ -68,6 +69,9 @@ public class ItemRegistryPopulator {
     private record PaletteVersion(int protocolVersion, Map<String, String> additionalTranslatedItems) {
     }
 
+    public static Map<String, Integer> customModelDataMappings;
+    public static Map<Integer, String> customIdMappings;
+
     public static void populate() {
         // Load item mappings from Java Edition to Bedrock Edition
         InputStream stream = FileUtils.getResource("mappings/items.json");
@@ -83,6 +87,8 @@ public class ItemRegistryPopulator {
 
         /* Load item palette */
         for (Map.Entry<String, PaletteVersion> palette : PALETTE_VERSIONS.entrySet()) {
+
+            List <ComponentItemData> customItemsData = new ArrayList<>();
             stream = FileUtils.getResource(String.format("bedrock/runtime_item_states.%s.json", palette.getKey()));
 
             TypeReference<List<PaletteItem>> paletteEntriesType = new TypeReference<>() {};
@@ -422,6 +428,7 @@ public class ItemRegistryPopulator {
                 throw new RuntimeException("Lodestone compass not found in item palette!");
             }
 
+
             // Add the lodestone compass since it doesn't exist on java but we need it for item conversion
             ItemMapping lodestoneEntry = ItemMapping.builder()
                     .javaIdentifier("minecraft:lodestone_compass")
@@ -490,6 +497,127 @@ public class ItemRegistryPopulator {
                 componentBuilder.putCompound("item_properties", itemProperties.build());
                 builder.putCompound("components", componentBuilder.build());
                 furnaceMinecartData = new ComponentItemData("geysermc:furnace_minecart", builder.build());
+
+                int itemId = mappings.size();
+
+                int javaMinecraftId = 0;
+
+                customModelDataMappings = new HashMap<>();
+                customIdMappings = new HashMap<>();
+                for (String sd : GeyserImpl.getInstance().getConfig().getCustomModelDataMappings()) {
+
+
+                    String[] values = sd.split(";");
+
+                    String itemType = values[0];
+                    int customModelData = Integer.parseInt(values[1]);
+                    String texture = values[2];
+                    boolean isTool = Boolean.parseBoolean(values[3]);
+
+                    String useArmorId = null;
+                    int size = 16;
+                    if (values.length > 4) {
+                        size = Integer.parseInt(values[4]);
+                        if (values.length > 5) {
+                            useArmorId = values[5];
+                        }
+                    }
+
+                    float scale1 = (float) 0.075 / (size / 16f);
+                    float scale2 = (float) 0.125 / (size / 16f);
+                    float scale3 = (float) (0.075 / (size / 16 * 2.4));
+                    //thanks for Kastle
+
+                    ComponentItemData customItemData = null;
+
+                    // Add a custom item
+
+                    itemId = itemId + 1;
+
+                    String itemStringId = "geysermc:" + texture + customModelData;
+
+                    if (useArmorId!=null) {
+                        itemStringId = useArmorId;
+                    }
+                    entries.put(itemStringId, new StartGamePacket.ItemEntry(itemStringId, (short) itemId, true));
+
+                    mappings.put(javaMinecraftId, ItemMapping.builder()
+                            .javaIdentifier(itemStringId)
+                            .bedrockIdentifier(itemStringId)
+                            .javaId(javaMinecraftId)
+                            .bedrockId(itemId)
+                            .bedrockData(0)
+                            .bedrockBlockId(-1)
+                            .stackSize(64)
+                            .build());
+
+                    creativeItems.add(ItemData.builder()
+                            .netId(netId)
+                            .id(itemId)
+                            .count(1).build());
+
+
+                    NbtMapBuilder customItemBuilder = NbtMap.builder();
+                    customItemBuilder.putString("name", itemStringId)
+                            .putInt("id", itemId);
+
+                    NbtMapBuilder customItemProperties = NbtMap.builder();
+
+                    NbtMapBuilder customItemComponentBuilder = NbtMap.builder();
+                    // Conveniently, as of 1.16.200, the furnace minecart has a texture AND translation string already.
+                    // 1.17.30 moves the icon to the item properties section
+                    (palette.getValue().protocolVersion() >= Bedrock_v465.V465_CODEC.getProtocolVersion() ?
+                            customItemProperties : customItemComponentBuilder).putCompound("minecraft:icon", NbtMap.builder()
+                            .putString("texture", texture).build());
+                    customItemComponentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", "Custom Item" + itemId).build());
+
+
+                    // if (itemType.equals("minecraft:bow")) {
+                    //     componentBuilder.putString("minecraft:use_animation", "bow");
+                    // }
+
+                    // We always want to allow offhand usage when we can - matches Java Edition
+                    customItemProperties.putBoolean("allow_off_hand", true);
+
+
+                    customItemProperties.putBoolean("hand_equipped", isTool);
+
+
+                    customItemProperties.putInt("max_stack_size", 64);
+                    if (size != 16) {
+                        customItemComponentBuilder.putCompound("minecraft:render_offsets",
+                                NbtMap.builder().putCompound("main_hand", NbtMap.builder()
+                                        .putCompound("first_person", buildXYZ(new Float[]{scale3, scale3, scale3}))
+                                        .putCompound("third_person", buildXYZ(new Float[]{scale1, scale2, scale1})).build())
+                                        .putCompound("off_hand", NbtMap.builder()
+                                                .putCompound("first_person", buildXYZ(new Float[]{scale1, scale2, scale1}))
+                                                .putCompound("third_person", buildXYZ(new Float[]{scale1, scale2, scale1})).build()).build()
+                        );
+                    }
+
+                    //Armor support. Thanks for AuthXero
+                    NbtMapBuilder wearable = NbtMap.builder();
+                    String type = null;
+                    if ((texture + itemType ).contains("_boots")) type = "feet";
+                    if ((texture + itemType).contains("_chestplate")) type = "chest";
+                    if ((texture + itemType).contains("_leggings")) type = "legs";
+                    if ((texture + itemType).contains("_helmet")) type = "head";
+                    if (type != null) {
+                        wearable.putBoolean("dispensable", true);
+                        wearable.putString("slot", "slot.armor." + type);
+                        customItemProperties.putCompound("minecraft:wearable", wearable.build());
+                    }
+
+                    customItemComponentBuilder.putCompound("item_properties", customItemProperties.build());
+                    customItemBuilder.putCompound("components", customItemComponentBuilder.build());
+                    customItemData = new ComponentItemData(itemStringId, customItemBuilder.build());
+                    customItemsData.add(customItemData);
+                    customModelDataMappings.put(itemType + customModelData, itemId);
+
+                    customIdMappings.put(itemId, itemStringId);
+
+                }
+
             }
 
             ItemMappings itemMappings = ItemMappings.builder()
@@ -504,9 +632,14 @@ public class ItemRegistryPopulator {
                     .spawnEggIds(spawnEggs)
                     .carpets(carpets)
                     .furnaceMinecartData(furnaceMinecartData)
+                    .customItems(customItemsData)
                     .build();
 
             Registries.ITEMS.register(palette.getValue().protocolVersion(), itemMappings);
         }
+    }
+
+    private static NbtMap buildXYZ (Float[]scale){
+        return NbtMap.builder().putCompound("scale", NbtMap.builder().putFloat("x", scale[0]).putFloat("y", scale[1]).putFloat("z", scale[2]).build()).build();
     }
 }

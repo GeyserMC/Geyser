@@ -42,10 +42,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter
@@ -240,6 +237,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @JsonProperty("mtu")
     private int mtu = 1400;
+
+    @JsonProperty("custom-model-data-mappings")
+    private List<String> customModelDataMappings = new ArrayList<>();
 
     @JsonProperty("use-direct-connection")
     private boolean useDirectConnection = true;

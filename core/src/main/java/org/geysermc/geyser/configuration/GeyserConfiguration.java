@@ -162,6 +162,7 @@ public interface GeyserConfiguration {
 
     int getScoreboardPacketThreshold();
 
+    List<String> getCustomModelDataMappings();
     // if u have offline mode enabled pls be safe
     boolean isEnableProxyConnections();
 

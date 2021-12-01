@@ -35,6 +35,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -181,6 +182,18 @@ public abstract class ItemTranslator {
             canPlace = getCanModify(canPlaceOn, canPlace);
             builder.canBreak(canBreak);
             builder.canPlace(canPlace);
+            if (nbt.get("CustomModelData") != null) {
+                IntTag tag = nbt.get("CustomModelData");
+
+                String type = bedrockItem.getJavaIdentifier();
+                if (ItemRegistryPopulator.customModelDataMappings.containsKey(type + tag.getValue().toString())){
+                    builder.id(ItemRegistryPopulator.customModelDataMappings.get(type + tag.getValue().toString()));
+                    builder.damage(0);
+                } else if (ItemRegistryPopulator.customModelDataMappings.containsKey("all_items"+ tag.getValue().toString())){
+                    builder.id(ItemRegistryPopulator.customModelDataMappings.get("all_items" + tag.getValue().toString()));
+                    builder.damage(0);
+                }
+            }
         }
 
         return builder.build();
@@ -263,6 +276,19 @@ public abstract class ItemTranslator {
                 .count(itemStack.getAmount());
         if (itemStack.getNbt() != null) {
             builder.tag(this.translateNbtToBedrock(itemStack.getNbt()));
+            CompoundTag nbt = itemStack.getNbt();
+            if (nbt!=null && nbt.get("CustomModelData")!= null) {
+                IntTag tag = nbt.get("CustomModelData");
+
+                String type = mapping.getJavaIdentifier();
+                if (ItemRegistryPopulator.customModelDataMappings.containsKey(type + tag.getValue().toString())){
+                    builder.id(ItemRegistryPopulator.customModelDataMappings.get(type + tag.getValue().toString()));
+                    builder.damage(0);
+                } else if (ItemRegistryPopulator.customModelDataMappings.containsKey("all_items"+ tag.getValue().toString())){
+                    builder.id(ItemRegistryPopulator.customModelDataMappings.get("all_items" + tag.getValue().toString()));
+                    builder.damage(0);
+                }
+            }
         }
         return builder;
     }
