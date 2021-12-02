@@ -21,7 +21,7 @@
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>core</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
