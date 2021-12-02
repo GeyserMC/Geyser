@@ -5,7 +5,7 @@ pipeline {
         jdk 'Java 17'
     }
 
-    parameters{    
+    parameters {
         booleanParam(defaultValue: false, description: 'Skip Discord notification', name: 'SKIP_DISCORD')
     }
 
@@ -25,7 +25,7 @@ pipeline {
             }
         }
 
-        stage ('Deploy') {
+        /*stage ('Deploy') {
                     when {
                         anyOf {
                             branch "java-1.18"
@@ -56,7 +56,7 @@ pipeline {
                                 serverId: "opencollab-artifactory"
                         )
                     }
-                }
+                }*/
     }
 
     post {
