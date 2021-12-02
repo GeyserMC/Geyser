@@ -59,7 +59,7 @@ public class BossBar {
         bossEventPacket.setAction(BossEventPacket.Action.CREATE);
         bossEventPacket.setTitle(MessageTranslator.convertMessage(title, session.getLocale()));
         bossEventPacket.setHealthPercentage(health);
-        bossEventPacket.setColor(color); //ignored by client
+        bossEventPacket.setColor(color);
         bossEventPacket.setOverlay(overlay);
         bossEventPacket.setDarkenSky(darkenSky);
 
