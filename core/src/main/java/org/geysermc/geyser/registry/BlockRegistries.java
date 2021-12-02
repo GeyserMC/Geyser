@@ -62,6 +62,12 @@ public class BlockRegistries {
     public static final MappedRegistry<String, Integer, Object2IntBiMap<String>> JAVA_IDENTIFIERS = MappedRegistry.create(RegistryLoaders.empty(Object2IntBiMap::new));
 
     /**
+     * A registry which stores unique Java IDs to its clean identifier
+     * This is used in the statistics form.
+     */
+    public static final ArrayRegistry<String> CLEAN_JAVA_IDENTIFIERS = ArrayRegistry.create(RegistryLoaders.empty(() -> new String[] {}));
+
+    /**
      * A registry containing all the waterlogged blockstates.
      */
     public static final SimpleRegistry<IntSet> WATERLOGGED = SimpleRegistry.create(RegistryLoaders.empty(IntOpenHashSet::new));

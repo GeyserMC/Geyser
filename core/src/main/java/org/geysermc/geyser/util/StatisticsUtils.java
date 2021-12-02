@@ -99,19 +99,14 @@ public class StatisticsUtils {
                                 case 1:
                                     builder.title("stat.itemsButton - stat_type.minecraft.mined");
 
-                                    Object2IntMap<String> blocksMined = new Object2IntArrayMap<>();
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
-                                        if (entry.getKey() instanceof BreakBlockStatistic blockStatistic) {
-                                            BlockMapping block = BlockRegistries.JAVA_BLOCKS.get(blockStatistic.getId());
-                                            if (block != null) {
-                                                blocksMined.mergeInt(block.getCleanJavaIdentifier(), entry.getValue(), Integer::sum);
+                                        if (entry.getKey() instanceof BreakBlockStatistic statistic) {
+                                            String identifier = BlockRegistries.CLEAN_JAVA_IDENTIFIERS.get(statistic.getId());
+                                            if (identifier != null) {
+                                                String block = identifier.replace("minecraft:", "block.minecraft.");
+                                                content.add(block + ": " + entry.getValue());
                                             }
                                         }
-                                    }
-
-                                    for (Object2IntMap.Entry<String> entry : blocksMined.object2IntEntrySet()) {
-                                        String block = entry.getKey().replace("minecraft:", "block.minecraft.");
-                                        content.add(block + ": " + entry.getIntValue());
                                     }
                                     break;
                                 case 2:
@@ -193,6 +188,7 @@ public class StatisticsUtils {
                             if (content.size() == 0) {
                                 assembledContent.append("geyser.statistics.none");
                             } else {
+                                content.replaceAll(x -> translate(x, language));
                                 // Sort statistics alphabetically
                                 content.sort(String::compareTo);
                                 for (int i = 0; i < content.size(); i++) {
