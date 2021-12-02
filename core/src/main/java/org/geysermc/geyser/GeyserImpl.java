@@ -386,6 +386,8 @@ public class GeyserImpl implements GeyserApi {
 
         if (platformType == PlatformType.STANDALONE) {
             logger.warning(GeyserLocale.getLocaleStringLog("geyser.core.movement_warn"));
+        } else if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
+            VersionCheckUtils.checkForOutdatedFloodgate(logger);
         }
 
         newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
