@@ -132,7 +132,6 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.TimeUnit;
 
 @Getter
 public class GeyserSession implements GeyserConnection, CommandSender {
@@ -955,10 +954,11 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     }
 
     public void handleDownstreamPacket(Packet packet) {
-        EventResult<DownstreamPacketReceiveEvent<?>> result = EventManager.getInstance().triggerEvent(DownstreamPacketReceiveEvent.of(this, packet));
-        if (result.getEvent() != null && !result.isCancelled()) {
-            Registries.JAVA_PACKET_TRANSLATORS.translate(packet.getClass(), packet, GeyserSession.this);
-        }
+        Registries.JAVA_PACKET_TRANSLATORS.translate(packet.getClass(), packet, GeyserSession.this);
+//        EventResult<DownstreamPacketReceiveEvent<?>> result = EventManager.getInstance().triggerEvent(DownstreamPacketReceiveEvent.of(this, packet));
+//        if (result.getEvent() != null && !result.isCancelled()) {
+//            Registries.JAVA_PACKET_TRANSLATORS.translate(packet.getClass(), packet, GeyserSession.this);
+//        }
     }
 
     public void disconnect(String reason) {
@@ -1412,9 +1412,9 @@ public class GeyserSession implements GeyserConnection, CommandSender {
 
                         EventLoop eventLoop = channel.eventLoop();
                         if (eventLoop.inEventLoop()) {
-                            sendDownstreamPacket0(packet);
+                            sendDownstreamPacket0(result.getEvent() != null ? result.getEvent().getPacket() : packet);
                         } else {
-                            eventLoop.execute(() -> sendDownstreamPacket0(packet));
+                            eventLoop.execute(() -> sendDownstreamPacket0(result.getEvent() != null ? result.getEvent().getPacket() : packet));
                         }
                     }
                 });

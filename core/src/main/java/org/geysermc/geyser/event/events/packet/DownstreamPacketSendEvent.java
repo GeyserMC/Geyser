@@ -71,9 +71,9 @@ public abstract class DownstreamPacketSendEvent<T extends Packet> extends Geyser
         Class<?> cls = classMap.get(packet.getClass());
         if (cls == null) {
             try {
-                cls = Class.forName(String.format("org.geysermc.geyser.event.events.packet.downstream.%sSend", packet.getClass().getSimpleName()));
+                cls = Class.forName(String.format("org.geysermc.geyser.event.events.packet.downstream.%s", packet.getClass().getSimpleName()));
             } catch (ClassNotFoundException e) {
-                GeyserImpl.getInstance().getLogger().error("Missing event for packet: " + packet.getClass());
+//                GeyserImpl.getInstance().getLogger().error("Missing event for packet: " + packet.getClass());
                 return null;
             }
 
