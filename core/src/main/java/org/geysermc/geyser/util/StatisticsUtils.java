@@ -89,7 +89,7 @@ public class StatisticsUtils {
                                     builder.title("stat.generalButton");
 
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
-                                        if (entry.getKey() instanceof GenericStatistic statistic) {
+                                        if (entry.getKey() instanceof CustomStatistic statistic) {
                                             String statName = statistic.name().toLowerCase();
                                             IntFunction<String> formatter = Registries.STATISTIC_FORMATS.getOrDefault(statistic, StatisticFormatters.DEFAULT);
                                             content.add("stat.minecraft." + statName + ": " + formatter.apply(entry.getValue()));

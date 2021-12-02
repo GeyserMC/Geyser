@@ -26,7 +26,7 @@
 package org.geysermc.geyser.registry.loader;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.steveice10.mc.protocol.data.game.statistic.GenericStatistic;
+import com.github.steveice10.mc.protocol.data.game.statistic.CustomStatistic;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.util.FileUtils;
@@ -38,10 +38,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.IntFunction;
 
-public class StatisticsFormatsRegistryLoader implements RegistryLoader<String, Map<GenericStatistic, IntFunction<String>>> {
+public class StatisticsFormatsRegistryLoader implements RegistryLoader<String, Map<CustomStatistic, IntFunction<String>>> {
 
     @Override
-    public Map<GenericStatistic, IntFunction<String>> load(String input) {
+    public Map<CustomStatistic, IntFunction<String>> load(String input) {
         InputStream statisticsStream = FileUtils.getResource(input);
         JsonNode statisticsNode;
         try {
@@ -50,11 +50,11 @@ public class StatisticsFormatsRegistryLoader implements RegistryLoader<String, M
             throw new AssertionError("Unable to load statistics format data", e);
         }
 
-        Map<GenericStatistic, IntFunction<String>> formats = new Object2ObjectOpenHashMap<>();
+        Map<CustomStatistic, IntFunction<String>> formats = new Object2ObjectOpenHashMap<>();
         Iterator<Map.Entry<String, JsonNode>> it = statisticsNode.fields();
         while (it.hasNext()) {
             Map.Entry<String, JsonNode> entry = it.next();
-            GenericStatistic statistic = GenericStatistic.valueOf(entry.getKey().toUpperCase(Locale.ROOT));
+            CustomStatistic statistic = CustomStatistic.valueOf(entry.getKey().toUpperCase(Locale.ROOT));
             IntFunction<String> formatter = StatisticFormatters.get(entry.getValue().textValue());
             formats.put(statistic, formatter);
         }

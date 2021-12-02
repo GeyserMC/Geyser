@@ -39,7 +39,7 @@ import com.github.steveice10.mc.protocol.data.UnexpectedEncryptionException;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
-import com.github.steveice10.mc.protocol.data.game.statistic.GenericStatistic;
+import com.github.steveice10.mc.protocol.data.game.statistic.CustomStatistic;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.packet.handshake.serverbound.ClientIntentionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundAcceptTeleportationPacket;
@@ -518,8 +518,8 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         }
 
         // Initialize generic statistics to 0, so that they appear in the form
-        for (GenericStatistic genericStatistic : GenericStatistic.values()) {
-            statistics.put(genericStatistic, 0);
+        for (CustomStatistic customStatistic : CustomStatistic.values()) {
+            statistics.put(customStatistic, 0);
         }
 
         if (geyser.getConfig().getEmoteOffhandWorkaround() != EmoteOffhandWorkaroundOption.NO_EMOTES) {

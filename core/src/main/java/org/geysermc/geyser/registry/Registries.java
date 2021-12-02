@@ -31,7 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.level.event.SoundEvent;
 import com.github.steveice10.mc.protocol.data.game.level.particle.ParticleType;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
-import com.github.steveice10.mc.protocol.data.game.statistic.GenericStatistic;
+import com.github.steveice10.mc.protocol.data.game.statistic.CustomStatistic;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
@@ -167,9 +167,9 @@ public final class Registries {
     public static final SimpleMappedRegistry<SoundTranslator, SoundInteractionTranslator<?>> SOUND_TRANSLATORS = SimpleMappedRegistry.create("org.geysermc.geyser.translator.sound.SoundTranslator", SoundTranslatorRegistryLoader::new);
 
     /**
-     * A mapped registry holding a formatter function for each {@link GenericStatistic}
+     * A mapped registry holding a formatter function for each {@link CustomStatistic}
      */
-    public static final SimpleMappedRegistry<GenericStatistic, IntFunction<String>> STATISTIC_FORMATS = SimpleMappedRegistry.create("mappings/statistics.json", StatisticsFormatsRegistryLoader::new);
+    public static final SimpleMappedRegistry<CustomStatistic, IntFunction<String>> STATISTIC_FORMATS = SimpleMappedRegistry.create("mappings/statistics.json", StatisticsFormatsRegistryLoader::new);
 
     public static void init() {
         // no-op
