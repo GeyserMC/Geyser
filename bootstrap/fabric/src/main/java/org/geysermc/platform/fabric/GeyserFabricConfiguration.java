@@ -28,8 +28,8 @@ package org.geysermc.platform.fabric;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-import org.geysermc.connector.FloodgateKeyLoader;
-import org.geysermc.connector.configuration.GeyserJacksonConfiguration;
+import org.geysermc.geyser.FloodgateKeyLoader;
+import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
 
 import java.nio.file.Path;
 

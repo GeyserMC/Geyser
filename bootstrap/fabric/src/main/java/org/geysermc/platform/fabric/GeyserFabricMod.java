@@ -35,19 +35,19 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import org.apache.logging.log4j.LogManager;
 import org.geysermc.common.PlatformType;
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.GeyserLogger;
-import org.geysermc.connector.bootstrap.GeyserBootstrap;
-import org.geysermc.connector.command.CommandManager;
-import org.geysermc.connector.command.GeyserCommand;
-import org.geysermc.connector.common.AuthType;
-import org.geysermc.connector.configuration.GeyserConfiguration;
-import org.geysermc.connector.dump.BootstrapDumpInfo;
-import org.geysermc.connector.network.translators.world.WorldManager;
-import org.geysermc.connector.ping.GeyserLegacyPingPassthrough;
-import org.geysermc.connector.ping.IGeyserPingPassthrough;
-import org.geysermc.connector.utils.FileUtils;
-import org.geysermc.connector.utils.LanguageUtils;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.command.CommandManager;
+import org.geysermc.geyser.command.GeyserCommand;
+import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
+import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.level.WorldManager;
+import org.geysermc.geyser.ping.IGeyserPingPassthrough;
+import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.platform.fabric.command.GeyserFabricCommandExecutor;
 import org.geysermc.platform.fabric.command.GeyserFabricCommandManager;
 import org.geysermc.platform.fabric.world.GeyserFabricWorldManager;
@@ -65,7 +65,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
     private boolean reloading;
 
-    private GeyserConnector connector;
+    private GeyserImpl connector;
     private Path dataFolder;
     private MinecraftServer server;
 
@@ -106,7 +106,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
             File permissionsFile = fileOrCopiedFromResource(dataFolder.resolve("permissions.yml").toFile(), "permissions.yml");
             this.playerCommands = Arrays.asList(FileUtils.loadConfig(permissionsFile, GeyserFabricPermissions.class).getCommands());
         } catch (IOException ex) {
-            LogManager.getLogger("geyser-fabric").error(LanguageUtils.getLocaleStringLog("geyser.config.failed"), ex);
+            LogManager.getLogger("geyser-fabric").error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
             return;
         }
@@ -152,7 +152,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         Optional<ModContainer> floodgate = FabricLoader.getInstance().getModContainer("floodgate");
         boolean floodgatePresent = floodgate.isPresent();
         if (geyserConfig.getRemote().getAuthType() == AuthType.FLOODGATE && !floodgatePresent) {
-            geyserLogger.severe(LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + LanguageUtils.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
+            geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             return;
         } else if (geyserConfig.isAutoconfiguredRemote() && floodgatePresent) {
             // Floodgate installed means that the user wants Floodgate authentication
@@ -162,7 +162,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
         geyserConfig.loadFloodgate(this, floodgate.orElse(null));
 
-        this.connector = GeyserConnector.start(PlatformType.FABRIC, this);
+        this.connector = GeyserImpl.start(PlatformType.FABRIC, this);
 
         this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(connector);
 

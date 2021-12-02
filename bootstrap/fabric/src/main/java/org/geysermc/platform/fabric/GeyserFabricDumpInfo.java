@@ -29,8 +29,8 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.server.MinecraftServer;
-import org.geysermc.connector.common.serializer.AsteriskSerializer;
-import org.geysermc.connector.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.text.AsteriskSerializer;
 
 import java.util.ArrayList;
 import java.util.List;

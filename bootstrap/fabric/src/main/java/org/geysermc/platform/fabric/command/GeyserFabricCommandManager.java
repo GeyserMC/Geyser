@@ -25,12 +25,12 @@
 
 package org.geysermc.platform.fabric.command;
 
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.command.CommandManager;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.command.CommandManager;
 
 public class GeyserFabricCommandManager extends CommandManager {
 
-    public GeyserFabricCommandManager(GeyserConnector connector) {
+    public GeyserFabricCommandManager(GeyserImpl connector) {
         super(connector);
     }
 

@@ -38,10 +38,10 @@ import net.minecraft.item.WrittenBookItem;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.network.translators.inventory.translators.LecternInventoryTranslator;
-import org.geysermc.connector.network.translators.world.GeyserWorldManager;
-import org.geysermc.connector.utils.BlockEntityUtils;
+import org.geysermc.geyser.level.GeyserWorldManager;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
+import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.platform.fabric.GeyserFabricMod;
 import org.geysermc.platform.fabric.command.GeyserFabricCommandExecutor;
 
@@ -115,7 +115,7 @@ public class GeyserFabricWorldManager extends GeyserWorldManager {
         };
         if (isChunkLoad) {
             // Hacky hacks to allow lectern loading to be delayed
-            session.getConnector().getGeneralThreadPool().schedule(() -> server.execute(lecternGet), 1, TimeUnit.SECONDS);
+            session.scheduleInEventLoop(() -> server.execute(lecternGet), 1, TimeUnit.SECONDS);
         } else {
             server.execute(lecternGet);
         }
