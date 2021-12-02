@@ -70,8 +70,8 @@ public final class AesCipher implements FloodgateCipher {
             cipherText = topping.encode(cipherText);
         }
 
-        return ByteBuffer.allocate(iv.length + cipherText.length + HEADER_LENGTH + 1)
-                .put(IDENTIFIER) // header
+        return ByteBuffer.allocate(HEADER.length + iv.length + cipherText.length + 1)
+                .put(HEADER)
                 .put(iv)
                 .put((byte) 0x21)
                 .put(cipherText)
@@ -83,15 +83,15 @@ public final class AesCipher implements FloodgateCipher {
 
         Cipher cipher = Cipher.getInstance(CIPHER_NAME);
 
-        int bufferLength = cipherTextWithIv.length - HEADER_LENGTH;
-        ByteBuffer buffer = ByteBuffer.wrap(cipherTextWithIv, HEADER_LENGTH, bufferLength);
+        int bufferLength = cipherTextWithIv.length - HEADER.length;
+        ByteBuffer buffer = ByteBuffer.wrap(cipherTextWithIv, HEADER.length, bufferLength);
 
         int ivLength = IV_LENGTH;
 
         if (topping != null) {
             int mark = buffer.position();
 
-            // we need the first index, the second is for the optional RawSkin
+            // we need the first index, the second is for the actual data
             boolean found = false;
             while (buffer.hasRemaining() && !found) {
                 if (buffer.get() == 0x21) {

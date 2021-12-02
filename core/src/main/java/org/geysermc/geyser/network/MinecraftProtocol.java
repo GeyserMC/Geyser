@@ -1,0 +1,117 @@
+/*
+ * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.network;
+
+import com.github.steveice10.mc.protocol.codec.MinecraftCodec;
+import com.github.steveice10.mc.protocol.codec.PacketCodec;
+import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
+import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
+import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
+import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringJoiner;
+
+/**
+ * Contains information about the supported protocols in Geyser.
+ */
+public class MinecraftProtocol {
+    /**
+     * Default Bedrock codec that should act as a fallback. Should represent the latest available
+     * release of the game that Geyser supports.
+     */
+    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v475.V475_CODEC;
+    /**
+     * A list of all supported Bedrock versions that can join Geyser
+     */
+    public static final List<BedrockPacketCodec> SUPPORTED_BEDROCK_CODECS = new ArrayList<>();
+
+    /**
+     * Java codec that is supported. We only ever support one version for
+     * Java Edition.
+     */
+    private static final PacketCodec DEFAULT_JAVA_CODEC = MinecraftCodec.CODEC;
+
+    static {
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v465.V465_CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v471.V471_CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
+    }
+
+    /**
+     * Gets the {@link BedrockPacketCodec} of the given protocol version.
+     * @param protocolVersion The protocol version to attempt to find
+     * @return The packet codec, or null if the client's protocol is unsupported
+     */
+    public static BedrockPacketCodec getBedrockCodec(int protocolVersion) {
+        for (BedrockPacketCodec packetCodec : SUPPORTED_BEDROCK_CODECS) {
+            if (packetCodec.getProtocolVersion() == protocolVersion) {
+                return packetCodec;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gets the {@link PacketCodec} for Minecraft: Java Edition.
+     *
+     * @return the packet codec for Minecraft: Java Edition
+     */
+    public static PacketCodec getJavaCodec() {
+        return DEFAULT_JAVA_CODEC;
+    }
+
+    /**
+     * Gets the supported Minecraft: Java Edition version name.
+     *
+     * @return the supported Minecraft: Java Edition version name
+     */
+    public static String getJavaVersion() {
+        return DEFAULT_JAVA_CODEC.getMinecraftVersion();
+    }
+
+    /**
+     * Gets the supported Minecraft: Java Edition protocol version.
+     *
+     * @return the supported Minecraft: Java Edition protocol version
+     */
+    public static int getJavaProtocolVersion() {
+        return DEFAULT_JAVA_CODEC.getProtocolVersion();
+    }
+
+    /**
+     * @return a string showing all supported versions for this Geyser instance
+     */
+    public static String getAllSupportedVersions() {
+        StringJoiner joiner = new StringJoiner(", ");
+        for (BedrockPacketCodec packetCodec : SUPPORTED_BEDROCK_CODECS) {
+            joiner.add(packetCodec.getMinecraftVersion());
+        }
+
+        return joiner.toString();
+    }
+}

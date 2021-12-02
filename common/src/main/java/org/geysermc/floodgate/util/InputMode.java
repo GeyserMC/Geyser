@@ -41,7 +41,7 @@ public enum InputMode {
      * @param id the InputMode identifier
      * @return The InputMode or {@link #UNKNOWN} if the DeviceOs wasn't found
      */
-    public static InputMode getById(int id) {
+    public static InputMode fromId(int id) {
         return VALUES.length > id ? VALUES[id] : VALUES[0];
     }
 }
