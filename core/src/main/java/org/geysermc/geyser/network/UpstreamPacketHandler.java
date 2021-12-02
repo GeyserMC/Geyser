@@ -32,7 +32,9 @@ import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
 import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.event.EventManager;
 import org.geysermc.geyser.event.EventResult;
+import org.geysermc.geyser.event.events.geyser.GeyserLoginEvent;
 import org.geysermc.geyser.event.events.packet.UpstreamPacketReceiveEvent;
 import org.geysermc.geyser.event.events.packet.upstream.LoginPacketReceive;
 import org.geysermc.geyser.event.events.packet.upstream.ModalFormResponsePacketReceive;
@@ -143,6 +145,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         switch (packet.getStatus()) {
             case COMPLETED:
+                if (EventManager.getInstance().triggerEvent(new GeyserLoginEvent(session)).isCancelled()) {
+                    break;
+                }
                 if (geyser.getConfig().getRemote().getAuthType() != AuthType.ONLINE) {
                     session.authenticate(session.getAuthData().name());
                 } else if (!couldLoginUserByName(session.getAuthData().name())) {
