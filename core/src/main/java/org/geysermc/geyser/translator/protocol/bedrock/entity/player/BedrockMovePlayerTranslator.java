@@ -33,10 +33,10 @@ import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
-import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -71,8 +71,6 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityDefinitions.PLAYER.offset(), 0));
             return;
         }
-        // head yaw, pitch, head yaw
-        Vector3f rotation = Vector3f.from(packet.getRotation().getY(), packet.getRotation().getX(), packet.getRotation().getY());
         float yaw = packet.getRotation().getY();
         float pitch = packet.getRotation().getX();
         float headYaw = packet.getRotation().getY();

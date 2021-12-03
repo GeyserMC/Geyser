@@ -91,7 +91,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
         private String identifier;
         private float width;
         private float height;
-        private float offset;
+        private float offset = 0.00001f;
         private final List<EntityMetadataTranslator<? super T, ?, ?>> translators;
 
         private Builder(EntityFactory<T> factory) {
@@ -115,6 +115,11 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
         public Builder<T> heightAndWidth(float value) {
             height = value;
             width = value;
+            return this;
+        }
+
+        public Builder<T> offset(float offset) {
+            this.offset = offset + 0.00001f;
             return this;
         }
 

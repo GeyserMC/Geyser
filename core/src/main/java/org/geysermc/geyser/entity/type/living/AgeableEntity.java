@@ -45,9 +45,8 @@ public class AgeableEntity extends CreatureEntity {
         dirtyMetadata.put(EntityData.SCALE, isBaby ? getBabySize() : getAdultSize());
         setFlag(EntityFlag.BABY, isBaby);
 
-        // TODO save this?
-        dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, definition.height() * (isBaby ? getBabySize() : getAdultSize()));
-        dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, definition.width() * (isBaby ? getBabySize() : getAdultSize()));
+        setBoundingBoxHeight(definition.height() * (isBaby ? getBabySize() : getAdultSize()));
+        setBoundingBoxWidth(definition.width() * (isBaby ? getBabySize() : getAdultSize()));
     }
 
     /**

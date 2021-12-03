@@ -44,8 +44,8 @@ public class PhantomEntity extends FlyingEntity {
         float modelScale = 1f + 0.15f * size;
         float boundsScale = (1f + (0.2f * size) / definition.width()) / modelScale;
 
-        dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, boundsScale * definition.width());
-        dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, boundsScale * definition.height());
+        setBoundingBoxWidth(boundsScale * definition.width());
+        setBoundingBoxHeight(boundsScale * definition.height());
         dirtyMetadata.put(EntityData.SCALE, modelScale);
     }
 }

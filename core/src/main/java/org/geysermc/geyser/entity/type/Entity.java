@@ -83,9 +83,9 @@ public class Entity {
 
     /* Metadata about this specific entity */
     @Setter(AccessLevel.NONE)
-    protected float boundingBoxHeight;
+    private float boundingBoxHeight;
     @Setter(AccessLevel.NONE)
-    protected float boundingBoxWidth;
+    private float boundingBoxWidth;
     @Setter(AccessLevel.NONE)
     protected String nametag = "";
     /* Metadata end */

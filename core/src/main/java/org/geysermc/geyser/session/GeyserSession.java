@@ -58,7 +58,6 @@ import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
 import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
@@ -1057,7 +1056,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
 
     private void setSneakingPose(boolean sneaking) {
         this.pose = sneaking ? Pose.SNEAKING : Pose.STANDING;
-        playerEntity.getDirtyMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, sneaking ? 1.5f : playerEntity.getDefinition().height());
+        playerEntity.setBoundingBoxHeight(sneaking ? 1.5f : playerEntity.getDefinition().height());
         playerEntity.setFlag(EntityFlag.SNEAKING, sneaking);
 
         collisionManager.updatePlayerBoundingBox();
@@ -1065,7 +1064,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
 
     public void setSwimming(boolean swimming) {
         this.pose = swimming ? Pose.SWIMMING : Pose.STANDING;
-        playerEntity.getDirtyMetadata().put(EntityData.BOUNDING_BOX_HEIGHT, swimming ? 0.6f : playerEntity.getDefinition().height());
+        playerEntity.setBoundingBoxHeight(swimming ? 0.6f : playerEntity.getDefinition().height());
         playerEntity.setFlag(EntityFlag.SWIMMING, swimming);
         playerEntity.updateBedrockMetadata();
     }
