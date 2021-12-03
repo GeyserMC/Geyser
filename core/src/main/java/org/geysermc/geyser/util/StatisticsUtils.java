@@ -41,6 +41,7 @@ import org.geysermc.geyser.text.MinecraftLocale;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.IntFunction;
 import java.util.regex.Matcher;
@@ -90,7 +91,7 @@ public class StatisticsUtils {
 
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
                                         if (entry.getKey() instanceof CustomStatistic statistic) {
-                                            String statName = statistic.name().toLowerCase();
+                                            String statName = statistic.name().toLowerCase(Locale.ROOT);
                                             IntFunction<String> formatter = Registries.STATISTIC_FORMATS.getOrDefault(statistic, StatisticFormatters.DEFAULT);
                                             content.add("stat.minecraft." + statName + ": " + formatter.apply(entry.getValue()));
                                         }
@@ -164,7 +165,7 @@ public class StatisticsUtils {
 
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
                                         if (entry.getKey() instanceof KillEntityStatistic statistic) {
-                                            String entityName = statistic.getEntity().name().toLowerCase();
+                                            String entityName = statistic.getEntity().name().toLowerCase(Locale.ROOT);
                                             content.add("entity.minecraft." + entityName + ": " + entry.getValue());
                                         }
                                     }
@@ -175,7 +176,7 @@ public class StatisticsUtils {
                                     for (Map.Entry<Statistic, Integer> entry : session
                                             .getStatistics().entrySet()) {
                                         if (entry.getKey() instanceof KilledByEntityStatistic statistic) {
-                                            String entityName = statistic.getEntity().name().toLowerCase();
+                                            String entityName = statistic.getEntity().name().toLowerCase(Locale.ROOT);
                                             content.add("entity.minecraft." + entityName + ": " + entry.getValue());
                                         }
                                     }
