@@ -51,6 +51,7 @@ import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.platform.fabric.command.GeyserFabricCommandExecutor;
 import org.geysermc.platform.fabric.command.GeyserFabricCommandManager;
 import org.geysermc.platform.fabric.world.GeyserFabricWorldManager;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -66,6 +67,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     private boolean reloading;
 
     private GeyserImpl connector;
+    private ModContainer mod;
     private Path dataFolder;
     private MinecraftServer server;
 
@@ -84,6 +86,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
     @Override
     public void onInitialize() {
         instance = this;
+        mod = FabricLoader.getInstance().getModContainer("geyser-fabric").orElseThrow();
 
         this.onEnable();
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER) {
@@ -94,6 +97,8 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
     @Override
     public void onEnable() {
+        GeyserLocale.init(this);
+
         dataFolder = FabricLoader.getInstance().getConfigDir().resolve("Geyser-Fabric");
         if (!dataFolder.toFile().exists()) {
             //noinspection ResultOfMethodCallIgnored
@@ -101,7 +106,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         }
         try {
             File configFile = FileUtils.fileOrCopiedFromResource(dataFolder.resolve("config.yml").toFile(), "config.yml",
-                    (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
+                    (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserFabricConfiguration.class);
             File permissionsFile = fileOrCopiedFromResource(dataFolder.resolve("permissions.yml").toFile(), "permissions.yml");
             this.playerCommands = Arrays.asList(FileUtils.loadConfig(permissionsFile, GeyserFabricPermissions.class).getCommands());
@@ -238,6 +243,21 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
         return this.server.getVersion();
     }
 
+    @Nullable
+    @Override
+    public InputStream getResourceOrNull(String resource) {
+        // We need to handle this differently, because Fabric shares the classloader across multiple mods
+        Path path = this.mod.getPath(resource);
+
+        try {
+            return path.getFileSystem()
+                    .provider()
+                    .newInputStream(path);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
     public void setReloading(boolean reloading) {
         this.reloading = reloading;
     }
@@ -247,7 +267,7 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
             //noinspection ResultOfMethodCallIgnored
             file.createNewFile();
             FileOutputStream fos = new FileOutputStream(file);
-            InputStream input = GeyserFabricMod.class.getResourceAsStream("/" + name); // resources need leading "/" prefix
+            InputStream input = getResource(name);
 
             byte[] bytes = new byte[input.available()];
 
