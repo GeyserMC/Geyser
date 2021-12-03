@@ -90,6 +90,8 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         boolean useGuiOpts = bootstrap.useGui;
         String configFilenameOpt = bootstrap.configFilename;
 
+        GeyserLocale.init(bootstrap);
+
         List<BeanPropertyDefinition> availableProperties = getPOJOForClass(GeyserJacksonConfiguration.class);
 
         for (int i = 0; i < args.length; i++) {
@@ -188,7 +190,8 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         LoopbackUtil.checkLoopback(geyserLogger);
         
         try {
-            File configFile = FileUtils.fileOrCopiedFromResource(new File(configFilename), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
+            File configFile = FileUtils.fileOrCopiedFromResource(new File(configFilename), "config.yml",
+                    (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
             geyserConfig = FileUtils.loadConfig(configFile, GeyserStandaloneConfiguration.class);
 
             handleArgsConfigOptions();

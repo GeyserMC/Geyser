@@ -94,19 +94,19 @@ public class SkinProvider {
 
     static {
         /* Load in the normal ears geometry */
-        EARS_GEOMETRY = new String(FileUtils.readAllBytes(FileUtils.getResource("bedrock/skin/geometry.humanoid.ears.json")), StandardCharsets.UTF_8);
+        EARS_GEOMETRY = new String(FileUtils.readAllBytes("bedrock/skin/geometry.humanoid.ears.json"), StandardCharsets.UTF_8);
 
         /* Load in the slim ears geometry */
-        EARS_GEOMETRY_SLIM = new String(FileUtils.readAllBytes(FileUtils.getResource("bedrock/skin/geometry.humanoid.earsSlim.json")), StandardCharsets.UTF_8);
+        EARS_GEOMETRY_SLIM = new String(FileUtils.readAllBytes("bedrock/skin/geometry.humanoid.earsSlim.json"), StandardCharsets.UTF_8);
 
         /* Load in the custom skull geometry */
-        String skullData = new String(FileUtils.readAllBytes(FileUtils.getResource("bedrock/skin/geometry.humanoid.customskull.json")), StandardCharsets.UTF_8);
+        String skullData = new String(FileUtils.readAllBytes("bedrock/skin/geometry.humanoid.customskull.json"), StandardCharsets.UTF_8);
         SKULL_GEOMETRY = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.customskull\"}}", skullData, false);
 
         /* Load in the player head skull geometry */
-        String wearingCustomSkull = new String(FileUtils.readAllBytes(FileUtils.getResource("bedrock/skin/geometry.humanoid.wearingCustomSkull.json")), StandardCharsets.UTF_8);
+        String wearingCustomSkull = new String(FileUtils.readAllBytes("bedrock/skin/geometry.humanoid.wearingCustomSkull.json"), StandardCharsets.UTF_8);
         WEARING_CUSTOM_SKULL = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkull\"}}", wearingCustomSkull, false);
-        String wearingCustomSkullSlim = new String(FileUtils.readAllBytes(FileUtils.getResource("bedrock/skin/geometry.humanoid.wearingCustomSkullSlim.json")), StandardCharsets.UTF_8);
+        String wearingCustomSkullSlim = new String(FileUtils.readAllBytes("bedrock/skin/geometry.humanoid.wearingCustomSkullSlim.json"), StandardCharsets.UTF_8);
         WEARING_CUSTOM_SKULL_SLIM = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkullSlim\"}}", wearingCustomSkullSlim, false);
 
         // Schedule Daily Image Expiry if we are caching them

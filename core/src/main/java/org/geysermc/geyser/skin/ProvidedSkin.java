@@ -26,37 +26,36 @@
 package org.geysermc.geyser.skin;
 
 import lombok.Getter;
+import org.geysermc.geyser.GeyserImpl;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class ProvidedSkin {
     @Getter private byte[] skin;
 
     public ProvidedSkin(String internalUrl) {
         try {
-            BufferedImage image = ImageIO.read(ProvidedSkin.class.getClassLoader().getResource(internalUrl));
+            BufferedImage image;
+            try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(internalUrl)) {
+                image = ImageIO.read(stream);
+            }
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream(image.getWidth() * 4 + image.getHeight() * 4);
-            try {
-                for (int y = 0; y < image.getHeight(); y++) {
-                    for (int x = 0; x < image.getWidth(); x++) {
-                        int rgba = image.getRGB(x, y);
-                        outputStream.write((rgba >> 16) & 0xFF); // Red
-                        outputStream.write((rgba >> 8) & 0xFF); // Green
-                        outputStream.write(rgba & 0xFF); // Blue
-                        outputStream.write((rgba >> 24) & 0xFF); // Alpha
-                    }
+            for (int y = 0; y < image.getHeight(); y++) {
+                for (int x = 0; x < image.getWidth(); x++) {
+                    int rgba = image.getRGB(x, y);
+                    outputStream.write((rgba >> 16) & 0xFF); // Red
+                    outputStream.write((rgba >> 8) & 0xFF); // Green
+                    outputStream.write(rgba & 0xFF); // Blue
+                    outputStream.write((rgba >> 24) & 0xFF); // Alpha
                 }
-                image.flush();
-                skin = outputStream.toByteArray();
-            } finally {
-                try {
-                    outputStream.close();
-                } catch (IOException ignored) {}
             }
+            image.flush();
+            skin = outputStream.toByteArray();
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -63,17 +63,21 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
+        GeyserLocale.init(this);
+
         if (!getDataFolder().exists())
             getDataFolder().mkdir();
 
         try {
             if (!getDataFolder().exists())
                 getDataFolder().mkdir();
-            File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
+            File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"),
+                    "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserBungeeConfiguration.class);
         } catch (IOException ex) {
-            getLogger().log(Level.WARNING, GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            getLogger().log(Level.SEVERE, GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
+            return;
         }
 
         if (getProxy().getConfig().getListeners().size() == 1) {

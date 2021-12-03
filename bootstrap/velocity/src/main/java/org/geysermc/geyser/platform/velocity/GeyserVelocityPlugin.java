@@ -83,16 +83,19 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
+        GeyserLocale.init(this);
+
         try {
             if (!configFolder.toFile().exists())
                 //noinspection ResultOfMethodCallIgnored
                 configFolder.toFile().mkdirs();
             File configFile = FileUtils.fileOrCopiedFromResource(configFolder.resolve("config.yml").toFile(),
-                    "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
+                    "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserVelocityConfiguration.class);
         } catch (IOException ex) {
-            logger.warn(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            logger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
+            return;
         }
 
         InetSocketAddress javaAddr = proxyServer.getBoundAddress();

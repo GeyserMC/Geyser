@@ -25,10 +25,9 @@
 
 package org.geysermc.geyser.util;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 
 import java.io.*;
@@ -58,26 +57,9 @@ public class FileUtils {
         return objectMapper.readValue(src, valueType);
     }
 
-    public static <T> T loadYaml(InputStream src, Class<T> valueType) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory()).enable(JsonParser.Feature.IGNORE_UNDEFINED).disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        return objectMapper.readValue(src, valueType);
-    }
-
     public static <T> T loadJson(InputStream src, Class<T> valueType) throws IOException {
         // Read specifically with UTF-8 to allow any non-UTF-encoded JSON to read
         return GeyserImpl.JSON_MAPPER.readValue(new InputStreamReader(src, StandardCharsets.UTF_8), valueType);
-    }
-
-    /**
-     * Open the specified file or copy if from resources
-     *
-     * @param name File and resource name
-     * @param fallback Formatting callback
-     * @return File handle of the specified file
-     * @throws IOException if the file failed to copy from resource
-     */
-    public static File fileOrCopiedFromResource(String name, Function<String, String> fallback) throws IOException {
-        return fileOrCopiedFromResource(new File(name), name, fallback);
     }
 
     /**
@@ -89,12 +71,12 @@ public class FileUtils {
      * @return File handle of the specified file
      * @throws IOException if the file failed to copy from resource
      */
-    public static File fileOrCopiedFromResource(File file, String name, Function<String, String> format) throws IOException {
+    public static File fileOrCopiedFromResource(File file, String name, Function<String, String> format, GeyserBootstrap bootstrap) throws IOException {
         if (!file.exists()) {
             //noinspection ResultOfMethodCallIgnored
             file.createNewFile();
             try (FileOutputStream fos = new FileOutputStream(file)) {
-                try (InputStream input = GeyserImpl.class.getResourceAsStream("/" + name)) { // resources need leading "/" prefix
+                try (InputStream input = bootstrap.getResource(name)) {
                     byte[] bytes = new byte[input.available()];
 
                     //noinspection ResultOfMethodCallIgnored
@@ -145,20 +127,6 @@ public class FileUtils {
     }
 
     /**
-     * Get an InputStream for the given resource path, throws AssertionError if resource is not found
-     *
-     * @param resource Resource to get
-     * @return InputStream of the given resource
-     */
-    public static InputStream getResource(String resource) {
-        InputStream stream = FileUtils.class.getClassLoader().getResourceAsStream(resource);
-        if (stream == null) {
-            throw new AssertionError("Unable to find resource: " + resource);
-        }
-        return stream;
-    }
-
-    /**
      * Calculate the SHA256 hash of a file
      *
      * @param file File to calculate the hash for
@@ -205,6 +173,18 @@ public class FileUtils {
             return readAllBytes(inputStream);
         } catch (IOException e) {
             throw new RuntimeException("Cannot read " + file);
+        }
+    }
+
+    /**
+     * @param resource the internal resource to read off from
+     * @return the byte array of an InputStream
+     */
+    public static byte[] readAllBytes(String resource) {
+        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(resource)) {
+            return readAllBytes(stream);
+        } catch (IOException e) {
+            throw new RuntimeException("Error while trying to read internal input stream!", e);
         }
     }
 
@@ -265,15 +245,18 @@ public class FileUtils {
      * @return a set of all the classes annotated by the given annotation
      */
     public static Set<Class<?>> getGeneratedClassesForAnnotation(String input) {
-        InputStream annotatedClass = FileUtils.getResource(input);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(annotatedClass));
-        return reader.lines().map(className -> {
-            try {
-                return Class.forName(className);
-            } catch (ClassNotFoundException ex) {
-                GeyserImpl.getInstance().getLogger().error("Failed to find class " + className, ex);
-                throw new RuntimeException(ex);
-            }
-        }).collect(Collectors.toSet());
+        try (InputStream annotatedClass = GeyserImpl.getInstance().getBootstrap().getResource(input);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(annotatedClass))) {
+            return reader.lines().map(className -> {
+                try {
+                    return Class.forName(className);
+                } catch (ClassNotFoundException ex) {
+                    GeyserImpl.getInstance().getLogger().error("Failed to find class " + className, ex);
+                    throw new RuntimeException(ex);
+                }
+            }).collect(Collectors.toSet());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -65,10 +65,8 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
         }
 
         // Load collision mappings file
-        InputStream stream = FileUtils.getResource(input.value());
-
         List<BoundingBox[]> collisionList;
-        try {
+        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(input.value())) {
             ArrayNode collisionNode = (ArrayNode) GeyserImpl.JSON_MAPPER.readTree(stream);
             collisionList = loadBoundingBoxes(collisionNode);
         } catch (Exception e) {

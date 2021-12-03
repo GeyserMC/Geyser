@@ -47,6 +47,7 @@ import org.geysermc.floodgate.util.FloodgateInfoHolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -78,9 +79,9 @@ public class DumpInfo {
     public DumpInfo(boolean addLog) {
         this.versionInfo = new VersionInfo();
 
-        try {
+        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource("git.properties")) {
             this.gitInfo = new Properties();
-            this.gitInfo.load(FileUtils.getResource("git.properties"));
+            this.gitInfo.load(stream);
         } catch (IOException ignored) {
         }
 

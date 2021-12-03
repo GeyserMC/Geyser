@@ -30,7 +30,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.util.FileUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,10 +44,10 @@ public class BiomeIdentifierRegistryLoader implements RegistryLoader<String, Obj
         // The server sends the corresponding Java network IDs, so we don't need to worry about that now.
 
         // Reference variable for Jackson to read off of
-        TypeReference<Map<String, BiomeEntry>> biomeEntriesType = new TypeReference<Map<String, BiomeEntry>>() { };
+        TypeReference<Map<String, BiomeEntry>> biomeEntriesType = new TypeReference<>() { };
         Map<String, BiomeEntry> biomeEntries;
 
-        try (InputStream stream = FileUtils.getResource("mappings/biomes.json")) {
+        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource("mappings/biomes.json")) {
             biomeEntries = GeyserImpl.JSON_MAPPER.readValue(stream, biomeEntriesType);
         } catch (IOException e) {
             throw new AssertionError("Unable to load Bedrock runtime biomes", e);

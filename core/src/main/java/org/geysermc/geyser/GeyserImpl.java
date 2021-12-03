@@ -70,6 +70,7 @@ import org.geysermc.geyser.util.*;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -138,6 +139,8 @@ public class GeyserImpl implements GeyserApi {
         GeyserConfiguration config = bootstrap.getGeyserConfig();
 
         this.platformType = platformType;
+
+        GeyserLocale.finalizeDefaultLocale(this);
 
         logger.info("******************************************");
         logger.info("");
@@ -214,9 +217,9 @@ public class GeyserImpl implements GeyserApi {
         String branch = "unknown";
         int buildNumber = -1;
         if (this.productionEnvironment()) {
-            try {
+            try (InputStream stream = bootstrap.getResource("git.properties")) {
                 Properties gitProperties = new Properties();
-                gitProperties.load(FileUtils.getResource("git.properties"));
+                gitProperties.load(stream);
                 branch = gitProperties.getProperty("git.branch");
                 String build = gitProperties.getProperty("git.build.number");
                 if (build != null) {
