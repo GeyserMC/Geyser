@@ -39,7 +39,7 @@ import java.util.StringJoiner;
 /**
  * Contains information about the supported protocols in Geyser.
  */
-public class MinecraftProtocol {
+public final class MinecraftProtocol {
     /**
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
@@ -113,5 +113,8 @@ public class MinecraftProtocol {
         }
 
         return joiner.toString();
+    }
+
+    private MinecraftProtocol() {
     }
 }

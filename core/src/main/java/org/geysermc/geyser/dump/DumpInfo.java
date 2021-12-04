@@ -66,6 +66,7 @@ public class DumpInfo {
     private static final long MEGABYTE = 1024L * 1024L;
 
     private final DumpInfo.VersionInfo versionInfo;
+    private final int cpuCount;
     private Properties gitInfo;
     private final GeyserConfiguration config;
     private final Floodgate floodgate;
@@ -78,6 +79,8 @@ public class DumpInfo {
 
     public DumpInfo(boolean addLog) {
         this.versionInfo = new VersionInfo();
+
+        this.cpuCount = Runtime.getRuntime().availableProcessors();
 
         try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource("git.properties")) {
             this.gitInfo = new Properties();
