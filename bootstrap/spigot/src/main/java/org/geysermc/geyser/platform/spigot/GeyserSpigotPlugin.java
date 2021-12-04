@@ -240,7 +240,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         }
 
         this.geyserCommandManager = new GeyserSpigotCommandManager(geyser);
-        this.getCommand("geyser").setExecutor(new GeyserSpigotCommandExecutor(this.geyserCommandManager));
+        this.getCommand("geyser").setExecutor(new GeyserSpigotCommandExecutor(geyserCommandManager));
     }
 
     @Override
