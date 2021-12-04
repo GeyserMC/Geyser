@@ -26,7 +26,6 @@
 package org.geysermc.geyser.command;
 
 import lombok.AllArgsConstructor;
-import lombok.Setter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -42,12 +41,15 @@ import java.util.Objects;
 @AllArgsConstructor
 public class CommandExecutor {
 
-    @Setter
     protected CommandManager commandManager;
+
+    public void setCommandManager(@Nonnull CommandManager commandManager) {
+        this.commandManager = Objects.requireNonNull(commandManager);
+    }
 
     @Nullable
     public GeyserCommand getCommand(String label) {
-        return Objects.requireNonNull(commandManager).getCommands().get(label);
+        return commandManager.getCommands().get(label);
     }
 
     /**

@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.platform.sponge;
 
-import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.network.MinecraftProtocol;
+import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.spongepowered.api.MinecraftVersion;
