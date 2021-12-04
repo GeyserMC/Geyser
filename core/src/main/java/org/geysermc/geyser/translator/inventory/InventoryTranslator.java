@@ -65,7 +65,7 @@ import java.util.*;
 public abstract class InventoryTranslator {
 
     public static final InventoryTranslator PLAYER_INVENTORY_TRANSLATOR = new PlayerInventoryTranslator();
-    public static final Map<ContainerType, InventoryTranslator> INVENTORY_TRANSLATORS = new HashMap<>() {
+    public static final Map<ContainerType, InventoryTranslator> INVENTORY_TRANSLATORS = new EnumMap<>(ContainerType.class) {
         {
             /* Player Inventory */
             put(null, PLAYER_INVENTORY_TRANSLATOR);
