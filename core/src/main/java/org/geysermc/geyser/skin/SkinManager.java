@@ -240,7 +240,12 @@ public class SkinManager {
                     // Likely offline mode
                     return loadBedrockOrOfflineSkin(profile);
                 }
-                return loadFromJson(skinProperty.getValue());
+                GameProfileData data = loadFromJson(skinProperty.getValue());
+                if (data != null) {
+                    return data;
+                } else {
+                    return loadBedrockOrOfflineSkin(profile);
+                }
             } catch (IOException exception) {
                 GeyserImpl.getInstance().getLogger().debug("Something went wrong while processing skin for " + profile.getName());
                 if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
@@ -254,18 +259,21 @@ public class SkinManager {
             JsonNode skinObject = GeyserImpl.JSON_MAPPER.readTree(new String(Base64.getDecoder().decode(encodedJson), StandardCharsets.UTF_8));
             JsonNode textures = skinObject.get("textures");
 
-            JsonNode skinTexture = textures.get("SKIN");
-            String skinUrl = skinTexture.get("url").asText().replace("http://", "https://");
+            if (textures != null) {
+                JsonNode skinTexture = textures.get("SKIN");
+                String skinUrl = skinTexture.get("url").asText().replace("http://", "https://");
 
-            boolean isAlex = skinTexture.has("metadata");
+                boolean isAlex = skinTexture.has("metadata");
 
-            String capeUrl = null;
-            JsonNode capeTexture = textures.get("CAPE");
-            if (capeTexture != null) {
-                capeUrl = capeTexture.get("url").asText().replace("http://", "https://");
+                String capeUrl = null;
+                JsonNode capeTexture = textures.get("CAPE");
+                if (capeTexture != null) {
+                    capeUrl = capeTexture.get("url").asText().replace("http://", "https://");
+                }
+
+                return new GameProfileData(skinUrl, capeUrl, isAlex);
             }
-
-            return new GameProfileData(skinUrl, capeUrl, isAlex);
+            return null;
         }
 
         /**
