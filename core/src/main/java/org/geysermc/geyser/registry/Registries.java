@@ -166,11 +166,6 @@ public final class Registries {
      */
     public static final SimpleMappedRegistry<SoundTranslator, SoundInteractionTranslator<?>> SOUND_TRANSLATORS = SimpleMappedRegistry.create("org.geysermc.geyser.translator.sound.SoundTranslator", SoundTranslatorRegistryLoader::new);
 
-    /**
-     * A mapped registry holding a formatter function for each {@link CustomStatistic}
-     */
-    public static final SimpleMappedRegistry<CustomStatistic, IntFunction<String>> STATISTIC_FORMATS = SimpleMappedRegistry.create("mappings/statistics.json", StatisticsFormatsRegistryLoader::new);
-
     public static void init() {
         // no-op
     }

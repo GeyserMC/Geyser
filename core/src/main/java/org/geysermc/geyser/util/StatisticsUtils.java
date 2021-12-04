@@ -26,12 +26,8 @@
 package org.geysermc.geyser.util;
 
 import com.github.steveice10.mc.protocol.data.game.statistic.*;
-import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.cumulus.SimpleForm;
 import org.geysermc.cumulus.response.SimpleFormResponse;
@@ -92,7 +88,7 @@ public class StatisticsUtils {
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
                                         if (entry.getKey() instanceof CustomStatistic statistic) {
                                             String statName = statistic.name().toLowerCase(Locale.ROOT);
-                                            IntFunction<String> formatter = Registries.STATISTIC_FORMATS.getOrDefault(statistic, StatisticFormatters.DEFAULT);
+                                            IntFunction<String> formatter = StatisticFormatters.get(statistic.getFormat());
                                             content.add("stat.minecraft." + statName + ": " + formatter.apply(entry.getValue()));
                                         }
                                     }

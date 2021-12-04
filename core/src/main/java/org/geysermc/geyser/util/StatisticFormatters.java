@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.util;
 
+import com.github.steveice10.mc.protocol.data.game.statistic.StatisticFormat;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import java.text.DecimalFormat;
@@ -35,15 +36,15 @@ import java.util.function.IntFunction;
 
 public class StatisticFormatters {
 
-    private static final Map<String, IntFunction<String>> FORMATTERS = new Object2ObjectOpenHashMap<>();
+    private static final Map<StatisticFormat, IntFunction<String>> FORMATTERS = new Object2ObjectOpenHashMap<>();
     private static final DecimalFormat FORMAT = new DecimalFormat("###,###,##0.00");
 
-    public static final IntFunction<String> DEFAULT = NumberFormat.getIntegerInstance(Locale.US)::format;
+    public static final IntFunction<String> INTEGER = NumberFormat.getIntegerInstance(Locale.US)::format;
 
     static {
-        FORMATTERS.put("default", DEFAULT);
-        FORMATTERS.put("divide_by_ten", value -> FORMAT.format(value / 10d));
-        FORMATTERS.put("distance", centimeter -> {
+        FORMATTERS.put(StatisticFormat.INTEGER, INTEGER);
+        FORMATTERS.put(StatisticFormat.TENTHS, value -> FORMAT.format(value / 10d));
+        FORMATTERS.put(StatisticFormat.DISTANCE, centimeter -> {
             double meter = centimeter / 100d;
             double kilometer = meter / 1000d;
             if (kilometer > 0.5) {
@@ -54,7 +55,7 @@ public class StatisticFormatters {
                 return centimeter + " cm";
             }
         });
-        FORMATTERS.put("time", ticks -> {
+        FORMATTERS.put(StatisticFormat.TIME, ticks -> {
             double seconds = ticks / 20d;
             double minutes = seconds / 60d;
             double hours = minutes / 60d;
@@ -74,7 +75,7 @@ public class StatisticFormatters {
         });
     }
 
-    public static IntFunction<String> get(String formatter) {
-        return FORMATTERS.getOrDefault(formatter, DEFAULT);
+    public static IntFunction<String> get(StatisticFormat format) {
+        return FORMATTERS.getOrDefault(format, INTEGER);
     }
 }
