@@ -1,6 +1,6 @@
-[submodule "connector/src/main/resources/mappings"]
-	path = connector/src/main/resources/mappings
+[submodule "core/src/main/resources/mappings"]
+	path = core/src/main/resources/mappings
 	url = https://github.com/GeyserMC/mappings.git
-[submodule "connector/src/main/resources/languages"]
-	path = connector/src/main/resources/languages
+[submodule "core/src/main/resources/languages"]
+	path = core/src/main/resources/languages
 	url = https://github.com/GeyserMC/languages.git

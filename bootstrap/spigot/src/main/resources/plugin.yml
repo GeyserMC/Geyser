@@ -1,4 +1,4 @@
-main: org.geysermc.platform.spigot.GeyserSpigotPlugin
+main: org.geysermc.geyser.platform.spigot.GeyserSpigotPlugin
 name: ${outputName}-Spigot
 author: ${project.organization.name}
 website: ${project.organization.url}
@@ -18,6 +18,9 @@ permissions:
     default: true
   geyser.command.advancements:
     description: Shows the advancements of the player on the server.
+    default: true
+  geyser.command.tooltips:
+    description: Toggles showing advanced tooltips on your items.
     default: true
   geyser.command.statistics:
     description: Shows the statistics of the player on the server.
