@@ -26,11 +26,10 @@
 package org.geysermc.geyser.platform.sponge.command;
 
 import lombok.AllArgsConstructor;
-
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.geysermc.geyser.command.CommandSender;
-import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.source.ConsoleSource;
-import org.spongepowered.api.text.Text;
+import org.spongepowered.api.command.CommandCause;
+import org.spongepowered.api.entity.living.player.server.ServerPlayer;
 
 @AllArgsConstructor
 public class SpongeCommandSender implements CommandSender {

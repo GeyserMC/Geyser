@@ -39,7 +39,6 @@ import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandExecutor;
 import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandManager;
-import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.config.ConfigDir;
@@ -102,9 +101,9 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     @Override
     public void onDisable() {
         enabled = false;
-        if (connector != null) {
-            connector.shutdown();
-            connector = null;
+        if (geyser != null) {
+            geyser.shutdown();
+            geyser = null;
         }
     }
 
@@ -193,7 +192,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         this.geyser = GeyserImpl.start(PlatformType.SPONGE, this);
 
         if (geyserConfig.isLegacyPingPassthrough()) {
-            this.geyserSpongePingPassthrough = GeyserLegacyPingPassthrough.init(connector);
+            this.geyserSpongePingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
         } else {
             this.geyserSpongePingPassthrough = new GeyserSpongePingPassthrough();
         }

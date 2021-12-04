@@ -26,8 +26,8 @@
 package org.geysermc.geyser.platform.velocity.command;
 
 import com.velocitypowered.api.command.SimpleCommand;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandExecutor;
+import org.geysermc.geyser.command.CommandManager;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.text.ChatColor;
@@ -62,7 +62,7 @@ public class GeyserVelocityCommandExecutor extends CommandExecutor implements Si
                 }
                 command.execute(session, sender, invocation.arguments().length > 1 ? Arrays.copyOfRange(invocation.arguments(), 1, invocation.arguments().length) : new String[0]);
             } else {
-                sender.sendMessage(ChatColor.RED + LanguageUtils.getPlayerLocaleString("geyser.bootstrap.command.not_found", sender.getLocale()));
+                sender.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.not_found", sender.getLocale()));
             }
         } else {
             getCommand("help").execute(session, sender, new String[0]);

@@ -26,7 +26,7 @@
 package org.geysermc.geyser.command;
 
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.session.GeyserSession;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
 
@@ -72,8 +72,8 @@ public interface CommandSender {
 
     /**
      * Attempt to find the corresponding {@link GeyserSession} of this {@link CommandSender}. Returns null if the Commandsender is console.
-     * Will only return a session if {@link GeyserConnector#getInstance()} does not return null,
-     * and {@link CommandSender#getName()} equals the username of a session.
+     * Will only return a session if {@link GeyserImpl#getInstance()} does not return null,
+     * and {@link CommandSender#name()} equals the username of a session.
      *
      * @return The corresponding GeyserSession, if it exists
      */
@@ -89,7 +89,7 @@ public interface CommandSender {
         }
 
         for (GeyserSession session : geyser.getSessionManager().getSessions().values()) {
-            if (getName().equals(session.getPlayerEntity().getUsername())) {
+            if (name().equals(session.getPlayerEntity().getUsername())) {
                 return session;
             }
         }

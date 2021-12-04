@@ -44,8 +44,8 @@ public abstract class CommandManager {
     private final GeyserLogger logger;
 
     /**
-     * Create a command manager to manage and run all the default commands. This constructor does not use {@link GeyserConnector},
-     * and consequently the default commands will not be registered. They must be registered at a later time with {@link CommandManager#registerDefaults(GeyserConnector)}
+     * Create a command manager to manage and run all the default commands. This constructor does not use {@link GeyserImpl},
+     * and consequently the default commands will not be registered. They must be registered at a later time with {@link CommandManager#registerDefaults(GeyserImpl)}
      *
      * @param logger The logger to use for console messages
      */
@@ -77,7 +77,7 @@ public abstract class CommandManager {
 
     public void registerCommand(GeyserCommand command) {
         commands.put(command.getName(), command);
-        logger.debug(LanguageUtils.getLocaleStringLog("geyser.commands.registered", command.getName()));
+        logger.debug(GeyserLocale.getLocaleStringLog("geyser.commands.registered", command.getName()));
 
         if (command.getAliases().isEmpty())
             return;
@@ -105,7 +105,7 @@ public abstract class CommandManager {
 
         GeyserCommand cmd = commands.get(label);
         if (cmd == null) {
-            logger.error(LanguageUtils.getLocaleStringLog("geyser.commands.invalid"));
+            logger.error(GeyserLocale.getLocaleStringLog("geyser.commands.invalid"));
             return;
         }
 
@@ -115,7 +115,7 @@ public abstract class CommandManager {
             if (!cmd.isBedrockOnly()) {
                 cmd.execute(null, sender, args);
             } else {
-                logger.error(LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.bedrock_only"));
+                logger.error(GeyserLocale.getLocaleStringLog("geyser.bootstrap.command.bedrock_only"));
             }
         }
     }

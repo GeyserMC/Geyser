@@ -25,20 +25,21 @@
 
 package org.geysermc.geyser.platform.sponge.command;
 
-import org.geysermc.geyser.GeyserImpl;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.geyser.command.CommandExecutor;
+import org.geysermc.geyser.command.CommandManager;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.jetbrains.annotations.NotNull;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.command.CommandCause;
 import org.spongepowered.api.command.CommandCompletion;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.parameter.ArgumentReader;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -47,8 +48,8 @@ import java.util.stream.Collectors;
 
 public class GeyserSpongeCommandExecutor extends CommandExecutor implements Command.Raw {
 
-    public GeyserSpongeCommandExecutor(GeyserImpl geyser) {
-        super(geyser);
+    public GeyserSpongeCommandExecutor(CommandManager commandManager) {
+        super(commandManager);
     }
 
     @Override
@@ -71,7 +72,7 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
                 }
                 command.execute(session, commandSender, args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : new String[0]);
             } else {
-                cause.audience().sendMessage(Component.text(LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.not_found")).color(NamedTextColor.RED));
+                cause.audience().sendMessage(Component.text(GeyserLocale.getLocaleStringLog("geyser.bootstrap.command.not_found")).color(NamedTextColor.RED));
             }
         } else {
             // Try to send help command
@@ -80,7 +81,7 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
                 // When connector has been shutdown, the command manager is cleared.
                 // If it is shutdown to do a geyser reload, and the reload fails, then the command manager will remain empty and it
                 // will not be replaced within sponge-registered executor.
-                cause.audience().sendMessage(Component.text(LanguageUtils.getLocaleStringLog("geyser.bootstrap.command.not_found")).color(NamedTextColor.RED));
+                cause.audience().sendMessage(Component.text(GeyserLocale.getLocaleStringLog("geyser.bootstrap.command.not_found")).color(NamedTextColor.RED));
             } else {
                 help.execute(session, commandSender, new String[0]);
             }

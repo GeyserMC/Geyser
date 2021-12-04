@@ -23,31 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.bungeecord.command;
+package org.geysermc.geyser.platform.bungeecord.command;
 
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
-import org.geysermc.connector.GeyserConnector;
-import org.geysermc.connector.command.CommandExecutor;
-import org.geysermc.connector.command.GeyserCommand;
-import org.geysermc.connector.network.session.GeyserSession;
-import org.geysermc.connector.utils.LanguageUtils;
+import org.geysermc.geyser.command.CommandExecutor;
+import org.geysermc.geyser.command.CommandManager;
+import org.geysermc.geyser.command.GeyserCommand;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 
 public class GeyserBungeeCommandExecutor extends Command implements TabExecutor {
 
     private final CommandExecutor commandExecutor;
-    private final GeyserConnector connector;
 
-    public GeyserBungeeCommandExecutor(GeyserImpl geyser) {
+    public GeyserBungeeCommandExecutor(CommandManager commandManager) {
         super("geyser");
 
-        this.commandExecutor = new CommandExecutor(geyser);
+        this.commandExecutor = new CommandExecutor(commandManager);
     }
 
     @Override

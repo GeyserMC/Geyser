@@ -29,11 +29,12 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandExecutor;
+import org.geysermc.geyser.command.CommandManager;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,12 +42,12 @@ import java.util.List;
 
 public class GeyserSpigotCommandExecutor extends CommandExecutor implements TabExecutor {
 
-    public GeyserSpigotCommandExecutor(GeyserImpl geyser) {
-        super(geyser);
+    public GeyserSpigotCommandExecutor(CommandManager commandManager) {
+        super(commandManager);
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         SpigotCommandSender commandSender = new SpigotCommandSender(sender);
         GeyserSession session = commandSender.asGeyserSession();
 
@@ -78,7 +79,7 @@ public class GeyserSpigotCommandExecutor extends CommandExecutor implements TabE
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         if (args.length == 1) {
             return tabComplete(new SpigotCommandSender(sender));
         }
