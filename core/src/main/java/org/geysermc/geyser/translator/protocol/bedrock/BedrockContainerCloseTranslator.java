@@ -32,6 +32,7 @@ import org.geysermc.geyser.inventory.MerchantContainer;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.translator.protocol.java.inventory.JavaMerchantOffersTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
 
 @Translator(packet = ContainerClosePacket.class)
@@ -59,6 +60,13 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
             } else if (openInventory.isPending()) {
                 InventoryUtils.displayInventory(session, openInventory);
                 openInventory.setPending(false);
+
+                if(openInventory instanceof MerchantContainer) {
+                    Runnable runnable = JavaMerchantOffersTranslator.QUEUED_ACTIONS.getIfPresent(openInventory.getId());
+                    if(runnable == null)
+                        return;
+                    runnable.run();
+                }
             }
         }
     }
