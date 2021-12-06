@@ -61,7 +61,7 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
                 InventoryUtils.displayInventory(session, openInventory);
                 openInventory.setPending(false);
 
-                if(openInventory instanceof MerchantContainer merchantContainer && merchantContainer.getPendingOffersPacket() != null) {
+                if (openInventory instanceof MerchantContainer merchantContainer && merchantContainer.getPendingOffersPacket() != null) {
                     JavaMerchantOffersTranslator.openMerchant(session, merchantContainer.getPendingOffersPacket(), merchantContainer);
                 }
             }

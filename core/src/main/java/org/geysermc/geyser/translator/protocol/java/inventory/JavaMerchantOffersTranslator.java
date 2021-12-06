@@ -58,7 +58,7 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
         }
 
         // No previous inventory was closed -> no need of queuing the merchant inventory
-        if(!openInventory.isPending()) {
+        if (!openInventory.isPending()) {
             openMerchant(session, packet, merchantInventory);
             return;
         }
