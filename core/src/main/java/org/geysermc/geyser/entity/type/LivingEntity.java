@@ -255,8 +255,13 @@ public class LivingEntity extends Entity {
         if (javaAttribute.getType() instanceof AttributeType.Builtin type) {
             switch (type) {
                 case GENERIC_MAX_HEALTH -> {
-                    this.maxHealth = (float) AttributeUtils.calculateValue(javaAttribute);
-                    newAttributes.add(createHealthAttribute());
+                    float maxHealth = (float) AttributeUtils.calculateValue(javaAttribute);
+                    if (this.maxHealth != maxHealth) {
+                        // Helps prnt respawn bugs where the player respawns twice
+                        // Because we re-sent the health attribute as 0
+                        this.maxHealth = maxHealth;
+                        newAttributes.add(createHealthAttribute());
+                    }
                 }
                 case GENERIC_ATTACK_DAMAGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.ATTACK_DAMAGE));
                 case GENERIC_FLYING_SPEED -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED));

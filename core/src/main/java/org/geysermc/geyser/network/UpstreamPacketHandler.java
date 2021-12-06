@@ -91,6 +91,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         LoginEncryptionUtils.encryptPlayerConnection(session, loginPacket);
 
+        if (session.isClosed()) {
+            // Can happen if Xbox validation fails
+            return true;
+        }
+
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
         session.sendUpstreamPacket(playStatus);

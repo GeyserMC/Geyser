@@ -40,15 +40,13 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.BlockUtils;
-
-import java.util.ArrayList;
 
 @Translator(packet = PlayerActionPacket.class)
 public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket> {
@@ -63,7 +61,6 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
         }
 
         Vector3i vector = packet.getBlockPosition();
-        Position position = new Position(vector.getX(), vector.getY(), vector.getZ());
 
         switch (packet.getAction()) {
             case RESPAWN:
@@ -76,7 +73,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 // Resend attributes or else in rare cases the user can think they're not dead when they are, upon joining the server
                 UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
                 attributesPacket.setRuntimeEntityId(entity.getGeyserId());
-                attributesPacket.setAttributes(new ArrayList<>(entity.getAttributes().values()));
+                attributesPacket.getAttributes().addAll(entity.getAttributes().values());
                 session.sendUpstreamPacket(attributesPacket);
                 break;
             case START_SWIMMING:
@@ -147,6 +144,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.setSprinting(false);
                 break;
             case DROP_ITEM:
+                Position position = new Position(vector.getX(), vector.getY(), vector.getZ());
                 ServerboundPlayerActionPacket dropItemPacket = new ServerboundPlayerActionPacket(PlayerAction.DROP_ITEM, position, Direction.VALUES[packet.getFace()]);
                 session.sendDownstreamPacket(dropItemPacket);
                 break;
@@ -176,7 +174,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 }
 
                 // Account for fire - the client likes to hit the block behind.
-                Vector3i fireBlockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getFace());
+                Vector3i fireBlockPos = BlockUtils.getBlockPosition(vector, packet.getFace());
                 int blockUp = session.getGeyser().getWorldManager().getBlockAt(session, fireBlockPos);
                 String identifier = BlockRegistries.JAVA_IDENTIFIERS.get().get(blockUp);
                 if (identifier.startsWith("minecraft:fire") || identifier.startsWith("minecraft:soul_fire")) {
@@ -188,6 +186,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                     }
                 }
 
+                position = new Position(vector.getX(), vector.getY(), vector.getZ());
                 ServerboundPlayerActionPacket startBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, position, Direction.VALUES[packet.getFace()]);
                 session.sendDownstreamPacket(startBreakingPacket);
                 break;
@@ -214,7 +213,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 if (session.getGameMode() != GameMode.CREATIVE) {
                     // As of 1.16.210: item frame items are taken out here.
                     // Survival also sends START_BREAK, but by attaching our process here adventure mode also works
-                    Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
+                    Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, vector);
                     if (itemFrameEntity != null) {
                         ServerboundInteractPacket interactPacket = new ServerboundInteractPacket((int) itemFrameEntity.getEntityId(),
                                 InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
@@ -223,6 +222,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                     }
                 }
 
+                position = new Position(vector.getX(), vector.getY(), vector.getZ());
                 ServerboundPlayerActionPacket abortBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.CANCEL_DIGGING, position, Direction.DOWN);
                 session.sendDownstreamPacket(abortBreakingPacket);
                 LevelEventPacket stopBreak = new LevelEventPacket();
@@ -243,7 +243,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
 
                 attributesPacket = new UpdateAttributesPacket();
                 attributesPacket.setRuntimeEntityId(entity.getGeyserId());
-                attributesPacket.setAttributes(new ArrayList<>(entity.getAttributes().values()));
+                attributesPacket.getAttributes().addAll(entity.getAttributes().values());
                 session.sendUpstreamPacket(attributesPacket);
 
                 session.getEntityCache().updateBossBars();
