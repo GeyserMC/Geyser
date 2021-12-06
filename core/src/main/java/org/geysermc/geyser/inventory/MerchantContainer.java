@@ -27,6 +27,7 @@ package org.geysermc.geyser.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.inventory.VillagerTrade;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundMerchantOffersPacket;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.entity.type.Entity;
@@ -36,6 +37,7 @@ import org.geysermc.geyser.entity.type.Entity;
 public class MerchantContainer extends Container {
     private Entity villager;
     private VillagerTrade[] villagerTrades;
+    private ClientboundMerchantOffersPacket pendingOffersPacket;
 
     public MerchantContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
         super(title, id, size, containerType, playerInventory);
