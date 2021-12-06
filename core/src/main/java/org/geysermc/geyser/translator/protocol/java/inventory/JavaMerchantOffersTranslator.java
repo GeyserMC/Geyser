@@ -28,8 +28,6 @@ package org.geysermc.geyser.translator.protocol.java.inventory;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.inventory.VillagerTrade;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundMerchantOffersPacket;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
@@ -48,14 +46,9 @@ import org.geysermc.geyser.translator.protocol.Translator;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Translator(packet = ClientboundMerchantOffersPacket.class)
 public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMerchantOffersPacket> {
-
-    public static Cache<Integer, Runnable> QUEUED_ACTIONS = CacheBuilder.newBuilder()
-            .expireAfterWrite(5, TimeUnit.SECONDS)
-            .build();
 
     @Override
     public void translate(GeyserSession session, ClientboundMerchantOffersPacket packet) {
@@ -66,16 +59,16 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
 
         // No previous inventory was closed -> no need of queuing the merchant inventory
         if(!openInventory.isPending()) {
-            this.openMerchant(session, packet, merchantInventory);
+            openMerchant(session, packet, merchantInventory);
             return;
         }
 
         // The inventory is declared as pending due to previous closing inventory -> leads to an incorrect order of execution
         // Handled in BedrockContainerCloseTranslator
-        QUEUED_ACTIONS.put(openInventory.getId(), () -> this.openMerchant(session, packet, merchantInventory));
+        merchantInventory.setPendingOffersPacket(packet);
     }
 
-    private void openMerchant(GeyserSession session, ClientboundMerchantOffersPacket packet, MerchantContainer merchantInventory) {
+    public static void openMerchant(GeyserSession session, ClientboundMerchantOffersPacket packet, MerchantContainer merchantInventory) {
         // Retrieve the fake villager involved in the trade, and update its metadata to match with the window information
         merchantInventory.setVillagerTrades(packet.getTrades());
         Entity villager = merchantInventory.getVillager();
@@ -151,7 +144,7 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
         session.sendUpstreamPacket(updateTradePacket);
     }
 
-    private NbtMap getItemTag(GeyserSession session, ItemStack stack, int specialPrice) {
+    private static NbtMap getItemTag(GeyserSession session, ItemStack stack, int specialPrice) {
         ItemData itemData = ItemTranslator.translateToBedrock(session, stack);
         ItemMapping mapping = session.getItemMappings().getMapping(stack);
 
