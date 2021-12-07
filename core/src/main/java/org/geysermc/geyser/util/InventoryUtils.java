@@ -66,9 +66,10 @@ public class InventoryUtils {
 
     public static void openInventory(GeyserSession session, Inventory inventory) {
         session.setOpenInventory(inventory);
-        if (session.isClosingInventory()) {
-            //Wait for close confirmation from client before opening the new inventory.
-            //Handled in BedrockContainerCloseTranslator
+        if (session.isClosingInventory() || !session.getUpstream().isInitialized()) {
+            // Wait for close confirmation from client before opening the new inventory.
+            // Handled in BedrockContainerCloseTranslator
+            // or - client hasn't yet loaded in; wait until inventory is shown
             inventory.setPending(true);
             return;
         }
