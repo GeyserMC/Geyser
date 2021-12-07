@@ -281,7 +281,7 @@ public class BlockRegistryPopulator {
             String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(entry.getKey());
             String bedrockIdentifier = entry.getValue().get("bedrock_identifier").asText();
 
-            if (cleanIdentifiers.isEmpty() || !cleanIdentifiers.peekLast().equals(cleanJavaIdentifier)) {
+            if (!cleanJavaIdentifier.equals(cleanIdentifiers.peekLast())) {
                 uniqueJavaId++;
                 cleanIdentifiers.add(cleanJavaIdentifier.intern());
             }
