@@ -41,28 +41,28 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-public class PendingMicrosoftAuth {
-    private final LoadingCache<String, PendingAuthentication> authentications;
+public class PendingMicrosoftAuthentication {
+    private final LoadingCache<String, AuthenticationTask> authentications;
 
-    public PendingMicrosoftAuth(int timeoutSeconds) {
+    public PendingMicrosoftAuthentication(int timeoutSeconds) {
         this.authentications = CacheBuilder.newBuilder()
                 .expireAfterWrite(Duration.ofSeconds(timeoutSeconds))
                 .build(new CacheLoader<>() {
                     @Override
-                    public PendingAuthentication load(@NonNull String userKey) {
-                        return new PendingAuthentication(userKey, timeoutSeconds * 1000L);
+                    public AuthenticationTask load(@NonNull String userKey) {
+                        return new AuthenticationTask(userKey, timeoutSeconds * 1000L);
                     }
                 });
     }
 
     @SneakyThrows(ExecutionException.class)
-    public PendingAuthentication queryOrMakePendingAuthentication(GeyserSession session) {
+    public AuthenticationTask queryOrCreatePendingTask(GeyserSession session) {
         return authentications.get(
                 Objects.requireNonNull(session.getAuthData(), "authData").xuid()
         );
     }
 
-    public static class PendingAuthentication {
+    public static class AuthenticationTask {
         private final MsaAuthenticationService msaAuthenticationService =
                 new MsaAuthenticationService(GeyserImpl.OAUTH_CLIENT_ID);
 
@@ -71,7 +71,7 @@ public class PendingMicrosoftAuth {
         private final CompletableFuture<MsaAuthenticationService> auth;
         private final long timeoutMs;
 
-        private PendingAuthentication(String userKey, long timeoutMs) {
+        private AuthenticationTask(String userKey, long timeoutMs) {
             this.userKey = userKey;
             this.timeoutMs = timeoutMs;
 
@@ -122,7 +122,7 @@ public class PendingMicrosoftAuth {
 
         @Override
         public String toString() {
-            return "PendingAuthentication{" +
+            return getClass().getSimpleName() + "{" +
                     "userKey='" + userKey + '\'' +
                     '}';
         }

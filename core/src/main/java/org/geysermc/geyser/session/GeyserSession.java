@@ -669,7 +669,8 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         });
     }
 
-    private static final PendingMicrosoftAuth pendingMicrosoftAuth = new PendingMicrosoftAuth(120);
+    private static final PendingMicrosoftAuthentication PENDING_MICROSOFT_AUTHENTICATION =
+            new PendingMicrosoftAuthentication(120);
 
     /**
      * Present a form window to the user asking to log in with another web browser
@@ -687,28 +688,28 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         packet.setTime(16000);
         sendUpstreamPacket(packet);
 
-        PendingMicrosoftAuth.PendingAuthentication pendingAuthentication =
-                pendingMicrosoftAuth.queryOrMakePendingAuthentication(this);
+        PendingMicrosoftAuthentication.AuthenticationTask authenticationTask =
+                PENDING_MICROSOFT_AUTHENTICATION.queryOrCreatePendingTask(this);
 
-        pendingAuthentication.getCode().whenComplete((response, ex) -> {
+        authenticationTask.getCode().whenComplete((response, ex) -> {
             if (ex != null) {
                 ex.printStackTrace();
                 disconnect(ex.toString());
                 return;
             }
             LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
-            attemptCodeAuthentication(pendingAuthentication);
+            attemptCodeAuthentication(authenticationTask);
         });
     }
 
     /**
      * Poll every second to see if the user has successfully signed in
      */
-    private void attemptCodeAuthentication(PendingMicrosoftAuth.PendingAuthentication pendingAuthentication) {
+    private void attemptCodeAuthentication(PendingMicrosoftAuthentication.AuthenticationTask authenticationTask) {
         if (loggedIn || closed) {
             return;
         }
-        pendingAuthentication.getAuthentication().whenComplete((msaAuthenticationService, ex) -> {
+        authenticationTask.getAuthentication().whenComplete((msaAuthenticationService, ex) -> {
             if (ex != null) {
                 geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
                 disconnect(ex.toString());
