@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.session;
 
+import com.github.steveice10.mc.auth.exception.request.AuthPendingException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.auth.service.MsaAuthenticationService;
 import com.google.common.cache.CacheBuilder;
@@ -104,7 +105,7 @@ public class PendingMicrosoftAuthentication {
                 while (true) {
                     try {
                         msaAuthenticationService.login();
-                    } catch (RequestException ignored) {
+                    } catch (AuthPendingException e) {
                         long deltaTime = System.currentTimeMillis() - startTime;
                         if(deltaTime > timeoutMs) {
                             throw new TimeoutException();
