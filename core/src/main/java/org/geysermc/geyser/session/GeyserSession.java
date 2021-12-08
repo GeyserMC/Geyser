@@ -691,14 +691,16 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         final PendingMicrosoftAuthentication.AuthenticationTask task =
                 PENDING_MICROSOFT_AUTHENTICATION.getOrCreateTask(this);
 
-        task.getCode().whenComplete((response, ex) -> {
-            if (ex != null) {
-                ex.printStackTrace();
-                disconnect(ex.toString());
-            } else {
-                LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
-            }
-        });
+        if(!task.getAuthentication().isDone()) {
+            task.getCode().whenComplete((response, ex) -> {
+                if (ex != null) {
+                    ex.printStackTrace();
+                    disconnect(ex.toString());
+                } else {
+                    LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
+                }
+            });
+        }
         task.getAuthentication().whenComplete((msaAuthenticationService, ex) -> {
             if (ex != null) {
                 geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
