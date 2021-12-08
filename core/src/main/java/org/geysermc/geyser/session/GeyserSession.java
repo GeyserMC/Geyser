@@ -704,11 +704,19 @@ public class GeyserSession implements GeyserConnection, CommandSender {
                 geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
                 disconnect(ex.toString());
             } else if (!closed) {
-                this.protocol = new MinecraftProtocol(
-                        msaAuthenticationService.getSelectedProfile(),
-                        msaAuthenticationService.getAccessToken()
-                );
-                connectDownstream();
+                GameProfile selectedProfile = msaAuthenticationService.getSelectedProfile();
+                if(selectedProfile == null) {
+                    disconnect(GeyserLocale.getPlayerLocaleString(
+                            "geyser.network.remote.invalid_account",
+                            clientData.getLanguageCode()
+                    ));
+                } else {
+                    this.protocol = new MinecraftProtocol(
+                            selectedProfile,
+                            msaAuthenticationService.getAccessToken()
+                    );
+                    connectDownstream();
+                }
             }
         });
     }
