@@ -31,8 +31,11 @@ import com.github.steveice10.mc.auth.service.MsaAuthenticationService;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.SneakyThrows;
+import lombok.experimental.FieldDefaults;
 import org.geysermc.geyser.GeyserImpl;
 
 import java.time.Duration;
@@ -63,13 +66,16 @@ public class PendingMicrosoftAuthentication {
         );
     }
 
+    @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
     public static class AuthenticationTask {
-        private final MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserImpl.OAUTH_CLIENT_ID);
+        MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserImpl.OAUTH_CLIENT_ID);
+        String userKey;
+        long timeoutMs;
 
-        private final String userKey;
-        private final CompletableFuture<MsaAuthenticationService.MsCodeResponse> code;
-        private final CompletableFuture<MsaAuthenticationService> auth;
-        private final long timeoutMs;
+        @Getter
+        CompletableFuture<MsaAuthenticationService.MsCodeResponse> code;
+        @Getter
+        CompletableFuture<MsaAuthenticationService> authentication;
 
         private AuthenticationTask(String userKey, long timeoutMs) {
             this.userKey = userKey;
@@ -79,15 +85,7 @@ public class PendingMicrosoftAuthentication {
             this.code = CompletableFuture.supplyAsync(this::tryGetCode);
 
             // Once the code is received, continuously try to request the access token, profile, etc
-            this.auth = code.thenApply((code) -> tryLoginContinuously());
-        }
-
-        public CompletableFuture<MsaAuthenticationService.MsCodeResponse> getCode() {
-            return code;
-        }
-
-        public CompletableFuture<MsaAuthenticationService> getAuthentication() {
-            return auth;
+            this.authentication = code.thenApply((code) -> tryLoginContinuously());
         }
 
         private MsaAuthenticationService.MsCodeResponse tryGetCode() throws CompletionException {
