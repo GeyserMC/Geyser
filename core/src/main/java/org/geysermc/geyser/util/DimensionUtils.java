@@ -41,7 +41,7 @@ import java.util.Set;
 public class DimensionUtils {
 
     // Changes if the above-bedrock Nether building workaround is applied
-    public static int BEDROCK_NETHER_ID = 1;
+    private static int BEDROCK_NETHER_ID = 1;
 
     /**
      * String reference to vanilla Java overworld dimension identifier
@@ -175,5 +175,9 @@ public class DimensionUtils {
             return javaToBedrock(newDimension) == 2 ? OVERWORLD : NETHER;
         }
         return currentDimension.equals(OVERWORLD) ? NETHER : OVERWORLD;
+    }
+
+    public static boolean isCustomBedrockNetherId() {
+        return BEDROCK_NETHER_ID == 2;
     }
 }

@@ -461,7 +461,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     @Setter
     private boolean waitingForStatistics = false;
 
-    private final Set<String> fogNameSpaces = new HashSet<>();
+    private final List<String> fogNameSpaces = new ArrayList<>();
 
     private final Set<UUID> emotes;
 
