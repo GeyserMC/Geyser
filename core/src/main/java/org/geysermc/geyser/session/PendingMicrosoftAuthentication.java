@@ -106,7 +106,7 @@ public class PendingMicrosoftAuthentication {
                         msaAuthenticationService.login();
                     } catch (AuthPendingException e) {
                         long deltaTime = System.currentTimeMillis() - startTime;
-                        if(deltaTime > timeoutMs) {
+                        if (deltaTime > timeoutMs) {
                             throw new TimeoutException();
                         }
                         //noinspection BusyWait
@@ -115,7 +115,7 @@ public class PendingMicrosoftAuthentication {
                     }
                     return msaAuthenticationService;
                 }
-            } catch(Exception e) {
+            } catch (Exception e) {
                 throw new CompletionException(e);
             }
         }

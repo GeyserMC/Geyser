@@ -690,7 +690,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
 
         final PendingMicrosoftAuthentication.AuthenticationTask task = PENDING_MICROSOFT_AUTHENTICATION.getOrCreateTask(this);
 
-        if(!task.getAuthentication().isDone()) {
+        if (!task.getAuthentication().isDone()) {
             task.getCode().whenComplete((response, ex) -> {
                 if (ex != null) {
                     geyser.getLogger().error("Failed to get Microsoft auth code", ex);
@@ -706,7 +706,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
                 disconnect(ex.toString());
             } else if (!closed) {
                 GameProfile selectedProfile = msaAuthenticationService.getSelectedProfile();
-                if(selectedProfile == null) {
+                if (selectedProfile == null) {
                     disconnect(GeyserLocale.getPlayerLocaleString(
                             "geyser.network.remote.invalid_account",
                             clientData.getLanguageCode()
