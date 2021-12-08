@@ -712,6 +712,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
             if (ex != null) {
                 geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
                 disconnect(ex.toString());
+                return;
             }
             if (!closed) {
                 this.protocol = new MinecraftProtocol(
