@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.mc.protocol.data.MagicValues;
-import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.data.game.statistic.*;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -37,7 +35,11 @@ import org.geysermc.cumulus.util.FormImage;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.function.IntFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,12 +61,12 @@ public class StatisticsUtils {
                         .title("gui.stats")
                         .button("stat.generalButton", FormImage.Type.PATH, "textures/ui/World")
                         .button("stat.itemsButton - stat_type.minecraft.mined", FormImage.Type.PATH, "textures/items/iron_pickaxe")
-                        .button("stat.itemsButton - stat_type.minecraft.broken", FormImage.Type.PATH, "textures/item/record_11")
+                        .button("stat.itemsButton - stat_type.minecraft.broken", FormImage.Type.PATH, "textures/items/record_11")
                         .button("stat.itemsButton - stat_type.minecraft.crafted", FormImage.Type.PATH, "textures/blocks/crafting_table_side")
                         .button("stat.itemsButton - stat_type.minecraft.used", FormImage.Type.PATH, "textures/ui/Wrenches1")
                         .button("stat.itemsButton - stat_type.minecraft.picked_up", FormImage.Type.PATH, "textures/blocks/chest_front")
                         .button("stat.itemsButton - stat_type.minecraft.dropped", FormImage.Type.PATH, "textures/ui/trash_default")
-                        .button("stat.mobsButton - geyser.statistics.killed", FormImage.Type.PATH, "textures/items/diamon_sword")
+                        .button("stat.mobsButton - geyser.statistics.killed", FormImage.Type.PATH, "textures/items/diamond_sword")
                         .button("stat.mobsButton - geyser.statistics.killed_by", FormImage.Type.PATH, "textures/ui/wither_heart_flash")
                         .responseHandler((form, responseData) -> {
                             SimpleFormResponse response = form.parseResponse(responseData);
@@ -76,7 +78,7 @@ public class StatisticsUtils {
                                     SimpleForm.builder()
                                             .translator(StatisticsUtils::translate, language);
 
-                            StringBuilder content = new StringBuilder();
+                            List<String> content = new ArrayList<>();
 
                             ItemMappings mappings = session.getItemMappings();
                             switch (response.getClickedButtonId()) {
@@ -84,9 +86,10 @@ public class StatisticsUtils {
                                     builder.title("stat.generalButton");
 
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
-                                        if (entry.getKey() instanceof GenericStatistic) {
-                                            String statName = ((GenericStatistic) entry.getKey()).name().toLowerCase();
-                                            content.append("stat.minecraft.").append(statName).append(": ").append(entry.getValue()).append("\n");
+                                        if (entry.getKey() instanceof CustomStatistic statistic) {
+                                            String statName = statistic.name().toLowerCase(Locale.ROOT);
+                                            IntFunction<String> formatter = StatisticFormatters.get(statistic.getFormat());
+                                            content.add("stat.minecraft." + statName + ": " + formatter.apply(entry.getValue()));
                                         }
                                     }
                                     break;
@@ -94,10 +97,12 @@ public class StatisticsUtils {
                                     builder.title("stat.itemsButton - stat_type.minecraft.mined");
 
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
-                                        if (entry.getKey() instanceof BreakBlockStatistic) {
-                                            String block = BlockRegistries.JAVA_BLOCKS.get(((BreakBlockStatistic) entry.getKey()).getId()).getJavaIdentifier();
-                                            block = block.replace("minecraft:", "block.minecraft.");
-                                            content.append(block).append(": ").append(entry.getValue()).append("\n");
+                                        if (entry.getKey() instanceof BreakBlockStatistic statistic) {
+                                            String identifier = BlockRegistries.CLEAN_JAVA_IDENTIFIERS.get(statistic.getId());
+                                            if (identifier != null) {
+                                                String block = identifier.replace("minecraft:", "block.minecraft.");
+                                                content.add(block + ": " + entry.getValue());
+                                            }
                                         }
                                     }
                                     break;
@@ -105,9 +110,9 @@ public class StatisticsUtils {
                                     builder.title("stat.itemsButton - stat_type.minecraft.broken");
 
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
-                                        if (entry.getKey() instanceof BreakItemStatistic) {
-                                            String item = mappings.getMapping(((BreakItemStatistic) entry.getKey()).getId()).getJavaIdentifier();
-                                            content.append(getItemTranslateKey(item, language)).append(": ").append(entry.getValue()).append("\n");
+                                        if (entry.getKey() instanceof BreakItemStatistic statistic) {
+                                            String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
+                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getValue());
                                         }
                                     }
                                     break;
@@ -115,9 +120,9 @@ public class StatisticsUtils {
                                     builder.title("stat.itemsButton - stat_type.minecraft.crafted");
 
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
-                                        if (entry.getKey() instanceof CraftItemStatistic) {
-                                            String item = mappings.getMapping(((CraftItemStatistic) entry.getKey()).getId()).getJavaIdentifier();
-                                            content.append(getItemTranslateKey(item, language)).append(": ").append(entry.getValue()).append("\n");
+                                        if (entry.getKey() instanceof CraftItemStatistic statistic) {
+                                            String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
+                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getValue());
                                         }
                                     }
                                     break;
@@ -125,9 +130,9 @@ public class StatisticsUtils {
                                     builder.title("stat.itemsButton - stat_type.minecraft.used");
 
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
-                                        if (entry.getKey() instanceof UseItemStatistic) {
-                                            String item = mappings.getMapping(((UseItemStatistic) entry.getKey()).getId()).getJavaIdentifier();
-                                            content.append(getItemTranslateKey(item, language)).append(": ").append(entry.getValue()).append("\n");
+                                        if (entry.getKey() instanceof UseItemStatistic statistic) {
+                                            String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
+                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getValue());
                                         }
                                     }
                                     break;
@@ -135,9 +140,9 @@ public class StatisticsUtils {
                                     builder.title("stat.itemsButton - stat_type.minecraft.picked_up");
 
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
-                                        if (entry.getKey() instanceof PickupItemStatistic) {
-                                            String item = mappings.getMapping(((PickupItemStatistic) entry.getKey()).getId()).getJavaIdentifier();
-                                            content.append(getItemTranslateKey(item, language)).append(": ").append(entry.getValue()).append("\n");
+                                        if (entry.getKey() instanceof PickupItemStatistic statistic) {
+                                            String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
+                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getValue());
                                         }
                                     }
                                     break;
@@ -145,9 +150,9 @@ public class StatisticsUtils {
                                     builder.title("stat.itemsButton - stat_type.minecraft.dropped");
 
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
-                                        if (entry.getKey() instanceof DropItemStatistic) {
-                                            String item = mappings.getMapping(((DropItemStatistic) entry.getKey()).getId()).getJavaIdentifier();
-                                            content.append(getItemTranslateKey(item, language)).append(": ").append(entry.getValue()).append("\n");
+                                        if (entry.getKey() instanceof DropItemStatistic statistic) {
+                                            String item = mappings.getMapping(statistic.getId()).getJavaIdentifier();
+                                            content.add(getItemTranslateKey(item, language) + ": " + entry.getValue());
                                         }
                                     }
                                     break;
@@ -155,9 +160,9 @@ public class StatisticsUtils {
                                     builder.title("stat.mobsButton - geyser.statistics.killed");
 
                                     for (Map.Entry<Statistic, Integer> entry : session.getStatistics().entrySet()) {
-                                        if (entry.getKey() instanceof KillEntityStatistic) {
-                                            String entityName = MagicValues.key(EntityType.class, ((KillEntityStatistic) entry.getKey()).getId()).name().toLowerCase();
-                                            content.append("entity.minecraft.").append(entityName).append(": ").append(entry.getValue()).append("\n");
+                                        if (entry.getKey() instanceof KillEntityStatistic statistic) {
+                                            String entityName = statistic.getEntity().name().toLowerCase(Locale.ROOT);
+                                            content.add("entity.minecraft." + entityName + ": " + entry.getValue());
                                         }
                                     }
                                     break;
@@ -166,9 +171,9 @@ public class StatisticsUtils {
 
                                     for (Map.Entry<Statistic, Integer> entry : session
                                             .getStatistics().entrySet()) {
-                                        if (entry.getKey() instanceof KilledByEntityStatistic) {
-                                            String entityName = MagicValues.key(EntityType.class, ((KilledByEntityStatistic) entry.getKey()).getId()).name().toLowerCase();
-                                            content.append("entity.minecraft.").append(entityName).append(": ").append(entry.getValue()).append("\n");
+                                        if (entry.getKey() instanceof KilledByEntityStatistic statistic) {
+                                            String entityName = statistic.getEntity().name().toLowerCase(Locale.ROOT);
+                                            content.add("entity.minecraft." + entityName + ": " + entry.getValue());
                                         }
                                     }
                                     break;
@@ -176,12 +181,26 @@ public class StatisticsUtils {
                                     return;
                             }
 
-                            if (content.length() == 0) {
-                                content = new StringBuilder("geyser.statistics.none");
+                            StringBuilder assembledContent = new StringBuilder();
+                            if (content.size() == 0) {
+                                assembledContent.append("geyser.statistics.none");
+                            } else {
+                                content.replaceAll(x -> translate(x, language));
+                                // Sort statistics alphabetically
+                                content.sort(String::compareTo);
+                                for (int i = 0; i < content.size(); i++) {
+                                    assembledContent.append(content.get(i));
+                                    // Make every other line gray
+                                    if (i % 2 == 0) {
+                                        assembledContent.append("\u00a77\n");
+                                    } else {
+                                        assembledContent.append("\u00a7r\n");
+                                    }
+                                }
                             }
 
                             session.sendForm(
-                                    builder.content(content.toString())
+                                    builder.content(assembledContent.toString())
                                             .button("gui.back", FormImage.Type.PATH, "textures/gui/newgui/undo")
                                             .responseHandler((form1, subFormResponseData) -> {
                                                 SimpleFormResponse response1 = form.parseResponse(subFormResponseData);
@@ -212,7 +231,7 @@ public class StatisticsUtils {
     private static String translate(String keys, String locale) {
         Matcher matcher = CONTENT_PATTERN.matcher(keys);
 
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         while (matcher.find()) {
             String group = matcher.group();
             matcher.appendReplacement(buffer, translateEntry(group.substring(0, group.length() - 1), locale) + ":");

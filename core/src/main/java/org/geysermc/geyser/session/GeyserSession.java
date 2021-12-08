@@ -39,6 +39,7 @@ import com.github.steveice10.mc.protocol.data.UnexpectedEncryptionException;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
+import com.github.steveice10.mc.protocol.data.game.statistic.CustomStatistic;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.packet.handshake.serverbound.ClientIntentionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundAcceptTeleportationPacket;
@@ -1464,6 +1465,12 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      * @param statistics Updated statistics values
      */
     public void updateStatistics(@NonNull Map<Statistic, Integer> statistics) {
+        if (this.statistics.isEmpty()) {
+            // Initialize custom statistics to 0, so that they appear in the form
+            for (CustomStatistic customStatistic : CustomStatistic.values()) {
+                this.statistics.put(customStatistic, 0);
+            }
+        }
         this.statistics.putAll(statistics);
     }
 
