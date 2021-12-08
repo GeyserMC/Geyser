@@ -148,10 +148,9 @@ allow-custom-skulls: true
 # This option requires a restart of Geyser in order to change its setting.
 add-non-bedrock-items: true
 
-# Bedrock prevents building and displaying blocks above Y127 in the Nether -
-# enabling this config option works around that by changing the Nether dimension ID
-# to the End ID. The main downside to this is that the sky will resemble that of
-# the end sky in the nether, but ultimately it's the only way for this feature to work.
+# Bedrock prevents building and displaying blocks above Y127 in the Nether.
+# This config option works around that by changing the Nether dimension ID to the End ID. 
+# The main downside to this is that the entire Nether will have the same red fog rather than having different fog for each biome.
 above-bedrock-nether-building: false
 
 # Force clients to load all resource packs if there are any.
