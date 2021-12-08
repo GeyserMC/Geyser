@@ -688,34 +688,22 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         packet.setTime(16000);
         sendUpstreamPacket(packet);
 
-        PendingMicrosoftAuthentication.AuthenticationTask authenticationTask =
-                PENDING_MICROSOFT_AUTHENTICATION.queryOrCreatePendingTask(this);
+        final PendingMicrosoftAuthentication.AuthenticationTask task =
+                PENDING_MICROSOFT_AUTHENTICATION.getOrCreateTask(this);
 
-        authenticationTask.getCode().whenComplete((response, ex) -> {
+        task.getCode().whenComplete((response, ex) -> {
             if (ex != null) {
                 ex.printStackTrace();
                 disconnect(ex.toString());
-                return;
+            } else {
+                LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
             }
-            LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
-            attemptCodeAuthentication(authenticationTask);
         });
-    }
-
-    /**
-     * Poll every second to see if the user has successfully signed in
-     */
-    private void attemptCodeAuthentication(PendingMicrosoftAuthentication.AuthenticationTask authenticationTask) {
-        if (loggedIn || closed) {
-            return;
-        }
-        authenticationTask.getAuthentication().whenComplete((msaAuthenticationService, ex) -> {
+        task.getAuthentication().whenComplete((msaAuthenticationService, ex) -> {
             if (ex != null) {
                 geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
                 disconnect(ex.toString());
-                return;
-            }
-            if (!closed) {
+            } else if (!closed) {
                 this.protocol = new MinecraftProtocol(
                         msaAuthenticationService.getSelectedProfile(),
                         msaAuthenticationService.getAccessToken()

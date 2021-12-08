@@ -57,7 +57,7 @@ public class PendingMicrosoftAuthentication {
     }
 
     @SneakyThrows(ExecutionException.class)
-    public AuthenticationTask queryOrCreatePendingTask(GeyserSession session) {
+    public AuthenticationTask getOrCreateTask(GeyserSession session) {
         return authentications.get(
                 Objects.requireNonNull(session.getAuthData(), "authData").xuid()
         );
