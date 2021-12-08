@@ -694,7 +694,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         if(!task.getAuthentication().isDone()) {
             task.getCode().whenComplete((response, ex) -> {
                 if (ex != null) {
-                    ex.printStackTrace();
+                    geyser.getLogger().error("Failed to get Microsoft auth code", ex);
                     disconnect(ex.toString());
                 } else {
                     LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
