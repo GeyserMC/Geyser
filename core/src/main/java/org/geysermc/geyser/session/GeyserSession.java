@@ -517,11 +517,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
             this.lecternCache = new ObjectOpenHashSet<>();
         }
 
-        // Initialize generic statistics to 0, so that they appear in the form
-        for (CustomStatistic customStatistic : CustomStatistic.values()) {
-            statistics.put(customStatistic, 0);
-        }
-
         if (geyser.getConfig().getEmoteOffhandWorkaround() != EmoteOffhandWorkaroundOption.NO_EMOTES) {
             this.emotes = new HashSet<>();
             geyser.getSessionManager().getSessions().values().forEach(player -> this.emotes.addAll(player.getEmotes()));
@@ -1471,6 +1466,12 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      * @param statistics Updated statistics values
      */
     public void updateStatistics(@NonNull Map<Statistic, Integer> statistics) {
+        if (this.statistics.isEmpty()) {
+            // Initialize custom statistics to 0, so that they appear in the form
+            for (CustomStatistic customStatistic : CustomStatistic.values()) {
+                this.statistics.put(customStatistic, 0);
+            }
+        }
         this.statistics.putAll(statistics);
     }
 
