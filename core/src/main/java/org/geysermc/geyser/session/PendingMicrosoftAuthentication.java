@@ -64,8 +64,7 @@ public class PendingMicrosoftAuthentication {
     }
 
     public static class AuthenticationTask {
-        private final MsaAuthenticationService msaAuthenticationService =
-                new MsaAuthenticationService(GeyserImpl.OAUTH_CLIENT_ID);
+        private final MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserImpl.OAUTH_CLIENT_ID);
 
         private final String userKey;
         private final CompletableFuture<MsaAuthenticationService.MsCodeResponse> code;
@@ -123,9 +122,7 @@ public class PendingMicrosoftAuthentication {
 
         @Override
         public String toString() {
-            return getClass().getSimpleName() + "{" +
-                    "userKey='" + userKey + '\'' +
-                    '}';
+            return getClass().getSimpleName() + "{userKey='" + userKey + "'}";
         }
     }
 }
