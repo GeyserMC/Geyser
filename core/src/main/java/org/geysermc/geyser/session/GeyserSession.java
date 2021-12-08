@@ -461,6 +461,8 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     @Setter
     private boolean waitingForStatistics = false;
 
+    private final Set<String> fogNameSpaces = new HashSet<>();
+
     private final Set<UUID> emotes;
 
     /**
@@ -1006,11 +1008,11 @@ public class GeyserSession implements GeyserConnection, CommandSender {
                 // Set the mood
                 if (!isInWorldBorderWarningArea) {
                     isInWorldBorderWarningArea = true;
-                    WorldBorder.sendFog(this, "minecraft:fog_crimson_forest");
+                    sendFog("minecraft:fog_crimson_forest");
                 }
             } else if (isInWorldBorderWarningArea) {
                 // Clear fog as we are outside the world border now
-                WorldBorder.removeFog(this);
+                removeFog("minecraft:fog_crimson_forest");
                 isInWorldBorderWarningArea = false;
             }
 
@@ -1489,5 +1491,37 @@ public class GeyserSession implements GeyserConnection, CommandSender {
             emoteList.getPieceIds().addAll(pieces);
             player.sendUpstreamPacket(emoteList);
         }
+    }
+
+    /**
+     * Send the following fog IDs, as well as the cached ones, to the client.
+     *
+     * Fog IDs can be found here:
+     * https://wiki.bedrock.dev/documentation/fog-ids.html
+     *
+     * @param fogNameSpaces the fog ids to add
+     */
+    public void sendFog(String... fogNameSpaces) {
+        this.fogNameSpaces.addAll(Arrays.asList(fogNameSpaces));
+
+        PlayerFogPacket packet = new PlayerFogPacket();
+        packet.getFogStack().addAll(this.fogNameSpaces);
+        sendUpstreamPacket(packet);
+    }
+
+    /**
+     * Removes the following fog IDs from the client and the cache.
+     *
+     * @param fogNameSpaces the fog ids to remove
+     */
+    public void removeFog(String... fogNameSpaces) {
+        if (fogNameSpaces.length == 0) {
+            this.fogNameSpaces.clear();
+        } else {
+            this.fogNameSpaces.removeAll(Arrays.asList(fogNameSpaces));
+        }
+        PlayerFogPacket packet = new PlayerFogPacket();
+        packet.getFogStack().addAll(this.fogNameSpaces);
+        sendUpstreamPacket(packet);
     }
 }

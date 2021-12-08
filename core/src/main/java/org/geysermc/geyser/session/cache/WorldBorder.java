@@ -296,21 +296,4 @@ public class WorldBorder {
         effectPacket.setType(WORLD_BORDER_PARTICLE);
         session.getUpstream().sendPacket(effectPacket);
     }
-
-    /**
-     * Send the following fog IDs to the client
-     */
-    public static void sendFog(GeyserSession session, String... fogNameSpaces) {
-        PlayerFogPacket packet = new PlayerFogPacket();
-        Collections.addAll(packet.getFogStack(), fogNameSpaces);
-        session.sendUpstreamPacket(packet);
-    }
-
-    /**
-     * Clear any additional fog sent to the client
-     */
-    public static void removeFog(GeyserSession session) {
-        session.sendUpstreamPacket(new PlayerFogPacket());
-    }
-
 }
