@@ -669,9 +669,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         });
     }
 
-    private static final PendingMicrosoftAuthentication PENDING_MICROSOFT_AUTHENTICATION =
-            new PendingMicrosoftAuthentication(120);
-
     /**
      * Present a form window to the user asking to log in with another web browser
      */
@@ -688,7 +685,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         packet.setTime(16000);
         sendUpstreamPacket(packet);
 
-        final PendingMicrosoftAuthentication.AuthenticationTask task = PENDING_MICROSOFT_AUTHENTICATION.getOrCreateTask(
+        final PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getOrCreateTask(
                 Objects.requireNonNull(getAuthData(), "authData").xuid()
         );
 

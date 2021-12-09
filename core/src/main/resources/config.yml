@@ -173,6 +173,11 @@ metrics:
   # UUID of server, don't change!
   uuid: generateduuid
 
+# Microsoft authentication
+msa-authentication:
+  # Specify how many seconds to wait while user authorises Geyser to access their Microsoft account.
+  pending-authentication-timeout: 120
+
 # ADVANCED OPTIONS - DO NOT TOUCH UNLESS YOU KNOW WHAT YOU ARE DOING!
 
 # Geyser updates the Scoreboard after every Scoreboard packet, but when Geyser tries to handle

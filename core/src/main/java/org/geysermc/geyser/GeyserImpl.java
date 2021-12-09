@@ -59,6 +59,7 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.session.SessionManager;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
@@ -123,6 +124,8 @@ public class GeyserImpl implements GeyserApi {
     private final GeyserBootstrap bootstrap;
 
     private final Metrics metrics;
+
+    private final PendingMicrosoftAuthentication pendingMicrosoftAuthentication;
 
     private static GeyserImpl instance;
 
@@ -366,6 +369,8 @@ public class GeyserImpl implements GeyserApi {
         } else {
             metrics = null;
         }
+
+        pendingMicrosoftAuthentication = new PendingMicrosoftAuthentication(config.getMsaAuthenticationConfiguration().getPendingAuthenticationTimeout());
 
         boolean isGui = false;
         // This will check if we are in standalone and get the 'useGui' variable from there
