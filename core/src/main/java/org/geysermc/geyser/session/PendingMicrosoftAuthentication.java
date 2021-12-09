@@ -39,7 +39,6 @@ import lombok.experimental.FieldDefaults;
 import org.geysermc.geyser.GeyserImpl;
 
 import java.time.Duration;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
@@ -60,10 +59,8 @@ public class PendingMicrosoftAuthentication {
     }
 
     @SneakyThrows(ExecutionException.class)
-    public AuthenticationTask getOrCreateTask(GeyserSession session) {
-        return authentications.get(
-                Objects.requireNonNull(session.getAuthData(), "authData").xuid()
-        );
+    public AuthenticationTask getOrCreateTask(@NonNull String userKey) {
+        return authentications.get(userKey);
     }
 
     @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
