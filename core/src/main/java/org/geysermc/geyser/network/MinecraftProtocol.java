@@ -91,7 +91,7 @@ public final class MinecraftProtocol {
      * @return the supported Minecraft: Java Edition version name
      */
     public static String getJavaVersion() {
-        return DEFAULT_JAVA_CODEC.getMinecraftVersion();
+        return "1.18 - 1.18.1";
     }
 
     /**

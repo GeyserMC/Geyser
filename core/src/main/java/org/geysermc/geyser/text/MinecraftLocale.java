@@ -71,7 +71,7 @@ public class MinecraftLocale {
                 // Get the url for the latest version of the games manifest
                 String latestInfoURL = "";
                 for (Version version : versionManifest.getVersions()) {
-                    if (version.getId().equals(MinecraftProtocol.getJavaVersion())) {
+                    if (version.getId().equals(MinecraftProtocol.getJavaCodec().getMinecraftVersion())) {
                         latestInfoURL = version.getUrl();
                         break;
                     }
