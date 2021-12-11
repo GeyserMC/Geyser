@@ -47,17 +47,16 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import org.geysermc.geyser.text.ChatColor;
-import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.scoreboard.Objective;
 import org.geysermc.geyser.scoreboard.Score;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.scoreboard.UpdateType;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -352,16 +351,12 @@ public class PlayerEntity extends LivingEntity {
         if (team != null) {
             if (team.isVisibleFor(session.getPlayerEntity().getUsername())) {
                 TeamColor color = team.getColor();
-                String chatColor;
-                if (color == TeamColor.NONE) {
-                    chatColor = ChatColor.RESET;
-                } else {
-                    chatColor = MessageTranslator.toChatColor(color);
-                }
+                String chatColor = MessageTranslator.toChatColor(color);;
                 // We have to emulate what modern Java text already does for us and add the color to each section
                 String prefix = team.getCurrentData().getPrefix();
                 String suffix = team.getCurrentData().getSuffix();
                 newDisplayName = chatColor + prefix + chatColor + this.username + chatColor + suffix;
+                System.out.println(newDisplayName);
             } else {
                 // The name is not visible to the session player; clear name
                 newDisplayName = "";
