@@ -356,7 +356,6 @@ public class PlayerEntity extends LivingEntity {
                 String prefix = team.getCurrentData().getPrefix();
                 String suffix = team.getCurrentData().getSuffix();
                 newDisplayName = chatColor + prefix + chatColor + this.username + chatColor + suffix;
-                System.out.println(newDisplayName);
             } else {
                 // The name is not visible to the session player; clear name
                 newDisplayName = "";
