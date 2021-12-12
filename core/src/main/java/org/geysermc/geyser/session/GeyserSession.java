@@ -703,9 +703,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
             if (ex != null) {
                 geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
                 if(ex.getCause() instanceof PendingMicrosoftAuthentication.TaskTimeoutException) {
-                    // TODO add localization
-                    // GeyserLocale.getLocaleStringLog("geyser.auth.login.msa.timeout")
-                    disconnect(ex.getCause().getMessage());
+                    disconnect(GeyserLocale.getLocaleStringLog("geyser.auth.msa.timeout"));
                 } else {
                     disconnect(ex.toString());
                 }
