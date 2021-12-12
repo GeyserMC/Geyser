@@ -42,7 +42,6 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 
 public class PendingMicrosoftAuthentication {
     private final LoadingCache<String, AuthenticationTask> authentications;
@@ -102,7 +101,7 @@ public class PendingMicrosoftAuthentication {
                     } catch (AuthPendingException e) {
                         long deltaTime = System.currentTimeMillis() - startTime;
                         if (deltaTime > timeoutMs) {
-                            throw new TimeoutException();
+                            throw new TaskTimeoutException();
                         }
                         //noinspection BusyWait
                         Thread.sleep(1000);
@@ -118,6 +117,13 @@ public class PendingMicrosoftAuthentication {
         @Override
         public String toString() {
             return getClass().getSimpleName() + "{userKey='" + userKey + "'}";
+        }
+    }
+
+    public static class TaskTimeoutException extends Exception {
+        TaskTimeoutException() {
+            super("It took too long to authorize Geyser to access your Microsoft account. " +
+                    "Please request new code and try again.");
         }
     }
 }
