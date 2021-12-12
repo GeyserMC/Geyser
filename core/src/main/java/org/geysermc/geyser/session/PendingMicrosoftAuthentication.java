@@ -43,6 +43,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Pending Microsoft authentication task cache.
+ * It permits user to exit the server while they authorize Geyser to access their Microsoft account.
+ */
 public class PendingMicrosoftAuthentication {
     private final LoadingCache<String, AuthenticationTask> authentications;
 
@@ -120,6 +124,9 @@ public class PendingMicrosoftAuthentication {
         }
     }
 
+    /**
+     * @see PendingMicrosoftAuthentication
+     */
     public static class TaskTimeoutException extends Exception {
         TaskTimeoutException() {
             super("It took too long to authorize Geyser to access your Microsoft account. " +
