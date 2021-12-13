@@ -175,7 +175,8 @@ metrics:
 
 # Microsoft authentication
 msa-authentication:
-  # Specify how many seconds to wait while user authorises Geyser to access their Microsoft account.
+  # Specify how many seconds to wait while user authorises Geyser to access their Microsoft account
+  # User is allowed to disconnect from the server during this period.
   pending-authentication-timeout: 120
 
 # ADVANCED OPTIONS - DO NOT TOUCH UNLESS YOU KNOW WHAT YOU ARE DOING!
