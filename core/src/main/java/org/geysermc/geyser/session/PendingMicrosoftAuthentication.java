@@ -39,9 +39,7 @@ import lombok.experimental.FieldDefaults;
 import org.geysermc.geyser.GeyserImpl;
 
 import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.*;
 
 /**
  * Pending Microsoft authentication task cache.
@@ -68,6 +66,8 @@ public class PendingMicrosoftAuthentication {
 
     @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
     public static class AuthenticationTask {
+        private static final Executor DELAYED_BY_ONE_SECOND = CompletableFuture.delayedExecutor(1, TimeUnit.SECONDS);
+
         MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserImpl.OAUTH_CLIENT_ID);
         String userKey;
         long timeoutMs;
@@ -83,9 +83,9 @@ public class PendingMicrosoftAuthentication {
 
             // Request the code
             this.code = CompletableFuture.supplyAsync(this::tryGetCode);
-
+            this.authentication = new CompletableFuture<>();
             // Once the code is received, continuously try to request the access token, profile, etc
-            this.authentication = code.thenApply((code) -> tryLoginContinuously());
+            this.code.thenRun(() -> performLoginAttempt(System.currentTimeMillis()));
         }
 
         private MsaAuthenticationService.MsCodeResponse tryGetCode() throws CompletionException {
@@ -96,26 +96,27 @@ public class PendingMicrosoftAuthentication {
             }
         }
 
-        private MsaAuthenticationService tryLoginContinuously() throws CompletionException {
-            try {
-                long startTime = System.currentTimeMillis();
-                while (true) {
-                    try {
-                        msaAuthenticationService.login();
-                    } catch (AuthPendingException e) {
-                        long deltaTime = System.currentTimeMillis() - startTime;
-                        if (deltaTime > timeoutMs) {
-                            throw new TaskTimeoutException();
-                        }
-                        //noinspection BusyWait
-                        Thread.sleep(1000);
-                        continue;
+        private void performLoginAttempt(long startTime) {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    msaAuthenticationService.login();
+                } catch (AuthPendingException e) {
+                    long deltaTime = System.currentTimeMillis() - startTime;
+                    if (deltaTime > timeoutMs) {
+                        // time's up
+                        authentication.completeExceptionally(new TaskTimeoutException());
+                    } else {
+                        // try again in 1 second
+                        performLoginAttempt(startTime);
                     }
-                    return msaAuthenticationService;
+                    return;
+                } catch (Exception e) {
+                    authentication.completeExceptionally(e);
+                    return;
                 }
-            } catch (Exception e) {
-                throw new CompletionException(e);
-            }
+                // login successful
+                authentication.complete(msaAuthenticationService);
+            }, DELAYED_BY_ONE_SECOND);
         }
 
         @Override

@@ -702,7 +702,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         task.getAuthentication().whenComplete((msaAuthenticationService, ex) -> {
             if (ex != null) {
                 geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
-                if (ex.getCause() instanceof PendingMicrosoftAuthentication.TaskTimeoutException) {
+                if (ex instanceof PendingMicrosoftAuthentication.TaskTimeoutException) {
                     disconnect(GeyserLocale.getLocaleStringLog("geyser.auth.msa.timeout"));
                 } else {
                     disconnect(ex.toString());
