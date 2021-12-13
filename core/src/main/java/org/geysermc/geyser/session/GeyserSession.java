@@ -686,7 +686,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         sendUpstreamPacket(packet);
 
         final PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getOrCreateTask(
-                Objects.requireNonNull(getAuthData(), "authData").xuid()
+                getAuthData().xuid()
         );
 
         if (!task.getAuthentication().isDone()) {
