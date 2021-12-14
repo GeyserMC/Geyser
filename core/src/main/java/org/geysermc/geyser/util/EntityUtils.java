@@ -160,7 +160,6 @@ public final class EntityUtils {
                 switch (mount.getDefinition().entityType()) {
                     case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
                             COMMAND_BLOCK_MINECART, BOAT -> yOffset = 0.1875f;
-                    default -> yOffset += 0.3125f;
                 }
             }
             /*
