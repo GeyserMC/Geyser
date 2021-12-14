@@ -60,12 +60,9 @@ public class StriderEntity extends AnimalEntity {
         // Needs to copy the parent state
         if (getFlag(EntityFlag.RIDING)) {
             boolean parentShaking = false;
-            //TODO optimize
-            for (Entity ent : session.getEntityCache().getEntities().values()) {
-                if (ent.getPassengers().contains((int) entityId) && ent instanceof StriderEntity) {
-                    parentShaking = ent.getFlag(EntityFlag.SHAKING);
-                    break;
-                }
+            Entity vehicle = session.getEntityCache().getEntityByJavaId(vehicleId);
+            if (vehicle instanceof StriderEntity) {
+                parentShaking = vehicle.getFlag(EntityFlag.SHAKING);
             }
     
             setFlag(EntityFlag.BREATHING, !parentShaking);

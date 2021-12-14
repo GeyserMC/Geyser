@@ -187,6 +187,7 @@ public class Entity {
         for (int passenger : passengers) { // Make sure all passengers on the despawned entity are updated
             Entity entity = session.getEntityCache().getEntityByJavaId(passenger);
             if (entity == null) continue;
+            entity.setVehicleId(-1);
             entity.setFlag(EntityFlag.RIDING, false);
             entity.updateBedrockMetadata();
         }
