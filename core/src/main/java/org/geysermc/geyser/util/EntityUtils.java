@@ -169,8 +169,10 @@ public final class EntityUtils {
              * Horses are tinier
              * Players, Minecarts, and Boats have different origins
              */
-            if (passenger.getDefinition().entityType() == EntityType.PLAYER && mount.getDefinition().entityType() != EntityType.PLAYER) {
-                yOffset += EntityDefinitions.PLAYER.offset();
+            if (passenger.getDefinition().entityType() == EntityType.PLAYER) {
+                if (mount.getDefinition().entityType() != EntityType.PLAYER && mount.getDefinition().entityType() != EntityType.AREA_EFFECT_CLOUD) {
+                    yOffset += EntityDefinitions.PLAYER.offset();
+                }
             }
             switch (mount.getDefinition().entityType()) {
                 case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
