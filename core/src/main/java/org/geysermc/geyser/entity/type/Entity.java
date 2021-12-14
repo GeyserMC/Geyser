@@ -49,6 +49,7 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.MathUtils;
 
 import java.util.Optional;
@@ -92,6 +93,7 @@ public class Entity {
     /* Metadata end */
 
     protected IntList passengers = new IntArrayList();
+    protected int vehicleId = -1;
     /**
      * A container to store temporary metadata before it's sent to Bedrock.
      */
@@ -392,6 +394,8 @@ public class Entity {
         if (height != boundingBoxHeight) {
             boundingBoxHeight = height;
             dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, boundingBoxHeight);
+
+            updatePassengerOffsets();
         }
     }
 
@@ -434,6 +438,32 @@ public class Entity {
      */
     public Vector3f getBedrockRotation() {
         return Vector3f.from(pitch, headYaw, yaw);
+    }
+
+    /**
+     * Update the mount offsets of each passenger on this vehicle
+     */
+    protected void updatePassengerOffsets() {
+        for (int passengerId : passengers) {
+            Entity passenger = session.getEntityCache().getEntityByJavaId(passengerId);
+            if (passenger != null) {
+                boolean rider = passengers.getInt(0) == passengerId;
+                EntityUtils.updateMountOffset(passenger, this, rider, true, passengers.size() > 1);
+                passenger.updateBedrockMetadata();
+            }
+        }
+    }
+
+    /**
+     * Update this entity's mount offset
+     */
+    protected void updateMountOffset() {
+        Entity vehicle = session.getEntityCache().getEntityByJavaId(vehicleId);
+        if (vehicle != null) {
+            boolean rider = vehicle.getPassengers().getInt(0) == entityId;
+            EntityUtils.updateMountOffset(this, vehicle, rider, true, vehicle.getPassengers().size() > 1);
+            updateBedrockMetadata();
+        }
     }
 
     @SuppressWarnings("unchecked")

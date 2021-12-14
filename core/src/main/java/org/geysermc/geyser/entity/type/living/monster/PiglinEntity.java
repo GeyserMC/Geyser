@@ -44,6 +44,8 @@ public class PiglinEntity extends BasePiglinEntity {
         boolean isBaby = entityMetadata.getPrimitiveValue();
         dirtyMetadata.put(EntityData.SCALE, isBaby? .55f : 1f);
         setFlag(EntityFlag.BABY, isBaby);
+
+        updatePassengerOffsets();
     }
 
     public void setChargingCrossbow(BooleanEntityMetadata entityMetadata) {

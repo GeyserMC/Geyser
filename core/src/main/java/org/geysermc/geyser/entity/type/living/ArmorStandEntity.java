@@ -153,6 +153,7 @@ public class ArmorStandEntity extends LivingEntity {
                 toggleSmallStatus();
             }
 
+            updatePassengerOffsets();
             updateSecondEntityStatus(false);
         }
 
