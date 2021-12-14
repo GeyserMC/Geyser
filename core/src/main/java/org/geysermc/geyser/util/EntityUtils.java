@@ -28,6 +28,7 @@ package org.geysermc.geyser.util;
 import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
@@ -178,7 +179,21 @@ public final class EntityUtils {
             Vector3f offset = Vector3f.from(xOffset, yOffset, zOffset);
             passenger.setRiderSeatPosition(offset);
         }
-        passenger.updateBedrockMetadata();
+    }
+
+    public static void updateRiderRotationLock(Entity passenger, Entity mount, boolean isRiding) {
+        if (isRiding && mount.getDefinition() == EntityDefinitions.BOAT) {
+            // Head rotation is locked while riding in a boat
+            passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 1);
+            passenger.getDirtyMetadata().put(EntityData.RIDER_MAX_ROTATION, 90f);
+            passenger.getDirtyMetadata().put(EntityData.RIDER_MIN_ROTATION, 1f);
+            passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_OFFSET, -90f);
+        } else {
+            passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 0);
+            passenger.getDirtyMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
+            passenger.getDirtyMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
+            passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_OFFSET, 0f);
+        }
     }
 
     private EntityUtils() {

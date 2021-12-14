@@ -39,7 +39,8 @@ import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -90,7 +91,7 @@ public class Entity {
     protected String nametag = "";
     /* Metadata end */
 
-    protected LongOpenHashSet passengers = new LongOpenHashSet();
+    protected IntList passengers = new IntArrayList();
     /**
      * A container to store temporary metadata before it's sent to Bedrock.
      */
@@ -181,7 +182,7 @@ public class Entity {
     public boolean despawnEntity() {
         if (!valid) return true;
 
-        for (long passenger : passengers) { // Make sure all passengers on the despawned entity are updated
+        for (int passenger : passengers) { // Make sure all passengers on the despawned entity are updated
             Entity entity = session.getEntityCache().getEntityByJavaId(passenger);
             if (entity == null) continue;
             entity.setFlag(EntityFlag.RIDING, false);

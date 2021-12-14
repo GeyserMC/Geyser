@@ -62,7 +62,7 @@ public class StriderEntity extends AnimalEntity {
             boolean parentShaking = false;
             //TODO optimize
             for (Entity ent : session.getEntityCache().getEntities().values()) {
-                if (ent.getPassengers().contains(entityId) && ent instanceof StriderEntity) {
+                if (ent.getPassengers().contains((int) entityId) && ent instanceof StriderEntity) {
                     parentShaking = ent.getFlag(EntityFlag.SHAKING);
                     break;
                 }
@@ -76,7 +76,7 @@ public class StriderEntity extends AnimalEntity {
         }
 
         // Update the passengers if we have any
-        for (long passenger : passengers) {
+        for (int passenger : passengers) {
             Entity passengerEntity = session.getEntityCache().getEntityByJavaId(passenger);
             if (passengerEntity != null) {
                 passengerEntity.updateBedrockMetadata();

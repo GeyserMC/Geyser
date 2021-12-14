@@ -29,15 +29,14 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.Client
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import org.geysermc.geyser.entity.type.Entity;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
-
-import java.util.Arrays;
 
 @Translator(packet = ClientboundSetPassengersPacket.class)
 public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSetPassengersPacket> {
@@ -53,8 +52,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
 
         if (entity == null) return;
 
-        LongOpenHashSet passengers = entity.getPassengers().clone();
-        boolean rider = true;
+        // Handle new/existing passengers
         for (long passengerId : packet.getPassengerIds()) {
             Entity passenger = session.getEntityCache().getEntityByJavaId(passengerId);
             if (passengerId == session.getPlayerEntity().getEntityId()) {
@@ -72,31 +70,21 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
                 continue;
             }
 
+            boolean rider = packet.getPassengerIds()[0] == passengerId;
             EntityLinkData.Type type = rider ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
-            linkPacket.setEntityLink(new EntityLinkData(entity.getGeyserId(), passenger.getGeyserId(), type, false));
+            linkPacket.setEntityLink(new EntityLinkData(entity.getGeyserId(), passenger.getGeyserId(), type, false, false));
             session.sendUpstreamPacket(linkPacket);
-            passengers.add(passengerId);
 
-            // Head rotation on boats
-            if (entity.getDefinition() == EntityDefinitions.BOAT) {
-                passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 1);
-                passenger.getDirtyMetadata().put(EntityData.RIDER_MAX_ROTATION, 90f);
-                passenger.getDirtyMetadata().put(EntityData.RIDER_MIN_ROTATION, 1f);
-                passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_OFFSET, -90f);
-            } else {
-                passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 0);
-                passenger.getDirtyMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
-                passenger.getDirtyMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
-            }
-
+            EntityUtils.updateRiderRotationLock(passenger, entity, true);
+            EntityUtils.updateMountOffset(passenger, entity, rider, true, (packet.getPassengerIds().length > 1));
+            // Force an update to the passenger metadata
             passenger.updateBedrockMetadata();
-            rider = false;
         }
 
-        entity.setPassengers(passengers);
-
-        for (long passengerId : entity.getPassengers()) {
+        // Handle passengers that were removed
+        IntList newPassengers = new IntArrayList(packet.getPassengerIds());
+        for (int passengerId : entity.getPassengers()) {
             Entity passenger = session.getEntityCache().getEntityByJavaId(passengerId);
             if (passengerId == session.getPlayerEntity().getEntityId()) {
                 passenger = session.getPlayerEntity();
@@ -104,24 +92,19 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             if (passenger == null) {
                 continue;
             }
-            if (Arrays.stream(packet.getPassengerIds()).noneMatch(id -> id == passengerId)) {
+            if (!newPassengers.contains(passengerId)) {
                 SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
-                linkPacket.setEntityLink(new EntityLinkData(entity.getGeyserId(), passenger.getGeyserId(), EntityLinkData.Type.REMOVE, false));
+                linkPacket.setEntityLink(new EntityLinkData(entity.getGeyserId(), passenger.getGeyserId(), EntityLinkData.Type.REMOVE, false, false));
                 session.sendUpstreamPacket(linkPacket);
-                passengers.remove(passenger.getEntityId());
-                passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 0);
-                passenger.getDirtyMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
-                passenger.getDirtyMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
-                passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_OFFSET, 0f);
 
+                EntityUtils.updateRiderRotationLock(passenger, entity, false);
                 EntityUtils.updateMountOffset(passenger, entity, false, false, (packet.getPassengerIds().length > 1));
-            } else {
-                EntityUtils.updateMountOffset(passenger, entity, (packet.getPassengerIds()[0] == passengerId), true, (packet.getPassengerIds().length > 1));
+                // Force an update to the passenger metadata
+                passenger.updateBedrockMetadata();
             }
-
-            // Force an update to the passenger metadata
-            passenger.updateBedrockMetadata();
         }
+
+        entity.setPassengers(newPassengers);
 
         switch (entity.getDefinition().entityType()) {
             case HORSE, SKELETON_HORSE, DONKEY, MULE, RAVAGER -> {

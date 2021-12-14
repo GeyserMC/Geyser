@@ -95,7 +95,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             linkPacket.setEntityLink(new EntityLinkData(vehicle.getGeyserId(), entity.getGeyserId(), EntityLinkData.Type.REMOVE, false, false));
             session.sendUpstreamPacket(linkPacket);
-            vehicle.getPassengers().remove(entity.getEntityId());
+            vehicle.getPassengers().rem((int) entity.getEntityId());
             entity.getDirtyMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 0);
             entity.getDirtyMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
             entity.getDirtyMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
@@ -104,6 +104,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             entity.updateBedrockMetadata();
 
             EntityUtils.updateMountOffset(entity, vehicle, false, false, entity.getPassengers().size() > 1);
+            entity.updateBedrockMetadata();
         }
 
         // If coordinates are relative, then add to the existing coordinate
