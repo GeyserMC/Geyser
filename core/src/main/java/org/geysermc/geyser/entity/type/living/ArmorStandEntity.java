@@ -148,12 +148,11 @@ public class ArmorStandEntity extends LivingEntity {
             if (isMarker) {
                 setBoundingBoxWidth(0.0f);
                 setBoundingBoxHeight(0.0f);
-                dirtyMetadata.put(EntityData.SCALE, 0f);
             } else {
                 toggleSmallStatus();
             }
 
-            updatePassengerOffsets();
+            updateMountOffset();
             updateSecondEntityStatus(false);
         }
 

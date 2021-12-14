@@ -45,7 +45,7 @@ public class PiglinEntity extends BasePiglinEntity {
         dirtyMetadata.put(EntityData.SCALE, isBaby? .55f : 1f);
         setFlag(EntityFlag.BABY, isBaby);
 
-        updatePassengerOffsets();
+        updateMountOffset();
     }
 
     public void setChargingCrossbow(BooleanEntityMetadata entityMetadata) {
