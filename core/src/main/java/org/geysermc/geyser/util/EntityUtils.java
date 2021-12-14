@@ -74,7 +74,7 @@ public final class EntityUtils {
         switch (mount.getDefinition().entityType()) {
             case CHICKEN, SPIDER -> mountedHeightOffset = height * 0.5f;
             case DONKEY, MULE -> mountedHeightOffset -= 0.25f;
-            case LLAMA -> mountedHeightOffset = height * 0.6f;
+            case TRADER_LLAMA, LLAMA -> mountedHeightOffset = height * 0.6f;
             case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
                     COMMAND_BLOCK_MINECART -> mountedHeightOffset = 0;
             case BOAT -> mountedHeightOffset = -0.1f;
@@ -144,20 +144,16 @@ public final class EntityUtils {
             float yOffset = mountedHeightOffset + heightOffset;
             float zOffset = 0;
             switch (mount.getDefinition().entityType()) {
-                case BOAT:
+                case BOAT -> {
                     // Without the X offset, more than one entity on a boat is stacked on top of each other
                     if (rider && moreThanOneEntity) {
                         xOffset = 0.2f;
                     } else if (moreThanOneEntity) {
                         xOffset = -0.6f;
                     }
-                    break;
-                case CHICKEN:
-                    zOffset = -0.1f;
-                    break;
-                case LLAMA:
-                    zOffset = -0.3f;
-                    break;
+                }
+                case CHICKEN -> zOffset = -0.1f;
+                case TRADER_LLAMA, LLAMA -> zOffset = -0.3f;
             }
             if (passenger.getDefinition().entityType() == EntityType.SHULKER) {
                 switch (mount.getDefinition().entityType()) {
