@@ -84,8 +84,12 @@ public class BoatEntity extends Entity {
 
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
-        // Minimal glitching when ClientboundMoveVehiclePacket is sent
-        moveEntityPacket.setPosition(session.getRidingVehicleEntity() == this ? position.up(EntityDefinitions.PLAYER.offset() - this.definition.offset()) : this.position);
+        if (session.getRidingVehicleEntity() == this && session.getPlayerEntity().isRidingInFront()) {
+            // Minimal glitching when ClientboundMoveVehiclePacket is sent
+            moveEntityPacket.setPosition(position.up(EntityDefinitions.PLAYER.offset() - this.definition.offset()));
+        } else {
+            moveEntityPacket.setPosition(this.position);
+        }
         moveEntityPacket.setRotation(getBedrockRotation());
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(teleported);
