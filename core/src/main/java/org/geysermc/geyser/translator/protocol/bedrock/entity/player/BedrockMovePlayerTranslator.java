@@ -67,7 +67,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         // Send book update before the player moves
         session.getBookEditCache().checkForSend();
 
-        if (!session.getTeleportMap().isEmpty()) {
+        if (!session.getUnconfirmedTeleports().isEmpty()) {
             session.confirmTeleport(packet.getPosition().toDouble().sub(0, EntityDefinitions.PLAYER.offset(), 0));
             return;
         }

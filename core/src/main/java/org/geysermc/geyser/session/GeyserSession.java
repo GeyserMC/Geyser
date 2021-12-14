@@ -68,7 +68,6 @@ import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -167,7 +166,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     private final TagCache tagCache;
     private final WorldCache worldCache;
 
-    private final Int2ObjectMap<TeleportCache> teleportMap = new Int2ObjectOpenHashMap<>();
+    private final List<TeleportCache> unconfirmedTeleports = new ArrayList<>();
 
     private final WorldBorder worldBorder;
     /**
@@ -1248,71 +1247,57 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     }
 
     public void addTeleport(TeleportCache teleportCache) {
-        teleportMap.put(teleportCache.getTeleportConfirmId(), teleportCache);
-
-        ObjectIterator<Int2ObjectMap.Entry<TeleportCache>> it = teleportMap.int2ObjectEntrySet().iterator();
-
-        // Remove any teleports with a higher number - maybe this is a world change that reset the ID to 0?
-        while (it.hasNext()) {
-            Int2ObjectMap.Entry<TeleportCache> entry = it.next();
-            int nextID = entry.getValue().getTeleportConfirmId();
-            if (nextID > teleportCache.getTeleportConfirmId()) {
-                it.remove();
-            }
-        }
+        unconfirmedTeleports.add(teleportCache);
     }
 
     public void confirmTeleport(Vector3d position) {
-        if (teleportMap.size() == 0) {
+        if (unconfirmedTeleports.size() == 0) {
             return;
         }
         int teleportID = -1;
 
-        for (Int2ObjectMap.Entry<TeleportCache> entry : teleportMap.int2ObjectEntrySet()) {
-            if (entry.getValue().canConfirm(position)) {
-                if (entry.getValue().getTeleportConfirmId() > teleportID) {
-                    teleportID = entry.getValue().getTeleportConfirmId();
-                }
+        // Get the latest teleport that we can confirm
+        for (TeleportCache teleport : unconfirmedTeleports) {
+            if (teleport.canConfirm(position)) {
+                teleportID = teleport.getTeleportConfirmId();
             }
         }
 
         if (teleportID != -1) {
-            ObjectIterator<Int2ObjectMap.Entry<TeleportCache>> it = teleportMap.int2ObjectEntrySet().iterator();
+            Iterator<TeleportCache> it = unconfirmedTeleports.iterator();
 
             // Confirm the current teleport and any earlier ones
             while (it.hasNext()) {
-                TeleportCache entry = it.next().getValue();
+                TeleportCache entry = it.next();
                 int nextID = entry.getTeleportConfirmId();
-                if (nextID <= teleportID) {
-                    ServerboundAcceptTeleportationPacket teleportConfirmPacket = new ServerboundAcceptTeleportationPacket(nextID);
-                    sendDownstreamPacket(teleportConfirmPacket);
-                    // Servers (especially ones like Hypixel) expect exact coordinates given back to them.
-                    ServerboundMovePlayerPosRotPacket positionPacket = new ServerboundMovePlayerPosRotPacket(playerEntity.isOnGround(),
-                            entry.getX(), entry.getY(), entry.getZ(), entry.getYaw(), entry.getPitch());
-                    sendDownstreamPacket(positionPacket);
-                    it.remove();
-                    geyser.getLogger().debug("Confirmed teleport " + nextID);
+                ServerboundAcceptTeleportationPacket teleportConfirmPacket = new ServerboundAcceptTeleportationPacket(nextID);
+                sendDownstreamPacket(teleportConfirmPacket);
+                // Servers (especially ones like Hypixel) expect exact coordinates given back to them.
+                ServerboundMovePlayerPosRotPacket positionPacket = new ServerboundMovePlayerPosRotPacket(playerEntity.isOnGround(),
+                        entry.getX(), entry.getY(), entry.getZ(), entry.getYaw(), entry.getPitch());
+                sendDownstreamPacket(positionPacket);
+                it.remove();
+                geyser.getLogger().debug("Confirmed teleport " + nextID);
+
+                if (nextID == teleportID) {
+                    break;
                 }
             }
         }
 
-        if (teleportMap.size() > 0) {
-            int resendID = -1;
-            for (Int2ObjectMap.Entry<TeleportCache> entry : teleportMap.int2ObjectEntrySet()) {
-                TeleportCache teleport = entry.getValue();
+        if (unconfirmedTeleports.size() > 0) {
+            TeleportCache resendTeleport = null;
+            for (TeleportCache teleport : unconfirmedTeleports) {
                 teleport.incrementUnconfirmedFor();
                 if (teleport.shouldResend()) {
-                    if (teleport.getTeleportConfirmId() >= resendID) {
-                        resendID = teleport.getTeleportConfirmId();
-                    }
+                    resendTeleport = teleport;
                 }
             }
 
-            if (resendID != -1) {
-                geyser.getLogger().debug("Resending teleport " + resendID);
-                TeleportCache teleport = teleportMap.get(resendID);
-                getPlayerEntity().moveAbsolute(Vector3f.from(teleport.getX(), teleport.getY(), teleport.getZ()),
-                        teleport.getYaw(), teleport.getPitch(), playerEntity.isOnGround(), true);
+            if (resendTeleport != null) {
+                geyser.getLogger().debug("Resending teleport " + resendTeleport.getTeleportConfirmId());
+                getPlayerEntity().moveAbsolute(Vector3f.from(resendTeleport.getX(), resendTeleport.getY(), resendTeleport.getZ()),
+                        resendTeleport.getYaw(), resendTeleport.getPitch(), playerEntity.isOnGround(), true);
             }
         }
     }
