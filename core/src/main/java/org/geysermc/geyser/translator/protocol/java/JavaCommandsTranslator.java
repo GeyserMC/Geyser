@@ -43,6 +43,7 @@ import lombok.Getter;
 import lombok.ToString;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.command.CommandManager;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -61,20 +62,22 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     private static final String[] VALID_COLORS;
     private static final String[] VALID_SCOREBOARD_SLOTS;
 
-    private static final Hash.Strategy<CommandParamData[][]> PARAM_STRATEGY = new Hash.Strategy<>() {
+    private static final Hash.Strategy<BedrockCommandInfo> PARAM_STRATEGY = new Hash.Strategy<>() {
         @Override
-        public int hashCode(CommandParamData[][] o) {
-            return Arrays.deepHashCode(o);
+        public int hashCode(BedrockCommandInfo o) {
+            int paramHash = Arrays.deepHashCode(o.paramData());
+            return 31 * paramHash + o.description().hashCode();
         }
 
         @Override
-        public boolean equals(CommandParamData[][] a, CommandParamData[][] b) {
+        public boolean equals(BedrockCommandInfo a, BedrockCommandInfo b) {
             if (a == b) return true;
             if (a == null || b == null) return false;
-            if (a.length != b.length) return false;
-            for (int i = 0; i < a.length; i++) {
-                CommandParamData[] a1 = a[i];
-                CommandParamData[] b1 = b[i];
+            if (!a.description().equals(b.description())) return false;
+            if (a.paramData().length != b.paramData().length) return false;
+            for (int i = 0; i < a.paramData().length; i++) {
+                CommandParamData[] a1 = a.paramData()[i];
+                CommandParamData[] b1 = b.paramData()[i];
                 if (a1.length != b1.length) return false;
 
                 for (int j = 0; j < a1.length; j++) {
@@ -109,11 +112,12 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             return;
         }
 
+        CommandManager manager = session.getGeyser().getCommandManager();
         CommandNode[] nodes = packet.getNodes();
         List<CommandData> commandData = new ArrayList<>();
         IntSet commandNodes = new IntOpenHashSet();
         Set<String> knownAliases = new HashSet<>();
-        Map<CommandParamData[][], Set<String>> commands = new Object2ObjectOpenCustomHashMap<>(PARAM_STRATEGY);
+        Map<BedrockCommandInfo, Set<String>> commands = new Object2ObjectOpenCustomHashMap<>(PARAM_STRATEGY);
         Int2ObjectMap<List<CommandNode>> commandArgs = new Int2ObjectOpenHashMap<>();
 
         // Get the first node, it should be a root node
@@ -137,7 +141,8 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             CommandParamData[][] params = getParams(session, nodes[nodeIndex], nodes);
 
             // Insert the alias name into the command list
-            commands.computeIfAbsent(params, index -> new HashSet<>()).add(node.getName().toLowerCase());
+            commands.computeIfAbsent(new BedrockCommandInfo(manager.getDescription(node.getName().toLowerCase(Locale.ROOT)), params),
+                    index -> new HashSet<>()).add(node.getName().toLowerCase());
         }
 
         // The command flags, not sure what these do apart from break things
@@ -145,14 +150,14 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
 
         // Loop through all the found commands
 
-        for (Map.Entry<CommandParamData[][], Set<String>> entry : commands.entrySet()) {
+        for (Map.Entry<BedrockCommandInfo, Set<String>> entry : commands.entrySet()) {
             String commandName = entry.getValue().iterator().next(); // We know this has a value
 
             // Create a basic alias
             CommandEnumData aliases = new CommandEnumData(commandName + "Aliases", entry.getValue().toArray(new String[0]), false);
 
             // Build the completed command and add it to the final list
-            CommandData data = new CommandData(commandName, session.getGeyser().getCommandManager().getDescription(commandName), flags, (byte) 0, aliases, entry.getKey());
+            CommandData data = new CommandData(commandName, entry.getKey().description(), flags, (byte) 0, aliases, entry.getKey().paramData());
             commandData.add(data);
         }
 
@@ -226,6 +231,12 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case MOB_EFFECT -> ALL_EFFECT_IDENTIFIERS;
             default -> CommandParam.STRING;
         };
+    }
+
+    /**
+     * Stores the command description and parameter data for best optimizing the Bedrock commands packet.
+     */
+    private static record BedrockCommandInfo(String description, CommandParamData[][] paramData) {
     }
 
     @Getter
