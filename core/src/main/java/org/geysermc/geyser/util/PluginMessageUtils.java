@@ -45,7 +45,7 @@ public class PluginMessageUtils {
                         .put(data)
                         .array();
 
-        FLOODGATE_REGISTER_DATA = (SKIN_CHANNEL + "\0floodgate:form").getBytes(Charsets.UTF_8);
+        FLOODGATE_REGISTER_DATA = (SKIN_CHANNEL + "\0floodgate:form\0floodgate:transfer\0floodgate:packet").getBytes(Charsets.UTF_8);
     }
 
     /**
