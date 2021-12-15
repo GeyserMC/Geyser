@@ -49,4 +49,10 @@ public class ZoglinEntity extends MonsterEntity {
             updatePassengerOffsets();
         }
     }
+
+    @Override
+    public float getBoundingBoxHeight() {
+        float scale = getFlag(EntityFlag.BABY) ? 0.55f : 1f;
+        return scale * definition.height();
+    }
 }
