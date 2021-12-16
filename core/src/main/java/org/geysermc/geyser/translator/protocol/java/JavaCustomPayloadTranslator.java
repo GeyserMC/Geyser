@@ -112,7 +112,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
                 throw new IllegalStateException("Packet data should be at least 2 bytes long");
             }
 
-            int packetId = data[0];
+            int packetId = data[0] & 0xFF;
             ByteBuf packetData = Unpooled.wrappedBuffer(data, 1, data.length - 1);
 
             var toSend = new UnknownPacket();
