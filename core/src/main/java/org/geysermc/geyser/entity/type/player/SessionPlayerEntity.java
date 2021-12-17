@@ -140,7 +140,10 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public void setFlags(ByteEntityMetadata entityMetadata) {
         super.setFlags(entityMetadata);
-        session.setSwimmingInWater((entityMetadata.getPrimitiveValue() & 0x10) == 0x10 && getFlag(EntityFlag.SPRINTING));
+        // Swimming/crawling is controlled by the Java server
+        boolean swimming = (entityMetadata.getPrimitiveValue() & 0x10) == 0x10;
+        session.setSwimming(swimming);
+        session.setSwimmingInWater(swimming && getFlag(EntityFlag.SPRINTING));
         refreshSpeed = true;
     }
 

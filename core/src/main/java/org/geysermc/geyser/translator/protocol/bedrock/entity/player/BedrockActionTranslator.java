@@ -77,16 +77,17 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.sendUpstreamPacket(attributesPacket);
                 break;
             case START_SWIMMING:
-                ServerboundPlayerCommandPacket startSwimPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);
-                session.sendDownstreamPacket(startSwimPacket);
-
-                session.setSwimming(true);
+                if (!session.getPlayerEntity().getFlag(EntityFlag.SWIMMING)) {
+                    ServerboundPlayerCommandPacket startSwimPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);
+                    session.sendDownstreamPacket(startSwimPacket);
+                }
                 break;
             case STOP_SWIMMING:
-                ServerboundPlayerCommandPacket stopSwimPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
-                session.sendDownstreamPacket(stopSwimPacket);
-
-                session.setSwimming(false);
+                // Prevent packet spam when Bedrock players are crawling near the edge of a block
+                if (session.isSwimmingInWater()) {
+                    ServerboundPlayerCommandPacket stopSwimPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
+                    session.sendDownstreamPacket(stopSwimPacket);
+                }
                 break;
             case START_GLIDE:
                 // Otherwise gliding will not work in creative
@@ -134,13 +135,17 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.setSneaking(false);
                 break;
             case START_SPRINT:
-                ServerboundPlayerCommandPacket startSprintPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);
-                session.sendDownstreamPacket(startSprintPacket);
-                session.setSprinting(true);
+                if (!session.getPlayerEntity().getFlag(EntityFlag.SWIMMING)) {
+                    ServerboundPlayerCommandPacket startSprintPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);
+                    session.sendDownstreamPacket(startSprintPacket);
+                    session.setSprinting(true);
+                }
                 break;
             case STOP_SPRINT:
-                ServerboundPlayerCommandPacket stopSprintPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
-                session.sendDownstreamPacket(stopSprintPacket);
+                if (!session.getPlayerEntity().getFlag(EntityFlag.SWIMMING)) {
+                    ServerboundPlayerCommandPacket stopSprintPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
+                    session.sendDownstreamPacket(stopSprintPacket);
+                }
                 session.setSprinting(false);
                 break;
             case DROP_ITEM:
