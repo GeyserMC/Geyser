@@ -2,7 +2,7 @@ pipeline {
     agent any
     tools {
         maven 'Maven 3'
-        jdk 'Java 8'
+        jdk 'Java 16'
     }
     options {
         buildDiscarder(logRotator(artifactNumToKeepStr: '20'))
@@ -26,7 +26,27 @@ pipeline {
             }
 
             steps {
-                sh 'mvn javadoc:jar source:jar deploy -DskipTests'
+                rtMavenDeployer(
+                        id: "maven-deployer",
+                        serverId: "opencollab-artifactory",
+                        releaseRepo: "maven-releases",
+                        snapshotRepo: "maven-snapshots"
+                )
+                rtMavenResolver(
+                        id: "maven-resolver",
+                        serverId: "opencollab-artifactory",
+                        releaseRepo: "maven-deploy-release",
+                        snapshotRepo: "maven-deploy-snapshot"
+                )
+                rtMavenRun(
+                        pom: 'pom.xml',
+                        goals: 'javadoc:jar source:jar install -pl :core -am -DskipTests',
+                        deployerId: "maven-deployer",
+                        resolverId: "maven-resolver"
+                )
+                rtPublishBuildInfo(
+                        serverId: "opencollab-artifactory"
+                )
             }
         }
     }
@@ -66,7 +86,15 @@ pipeline {
             }
             deleteDir()
             withCredentials([string(credentialsId: 'geyser-discord-webhook', variable: 'DISCORD_WEBHOOK')]) {
-                discordSend description: "**Build:** [${currentBuild.id}](${env.BUILD_URL})\n**Status:** [${currentBuild.currentResult}](${env.BUILD_URL})\n${changes}\n\n[**Artifacts on Jenkins**](https://ci.nukkitx.com/job/Geyser)", footer: 'Cloudburst Jenkins', link: env.BUILD_URL, successful: currentBuild.resultIsBetterOrEqualTo('SUCCESS'), title: "${env.JOB_NAME} #${currentBuild.id}", webhookURL: DISCORD_WEBHOOK
+                discordSend description: "**Build:** [${currentBuild.id}](${env.BUILD_URL})\n**Status:** [${currentBuild.currentResult}](${env.BUILD_URL})\n${changes}\n\n[**Artifacts on Jenkins**](https://ci.opencollab.dev/job/GeyserMC/job/Geyser)", footer: 'Open Collaboration Jenkins', link: env.BUILD_URL, successful: currentBuild.resultIsBetterOrEqualTo('SUCCESS'), title: "${env.JOB_NAME} #${currentBuild.id}", webhookURL: DISCORD_WEBHOOK
+            }
+        }
+        success {
+            script {
+                if (env.BRANCH_NAME == 'master') {
+                    build propagate: false, wait: false, job: 'GeyserMC/Geyser-Fabric/java-1.18', parameters: [booleanParam(name: 'SKIP_DISCORD', value: true)]
+                    build propagate: false, wait: false, job: 'GeyserMC/GeyserConnect/master', parameters: [booleanParam(name: 'SKIP_DISCORD', value: true)]
+                }
             }
         }
     }
