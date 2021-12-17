@@ -42,9 +42,7 @@ import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.statistic.CustomStatistic;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.packet.handshake.serverbound.ClientIntentionPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundAcceptTeleportationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import com.github.steveice10.mc.protocol.packet.login.serverbound.ServerboundCustomQueryPacket;
 import com.github.steveice10.packetlib.BuiltinFlags;
@@ -166,7 +164,8 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     private final TagCache tagCache;
     private final WorldCache worldCache;
 
-    private final List<TeleportCache> unconfirmedTeleports = new ArrayList<>();
+    @Setter
+    private TeleportCache unconfirmedTeleport;
 
     private final WorldBorder worldBorder;
     /**
@@ -1246,59 +1245,23 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         return itemNetId.getAndIncrement();
     }
 
-    public void addTeleport(TeleportCache teleportCache) {
-        unconfirmedTeleports.add(teleportCache);
-    }
-
     public void confirmTeleport(Vector3d position) {
-        if (unconfirmedTeleports.size() == 0) {
+        if (unconfirmedTeleport == null) {
             return;
         }
-        int teleportID = -1;
 
-        // Get the latest teleport that we can confirm
-        for (TeleportCache teleport : unconfirmedTeleports) {
-            if (teleport.canConfirm(position)) {
-                teleportID = teleport.getTeleportConfirmId();
-            }
+        if (unconfirmedTeleport.canConfirm(position)) {
+            unconfirmedTeleport = null;
+            return;
         }
 
-        if (teleportID != -1) {
-            Iterator<TeleportCache> it = unconfirmedTeleports.iterator();
-
-            // Confirm the current teleport and any earlier ones
-            while (it.hasNext()) {
-                TeleportCache entry = it.next();
-                int nextID = entry.getTeleportConfirmId();
-                ServerboundAcceptTeleportationPacket teleportConfirmPacket = new ServerboundAcceptTeleportationPacket(nextID);
-                sendDownstreamPacket(teleportConfirmPacket);
-                // Servers (especially ones like Hypixel) expect exact coordinates given back to them.
-                ServerboundMovePlayerPosRotPacket positionPacket = new ServerboundMovePlayerPosRotPacket(playerEntity.isOnGround(),
-                        entry.getX(), entry.getY(), entry.getZ(), entry.getYaw(), entry.getPitch());
-                sendDownstreamPacket(positionPacket);
-                it.remove();
-                geyser.getLogger().debug("Confirmed teleport " + nextID);
-
-                if (nextID == teleportID) {
-                    break;
-                }
-            }
-        }
-
-        if (unconfirmedTeleports.size() > 0) {
-            TeleportCache resendTeleport = null;
-            for (TeleportCache teleport : unconfirmedTeleports) {
-                teleport.incrementUnconfirmedFor();
-                if (teleport.shouldResend()) {
-                    resendTeleport = teleport;
-                }
-            }
-
-            if (resendTeleport != null) {
-                geyser.getLogger().debug("Resending teleport " + resendTeleport.getTeleportConfirmId());
-                getPlayerEntity().moveAbsolute(Vector3f.from(resendTeleport.getX(), resendTeleport.getY(), resendTeleport.getZ()),
-                        resendTeleport.getYaw(), resendTeleport.getPitch(), playerEntity.isOnGround(), true);
-            }
+        // Resend the teleport every few packets until Bedrock responds
+        unconfirmedTeleport.incrementUnconfirmedFor();
+        if (unconfirmedTeleport.shouldResend()) {
+            unconfirmedTeleport.resetUnconfirmedFor();
+            geyser.getLogger().debug("Resending teleport " + unconfirmedTeleport.getTeleportConfirmId());
+            getPlayerEntity().moveAbsolute(Vector3f.from(unconfirmedTeleport.getX(), unconfirmedTeleport.getY(), unconfirmedTeleport.getZ()),
+                    unconfirmedTeleport.getYaw(), unconfirmedTeleport.getPitch(), playerEntity.isOnGround(), true);
         }
     }
 
