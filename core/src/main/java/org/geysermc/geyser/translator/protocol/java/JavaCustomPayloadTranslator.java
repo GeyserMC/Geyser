@@ -29,16 +29,18 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCu
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCustomPayloadPacket;
 import com.google.common.base.Charsets;
 import com.nukkitx.protocol.bedrock.packet.EmotePacket;
-import org.geysermc.geyser.common.AuthType;
-import org.geysermc.geyser.entity.Entity;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.network.translators.PacketTranslator;
-import org.geysermc.geyser.network.translators.Translator;
-import org.geysermc.geyser.utils.PluginMessageUtils;
-import org.geysermc.geyser.utils.StringByteUtil;
+import com.nukkitx.protocol.bedrock.packet.TransferPacket;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.cumulus.Form;
 import org.geysermc.cumulus.Forms;
 import org.geysermc.cumulus.util.FormType;
+import org.geysermc.geyser.util.PluginMessageUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -48,16 +50,16 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
     private final GeyserLogger logger = GeyserImpl.getInstance().getLogger();
 
     @Override
-    public void translate(GeyserSession session, ServerPluginMessagePacket packet) {
+    public void translate(GeyserSession session, ClientboundCustomPayloadPacket  packet) {
         // Handle plugin channels
         switch (packet.getChannel()) {
             case "minecraft:register":
-                if (StringByteUtil.bytesToStrings(packet.getData()).contains(PluginMessageUtils.EMOTE_CHANNEL)) {
+                if (org.geysermc.connector.utils.StringByteUtil.bytesToStrings(packet.getData()).contains(PluginMessageUtils.EMOTE_CHANNEL)) {
                     session.setEmoteChannelOpen(true);
                 }
                 break;
             case "minecraft:unregister":
-                if (StringByteUtil.bytesToStrings(packet.getData()).contains(PluginMessageUtils.EMOTE_CHANNEL)) {
+                if (org.geysermc.connector.utils.StringByteUtil.bytesToStrings(packet.getData()).contains(PluginMessageUtils.EMOTE_CHANNEL)) {
                     session.setEmoteChannelOpen(false);
                 }
                 break;
@@ -74,7 +76,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
         }
     }
 
-    private void handleEmote(GeyserSession session, ServerPluginMessagePacket packet) {
+    private void handleEmote(GeyserSession session, ClientboundCustomPayloadPacket  packet) {
         EmotePacket emotePacket = new EmotePacket();
 
         ByteBuffer byteBuffer = ByteBuffer.wrap(packet.getData());
@@ -90,11 +92,31 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
         session.sendUpstreamPacket(emotePacket);
     }
 
-    private void handleFloodgateMessage(GeyserSession session, ServerPluginMessagePacket packet) {
-        byte[] data = packet.getData();
+    private void handleFloodgateMessage(GeyserSession session, ClientboundCustomPayloadPacket  packet) {
+        String channel = packet.getChannel();
 
-        // receive: first byte is form type, second and third are the id, remaining is the form data
-        // respond: first and second byte id, remaining is form response data
+        if (channel.equals("floodgate:form")) {
+            byte[] data = packet.getData();
+
+            // receive: first byte is form type, second and third are the id, remaining is the form data
+            // respond: first and second byte id, remaining is form response data
+
+            FormType type = FormType.getByOrdinal(data[0]);
+            if (type == null) {
+                throw new NullPointerException(
+                        "Got type " + data[0] + " which isn't a valid form type!");
+            }
+
+            String dataString = new String(data, 3, data.length - 3, Charsets.UTF_8);
+
+            Form form = Forms.fromJson(dataString, type);
+            form.setResponseHandler(response -> {
+                byte[] raw = response.getBytes(StandardCharsets.UTF_8);
+                byte[] finalData = new byte[raw.length + 2];
+
+                finalData[0] = data[1];
+                finalData[1] = data[2];
+                System.arraycopy(raw, 0, finalData, 2, raw.length);
 
                 session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(channel, finalData));
             });
@@ -121,20 +143,5 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
             transferPacket.setPort(port);
             session.sendUpstreamPacket(transferPacket);
         }
-
-        String dataString = new String(data, 3, data.length - 3, Charsets.UTF_8);
-
-        Form form = Forms.fromJson(dataString, type);
-        form.setResponseHandler(response -> {
-            byte[] raw = response.getBytes(StandardCharsets.UTF_8);
-            byte[] finalData = new byte[raw.length + 2];
-
-            finalData[0] = data[1];
-            finalData[1] = data[2];
-            System.arraycopy(raw, 0, finalData, 2, raw.length);
-
-            session.sendDownstreamPacket(new ClientPluginMessagePacket(packet.getChannel(), finalData));
-        });
-        session.sendForm(form);
     }
 }

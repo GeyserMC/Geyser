@@ -29,14 +29,14 @@ import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import com.nukkitx.protocol.bedrock.packet.EmotePacket;
-import org.geysermc.geyser.GeyserConnector;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
-import org.geysermc.geyser.entity.Entity;
-import org.geysermc.geyser.network.session.GeyserSession;
-import org.geysermc.geyser.network.translators.PacketTranslator;
-import org.geysermc.geyser.network.translators.Translator;
-import org.geysermc.geyser.utils.BlockUtils;
-import org.geysermc.geyser.utils.PluginMessageUtils;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.BlockUtils;
+import org.geysermc.geyser.util.PluginMessageUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -66,11 +66,11 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
 
                 PluginMessageUtils.sendMessage(session, PluginMessageUtils.EMOTE_CHANNEL, out.toByteArray());
             } catch (Exception e) {
-                GeyserConnector.getInstance().getLogger().error("Failed to send emote data downstream!", e);
+                GeyserImpl.getInstance().getLogger().error("Failed to send emote data downstream!", e);
             }
         } else {
             long javaId = session.getPlayerEntity().getEntityId();
-            for (GeyserSession otherSession : session.getConnector().getPlayers()) {
+            for (GeyserSession otherSession : session.getGeyser().getSessionManager().getSessions().values()) {
                 if (otherSession != session) {
                     if (otherSession.isClosed()) continue;
                     if (otherSession.getEventLoop().inEventLoop()) {
