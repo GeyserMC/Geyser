@@ -6,15 +6,15 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>bootstrap-parent</artifactId>
-        <version>1.4.2-SNAPSHOT</version>
+        <version>2.0.0-SNAPSHOT</version>
     </parent>
     <artifactId>bootstrap-velocity</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>org.geysermc</groupId>
-            <artifactId>connector</artifactId>
-            <version>1.4.2-SNAPSHOT</version>
+            <artifactId>core</artifactId>
+            <version>2.0.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -40,7 +40,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Main-Class>org.geysermc.platform.velocity.GeyserVelocityMain</Main-Class>
+                            <Main-Class>org.geysermc.geyser.platform.velocity.GeyserVelocityMain</Main-Class>
                         </manifestEntries>
                     </archive>
                 </configuration>
@@ -48,7 +48,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.1</version>
+                <version>3.3.0-SNAPSHOT</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -59,23 +59,15 @@
                             <relocations>
                                 <relocation>
                                     <pattern>com.fasterxml.jackson</pattern>
-                                    <shadedPattern>org.geysermc.platform.velocity.shaded.jackson</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.velocity.shaded.jackson</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>it.unimi.dsi.fastutil</pattern>
-                                    <shadedPattern>org.geysermc.platform.velocity.shaded.fastutil</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.google.common</pattern>
-                                    <shadedPattern>org.geysermc.platform.velocity.shaded.google.common</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.google.guava</pattern>
-                                    <shadedPattern>org.geysermc.platform.velocity.shaded.google.guava</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.velocity.shaded.fastutil</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>net.kyori.adventure.text.serializer.gson.legacyimpl</pattern>
-                                    <shadedPattern>org.geysermc.platform.velocity.shaded.kyori.legacyimpl</shadedPattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.velocity.shaded.kyori.legacyimpl</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
@@ -84,7 +76,7 @@
                 <configuration>
                     <artifactSet>
                         <excludes>
-                            <exclude>com.google.code.gson:*</exclude>
+                            <exclude>com.google.*:*</exclude>
                             <!-- Needed because Velocity provides every dependency except netty-resolver-dns -->
                             <exclude>io.netty:netty-transport-native-epoll:*</exclude>
                             <exclude>io.netty:netty-transport-native-unix-common:*</exclude>

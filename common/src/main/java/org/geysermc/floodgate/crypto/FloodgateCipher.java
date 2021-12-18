@@ -26,33 +26,32 @@
 
 package org.geysermc.floodgate.crypto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import org.geysermc.floodgate.util.InvalidFormatException;
 
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Responsible for both encrypting and decrypting data
  */
 public interface FloodgateCipher {
-    // use invalid username characters at the beginning and the end of the identifier,
-    // to make sure that it doesn't get messed up with usernames
-    byte[] IDENTIFIER = "^Floodgate^".getBytes(StandardCharsets.UTF_8);
-    int HEADER_LENGTH = IDENTIFIER.length;
+    int VERSION = 0;
+    byte[] IDENTIFIER = "^Floodgate^".getBytes(UTF_8);
+    byte[] HEADER = (new String(IDENTIFIER, UTF_8) + (char) (VERSION + 0x3E)).getBytes(UTF_8);
 
-    static boolean hasHeader(String data) {
-        if (data.length() < IDENTIFIER.length) {
-            return false;
+    static int version(String data) {
+        if (data.length() <= HEADER.length) {
+            return -1;
         }
 
         for (int i = 0; i < IDENTIFIER.length; i++) {
             if (IDENTIFIER[i] != data.charAt(i)) {
-                return false;
+                return -1;
             }
         }
-        return true;
+
+        return data.charAt(IDENTIFIER.length) - 0x3E;
     }
 
     /**
@@ -79,7 +78,7 @@ public interface FloodgateCipher {
      * @throws Exception when the encryption failed
      */
     default byte[] encryptFromString(String data) throws Exception {
-        return encrypt(data.getBytes(StandardCharsets.UTF_8));
+        return encrypt(data.getBytes(UTF_8));
     }
 
     /**
@@ -104,7 +103,7 @@ public interface FloodgateCipher {
         if (decrypted == null) {
             return null;
         }
-        return new String(decrypted, StandardCharsets.UTF_8);
+        return new String(decrypted, UTF_8);
     }
 
     /**
@@ -116,7 +115,7 @@ public interface FloodgateCipher {
      * @throws Exception when the decrypting failed
      */
     default byte[] decryptFromString(String data) throws Exception {
-        return decrypt(data.getBytes(StandardCharsets.UTF_8));
+        return decrypt(data.getBytes(UTF_8));
     }
 
     /**
@@ -127,37 +126,21 @@ public interface FloodgateCipher {
      * @throws InvalidFormatException when the header is invalid
      */
     default void checkHeader(byte[] data) throws InvalidFormatException {
-        final int identifierLength = IDENTIFIER.length;
-
-        if (data.length <= HEADER_LENGTH) {
-            throw new InvalidFormatException("Data length is smaller then header." +
-                    "Needed " + HEADER_LENGTH + ", got " + data.length,
-                    true
+        if (data.length <= HEADER.length) {
+            throw new InvalidFormatException(
+                    "Data length is smaller then header." +
+                    "Needed " + HEADER.length + ", got " + data.length
             );
         }
 
-        for (int i = 0; i < identifierLength; i++) {
+        for (int i = 0; i < IDENTIFIER.length; i++) {
             if (IDENTIFIER[i] != data[i]) {
-                StringBuilder receivedIdentifier = new StringBuilder();
-                for (byte b : IDENTIFIER) {
-                    receivedIdentifier.append(b);
-                }
-
+                String identifier = new String(IDENTIFIER, UTF_8);
+                String received = new String(data, 0, IDENTIFIER.length, UTF_8);
                 throw new InvalidFormatException(
-                        String.format("Expected identifier %s, got %s",
-                                new String(IDENTIFIER, StandardCharsets.UTF_8),
-                                receivedIdentifier.toString()
-                        ),
-                        true
+                        "Expected identifier " + identifier + ", got " + received
                 );
             }
         }
-    }
-
-    @Data
-    @AllArgsConstructor
-    class HeaderResult {
-        private int version;
-        private int startIndex;
     }
 }

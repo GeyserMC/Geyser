@@ -38,7 +38,7 @@ public enum UiProfile {
      * @param id the UiProfile identifier
      * @return The UiProfile or {@link #CLASSIC} if the UiProfile wasn't found
      */
-    public static UiProfile getById(int id) {
+    public static UiProfile fromId(int id) {
         return VALUES.length > id ? VALUES[id] : VALUES[0];
     }
 }

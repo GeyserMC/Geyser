@@ -59,7 +59,7 @@ public enum DeviceOs {
      * @param id the DeviceOs identifier
      * @return The DeviceOs or {@link #UNKNOWN} if the DeviceOs wasn't found
      */
-    public static DeviceOs getById(int id) {
+    public static DeviceOs fromId(int id) {
         return id < VALUES.length ? VALUES[id] : VALUES[0];
     }
 

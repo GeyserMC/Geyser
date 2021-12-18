@@ -81,11 +81,11 @@ public enum WebsocketEventType {
         this.id = id;
     }
 
-    public static WebsocketEventType getById(int id) {
+    public static WebsocketEventType fromId(int id) {
         return VALUES.length > id ? VALUES[id] : null;
     }
 
-    public int getId() {
+    public int id() {
         return id;
     }
 }
