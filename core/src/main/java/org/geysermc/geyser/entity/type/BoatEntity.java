@@ -84,8 +84,12 @@ public class BoatEntity extends Entity {
 
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
-        // Minimal glitching when ClientboundMoveVehiclePacket is sent
-        moveEntityPacket.setPosition(session.getRidingVehicleEntity() == this ? position.up(EntityDefinitions.PLAYER.offset() - this.definition.offset()) : this.position);
+        if (session.getPlayerEntity().getVehicle() == this && session.getPlayerEntity().isRidingInFront()) {
+            // Minimal glitching when ClientboundMoveVehiclePacket is sent
+            moveEntityPacket.setPosition(position.up(EntityDefinitions.PLAYER.offset() - this.definition.offset()));
+        } else {
+            moveEntityPacket.setPosition(this.position);
+        }
         moveEntityPacket.setRotation(getBedrockRotation());
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(teleported);
@@ -128,7 +132,7 @@ public class BoatEntity extends Entity {
             paddleTimeLeft = 0f;
             if (!this.passengers.isEmpty()) {
                 // Get the entity by the first stored passenger and convey motion in this manner
-                Entity entity = session.getEntityCache().getEntityByJavaId(this.passengers.iterator().nextLong());
+                Entity entity = this.passengers.get(0);
                 if (entity != null) {
                     updateLeftPaddle(session, entity);
                 }
@@ -144,7 +148,7 @@ public class BoatEntity extends Entity {
         if (isPaddlingRight) {
             paddleTimeRight = 0f;
             if (!this.passengers.isEmpty()) {
-                Entity entity = session.getEntityCache().getEntityByJavaId(this.passengers.iterator().nextLong());
+                Entity entity = this.passengers.get(0);
                 if (entity != null) {
                     updateRightPaddle(session, entity);
                 }

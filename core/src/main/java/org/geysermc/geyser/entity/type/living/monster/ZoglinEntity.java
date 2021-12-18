@@ -42,7 +42,17 @@ public class ZoglinEntity extends MonsterEntity {
 
     public void setBaby(BooleanEntityMetadata entityMetadata) {
         boolean isBaby = entityMetadata.getPrimitiveValue();
-        dirtyMetadata.put(EntityData.SCALE, isBaby? .55f : 1f);
-        setFlag(EntityFlag.BABY, isBaby);
+        if (isBaby != getFlag(EntityFlag.BABY)) {
+            dirtyMetadata.put(EntityData.SCALE, isBaby ? .55f : 1f);
+            setFlag(EntityFlag.BABY, isBaby);
+
+            updatePassengerOffsets();
+        }
+    }
+
+    @Override
+    public float getBoundingBoxHeight() {
+        float scale = getFlag(EntityFlag.BABY) ? 0.55f : 1f;
+        return scale * definition.height();
     }
 }

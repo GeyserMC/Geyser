@@ -71,12 +71,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         } else if (packet.getType() == EntityType.FISHING_BOBBER) {
             // Fishing bobbers need the owner for the line
             int ownerEntityId = ((ProjectileData) packet.getData()).getOwnerId();
-            Entity owner;
-            if (session.getPlayerEntity().getEntityId() == ownerEntityId) {
-                owner = session.getPlayerEntity();
-            } else {
-                owner = session.getEntityCache().getEntityByJavaId(ownerEntityId);
-            }
+            Entity owner = session.getEntityCache().getEntityByJavaId(ownerEntityId);
             // Java clients only spawn fishing hooks with a player as its owner
             if (owner instanceof PlayerEntity) {
                 entity = new FishingHookEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), packet.getUuid(),

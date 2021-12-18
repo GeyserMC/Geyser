@@ -45,6 +45,8 @@ public class ZombieEntity extends MonsterEntity {
         boolean isBaby = entityMetadata.getPrimitiveValue();
         dirtyMetadata.put(EntityData.SCALE, isBaby ? .55f : 1.0f);
         setFlag(EntityFlag.BABY, isBaby);
+
+        updateMountOffset();
     }
 
     public void setConvertingToDrowned(BooleanEntityMetadata entityMetadata) {

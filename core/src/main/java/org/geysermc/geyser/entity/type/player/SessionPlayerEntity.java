@@ -35,11 +35,14 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
+import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.AttributeUtils;
 
 import java.util.Collections;
@@ -73,7 +76,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     private final GeyserSession session;
 
     public SessionPlayerEntity(GeyserSession session) {
-        super(session, 1, 1, new GameProfile(UUID.randomUUID(), "unknown"), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
+        super(session, -1, 1, new GameProfile(UUID.randomUUID(), "unknown"), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
 
         valid = true;
         this.session = session;
@@ -112,7 +115,10 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public void setFlags(ByteEntityMetadata entityMetadata) {
         super.setFlags(entityMetadata);
-        session.setSwimmingInWater((entityMetadata.getPrimitiveValue() & 0x10) == 0x10 && getFlag(EntityFlag.SPRINTING));
+        // Swimming/crawling is controlled by the Java server
+        boolean swimming = (entityMetadata.getPrimitiveValue() & 0x10) == 0x10;
+        session.setSwimming(swimming);
+        session.setSwimmingInWater(swimming && getFlag(EntityFlag.SPRINTING));
         refreshSpeed = true;
     }
 
