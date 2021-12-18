@@ -69,7 +69,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             linkPacket.setEntityLink(new EntityLinkData(entity.getGeyserId(), passenger.getGeyserId(), type, false, false));
             session.sendUpstreamPacket(linkPacket);
 
-            passenger.setVehicleId(packet.getEntityId());
+            passenger.setVehicle(entity);
             EntityUtils.updateRiderRotationLock(passenger, entity, true);
             EntityUtils.updateMountOffset(passenger, entity, rider, true, (packet.getPassengerIds().length > 1));
             // Force an update to the passenger metadata
@@ -88,7 +88,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
                 linkPacket.setEntityLink(new EntityLinkData(entity.getGeyserId(), passenger.getGeyserId(), EntityLinkData.Type.REMOVE, false, false));
                 session.sendUpstreamPacket(linkPacket);
 
-                passenger.setVehicleId(-1);
+                passenger.setVehicle(null);
                 EntityUtils.updateRiderRotationLock(passenger, entity, false);
                 EntityUtils.updateMountOffset(passenger, entity, false, false, (packet.getPassengerIds().length > 1));
                 // Force an update to the passenger metadata

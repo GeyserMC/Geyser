@@ -93,7 +93,7 @@ public class Entity {
     /* Metadata end */
 
     protected IntList passengers = new IntArrayList();
-    protected int vehicleId = -1;
+    protected Entity vehicle;
     /**
      * A container to store temporary metadata before it's sent to Bedrock.
      */
@@ -187,7 +187,7 @@ public class Entity {
         for (int passenger : passengers) { // Make sure all passengers on the despawned entity are updated
             Entity entity = session.getEntityCache().getEntityByJavaId(passenger);
             if (entity == null) continue;
-            entity.setVehicleId(-1);
+            entity.setVehicle(null);
             entity.setFlag(EntityFlag.RIDING, false);
             entity.updateBedrockMetadata();
         }
@@ -459,7 +459,6 @@ public class Entity {
      * Update this entity's mount offset
      */
     protected void updateMountOffset() {
-        Entity vehicle = session.getEntityCache().getEntityByJavaId(vehicleId);
         if (vehicle != null) {
             boolean rider = vehicle.getPassengers().getInt(0) == entityId;
             EntityUtils.updateMountOffset(this, vehicle, rider, true, vehicle.getPassengers().size() > 1);
