@@ -135,8 +135,8 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     private MetricsInfo metrics = new MetricsInfo();
 
-    @JsonProperty("msa-authentication")
-    private MsaAuthenticationConfiguration msaAuthenticationConfiguration = new MsaAuthenticationConfiguration();
+    @JsonProperty("pending-authentication-timeout")
+    private int pendingAuthenticationTimeout;
 
     @Getter
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -233,13 +233,6 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
         @JsonProperty("uuid")
         private String uniqueId = UUID.randomUUID().toString();
-    }
-
-    @Getter
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class MsaAuthenticationConfiguration implements IMsaAuthenticationConfiguration {
-        @JsonProperty("pending-authentication-timeout")
-        private int pendingAuthenticationTimeout;
     }
 
     @JsonProperty("scoreboard-packet-threshold")

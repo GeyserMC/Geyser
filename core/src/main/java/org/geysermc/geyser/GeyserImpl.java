@@ -370,7 +370,7 @@ public class GeyserImpl implements GeyserApi {
             metrics = null;
         }
 
-        pendingMicrosoftAuthentication = new PendingMicrosoftAuthentication(config.getMsaAuthenticationConfiguration().getPendingAuthenticationTimeout());
+        pendingMicrosoftAuthentication = new PendingMicrosoftAuthentication(config.getPendingAuthenticationTimeout());
 
         boolean isGui = false;
         // This will check if we are in standalone and get the 'useGui' variable from there

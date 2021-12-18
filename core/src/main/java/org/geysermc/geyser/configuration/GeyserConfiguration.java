@@ -96,7 +96,7 @@ public interface GeyserConfiguration {
 
     IMetricsInfo getMetrics();
 
-    IMsaAuthenticationConfiguration getMsaAuthenticationConfiguration();
+    int getPendingAuthenticationTimeout();
 
     interface IBedrockConfiguration {
 
@@ -160,10 +160,6 @@ public interface GeyserConfiguration {
         boolean isEnabled();
 
         String getUniqueId();
-    }
-
-    interface IMsaAuthenticationConfiguration {
-        int getPendingAuthenticationTimeout();
     }
 
     int getScoreboardPacketThreshold();
