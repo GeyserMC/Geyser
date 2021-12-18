@@ -58,9 +58,8 @@ public class AreaEffectCloudEntity extends Entity {
     }
 
     public void setRadius(FloatEntityMetadata entityMetadata) {
-        float value = entityMetadata.getPrimitiveValue();
         // Anything less than 0.5 will cause the cloud to despawn
-        value = Math.max(value, 0.5f);
+        float value = Math.max(entityMetadata.getPrimitiveValue(), 0.5f);
         dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, value);
         dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, 2.0f * value);
     }

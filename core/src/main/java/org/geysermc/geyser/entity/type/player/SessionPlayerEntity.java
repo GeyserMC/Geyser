@@ -93,31 +93,6 @@ public class SessionPlayerEntity extends PlayerEntity {
         session.getCollisionManager().updatePlayerBoundingBox(this.position.down(definition.offset()));
     }
 
-    public void respawn(float x, float y, float z, float yaw, float pitch) {
-        setPosition(Vector3f.from(x, y, z));
-        setYaw(yaw);
-        setPitch(pitch);
-        setHeadYaw(yaw);
-
-        RespawnPacket respawnPacket = new RespawnPacket();
-        respawnPacket.setRuntimeEntityId(0); // Bedrock server behavior
-        respawnPacket.setPosition(position);
-        respawnPacket.setState(RespawnPacket.State.SERVER_READY);
-        session.sendUpstreamPacket(respawnPacket);
-
-        updateBedrockMetadata();
-
-        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-        movePlayerPacket.setRuntimeEntityId(geyserId);
-        movePlayerPacket.setPosition(position);
-        movePlayerPacket.setRotation(getBedrockRotation());
-        movePlayerPacket.setMode(MovePlayerPacket.Mode.RESPAWN);
-
-        session.sendUpstreamPacket(movePlayerPacket);
-
-        session.getGeyser().getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.entity.player.spawn", x, y, z));
-    }
-
     @Override
     public void setPosition(Vector3f position) {
         if (session != null) { // null during entity initialization
