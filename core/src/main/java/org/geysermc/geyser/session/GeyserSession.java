@@ -137,6 +137,10 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     @Setter
     private BedrockClientData clientData;
 
+    /* PluginChannels */
+    @Setter
+    private boolean isEmoteChannelOpen = false;
+
     /* Setter for GeyserConnect */
     @Setter
     private String remoteAddress;

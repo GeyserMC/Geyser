@@ -28,17 +28,19 @@ package org.geysermc.geyser.translator.protocol.java;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCustomPayloadPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCustomPayloadPacket;
 import com.google.common.base.Charsets;
-import com.nukkitx.protocol.bedrock.packet.TransferPacket;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.session.auth.AuthType;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
+import com.nukkitx.protocol.bedrock.packet.EmotePacket;
+import org.geysermc.geyser.common.AuthType;
+import org.geysermc.geyser.entity.Entity;
+import org.geysermc.geyser.network.session.GeyserSession;
+import org.geysermc.geyser.network.translators.PacketTranslator;
+import org.geysermc.geyser.network.translators.Translator;
+import org.geysermc.geyser.utils.PluginMessageUtils;
+import org.geysermc.geyser.utils.StringByteUtil;
 import org.geysermc.cumulus.Form;
 import org.geysermc.cumulus.Forms;
 import org.geysermc.cumulus.util.FormType;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 @Translator(packet = ClientboundCustomPayloadPacket.class)
@@ -46,36 +48,53 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
     private final GeyserLogger logger = GeyserImpl.getInstance().getLogger();
 
     @Override
-    public void translate(GeyserSession session, ClientboundCustomPayloadPacket packet) {
-        // The only plugin messages it has to listen for are Floodgate plugin messages
-        if (session.getRemoteAuthType() != AuthType.FLOODGATE) {
-            return;
+    public void translate(GeyserSession session, ServerPluginMessagePacket packet) {
+        // Handle plugin channels
+        switch (packet.getChannel()) {
+            case "minecraft:register":
+                if (StringByteUtil.bytesToStrings(packet.getData()).contains(PluginMessageUtils.EMOTE_CHANNEL)) {
+                    session.setEmoteChannelOpen(true);
+                }
+                break;
+            case "minecraft:unregister":
+                if (StringByteUtil.bytesToStrings(packet.getData()).contains(PluginMessageUtils.EMOTE_CHANNEL)) {
+                    session.setEmoteChannelOpen(false);
+                }
+                break;
+            case "floodgate:form":
+                if (session.getRemoteAuthType() == AuthType.FLOODGATE) {
+                    handleFloodgateMessage(session, packet);
+                }
+                break;
+            case "geyser:emote":
+                handleEmote(session, packet);
+                break;
+            default:
+                //TODO feature: Here we should have a callback for extensions to handle their own plugin messages
         }
+    }
 
-        String channel = packet.getChannel();
+    private void handleEmote(GeyserSession session, ServerPluginMessagePacket packet) {
+        EmotePacket emotePacket = new EmotePacket();
 
-        if (channel.equals("floodgate:form")) {
-            byte[] data = packet.getData();
+        ByteBuffer byteBuffer = ByteBuffer.wrap(packet.getData());
+        byte[] idBytes = new byte[byteBuffer.get()];
+        byteBuffer.get(idBytes);
 
-            // receive: first byte is form type, second and third are the id, remaining is the form data
-            // respond: first and second byte id, remaining is form response data
 
-            FormType type = FormType.getByOrdinal(data[0]);
-            if (type == null) {
-                throw new NullPointerException(
-                        "Got type " + data[0] + " which isn't a valid form type!");
-            }
+        emotePacket.setEmoteId(new String(idBytes, StandardCharsets.UTF_8));
+        Entity entity = session.getEntityCache().getEntityByJavaId(byteBuffer.getLong());
+        if (entity == null) return;
+        emotePacket.setRuntimeEntityId(entity.getGeyserId());
 
-            String dataString = new String(data, 3, data.length - 3, Charsets.UTF_8);
+        session.sendUpstreamPacket(emotePacket);
+    }
 
-            Form form = Forms.fromJson(dataString, type);
-            form.setResponseHandler(response -> {
-                byte[] raw = response.getBytes(StandardCharsets.UTF_8);
-                byte[] finalData = new byte[raw.length + 2];
+    private void handleFloodgateMessage(GeyserSession session, ServerPluginMessagePacket packet) {
+        byte[] data = packet.getData();
 
-                finalData[0] = data[1];
-                finalData[1] = data[2];
-                System.arraycopy(raw, 0, finalData, 2, raw.length);
+        // receive: first byte is form type, second and third are the id, remaining is the form data
+        // respond: first and second byte id, remaining is form response data
 
                 session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(channel, finalData));
             });
@@ -102,5 +121,20 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
             transferPacket.setPort(port);
             session.sendUpstreamPacket(transferPacket);
         }
+
+        String dataString = new String(data, 3, data.length - 3, Charsets.UTF_8);
+
+        Form form = Forms.fromJson(dataString, type);
+        form.setResponseHandler(response -> {
+            byte[] raw = response.getBytes(StandardCharsets.UTF_8);
+            byte[] finalData = new byte[raw.length + 2];
+
+            finalData[0] = data[1];
+            finalData[1] = data[2];
+            System.arraycopy(raw, 0, finalData, 2, raw.length);
+
+            session.sendDownstreamPacket(new ClientPluginMessagePacket(packet.getChannel(), finalData));
+        });
+        session.sendForm(form);
     }
 }

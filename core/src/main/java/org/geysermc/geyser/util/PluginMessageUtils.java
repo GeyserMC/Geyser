@@ -31,11 +31,14 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 public class PluginMessageUtils {
     private static final String SKIN_CHANNEL = "floodgate:skin";
+    public static final String EMOTE_CHANNEL = "geyser:emote";
     private static final byte[] GEYSER_BRAND_DATA;
     private static final byte[] FLOODGATE_REGISTER_DATA;
+    private static final byte[] EMOTE_REGISTER_DATA;
 
     static {
         byte[] data = GeyserImpl.NAME.getBytes(Charsets.UTF_8);
@@ -45,7 +48,9 @@ public class PluginMessageUtils {
                         .put(data)
                         .array();
 
-        FLOODGATE_REGISTER_DATA = (SKIN_CHANNEL + "\0floodgate:form").getBytes(Charsets.UTF_8);
+        FLOODGATE_REGISTER_DATA = (EMOTE_CHANNEL + "\0" + SKIN_CHANNEL + "\0floodgate:form").getBytes(StandardCharsets.UTF_8);
+
+        EMOTE_REGISTER_DATA = (EMOTE_CHANNEL).getBytes(StandardCharsets.UTF_8);
     }
 
     /**
@@ -60,10 +65,19 @@ public class PluginMessageUtils {
     /**
      * Get the prebuilt register data as a byte array
      *
-     * @return the register data of the Floodgate channels
+     * @return the register data of the emote channel and the Floodgate channels
      */
     public static byte[] getFloodgateRegisterData() {
         return FLOODGATE_REGISTER_DATA;
+    }
+
+    /**
+     * Get the prebuilt register data as a byte array
+     *
+     * @return the register data of only emote channel
+     */
+    public static byte[] getEmoteRegisterData() {
+        return EMOTE_REGISTER_DATA;
     }
 
     /**
