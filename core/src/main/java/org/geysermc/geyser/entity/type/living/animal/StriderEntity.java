@@ -72,10 +72,9 @@ public class StriderEntity extends AnimalEntity {
         }
 
         // Update the passengers if we have any
-        for (int passenger : passengers) {
-            Entity passengerEntity = session.getEntityCache().getEntityByJavaId(passenger);
-            if (passengerEntity != null) {
-                passengerEntity.updateBedrockMetadata();
+        for (Entity passenger : passengers) {
+            if (passenger != null) {
+                passenger.updateBedrockMetadata();
             }
         }
 

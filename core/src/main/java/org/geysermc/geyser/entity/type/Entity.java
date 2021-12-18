@@ -39,8 +39,6 @@ import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -52,6 +50,8 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.MathUtils;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -92,7 +92,7 @@ public class Entity {
     protected String nametag = "";
     /* Metadata end */
 
-    protected IntList passengers = new IntArrayList();
+    protected List<Entity> passengers = Collections.emptyList();
     protected Entity vehicle;
     /**
      * A container to store temporary metadata before it's sent to Bedrock.
@@ -184,12 +184,11 @@ public class Entity {
     public boolean despawnEntity() {
         if (!valid) return true;
 
-        for (int passenger : passengers) { // Make sure all passengers on the despawned entity are updated
-            Entity entity = session.getEntityCache().getEntityByJavaId(passenger);
-            if (entity == null) continue;
-            entity.setVehicle(null);
-            entity.setFlag(EntityFlag.RIDING, false);
-            entity.updateBedrockMetadata();
+        for (Entity passenger : passengers) { // Make sure all passengers on the despawned entity are updated
+            if (passenger == null) continue;
+            passenger.setVehicle(null);
+            passenger.setFlag(EntityFlag.RIDING, false);
+            passenger.updateBedrockMetadata();
         }
 
         RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
@@ -445,10 +444,9 @@ public class Entity {
      * Update the mount offsets of each passenger on this vehicle
      */
     protected void updatePassengerOffsets() {
-        for (int passengerId : passengers) {
-            Entity passenger = session.getEntityCache().getEntityByJavaId(passengerId);
+        for (Entity passenger : passengers) {
             if (passenger != null) {
-                boolean rider = passengers.getInt(0) == passengerId;
+                boolean rider = passengers.get(0) == this;
                 EntityUtils.updateMountOffset(passenger, this, rider, true, passengers.size() > 1);
                 passenger.updateBedrockMetadata();
             }
@@ -460,7 +458,7 @@ public class Entity {
      */
     protected void updateMountOffset() {
         if (vehicle != null) {
-            boolean rider = vehicle.getPassengers().getInt(0) == entityId;
+            boolean rider = vehicle.getPassengers().get(0) == this;
             EntityUtils.updateMountOffset(this, vehicle, rider, true, vehicle.getPassengers().size() > 1);
             updateBedrockMetadata();
         }

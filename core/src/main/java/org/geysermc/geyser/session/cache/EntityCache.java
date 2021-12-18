@@ -56,15 +56,12 @@ public class EntityCache {
     private final Long2LongMap entityIdTranslations = new Long2LongOpenHashMap();
     private final Map<UUID, PlayerEntity> playerEntities = new Object2ObjectOpenHashMap<>();
     private final Map<UUID, BossBar> bossBars = new Object2ObjectOpenHashMap<>();
-    private final Long2LongMap cachedPlayerEntityLinks = new Long2LongOpenHashMap();
 
     @Getter
     private final AtomicLong nextEntityId = new AtomicLong(2L);
 
     public EntityCache(GeyserSession session) {
         this.session = session;
-
-        cachedPlayerEntityLinks.defaultReturnValue(-1L);
     }
 
     public void spawnEntity(Entity entity) {
@@ -112,8 +109,6 @@ public class EntityCache {
         }
 
         session.getPlayerWithCustomHeads().clear();
-        // As a precaution
-        cachedPlayerEntityLinks.clear();
     }
 
     public Entity getEntityByGeyserId(long geyserId) {
@@ -161,14 +156,6 @@ public class EntityCache {
 
     public void updateBossBars() {
         bossBars.values().forEach(BossBar::updateBossBar);
-    }
-
-    public long getCachedPlayerEntityLink(long playerId) {
-        return cachedPlayerEntityLinks.remove(playerId);
-    }
-
-    public void addCachedPlayerEntityLink(long playerId, long linkedEntityId) {
-        cachedPlayerEntityLinks.put(playerId, linkedEntityId);
     }
 
     public List<Tickable> getTickableEntities() {

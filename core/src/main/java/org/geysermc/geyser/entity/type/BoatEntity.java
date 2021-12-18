@@ -132,7 +132,7 @@ public class BoatEntity extends Entity {
             paddleTimeLeft = 0f;
             if (!this.passengers.isEmpty()) {
                 // Get the entity by the first stored passenger and convey motion in this manner
-                Entity entity = session.getEntityCache().getEntityByJavaId(this.passengers.getInt(0));
+                Entity entity = this.passengers.get(0);
                 if (entity != null) {
                     updateLeftPaddle(session, entity);
                 }
@@ -148,7 +148,7 @@ public class BoatEntity extends Entity {
         if (isPaddlingRight) {
             paddleTimeRight = 0f;
             if (!this.passengers.isEmpty()) {
-                Entity entity = session.getEntityCache().getEntityByJavaId(this.passengers.getInt(0));
+                Entity entity = this.passengers.get(0);
                 if (entity != null) {
                     updateRightPaddle(session, entity);
                 }

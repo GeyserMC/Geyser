@@ -29,14 +29,15 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.Client
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Translator(packet = ClientboundSetPassengersPacket.class)
 public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSetPassengersPacket> {
@@ -47,6 +48,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
         if (entity == null) return;
 
         // Handle new/existing passengers
+        List<Entity> newPassengers = new ArrayList<>();
         for (long passengerId : packet.getPassengerIds()) {
             Entity passenger = session.getEntityCache().getEntityByJavaId(passengerId);
             if (passenger == session.getPlayerEntity()) {
@@ -54,12 +56,9 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
                 // We need to confirm teleports before entering a vehicle, or else we will likely exit right out
                 session.confirmTeleport(passenger.getPosition().sub(0, EntityDefinitions.PLAYER.offset(), 0).toDouble());
             }
-            // Passenger hasn't loaded in (likely since we're waiting for a skin response)
-            // and entity link needs to be set later
-            if (passenger == null && passengerId != 0) {
-                session.getEntityCache().addCachedPlayerEntityLink(passengerId, packet.getEntityId());
-            }
             if (passenger == null) {
+                // Can occur if the passenger is outside the client's tracking range
+                // In this case, another SetPassengers packet will be sent when the passenger is spawned.
                 continue;
             }
 
@@ -68,6 +67,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             linkPacket.setEntityLink(new EntityLinkData(entity.getGeyserId(), passenger.getGeyserId(), type, false, false));
             session.sendUpstreamPacket(linkPacket);
+            newPassengers.add(passenger);
 
             passenger.setVehicle(entity);
             EntityUtils.updateRiderRotationLock(passenger, entity, true);
@@ -77,13 +77,11 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
         }
 
         // Handle passengers that were removed
-        IntList newPassengers = new IntArrayList(packet.getPassengerIds());
-        for (int passengerId : entity.getPassengers()) {
-            Entity passenger = session.getEntityCache().getEntityByJavaId(passengerId);
+        for (Entity passenger : entity.getPassengers()) {
             if (passenger == null) {
                 continue;
             }
-            if (!newPassengers.contains(passengerId)) {
+            if (!newPassengers.contains(passenger)) {
                 SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
                 linkPacket.setEntityLink(new EntityLinkData(entity.getGeyserId(), passenger.getGeyserId(), EntityLinkData.Type.REMOVE, false, false));
                 session.sendUpstreamPacket(linkPacket);

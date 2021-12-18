@@ -97,7 +97,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             linkPacket.setEntityLink(new EntityLinkData(vehicle.getGeyserId(), entity.getGeyserId(), EntityLinkData.Type.REMOVE, false, false));
             session.sendUpstreamPacket(linkPacket);
 
-            vehicle.getPassengers().rem((int) entity.getEntityId());
+            vehicle.getPassengers().remove(entity);
             session.getPlayerEntity().setVehicle(null);
 
             EntityUtils.updateRiderRotationLock(entity, null, false);
