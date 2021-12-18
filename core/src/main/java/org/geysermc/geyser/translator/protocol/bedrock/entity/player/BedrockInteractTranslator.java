@@ -74,7 +74,6 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
             case LEAVE_VEHICLE:
                 ServerboundPlayerCommandPacket sneakPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.sendDownstreamPacket(sneakPacket);
-                session.getPlayerEntity().setVehicle(null);
                 break;
             case MOUSEOVER:
                 // Handle the buttons for mobile - "Mount", etc; and the suggestions for console - "ZL: Mount", etc
