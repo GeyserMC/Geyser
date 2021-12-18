@@ -331,9 +331,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     @Setter
     private Vector3f lastInteractionPlayerPosition = Vector3f.ZERO;
 
-    @Setter
-    private Entity ridingVehicleEntity;
-
     /**
      * The entity that the client is currently looking at.
      */

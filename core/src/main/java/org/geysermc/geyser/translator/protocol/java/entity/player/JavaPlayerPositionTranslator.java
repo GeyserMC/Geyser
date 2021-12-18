@@ -90,15 +90,15 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             return;
         }
 
-        if (packet.isDismountVehicle() && session.getRidingVehicleEntity() != null) {
-            Entity vehicle = session.getRidingVehicleEntity();
+        Entity vehicle = session.getPlayerEntity().getVehicle();
+        if (packet.isDismountVehicle() && vehicle != null) {
 
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             linkPacket.setEntityLink(new EntityLinkData(vehicle.getGeyserId(), entity.getGeyserId(), EntityLinkData.Type.REMOVE, false, false));
             session.sendUpstreamPacket(linkPacket);
 
             vehicle.getPassengers().rem((int) entity.getEntityId());
-            session.setRidingVehicleEntity(null);
+            session.getPlayerEntity().setVehicle(null);
 
             EntityUtils.updateRiderRotationLock(entity, null, false);
             EntityUtils.updateMountOffset(entity, null, false, false, entity.getPassengers().size() > 1);

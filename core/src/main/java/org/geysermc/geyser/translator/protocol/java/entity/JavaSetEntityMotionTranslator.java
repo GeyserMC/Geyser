@@ -46,7 +46,7 @@ public class JavaSetEntityMotionTranslator extends PacketTranslator<ClientboundS
 
         entity.setMotion(Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ()));
 
-        if (entity == session.getRidingVehicleEntity() && entity instanceof AbstractHorseEntity) {
+        if (entity == session.getPlayerEntity().getVehicle() && entity instanceof AbstractHorseEntity) {
             // Horses for some reason teleport back when a SetEntityMotionPacket is sent while
             // a player is riding on them. Java clients seem to ignore it anyways.
             return;

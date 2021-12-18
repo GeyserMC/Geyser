@@ -74,7 +74,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
             case LEAVE_VEHICLE:
                 ServerboundPlayerCommandPacket sneakPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.sendDownstreamPacket(sneakPacket);
-                session.setRidingVehicleEntity(null);
+                session.getPlayerEntity().setVehicle(null);
                 break;
             case MOUSEOVER:
                 // Handle the buttons for mobile - "Mount", etc; and the suggestions for console - "ZL: Mount", etc
@@ -97,7 +97,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 break;
             case OPEN_INVENTORY:
                 if (session.getOpenInventory() == null) {
-                    Entity ridingEntity = session.getRidingVehicleEntity();
+                    Entity ridingEntity = session.getPlayerEntity().getVehicle();
                     if (ridingEntity instanceof AbstractHorseEntity) {
                         if (ridingEntity.getFlag(EntityFlag.TAMED)) {
                             // We should request to open the horse inventory instead
