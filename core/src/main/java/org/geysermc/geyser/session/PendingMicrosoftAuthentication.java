@@ -31,14 +31,11 @@ import com.github.steveice10.mc.auth.service.MsaAuthenticationService;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.SneakyThrows;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
 import org.geysermc.geyser.GeyserImpl;
 
-import java.time.Duration;
 import java.util.concurrent.*;
 
 /**
@@ -50,7 +47,6 @@ public class PendingMicrosoftAuthentication {
 
     public PendingMicrosoftAuthentication(int timeoutSeconds) {
         this.authentications = CacheBuilder.newBuilder()
-                .expireAfterWrite(Duration.ofSeconds(timeoutSeconds))
                 .build(new CacheLoader<>() {
                     @Override
                     public AuthenticationTask load(@NonNull String userKey) {
@@ -59,18 +55,29 @@ public class PendingMicrosoftAuthentication {
                 });
     }
 
+    public AuthenticationTask getTask(@NonNull String userKey) {
+        return authentications.getIfPresent(userKey);
+    }
+
     @SneakyThrows(ExecutionException.class)
     public AuthenticationTask getOrCreateTask(@NonNull String userKey) {
         return authentications.get(userKey);
     }
 
     @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-    public static class AuthenticationTask {
+    public class AuthenticationTask {
         private static final Executor DELAYED_BY_ONE_SECOND = CompletableFuture.delayedExecutor(1, TimeUnit.SECONDS);
 
         MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserImpl.OAUTH_CLIENT_ID);
         String userKey;
         long timeoutMs;
+
+        @NonFinal
+        long remainingTimeMs;
+
+        @NonFinal
+        @Setter
+        boolean online;
 
         @Getter
         CompletableFuture<MsaAuthenticationService.MsCodeResponse> code;
@@ -80,12 +87,27 @@ public class PendingMicrosoftAuthentication {
         private AuthenticationTask(String userKey, long timeoutMs) {
             this.userKey = userKey;
             this.timeoutMs = timeoutMs;
+            this.remainingTimeMs = timeoutMs;
 
             // Request the code
             this.code = CompletableFuture.supplyAsync(this::tryGetCode);
             this.authentication = new CompletableFuture<>();
             // Once the code is received, continuously try to request the access token, profile, etc
             this.code.thenRun(() -> performLoginAttempt(System.currentTimeMillis()));
+            this.authentication.whenComplete((r, ex) -> {
+                // avoid memory leak, in case player doesn't connect again
+                CompletableFuture.delayedExecutor(timeoutMs, TimeUnit.MILLISECONDS).execute(this::cleanup);
+            });
+        }
+
+        public void resetTimer() {
+            this.remainingTimeMs = this.timeoutMs;
+        }
+
+        public void cleanup() {
+            if (this == authentications.getIfPresent(userKey)) {
+                authentications.invalidate(userKey);
+            }
         }
 
         private MsaAuthenticationService.MsCodeResponse tryGetCode() throws CompletionException {
@@ -96,19 +118,23 @@ public class PendingMicrosoftAuthentication {
             }
         }
 
-        private void performLoginAttempt(long startTime) {
+        private void performLoginAttempt(long lastAttempt) {
             CompletableFuture.runAsync(() -> {
                 try {
                     msaAuthenticationService.login();
                 } catch (AuthPendingException e) {
-                    long deltaTime = System.currentTimeMillis() - startTime;
-                    if (deltaTime > timeoutMs) {
-                        // time's up
-                        authentication.completeExceptionally(new TaskTimeoutException());
-                    } else {
-                        // try again in 1 second
-                        performLoginAttempt(startTime);
+                    long currentAttempt = System.currentTimeMillis();
+                    if (!online) {
+                        // decrement timer only when player's offline
+                        remainingTimeMs -= currentAttempt - lastAttempt;
+                        if (remainingTimeMs <= 0L) {
+                            // time's up
+                            authentication.completeExceptionally(new TaskTimeoutException());
+                            return;
+                        }
                     }
+                    // try again in 1 second
+                    performLoginAttempt(currentAttempt);
                     return;
                 } catch (Exception e) {
                     authentication.completeExceptionally(e);

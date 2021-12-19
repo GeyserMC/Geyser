@@ -688,38 +688,45 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         final PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getOrCreateTask(
                 getAuthData().xuid()
         );
-
+        task.setOnline(true);
+        task.resetTimer();
         if (!task.getAuthentication().isDone()) {
             task.getCode().whenComplete((response, ex) -> {
-                if (ex != null) {
-                    geyser.getLogger().error("Failed to get Microsoft auth code", ex);
-                    disconnect(ex.toString());
-                } else {
-                    LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
+                if (!closed) {
+                    if (ex != null) {
+                        geyser.getLogger().error("Failed to get Microsoft auth code", ex);
+                        disconnect(ex.toString());
+                        task.cleanup(); // error is shown -> clean up immediately
+                    } else {
+                        LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
+                    }
                 }
             });
         }
         task.getAuthentication().whenComplete((msaAuthenticationService, ex) -> {
-            if (ex != null) {
-                geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
-                if (ex instanceof PendingMicrosoftAuthentication.TaskTimeoutException) {
-                    disconnect(GeyserLocale.getLocaleStringLog("geyser.auth.msa.timeout"));
+            if (!closed) {
+                task.cleanup(); // player is online -> remove pending authentication immediately
+                if (ex != null) {
+                    geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
+                    if (ex instanceof PendingMicrosoftAuthentication.TaskTimeoutException) {
+                        disconnect(GeyserLocale.getLocaleStringLog("geyser.auth.msa.timeout"));
+                    } else {
+                        disconnect(ex.toString());
+                    }
                 } else {
-                    disconnect(ex.toString());
-                }
-            } else if (!closed) {
-                GameProfile selectedProfile = msaAuthenticationService.getSelectedProfile();
-                if (selectedProfile == null) {
-                    disconnect(GeyserLocale.getPlayerLocaleString(
-                            "geyser.network.remote.invalid_account",
-                            clientData.getLanguageCode()
-                    ));
-                } else {
-                    this.protocol = new MinecraftProtocol(
-                            selectedProfile,
-                            msaAuthenticationService.getAccessToken()
-                    );
-                    connectDownstream();
+                    GameProfile selectedProfile = msaAuthenticationService.getSelectedProfile();
+                    if (selectedProfile == null) {
+                        disconnect(GeyserLocale.getPlayerLocaleString(
+                                "geyser.network.remote.invalid_account",
+                                clientData.getLanguageCode()
+                        ));
+                    } else {
+                        this.protocol = new MinecraftProtocol(
+                                selectedProfile,
+                                msaAuthenticationService.getAccessToken()
+                        );
+                        connectDownstream();
+                    }
                 }
             }
         });
@@ -914,6 +921,12 @@ public class GeyserSession implements GeyserConnection, CommandSender {
             if (upstream != null && !upstream.isClosed()) {
                 geyser.getSessionManager().removeSession(this);
                 upstream.disconnect(reason);
+            }
+            if (authData != null) {
+                PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getTask(authData.xuid());
+                if (task != null) {
+                    task.setOnline(false);
+                }
             }
         }
 
