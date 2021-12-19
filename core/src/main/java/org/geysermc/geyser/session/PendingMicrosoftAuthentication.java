@@ -77,7 +77,7 @@ public class PendingMicrosoftAuthentication {
 
         @NonFinal
         @Setter
-        boolean online;
+        boolean online = true;
 
         @Getter
         CompletableFuture<MsaAuthenticationService.MsCodeResponse> code;
