@@ -121,6 +121,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
 
 @Getter
 public class GeyserSession implements GeyserConnection, CommandSender {
@@ -690,7 +691,39 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         );
         task.setOnline(true);
         task.resetTimer();
-        if (!task.getAuthentication().isDone()) {
+
+        BiConsumer<MsaAuthenticationService, ? super Throwable> authenticationCallback = (msaAuthenticationService, ex) -> {
+            if (closed) {
+                return;
+            }
+            task.cleanup(); // player is online -> remove pending authentication immediately
+            if (ex != null) {
+                geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
+                if (ex instanceof PendingMicrosoftAuthentication.TaskTimeoutException) {
+                    disconnect(GeyserLocale.getLocaleStringLog("geyser.auth.msa.timeout"));
+                } else {
+                    disconnect(ex.toString());
+                }
+            } else {
+                GameProfile selectedProfile = msaAuthenticationService.getSelectedProfile();
+                if (selectedProfile == null) {
+                    disconnect(GeyserLocale.getPlayerLocaleString(
+                            "geyser.network.remote.invalid_account",
+                            clientData.getLanguageCode()
+                    ));
+                } else {
+                    this.protocol = new MinecraftProtocol(
+                            selectedProfile,
+                            msaAuthenticationService.getAccessToken()
+                    );
+                    connectDownstream();
+                }
+            }
+        };
+
+        if (task.getAuthentication().isDone()) {
+            task.getAuthentication().whenComplete(authenticationCallback);
+        } else {
             task.getCode().whenComplete((response, ex) -> {
                 if (!closed) {
                     if (ex != null) {
@@ -699,37 +732,11 @@ public class GeyserSession implements GeyserConnection, CommandSender {
                         task.cleanup(); // error is shown -> clean up immediately
                     } else {
                         LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
+                        task.getAuthentication().whenComplete(authenticationCallback);
                     }
                 }
             });
         }
-        task.getAuthentication().whenComplete((msaAuthenticationService, ex) -> {
-            if (!closed) {
-                task.cleanup(); // player is online -> remove pending authentication immediately
-                if (ex != null) {
-                    geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
-                    if (ex instanceof PendingMicrosoftAuthentication.TaskTimeoutException) {
-                        disconnect(GeyserLocale.getLocaleStringLog("geyser.auth.msa.timeout"));
-                    } else {
-                        disconnect(ex.toString());
-                    }
-                } else {
-                    GameProfile selectedProfile = msaAuthenticationService.getSelectedProfile();
-                    if (selectedProfile == null) {
-                        disconnect(GeyserLocale.getPlayerLocaleString(
-                                "geyser.network.remote.invalid_account",
-                                clientData.getLanguageCode()
-                        ));
-                    } else {
-                        this.protocol = new MinecraftProtocol(
-                                selectedProfile,
-                                msaAuthenticationService.getAccessToken()
-                        );
-                        connectDownstream();
-                    }
-                }
-            }
-        });
     }
 
     /**
