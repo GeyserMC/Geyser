@@ -725,15 +725,16 @@ public class GeyserSession implements GeyserConnection, CommandSender {
             task.getAuthentication().whenComplete(authenticationCallback);
         } else {
             task.getCode().whenComplete((response, ex) -> {
-                if (!closed) {
-                    if (ex != null) {
+                boolean connected = !closed;
+                if (ex != null) {
+                    if (connected) {
                         geyser.getLogger().error("Failed to get Microsoft auth code", ex);
                         disconnect(ex.toString());
-                        task.cleanup(); // error is shown -> clean up immediately
-                    } else {
-                        LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
-                        task.getAuthentication().whenComplete(authenticationCallback);
                     }
+                    task.cleanup(); // error getting auth code -> clean up immediately
+                } else if (connected) {
+                    LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
+                    task.getAuthentication().whenComplete(authenticationCallback);
                 }
             });
         }
