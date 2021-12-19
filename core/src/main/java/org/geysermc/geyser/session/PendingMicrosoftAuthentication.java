@@ -130,6 +130,7 @@ public class PendingMicrosoftAuthentication {
                         if (remainingTimeMs <= 0L) {
                             // time's up
                             authentication.completeExceptionally(new TaskTimeoutException());
+                            cleanup();
                             return;
                         }
                     }

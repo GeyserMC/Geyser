@@ -699,11 +699,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
             task.cleanup(); // player is online -> remove pending authentication immediately
             if (ex != null) {
                 geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
-                if (ex instanceof PendingMicrosoftAuthentication.TaskTimeoutException) {
-                    disconnect(GeyserLocale.getLocaleStringLog("geyser.auth.msa.timeout"));
-                } else {
-                    disconnect(ex.toString());
-                }
+                disconnect(ex.toString());
             } else {
                 GameProfile selectedProfile = msaAuthenticationService.getSelectedProfile();
                 if (selectedProfile == null) {
