@@ -105,9 +105,7 @@ public class PendingMicrosoftAuthentication {
         }
 
         public void cleanup() {
-            if (this == authentications.getIfPresent(userKey)) {
-                authentications.invalidate(userKey);
-            }
+            authentications.asMap().remove(userKey, this);
         }
 
         private MsaAuthenticationService.MsCodeResponse tryGetCode() throws CompletionException {
