@@ -50,7 +50,7 @@ public class FishingHookEntity extends ThrowableEntity {
     private boolean inWater = false;
 
     @Getter
-    private final boolean isOwnerSessionPlayer;
+    private final long bedrockOwnerId;
     @Getter
     private long bedrockTargetId;
 
@@ -66,14 +66,8 @@ public class FishingHookEntity extends ThrowableEntity {
         // so that it can be handled by moveAbsoluteImmediate.
         setBoundingBoxHeight(128);
 
-        isOwnerSessionPlayer = owner.getGeyserId() == session.getPlayerEntity().getGeyserId();
-        this.dirtyMetadata.put(EntityData.OWNER_EID, owner.getGeyserId());
-    }
-
-    @Override
-    public void spawnEntity() {
-
-        super.spawnEntity();
+        this.bedrockOwnerId = owner.getGeyserId();
+        this.dirtyMetadata.put(EntityData.OWNER_EID, this.bedrockOwnerId);
     }
 
     public void setHookedEntity(IntEntityMetadata entityMetadata) {
