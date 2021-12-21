@@ -79,7 +79,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<ThrowableItemEntity> ENDER_PEARL;
     public static final EntityDefinition<EnderCrystalEntity> END_CRYSTAL;
     public static final EntityDefinition<SpellcasterIllagerEntity> EVOKER;
-    public static final EntityDefinition<Entity> EVOKER_FANGS;
+    public static final EntityDefinition<EvokerFangsEntity> EVOKER_FANGS;
     public static final EntityDefinition<ThrowableItemEntity> EXPERIENCE_BOTTLE;
     public static final EntityDefinition<ExpOrbEntity> EXPERIENCE_ORB;
     public static final EntityDefinition<Entity> EYE_OF_ENDER;
@@ -225,7 +225,7 @@ public final class EntityDefinitions {
                     .type(EntityType.EXPERIENCE_ORB)
                     .identifier("minecraft:xp_orb")
                     .build();
-            EVOKER_FANGS = EntityDefinition.builder(entityBase.factory()) // No entity metadata to listen to as of 1.18.1
+            EVOKER_FANGS = EntityDefinition.builder(EvokerFangsEntity::new) // No entity metadata to listen to as of 1.18.1
                     .type(EntityType.EVOKER_FANGS)
                     .height(0.8f).width(0.5f)
                     .identifier("minecraft:evocation_fang")

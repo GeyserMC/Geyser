@@ -34,6 +34,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.type.EvokerFangsEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -178,8 +179,11 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 entityEventPacket.setType(EntityEventType.GOLEM_FLOWER_WITHDRAW);
                 break;
             case IRON_GOLEM_ATTACK:
-                if (entity.getDefinition() == EntityDefinitions.IRON_GOLEM) {
+                if (entity.getDefinition() == EntityDefinitions.IRON_GOLEM || entity.getDefinition() == EntityDefinitions.EVOKER_FANGS) {
                     entityEventPacket.setType(EntityEventType.ATTACK_START);
+                    if (entity.getDefinition() == EntityDefinitions.EVOKER_FANGS) {
+                        ((EvokerFangsEntity) entity).setAttackStarted();
+                    }
                 }
                 break;
             case RABBIT_JUMP_OR_MINECART_SPAWNER_DELAY_RESET:
