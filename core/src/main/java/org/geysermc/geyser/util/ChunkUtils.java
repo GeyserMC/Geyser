@@ -265,5 +265,8 @@ public class ChunkUtils {
         // Load world coordinate scale for the world border
         double coordinateScale = ((Number) dimensionTag.get("coordinate_scale").getValue()).doubleValue();
         session.getWorldBorder().setWorldCoordinateScale(coordinateScale);
+
+        // Set if piglins/hoglins should shake
+        session.setDimensionPiglinSafe(((Number) dimensionTag.get("piglin_safe").getValue()).byteValue() != (byte) 0);
     }
 }
