@@ -62,17 +62,17 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 if (session.getPlayerInventory().getItemInHand().getJavaId() == session.getItemMappings().getStoredItems().shield().getJavaId()) {
                     break;
                 }
-                ServerboundInteractPacket interactPacket = new ServerboundInteractPacket((int) entity.getEntityId(),
+                ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(entity.getEntityId(),
                         InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
                 session.sendDownstreamPacket(interactPacket);
                 break;
             case DAMAGE:
-                ServerboundInteractPacket attackPacket = new ServerboundInteractPacket((int) entity.getEntityId(),
+                ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(entity.getEntityId(),
                         InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
                 session.sendDownstreamPacket(attackPacket);
                 break;
             case LEAVE_VEHICLE:
-                ServerboundPlayerCommandPacket sneakPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.START_SNEAKING);
+                ServerboundPlayerCommandPacket sneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.sendDownstreamPacket(sneakPacket);
                 break;
             case MOUSEOVER:
@@ -100,7 +100,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                     if (ridingEntity instanceof AbstractHorseEntity) {
                         if (ridingEntity.getFlag(EntityFlag.TAMED)) {
                             // We should request to open the horse inventory instead
-                            ServerboundPlayerCommandPacket openHorseWindowPacket = new ServerboundPlayerCommandPacket((int) session.getPlayerEntity().getEntityId(), PlayerState.OPEN_HORSE_INVENTORY);
+                            ServerboundPlayerCommandPacket openHorseWindowPacket = new ServerboundPlayerCommandPacket(session.getPlayerEntity().getEntityId(), PlayerState.OPEN_HORSE_INVENTORY);
                             session.sendDownstreamPacket(openHorseWindowPacket);
                         }
                     } else {

@@ -60,7 +60,7 @@ import java.util.UUID;
 public class Entity {
     protected final GeyserSession session;
 
-    protected long entityId;
+    protected int entityId;
     protected final long geyserId;
     protected UUID uuid;
 
@@ -112,7 +112,7 @@ public class Entity {
     @Setter(AccessLevel.PROTECTED) // For players
     private boolean flagsDirty = false;
 
-    public Entity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         this.session = session;
 
         this.entityId = entityId;

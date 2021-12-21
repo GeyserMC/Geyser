@@ -78,14 +78,14 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 break;
             case START_SWIMMING:
                 if (!session.getPlayerEntity().getFlag(EntityFlag.SWIMMING)) {
-                    ServerboundPlayerCommandPacket startSwimPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);
+                    ServerboundPlayerCommandPacket startSwimPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SPRINTING);
                     session.sendDownstreamPacket(startSwimPacket);
                 }
                 break;
             case STOP_SWIMMING:
                 // Prevent packet spam when Bedrock players are crawling near the edge of a block
                 if (session.isSwimmingInWater()) {
-                    ServerboundPlayerCommandPacket stopSwimPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
+                    ServerboundPlayerCommandPacket stopSwimPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SPRINTING);
                     session.sendDownstreamPacket(stopSwimPacket);
                 }
                 break;
@@ -94,11 +94,11 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 ServerboundPlayerAbilitiesPacket playerAbilitiesPacket = new ServerboundPlayerAbilitiesPacket(false);
                 session.sendDownstreamPacket(playerAbilitiesPacket);
             case STOP_GLIDE:
-                ServerboundPlayerCommandPacket glidePacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.START_ELYTRA_FLYING);
+                ServerboundPlayerCommandPacket glidePacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_ELYTRA_FLYING);
                 session.sendDownstreamPacket(glidePacket);
                 break;
             case START_SNEAK:
-                ServerboundPlayerCommandPacket startSneakPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.START_SNEAKING);
+                ServerboundPlayerCommandPacket startSneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.sendDownstreamPacket(startSneakPacket);
 
                 // Toggle the shield, if relevant
@@ -121,7 +121,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.setSneaking(true);
                 break;
             case STOP_SNEAK:
-                ServerboundPlayerCommandPacket stopSneakPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.STOP_SNEAKING);
+                ServerboundPlayerCommandPacket stopSneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SNEAKING);
                 session.sendDownstreamPacket(stopSneakPacket);
 
                 // Stop shield, if necessary
@@ -136,14 +136,14 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 break;
             case START_SPRINT:
                 if (!session.getPlayerEntity().getFlag(EntityFlag.SWIMMING)) {
-                    ServerboundPlayerCommandPacket startSprintPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);
+                    ServerboundPlayerCommandPacket startSprintPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SPRINTING);
                     session.sendDownstreamPacket(startSprintPacket);
                     session.setSprinting(true);
                 }
                 break;
             case STOP_SPRINT:
                 if (!session.getPlayerEntity().getFlag(EntityFlag.SWIMMING)) {
-                    ServerboundPlayerCommandPacket stopSprintPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
+                    ServerboundPlayerCommandPacket stopSprintPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SPRINTING);
                     session.sendDownstreamPacket(stopSprintPacket);
                 }
                 session.setSprinting(false);
@@ -154,7 +154,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.sendDownstreamPacket(dropItemPacket);
                 break;
             case STOP_SLEEP:
-                ServerboundPlayerCommandPacket stopSleepingPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.LEAVE_BED);
+                ServerboundPlayerCommandPacket stopSleepingPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.LEAVE_BED);
                 session.sendDownstreamPacket(stopSleepingPacket);
                 break;
             case BLOCK_INTERACT:
@@ -220,7 +220,7 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                     // Survival also sends START_BREAK, but by attaching our process here adventure mode also works
                     Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, vector);
                     if (itemFrameEntity != null) {
-                        ServerboundInteractPacket interactPacket = new ServerboundInteractPacket((int) itemFrameEntity.getEntityId(),
+                        ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(itemFrameEntity.getEntityId(),
                                 InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
                         session.sendDownstreamPacket(interactPacket);
                         break;

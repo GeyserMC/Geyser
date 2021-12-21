@@ -35,7 +35,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class LightningEntity extends Entity {
 
-    public LightningEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public LightningEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 

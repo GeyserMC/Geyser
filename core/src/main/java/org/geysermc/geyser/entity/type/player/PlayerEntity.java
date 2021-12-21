@@ -80,7 +80,7 @@ public class PlayerEntity extends LivingEntity {
      */
     private ParrotEntity rightParrot;
 
-    public PlayerEntity(GeyserSession session, long entityId, long geyserId, GameProfile gameProfile, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public PlayerEntity(GeyserSession session, int entityId, long geyserId, GameProfile gameProfile, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, gameProfile.getId(), EntityDefinitions.PLAYER, position, motion, yaw, pitch, headYaw);
 
         profile = gameProfile;

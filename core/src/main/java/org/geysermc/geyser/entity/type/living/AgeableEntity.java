@@ -36,7 +36,7 @@ import java.util.UUID;
 
 public class AgeableEntity extends CreatureEntity {
 
-    public AgeableEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public AgeableEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 

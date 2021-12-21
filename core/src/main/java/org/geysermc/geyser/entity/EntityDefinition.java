@@ -32,7 +32,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.entity.factory.BaseEntityFactory;
 import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.registry.Registries;
@@ -52,10 +51,6 @@ import java.util.function.BiConsumer;
 public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, EntityType entityType, String identifier,
                                                  float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
 
-    public static <T extends Entity> Builder<T> inherited(BaseEntityFactory<T> factory, EntityDefinition<? super T> parent) {
-        return inherited((EntityFactory<T>) factory, parent);
-    }
-
     public static <T extends Entity> Builder<T> inherited(EntityFactory<T> factory, EntityDefinition<? super T> parent) {
         return new Builder<>(factory, parent.entityType, parent.identifier, parent.width, parent.height, parent.offset, new ObjectArrayList<>(parent.translators));
     }
@@ -63,7 +58,6 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
     public static <T extends Entity> Builder<T> builder(EntityFactory<T> factory) {
         return new Builder<>(factory);
     }
-
 
     public <M> void translateMetadata(T entity, EntityMetadata<M, ? extends MetadataType<M>> metadata) {
         EntityMetadataTranslator<? super T, M, EntityMetadata<M, ? extends MetadataType<M>>> translator = (EntityMetadataTranslator<? super T, M, EntityMetadata<M, ? extends MetadataType<M>>>) this.translators.get(metadata.getId());

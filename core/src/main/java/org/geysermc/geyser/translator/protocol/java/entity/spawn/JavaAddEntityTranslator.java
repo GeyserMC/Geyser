@@ -31,18 +31,17 @@ import com.github.steveice10.mc.protocol.data.game.entity.object.ProjectileData;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddEntityPacket;
 import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.geyser.entity.*;
-import org.geysermc.geyser.entity.factory.BaseEntityFactory;
+import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.FallingBlockEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.text.GeyserLocale;
 
 @Translator(packet = ClientboundAddEntityPacket.class)
 public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEntityPacket> {
@@ -80,7 +79,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
                 return;
             }
         } else {
-            entity = ((BaseEntityFactory<?>) definition.factory()).create(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+            entity = definition.factory().create(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
                     packet.getUuid(), definition, position, motion, yaw, pitch, 0f);
         }
         session.getEntityCache().spawnEntity(entity);

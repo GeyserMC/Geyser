@@ -49,7 +49,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
 
         // Handle new/existing passengers
         List<Entity> newPassengers = new ArrayList<>();
-        for (long passengerId : packet.getPassengerIds()) {
+        for (int passengerId : packet.getPassengerIds()) {
             Entity passenger = session.getEntityCache().getEntityByJavaId(passengerId);
             if (passenger == session.getPlayerEntity()) {
                 session.getPlayerEntity().setVehicle(entity);

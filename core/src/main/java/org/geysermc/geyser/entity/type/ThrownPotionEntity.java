@@ -44,7 +44,7 @@ import java.util.UUID;
 public class ThrownPotionEntity extends ThrowableItemEntity {
     private static final EnumSet<Potion> NON_ENCHANTED_POTIONS = EnumSet.of(Potion.WATER, Potion.MUNDANE, Potion.THICK, Potion.AWKWARD);
 
-    public ThrownPotionEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public ThrownPotionEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
