@@ -81,6 +81,9 @@ public class Entity {
 
     protected EntityDefinition<?> definition;
 
+    /**
+     * Indicates if the entity has been initialized and spawned
+     */
     protected boolean valid;
 
     /* Metadata about this specific entity */
