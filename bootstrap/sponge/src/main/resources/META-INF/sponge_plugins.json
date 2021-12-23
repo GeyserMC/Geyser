@@ -7,7 +7,7 @@
   "plugins": [
     {
       "id": "geyser",
-      "name": "${outputName}-Spigot",
+      "name": "${outputName}-Sponge",
       "version": "${version}",
       "entrypoint": "org.geysermc.geyser.platform.sponge.GeyserSpongePlugin",
       "description": "${description}",

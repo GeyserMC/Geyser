@@ -29,7 +29,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
-
 import javax.annotation.Nullable;
 
 /**
