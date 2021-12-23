@@ -375,9 +375,7 @@ public class Entity {
     /**
      * Usually used for bounding box and not animation.
      */
-    public void setPose(EntityMetadata<Pose, ?> entityMetadata) {
-        Pose pose = entityMetadata.getValue();
-
+    public void setPose(Pose pose) {
         setFlag(EntityFlag.SLEEPING, pose.equals(Pose.SLEEPING));
         // Triggered when crawling
         setFlag(EntityFlag.SWIMMING, pose.equals(Pose.SWIMMING));
@@ -393,13 +391,15 @@ public class Entity {
         setBoundingBoxWidth(definition.width());
     }
 
-    public void setBoundingBoxHeight(float height) {
+    public boolean setBoundingBoxHeight(float height) {
         if (height != boundingBoxHeight) {
             boundingBoxHeight = height;
             dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, boundingBoxHeight);
 
             updatePassengerOffsets();
+            return true;
         }
+        return false;
     }
 
     public void setBoundingBoxWidth(float width) {

@@ -114,25 +114,28 @@ public class SessionPlayerEntity extends PlayerEntity {
         super.setFlags(entityMetadata);
         // Swimming/crawling is controlled by the Java server
         boolean swimming = (entityMetadata.getPrimitiveValue() & 0x10) == 0x10;
-        session.setSwimming(swimming);
+        if (swimming) {
+            setPose(Pose.SWIMMING);
+        }
         session.setSwimmingInWater(swimming && getFlag(EntityFlag.SPRINTING));
         refreshSpeed = true;
     }
 
     @Override
-    public void setBoundingBoxHeight(float height) {
-        if (height != getBoundingBoxHeight()) {
-            super.setBoundingBoxHeight(height);
+    public boolean setBoundingBoxHeight(float height) {
+        if (super.setBoundingBoxHeight(height)) {
             if (valid) { // Don't update during session init
                 session.getCollisionManager().updatePlayerBoundingBox();
             }
+            return true;
         }
+        return false;
     }
 
     @Override
-    public void setPose(EntityMetadata<Pose, ?> entityMetadata) {
-        super.setPose(entityMetadata);
-        session.setPose(entityMetadata.getValue());
+    public void setPose(Pose pose) {
+        super.setPose(pose);
+        session.setPose(pose);
         refreshSpeed = true;
     }
 

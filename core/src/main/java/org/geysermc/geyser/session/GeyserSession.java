@@ -1069,17 +1069,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         playerEntity.setFlag(EntityFlag.SNEAKING, sneaking);
     }
 
-    public void setSwimming(boolean swimming) {
-        if (this.pose == Pose.SWIMMING && !swimming) {
-            this.pose = Pose.STANDING;
-            playerEntity.setBoundingBoxHeight(playerEntity.getDefinition().height());
-        } else if (swimming) {
-            this.pose = Pose.SWIMMING;
-            playerEntity.setBoundingBoxHeight(0.6f);
-        }
-        playerEntity.setFlag(EntityFlag.SWIMMING, swimming);
-    }
-
     public void setFlying(boolean flying) {
         this.flying = flying;
 
