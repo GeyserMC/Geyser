@@ -9,7 +9,7 @@
       "id": "geyser",
       "name": "${outputName}-Spigot",
       "version": "${version}",
-      "entrypoint": "org.geysermc.platform.sponge.GeyserSpongePlugin",
+      "entrypoint": "org.geysermc.geyser.platform.sponge.GeyserSpongePlugin",
       "description": "${description}",
       "links": {
         "homepage": "${url}",
