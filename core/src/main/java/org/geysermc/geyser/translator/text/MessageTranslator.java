@@ -60,7 +60,7 @@ public class MessageTranslator {
     private static final String RESET = BASE + "r";
 
     static {
-        TEAM_COLORS.put(TeamColor.NONE, "");
+        TEAM_COLORS.put(TeamColor.RESET, RESET);
 
         TEAM_COLORS.put(TeamColor.BLACK, BASE + "0");
         TEAM_COLORS.put(TeamColor.DARK_BLUE, BASE + "1");

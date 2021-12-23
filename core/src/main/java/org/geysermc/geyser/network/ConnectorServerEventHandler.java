@@ -165,19 +165,32 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     }
 
     @Override
-    public void onSessionCreation(BedrockServerSession bedrockServerSession) {
-        bedrockServerSession.setLogging(true);
-        bedrockServerSession.setCompressionLevel(geyser.getConfig().getBedrock().getCompressionLevel());
-        bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(geyser, new GeyserSession(geyser, bedrockServerSession, eventLoopGroup.next())));
-        // Set the packet codec to default just in case we need to send disconnect packets.
-        bedrockServerSession.setPacketCodec(MinecraftProtocol.DEFAULT_BEDROCK_CODEC);
+    public void onSessionCreation(@Nonnull BedrockServerSession bedrockServerSession) {
+        try {
+            bedrockServerSession.setPacketCodec(MinecraftProtocol.DEFAULT_BEDROCK_CODEC);
+            bedrockServerSession.setLogging(true);
+            bedrockServerSession.setCompressionLevel(geyser.getConfig().getBedrock().getCompressionLevel());
+            bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(geyser, new GeyserSession(geyser, bedrockServerSession, eventLoopGroup.next())));
+            // Set the packet codec to default just in case we need to send disconnect packets.
+        } catch (Throwable e) {
+            // Error must be caught or it will be swallowed
+            geyser.getLogger().error("Error occurred while initializing player!", e);
+            bedrockServerSession.disconnect(e.getMessage());
+        }
     }
 
     @Override
-    public void onUnhandledDatagram(@Nonnull ChannelHandlerContext ctx, DatagramPacket packet) {
-        ByteBuf content = packet.content();
-        if (QueryPacketHandler.isQueryPacket(content)) {
-            new QueryPacketHandler(geyser, packet.sender(), content);
+    public void onUnhandledDatagram(@Nonnull ChannelHandlerContext ctx, @Nonnull DatagramPacket packet) {
+        try {
+            ByteBuf content = packet.content();
+            if (QueryPacketHandler.isQueryPacket(content)) {
+                new QueryPacketHandler(geyser, packet.sender(), content);
+            }
+        } catch (Throwable e) {
+            // Error must be caught or it will be swallowed
+            if (geyser.getConfig().isDebugMode()) {
+                geyser.getLogger().error("Error occurred during unhandled datagram!", e);
+            }
         }
     }
 }

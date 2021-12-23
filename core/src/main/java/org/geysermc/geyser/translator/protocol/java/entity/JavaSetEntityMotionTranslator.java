@@ -41,17 +41,12 @@ public class JavaSetEntityMotionTranslator extends PacketTranslator<ClientboundS
 
     @Override
     public void translate(GeyserSession session, ClientboundSetEntityMotionPacket packet) {
-        Entity entity;
-        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
-            entity = session.getPlayerEntity();
-        } else {
-            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        }
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) return;
 
         entity.setMotion(Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ()));
 
-        if (entity == session.getRidingVehicleEntity() && entity instanceof AbstractHorseEntity) {
+        if (entity == session.getPlayerEntity().getVehicle() && entity instanceof AbstractHorseEntity) {
             // Horses for some reason teleport back when a SetEntityMotionPacket is sent while
             // a player is riding on them. Java clients seem to ignore it anyways.
             return;

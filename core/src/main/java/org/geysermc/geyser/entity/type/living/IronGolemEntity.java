@@ -35,7 +35,7 @@ import java.util.UUID;
 
 public class IronGolemEntity extends GolemEntity {
 
-    public IronGolemEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public IronGolemEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
         // Indicate that we should show cracks through a resource pack
         setFlag(EntityFlag.BRIBED, true);

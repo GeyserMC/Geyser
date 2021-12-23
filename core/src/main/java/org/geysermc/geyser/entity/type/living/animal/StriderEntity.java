@@ -39,7 +39,7 @@ public class StriderEntity extends AnimalEntity {
 
     private boolean isCold = false;
 
-    public StriderEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public StriderEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
 
         setFlag(EntityFlag.FIRE_IMMUNE, true);
@@ -60,12 +60,8 @@ public class StriderEntity extends AnimalEntity {
         // Needs to copy the parent state
         if (getFlag(EntityFlag.RIDING)) {
             boolean parentShaking = false;
-            //TODO optimize
-            for (Entity ent : session.getEntityCache().getEntities().values()) {
-                if (ent.getPassengers().contains(entityId) && ent instanceof StriderEntity) {
-                    parentShaking = ent.getFlag(EntityFlag.SHAKING);
-                    break;
-                }
+            if (vehicle instanceof StriderEntity) {
+                parentShaking = vehicle.getFlag(EntityFlag.SHAKING);
             }
     
             setFlag(EntityFlag.BREATHING, !parentShaking);
@@ -76,10 +72,9 @@ public class StriderEntity extends AnimalEntity {
         }
 
         // Update the passengers if we have any
-        for (long passenger : passengers) {
-            Entity passengerEntity = session.getEntityCache().getEntityByJavaId(passenger);
-            if (passengerEntity != null) {
-                passengerEntity.updateBedrockMetadata();
+        for (Entity passenger : passengers) {
+            if (passenger != null) {
+                passenger.updateBedrockMetadata();
             }
         }
 

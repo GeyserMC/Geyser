@@ -36,13 +36,7 @@ public class JavaRotateHeadTranslator extends PacketTranslator<ClientboundRotate
 
     @Override
     public void translate(GeyserSession session, ClientboundRotateHeadPacket packet) {
-        Entity entity;
-        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
-            entity = session.getPlayerEntity();
-        } else {
-            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        }
-
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) return;
 
         entity.updateHeadLookRotation(packet.getHeadYaw());

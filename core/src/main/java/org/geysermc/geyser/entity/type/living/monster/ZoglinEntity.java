@@ -36,13 +36,23 @@ import java.util.UUID;
 
 public class ZoglinEntity extends MonsterEntity {
 
-    public ZoglinEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public ZoglinEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     public void setBaby(BooleanEntityMetadata entityMetadata) {
         boolean isBaby = entityMetadata.getPrimitiveValue();
-        dirtyMetadata.put(EntityData.SCALE, isBaby? .55f : 1f);
-        setFlag(EntityFlag.BABY, isBaby);
+        if (isBaby != getFlag(EntityFlag.BABY)) {
+            dirtyMetadata.put(EntityData.SCALE, isBaby ? .55f : 1f);
+            setFlag(EntityFlag.BABY, isBaby);
+
+            updatePassengerOffsets();
+        }
+    }
+
+    @Override
+    public float getBoundingBoxHeight() {
+        float scale = getFlag(EntityFlag.BABY) ? 0.55f : 1f;
+        return scale * definition.height();
     }
 }

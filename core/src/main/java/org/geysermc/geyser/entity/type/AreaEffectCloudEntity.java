@@ -39,7 +39,7 @@ import java.util.UUID;
 
 public class AreaEffectCloudEntity extends Entity {
 
-    public AreaEffectCloudEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public AreaEffectCloudEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
@@ -47,18 +47,19 @@ public class AreaEffectCloudEntity extends Entity {
     protected void initializeMetadata() {
         super.initializeMetadata();
         // Without this the cloud doesn't appear,
-        dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_DURATION, 600);
+        dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_DURATION, Integer.MAX_VALUE);
 
         // This disabled client side shrink of the cloud
         dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, 0.0f);
-        dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_CHANGE_RATE, -0.005f);
-        dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP, -0.5f);
+        dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_CHANGE_RATE, Float.MIN_VALUE);
+        dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP, Float.MIN_VALUE);
 
         setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 
     public void setRadius(FloatEntityMetadata entityMetadata) {
-        float value = entityMetadata.getPrimitiveValue();
+        // Anything less than 0.5 will cause the cloud to despawn
+        float value = Math.max(entityMetadata.getPrimitiveValue(), 0.5f);
         dirtyMetadata.put(EntityData.AREA_EFFECT_CLOUD_RADIUS, value);
         dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, 2.0f * value);
     }

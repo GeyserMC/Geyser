@@ -30,6 +30,7 @@ import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 
 @Translator(packet = SetLocalPlayerAsInitializedPacket.class)
@@ -47,8 +48,13 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
                     // else we were able to log the user in
                 }
                 if (session.isLoggedIn()) {
-                    // Sigh
+                    // Sigh - as of Bedrock 1.18
                     session.getEntityCache().updateBossBars();
+
+                    // Double sigh - https://github.com/GeyserMC/Geyser/issues/2677 - as of Bedrock 1.18
+                    if (session.getOpenInventory() != null && session.getOpenInventory().isPending()) {
+                        InventoryUtils.openInventory(session, session.getOpenInventory());
+                    }
                 }
             }
         }

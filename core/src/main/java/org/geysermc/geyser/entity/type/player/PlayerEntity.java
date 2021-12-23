@@ -47,17 +47,16 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import org.geysermc.geyser.text.ChatColor;
-import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.scoreboard.Objective;
 import org.geysermc.geyser.scoreboard.Score;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.scoreboard.UpdateType;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -81,7 +80,7 @@ public class PlayerEntity extends LivingEntity {
      */
     private ParrotEntity rightParrot;
 
-    public PlayerEntity(GeyserSession session, long entityId, long geyserId, GameProfile gameProfile, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public PlayerEntity(GeyserSession session, int entityId, long geyserId, GameProfile gameProfile, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, gameProfile.getId(), EntityDefinitions.PLAYER, position, motion, yaw, pitch, headYaw);
 
         profile = gameProfile;
@@ -123,14 +122,6 @@ public class PlayerEntity extends LivingEntity {
         dirtyMetadata.apply(addPlayerPacket.getMetadata());
 
         setFlagsDirty(false);
-
-        long linkedEntityId = session.getEntityCache().getCachedPlayerEntityLink(entityId);
-        if (linkedEntityId != -1) {
-            Entity linkedEntity = session.getEntityCache().getEntityByJavaId(linkedEntityId);
-            if (linkedEntity != null) {
-                addPlayerPacket.getEntityLinks().add(new EntityLinkData(linkedEntity.getGeyserId(), geyserId, EntityLinkData.Type.RIDER, false, false));
-            }
-        }
 
         valid = true;
         session.sendUpstreamPacket(addPlayerPacket);
@@ -352,12 +343,7 @@ public class PlayerEntity extends LivingEntity {
         if (team != null) {
             if (team.isVisibleFor(session.getPlayerEntity().getUsername())) {
                 TeamColor color = team.getColor();
-                String chatColor;
-                if (color == TeamColor.NONE) {
-                    chatColor = ChatColor.RESET;
-                } else {
-                    chatColor = MessageTranslator.toChatColor(color);
-                }
+                String chatColor = MessageTranslator.toChatColor(color);
                 // We have to emulate what modern Java text already does for us and add the color to each section
                 String prefix = team.getCurrentData().getPrefix();
                 String suffix = team.getCurrentData().getSuffix();

@@ -39,11 +39,10 @@ import com.github.steveice10.mc.protocol.data.UnexpectedEncryptionException;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
+import com.github.steveice10.mc.protocol.data.game.statistic.CustomStatistic;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.packet.handshake.serverbound.ClientIntentionPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundAcceptTeleportationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import com.github.steveice10.mc.protocol.packet.login.serverbound.ServerboundCustomQueryPacket;
 import com.github.steveice10.packetlib.BuiltinFlags;
@@ -67,7 +66,6 @@ import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -166,7 +164,8 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     private final TagCache tagCache;
     private final WorldCache worldCache;
 
-    private final Int2ObjectMap<TeleportCache> teleportMap = new Int2ObjectOpenHashMap<>();
+    @Setter
+    private TeleportCache unconfirmedTeleport;
 
     private final WorldBorder worldBorder;
     /**
@@ -303,6 +302,12 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      */
     @Setter
     private String dimension = DimensionUtils.OVERWORLD;
+    /**
+     * Whether piglins and hoglins are safe from conversion in this dimension.
+     * This controls if they have the shaking effect applied in the dimension.
+     */
+    @Setter
+    private boolean dimensionPiglinSafe;
 
     @Setter
     private int breakingBlock;
@@ -331,9 +336,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      */
     @Setter
     private Vector3f lastInteractionPlayerPosition = Vector3f.ZERO;
-
-    @Setter
-    private Entity ridingVehicleEntity;
 
     /**
      * The entity that the client is currently looking at.
@@ -459,6 +461,8 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      */
     @Setter
     private boolean waitingForStatistics = false;
+
+    private final Set<String> fogNameSpaces = new HashSet<>();
 
     private final Set<UUID> emotes;
 
@@ -1005,11 +1009,11 @@ public class GeyserSession implements GeyserConnection, CommandSender {
                 // Set the mood
                 if (!isInWorldBorderWarningArea) {
                     isInWorldBorderWarningArea = true;
-                    WorldBorder.sendFog(this, "minecraft:fog_crimson_forest");
+                    sendFog("minecraft:fog_crimson_forest");
                 }
             } else if (isInWorldBorderWarningArea) {
                 // Clear fog as we are outside the world border now
-                WorldBorder.removeFog(this);
+                removeFog("minecraft:fog_crimson_forest");
                 isInWorldBorderWarningArea = false;
             }
 
@@ -1244,73 +1248,23 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         return itemNetId.getAndIncrement();
     }
 
-    public void addTeleport(TeleportCache teleportCache) {
-        teleportMap.put(teleportCache.getTeleportConfirmId(), teleportCache);
-
-        ObjectIterator<Int2ObjectMap.Entry<TeleportCache>> it = teleportMap.int2ObjectEntrySet().iterator();
-
-        // Remove any teleports with a higher number - maybe this is a world change that reset the ID to 0?
-        while (it.hasNext()) {
-            Int2ObjectMap.Entry<TeleportCache> entry = it.next();
-            int nextID = entry.getValue().getTeleportConfirmId();
-            if (nextID > teleportCache.getTeleportConfirmId()) {
-                it.remove();
-            }
-        }
-    }
-
     public void confirmTeleport(Vector3d position) {
-        if (teleportMap.size() == 0) {
+        if (unconfirmedTeleport == null) {
             return;
         }
-        int teleportID = -1;
 
-        for (Int2ObjectMap.Entry<TeleportCache> entry : teleportMap.int2ObjectEntrySet()) {
-            if (entry.getValue().canConfirm(position)) {
-                if (entry.getValue().getTeleportConfirmId() > teleportID) {
-                    teleportID = entry.getValue().getTeleportConfirmId();
-                }
-            }
+        if (unconfirmedTeleport.canConfirm(position)) {
+            unconfirmedTeleport = null;
+            return;
         }
 
-        if (teleportID != -1) {
-            ObjectIterator<Int2ObjectMap.Entry<TeleportCache>> it = teleportMap.int2ObjectEntrySet().iterator();
-
-            // Confirm the current teleport and any earlier ones
-            while (it.hasNext()) {
-                TeleportCache entry = it.next().getValue();
-                int nextID = entry.getTeleportConfirmId();
-                if (nextID <= teleportID) {
-                    ServerboundAcceptTeleportationPacket teleportConfirmPacket = new ServerboundAcceptTeleportationPacket(nextID);
-                    sendDownstreamPacket(teleportConfirmPacket);
-                    // Servers (especially ones like Hypixel) expect exact coordinates given back to them.
-                    ServerboundMovePlayerPosRotPacket positionPacket = new ServerboundMovePlayerPosRotPacket(playerEntity.isOnGround(),
-                            entry.getX(), entry.getY(), entry.getZ(), entry.getYaw(), entry.getPitch());
-                    sendDownstreamPacket(positionPacket);
-                    it.remove();
-                    geyser.getLogger().debug("Confirmed teleport " + nextID);
-                }
-            }
-        }
-
-        if (teleportMap.size() > 0) {
-            int resendID = -1;
-            for (Int2ObjectMap.Entry<TeleportCache> entry : teleportMap.int2ObjectEntrySet()) {
-                TeleportCache teleport = entry.getValue();
-                teleport.incrementUnconfirmedFor();
-                if (teleport.shouldResend()) {
-                    if (teleport.getTeleportConfirmId() >= resendID) {
-                        resendID = teleport.getTeleportConfirmId();
-                    }
-                }
-            }
-
-            if (resendID != -1) {
-                geyser.getLogger().debug("Resending teleport " + resendID);
-                TeleportCache teleport = teleportMap.get(resendID);
-                getPlayerEntity().moveAbsolute(Vector3f.from(teleport.getX(), teleport.getY(), teleport.getZ()),
-                        teleport.getYaw(), teleport.getPitch(), playerEntity.isOnGround(), true);
-            }
+        // Resend the teleport every few packets until Bedrock responds
+        unconfirmedTeleport.incrementUnconfirmedFor();
+        if (unconfirmedTeleport.shouldResend()) {
+            unconfirmedTeleport.resetUnconfirmedFor();
+            geyser.getLogger().debug("Resending teleport " + unconfirmedTeleport.getTeleportConfirmId());
+            getPlayerEntity().moveAbsolute(Vector3f.from(unconfirmedTeleport.getX(), unconfirmedTeleport.getY(), unconfirmedTeleport.getZ()),
+                    unconfirmedTeleport.getYaw(), unconfirmedTeleport.getPitch(), playerEntity.isOnGround(), true);
         }
     }
 
@@ -1464,6 +1418,12 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      * @param statistics Updated statistics values
      */
     public void updateStatistics(@NonNull Map<Statistic, Integer> statistics) {
+        if (this.statistics.isEmpty()) {
+            // Initialize custom statistics to 0, so that they appear in the form
+            for (CustomStatistic customStatistic : CustomStatistic.values()) {
+                this.statistics.put(customStatistic, 0);
+            }
+        }
         this.statistics.putAll(statistics);
     }
 
@@ -1482,5 +1442,37 @@ public class GeyserSession implements GeyserConnection, CommandSender {
             emoteList.getPieceIds().addAll(pieces);
             player.sendUpstreamPacket(emoteList);
         }
+    }
+
+    /**
+     * Send the following fog IDs, as well as the cached ones, to the client.
+     *
+     * Fog IDs can be found here:
+     * https://wiki.bedrock.dev/documentation/fog-ids.html
+     *
+     * @param fogNameSpaces the fog ids to add
+     */
+    public void sendFog(String... fogNameSpaces) {
+        this.fogNameSpaces.addAll(Arrays.asList(fogNameSpaces));
+
+        PlayerFogPacket packet = new PlayerFogPacket();
+        packet.getFogStack().addAll(this.fogNameSpaces);
+        sendUpstreamPacket(packet);
+    }
+
+    /**
+     * Removes the following fog IDs from the client and the cache.
+     *
+     * @param fogNameSpaces the fog ids to remove
+     */
+    public void removeFog(String... fogNameSpaces) {
+        if (fogNameSpaces.length == 0) {
+            this.fogNameSpaces.clear();
+        } else {
+            this.fogNameSpaces.removeAll(Arrays.asList(fogNameSpaces));
+        }
+        PlayerFogPacket packet = new PlayerFogPacket();
+        packet.getFogStack().addAll(this.fogNameSpaces);
+        sendUpstreamPacket(packet);
     }
 }

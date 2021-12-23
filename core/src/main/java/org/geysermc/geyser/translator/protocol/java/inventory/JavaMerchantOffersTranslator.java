@@ -38,11 +38,11 @@ import com.nukkitx.protocol.bedrock.packet.UpdateTradePacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.MerchantContainer;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
-import org.geysermc.geyser.registry.type.ItemMapping;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +57,18 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
             return;
         }
 
+        // No previous inventory was closed -> no need of queuing the merchant inventory
+        if (!openInventory.isPending()) {
+            openMerchant(session, packet, merchantInventory);
+            return;
+        }
+
+        // The inventory is declared as pending due to previous closing inventory -> leads to an incorrect order of execution
+        // Handled in BedrockContainerCloseTranslator
+        merchantInventory.setPendingOffersPacket(packet);
+    }
+
+    public static void openMerchant(GeyserSession session, ClientboundMerchantOffersPacket packet, MerchantContainer merchantInventory) {
         // Retrieve the fake villager involved in the trade, and update its metadata to match with the window information
         merchantInventory.setVillagerTrades(packet.getTrades());
         Entity villager = merchantInventory.getVillager();
@@ -70,7 +82,7 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
         updateTradePacket.setTradeTier(packet.getVillagerLevel() - 1);
         updateTradePacket.setContainerId((short) packet.getContainerId());
         updateTradePacket.setContainerType(ContainerType.TRADE);
-        updateTradePacket.setDisplayName(openInventory.getTitle());
+        updateTradePacket.setDisplayName(session.getOpenInventory().getTitle());
         updateTradePacket.setSize(0);
         updateTradePacket.setNewTradingUi(true);
         updateTradePacket.setUsingEconomyTrade(true);
@@ -132,7 +144,7 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
         session.sendUpstreamPacket(updateTradePacket);
     }
 
-    private NbtMap getItemTag(GeyserSession session, ItemStack stack, int specialPrice) {
+    private static NbtMap getItemTag(GeyserSession session, ItemStack stack, int specialPrice) {
         ItemData itemData = ItemTranslator.translateToBedrock(session, stack);
         ItemMapping mapping = session.getItemMappings().getMapping(stack);
 

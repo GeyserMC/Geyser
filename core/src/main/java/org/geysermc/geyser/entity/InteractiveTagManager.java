@@ -66,6 +66,10 @@ public class InteractiveTagManager {
         ItemMapping mapping = session.getPlayerInventory().getItemInHand().getMapping(session);
         String javaIdentifierStripped = mapping.getJavaIdentifier().replace("minecraft:", "");
         EntityType entityType = interactEntity.getDefinition().entityType();
+        if (entityType == null) {
+            // Likely a technical entity; we don't need to worry about this
+            return;
+        }
 
         InteractiveTag interactiveTag = InteractiveTag.NONE;
 
@@ -90,7 +94,7 @@ public class InteractiveTagManager {
             // This animal can be fed
             interactiveTag = InteractiveTag.FEED;
         } else {
-            switch (interactEntity.getDefinition().entityType()) {
+            switch (entityType) {
                 case BOAT:
                     if (interactEntity.getPassengers().size() < 2) {
                         interactiveTag = InteractiveTag.BOARD_BOAT;
