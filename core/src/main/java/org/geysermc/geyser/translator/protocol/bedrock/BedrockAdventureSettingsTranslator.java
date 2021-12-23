@@ -53,6 +53,7 @@ public class BedrockAdventureSettingsTranslator extends PacketTranslator<Adventu
         if (isFlying && session.getPlayerEntity().getFlag(EntityFlag.SWIMMING)) {
             // Bedrock can fly and swim at the same time? Make sure that can't happen
             session.setSwimming(false);
+            session.getPlayerEntity().updateBedrockMetadata();
         }
     }
 }

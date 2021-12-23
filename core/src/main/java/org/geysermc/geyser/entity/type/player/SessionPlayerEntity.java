@@ -73,13 +73,10 @@ public class SessionPlayerEntity extends PlayerEntity {
      */
     private int fakeTradeXp;
 
-    private final GeyserSession session;
-
     public SessionPlayerEntity(GeyserSession session) {
         super(session, -1, 1, new GameProfile(UUID.randomUUID(), "unknown"), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
 
         valid = true;
-        this.session = session;
     }
 
     @Override
@@ -95,7 +92,7 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     @Override
     public void setPosition(Vector3f position) {
-        if (session != null) { // null during entity initialization
+        if (valid) { // Don't update during session init
             session.getCollisionManager().updatePlayerBoundingBox(position);
         }
         super.setPosition(position);
@@ -120,6 +117,16 @@ public class SessionPlayerEntity extends PlayerEntity {
         session.setSwimming(swimming);
         session.setSwimmingInWater(swimming && getFlag(EntityFlag.SPRINTING));
         refreshSpeed = true;
+    }
+
+    @Override
+    public void setBoundingBoxHeight(float height) {
+        if (height != getBoundingBoxHeight()) {
+            super.setBoundingBoxHeight(height);
+            if (valid) { // Don't update during session init
+                session.getCollisionManager().updatePlayerBoundingBox();
+            }
+        }
     }
 
     @Override

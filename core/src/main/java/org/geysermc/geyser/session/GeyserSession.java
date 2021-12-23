@@ -1059,18 +1059,25 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     }
 
     private void setSneakingPose(boolean sneaking) {
-        this.pose = sneaking ? Pose.SNEAKING : Pose.STANDING;
-        playerEntity.setBoundingBoxHeight(sneaking ? 1.5f : playerEntity.getDefinition().height());
+        if (this.pose == Pose.SNEAKING && !sneaking) {
+            this.pose = Pose.STANDING;
+            playerEntity.setBoundingBoxHeight(playerEntity.getDefinition().height());
+        } else if (sneaking) {
+            this.pose = Pose.SNEAKING;
+            playerEntity.setBoundingBoxHeight(1.5f);
+        }
         playerEntity.setFlag(EntityFlag.SNEAKING, sneaking);
-
-        collisionManager.updatePlayerBoundingBox();
     }
 
     public void setSwimming(boolean swimming) {
-        this.pose = swimming ? Pose.SWIMMING : Pose.STANDING;
-        playerEntity.setBoundingBoxHeight(swimming ? 0.6f : playerEntity.getDefinition().height());
+        if (this.pose == Pose.SWIMMING && !swimming) {
+            this.pose = Pose.STANDING;
+            playerEntity.setBoundingBoxHeight(playerEntity.getDefinition().height());
+        } else if (swimming) {
+            this.pose = Pose.SWIMMING;
+            playerEntity.setBoundingBoxHeight(0.6f);
+        }
         playerEntity.setFlag(EntityFlag.SWIMMING, swimming);
-        playerEntity.updateBedrockMetadata();
     }
 
     public void setFlying(boolean flying) {
