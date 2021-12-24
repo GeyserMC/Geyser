@@ -52,7 +52,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
             }
         }
 
-        long javaId = session.getPlayerEntity().getEntityId();
+        int javaId = session.getPlayerEntity().getEntityId();
         for (GeyserSession otherSession : session.getGeyser().getSessionManager().getSessions().values()) {
             if (otherSession != session) {
                 if (otherSession.isClosed()) continue;
@@ -65,7 +65,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
         }
     }
 
-    private void playEmote(GeyserSession otherSession, long javaId, String emoteId) {
+    private void playEmote(GeyserSession otherSession, int javaId, String emoteId) {
         Entity otherEntity = otherSession.getEntityCache().getEntityByJavaId(javaId); // Must be ran on same thread
         if (otherEntity == null) return;
         EmotePacket otherEmotePacket = new EmotePacket();

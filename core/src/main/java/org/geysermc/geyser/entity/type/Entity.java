@@ -39,7 +39,6 @@ import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -48,8 +47,11 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.MathUtils;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -58,7 +60,7 @@ import java.util.UUID;
 public class Entity {
     protected final GeyserSession session;
 
-    protected long entityId;
+    protected int entityId;
     protected final long geyserId;
     protected UUID uuid;
 
@@ -79,6 +81,9 @@ public class Entity {
 
     protected EntityDefinition<?> definition;
 
+    /**
+     * Indicates if the entity has been initialized and spawned
+     */
     protected boolean valid;
 
     /* Metadata about this specific entity */
@@ -90,7 +95,8 @@ public class Entity {
     protected String nametag = "";
     /* Metadata end */
 
-    protected LongOpenHashSet passengers = new LongOpenHashSet();
+    protected List<Entity> passengers = Collections.emptyList();
+    protected Entity vehicle;
     /**
      * A container to store temporary metadata before it's sent to Bedrock.
      */
@@ -109,7 +115,7 @@ public class Entity {
     @Setter(AccessLevel.PROTECTED) // For players
     private boolean flagsDirty = false;
 
-    public Entity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         this.session = session;
 
         this.entityId = entityId;
@@ -181,11 +187,11 @@ public class Entity {
     public boolean despawnEntity() {
         if (!valid) return true;
 
-        for (long passenger : passengers) { // Make sure all passengers on the despawned entity are updated
-            Entity entity = session.getEntityCache().getEntityByJavaId(passenger);
-            if (entity == null) continue;
-            entity.setFlag(EntityFlag.RIDING, false);
-            entity.updateBedrockMetadata();
+        for (Entity passenger : passengers) { // Make sure all passengers on the despawned entity are updated
+            if (passenger == null) continue;
+            passenger.setVehicle(null);
+            passenger.setFlag(EntityFlag.RIDING, false);
+            passenger.updateBedrockMetadata();
         }
 
         RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
@@ -369,9 +375,7 @@ public class Entity {
     /**
      * Usually used for bounding box and not animation.
      */
-    public void setPose(EntityMetadata<Pose, ?> entityMetadata) {
-        Pose pose = entityMetadata.getValue();
-
+    public void setPose(Pose pose) {
         setFlag(EntityFlag.SLEEPING, pose.equals(Pose.SLEEPING));
         // Triggered when crawling
         setFlag(EntityFlag.SWIMMING, pose.equals(Pose.SWIMMING));
@@ -387,11 +391,15 @@ public class Entity {
         setBoundingBoxWidth(definition.width());
     }
 
-    public void setBoundingBoxHeight(float height) {
+    public boolean setBoundingBoxHeight(float height) {
         if (height != boundingBoxHeight) {
             boundingBoxHeight = height;
             dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, boundingBoxHeight);
+
+            updatePassengerOffsets();
+            return true;
         }
+        return false;
     }
 
     public void setBoundingBoxWidth(float width) {
@@ -433,6 +441,30 @@ public class Entity {
      */
     public Vector3f getBedrockRotation() {
         return Vector3f.from(pitch, headYaw, yaw);
+    }
+
+    /**
+     * Update the mount offsets of each passenger on this vehicle
+     */
+    protected void updatePassengerOffsets() {
+        for (Entity passenger : passengers) {
+            if (passenger != null) {
+                boolean rider = passengers.get(0) == this;
+                EntityUtils.updateMountOffset(passenger, this, rider, true, passengers.size() > 1);
+                passenger.updateBedrockMetadata();
+            }
+        }
+    }
+
+    /**
+     * Update this entity's mount offset
+     */
+    protected void updateMountOffset() {
+        if (vehicle != null) {
+            boolean rider = vehicle.getPassengers().get(0) == this;
+            EntityUtils.updateMountOffset(this, vehicle, rider, true, vehicle.getPassengers().size() > 1);
+            updateBedrockMetadata();
+        }
     }
 
     @SuppressWarnings("unchecked")

@@ -62,19 +62,18 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 if (session.getPlayerInventory().getItemInHand().getJavaId() == session.getItemMappings().getStoredItems().shield().getJavaId()) {
                     break;
                 }
-                ServerboundInteractPacket interactPacket = new ServerboundInteractPacket((int) entity.getEntityId(),
+                ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(entity.getEntityId(),
                         InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
                 session.sendDownstreamPacket(interactPacket);
                 break;
             case DAMAGE:
-                ServerboundInteractPacket attackPacket = new ServerboundInteractPacket((int) entity.getEntityId(),
+                ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(entity.getEntityId(),
                         InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
                 session.sendDownstreamPacket(attackPacket);
                 break;
             case LEAVE_VEHICLE:
-                ServerboundPlayerCommandPacket sneakPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.START_SNEAKING);
+                ServerboundPlayerCommandPacket sneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.sendDownstreamPacket(sneakPacket);
-                session.setRidingVehicleEntity(null);
                 break;
             case MOUSEOVER:
                 // Handle the buttons for mobile - "Mount", etc; and the suggestions for console - "ZL: Mount", etc
@@ -97,11 +96,11 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 break;
             case OPEN_INVENTORY:
                 if (session.getOpenInventory() == null) {
-                    Entity ridingEntity = session.getRidingVehicleEntity();
+                    Entity ridingEntity = session.getPlayerEntity().getVehicle();
                     if (ridingEntity instanceof AbstractHorseEntity) {
                         if (ridingEntity.getFlag(EntityFlag.TAMED)) {
                             // We should request to open the horse inventory instead
-                            ServerboundPlayerCommandPacket openHorseWindowPacket = new ServerboundPlayerCommandPacket((int) session.getPlayerEntity().getEntityId(), PlayerState.OPEN_HORSE_INVENTORY);
+                            ServerboundPlayerCommandPacket openHorseWindowPacket = new ServerboundPlayerCommandPacket(session.getPlayerEntity().getEntityId(), PlayerState.OPEN_HORSE_INVENTORY);
                             session.sendDownstreamPacket(openHorseWindowPacket);
                         }
                     } else {

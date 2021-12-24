@@ -36,7 +36,7 @@ import java.util.UUID;
 
 public class WitherEntity extends MonsterEntity {
 
-    public WitherEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public WitherEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
@@ -60,15 +60,11 @@ public class WitherEntity extends MonsterEntity {
 
     private void setTargetId(EntityData entityData, IntEntityMetadata entityMetadata) {
         int entityId = entityMetadata.getPrimitiveValue();
-        Entity entity;
-        if (session.getPlayerEntity().getEntityId() == entityId) {
-            entity = session.getPlayerEntity();
-        } else {
-            entity = session.getEntityCache().getEntityByJavaId(entityId);
-        }
-
+        Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
         if (entity != null) {
             dirtyMetadata.put(entityData, entity.getGeyserId());
+        } else {
+            dirtyMetadata.put(entityData, (long) 0);
         }
     }
 

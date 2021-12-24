@@ -391,6 +391,7 @@ public abstract class InventoryTranslator {
                     }
                     break;
                 }
+                case CRAFT_RECIPE: // Called by stonecutters 1.18+
                 case CRAFT_RECIPE_AUTO: // Called by villagers
                 case CRAFT_NON_IMPLEMENTED_DEPRECATED: // Tends to be called for UI inventories
                 case CRAFT_RESULTS_DEPRECATED: // Tends to be called for UI inventories

@@ -126,7 +126,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         if (session.getBlockMappings().isItemFrame(packet.getBlockRuntimeId())) {
                             Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
                             if (itemFrameEntity != null) {
-                                int entityId = (int) itemFrameEntity.getEntityId();
+                                int entityId = itemFrameEntity.getEntityId();
                                 Vector3f vector = packet.getClickPosition();
                                 ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(entityId,
                                         InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
@@ -317,7 +317,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
                         if (itemFrameEntity != null) {
-                            ServerboundInteractPacket attackPacket = new ServerboundInteractPacket((int) itemFrameEntity.getEntityId(),
+                            ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(itemFrameEntity.getEntityId(),
                                     InteractAction.ATTACK, session.isSneaking());
                             session.sendDownstreamPacket(attackPacket);
                             break;
@@ -359,9 +359,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             break;
                         }
                         Vector3f vector = packet.getClickPosition().sub(entity.getPosition());
-                        ServerboundInteractPacket interactPacket = new ServerboundInteractPacket((int) entity.getEntityId(),
+                        ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(entity.getEntityId(),
                                 InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
-                        ServerboundInteractPacket interactAtPacket = new ServerboundInteractPacket((int) entity.getEntityId(),
+                        ServerboundInteractPacket interactAtPacket = new ServerboundInteractPacket(entity.getEntityId(),
                                 InteractAction.INTERACT_AT, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND, session.isSneaking());
                         session.sendDownstreamPacket(interactPacket);
                         session.sendDownstreamPacket(interactAtPacket);
@@ -372,11 +372,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         if (entity.getDefinition() == EntityDefinitions.ENDER_DRAGON) {
                             // Redirects the attack to its body entity, this only happens when
                             // attacking the underbelly of the ender dragon
-                            ServerboundInteractPacket attackPacket = new ServerboundInteractPacket((int) entity.getEntityId() + 3,
+                            ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(entity.getEntityId() + 3,
                                     InteractAction.ATTACK, session.isSneaking());
                             session.sendDownstreamPacket(attackPacket);
                         } else {
-                            ServerboundInteractPacket attackPacket = new ServerboundInteractPacket((int) entity.getEntityId(),
+                            ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(entity.getEntityId(),
                                     InteractAction.ATTACK, session.isSneaking());
                             session.sendDownstreamPacket(attackPacket);
                         }

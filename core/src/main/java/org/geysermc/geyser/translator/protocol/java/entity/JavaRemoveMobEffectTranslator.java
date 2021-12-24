@@ -38,12 +38,9 @@ public class JavaRemoveMobEffectTranslator extends PacketTranslator<ClientboundR
 
     @Override
     public void translate(GeyserSession session, ClientboundRemoveMobEffectPacket packet) {
-        Entity entity;
-        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
-            entity = session.getPlayerEntity();
+        Entity entity  = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        if (entity == session.getPlayerEntity()) {
             session.getEffectCache().removeEffect(packet.getEffect());
-        } else {
-            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         }
         if (entity == null)
             return;

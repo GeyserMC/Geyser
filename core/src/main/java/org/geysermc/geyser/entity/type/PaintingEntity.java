@@ -38,7 +38,7 @@ public class PaintingEntity extends Entity {
     private final PaintingType paintingName;
     private final int direction;
 
-    public PaintingEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, Vector3f position, PaintingType paintingName, int direction) {
+    public PaintingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, Vector3f position, PaintingType paintingName, int direction) {
         super(session, entityId, geyserId, uuid, EntityDefinitions.PAINTING, position, Vector3f.ZERO, 0f, 0f, 0f);
         this.paintingName = paintingName;
         this.direction = direction;

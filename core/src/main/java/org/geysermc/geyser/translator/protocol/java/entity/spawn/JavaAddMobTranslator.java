@@ -27,14 +27,13 @@ package org.geysermc.geyser.translator.protocol.java.entity.spawn;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddMobPacket;
 import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.factory.BaseEntityFactory;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.text.GeyserLocale;
 
 @Translator(packet = ClientboundAddMobPacket.class)
 public class JavaAddMobTranslator extends PacketTranslator<ClientboundAddMobPacket> {
@@ -50,7 +49,7 @@ public class JavaAddMobTranslator extends PacketTranslator<ClientboundAddMobPack
             return;
         }
 
-        Entity entity = ((BaseEntityFactory<?>) definition.factory()).create(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
+        Entity entity = definition.factory().create(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
                 packet.getUuid(), definition, position, motion, packet.getYaw(), packet.getPitch(), packet.getHeadYaw()
         );
         session.getEntityCache().spawnEntity(entity);

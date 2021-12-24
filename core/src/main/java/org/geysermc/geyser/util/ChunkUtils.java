@@ -27,7 +27,6 @@ package org.geysermc.geyser.util;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.DoubleTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
@@ -40,14 +39,14 @@ import it.unimi.dsi.fastutil.ints.IntLists;
 import lombok.experimental.UtilityClass;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
 
 import static org.geysermc.geyser.level.block.BlockStateValues.JAVA_AIR_ID;
 
@@ -264,7 +263,10 @@ public class ChunkUtils {
         session.getChunkCache().setHeightY(maxY);
 
         // Load world coordinate scale for the world border
-        double coordinateScale = ((DoubleTag) dimensionTag.get("coordinate_scale")).getValue();
+        double coordinateScale = ((Number) dimensionTag.get("coordinate_scale").getValue()).doubleValue();
         session.getWorldBorder().setWorldCoordinateScale(coordinateScale);
+
+        // Set if piglins/hoglins should shake
+        session.setDimensionPiglinSafe(((Number) dimensionTag.get("piglin_safe").getValue()).byteValue() != (byte) 0);
     }
 }

@@ -36,7 +36,7 @@ import java.util.UUID;
 
 public class PiglinEntity extends BasePiglinEntity {
 
-    public PiglinEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public PiglinEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
@@ -44,6 +44,8 @@ public class PiglinEntity extends BasePiglinEntity {
         boolean isBaby = entityMetadata.getPrimitiveValue();
         dirtyMetadata.put(EntityData.SCALE, isBaby? .55f : 1f);
         setFlag(EntityFlag.BABY, isBaby);
+
+        updateMountOffset();
     }
 
     public void setChargingCrossbow(BooleanEntityMetadata entityMetadata) {

@@ -41,12 +41,7 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
 
     @Override
     public void translate(GeyserSession session, ClientboundAnimatePacket packet) {
-        Entity entity;
-        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
-            entity = session.getPlayerEntity();
-        } else {
-            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        }
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null)
             return;
 

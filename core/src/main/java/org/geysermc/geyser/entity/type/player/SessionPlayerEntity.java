@@ -35,11 +35,14 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
+import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.AttributeUtils;
 
 import java.util.Collections;
@@ -70,13 +73,10 @@ public class SessionPlayerEntity extends PlayerEntity {
      */
     private int fakeTradeXp;
 
-    private final GeyserSession session;
-
     public SessionPlayerEntity(GeyserSession session) {
-        super(session, 1, 1, new GameProfile(UUID.randomUUID(), "unknown"), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
+        super(session, -1, 1, new GameProfile(UUID.randomUUID(), "unknown"), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
 
         valid = true;
-        this.session = session;
     }
 
     @Override
@@ -92,7 +92,7 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     @Override
     public void setPosition(Vector3f position) {
-        if (session != null) { // null during entity initialization
+        if (valid) { // Don't update during session init
             session.getCollisionManager().updatePlayerBoundingBox(position);
         }
         super.setPosition(position);
@@ -112,14 +112,30 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public void setFlags(ByteEntityMetadata entityMetadata) {
         super.setFlags(entityMetadata);
-        session.setSwimmingInWater((entityMetadata.getPrimitiveValue() & 0x10) == 0x10 && getFlag(EntityFlag.SPRINTING));
+        // Swimming/crawling is controlled by the Java server
+        boolean swimming = (entityMetadata.getPrimitiveValue() & 0x10) == 0x10;
+        if (swimming) {
+            setPose(Pose.SWIMMING);
+        }
+        session.setSwimmingInWater(swimming && getFlag(EntityFlag.SPRINTING));
         refreshSpeed = true;
     }
 
     @Override
-    public void setPose(EntityMetadata<Pose, ?> entityMetadata) {
-        super.setPose(entityMetadata);
-        session.setPose(entityMetadata.getValue());
+    public boolean setBoundingBoxHeight(float height) {
+        if (super.setBoundingBoxHeight(height)) {
+            if (valid) { // Don't update during session init
+                session.getCollisionManager().updatePlayerBoundingBox();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void setPose(Pose pose) {
+        super.setPose(pose);
+        session.setPose(pose);
         refreshSpeed = true;
     }
 

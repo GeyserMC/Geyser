@@ -40,19 +40,15 @@ public class JavaSetEntityDataTranslator extends PacketTranslator<ClientboundSet
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void translate(GeyserSession session, ClientboundSetEntityDataPacket packet) {
-        Entity entity;
-        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
-            entity = session.getPlayerEntity();
-        } else {
-            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        }
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) return;
 
         EntityDefinition<?> definition = entity.getDefinition();
         for (EntityMetadata<?, ?> metadata : packet.getMetadata()) {
             if (metadata.getId() >= definition.translators().size()) {
-                session.getGeyser().getLogger().warning("Metadata ID " + metadata.getId() + " is out of bounds of known entity metadata size " + definition.translators().size() + " for entity type " + entity.getDefinition().entityType());
                 if (session.getGeyser().getConfig().isDebugMode()) {
+                    // Minecraft client just ignores these
+                    session.getGeyser().getLogger().warning("Metadata ID " + metadata.getId() + " is out of bounds of known entity metadata size " + definition.translators().size() + " for entity type " + entity.getDefinition().entityType());
                     session.getGeyser().getLogger().debug(metadata.toString());
                 }
                 continue;

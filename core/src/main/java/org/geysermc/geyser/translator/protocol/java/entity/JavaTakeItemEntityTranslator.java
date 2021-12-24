@@ -49,12 +49,7 @@ public class JavaTakeItemEntityTranslator extends PacketTranslator<ClientboundTa
         Entity collectedEntity = session.getEntityCache().getEntityByJavaId(packet.getCollectedEntityId());
         if (collectedEntity == null) return;
         // Collector is the entity 'picking up' the item
-        Entity collectorEntity;
-        if (packet.getCollectorEntityId() == session.getPlayerEntity().getEntityId()) {
-            collectorEntity = session.getPlayerEntity();
-        } else {
-            collectorEntity = session.getEntityCache().getEntityByJavaId(packet.getCollectorEntityId());
-        }
+        Entity collectorEntity = session.getEntityCache().getEntityByJavaId(packet.getCollectorEntityId());
         if (collectorEntity == null) return;
         if (collectedEntity instanceof ExpOrbEntity) {
             // Player just picked up an experience orb

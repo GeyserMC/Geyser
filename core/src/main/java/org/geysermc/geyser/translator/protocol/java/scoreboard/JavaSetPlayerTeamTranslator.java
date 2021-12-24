@@ -72,7 +72,7 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
 
                 if (packet.getPlayers().length != 0) {
                     if ((team.getNameTagVisibility() != NameTagVisibility.ALWAYS && !team.isVisibleFor(session.getPlayerEntity().getUsername()))
-                            || team.getColor() != TeamColor.NONE
+                            || team.getColor() != TeamColor.RESET
                             || !team.getCurrentData().getPrefix().isEmpty()
                             || !team.getCurrentData().getSuffix().isEmpty()) {
                         // Something is here that would modify entity names
