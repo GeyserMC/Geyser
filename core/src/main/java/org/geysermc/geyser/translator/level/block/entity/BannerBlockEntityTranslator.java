@@ -41,6 +41,10 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
             builder.put("Base", 15 - bannerColor);
         }
 
+        if (tag == null) {
+            return;
+        }
+
         if (tag.contains("Patterns")) {
             ListTag patterns = tag.get("Patterns");
             if (patterns.equals(BannerTranslator.OMINOUS_BANNER_PATTERN)) {
