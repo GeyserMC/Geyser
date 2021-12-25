@@ -41,7 +41,6 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
             builder.put("Base", 15 - bannerColor);
         }
 
-        // If tag is null, skip any remaining checks
         if (tag == null) {
             return;
         }
