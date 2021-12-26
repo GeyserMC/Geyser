@@ -47,7 +47,6 @@ import java.util.Map;
 public class CommandManager {
     @Getter
     private final Map<String, GeyserCommand> commands = new HashMap<>();
-    @Getter
     private final Map<String, String> commandDescriptionOverrides;
 
     private final GeyserImpl geyser;
