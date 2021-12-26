@@ -69,7 +69,7 @@ public interface GeyserBootstrap {
     GeyserLogger getGeyserLogger();
 
     /**
-     * Creates a command manager for {@link GeyserImpl to use}.
+     * Creates a command manager for {@link GeyserImpl} to use.
      *
      * @return a new CommandManager instance
      */
