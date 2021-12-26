@@ -362,7 +362,22 @@ public class CollisionManager {
      * @return true if the block located at the player's floor position plus 1 would intersect with the player,
      * were they not sneaking
      */
-    public boolean isUnderSlab() {
+    public boolean mustPlayerSneakHere() {
+        return checkPose(EntityDefinitions.PLAYER.height());
+    }
+
+    /**
+     * @return true if the block located at the player's floor position plus 1 would intersect with the player,
+     * were they not crawling
+     */
+    public boolean mustPlayerCrawlHere() {
+        return checkPose(PlayerEntity.SNEAKING_POSE_HEIGHT);
+    }
+
+    /**
+     * @param height check and see if this height is invalid in the current player position
+     */
+    private boolean checkPose(float height) {
         Vector3i position = session.getPlayerEntity().getPosition().toInt();
         BlockCollision collision = BlockUtils.getCollisionAt(session, position);
         if (collision != null) {
@@ -370,7 +385,7 @@ public class CollisionManager {
             // at the current location.
             double originalY = playerBoundingBox.getMiddleY();
             double originalHeight = playerBoundingBox.getSizeY();
-            double standingY = originalY - (originalHeight / 2.0) + (EntityDefinitions.PLAYER.height() / 2.0);
+            double standingY = originalY - (originalHeight / 2.0) + (height / 2.0);
 
             playerBoundingBox.setSizeY(EntityDefinitions.PLAYER.height());
             playerBoundingBox.setMiddleY(standingY);

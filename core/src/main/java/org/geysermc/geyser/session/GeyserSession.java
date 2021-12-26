@@ -1069,6 +1069,18 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         playerEntity.setFlag(EntityFlag.SNEAKING, sneaking);
     }
 
+    public void setSwimming(boolean swimming) {
+        if (swimming) {
+            this.pose = Pose.SWIMMING;
+            playerEntity.setBoundingBoxHeight(0.6f);
+        } else {
+            this.pose = Pose.STANDING;
+            playerEntity.setBoundingBoxHeight(playerEntity.getDefinition().height());
+        }
+        playerEntity.setFlag(EntityFlag.SWIMMING, swimming);
+        playerEntity.updateBedrockMetadata();
+    }
+
     public void setFlying(boolean flying) {
         this.flying = flying;
 
@@ -1087,7 +1099,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     public AttributeData adjustSpeed() {
         AttributeData currentPlayerSpeed = playerEntity.getAttributes().get(GeyserAttributeType.MOVEMENT_SPEED);
         if (currentPlayerSpeed != null) {
-            if ((pose.equals(Pose.SNEAKING) && !sneaking && collisionManager.isUnderSlab()) ||
+            if ((pose.equals(Pose.SNEAKING) && !sneaking && collisionManager.mustPlayerSneakHere()) ||
                     (!swimmingInWater && playerEntity.getFlag(EntityFlag.SWIMMING) && !collisionManager.isPlayerInWater())) {
                 // Either of those conditions means that Bedrock goes zoom when they shouldn't be
                 AttributeData speedAttribute = GeyserAttributeType.MOVEMENT_SPEED.getAttribute(originalSpeedAttribute / 3.32f);

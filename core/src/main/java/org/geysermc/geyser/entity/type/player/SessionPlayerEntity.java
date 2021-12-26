@@ -28,21 +28,17 @@ package org.geysermc.geyser.entity.type.player;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
 import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeType;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
-import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.AttributeUtils;
 
 import java.util.Collections;
@@ -112,12 +108,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public void setFlags(ByteEntityMetadata entityMetadata) {
         super.setFlags(entityMetadata);
-        // Swimming/crawling is controlled by the Java server
-        boolean swimming = (entityMetadata.getPrimitiveValue() & 0x10) == 0x10;
-        if (swimming) {
-            setPose(Pose.SWIMMING);
-        }
-        session.setSwimmingInWater(swimming && getFlag(EntityFlag.SPRINTING));
+        session.setSwimmingInWater((entityMetadata.getPrimitiveValue() & 0x10) == 0x10 && getFlag(EntityFlag.SPRINTING));
         refreshSpeed = true;
     }
 
