@@ -31,6 +31,7 @@ import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
+import org.jetbrains.annotations.Contract;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -68,11 +69,14 @@ public interface GeyserBootstrap {
     GeyserLogger getGeyserLogger();
 
     /**
-     * Returns the current CommandManager
+     * Creates a command manager for {@link GeyserImpl to use}.
      *
-     * @return The current CommandManager
+     * @return a new CommandManager instance
      */
-    CommandManager getGeyserCommandManager();
+    @Contract("_ -> new")
+    default CommandManager createGeyserCommandManager(GeyserImpl geyser) {
+        return new CommandManager(geyser);
+    }
 
     /**
      * Returns the current PingPassthrough manager

@@ -26,11 +26,11 @@
 package org.geysermc.geyser.platform.standalone.gui;
 
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.command.CommandManager;
 import org.geysermc.geyser.command.GeyserCommand;
+import org.geysermc.geyser.platform.standalone.GeyserStandaloneLogger;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.platform.standalone.GeyserStandaloneLogger;
-import org.geysermc.geyser.platform.standalone.command.GeyserCommandManager;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -253,13 +253,13 @@ public class GeyserStandaloneGUI {
      * Add all the Geyser commands to the commands menu, and setup the debug mode toggle
      *
      * @param geyserStandaloneLogger The current logger
-     * @param geyserCommandManager The commands manager
+     * @param commandManager The commands manager
      */
-    public void setupInterface(GeyserStandaloneLogger geyserStandaloneLogger, GeyserCommandManager geyserCommandManager) {
+    public void setupInterface(GeyserStandaloneLogger geyserStandaloneLogger, CommandManager commandManager) {
         commandsMenu.removeAll();
         optionsMenu.removeAll();
 
-        for (Map.Entry<String, GeyserCommand> command : geyserCommandManager.getCommands().entrySet()) {
+        for (Map.Entry<String, GeyserCommand> command : commandManager.getCommands().entrySet()) {
             // Remove the offhand command and any alias commands to prevent duplicates in the list
             if (!command.getValue().isExecutableOnConsole() || command.getValue().getAliases().contains(command.getKey())) {
                 continue;

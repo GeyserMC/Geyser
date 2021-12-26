@@ -31,6 +31,8 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandMapping;
 import org.spongepowered.api.text.Text;
 
+import javax.annotation.Nonnull;
+
 public class GeyserSpongeCommandManager extends CommandManager {
     private final org.spongepowered.api.command.CommandManager handle;
 
@@ -41,9 +43,15 @@ public class GeyserSpongeCommandManager extends CommandManager {
     }
 
     @Override
+    @Nonnull
     public String getDescription(String command) {
-        return handle.get(command).map(CommandMapping::getCallable)
-                .map(callable -> callable.getShortDescription(Sponge.getServer().getConsole()).orElse(Text.EMPTY))
-                .orElse(Text.EMPTY).toPlain();
+        String description = super.getDescription(command);
+        if (description.isEmpty()) {
+            return handle.get(command).map(CommandMapping::getCallable)
+                    .map(callable -> callable.getShortDescription(Sponge.getServer().getConsole()).orElse(Text.EMPTY))
+                    .orElse(Text.EMPTY).toPlain();
+        } else {
+            return description;
+        }
     }
 }

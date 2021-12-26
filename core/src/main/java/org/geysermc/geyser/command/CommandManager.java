@@ -25,20 +25,30 @@
 
 package org.geysermc.geyser.command;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
-
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.defaults.*;
+import org.geysermc.geyser.configuration.CustomCommandsConfiguration;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 
-import java.util.*;
+import javax.annotation.Nonnull;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.util.HashMap;
+import java.util.Map;
 
-public abstract class CommandManager {
-
+public class CommandManager {
     @Getter
     private final Map<String, GeyserCommand> commands = new HashMap<>();
+    @Getter
+    private final Map<String, String> commandDescriptionOverrides;
 
     private final GeyserImpl geyser;
 
@@ -57,6 +67,32 @@ public abstract class CommandManager {
         registerCommand(new AdvancedTooltipsCommand("tooltips", "geyser.commands.advancedtooltips.desc", "geyser.command.tooltips"));
         if (GeyserImpl.getInstance().getPlatformType() == PlatformType.STANDALONE) {
             registerCommand(new StopCommand(geyser, "stop", "geyser.commands.stop.desc", "geyser.command.stop"));
+        }
+
+        // Read or create command overrides
+        ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
+
+        File commandsFile = geyser.getBootstrap().getConfigFolder().resolve("commands.yml").toFile();
+        if (!commandsFile.exists()) {
+            try (InputStream stream = geyser.getBootstrap().getResource("commands.yml")) {
+                Files.copy(stream, commandsFile.toPath());
+            } catch (IOException e) {
+                geyser.getLogger().error("Unable to load commands.yml template from jar!", e);
+            }
+        }
+        CustomCommandsConfiguration commandsConfiguration;
+        try {
+            commandsConfiguration = objectMapper.readValue(commandsFile, CustomCommandsConfiguration.class);
+        } catch (IOException e) {
+            geyser.getLogger().error("Unable to load commands configuration!", e);
+            commandsConfiguration = new CustomCommandsConfiguration();
+        }
+
+        this.commandDescriptionOverrides = new Object2ObjectOpenHashMap<>();
+        for (CustomCommandsConfiguration.CustomCommandEntry entry : commandsConfiguration.getDescriptions()) {
+            for (String name : entry.getCommands()) {
+                commandDescriptionOverrides.put(name, entry.getDescription());
+            }
         }
     }
 
@@ -106,17 +142,14 @@ public abstract class CommandManager {
     }
 
     /**
-     * @return a list of all subcommands under {@code /geyser}.
-     */
-    public List<String> getCommandNames() {
-        return Arrays.asList(geyser.getCommandManager().getCommands().keySet().toArray(new String[0]));
-    }
-
-    /**
      * Returns the description of the given command
      *
      * @param command Command to get the description for
      * @return Command description
      */
-    public abstract String getDescription(String command);
+    @Nonnull
+    public String getDescription(String command) {
+        // Most platforms don't have an option to get the description, so we rely on our overrides instead
+        return commandDescriptionOverrides.getOrDefault(command, "");
+    }
 }

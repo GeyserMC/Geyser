@@ -118,6 +118,8 @@ public class GeyserImpl implements GeyserApi {
 
     private final ScheduledExecutorService scheduledThread;
 
+    private final CommandManager commandManager;
+
     private final BedrockServer bedrockServer;
     private final PlatformType platformType;
     private final GeyserBootstrap bootstrap;
@@ -149,6 +151,8 @@ public class GeyserImpl implements GeyserApi {
         logger.info("******************************************");
 
         this.scheduledThread = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("Geyser Scheduled Thread"));
+
+        this.commandManager = bootstrap.createGeyserCommandManager(this);
 
         logger.setDebug(config.isDebugMode());
 
@@ -478,10 +482,6 @@ public class GeyserImpl implements GeyserApi {
 
     public GeyserConfiguration getConfig() {
         return bootstrap.getGeyserConfig();
-    }
-
-    public CommandManager getCommandManager() {
-        return bootstrap.getGeyserCommandManager();
     }
 
     public WorldManager getWorldManager() {

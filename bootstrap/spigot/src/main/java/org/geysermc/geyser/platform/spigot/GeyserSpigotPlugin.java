@@ -63,7 +63,6 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
-    private GeyserSpigotCommandManager geyserCommandManager;
     private GeyserSpigotConfiguration geyserConfig;
     private GeyserSpigotInjector geyserInjector;
     private GeyserSpigotLogger geyserLogger;
@@ -159,8 +158,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         } else {
             this.geyserSpigotPingPassthrough = new GeyserSpigotPingPassthrough(geyserLogger);
         }
-
-        this.geyserCommandManager = new GeyserSpigotCommandManager(geyser);
 
         boolean isViaVersion = Bukkit.getPluginManager().getPlugin("ViaVersion") != null;
         if (isViaVersion) {
@@ -265,8 +262,8 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     }
 
     @Override
-    public CommandManager getGeyserCommandManager() {
-        return this.geyserCommandManager;
+    public CommandManager createGeyserCommandManager(GeyserImpl geyser) {
+        return new GeyserSpigotCommandManager(geyser);
     }
 
     @Override

@@ -62,7 +62,6 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     @ConfigDir(sharedRoot = false)
     private File configDir;
 
-    private GeyserSpongeCommandManager geyserCommandManager;
     private GeyserSpongeConfiguration geyserConfig;
     private GeyserSpongeLogger geyserLogger;
     private IGeyserPingPassthrough geyserSpongePingPassthrough;
@@ -119,7 +118,6 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             this.geyserSpongePingPassthrough = new GeyserSpongePingPassthrough();
         }
 
-        this.geyserCommandManager = new GeyserSpongeCommandManager(Sponge.getCommandManager(), geyser);
         Sponge.getCommandManager().register(this, new GeyserSpongeCommandExecutor(geyser), "geyser");
     }
 
@@ -139,8 +137,8 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
     }
 
     @Override
-    public CommandManager getGeyserCommandManager() {
-        return this.geyserCommandManager;
+    public CommandManager createGeyserCommandManager(GeyserImpl geyser) {
+        return new GeyserSpongeCommandManager(Sponge.getCommandManager(), geyser);
     }
 
     @Override
