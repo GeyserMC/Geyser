@@ -401,7 +401,6 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     break;
                 }
                 case CRAFT_RESULTS_DEPRECATED: {
-                    CraftResultsDeprecatedStackRequestActionData deprecatedCraftAction = (CraftResultsDeprecatedStackRequestActionData) action;
                     if (craftState != CraftState.RECIPE_ID) {
                         return rejectRequest(request);
                     }
@@ -451,6 +450,28 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                         }
                         affectedSlots.add(destSlot);
                     }
+                    break;
+                }
+                case DROP: {
+                    // Can be replicated as of 1.18.2 Bedrock on mobile by clicking from the creative menu to outside it
+                    if (craftState != CraftState.DEPRECATED) {
+                        return rejectRequest(request);
+                    }
+
+                    DropStackRequestActionData dropAction = (DropStackRequestActionData) action;
+                    if (dropAction.getSource().getContainer() != ContainerSlotType.CREATIVE_OUTPUT || dropAction.getSource().getSlot() != 50) {
+                        return rejectRequest(request);
+                    }
+
+                    ItemStack dropStack;
+                    if (dropAction.getCount() == javaCreativeItem.getAmount()) {
+                        dropStack = javaCreativeItem;
+                    } else {
+                        // Specify custom count
+                        dropStack = new ItemStack(javaCreativeItem.getId(), dropAction.getCount(), javaCreativeItem.getNbt());
+                    }
+                    ServerboundSetCreativeModeSlotPacket creativeDropPacket = new ServerboundSetCreativeModeSlotPacket(-1, dropStack);
+                    session.sendDownstreamPacket(creativeDropPacket);
                     break;
                 }
                 default:

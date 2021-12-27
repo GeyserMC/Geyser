@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.session.cache;
 
-import it.unimi.dsi.fastutil.longs.Long2LongMap;
-import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2LongMap;
+import it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -53,18 +53,15 @@ public class EntityCache {
      * A list of all entities that must be ticked.
      */
     private final List<Tickable> tickableEntities = new ObjectArrayList<>();
-    private final Long2LongMap entityIdTranslations = new Long2LongOpenHashMap();
+    private final Int2LongMap entityIdTranslations = new Int2LongOpenHashMap();
     private final Map<UUID, PlayerEntity> playerEntities = new Object2ObjectOpenHashMap<>();
     private final Map<UUID, BossBar> bossBars = new Object2ObjectOpenHashMap<>();
-    private final Long2LongMap cachedPlayerEntityLinks = new Long2LongOpenHashMap();
 
     @Getter
     private final AtomicLong nextEntityId = new AtomicLong(2L);
 
     public EntityCache(GeyserSession session) {
         this.session = session;
-
-        cachedPlayerEntityLinks.defaultReturnValue(-1L);
     }
 
     public void spawnEntity(Entity entity) {
@@ -112,15 +109,16 @@ public class EntityCache {
         }
 
         session.getPlayerWithCustomHeads().clear();
-        // As a precaution
-        cachedPlayerEntityLinks.clear();
     }
 
     public Entity getEntityByGeyserId(long geyserId) {
         return entities.get(geyserId);
     }
 
-    public Entity getEntityByJavaId(long javaId) {
+    public Entity getEntityByJavaId(int javaId) {
+        if (javaId == session.getPlayerEntity().getEntityId()) {
+            return session.getPlayerEntity();
+        }
         return entities.get(entityIdTranslations.get(javaId));
     }
 
@@ -158,14 +156,6 @@ public class EntityCache {
 
     public void updateBossBars() {
         bossBars.values().forEach(BossBar::updateBossBar);
-    }
-
-    public long getCachedPlayerEntityLink(long playerId) {
-        return cachedPlayerEntityLinks.remove(playerId);
-    }
-
-    public void addCachedPlayerEntityLink(long playerId, long linkedEntityId) {
-        cachedPlayerEntityLinks.put(playerId, linkedEntityId);
     }
 
     public List<Tickable> getTickableEntities() {

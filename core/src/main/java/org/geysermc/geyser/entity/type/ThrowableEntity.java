@@ -44,7 +44,7 @@ public class ThrowableEntity extends Entity implements Tickable {
 
     protected Vector3f lastJavaPosition;
 
-    public ThrowableEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public ThrowableEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
         this.lastJavaPosition = position;
     }

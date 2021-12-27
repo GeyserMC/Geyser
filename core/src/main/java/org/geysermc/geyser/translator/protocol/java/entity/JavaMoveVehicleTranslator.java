@@ -37,7 +37,7 @@ public class JavaMoveVehicleTranslator extends PacketTranslator<ClientboundMoveV
 
     @Override
     public void translate(GeyserSession session, ClientboundMoveVehiclePacket packet) {
-        Entity entity = session.getRidingVehicleEntity();
+        Entity entity = session.getPlayerEntity().getVehicle();
         if (entity == null) return;
 
         entity.moveAbsolute(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), false, true);

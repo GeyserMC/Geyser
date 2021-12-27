@@ -38,9 +38,6 @@ public class JavaTeleportEntityTranslator extends PacketTranslator<ClientboundTe
     @Override
     public void translate(GeyserSession session, ClientboundTeleportEntityPacket packet) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
-            entity = session.getPlayerEntity();
-        }
         if (entity == null) return;
 
         entity.teleport(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), packet.isOnGround());

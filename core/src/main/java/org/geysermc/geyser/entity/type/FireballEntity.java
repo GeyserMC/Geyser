@@ -39,7 +39,7 @@ public class FireballEntity extends ThrowableEntity {
      */
     protected int futureTicks = 3;
 
-    public FireballEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public FireballEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, Vector3f.ZERO, yaw, pitch, headYaw);
 
         float magnitude = motion.length();

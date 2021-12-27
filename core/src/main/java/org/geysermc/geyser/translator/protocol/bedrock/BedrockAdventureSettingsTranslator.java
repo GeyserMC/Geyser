@@ -44,15 +44,15 @@ public class BedrockAdventureSettingsTranslator extends PacketTranslator<Adventu
             // We should always be flying in spectator mode
             session.sendAdventureSettings();
             return;
+        } else if (isFlying && session.getPlayerEntity().getFlag(EntityFlag.SWIMMING) && session.getCollisionManager().isPlayerInWater()) {
+            // As of 1.18.1, Java Edition cannot fly while in water, but it can fly while crawling
+            // If this isn't present, swimming on a 1.13.2 server and then attempting to fly will put you into a flying/swimming state that is invalid on JE
+            session.sendAdventureSettings();
+            return;
         }
 
         session.setFlying(isFlying);
         ServerboundPlayerAbilitiesPacket abilitiesPacket = new ServerboundPlayerAbilitiesPacket(isFlying);
         session.sendDownstreamPacket(abilitiesPacket);
-
-        if (isFlying && session.getPlayerEntity().getFlag(EntityFlag.SWIMMING)) {
-            // Bedrock can fly and swim at the same time? Make sure that can't happen
-            session.setSwimming(false);
-        }
     }
 }

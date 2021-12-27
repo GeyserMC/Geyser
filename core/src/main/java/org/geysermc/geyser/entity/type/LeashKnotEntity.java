@@ -33,7 +33,7 @@ import java.util.UUID;
 
 public class LeashKnotEntity extends Entity {
 
-    public LeashKnotEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public LeashKnotEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         // Position is incorrect by default
         super(session, entityId, geyserId, uuid, definition, position.add(0.5f, 0.25f, 0.5f), motion, yaw, pitch, headYaw);
     }

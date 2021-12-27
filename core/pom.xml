@@ -83,7 +83,7 @@
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
-            <artifactId>fastutil-long-long-maps</artifactId>
+            <artifactId>fastutil-int-long-maps</artifactId>
             <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
@@ -155,7 +155,7 @@
         <dependency>
             <groupId>com.github.GeyserMC</groupId>
             <artifactId>MCProtocolLib</artifactId>
-            <version>c247b1f</version>
+            <version>6a23a780</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>

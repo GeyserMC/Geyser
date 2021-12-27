@@ -31,9 +31,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEnt
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.factory.BaseEntityFactory;
-import org.geysermc.geyser.entity.factory.ExperienceOrbEntityFactory;
-import org.geysermc.geyser.entity.factory.PaintingEntityFactory;
 import org.geysermc.geyser.entity.type.*;
 import org.geysermc.geyser.entity.type.living.*;
 import org.geysermc.geyser.entity.type.living.animal.*;
@@ -50,8 +47,8 @@ import org.geysermc.geyser.entity.type.living.monster.raid.RaidParticipantEntity
 import org.geysermc.geyser.entity.type.living.monster.raid.SpellcasterIllagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.VindicatorEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 
 public final class EntityDefinitions {
     public static final EntityDefinition<AreaEffectCloudEntity> AREA_EFFECT_CLOUD;
@@ -82,7 +79,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<ThrowableItemEntity> ENDER_PEARL;
     public static final EntityDefinition<EnderCrystalEntity> END_CRYSTAL;
     public static final EntityDefinition<SpellcasterIllagerEntity> EVOKER;
-    public static final EntityDefinition<Entity> EVOKER_FANGS;
+    public static final EntityDefinition<EvokerFangsEntity> EVOKER_FANGS;
     public static final EntityDefinition<ThrowableItemEntity> EXPERIENCE_BOTTLE;
     public static final EntityDefinition<ExpOrbEntity> EXPERIENCE_ORB;
     public static final EntityDefinition<Entity> EYE_OF_ENDER;
@@ -177,14 +174,14 @@ public final class EntityDefinitions {
     public static final EntityDefinition<WitherSkullEntity> WITHER_SKULL_DANGEROUS;
 
     static {
-        EntityDefinition<Entity> entityBase = EntityDefinition.builder((BaseEntityFactory<Entity>) Entity::new)
+        EntityDefinition<Entity> entityBase = EntityDefinition.builder(Entity::new)
                 .addTranslator(MetadataType.BYTE, Entity::setFlags)
                 .addTranslator(MetadataType.INT, Entity::setAir) // Air/bubbles
                 .addTranslator(MetadataType.OPTIONAL_CHAT, Entity::setDisplayName)
                 .addTranslator(MetadataType.BOOLEAN, Entity::setDisplayNameVisible)
                 .addTranslator(MetadataType.BOOLEAN, (entity, entityMetadata) -> entity.setFlag(EntityFlag.SILENT, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                 .addTranslator(MetadataType.BOOLEAN, Entity::setGravity)
-                .addTranslator(MetadataType.POSE, Entity::setPose)
+                .addTranslator(MetadataType.POSE, (entity, entityMetadata) -> entity.setPose(entityMetadata.getValue()))
                 .addTranslator(MetadataType.INT, Entity::setFreezing)
                 .build();
 
@@ -224,11 +221,11 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataType.BOOLEAN,
                             (enderCrystalEntity, entityMetadata) -> enderCrystalEntity.setFlag(EntityFlag.SHOW_BOTTOM, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue())) // There is a base located on the ender crystal
                     .build();
-            EXPERIENCE_ORB = EntityDefinition.inherited((ExperienceOrbEntityFactory) ExpOrbEntity::new, entityBase)
+            EXPERIENCE_ORB = EntityDefinition.<ExpOrbEntity>inherited(null, entityBase)
                     .type(EntityType.EXPERIENCE_ORB)
                     .identifier("minecraft:xp_orb")
                     .build();
-            EVOKER_FANGS = EntityDefinition.inherited(entityBase.factory(), entityBase)
+            EVOKER_FANGS = EntityDefinition.builder(EvokerFangsEntity::new) // No entity metadata to listen to as of 1.18.1
                     .type(EntityType.EVOKER_FANGS)
                     .height(0.8f).width(0.5f)
                     .identifier("minecraft:evocation_fang")
@@ -275,7 +272,7 @@ public final class EntityDefinitions {
                     .type(EntityType.LLAMA_SPIT)
                     .heightAndWidth(0.25f)
                     .build();
-            PAINTING = EntityDefinition.inherited((PaintingEntityFactory) PaintingEntity::new, entityBase)
+            PAINTING = EntityDefinition.<PaintingEntity>inherited(null, entityBase)
                     .type(EntityType.PAINTING)
                     .build();
             SHULKER_BULLET = EntityDefinition.inherited(ThrowableEntity::new, entityBase)

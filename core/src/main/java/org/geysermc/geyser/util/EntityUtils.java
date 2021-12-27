@@ -28,6 +28,7 @@ package org.geysermc.geyser.util;
 import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
@@ -74,7 +75,7 @@ public final class EntityUtils {
         switch (mount.getDefinition().entityType()) {
             case CHICKEN, SPIDER -> mountedHeightOffset = height * 0.5f;
             case DONKEY, MULE -> mountedHeightOffset -= 0.25f;
-            case LLAMA -> mountedHeightOffset = height * 0.67f;
+            case TRADER_LLAMA, LLAMA -> mountedHeightOffset = height * 0.6f;
             case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
                     COMMAND_BLOCK_MINECART -> mountedHeightOffset = 0;
             case BOAT -> mountedHeightOffset = -0.1f;
@@ -144,20 +145,22 @@ public final class EntityUtils {
             float yOffset = mountedHeightOffset + heightOffset;
             float zOffset = 0;
             switch (mount.getDefinition().entityType()) {
-                case BOAT:
+                case BOAT -> {
                     // Without the X offset, more than one entity on a boat is stacked on top of each other
                     if (rider && moreThanOneEntity) {
                         xOffset = 0.2f;
                     } else if (moreThanOneEntity) {
                         xOffset = -0.6f;
                     }
-                    break;
-                case CHICKEN:
-                    zOffset = -0.1f;
-                    break;
-                case LLAMA:
-                    zOffset = -0.3f;
-                    break;
+                }
+                case CHICKEN -> zOffset = -0.1f;
+                case TRADER_LLAMA, LLAMA -> zOffset = -0.3f;
+            }
+            if (passenger.getDefinition().entityType() == EntityType.SHULKER) {
+                switch (mount.getDefinition().entityType()) {
+                    case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
+                            COMMAND_BLOCK_MINECART, BOAT -> yOffset = 0.1875f;
+                }
             }
             /*
              * Bedrock Differences
@@ -165,8 +168,10 @@ public final class EntityUtils {
              * Horses are tinier
              * Players, Minecarts, and Boats have different origins
              */
-            if (passenger.getDefinition().entityType() == EntityType.PLAYER && mount.getDefinition().entityType() != EntityType.PLAYER) {
-                yOffset += EntityDefinitions.PLAYER.offset();
+            if (passenger.getDefinition().entityType() == EntityType.PLAYER) {
+                if (mount.getDefinition().entityType() != EntityType.PLAYER && mount.getDefinition().entityType() != EntityType.AREA_EFFECT_CLOUD) {
+                    yOffset += EntityDefinitions.PLAYER.offset();
+                }
             }
             switch (mount.getDefinition().entityType()) {
                 case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
@@ -175,7 +180,21 @@ public final class EntityUtils {
             Vector3f offset = Vector3f.from(xOffset, yOffset, zOffset);
             passenger.setRiderSeatPosition(offset);
         }
-        passenger.updateBedrockMetadata();
+    }
+
+    public static void updateRiderRotationLock(Entity passenger, Entity mount, boolean isRiding) {
+        if (isRiding && mount.getDefinition() == EntityDefinitions.BOAT) {
+            // Head rotation is locked while riding in a boat
+            passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 1);
+            passenger.getDirtyMetadata().put(EntityData.RIDER_MAX_ROTATION, 90f);
+            passenger.getDirtyMetadata().put(EntityData.RIDER_MIN_ROTATION, 1f);
+            passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_OFFSET, -90f);
+        } else {
+            passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_LOCKED, (byte) 0);
+            passenger.getDirtyMetadata().put(EntityData.RIDER_MAX_ROTATION, 0f);
+            passenger.getDirtyMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
+            passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_OFFSET, 0f);
+        }
     }
 
     private EntityUtils() {

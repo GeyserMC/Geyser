@@ -66,6 +66,10 @@ public class TeleportCache {
         unconfirmedFor++;
     }
 
+    public void resetUnconfirmedFor() {
+        unconfirmedFor = 0;
+    }
+
     public boolean shouldResend() {
         return unconfirmedFor >= RESEND_THRESHOLD;
     }

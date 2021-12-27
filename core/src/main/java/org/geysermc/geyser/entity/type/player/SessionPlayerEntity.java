@@ -28,7 +28,6 @@ package org.geysermc.geyser.entity.type.player;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
 import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeType;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
@@ -70,13 +69,10 @@ public class SessionPlayerEntity extends PlayerEntity {
      */
     private int fakeTradeXp;
 
-    private final GeyserSession session;
-
     public SessionPlayerEntity(GeyserSession session) {
-        super(session, 1, 1, new GameProfile(UUID.randomUUID(), "unknown"), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
+        super(session, -1, 1, new GameProfile(UUID.randomUUID(), "unknown"), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
 
         valid = true;
-        this.session = session;
     }
 
     @Override
@@ -92,7 +88,7 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     @Override
     public void setPosition(Vector3f position) {
-        if (session != null) { // null during entity initialization
+        if (valid) { // Don't update during session init
             session.getCollisionManager().updatePlayerBoundingBox(position);
         }
         super.setPosition(position);
@@ -117,9 +113,20 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    public void setPose(EntityMetadata<Pose, ?> entityMetadata) {
-        super.setPose(entityMetadata);
-        session.setPose(entityMetadata.getValue());
+    public boolean setBoundingBoxHeight(float height) {
+        if (super.setBoundingBoxHeight(height)) {
+            if (valid) { // Don't update during session init
+                session.getCollisionManager().updatePlayerBoundingBox();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void setPose(Pose pose) {
+        super.setPose(pose);
+        session.setPose(pose);
         refreshSpeed = true;
     }
 

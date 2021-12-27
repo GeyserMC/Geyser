@@ -32,7 +32,7 @@ import org.geysermc.geyser.session.GeyserSession;
 
 public class ExpOrbEntity extends Entity {
 
-    public ExpOrbEntity(GeyserSession session, int amount, long entityId, long geyserId, Vector3f position) {
+    public ExpOrbEntity(GeyserSession session, int amount, int entityId, long geyserId, Vector3f position) {
         super(session, entityId, geyserId, null, EntityDefinitions.EXPERIENCE_ORB, position, Vector3f.ZERO, 0, 0, 0);
 
         this.dirtyMetadata.put(EntityData.EXPERIENCE_VALUE, amount);

@@ -29,6 +29,7 @@ import lombok.AllArgsConstructor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ServerPing;
 import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.event.ProxyPingEvent;
@@ -52,8 +53,11 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
     public GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress) {
         CompletableFuture<ProxyPingEvent> future = new CompletableFuture<>();
         proxyServer.getPluginManager().callEvent(new ProxyPingEvent(new GeyserPendingConnection(inetSocketAddress), getPingInfo(), (event, throwable) -> {
-            if (throwable != null) future.completeExceptionally(throwable);
-            else future.complete(event);
+            if (throwable != null) {
+                future.completeExceptionally(throwable);
+            } else {
+                future.complete(event);
+            }
         }));
         ProxyPingEvent event = future.join();
         ServerPing response = event.getResponse();
@@ -76,9 +80,12 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
 
     private ServerPing getPingInfo() {
         return new ServerPing(
-                new ServerPing.Protocol(proxyServer.getName() + " " + proxyServer.getGameVersion(), ProtocolConstants.SUPPORTED_VERSION_IDS.get(ProtocolConstants.SUPPORTED_VERSION_IDS.size() - 1)),
+                new ServerPing.Protocol(
+                        proxyServer.getName() + " " + ProtocolConstants.SUPPORTED_VERSIONS.get(0) + "-" + ProtocolConstants.SUPPORTED_VERSIONS.get(ProtocolConstants.SUPPORTED_VERSIONS.size() - 1),
+                        ProtocolConstants.SUPPORTED_VERSION_IDS.get(ProtocolConstants.SUPPORTED_VERSION_IDS.size() - 1)),
                 new ServerPing.Players(getDefaultListener().getMaxPlayers(), proxyServer.getOnlineCount(), null),
-                getDefaultListener().getMotd(), proxyServer.getConfig().getFaviconObject()
+                TextComponent.fromLegacyText(getDefaultListener().getMotd())[0],
+                proxyServer.getConfig().getFaviconObject()
         );
     }
 

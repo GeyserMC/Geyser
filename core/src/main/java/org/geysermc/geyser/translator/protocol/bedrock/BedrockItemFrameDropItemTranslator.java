@@ -47,7 +47,7 @@ public class BedrockItemFrameDropItemTranslator extends PacketTranslator<ItemFra
     public void translate(GeyserSession session, ItemFrameDropItemPacket packet) {
         Entity entity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
         if (entity != null) {
-            ServerboundInteractPacket interactPacket = new ServerboundInteractPacket((int) entity.getEntityId(),
+            ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(entity.getEntityId(),
                     InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
             session.sendDownstreamPacket(interactPacket);
         }

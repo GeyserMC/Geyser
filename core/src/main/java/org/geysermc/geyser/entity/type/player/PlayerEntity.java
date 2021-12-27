@@ -65,6 +65,8 @@ import java.util.concurrent.TimeUnit;
 
 @Getter @Setter
 public class PlayerEntity extends LivingEntity {
+    public static final float SNEAKING_POSE_HEIGHT = 1.5f;
+
     private GameProfile profile;
     private String username;
     private boolean playerList = true;  // Player is in the player list
@@ -80,7 +82,7 @@ public class PlayerEntity extends LivingEntity {
      */
     private ParrotEntity rightParrot;
 
-    public PlayerEntity(GeyserSession session, long entityId, long geyserId, GameProfile gameProfile, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public PlayerEntity(GeyserSession session, int entityId, long geyserId, GameProfile gameProfile, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, gameProfile.getId(), EntityDefinitions.PLAYER, position, motion, yaw, pitch, headYaw);
 
         profile = gameProfile;
@@ -122,14 +124,6 @@ public class PlayerEntity extends LivingEntity {
         dirtyMetadata.apply(addPlayerPacket.getMetadata());
 
         setFlagsDirty(false);
-
-        long linkedEntityId = session.getEntityCache().getCachedPlayerEntityLink(entityId);
-        if (linkedEntityId != -1) {
-            Entity linkedEntity = session.getEntityCache().getEntityByJavaId(linkedEntityId);
-            if (linkedEntity != null) {
-                addPlayerPacket.getEntityLinks().add(new EntityLinkData(linkedEntity.getGeyserId(), geyserId, EntityLinkData.Type.RIDER, false, false));
-            }
-        }
 
         valid = true;
         session.sendUpstreamPacket(addPlayerPacket);
@@ -389,7 +383,7 @@ public class PlayerEntity extends LivingEntity {
     protected void setDimensions(Pose pose) {
         float height;
         switch (pose) {
-            case SNEAKING -> height = 1.5f;
+            case SNEAKING -> height = SNEAKING_POSE_HEIGHT;
             case FALL_FLYING, SPIN_ATTACK, SWIMMING -> height = 0.6f;
             default -> {
                 super.setDimensions(pose);
