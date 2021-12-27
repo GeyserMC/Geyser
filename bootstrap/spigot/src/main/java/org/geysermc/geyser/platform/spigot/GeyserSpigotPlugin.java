@@ -168,8 +168,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 // Ensure that we have the latest 4.0.0 changes and not an older ViaVersion version
                 Class.forName("com.viaversion.viaversion.api.ViaManager");
             } catch (ClassNotFoundException e) {
-                geyserLogger.warning(GeyserLocale.getLocaleStringLog("geyser.bootstrap.viaversion.too_old",
-                        "https://ci.viaversion.com/job/ViaVersion/"));
+                GeyserSpigotVersionChecker.sendOutdatedViaVersionMessage(geyserLogger);
                 isViaVersion = false;
                 if (this.geyserConfig.isDebugMode()) {
                     e.printStackTrace();
@@ -242,6 +241,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         }
 
         this.getCommand("geyser").setExecutor(new GeyserSpigotCommandExecutor(geyser));
+
+        // Check to ensure the current setup can support the protocol version Geyser uses
+        GeyserSpigotVersionChecker.checkForSupportedProtocol(geyserLogger, isViaVersion);
     }
 
     @Override
