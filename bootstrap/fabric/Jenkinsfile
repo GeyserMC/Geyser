@@ -41,9 +41,7 @@ pipeline {
                         )
                         rtGradleResolver(
                                 id: "GRADLE_RESOLVER",
-                                serverId: "opencollab-artifactory",
-                                releaseRepo: "maven-deploy-release",
-                                snapshotRepo: "maven-deploy-snapshot"
+                                serverId: "opencollab-artifactory"
                         )
                         rtGradleRun (
                                 usesPlugin: false,
