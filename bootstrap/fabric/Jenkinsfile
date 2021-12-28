@@ -25,7 +25,7 @@ pipeline {
             }
         }
 
-        /*stage ('Deploy') {
+        stage ('Deploy') {
                     when {
                         anyOf {
                             branch "java-1.18"
@@ -42,6 +42,8 @@ pipeline {
                         rtGradleResolver(
                                 id: "GRADLE_RESOLVER",
                                 serverId: "opencollab-artifactory",
+                                releaseRepo: "maven-deploy-release",
+                                snapshotRepo: "maven-deploy-snapshot"
                         )
                         rtGradleRun (
                                 usesPlugin: false,
@@ -56,7 +58,7 @@ pipeline {
                                 serverId: "opencollab-artifactory"
                         )
                     }
-                }*/
+                }
     }
 
     post {
