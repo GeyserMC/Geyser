@@ -141,6 +141,8 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                             session.sendUpstreamPacket(movePlayerPacket);
                         }
                     }
+
+                    session.getSkullCache().updateVisibleSkulls();
                 }
             } else {
                 // Not a valid move

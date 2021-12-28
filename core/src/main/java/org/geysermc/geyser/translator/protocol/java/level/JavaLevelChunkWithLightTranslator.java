@@ -272,7 +272,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                 // Check for custom skulls
                 if (session.getPreferencesCache().showCustomSkulls() && type == BlockEntityType.SKULL && tag != null && tag.contains("SkullOwner")) {
-                    SkullBlockEntityTranslator.spawnPlayer(session, tag, x + chunkBlockX, y, z + chunkBlockZ, blockState);
+                    SkullBlockEntityTranslator.translateSkull(session, tag, x + chunkBlockX, y, z + chunkBlockZ, blockState);
                 }
             }
 

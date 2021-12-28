@@ -32,7 +32,9 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 @Translator(packet = ClientboundForgetLevelChunkPacket.class)
 public class JavaForgetLevelChunkTranslator extends PacketTranslator<ClientboundForgetLevelChunkPacket> {
@@ -42,14 +44,16 @@ public class JavaForgetLevelChunkTranslator extends PacketTranslator<Clientbound
         session.getChunkCache().removeChunk(packet.getX(), packet.getZ());
 
         //Checks if a skull is in an unloaded chunk then removes it
-        Iterator<Vector3i> iterator = session.getSkullCache().keySet().iterator();
+        Iterator<Vector3i> iterator = session.getSkullCache().getSkulls().keySet().iterator();
+        List<Vector3i> removedSkulls = new ArrayList<>();
         while (iterator.hasNext()) {
             Vector3i position = iterator.next();
             if ((position.getX() >> 4) == packet.getX() && (position.getZ() >> 4) == packet.getZ()) {
-                session.getSkullCache().get(position).despawnEntity();
+                removedSkulls.add(position);
                 iterator.remove();
             }
         }
+        removedSkulls.forEach(session.getSkullCache()::removeSkull);
 
         if (!session.getGeyser().getWorldManager().shouldExpectLecternHandled()) {
             // Do the same thing with lecterns

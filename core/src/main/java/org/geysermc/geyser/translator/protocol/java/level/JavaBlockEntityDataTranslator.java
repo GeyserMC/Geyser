@@ -65,7 +65,7 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
                 packet.getNbt(), blockState), packet.getPosition());
         // Check for custom skulls.
         if (session.getPreferencesCache().showCustomSkulls() && packet.getNbt() != null && packet.getNbt().contains("SkullOwner")) {
-            SkullBlockEntityTranslator.spawnPlayer(session, packet.getNbt(), position.getX(), position.getY(), position.getZ(), blockState);
+            SkullBlockEntityTranslator.translateSkull(session, packet.getNbt(), position.getX(), position.getY(), position.getZ(), blockState);
         }
 
         // If block entity is command block, OP permission level is appropriate, player is in creative mode and the NBT is not empty

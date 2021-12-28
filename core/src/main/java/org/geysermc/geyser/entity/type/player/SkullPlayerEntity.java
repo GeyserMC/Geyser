@@ -34,7 +34,11 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import lombok.Getter;
+import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.SkullSkinManager;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * A wrapper to handle skulls more effectively - skulls have to be treated as entities since there are no
@@ -46,11 +50,11 @@ public class SkullPlayerEntity extends PlayerEntity {
      * has changed
      */
     @Getter
-    private final int blockState;
+    private int blockState;
 
-    public SkullPlayerEntity(GeyserSession session, long geyserId, GameProfile gameProfile, Vector3f position, float rotation, int blockState) {
-        super(session, 0, geyserId, gameProfile, position, Vector3f.ZERO, rotation, 0, rotation);
-        this.blockState = blockState;
+    public SkullPlayerEntity(GeyserSession session, long geyserId, GameProfile gameProfile, Vector3i position, int blockState) {
+        super(session, 0, geyserId, gameProfile, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
+        updateSkull(gameProfile, position, blockState);
         setPlayerList(false);
     }
 
@@ -92,8 +96,50 @@ public class SkullPlayerEntity extends PlayerEntity {
         session.sendUpstreamPacket(addPlayerPacket);
     }
 
-    public void despawnEntity(Vector3i position) {
-        this.despawnEntity();
-        session.getSkullCache().remove(position, this);
+    public void free() {
+        setFlag(EntityFlag.INVISIBLE, true);
+        updateBedrockMetadata();
+
+        // Move skull entity out of the way
+        moveAbsolute(session.getPlayerEntity().getPosition().up(128), 0, 0, 0, false, true);
+    }
+
+    public void updateSkull(GameProfile profile, Vector3i position, int blockState) {
+        // Make skull invisible as we teleport and change skins
+        setFlag(EntityFlag.INVISIBLE, true);
+        updateBedrockMetadata();
+
+        float x = position.getX() + .5f;
+        float y = position.getY() - .01f;
+        float z = position.getZ() + .5f;
+        float rotation;
+
+        byte floorRotation = BlockStateValues.getSkullRotation(blockState);
+        if (floorRotation == -1) {
+            // Wall skull
+            y += 0.25f;
+            rotation = BlockStateValues.getSkullWallDirections().get(blockState);
+            switch ((int) rotation) {
+                case 180 -> z += 0.24f; // North
+                case 0 -> z -= 0.24f; // South
+                case 90 -> x += 0.24f; // West
+                case 270 -> x -= 0.24f; // East
+            }
+        } else {
+            rotation = (180f + (floorRotation * 22.5f)) % 360;
+        }
+
+        moveAbsolute(Vector3f.from(x, y, z), rotation, 0, rotation, true, true);
+
+        this.blockState = blockState;
+
+        setProfile(profile);
+        setUsername(profile.getName());
+
+        SkullSkinManager.requestAndHandleSkin(this, session, (skin -> session.scheduleInEventLoop(() -> {
+            // Delay to minimize split-second "player" pop-in
+            setFlag(EntityFlag.INVISIBLE, false);
+            updateBedrockMetadata();
+        }, 250, TimeUnit.MILLISECONDS)));
     }
 }
