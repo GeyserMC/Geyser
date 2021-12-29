@@ -43,7 +43,6 @@ import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandExecutor;
-import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandManager;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
@@ -70,7 +69,6 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     @Inject
     private CommandManager commandManager;
 
-    private GeyserVelocityCommandManager geyserCommandManager;
     private GeyserVelocityConfiguration geyserConfig;
     private GeyserVelocityInjector geyserInjector;
     private GeyserVelocityLogger geyserLogger;
@@ -144,7 +142,6 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         this.geyserInjector = new GeyserVelocityInjector(proxyServer);
         // Will be initialized after the proxy has been bound
 
-        this.geyserCommandManager = new GeyserVelocityCommandManager(geyser);
         this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(geyser));
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
@@ -171,11 +168,6 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     @Override
     public GeyserVelocityLogger getGeyserLogger() {
         return geyserLogger;
-    }
-
-    @Override
-    public org.geysermc.geyser.command.CommandManager getGeyserCommandManager() {
-        return this.geyserCommandManager;
     }
 
     @Override

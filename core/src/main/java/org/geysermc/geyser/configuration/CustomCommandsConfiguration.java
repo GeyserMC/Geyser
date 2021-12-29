@@ -23,19 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.bungeecord.command;
+package org.geysermc.geyser.configuration;
 
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandManager;
+import lombok.Getter;
+import lombok.ToString;
 
-public class GeyserBungeeCommandManager extends CommandManager {
+import java.util.Collections;
+import java.util.List;
 
-    public GeyserBungeeCommandManager(GeyserImpl geyser) {
-        super(geyser);
-    }
+@Getter
+@ToString
+public class CustomCommandsConfiguration {
+    private List<CustomCommandEntry> descriptions = Collections.emptyList();
 
-    @Override
-    public String getDescription(String command) {
-        return ""; // no support for command descriptions in bungee
+    @Getter
+    @ToString
+    public static class CustomCommandEntry {
+        private String description;
+        private List<String> commands;
     }
 }

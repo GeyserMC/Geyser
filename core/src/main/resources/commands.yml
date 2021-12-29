@@ -1,0 +1,15 @@
+# Specify custom command descriptions.
+# On platforms that have their own command descriptions, any entry here will override what the platform provides.
+descriptions: [
+  {
+    description: "This is an example command description setup for Bedrock players",
+    # Each command here will have the above command description applied.
+    commands: [
+      "foo", "bar"
+    ]
+  },
+  {
+    description: "The main command for Geyser.",
+    commands: ["geyser"]
+  }
+]

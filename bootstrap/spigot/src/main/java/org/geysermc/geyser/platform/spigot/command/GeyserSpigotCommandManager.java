@@ -31,6 +31,7 @@ import org.bukkit.command.CommandMap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandManager;
 
+import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 
 public class GeyserSpigotCommandManager extends CommandManager {
@@ -52,8 +53,14 @@ public class GeyserSpigotCommandManager extends CommandManager {
     }
 
     @Override
+    @Nonnull
     public String getDescription(String command) {
-        Command cmd = COMMAND_MAP.getCommand(command.replace("/", ""));
-        return cmd != null ? cmd.getDescription() : "";
+        String description = super.getDescription(command);
+        if (description.isEmpty()) {
+            Command cmd = COMMAND_MAP.getCommand(command.replace("/", ""));
+            return cmd != null ? cmd.getDescription() : "";
+        } else {
+            return description;
+        }
     }
 }
