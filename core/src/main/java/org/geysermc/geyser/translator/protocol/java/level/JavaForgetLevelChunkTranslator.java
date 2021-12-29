@@ -30,6 +30,7 @@ import com.nukkitx.math.vector.Vector3i;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.ChunkUtils;
 
 import java.util.Iterator;
 
@@ -60,5 +61,7 @@ public class JavaForgetLevelChunkTranslator extends PacketTranslator<Clientbound
                 }
             }
         }
+
+        ChunkUtils.sendEmptyChunk(session, packet.getX(), packet.getZ(), false);
     }
 }
