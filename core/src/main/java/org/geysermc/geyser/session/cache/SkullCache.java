@@ -40,17 +40,20 @@ import java.util.*;
 public class SkullCache {
     private static final int MAX_VISIBLE_SKULLS = 128;
     private static final float VISIBLE_SKULL_RANGE = 32 * 32;
+    private static final long CLEANUP_PERIOD = 10000;
 
     @Getter
     private final Map<Vector3i, Skull> skulls = new Object2ObjectOpenHashMap<>();
 
     private final Map<Vector3i, Skull> visibleSkulls = new Object2ObjectOpenHashMap<>();
 
-    private final Deque<SkullPlayerEntity> freeSkullEntities = new ArrayDeque<>();
+    private final Deque<SkullPlayerEntity> unusedSkullEntities = new ArrayDeque<>();
 
     private final GeyserSession session;
 
     private Vector3i lastPlayerPosition;
+
+    private long lastCleanup = System.currentTimeMillis();
 
     public void putSkull(Vector3i position, GameProfile profile, int blockState) {
         Skull skull = skulls.computeIfAbsent(position, Skull::new);
@@ -102,13 +105,22 @@ public class SkullCache {
         for (Skull skull : inRangeSkulls) {
             assignSkullEntity(skull);
         }
+
+        // Keep unused skull entities around for later use, to reduce "player" pop-in
+        if ((System.currentTimeMillis() - lastCleanup) > CLEANUP_PERIOD) {
+            lastCleanup = System.currentTimeMillis();
+            for (SkullPlayerEntity entity : unusedSkullEntities) {
+                entity.despawnEntity();
+            }
+            unusedSkullEntities.clear();
+        }
     }
 
     private void assignSkullEntity(Skull skull) {
         if (skull.entity != null) {
             return;
         }
-        if (freeSkullEntities.isEmpty()) {
+        if (unusedSkullEntities.isEmpty()) {
             if (visibleSkulls.size() < MAX_VISIBLE_SKULLS) {
                 // Create new entity
                 long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
@@ -119,7 +131,7 @@ public class SkullCache {
             }
         } else {
             // Reuse an entity
-            skull.entity = freeSkullEntities.removeFirst();
+            skull.entity = unusedSkullEntities.removeFirst();
             skull.entity.updateSkull(skull);
             visibleSkulls.put(skull.position, skull);
         }
@@ -129,7 +141,7 @@ public class SkullCache {
         if (skull.entity != null) {
             visibleSkulls.remove(skull.position);
             skull.entity.free();
-            freeSkullEntities.addFirst(skull.entity);
+            unusedSkullEntities.addFirst(skull.entity);
             skull.entity = null;
         }
     }
@@ -141,7 +153,7 @@ public class SkullCache {
     public void clear() {
         skulls.clear();
         visibleSkulls.clear();
-        freeSkullEntities.clear();
+        unusedSkullEntities.clear();
         lastPlayerPosition = null;
     }
 
