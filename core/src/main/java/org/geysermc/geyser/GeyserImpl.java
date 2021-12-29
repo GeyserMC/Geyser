@@ -112,45 +112,38 @@ public class GeyserImpl implements GeyserApi {
 
     private FloodgateCipher cipher;
     private FloodgateSkinUploader skinUploader;
-    private final NewsHandler newsHandler;
+    private NewsHandler newsHandler;
 
     private volatile boolean shuttingDown = false;
 
-    private final ScheduledExecutorService scheduledThread;
+    private ScheduledExecutorService scheduledThread;
 
-    private final BedrockServer bedrockServer;
+    private BedrockServer bedrockServer;
     private final PlatformType platformType;
     private final GeyserBootstrap bootstrap;
 
-    private final Metrics metrics;
+    private Metrics metrics;
 
     private static GeyserImpl instance;
 
     private GeyserImpl(PlatformType platformType, GeyserBootstrap bootstrap) {
-        long startupTime = System.currentTimeMillis();
-
-        this.bootstrap = bootstrap;
-
         instance = this;
 
         Geyser.set(this);
 
-        GeyserLogger logger = bootstrap.getGeyserLogger();
-        GeyserConfiguration config = bootstrap.getGeyserConfig();
-
         this.platformType = platformType;
+        this.bootstrap = bootstrap;
+
+        long startupTime = System.currentTimeMillis();
 
         GeyserLocale.finalizeDefaultLocale(this);
+        GeyserLogger logger = bootstrap.getGeyserLogger();
 
         logger.info("******************************************");
         logger.info("");
         logger.info(GeyserLocale.getLocaleStringLog("geyser.core.load", NAME, VERSION));
         logger.info("");
         logger.info("******************************************");
-
-        this.scheduledThread = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("Geyser Scheduled Thread"));
-
-        logger.setDebug(config.isDebugMode());
 
         /* Initialize translators and registries */
         BlockRegistries.init();
@@ -160,6 +153,46 @@ public class GeyserImpl implements GeyserApi {
         ItemTranslator.init();
         MessageTranslator.init();
         MinecraftLocale.init();
+
+        start();
+
+        GeyserConfiguration config = bootstrap.getGeyserConfig();
+
+        boolean isGui = false;
+        // This will check if we are in standalone and get the 'useGui' variable from there
+        if (platformType == PlatformType.STANDALONE) {
+            try {
+                Class<?> cls = Class.forName("org.geysermc.geyser.platform.standalone.GeyserStandaloneBootstrap");
+                isGui = (boolean) cls.getMethod("isUseGui").invoke(cls.cast(bootstrap));
+            } catch (Exception e) {
+                logger.debug("Failed detecting if standalone is using a GUI; if this is a GeyserConnect instance this can be safely ignored.");
+            }
+        }
+
+        double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
+        String message = GeyserLocale.getLocaleStringLog("geyser.core.finish.done", new DecimalFormat("#.###").format(completeTime)) + " ";
+        if (isGui) {
+            message += GeyserLocale.getLocaleStringLog("geyser.core.finish.gui");
+        } else {
+            message += GeyserLocale.getLocaleStringLog("geyser.core.finish.console");
+        }
+
+        logger.info(message);
+
+        if (platformType == PlatformType.STANDALONE) {
+            logger.warning(GeyserLocale.getLocaleStringLog("geyser.core.movement_warn"));
+        } else if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
+            VersionCheckUtils.checkForOutdatedFloodgate(logger);
+        }
+    }
+
+    private void start() {
+        this.scheduledThread = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("Geyser Scheduled Thread"));
+
+        GeyserLogger logger = bootstrap.getGeyserLogger();
+        GeyserConfiguration config = bootstrap.getGeyserConfig();
+        logger.setDebug(config.isDebugMode());
+
         ScoreboardUpdater.init();
 
         ResourcePack.loadPacks();
@@ -231,7 +264,8 @@ public class GeyserImpl implements GeyserApi {
         } else {
             logger.debug("Not getting git properties for the news handler as we are in a development environment.");
         }
-        newsHandler = new NewsHandler(branch, buildNumber);
+
+        this.newsHandler = new NewsHandler(branch, buildNumber);
 
         CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
@@ -367,32 +401,6 @@ public class GeyserImpl implements GeyserApi {
             metrics = null;
         }
 
-        boolean isGui = false;
-        // This will check if we are in standalone and get the 'useGui' variable from there
-        if (platformType == PlatformType.STANDALONE) {
-            try {
-                Class<?> cls = Class.forName("org.geysermc.geyser.platform.standalone.GeyserStandaloneBootstrap");
-                isGui = (boolean) cls.getMethod("isUseGui").invoke(cls.cast(bootstrap));
-            } catch (Exception e) {
-                logger.debug("Failed detecting if standalone is using a GUI; if this is a GeyserConnect instance this can be safely ignored.");
-            }
-        }
-
-        double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
-        String message = GeyserLocale.getLocaleStringLog("geyser.core.finish.done", new DecimalFormat("#.###").format(completeTime)) + " ";
-        if (isGui) {
-            message += GeyserLocale.getLocaleStringLog("geyser.core.finish.gui");
-        } else {
-            message += GeyserLocale.getLocaleStringLog("geyser.core.finish.console");
-        }
-        logger.info(message);
-
-        if (platformType == PlatformType.STANDALONE) {
-            logger.warning(GeyserLocale.getLocaleStringLog("geyser.core.movement_warn"));
-        } else if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
-            VersionCheckUtils.checkForOutdatedFloodgate(logger);
-        }
-
         newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
     }
 
@@ -447,6 +455,8 @@ public class GeyserImpl implements GeyserApi {
         newsHandler.shutdown();
         this.getCommandManager().getCommands().clear();
 
+        ResourcePack.PACKS.clear();
+
         bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.done"));
     }
 
@@ -469,7 +479,17 @@ public class GeyserImpl implements GeyserApi {
     }
 
     public static GeyserImpl start(PlatformType platformType, GeyserBootstrap bootstrap) {
-        return new GeyserImpl(platformType, bootstrap);
+        if (instance == null) {
+            return new GeyserImpl(platformType, bootstrap);
+        }
+
+        // We've been reloaded
+        if (instance.isShuttingDown()) {
+            instance.shuttingDown = false;
+            instance.start();
+        }
+
+        return instance;
     }
 
     public GeyserLogger getLogger() {
