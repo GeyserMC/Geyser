@@ -27,9 +27,6 @@ package org.geysermc.geyser.session.cache;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.nukkitx.math.vector.Vector3i;
-import it.unimi.dsi.fastutil.Pair;
-import it.unimi.dsi.fastutil.ints.IntObjectImmutablePair;
-import it.unimi.dsi.fastutil.ints.IntObjectPair;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Data;
 import lombok.Getter;
@@ -53,15 +50,18 @@ public class SkullCache {
 
     private final GeyserSession session;
 
+    private Vector3i lastPlayerPosition;
+
     public void putSkull(Vector3i position, GameProfile profile, int blockState) {
-        Skull skull = skulls.computeIfAbsent(position, pos -> new Skull());
+        Skull skull = skulls.computeIfAbsent(position, Skull::new);
         skull.profile = profile;
         skull.blockState = blockState;
+        skull.distance = position.distanceSquared(session.getPlayerEntity().getPosition().toInt());
 
         if (skull.entity != null) {
-            skull.entity.updateSkull(profile, position, blockState);
-        } else if (isVisible(position)) {
-            assignSkullEntity(position, skull);
+            skull.entity.updateSkull(skull);
+        } else if (skull.distance < VISIBLE_SKULL_RANGE) {
+            updateVisibleSkulls(true);
         }
     }
 
@@ -69,61 +69,65 @@ public class SkullCache {
         Skull skull = skulls.remove(position);
         if (skull != null) {
             freeSkullEntity(skull);
-            visibleSkulls.remove(position);
         }
     }
 
-    public void updateVisibleSkulls() {
-        // Free skull entities that are out of range
-        Iterator<Map.Entry<Vector3i, Skull>> iterator = visibleSkulls.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<Vector3i, Skull> entry = iterator.next();
-            Vector3i position = entry.getKey();
-            Skull skull = entry.getValue();
-
-            if (!isVisible(position)) {
-                freeSkullEntity(skull);
-                iterator.remove();
-            }
-        }
-
-        // Assign skulls entities to skulls in range
+    public void updateVisibleSkulls(boolean force) {
         Vector3i playerPosition = session.getPlayerEntity().getPosition().toInt();
-        List<IntObjectPair<Vector3i>> inRangeSkulls = new ArrayList<>();
-        for (Map.Entry<Vector3i, Skull> entry : skulls.entrySet()) {
-            if (entry.getValue().entity == null) {
-                Vector3i position = entry.getKey();
-                int distanceSquared = position.distanceSquared(playerPosition);
-                if (distanceSquared < VISIBLE_SKULL_RANGE) {
-                    inRangeSkulls.add(new IntObjectImmutablePair<>(distanceSquared, position));
-                }
+        if (!force) {
+            // No need to recheck skull visibility for small movements
+            if (lastPlayerPosition != null && playerPosition.distanceSquared(lastPlayerPosition) < 4) {
+                return;
             }
         }
-        inRangeSkulls.sort(Comparator.comparingInt(IntObjectPair::firstInt));
-        for (IntObjectPair<Vector3i> pair : inRangeSkulls) {
-            assignSkullEntity(pair.second(), skulls.get(pair.second()));
+        lastPlayerPosition = playerPosition;
+
+        List<Skull> inRangeSkulls = new ArrayList<>();
+        for (Map.Entry<Vector3i, Skull> entry : skulls.entrySet()) {
+            Skull skull = entry.getValue();
+            skull.distance = entry.getKey().distanceSquared(playerPosition);
+            if (skull.distance > VISIBLE_SKULL_RANGE) {
+                freeSkullEntity(skull);
+            } else {
+                inRangeSkulls.add(skull);
+            }
+        }
+        inRangeSkulls.sort(Comparator.comparingInt(Skull::getDistance));
+
+        while (inRangeSkulls.size() > MAX_VISIBLE_SKULLS) {
+            Skull skull = inRangeSkulls.remove(inRangeSkulls.size() - 1);
+            freeSkullEntity(skull);
+        }
+
+        for (Skull skull : inRangeSkulls) {
+            assignSkullEntity(skull);
         }
     }
 
-    private void assignSkullEntity(Vector3i position, Skull skull) {
+    private void assignSkullEntity(Skull skull) {
+        if (skull.entity != null) {
+            return;
+        }
         if (freeSkullEntities.isEmpty()) {
             if (visibleSkulls.size() < MAX_VISIBLE_SKULLS) {
                 // Create new entity
                 long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
-                skull.entity = new SkullPlayerEntity(session, geyserId, skull.profile, position, skull.blockState);
+                skull.entity = new SkullPlayerEntity(session, geyserId);
                 skull.entity.spawnEntity();
-                visibleSkulls.put(position, skull);
+                skull.entity.updateSkull(skull);
+                visibleSkulls.put(skull.position, skull);
             }
         } else {
             // Reuse an entity
             skull.entity = freeSkullEntities.removeFirst();
-            skull.entity.updateSkull(skull.profile, position, skull.blockState);
-            visibleSkulls.put(position, skull);
+            skull.entity.updateSkull(skull);
+            visibleSkulls.put(skull.position, skull);
         }
     }
 
     private void freeSkullEntity(Skull skull) {
         if (skull.entity != null) {
+            visibleSkulls.remove(skull.position);
             skull.entity.free();
             freeSkullEntities.addFirst(skull.entity);
             skull.entity = null;
@@ -138,16 +142,17 @@ public class SkullCache {
         skulls.clear();
         visibleSkulls.clear();
         freeSkullEntities.clear();
+        lastPlayerPosition = null;
     }
 
-    private boolean isVisible(Vector3i position) {
-        return position.distanceSquared(session.getPlayerEntity().getPosition().toInt()) < VISIBLE_SKULL_RANGE;
-    }
-
+    @RequiredArgsConstructor
     @Data
     public static class Skull {
         private GameProfile profile;
         private int blockState;
         private SkullPlayerEntity entity;
+
+        private final Vector3i position;
+        private int distance;
     }
 }

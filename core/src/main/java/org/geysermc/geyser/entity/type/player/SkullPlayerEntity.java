@@ -27,7 +27,6 @@ package org.geysermc.geyser.entity.type.player;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -36,8 +35,10 @@ import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
 import lombok.Getter;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.skin.SkullSkinManager;
 
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -52,9 +53,8 @@ public class SkullPlayerEntity extends PlayerEntity {
     @Getter
     private int blockState;
 
-    public SkullPlayerEntity(GeyserSession session, long geyserId, GameProfile gameProfile, Vector3i position, int blockState) {
-        super(session, 0, geyserId, gameProfile, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
-        updateSkull(gameProfile, position, blockState);
+    public SkullPlayerEntity(GeyserSession session, long geyserId) {
+        super(session, 0, geyserId, new GameProfile(UUID.randomUUID(), ""), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
         setPlayerList(false);
     }
 
@@ -104,16 +104,17 @@ public class SkullPlayerEntity extends PlayerEntity {
         moveAbsolute(session.getPlayerEntity().getPosition().up(128), 0, 0, 0, false, true);
     }
 
-    public void updateSkull(GameProfile profile, Vector3i position, int blockState) {
+    public void updateSkull(SkullCache.Skull skull) {
         // Make skull invisible as we teleport and change skins
         setFlag(EntityFlag.INVISIBLE, true);
         updateBedrockMetadata();
 
-        float x = position.getX() + .5f;
-        float y = position.getY() - .01f;
-        float z = position.getZ() + .5f;
+        float x = skull.getPosition().getX() + .5f;
+        float y = skull.getPosition().getY() - .01f;
+        float z = skull.getPosition().getZ() + .5f;
         float rotation;
 
+        this.blockState = skull.getBlockState();
         byte floorRotation = BlockStateValues.getSkullRotation(blockState);
         if (floorRotation == -1) {
             // Wall skull
@@ -131,10 +132,8 @@ public class SkullPlayerEntity extends PlayerEntity {
 
         moveAbsolute(Vector3f.from(x, y, z), rotation, 0, rotation, true, true);
 
-        this.blockState = blockState;
-
-        setProfile(profile);
-        setUsername(profile.getName());
+        setProfile(skull.getProfile());
+        setUsername(skull.getProfile().getName());
 
         SkullSkinManager.requestAndHandleSkin(this, session, (skin -> session.scheduleInEventLoop(() -> {
             // Delay to minimize split-second "player" pop-in
