@@ -55,6 +55,9 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
                     if (session.getOpenInventory() != null && session.getOpenInventory().isPending()) {
                         InventoryUtils.openInventory(session, session.getOpenInventory());
                     }
+
+                    // What am I to expect - as of Bedrock 1.18
+                    session.getFormCache().resendAllForms();
                 }
             }
         }
