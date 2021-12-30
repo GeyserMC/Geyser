@@ -162,7 +162,7 @@ public class ChunkUtils {
         }
 
         SkullCache.Skull skull = session.getSkullCache().get(position);
-        if (skull != null && skull.getBlockState() != blockState) {
+        if (skull != null && BlockStateValues.getSkullVariant(blockState) == -1) {
             // Skull is gone
             session.getSkullCache().removeSkull(position);
         }

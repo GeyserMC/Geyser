@@ -36,6 +36,7 @@ import lombok.Getter;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
+import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.skin.SkullSkinManager;
 
 import java.util.UUID;
@@ -105,9 +106,25 @@ public class SkullPlayerEntity extends PlayerEntity {
     }
 
     public void updateSkull(SkullCache.Skull skull) {
-        // Make skull invisible as we teleport and change skins
-        setFlag(EntityFlag.INVISIBLE, true);
-        updateBedrockMetadata();
+        // TODO figure out if there's a better condition to use
+        if (!SkinManager.GameProfileData.from(getProfile()).skinUrl().equals(SkinManager.GameProfileData.from(skull.getProfile()).skinUrl())) {
+            // Make skull invisible as we change skins
+            setFlag(EntityFlag.INVISIBLE, true);
+            updateBedrockMetadata();
+
+            setProfile(skull.getProfile());
+            setUsername(skull.getProfile().getName());
+
+            SkullSkinManager.requestAndHandleSkin(this, session, (skin -> session.scheduleInEventLoop(() -> {
+                // Delay to minimize split-second "player" pop-in
+                setFlag(EntityFlag.INVISIBLE, false);
+                updateBedrockMetadata();
+            }, 250, TimeUnit.MILLISECONDS)));
+        } else {
+            // Just a rotation/position change
+            setFlag(EntityFlag.INVISIBLE, false);
+            updateBedrockMetadata();
+        }
 
         float x = skull.getPosition().getX() + .5f;
         float y = skull.getPosition().getY() - .01f;
@@ -131,14 +148,5 @@ public class SkullPlayerEntity extends PlayerEntity {
         }
 
         moveAbsolute(Vector3f.from(x, y, z), rotation, 0, rotation, true, true);
-
-        setProfile(skull.getProfile());
-        setUsername(skull.getProfile().getName());
-
-        SkullSkinManager.requestAndHandleSkin(this, session, (skin -> session.scheduleInEventLoop(() -> {
-            // Delay to minimize split-second "player" pop-in
-            setFlag(EntityFlag.INVISIBLE, false);
-            updateBedrockMetadata();
-        }, 250, TimeUnit.MILLISECONDS)));
     }
 }
