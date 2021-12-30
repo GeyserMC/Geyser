@@ -70,7 +70,7 @@ public class SkullCache {
 
     public void removeSkull(Vector3i position) {
         Skull skull = skulls.remove(position);
-        if (skull != null) {
+        if (skull != null && skull.entity != null) {
             freeSkullEntity(skull);
             updateVisibleSkulls(true);
         }
