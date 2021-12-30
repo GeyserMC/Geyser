@@ -72,6 +72,7 @@ public class SkullCache {
         Skull skull = skulls.remove(position);
         if (skull != null) {
             freeSkullEntity(skull);
+            updateVisibleSkulls(true);
         }
     }
 
