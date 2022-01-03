@@ -43,7 +43,7 @@ public class JavaForgetLevelChunkTranslator extends PacketTranslator<Clientbound
     public void translate(GeyserSession session, ClientboundForgetLevelChunkPacket packet) {
         session.getChunkCache().removeChunk(packet.getX(), packet.getZ());
 
-        //Checks if a skull is in an unloaded chunk then removes it
+        // Checks if a skull is in an unloaded chunk then removes it
         List<Vector3i> removedSkulls = new ArrayList<>();
         for (Vector3i position : session.getSkullCache().getSkulls().keySet()) {
             if ((position.getX() >> 4) == packet.getX() && (position.getZ() >> 4) == packet.getZ()) {

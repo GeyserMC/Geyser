@@ -161,8 +161,7 @@ public class ChunkUtils {
             // Otherwise, let's still store our reference to the item frame, but let the new block take precedence for now
         }
 
-        SkullCache.Skull skull = session.getSkullCache().get(position);
-        if (skull != null && BlockStateValues.getSkullVariant(blockState) == -1) {
+        if (BlockStateValues.getSkullVariant(blockState) == -1) {
             // Skull is gone
             session.getSkullCache().removeSkull(position);
         }
