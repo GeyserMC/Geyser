@@ -36,7 +36,6 @@ import lombok.Getter;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
-import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.skin.SkullSkinManager;
 
 import java.util.UUID;
@@ -106,8 +105,7 @@ public class SkullPlayerEntity extends PlayerEntity {
     }
 
     public void updateSkull(SkullCache.Skull skull) {
-        // TODO figure out if there's a better condition to use
-        if (!SkinManager.GameProfileData.from(getProfile()).skinUrl().equals(SkinManager.GameProfileData.from(skull.getProfile()).skinUrl())) {
+        if (!getTexture(getProfile()).equals(getTexture(skull.getProfile()))) {
             // Make skull invisible as we change skins
             setFlag(EntityFlag.INVISIBLE, true);
             updateBedrockMetadata();
@@ -148,5 +146,13 @@ public class SkullPlayerEntity extends PlayerEntity {
         }
 
         moveAbsolute(Vector3f.from(x, y, z), rotation, 0, rotation, true, true);
+    }
+
+    private String getTexture(GameProfile gameProfile) {
+        GameProfile.Property texturesProperty = gameProfile.getProperty("textures");
+        if (texturesProperty != null) {
+            return texturesProperty.getValue();
+        }
+        return "";
     }
 }
