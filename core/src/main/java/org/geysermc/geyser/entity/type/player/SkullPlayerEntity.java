@@ -32,7 +32,6 @@ import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.AddPlayerPacket;
-import lombok.Getter;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
@@ -46,12 +45,6 @@ import java.util.concurrent.TimeUnit;
  * custom player skulls in Bedrock.
  */
 public class SkullPlayerEntity extends PlayerEntity {
-    /**
-     * Stores the block state that the skull is associated with. Used to determine if the block in the skull's position
-     * has changed
-     */
-    @Getter
-    private int blockState;
 
     public SkullPlayerEntity(GeyserSession session, long geyserId) {
         super(session, 0, geyserId, new GameProfile(UUID.randomUUID(), ""), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
@@ -129,7 +122,7 @@ public class SkullPlayerEntity extends PlayerEntity {
         float z = skull.getPosition().getZ() + .5f;
         float rotation;
 
-        this.blockState = skull.getBlockState();
+        int blockState = skull.getBlockState();
         byte floorRotation = BlockStateValues.getSkullRotation(blockState);
         if (floorRotation == -1) {
             // Wall skull
