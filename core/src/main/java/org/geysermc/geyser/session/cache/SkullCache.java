@@ -36,10 +36,14 @@ import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.*;
 
-@RequiredArgsConstructor
 public class SkullCache {
-    private static final int MAX_VISIBLE_SKULLS = 128;
-    private static final float VISIBLE_SKULL_RANGE = 32 * 32;
+    private final int maxVisibleSkulls;
+    
+    private final int skullRenderDistanceSquared;
+    
+    /**
+     * The time in milliseconds before unused skull entities are despawned
+     */
     private static final long CLEANUP_PERIOD = 10000;
 
     @Getter
@@ -56,6 +60,15 @@ public class SkullCache {
 
     private long lastCleanup = System.currentTimeMillis();
 
+    public SkullCache(GeyserSession session) {
+        this.session = session;
+        this.maxVisibleSkulls = session.getGeyser().getConfig().getMaxVisibleCustomSkulls();
+
+        // Normal skulls are not rendered beyond 64 blocks
+        int distance = Math.min(session.getGeyser().getConfig().getCustomSkullRenderDistance(), 64);
+        this.skullRenderDistanceSquared = distance * distance;
+    }
+    
     public void putSkull(Vector3i position, GameProfile profile, int blockState) {
         Skull skull = skulls.computeIfAbsent(position, Skull::new);
         skull.profile = profile;
@@ -67,21 +80,21 @@ public class SkullCache {
             if (lastPlayerPosition == null) {
                 return;
             }
-            skull.distance = position.distanceSquared(lastPlayerPosition);
-            if (skull.distance < VISIBLE_SKULL_RANGE) {
+            skull.distanceSquared = position.distanceSquared(lastPlayerPosition);
+            if (skull.distanceSquared < skullRenderDistanceSquared) {
                 // Keep list in order
                 int i = 0;
                 for (; i < inRangeSkulls.size(); i++) {
-                    if (inRangeSkulls.get(i).distance > skull.distance) {
+                    if (inRangeSkulls.get(i).distanceSquared > skull.distanceSquared) {
                         break;
                     }
                 }
                 inRangeSkulls.add(i, skull);
 
-                if (i < MAX_VISIBLE_SKULLS) {
+                if (i < maxVisibleSkulls) {
                     // Reassign entity from the farthest skull to this one
-                    if (inRangeSkulls.size() > MAX_VISIBLE_SKULLS) {
-                        freeSkullEntity(inRangeSkulls.get(MAX_VISIBLE_SKULLS));
+                    if (inRangeSkulls.size() > maxVisibleSkulls) {
+                        freeSkullEntity(inRangeSkulls.get(maxVisibleSkulls));
                     }
                     assignSkullEntity(skull);
                 }
@@ -95,9 +108,9 @@ public class SkullCache {
             freeSkullEntity(skull);
 
             inRangeSkulls.remove(skull);
-            if (inRangeSkulls.size() >= MAX_VISIBLE_SKULLS) {
+            if (inRangeSkulls.size() >= maxVisibleSkulls) {
                 // Reassign entity to the closest skull without an entity
-                assignSkullEntity(inRangeSkulls.get(MAX_VISIBLE_SKULLS - 1));
+                assignSkullEntity(inRangeSkulls.get(maxVisibleSkulls - 1));
             }
         }
     }
@@ -111,21 +124,20 @@ public class SkullCache {
         lastPlayerPosition = playerPosition;
 
         inRangeSkulls.clear();
-        for (Map.Entry<Vector3i, Skull> entry : skulls.entrySet()) {
-            Skull skull = entry.getValue();
-            skull.distance = entry.getKey().distanceSquared(playerPosition);
-            if (skull.distance > VISIBLE_SKULL_RANGE) {
+        for (Skull skull : skulls.values()) {
+            skull.distanceSquared = skull.position.distanceSquared(playerPosition);
+            if (skull.distanceSquared > skullRenderDistanceSquared) {
                 freeSkullEntity(skull);
             } else {
                 inRangeSkulls.add(skull);
             }
         }
-        inRangeSkulls.sort(Comparator.comparingInt(Skull::getDistance));
+        inRangeSkulls.sort(Comparator.comparingInt(Skull::getDistanceSquared));
 
-        for (int i = MAX_VISIBLE_SKULLS; i < inRangeSkulls.size(); i++) {
+        for (int i = maxVisibleSkulls; i < inRangeSkulls.size(); i++) {
             freeSkullEntity(inRangeSkulls.get(i));
         }
-        for (int i = 0; i < Math.min(MAX_VISIBLE_SKULLS, inRangeSkulls.size()); i++) {
+        for (int i = 0; i < Math.min(maxVisibleSkulls, inRangeSkulls.size()); i++) {
             assignSkullEntity(inRangeSkulls.get(i));
         }
 
@@ -146,7 +158,7 @@ public class SkullCache {
             return;
         }
         if (unusedSkullEntities.isEmpty()) {
-            if (totalSkullEntities < MAX_VISIBLE_SKULLS) {
+            if (totalSkullEntities < maxVisibleSkulls) {
                 // Create a new entity
                 long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
                 skull.entity = new SkullPlayerEntity(session, geyserId);
@@ -185,6 +197,6 @@ public class SkullCache {
         private SkullPlayerEntity entity;
 
         private final Vector3i position;
-        private int distance;
+        private int distanceSquared;
     }
 }
