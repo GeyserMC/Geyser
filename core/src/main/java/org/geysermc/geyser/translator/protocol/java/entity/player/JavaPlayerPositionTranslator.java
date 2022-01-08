@@ -86,8 +86,6 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
             ChunkUtils.updateChunkPosition(session, pos.toInt());
 
-            session.getSkullCache().updateVisibleSkulls();
-
             session.getGeyser().getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.entity.player.spawn", packet.getX(), packet.getY(), packet.getZ()));
             return;
         }

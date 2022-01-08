@@ -68,7 +68,7 @@ public class SkullCache {
         int distance = Math.min(session.getGeyser().getConfig().getCustomSkullRenderDistance(), 64);
         this.skullRenderDistanceSquared = distance * distance;
     }
-    
+
     public void putSkull(Vector3i position, GameProfile profile, int blockState) {
         Skull skull = skulls.computeIfAbsent(position, Skull::new);
         skull.profile = profile;
@@ -83,11 +83,9 @@ public class SkullCache {
             skull.distanceSquared = position.distanceSquared(lastPlayerPosition);
             if (skull.distanceSquared < skullRenderDistanceSquared) {
                 // Keep list in order
-                int i = 0;
-                for (; i < inRangeSkulls.size(); i++) {
-                    if (inRangeSkulls.get(i).distanceSquared > skull.distanceSquared) {
-                        break;
-                    }
+                int i = Collections.binarySearch(inRangeSkulls, skull, Comparator.comparingInt(Skull::getDistanceSquared));
+                if (i < 0) { // skull.distanceSquared is a new distance value
+                    i = -i - 1;
                 }
                 inRangeSkulls.add(i, skull);
 
