@@ -25,9 +25,13 @@
 
 package org.geysermc.geyser.extension;
 
+import org.geysermc.api.Geyser;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.extension.exception.InvalidDescriptionException;
-import org.geysermc.geyser.extension.exception.InvalidExtensionException;
+import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.extension.ExtensionLoader;
+import org.geysermc.geyser.api.extension.GeyserExtension;
+import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
+import org.geysermc.geyser.api.extension.exception.InvalidExtensionException;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,10 +39,11 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
 
-public class ExtensionLoader {
+public class GeyserExtensionLoader implements ExtensionLoader {
     private final Map<String, Class> classes = new HashMap<>();
-    private final Map<String, ExtensionClassLoader> classLoaders = new HashMap<>();
+    private final Map<String, GeyserExtensionClassLoader> classLoaders = new HashMap<>();
 
+    @Override
     public GeyserExtension loadExtension(File file) throws InvalidExtensionException {
         if (file == null) {
             throw new InvalidExtensionException("File is null");
@@ -48,37 +53,39 @@ public class ExtensionLoader {
             throw new InvalidExtensionException(new FileNotFoundException(file.getPath()) + " does not exist");
         }
 
-        final ExtensionDescription description;
+        final GeyserExtensionDescription description;
         try {
-            description = getExtensionDescription(file);
+            description = extensionDescription(file);
         } catch (InvalidDescriptionException e) {
             throw new InvalidExtensionException(e);
         }
 
         final File parentFile = file.getParentFile();
-        final File dataFolder = new File(parentFile, description.getName());
+        final File dataFolder = new File(parentFile, description.name());
         if (dataFolder.exists() && !dataFolder.isDirectory()) {
-            throw new InvalidExtensionException("The folder " + dataFolder.getPath() + " is not a directory and is the data folder for the extension " + description.getName() + "!");
+            throw new InvalidExtensionException("The folder " + dataFolder.getPath() + " is not a directory and is the data folder for the extension " + description.name() + "!");
         }
 
-        final ExtensionClassLoader loader;
+        final GeyserExtensionClassLoader loader;
         try {
-            loader = new ExtensionClassLoader(this, getClass().getClassLoader(), description, file);
+            loader = new GeyserExtensionClassLoader(this, getClass().getClassLoader(), description, file);
         } catch (Throwable e) {
             throw new InvalidExtensionException(e);
         }
-        classLoaders.put(description.getName(), loader);
+        classLoaders.put(description.name(), loader);
 
         setup(loader.extension, description, dataFolder, file);
         return loader.extension;
     }
 
-    private void setup(GeyserExtension extension, ExtensionDescription description, File dataFolder, File file) {
-        extension.init(GeyserImpl.getInstance(), description, dataFolder, file, this);
+    private void setup(GeyserExtension extension, GeyserExtensionDescription description, File dataFolder, File file) {
+        GeyserExtensionLogger logger = new GeyserExtensionLogger(GeyserImpl.getInstance().getLogger(), description.name());
+        extension.init(Geyser.api(), logger, this, description, dataFolder, file);
         extension.onLoad();
     }
 
-    public ExtensionDescription getExtensionDescription(File file) throws InvalidDescriptionException {
+    @Override
+    public GeyserExtensionDescription extensionDescription(File file) throws InvalidDescriptionException {
         JarFile jarFile = null;
         InputStream stream = null;
 
@@ -105,7 +112,7 @@ public class ExtensionLoader {
                 temp = bufferedReader.readLine();
             }
 
-            return new ExtensionDescription(builder.toString());
+            return new GeyserExtensionDescription(builder.toString());
         } catch (IOException e) {
             throw new InvalidDescriptionException(e);
         } finally {
@@ -124,14 +131,16 @@ public class ExtensionLoader {
         }
     }
 
-    public Pattern[] getExtensionFilters() {
+    @Override
+    public Pattern[] extensionFilters() {
         return new Pattern[] { Pattern.compile("^.+\\.jar$") };
     }
 
-    public Class<?> getClassByName(final String name) throws ClassNotFoundException{
+    @Override
+    public Class<?> classByName(final String name) throws ClassNotFoundException{
         Class<?> clazz = classes.get(name);
         try {
-            for(ExtensionClassLoader loader : classLoaders.values()) {
+            for(GeyserExtensionClassLoader loader : classLoaders.values()) {
                 try {
                     clazz = loader.findClass(name,false);
                 } catch(NullPointerException e) {
@@ -153,19 +162,21 @@ public class ExtensionLoader {
         Class<?> clazz = classes.remove(name);
     }
 
+    @Override
     public void enableExtension(Extension extension) {
         if (extension instanceof GeyserExtension) {
             if(!extension.isEnabled()) {
-                GeyserImpl.getInstance().getLogger().info("Enabled extension " + extension.getDescription().getName());
+                GeyserImpl.getInstance().getLogger().info("Enabled extension " + extension.description().name());
                 ((GeyserExtension) extension).setEnabled(true);
             }
         }
     }
 
+    @Override
     public void disableExtension(Extension extension) {
         if (extension instanceof GeyserExtension) {
             if(extension.isEnabled()) {
-                GeyserImpl.getInstance().getLogger().info("Disabled extension " + extension.getDescription().getName());
+                GeyserImpl.getInstance().getLogger().info("Disabled extension " + extension.description().name());
                 ((GeyserExtension) extension).setEnabled(false);
             }
         }

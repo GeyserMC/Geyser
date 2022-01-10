@@ -23,9 +23,9 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.extension;
+package org.geysermc.geyser.api.extension;
 
-import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.api.GeyserApiBase;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
@@ -36,9 +36,10 @@ public class GeyserExtension implements Extension {
     private File file = null;
     private File dataFolder = null;
     private ClassLoader classLoader = null;
-    private GeyserImpl geyser = null;
     private ExtensionLoader loader;
+    private ExtensionLogger logger;
     private ExtensionDescription description = null;
+    private GeyserApiBase api = null;
 
     @Override
     public void onLoad() {
@@ -74,29 +75,30 @@ public class GeyserExtension implements Extension {
     }
 
     @Override
-    public File getDataFolder() {
+    public File dataFolder() {
         return this.dataFolder;
     }
 
     @Override
-    public ExtensionDescription getDescription() {
+    public ExtensionDescription description() {
         return this.description;
     }
 
     @Override
-    public String getName() {
-        return this.description.getName();
+    public String name() {
+        return this.description.name();
     }
 
-    public void init(GeyserImpl geyser, ExtensionDescription description, File dataFolder, File file, ExtensionLoader loader) {
+    public void init(GeyserApiBase api, ExtensionLogger logger, ExtensionLoader loader, ExtensionDescription description, File dataFolder, File file) {
         if (!this.initialized) {
             this.initialized = true;
             this.file = file;
             this.dataFolder = dataFolder;
             this.classLoader = this.getClass().getClassLoader();
-            this.geyser = geyser;
             this.loader = loader;
+            this.logger = logger;
             this.description = description;
+            this.api = api;
         }
     }
 
@@ -152,25 +154,30 @@ public class GeyserExtension implements Extension {
                 out.close();
                 in.close();
             } else {
-                this.geyser.getLogger().warning("Could not save " + outFile.getName() + " to " + outFile + " because " + outFile.getName() + " already exists.");
+                this.logger.warning("Could not save " + outFile.getName() + " to " + outFile + " because " + outFile.getName() + " already exists.");
             }
         } catch (IOException ex) {
-            this.geyser.getLogger().severe("Could not save " + outFile.getName() + " to " + outFile, ex);
+            this.logger.severe("Could not save " + outFile.getName() + " to " + outFile, ex);
         }
     }
 
     @Override
-    public GeyserImpl getGeyser() {
-        return this.geyser;
-    }
-
-    @Override
-    public ClassLoader getClassLoader() {
+    public ClassLoader classLoader() {
         return this.classLoader;
     }
 
     @Override
-    public ExtensionLoader getExtensionLoader() {
+    public ExtensionLoader extensionLoader() {
         return this.loader;
+    }
+
+    @Override
+    public ExtensionLogger logger() {
+        return this.logger;
+    }
+
+    @Override
+    public GeyserApiBase geyserApi() {
+        return this.api;
     }
 }

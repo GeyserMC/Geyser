@@ -25,20 +25,19 @@
 
 package org.geysermc.geyser.extension;
 
-import org.geysermc.geyser.extension.exception.InvalidDescriptionException;
+import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
-
 import java.util.*;
 
-public class ExtensionDescription {
+public class GeyserExtensionDescription implements org.geysermc.geyser.api.extension.ExtensionDescription {
     private String name;
     private String main;
     private List<String> api;
     private String version;
     private final List<String> authors = new ArrayList<>();
 
-    public ExtensionDescription(String yamlString) throws InvalidDescriptionException {
+    public GeyserExtensionDescription(String yamlString) throws InvalidDescriptionException {
         DumperOptions dumperOptions = new DumperOptions();
         dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         Yaml yaml = new Yaml(dumperOptions);
@@ -72,23 +71,28 @@ public class ExtensionDescription {
         }
     }
 
-    public String getName() {
+    @Override
+    public String name() {
         return this.name;
     }
 
-    public String getMain() {
+    @Override
+    public String main() {
         return this.main;
     }
 
-    public List<String> getAPIVersions() {
+    @Override
+    public List<String> ApiVersions() {
         return api;
     }
 
-    public String getVersion() {
+    @Override
+    public String version() {
         return this.version;
     }
 
-    public List<String> getAuthors() {
+    @Override
+    public List<String> authors() {
         return this.authors;
     }
 }

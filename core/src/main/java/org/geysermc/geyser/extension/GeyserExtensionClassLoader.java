@@ -25,7 +25,9 @@
 
 package org.geysermc.geyser.extension;
 
-import org.geysermc.geyser.extension.exception.InvalidExtensionException;
+import org.geysermc.geyser.api.extension.ExtensionDescription;
+import org.geysermc.geyser.api.extension.GeyserExtension;
+import org.geysermc.geyser.api.extension.exception.InvalidExtensionException;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -34,28 +36,28 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class ExtensionClassLoader extends URLClassLoader {
-    private ExtensionLoader loader;
+public class GeyserExtensionClassLoader extends URLClassLoader {
+    private GeyserExtensionLoader loader;
     private Map<String, Class> classes = new HashMap<>();
     public GeyserExtension extension;
 
-    public ExtensionClassLoader(ExtensionLoader loader, ClassLoader parent, ExtensionDescription description, File file) throws InvalidExtensionException, MalformedURLException {
+    public GeyserExtensionClassLoader(GeyserExtensionLoader loader, ClassLoader parent, ExtensionDescription description, File file) throws InvalidExtensionException, MalformedURLException {
         super(new URL[] { file.toURI().toURL() }, parent);
         this.loader = loader;
 
         try {
             Class<?> jarClass;
             try {
-                jarClass = Class.forName(description.getMain(), true, this);
+                jarClass = Class.forName(description.main(), true, this);
             } catch (ClassNotFoundException ex) {
-                throw new InvalidExtensionException("Class " + description.getMain() + " not found, extension cannot be loaded", ex);
+                throw new InvalidExtensionException("Class " + description.main() + " not found, extension cannot be loaded", ex);
             }
 
             Class<? extends GeyserExtension> extensionClass;
             try {
                 extensionClass = jarClass.asSubclass(GeyserExtension.class);
             } catch (ClassCastException ex) {
-                throw new InvalidExtensionException("Main class " + description.getMain() + " should extends GeyserExtension, but extends " + jarClass.getSuperclass().getSimpleName(), ex);
+                throw new InvalidExtensionException("Main class " + description.main() + " should extends GeyserExtension, but extends " + jarClass.getSuperclass().getSimpleName(), ex);
             }
 
             extension = extensionClass.newInstance();
@@ -78,7 +80,7 @@ public class ExtensionClassLoader extends URLClassLoader {
         Class<?> result = classes.get(name);
         if(result == null) {
             if(checkGlobal) {
-                result = loader.getClassByName(name);
+                result = loader.classByName(name);
             }
             if(result == null) {
                 result = super.findClass(name);

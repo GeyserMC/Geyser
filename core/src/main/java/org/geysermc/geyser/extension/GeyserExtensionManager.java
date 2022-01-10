@@ -26,35 +26,36 @@
 package org.geysermc.geyser.extension;
 
 import org.geysermc.geyser.GeyserImpl;
-
+import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.extension.ExtensionDescription;
+import org.geysermc.geyser.api.extension.GeyserExtension;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.regex.Pattern;
 
-public class ExtensionManager {
-    private static ExtensionManager extensionManager = null;
+public class GeyserExtensionManager {
+    private static GeyserExtensionManager geyserExtensionManager = null;
 
     protected Map<String, Extension> extensions = new LinkedHashMap<>();
-    protected Map<Pattern, ExtensionLoader> fileAssociations = new HashMap<>();
+    protected Map<Pattern, GeyserExtensionLoader> fileAssociations = new HashMap<>();
 
     public static void init() {
         GeyserImpl.getInstance().getLogger().info("Loading extensions...");
-        extensionManager = new ExtensionManager();
-        extensionManager.registerInterface(ExtensionLoader.class);
-        extensionManager.loadExtensions(new File("extensions"));
-        GeyserImpl.getInstance().getLogger().info("Loaded " + extensionManager.extensions.size() + " extensions.");
+        geyserExtensionManager = new GeyserExtensionManager();
+        geyserExtensionManager.registerInterface(GeyserExtensionLoader.class);
+        geyserExtensionManager.loadExtensions(new File("extensions"));
+        GeyserImpl.getInstance().getLogger().info("Loaded " + geyserExtensionManager.extensions.size() + " extensions.");
 
-        for (Extension extension : extensionManager.getExtensions().values()) {
+        for (Extension extension : geyserExtensionManager.getExtensions().values()) {
             if (!extension.isEnabled()) {
-                extensionManager.enableExtension(extension);
+                geyserExtensionManager.enableExtension(extension);
             }
         }
     }
 
-    public static ExtensionManager getExtensionManager() {
-        return extensionManager;
+    public static GeyserExtensionManager getExtensionManager() {
+        return geyserExtensionManager;
     }
 
     public Extension getExtension(String name) {
@@ -68,11 +69,11 @@ public class ExtensionManager {
         return this.extensions;
     }
 
-    public void registerInterface(Class<? extends ExtensionLoader> loader) {
-        ExtensionLoader instance;
+    public void registerInterface(Class<? extends GeyserExtensionLoader> loader) {
+        GeyserExtensionLoader instance;
 
-        if (ExtensionLoader.class.isAssignableFrom(loader)) {
-            Constructor<? extends ExtensionLoader> constructor;
+        if (GeyserExtensionLoader.class.isAssignableFrom(loader)) {
+            Constructor<? extends GeyserExtensionLoader> constructor;
 
             try {
                 constructor = loader.getConstructor();
@@ -88,7 +89,7 @@ public class ExtensionManager {
             throw new IllegalArgumentException("Class " + loader.getName() + " does not implement interface ExtensionLoader");
         }
 
-        Pattern[] patterns = instance.getExtensionFilters();
+        Pattern[] patterns = instance.extensionFilters();
 
         synchronized (this) {
             for (Pattern pattern : patterns) {
@@ -97,17 +98,17 @@ public class ExtensionManager {
         }
     }
 
-    public GeyserExtension loadExtension(File file, Map<Pattern, ExtensionLoader> loaders) {
-        for (ExtensionLoader loader : (loaders == null ? this.fileAssociations : loaders).values()) {
-            for (Pattern pattern : loader.getExtensionFilters()) {
+    public GeyserExtension loadExtension(File file, Map<Pattern, GeyserExtensionLoader> loaders) {
+        for (GeyserExtensionLoader loader : (loaders == null ? this.fileAssociations : loaders).values()) {
+            for (Pattern pattern : loader.extensionFilters()) {
                 if (pattern.matcher(file.getName()).matches()) {
                     try {
-                        ExtensionDescription description = loader.getExtensionDescription(file);
+                        ExtensionDescription description = loader.extensionDescription(file);
                         if (description != null) {
                             GeyserExtension extension = loader.loadExtension(file);
 
                             if (extension != null) {
-                                this.extensions.put(extension.getDescription().getName(), extension);
+                                this.extensions.put(extension.description().name(), extension);
 
                                 return extension;
                             }
@@ -143,9 +144,9 @@ public class ExtensionManager {
         Map<String, File> extensions = new LinkedHashMap<>();
         Map<String, Extension> loadedExtensions = new LinkedHashMap<>();
 
-        for (final ExtensionLoader loader : this.fileAssociations.values()) {
+        for (final GeyserExtensionLoader loader : this.fileAssociations.values()) {
             for (File file : dictionary.listFiles((dir, name) -> {
-                for (Pattern pattern : loader.getExtensionFilters()) {
+                for (Pattern pattern : loader.extensionFilters()) {
                     if (pattern.matcher(name).matches()) {
                         return true;
                     }
@@ -157,9 +158,9 @@ public class ExtensionManager {
                 }
 
                 try {
-                    ExtensionDescription description = loader.getExtensionDescription(file);
+                    ExtensionDescription description = loader.extensionDescription(file);
                     if (description != null) {
-                        String name = description.getName();
+                        String name = description.name();
 
                         if (extensions.containsKey(name) || this.getExtension(name) != null) {
                             GeyserImpl.getInstance().getLogger().warning("Found duplicate extension '" + name + "', ignoring '" + file.getName() + "'");
@@ -168,7 +169,7 @@ public class ExtensionManager {
 
                         boolean compatible = false;
 
-                        for (String version : description.getAPIVersions()) {
+                        for (String version : description.ApiVersions()) {
                             try {
                                 //Check the format: majorVersion.minorVersion.patch
                                 if (!Pattern.matches("^[0-9]+\\.[0-9]+\\.[0-9]+$", version)) {
@@ -217,9 +218,9 @@ public class ExtensionManager {
     public void enableExtension(Extension extension) {
         if (!extension.isEnabled()) {
             try {
-                extension.getExtensionLoader().enableExtension(extension);
+                extension.extensionLoader().enableExtension(extension);
             } catch (Exception e) {
-                GeyserImpl.getInstance().getLogger().error("Error enabling extension " + extension.getName() + ": ", e);
+                GeyserImpl.getInstance().getLogger().error("Error enabling extension " + extension.name() + ": ", e);
                 this.disableExtension(extension);
             }
         }
@@ -228,9 +229,9 @@ public class ExtensionManager {
     public void disableExtension(Extension extension) {
         if (extension.isEnabled()) {
             try {
-                extension.getExtensionLoader().disableExtension(extension);
+                extension.extensionLoader().disableExtension(extension);
             } catch (Exception e) {
-                GeyserImpl.getInstance().getLogger().error("Error disabling extension " + extension.getName() + ": ", e);
+                GeyserImpl.getInstance().getLogger().error("Error disabling extension " + extension.name() + ": ", e);
             }
         }
     }

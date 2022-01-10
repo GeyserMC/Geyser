@@ -23,18 +23,14 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.extension.exception;
+package org.geysermc.geyser.api.extension;
 
-public class InvalidDescriptionException extends Exception {
-    public InvalidDescriptionException(Throwable cause) {
-        super(cause);
-    }
+import java.util.*;
 
-    public InvalidDescriptionException(String message) {
-        super(message);
-    }
-
-    public InvalidDescriptionException(String message, Throwable cause) {
-        super(message, cause);
-    }
+public interface ExtensionDescription {
+    String name();
+    String main();
+    List<String> ApiVersions();
+    String version();
+    List<String> authors();
 }

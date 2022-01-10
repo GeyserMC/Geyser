@@ -23,28 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.extension;
+package org.geysermc.geyser.api.extension.exception;
 
-import org.geysermc.geyser.GeyserImpl;
-import java.io.File;
-import java.io.InputStream;
+public class InvalidExtensionException extends Exception {
+    public InvalidExtensionException(Throwable cause) {
+        super(cause);
+    }
 
-public interface Extension {
-    void onLoad();
-    void onEnable();
-    void onDisable();
+    public InvalidExtensionException(String message) {
+        super(message);
+    }
 
-    boolean isEnabled();
-    boolean isDisabled();
-
-    File getDataFolder();
-    ExtensionDescription getDescription();
-    String getName();
-
-    InputStream getResource(String filename);
-    void saveResource(String filename, boolean replace);
-
-    GeyserImpl getGeyser();
-    ClassLoader getClassLoader();
-    ExtensionLoader getExtensionLoader();
+    public InvalidExtensionException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
