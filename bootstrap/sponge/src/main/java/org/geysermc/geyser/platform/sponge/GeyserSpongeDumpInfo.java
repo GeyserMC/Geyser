@@ -26,7 +26,6 @@
 package org.geysermc.geyser.platform.sponge;
 
 import lombok.Getter;
-import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.text.AsteriskSerializer;
 import org.spongepowered.api.Platform;
@@ -70,14 +69,7 @@ public class GeyserSpongeDumpInfo extends BootstrapDumpInfo {
         for (PluginContainer plugin : Sponge.pluginManager().plugins()) {
             PluginMetadata meta = plugin.metadata();
             List<String> contributors = meta.contributors().stream().map(PluginContributor::name).collect(Collectors.toList());
-            this.plugins.add(new PluginInfo(true, meta.name().orElse("unknown"), readVersion(meta.version()), meta.entrypoint(), contributors));
+            this.plugins.add(new PluginInfo(true, meta.name().orElse("unknown"), meta.version().toString(), meta.entrypoint(), contributors));
         }
-    }
-
-    private static String readVersion(ArtifactVersion version) {
-        String qualifier = version.getQualifier();
-        qualifier = (qualifier == null || qualifier.isBlank()) ? "" : "-" + qualifier;
-
-        return version.getMajorVersion() + "." + version.getMinorVersion() + "." + version.getIncrementalVersion() + qualifier;
     }
 }
