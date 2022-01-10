@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,6 +56,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.Predicate;
 
 public class SkinProvider {
     public static final boolean ALLOW_THIRD_PARTY_CAPES = GeyserImpl.getInstance().getConfig().isAllowThirdPartyCapes();
@@ -82,6 +83,12 @@ public class SkinProvider {
     private static final Map<String, CompletableFuture<Cape>> requestedCapes = new ConcurrentHashMap<>();
 
     private static final Map<UUID, SkinGeometry> cachedGeometry = new ConcurrentHashMap<>();
+
+    /**
+     * Citizens NPCs use UUID version 2, while legitimate Minecraft players use version 4, and
+     * offline mode players use version 3.
+     */
+    public static final Predicate<UUID> IS_NPC = uuid -> uuid.version() == 2;
 
     public static final boolean ALLOW_THIRD_PARTY_EARS = GeyserImpl.getInstance().getConfig().isAllowThirdPartyEars();
     public static final String EARS_GEOMETRY;
@@ -293,6 +300,10 @@ public class SkinProvider {
                                                                 String username, boolean newThread) {
         if (officialCape.isFailed() && ALLOW_THIRD_PARTY_CAPES) {
             for (CapeProvider provider : CapeProvider.VALUES) {
+                if (provider.type != CapeUrlType.USERNAME && IS_NPC.test(playerId)) {
+                    continue;
+                }
+
                 Cape cape1 = getOrDefault(
                         requestCape(provider.getUrlFor(playerId, username), provider, newThread),
                         EMPTY_CAPE, 4
@@ -330,6 +341,10 @@ public class SkinProvider {
      */
     public static CompletableFuture<Skin> requestUnofficialEars(Skin officialSkin, UUID playerId, String username, boolean newThread) {
         for (EarsProvider provider : EarsProvider.VALUES) {
+            if (provider.type != CapeUrlType.USERNAME && IS_NPC.test(playerId)) {
+                continue;
+            }
+
             Skin skin1 = getOrDefault(
                     requestEars(provider.getUrlFor(playerId, username), newThread, officialSkin),
                     officialSkin, 4

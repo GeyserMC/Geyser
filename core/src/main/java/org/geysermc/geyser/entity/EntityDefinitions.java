@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -181,7 +181,7 @@ public final class EntityDefinitions {
                 .addTranslator(MetadataType.BOOLEAN, Entity::setDisplayNameVisible)
                 .addTranslator(MetadataType.BOOLEAN, (entity, entityMetadata) -> entity.setFlag(EntityFlag.SILENT, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                 .addTranslator(MetadataType.BOOLEAN, Entity::setGravity)
-                .addTranslator(MetadataType.POSE, Entity::setPose)
+                .addTranslator(MetadataType.POSE, (entity, entityMetadata) -> entity.setPose(entityMetadata.getValue()))
                 .addTranslator(MetadataType.INT, Entity::setFreezing)
                 .build();
 

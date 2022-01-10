@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -204,27 +204,31 @@ public class ChunkUtils {
         session.getChunkCache().updateBlock(position.getX(), position.getY(), position.getZ(), blockState);
     }
 
+    public static void sendEmptyChunk(GeyserSession session, int chunkX, int chunkZ, boolean forceUpdate) {
+        LevelChunkPacket data = new LevelChunkPacket();
+        data.setChunkX(chunkX);
+        data.setChunkZ(chunkZ);
+        data.setSubChunksLength(0);
+        data.setData(EMPTY_CHUNK_DATA);
+        data.setCachingEnabled(false);
+        session.sendUpstreamPacket(data);
+
+        if (forceUpdate) {
+            Vector3i pos = Vector3i.from(chunkX << 4, 80, chunkZ << 4);
+            UpdateBlockPacket blockPacket = new UpdateBlockPacket();
+            blockPacket.setBlockPosition(pos);
+            blockPacket.setDataLayer(0);
+            blockPacket.setRuntimeId(1);
+            session.sendUpstreamPacket(blockPacket);
+        }
+    }
+
     public static void sendEmptyChunks(GeyserSession session, Vector3i position, int radius, boolean forceUpdate) {
         int chunkX = position.getX() >> 4;
         int chunkZ = position.getZ() >> 4;
         for (int x = -radius; x <= radius; x++) {
             for (int z = -radius; z <= radius; z++) {
-                LevelChunkPacket data = new LevelChunkPacket();
-                data.setChunkX(chunkX + x);
-                data.setChunkZ(chunkZ + z);
-                data.setSubChunksLength(0);
-                data.setData(EMPTY_CHUNK_DATA);
-                data.setCachingEnabled(false);
-                session.sendUpstreamPacket(data);
-
-                if (forceUpdate) {
-                    Vector3i pos = Vector3i.from(chunkX + x << 4, 80, chunkZ + z << 4);
-                    UpdateBlockPacket blockPacket = new UpdateBlockPacket();
-                    blockPacket.setBlockPosition(pos);
-                    blockPacket.setDataLayer(0);
-                    blockPacket.setRuntimeId(1);
-                    session.sendUpstreamPacket(blockPacket);
-                }
+                sendEmptyChunk(session, chunkX + x, chunkZ + z, forceUpdate);
             }
         }
     }
