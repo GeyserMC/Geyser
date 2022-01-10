@@ -52,6 +52,7 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.command.CommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.extension.ExtensionManager;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.ConnectorServerEventHandler;
 import org.geysermc.geyser.pack.ResourcePack;
@@ -160,6 +161,8 @@ public class GeyserImpl implements GeyserApi {
         ScoreboardUpdater.init();
 
         ResourcePack.loadPacks();
+
+        ExtensionManager.init();
 
         if (platformType != PlatformType.STANDALONE && config.getRemote().getAddress().equals("auto")) {
             // Set the remote address to localhost since that is where we are always connecting
@@ -443,6 +446,8 @@ public class GeyserImpl implements GeyserApi {
         }
         newsHandler.shutdown();
         this.getCommandManager().getCommands().clear();
+
+        ExtensionManager.getExtensionManager().disableExtensions();
 
         bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.done"));
     }
