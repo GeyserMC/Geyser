@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,14 +34,16 @@ import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
-import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.MinecraftLocale;
+import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.FileUtils;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -206,15 +208,31 @@ public abstract class ItemTranslator {
         int maxDurability = mapping.getMaxDamage();
 
         if (maxDurability != 0) {
-            int durability = maxDurability - ((IntTag) newNbt.get("Damage")).getValue();
-            if (durability != maxDurability) {
-                listTag.add(new StringTag("", "§r§f" + String.format(MessageTranslator.convertMessage("item.durability", language), durability, maxDurability)));
+            Tag durabilityTag = newNbt.get("Damage");
+            if (durabilityTag instanceof IntTag) {
+                int durability = maxDurability - ((IntTag) durabilityTag).getValue();
+                if (durability != maxDurability) {
+                    Component component = Component.text()
+                            .resetStyle()
+                            .color(NamedTextColor.WHITE)
+                            .append(Component.translatable("item.durability",
+                                    Component.text(durability),
+                                    Component.text(maxDurability)))
+                            .build();
+                    listTag.add(new StringTag("", MessageTranslator.convertMessage(component, language)));
+                }
             }
         }
 
         listTag.add(new StringTag("", "§r§8" + mapping.getJavaIdentifier()));
         if (nbt != null) {
-            listTag.add(new StringTag("", "§r§8" + String.format(MessageTranslator.convertMessage("item.nbt_tags", language), nbt.size())));
+            Component component = Component.text()
+                    .resetStyle()
+                    .color(NamedTextColor.DARK_GRAY)
+                    .append(Component.translatable("item.nbt_tags",
+                            Component.text(nbt.size())))
+                    .build();
+            listTag.add(new StringTag("", MessageTranslator.convertMessage(component, language)));
         }
         compoundTag.put(listTag);
         newNbt.put(compoundTag);

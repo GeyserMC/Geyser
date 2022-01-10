@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -151,7 +151,7 @@ public class WorldBorder {
             // Move the player back, but allow gravity to take place
             // Teleported = true makes going back better, but disconnects the player from their mounted entity
             playerEntity.moveAbsolute(Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - EntityDefinitions.PLAYER.offset()), playerEntity.getPosition().getZ()),
-                    playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), session.getRidingVehicleEntity() == null);
+                    playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
         }
         return isInWorldBorder;
     }
@@ -296,21 +296,4 @@ public class WorldBorder {
         effectPacket.setType(WORLD_BORDER_PARTICLE);
         session.getUpstream().sendPacket(effectPacket);
     }
-
-    /**
-     * Send the following fog IDs to the client
-     */
-    public static void sendFog(GeyserSession session, String... fogNameSpaces) {
-        PlayerFogPacket packet = new PlayerFogPacket();
-        Collections.addAll(packet.getFogStack(), fogNameSpaces);
-        session.sendUpstreamPacket(packet);
-    }
-
-    /**
-     * Clear any additional fog sent to the client
-     */
-    public static void removeFog(GeyserSession session) {
-        session.sendUpstreamPacket(new PlayerFogPacket());
-    }
-
 }

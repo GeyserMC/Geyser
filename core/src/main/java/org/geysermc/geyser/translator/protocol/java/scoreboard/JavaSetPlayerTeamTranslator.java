@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -72,7 +72,7 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
 
                 if (packet.getPlayers().length != 0) {
                     if ((team.getNameTagVisibility() != NameTagVisibility.ALWAYS && !team.isVisibleFor(session.getPlayerEntity().getUsername()))
-                            || team.getColor() != TeamColor.NONE
+                            || team.getColor() != TeamColor.RESET
                             || !team.getCurrentData().getPrefix().isEmpty()
                             || !team.getCurrentData().getSuffix().isEmpty()) {
                         // Something is here that would modify entity names

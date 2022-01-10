@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.protocol.java.title;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.title.ClientboundSetTitleTextPacket;
 import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
+import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -38,7 +39,7 @@ public class JavaSetTitleTextTranslator extends PacketTranslator<ClientboundSetT
     @Override
     public void translate(GeyserSession session, ClientboundSetTitleTextPacket packet) {
         String text;
-        if (packet.getText() == null) { // This can happen, see https://github.com/KyoriPowered/adventure/issues/447
+        if (packet.getText() == null || Component.empty().equals(packet.getText())) { // This can happen, see https://github.com/KyoriPowered/adventure/issues/447
             text = " ";
         } else {
             text = MessageTranslator.convertMessage(packet.getText(), session.getLocale());

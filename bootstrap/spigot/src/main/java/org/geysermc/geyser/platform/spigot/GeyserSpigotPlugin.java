@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -79,16 +79,21 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
+        GeyserLocale.init(this);
+
         // This is manually done instead of using Bukkit methods to save the config because otherwise comments get removed
         try {
             if (!getDataFolder().exists()) {
                 getDataFolder().mkdir();
             }
-            File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
+            File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"), "config.yml",
+                    (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserSpigotConfiguration.class);
         } catch (IOException ex) {
-            getLogger().log(Level.WARNING, GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            getLogger().log(Level.SEVERE, GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
         }
 
         try {
@@ -163,8 +168,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
                 // Ensure that we have the latest 4.0.0 changes and not an older ViaVersion version
                 Class.forName("com.viaversion.viaversion.api.ViaManager");
             } catch (ClassNotFoundException e) {
-                geyserLogger.warning(GeyserLocale.getLocaleStringLog("geyser.bootstrap.viaversion.too_old",
-                        "https://ci.viaversion.com/job/ViaVersion/"));
+                GeyserSpigotVersionChecker.sendOutdatedViaVersionMessage(geyserLogger);
                 isViaVersion = false;
                 if (this.geyserConfig.isDebugMode()) {
                     e.printStackTrace();
@@ -237,6 +241,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         }
 
         this.getCommand("geyser").setExecutor(new GeyserSpigotCommandExecutor(geyser));
+
+        // Check to ensure the current setup can support the protocol version Geyser uses
+        GeyserSpigotVersionChecker.checkForSupportedProtocol(geyserLogger, isViaVersion);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,6 +47,7 @@ import org.geysermc.floodgate.util.FloodgateInfoHolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -65,6 +66,7 @@ public class DumpInfo {
     private static final long MEGABYTE = 1024L * 1024L;
 
     private final DumpInfo.VersionInfo versionInfo;
+    private final int cpuCount;
     private Properties gitInfo;
     private final GeyserConfiguration config;
     private final Floodgate floodgate;
@@ -78,9 +80,11 @@ public class DumpInfo {
     public DumpInfo(boolean addLog) {
         this.versionInfo = new VersionInfo();
 
-        try {
+        this.cpuCount = Runtime.getRuntime().availableProcessors();
+
+        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource("git.properties")) {
             this.gitInfo = new Properties();
-            this.gitInfo.load(FileUtils.getResource("git.properties"));
+            this.gitInfo.load(stream);
         } catch (IOException ignored) {
         }
 
@@ -203,14 +207,14 @@ public class DumpInfo {
         private final List<String> bedrockVersions;
         private final List<Integer> bedrockProtocols;
         private final int defaultBedrockProtocol;
-        private final String javaVersion;
+        private final List<String> javaVersions;
         private final int javaProtocol;
 
         MCInfo() {
             this.bedrockVersions = MinecraftProtocol.SUPPORTED_BEDROCK_CODECS.stream().map(BedrockPacketCodec::getMinecraftVersion).toList();
             this.bedrockProtocols = MinecraftProtocol.SUPPORTED_BEDROCK_CODECS.stream().map(BedrockPacketCodec::getProtocolVersion).toList();
             this.defaultBedrockProtocol = MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion();
-            this.javaVersion = MinecraftProtocol.getJavaVersion();
+            this.javaVersions = MinecraftProtocol.getJavaVersions();
             this.javaProtocol = MinecraftProtocol.getJavaProtocolVersion();
         }
     }

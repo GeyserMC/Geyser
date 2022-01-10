@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -60,7 +60,7 @@ public class MessageTranslator {
     private static final String RESET = BASE + "r";
 
     static {
-        TEAM_COLORS.put(TeamColor.NONE, "");
+        TEAM_COLORS.put(TeamColor.RESET, RESET);
 
         TEAM_COLORS.put(TeamColor.BLACK, BASE + "0");
         TEAM_COLORS.put(TeamColor.DARK_BLUE, BASE + "1");

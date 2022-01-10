@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,7 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
             return;
         }
 
-        InventoryTranslator newTranslator = InventoryTranslator.INVENTORY_TRANSLATORS.get(packet.getType());
+        InventoryTranslator newTranslator = InventoryTranslator.inventoryTranslator(packet.getType());
         Inventory openInventory = session.getOpenInventory();
         // No translator exists for this window type. Close all windows and return.
         if (newTranslator == null) {

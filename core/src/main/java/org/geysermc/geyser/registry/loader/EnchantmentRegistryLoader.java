@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,12 +29,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.MinecraftProtocol;
 import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
+import org.geysermc.geyser.network.MinecraftProtocol;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.EnchantmentData;
 import org.geysermc.geyser.registry.type.ItemMapping;
-import org.geysermc.geyser.util.FileUtils;
 
 import java.io.InputStream;
 import java.util.EnumMap;
@@ -45,9 +44,8 @@ import java.util.Map;
 public class EnchantmentRegistryLoader implements RegistryLoader<String, Map<JavaEnchantment, EnchantmentData>> {
     @Override
     public Map<JavaEnchantment, EnchantmentData> load(String input) {
-        InputStream enchantmentsStream = FileUtils.getResource(input);
         JsonNode enchantmentsNode;
-        try {
+        try (InputStream enchantmentsStream = GeyserImpl.getInstance().getBootstrap().getResource(input)) {
             enchantmentsNode = GeyserImpl.JSON_MAPPER.readTree(enchantmentsStream);
         } catch (Exception e) {
             throw new AssertionError("Unable to load enchantment data", e);

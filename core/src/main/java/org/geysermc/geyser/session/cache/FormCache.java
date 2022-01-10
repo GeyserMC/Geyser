@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2020 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -52,9 +52,15 @@ public class FormCache {
         return windowId;
     }
 
-    public int showForm(Form form) {
+    public void showForm(Form form) {
         int windowId = addForm(form);
 
+        if (session.getUpstream().isInitialized()) {
+            sendForm(windowId, form);
+        }
+    }
+
+    private void sendForm(int windowId, Form form) {
         ModalFormRequestPacket formRequestPacket = new ModalFormRequestPacket();
         formRequestPacket.setFormId(windowId);
         formRequestPacket.setFormData(form.getJsonData());
@@ -68,8 +74,12 @@ public class FormCache {
             session.scheduleInEventLoop(() -> session.sendUpstreamPacket(latencyPacket),
                     500, TimeUnit.MILLISECONDS);
         }
+    }
 
-        return windowId;
+    public void resendAllForms() {
+        for (Int2ObjectMap.Entry<Form> entry : forms.int2ObjectEntrySet()) {
+            sendForm(entry.getIntKey(), entry.getValue());
+        }
     }
 
     public void handleResponse(ModalFormResponsePacket response) {

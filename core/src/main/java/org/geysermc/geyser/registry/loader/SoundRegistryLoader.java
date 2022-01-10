@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,6 @@ package org.geysermc.geyser.registry.loader;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.type.SoundMapping;
-import org.geysermc.geyser.util.FileUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,9 +42,8 @@ public class SoundRegistryLoader implements RegistryLoader<String, Map<String, S
 
     @Override
     public Map<String, SoundMapping> load(String input) {
-        InputStream stream  = FileUtils.getResource(input);
         JsonNode soundsTree;
-        try {
+        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(input)) {
             soundsTree = GeyserImpl.JSON_MAPPER.readTree(stream);
         } catch (IOException e) {
             throw new AssertionError("Unable to load sound mappings", e);

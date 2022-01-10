@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -89,6 +89,8 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         // Set defaults
         boolean useGuiOpts = bootstrap.useGui;
         String configFilenameOpt = bootstrap.configFilename;
+
+        GeyserLocale.init(bootstrap);
 
         List<BeanPropertyDefinition> availableProperties = getPOJOForClass(GeyserJacksonConfiguration.class);
 
@@ -188,7 +190,8 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         LoopbackUtil.checkLoopback(geyserLogger);
         
         try {
-            File configFile = FileUtils.fileOrCopiedFromResource(new File(configFilename), "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
+            File configFile = FileUtils.fileOrCopiedFromResource(new File(configFilename), "config.yml",
+                    (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
             geyserConfig = FileUtils.loadConfig(configFile, GeyserStandaloneConfiguration.class);
 
             handleArgsConfigOptions();

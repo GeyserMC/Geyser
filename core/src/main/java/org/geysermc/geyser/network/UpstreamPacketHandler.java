@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -70,7 +70,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         BedrockPacketCodec packetCodec = MinecraftProtocol.getBedrockCodec(loginPacket.getProtocolVersion());
         if (packetCodec == null) {
-            String supportedVersions = MinecraftProtocol.getAllSupportedVersions();
+            String supportedVersions = MinecraftProtocol.getAllSupportedBedrockVersions();
             if (loginPacket.getProtocolVersion() > MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
                 // Too early to determine session locale
                 session.getGeyser().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
@@ -90,6 +90,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         session.setItemMappings(Registries.ITEMS.forVersion(loginPacket.getProtocolVersion()));
 
         LoginEncryptionUtils.encryptPlayerConnection(session, loginPacket);
+
+        if (session.isClosed()) {
+            // Can happen if Xbox validation fails
+            return true;
+        }
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);

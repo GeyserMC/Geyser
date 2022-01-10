@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -52,7 +52,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
             }
         }
 
-        long javaId = session.getPlayerEntity().getEntityId();
+        int javaId = session.getPlayerEntity().getEntityId();
         for (GeyserSession otherSession : session.getGeyser().getSessionManager().getSessions().values()) {
             if (otherSession != session) {
                 if (otherSession.isClosed()) continue;
@@ -65,7 +65,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
         }
     }
 
-    private void playEmote(GeyserSession otherSession, long javaId, String emoteId) {
+    private void playEmote(GeyserSession otherSession, int javaId, String emoteId) {
         Entity otherEntity = otherSession.getEntityCache().getEntityByJavaId(javaId); // Must be ran on same thread
         if (otherEntity == null) return;
         EmotePacket otherEmotePacket = new EmotePacket();

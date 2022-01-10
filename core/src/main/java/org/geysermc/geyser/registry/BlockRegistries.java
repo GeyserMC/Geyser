@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -60,6 +60,12 @@ public class BlockRegistries {
      * A (bi)mapped registry containing the Java IDs to identifiers.
      */
     public static final MappedRegistry<String, Integer, Object2IntBiMap<String>> JAVA_IDENTIFIERS = MappedRegistry.create(RegistryLoaders.empty(Object2IntBiMap::new));
+
+    /**
+     * A registry which stores unique Java IDs to its clean identifier
+     * This is used in the statistics form.
+     */
+    public static final ArrayRegistry<String> CLEAN_JAVA_IDENTIFIERS = ArrayRegistry.create(RegistryLoaders.empty(() -> new String[] {}));
 
     /**
      * A registry containing all the waterlogged blockstates.

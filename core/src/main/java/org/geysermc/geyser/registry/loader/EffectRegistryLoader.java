@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,6 @@ package org.geysermc.geyser.registry.loader;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.util.FileUtils;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -43,10 +42,9 @@ public abstract class EffectRegistryLoader<T> implements RegistryLoader<String, 
 
     public void loadFile(String input) {
         if (!loadedFiles.containsKey(input)) {
-            InputStream effectsStream = FileUtils.getResource(input);
             JsonNode effects;
-            try {
-                effects = GeyserImpl.JSON_MAPPER.readTree(effectsStream);
+            try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(input)) {
+                effects = GeyserImpl.JSON_MAPPER.readTree(stream);
             } catch (Exception e) {
                 throw new AssertionError("Unable to load registrations for " + input, e);
             }

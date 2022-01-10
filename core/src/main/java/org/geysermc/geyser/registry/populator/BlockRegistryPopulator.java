@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,14 +43,10 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.util.BlockUtils;
-import org.geysermc.geyser.util.FileUtils;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.zip.GZIPInputStream;
 
@@ -83,9 +79,9 @@ public class BlockRegistryPopulator {
 
     private static void registerBedrockBlocks() {
         for (Map.Entry<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> palette : BLOCK_MAPPERS.entrySet()) {
-            InputStream stream = FileUtils.getResource(String.format("bedrock/block_palette.%s.nbt", palette.getKey().key()));
             NbtList<NbtMap> blocksTag;
-            try (NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)), true, true)) {
+            try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(String.format("bedrock/block_palette.%s.nbt", palette.getKey().key()));
+                 NBTInputStream nbtInputStream = new NBTInputStream(new DataInputStream(new GZIPInputStream(stream)), true, true)) {
                 NbtMap blockPalette = (NbtMap) nbtInputStream.readTag();
                 blocksTag = (NbtList<NbtMap>) blockPalette.getList("blocks", NbtType.COMPOUND);
             } catch (Exception e) {
@@ -208,10 +204,8 @@ public class BlockRegistryPopulator {
     }
 
     private static void registerJavaBlocks() {
-        InputStream stream = FileUtils.getResource("mappings/blocks.json");
-
         JsonNode blocksJson;
-        try {
+        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource("mappings/blocks.json")) {
             blocksJson = GeyserImpl.JSON_MAPPER.readTree(stream);
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java block mappings", e);
@@ -219,7 +213,7 @@ public class BlockRegistryPopulator {
 
         BlockRegistries.JAVA_BLOCKS.set(new BlockMapping[blocksJson.size()]); // Set array size to number of blockstates
 
-        Set<String> cleanIdentifiers = new HashSet<>();
+        Deque<String> cleanIdentifiers = new ArrayDeque<>();
 
         int javaRuntimeId = -1;
         int bellBlockId = -1;
@@ -284,7 +278,7 @@ public class BlockRegistryPopulator {
             String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(entry.getKey());
             String bedrockIdentifier = entry.getValue().get("bedrock_identifier").asText();
 
-            if (!cleanIdentifiers.contains(cleanJavaIdentifier)) {
+            if (!cleanJavaIdentifier.equals(cleanIdentifiers.peekLast())) {
                 uniqueJavaId++;
                 cleanIdentifiers.add(cleanJavaIdentifier.intern());
             }
@@ -362,6 +356,8 @@ public class BlockRegistryPopulator {
             throw new AssertionError("Unable to find Java water in palette");
         }
         BlockStateValues.JAVA_WATER_ID = waterRuntimeId;
+
+        BlockRegistries.CLEAN_JAVA_IDENTIFIERS.set(cleanIdentifiers.toArray(new String[0]));
 
         BLOCKS_JSON = blocksJson;
     }

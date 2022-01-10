@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,17 +36,17 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
 import org.geysermc.common.PlatformType;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserBootstrap;
-import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandExecutor;
 import org.geysermc.geyser.platform.velocity.command.GeyserVelocityCommandManager;
-import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.FileUtils;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
@@ -83,16 +83,19 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Override
     public void onEnable() {
+        GeyserLocale.init(this);
+
         try {
             if (!configFolder.toFile().exists())
                 //noinspection ResultOfMethodCallIgnored
                 configFolder.toFile().mkdirs();
             File configFile = FileUtils.fileOrCopiedFromResource(configFolder.resolve("config.yml").toFile(),
-                    "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()));
+                    "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserVelocityConfiguration.class);
         } catch (IOException ex) {
-            logger.warn(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
+            logger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
             ex.printStackTrace();
+            return;
         }
 
         InetSocketAddress javaAddr = proxyServer.getBoundAddress();

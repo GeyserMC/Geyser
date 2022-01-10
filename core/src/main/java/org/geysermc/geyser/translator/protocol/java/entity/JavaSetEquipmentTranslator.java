@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,13 +44,7 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
 
     @Override
     public void translate(GeyserSession session, ClientboundSetEquipmentPacket packet) {
-        Entity entity;
-        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
-            entity = session.getPlayerEntity();
-        } else {
-            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        }
-
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null)
             return;
 

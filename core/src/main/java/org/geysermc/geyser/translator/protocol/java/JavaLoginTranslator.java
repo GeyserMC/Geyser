@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -116,6 +116,9 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
         if (!newDimension.equals(session.getDimension())) {
             DimensionUtils.switchDimension(session, newDimension);
+        } else if (DimensionUtils.isCustomBedrockNetherId() && newDimension.equalsIgnoreCase(DimensionUtils.NETHER)) {
+            // If the player is spawning into the "fake" nether, send them some fog
+            session.sendFog("minecraft:fog_hell");
         }
 
         ChunkUtils.loadDimensionTag(session, packet.getDimension());

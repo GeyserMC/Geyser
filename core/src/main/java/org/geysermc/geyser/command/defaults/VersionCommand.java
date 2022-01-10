@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,14 +30,14 @@ import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.network.MinecraftProtocol;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.WebUtils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -62,16 +62,23 @@ public class VersionCommand extends GeyserCommand {
         } else {
             bedrockVersions = MinecraftProtocol.SUPPORTED_BEDROCK_CODECS.get(0).getMinecraftVersion();
         }
+        String javaVersions;
+        List<String> supportedJavaVersions = MinecraftProtocol.getJavaVersions();
+        if (supportedJavaVersions.size() > 1) {
+            javaVersions = supportedJavaVersions.get(0) + " - " + supportedJavaVersions.get(supportedJavaVersions.size() - 1);
+        } else {
+            javaVersions = supportedJavaVersions.get(0);
+        }
 
         sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.version", sender.getLocale(),
-                GeyserImpl.NAME, GeyserImpl.VERSION, MinecraftProtocol.getJavaVersion(), bedrockVersions));
+                GeyserImpl.NAME, GeyserImpl.VERSION, javaVersions, bedrockVersions));
 
         // Disable update checking in dev mode and for players in Geyser Standalone
         if (GeyserImpl.getInstance().productionEnvironment() && !(!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE)) {
             sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.checking", sender.getLocale()));
-            try {
+            try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource("git.properties")) {
                 Properties gitProp = new Properties();
-                gitProp.load(FileUtils.getResource("git.properties"));
+                gitProp.load(stream);
 
                 String buildXML = WebUtils.getBody("https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/" +
                         URLEncoder.encode(gitProp.getProperty("git.branch"), StandardCharsets.UTF_8.toString()) + "/lastSuccessfulBuild/api/xml?xpath=//buildNumber");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.ping;
 
+import javax.annotation.Nullable;
 import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 
@@ -38,6 +39,7 @@ public interface IGeyserPingPassthrough {
      *
      * @return string of the MOTD
      */
+    @Nullable
     default GeyserPingInfo getPingInformation() {
         return this.getPingInformation(new InetSocketAddress(Inet4Address.getLoopbackAddress(), 69));
     }
@@ -48,6 +50,7 @@ public interface IGeyserPingPassthrough {
      * @param inetSocketAddress the ip address of the client pinging the server
      * @return string of the MOTD
      */
+    @Nullable
     GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress);
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,14 +38,17 @@ import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
 import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
-import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.*;
+import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.*;
-import org.geysermc.geyser.util.FileUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -69,13 +72,13 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
-        // Load item mappings from Java Edition to Bedrock Edition
-        InputStream stream = FileUtils.getResource("mappings/items.json");
+        GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
         TypeReference<Map<String, GeyserMappingItem>> mappingItemsType = new TypeReference<>() { };
 
         Map<String, GeyserMappingItem> items;
-        try {
+        try (InputStream stream = bootstrap.getResource("mappings/items.json")) {
+            // Load item mappings from Java Edition to Bedrock Edition
             items = GeyserImpl.JSON_MAPPER.readValue(stream, mappingItemsType);
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java runtime item IDs", e);
@@ -83,8 +86,6 @@ public class ItemRegistryPopulator {
 
         /* Load item palette */
         for (Map.Entry<String, PaletteVersion> palette : PALETTE_VERSIONS.entrySet()) {
-            stream = FileUtils.getResource(String.format("bedrock/runtime_item_states.%s.json", palette.getKey()));
-
             TypeReference<List<PaletteItem>> paletteEntriesType = new TypeReference<>() {};
 
             // Used to get the Bedrock namespaced ID (in instances where there are small differences)
@@ -94,7 +95,7 @@ public class ItemRegistryPopulator {
             List<String> itemNames = new ArrayList<>();
 
             List<PaletteItem> itemEntries;
-            try {
+            try (InputStream stream = bootstrap.getResource(String.format("bedrock/runtime_item_states.%s.json", palette.getKey()))) {
                 itemEntries = GeyserImpl.JSON_MAPPER.readValue(stream, paletteEntriesType);
             } catch (Exception e) {
                 throw new AssertionError("Unable to load Bedrock runtime item IDs", e);
@@ -112,10 +113,8 @@ public class ItemRegistryPopulator {
 
             // Load creative items
             // We load this before item mappings to get overridden block runtime ID mappings
-            stream = FileUtils.getResource(String.format("bedrock/creative_items.%s.json", palette.getKey()));
-
             JsonNode creativeItemEntries;
-            try {
+            try (InputStream stream = bootstrap.getResource(String.format("bedrock/creative_items.%s.json", palette.getKey()))) {
                 creativeItemEntries = GeyserImpl.JSON_MAPPER.readTree(stream).get("items");
             } catch (Exception e) {
                 throw new AssertionError("Unable to load creative items", e);
@@ -443,7 +442,7 @@ public class ItemRegistryPopulator {
                 entries.put("geysermc:furnace_minecart", new StartGamePacket.ItemEntry("geysermc:furnace_minecart", (short) furnaceMinecartId, true));
 
                 mappings.put(javaFurnaceMinecartId, ItemMapping.builder()
-                        .javaIdentifier("geysermc:furnace_minecart")
+                        .javaIdentifier("minecraft:furnace_minecart")
                         .bedrockIdentifier("geysermc:furnace_minecart")
                         .javaId(javaFurnaceMinecartId)
                         .bedrockId(furnaceMinecartId)

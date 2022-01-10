@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,10 +65,8 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
         }
 
         // Load collision mappings file
-        InputStream stream = FileUtils.getResource(input.value());
-
         List<BoundingBox[]> collisionList;
-        try {
+        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(input.value())) {
             ArrayNode collisionNode = (ArrayNode) GeyserImpl.JSON_MAPPER.readTree(stream);
             collisionList = loadBoundingBoxes(collisionNode);
         } catch (Exception e) {

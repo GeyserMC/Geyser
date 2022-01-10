@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,13 +33,14 @@ import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.StringJoiner;
 
 /**
  * Contains information about the supported protocols in Geyser.
  */
-public class MinecraftProtocol {
+public final class MinecraftProtocol {
     /**
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
@@ -86,12 +87,12 @@ public class MinecraftProtocol {
     }
 
     /**
-     * Gets the supported Minecraft: Java Edition version name.
+     * Gets the supported Minecraft: Java Edition version names.
      *
-     * @return the supported Minecraft: Java Edition version name
+     * @return the supported Minecraft: Java Edition version names
      */
-    public static String getJavaVersion() {
-        return DEFAULT_JAVA_CODEC.getMinecraftVersion();
+    public static List<String> getJavaVersions() {
+        return Arrays.asList("1.18", "1.18.1");
     }
 
     /**
@@ -104,14 +105,29 @@ public class MinecraftProtocol {
     }
 
     /**
-     * @return a string showing all supported versions for this Geyser instance
+     * @return a string showing all supported Bedrock versions for this Geyser instance
      */
-    public static String getAllSupportedVersions() {
+    public static String getAllSupportedBedrockVersions() {
         StringJoiner joiner = new StringJoiner(", ");
         for (BedrockPacketCodec packetCodec : SUPPORTED_BEDROCK_CODECS) {
             joiner.add(packetCodec.getMinecraftVersion());
         }
 
         return joiner.toString();
+    }
+
+    /**
+     * @return a string showing all supported Java versions for this Geyser instance
+     */
+    public static String getAllSupportedJavaVersions() {
+        StringJoiner joiner = new StringJoiner(", ");
+        for (String version : getJavaVersions()) {
+            joiner.add(version);
+        }
+
+        return joiner.toString();
+    }
+
+    private MinecraftProtocol() {
     }
 }

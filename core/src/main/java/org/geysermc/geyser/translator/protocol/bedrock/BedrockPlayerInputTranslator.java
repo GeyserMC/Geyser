@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,7 @@ public class BedrockPlayerInputTranslator extends PacketTranslator<PlayerInputPa
 
         // Bedrock only sends movement vehicle packets while moving
         // This allows horses to take damage while standing on magma
-        Entity vehicle = session.getRidingVehicleEntity();
+        Entity vehicle = session.getPlayerEntity().getVehicle();
         boolean sendMovement = false;
         if (vehicle instanceof AbstractHorseEntity && !(vehicle instanceof LlamaEntity)) {
             sendMovement = vehicle.isOnGround();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 
 @Translator(packet = SetLocalPlayerAsInitializedPacket.class)
@@ -47,8 +48,16 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
                     // else we were able to log the user in
                 }
                 if (session.isLoggedIn()) {
-                    // Sigh
+                    // Sigh - as of Bedrock 1.18
                     session.getEntityCache().updateBossBars();
+
+                    // Double sigh - https://github.com/GeyserMC/Geyser/issues/2677 - as of Bedrock 1.18
+                    if (session.getOpenInventory() != null && session.getOpenInventory().isPending()) {
+                        InventoryUtils.openInventory(session, session.getOpenInventory());
+                    }
+
+                    // What am I to expect - as of Bedrock 1.18
+                    session.getFormCache().resendAllForms();
                 }
             }
         }

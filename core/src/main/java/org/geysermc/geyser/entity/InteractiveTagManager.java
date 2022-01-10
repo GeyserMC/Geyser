@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -66,6 +66,10 @@ public class InteractiveTagManager {
         ItemMapping mapping = session.getPlayerInventory().getItemInHand().getMapping(session);
         String javaIdentifierStripped = mapping.getJavaIdentifier().replace("minecraft:", "");
         EntityType entityType = interactEntity.getDefinition().entityType();
+        if (entityType == null) {
+            // Likely a technical entity; we don't need to worry about this
+            return;
+        }
 
         InteractiveTag interactiveTag = InteractiveTag.NONE;
 
@@ -90,7 +94,7 @@ public class InteractiveTagManager {
             // This animal can be fed
             interactiveTag = InteractiveTag.FEED;
         } else {
-            switch (interactEntity.getDefinition().entityType()) {
+            switch (entityType) {
                 case BOAT:
                     if (interactEntity.getPassengers().size() < 2) {
                         interactiveTag = InteractiveTag.BOARD_BOAT;
