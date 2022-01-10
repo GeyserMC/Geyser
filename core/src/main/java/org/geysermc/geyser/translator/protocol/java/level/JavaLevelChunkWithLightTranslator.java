@@ -309,32 +309,34 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 }
             }
 
-            // At this point we're dealing with Bedrock chunk sections
+            // As of 1.17.10, Bedrock hardcodes to always read 32 biome sections
+            // As of 1.18, this hardcode was lowered to 25
+            int biomeCount = 25;
+            if (session.getUpstream().getProtocolVersion() < Bedrock_v475.V475_CODEC.getProtocolVersion()) {
+                biomeCount = 32;
+            }
+
             int dimensionOffset = (overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4;
-            for (int i = 0; i < sectionCount; i++) {
+            for (int i = 0; i < biomeCount; i++) {
                 int biomeYOffset = dimensionOffset + i;
                 if (biomeYOffset < yOffset) {
-                    // Ignore this biome section since it goes above or below the height of the Java world
+                    // Ignore this biome section since it goes below the height of the Java world
                     byteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
                     continue;
                 }
-                BiomeTranslator.toNewBedrockBiome(session, javaBiomes[i + (dimensionOffset - yOffset)]).writeToNetwork(byteBuf);
-            }
+                if (biomeYOffset >= (chunkSize + yOffset)) {
+                    // This biome section goes above the height of the Java world
+                    if (session.getUpstream().getProtocolVersion() >= Bedrock_v475.V475_CODEC.getProtocolVersion()) {
+                        // A header that says to carry on the biome data from the previous chunk
+                        // This notably fixes biomes in the End
+                        byteBuf.writeByte((127 << 1) | 1);
+                    } else {
+                        byteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
+                    }
+                    continue;
+                }
 
-            // As of 1.17.10, Bedrock hardcodes to always read 32 biome sections
-            // As of 1.18, this hardcode was lowered to 25
-            if (session.getUpstream().getProtocolVersion() >= Bedrock_v475.V475_CODEC.getProtocolVersion()) {
-                int remainingEmptyBiomes = 25 - sectionCount;
-                for (int i = 0; i < remainingEmptyBiomes; i++) {
-                    // A header that says to carry on the biome data from the previous chunk
-                    // This notably fixes biomes in the End
-                    byteBuf.writeByte((127 << 1) | 1);
-                }
-            } else {
-                int remainingEmptyBiomes = 32 - sectionCount;
-                for (int i = 0; i < remainingEmptyBiomes; i++) {
-                    byteBuf.writeBytes(ChunkUtils.EMPTY_BIOME_DATA);
-                }
+                BiomeTranslator.toNewBedrockBiome(session, javaBiomes[i + (dimensionOffset - yOffset)]).writeToNetwork(byteBuf);
             }
 
             byteBuf.writeByte(0); // Border blocks - Edu edition only
