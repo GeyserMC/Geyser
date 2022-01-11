@@ -127,7 +127,7 @@ public abstract class InventoryTranslator {
      *
      * @return true if this transfer should be rejected
      */
-    public boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, ContainerSlotType bedrockSourceContainer,
+    protected boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, ContainerSlotType bedrockSourceContainer,
                                          int javaSourceSlot, ContainerSlotType bedrockDestinationContainer, int javaDestinationSlot) {
         return false;
     }
@@ -288,24 +288,47 @@ public abstract class InventoryTranslator {
                 }
                 case SWAP: {
                     SwapStackRequestActionData swapAction = (SwapStackRequestActionData) action;
-                    if (!(checkNetId(session, inventory, swapAction.getSource()) && checkNetId(session, inventory, swapAction.getDestination()))) {
+                    StackRequestSlotInfoData source = swapAction.getSource();
+                    StackRequestSlotInfoData destination = swapAction.getDestination();
+
+                    if (!(checkNetId(session, inventory, source) && checkNetId(session, inventory, destination))) {
                         if (session.getGeyser().getConfig().isDebugMode()) {
                             session.getGeyser().getLogger().error("DEBUG: About to reject SWAP request made by " + session.name());
-                            dumpStackRequestDetails(session, inventory, swapAction.getSource(), swapAction.getDestination());
+                            dumpStackRequestDetails(session, inventory, source, destination);
                         }
                         return rejectRequest(request);
                     }
 
-                    int sourceSlot = bedrockSlotToJava(swapAction.getSource());
-                    int destSlot = bedrockSlotToJava(swapAction.getDestination());
-                    boolean isSourceCursor = isCursor(swapAction.getSource());
-                    boolean isDestCursor = isCursor(swapAction.getDestination());
+                    int sourceSlot = bedrockSlotToJava(source);
+                    int destSlot = bedrockSlotToJava(destination);
+                    boolean isSourceCursor = isCursor(source);
+                    boolean isDestCursor = isCursor(destination);
 
-                    if (shouldRejectItemPlace(session, inventory, swapAction.getSource().getContainer(),
+                    if (shouldRejectItemPlace(session, inventory, source.getContainer(),
                             isSourceCursor ? -1 : sourceSlot,
-                            swapAction.getDestination().getContainer(), isDestCursor ? -1 : destSlot)) {
+                            destination.getContainer(), isDestCursor ? -1 : destSlot)) {
                         // This item would not be here in Java
                         return rejectRequest(request, false);
+                    }
+
+                    if (!isSourceCursor && destination.getContainer() == ContainerSlotType.HOTBAR || destination.getContainer() == ContainerSlotType.HOTBAR_AND_INVENTORY) {
+                        // Tell the server we're pressing one of the hotbar keys to save clicks
+                        Click click = switch (destination.getSlot()) {
+                            case 0 -> Click.SWAP_TO_HOTBAR_1;
+                            case 1 -> Click.SWAP_TO_HOTBAR_2;
+                            case 2 -> Click.SWAP_TO_HOTBAR_3;
+                            case 3 -> Click.SWAP_TO_HOTBAR_4;
+                            case 4 -> Click.SWAP_TO_HOTBAR_5;
+                            case 5 -> Click.SWAP_TO_HOTBAR_6;
+                            case 6 -> Click.SWAP_TO_HOTBAR_7;
+                            case 7 -> Click.SWAP_TO_HOTBAR_8;
+                            case 8 -> Click.SWAP_TO_HOTBAR_9;
+                            default -> null;
+                        };
+                        if (click != null) {
+                            plan.add(click, sourceSlot);
+                            break;
+                        }
                     }
 
                     if (isSourceCursor && isDestCursor) { //???

@@ -38,7 +38,16 @@ public enum Click {
     DROP_ONE(ContainerActionType.DROP_ITEM, DropItemAction.DROP_FROM_SELECTED),
     DROP_ALL(ContainerActionType.DROP_ITEM, DropItemAction.DROP_SELECTED_STACK),
     LEFT_OUTSIDE(ContainerActionType.CLICK_ITEM, ClickItemAction.LEFT_CLICK),
-    RIGHT_OUTSIDE(ContainerActionType.CLICK_ITEM, ClickItemAction.RIGHT_CLICK);
+    RIGHT_OUTSIDE(ContainerActionType.CLICK_ITEM, ClickItemAction.RIGHT_CLICK),
+    SWAP_TO_HOTBAR_1(ContainerActionType.MOVE_TO_HOTBAR_SLOT, MoveToHotbarAction.SLOT_1),
+    SWAP_TO_HOTBAR_2(ContainerActionType.MOVE_TO_HOTBAR_SLOT, MoveToHotbarAction.SLOT_2),
+    SWAP_TO_HOTBAR_3(ContainerActionType.MOVE_TO_HOTBAR_SLOT, MoveToHotbarAction.SLOT_3),
+    SWAP_TO_HOTBAR_4(ContainerActionType.MOVE_TO_HOTBAR_SLOT, MoveToHotbarAction.SLOT_4),
+    SWAP_TO_HOTBAR_5(ContainerActionType.MOVE_TO_HOTBAR_SLOT, MoveToHotbarAction.SLOT_5),
+    SWAP_TO_HOTBAR_6(ContainerActionType.MOVE_TO_HOTBAR_SLOT, MoveToHotbarAction.SLOT_6),
+    SWAP_TO_HOTBAR_7(ContainerActionType.MOVE_TO_HOTBAR_SLOT, MoveToHotbarAction.SLOT_7),
+    SWAP_TO_HOTBAR_8(ContainerActionType.MOVE_TO_HOTBAR_SLOT, MoveToHotbarAction.SLOT_8),
+    SWAP_TO_HOTBAR_9(ContainerActionType.MOVE_TO_HOTBAR_SLOT, MoveToHotbarAction.SLOT_9);
 
     public static final int OUTSIDE_SLOT = -999;
 

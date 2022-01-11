@@ -28,6 +28,7 @@ package org.geysermc.geyser.inventory.click;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerActionType;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
+import com.github.steveice10.mc.protocol.data.game.inventory.MoveToHotbarAction;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -107,12 +108,13 @@ public class ClickPlan {
             ClickAction action = planIter.next();
 
             if (action.slot != Click.OUTSIDE_SLOT && translator.getSlotType(action.slot) != SlotType.NORMAL) {
+                // Needed with Paper 1.16.5
                 refresh = true;
             }
 
-            int stateId = stateIdHack(action);
+            //int stateId = stateIdHack(action);
 
-            simulateAction(action);
+            //simulateAction(action);
 
             ItemStack clickedItemStack;
             if (!planIter.hasNext() && refresh) {
@@ -120,19 +122,22 @@ public class ClickPlan {
             } else if (action.click.actionType == ContainerActionType.DROP_ITEM || action.slot == Click.OUTSIDE_SLOT) {
                 clickedItemStack = null;
             } else {
-                // The action must be simulated first as Java expects the new contents of the cursor (as of 1.18.1)
-                clickedItemStack = simulatedCursor.getItemStack();
+                //// The action must be simulated first as Java expects the new contents of the cursor (as of 1.18.1)
+                //clickedItemStack = simulatedCursor.getItemStack(); TODO fix - this is the proper behavior but it terribly breaks 1.16.5
+                clickedItemStack = getItem(action.slot).getItemStack();
             }
 
             ServerboundContainerClickPacket clickPacket = new ServerboundContainerClickPacket(
                     inventory.getId(),
-                    stateId,
+                    inventory.getStateId(),
                     action.slot,
                     action.click.actionType,
                     action.click.action,
                     clickedItemStack,
                     Collections.emptyMap() // Anything else we change, at this time, should have a packet sent to address
             );
+
+            simulateAction(action);
 
             session.sendDownstreamPacket(clickPacket);
         }
@@ -228,6 +233,33 @@ public class ClickPlan {
                         clicked.add(1);
                     }
                     break;
+                case SWAP_TO_HOTBAR_1:
+                    swap(action.slot, 36, clicked);
+                    break;
+                case SWAP_TO_HOTBAR_2:
+                    swap(action.slot, 37, clicked);
+                    break;
+                case SWAP_TO_HOTBAR_3:
+                    swap(action.slot, 38, clicked);
+                    break;
+                case SWAP_TO_HOTBAR_4:
+                    swap(action.slot, 39, clicked);
+                    break;
+                case SWAP_TO_HOTBAR_5:
+                    swap(action.slot, 40, clicked);
+                    break;
+                case SWAP_TO_HOTBAR_6:
+                    swap(action.slot, 41, clicked);
+                    break;
+                case SWAP_TO_HOTBAR_7:
+                    swap(action.slot, 42, clicked);
+                    break;
+                case SWAP_TO_HOTBAR_8:
+                    swap(action.slot, 43, clicked);
+                    break;
+                case SWAP_TO_HOTBAR_9:
+                    swap(action.slot, 44, clicked);
+                    break;
                 case LEFT_SHIFT:
                     //TODO
                     break;
@@ -241,6 +273,15 @@ public class ClickPlan {
                     break;
             }
         }
+    }
+
+    /**
+     * Swap between two inventory slots without a cursor. This should only be used with {@link ContainerActionType#MOVE_TO_HOTBAR_SLOT}
+     */
+    private void swap(int sourceSlot, int destSlot, GeyserItemStack sourceItem) {
+        GeyserItemStack destinationItem = simulating ? getItem(destSlot) : inventory.getItem(destSlot);
+        setItem(sourceSlot, destinationItem);
+        setItem(destSlot, sourceItem);
     }
 
     private int stateIdHack(ClickAction action) {
@@ -297,6 +338,9 @@ public class ClickPlan {
                 stateIdIncrements = 2;
             }
             inventory.incrementStateId(stateIdIncrements);
+        } else if (action.click.action instanceof MoveToHotbarAction) {
+            // Two slot changes sent
+            inventory.incrementStateId(2);
         } else {
             inventory.incrementStateId(1);
         }
