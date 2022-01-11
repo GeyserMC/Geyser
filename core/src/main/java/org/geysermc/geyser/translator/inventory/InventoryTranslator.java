@@ -184,6 +184,9 @@ public abstract class InventoryTranslator {
             InventoryUtils.updateCursor(session);
             updateInventory(session, inventory);
         }
+
+        // We're done with our batch of inventory requests so this hack should be reset
+        inventory.resetNextStateId();
     }
 
     public ItemStackResponsePacket.Response translateRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {

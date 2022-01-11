@@ -71,6 +71,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
         if (inventory == null)
             return;
 
+        // Intentional behavior here below the cursor; Minecraft 1.18.1 also does this.
         inventory.setStateId(packet.getStateId());
 
         InventoryTranslator translator = session.getInventoryTranslator();

@@ -33,23 +33,31 @@ import com.nukkitx.math.vector.Vector3i;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.ToString;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Arrays;
 
+@ToString
 public class Inventory {
 
     @Getter
     protected final int id;
 
     /**
-     * If this is out of sync with the server, the server will resync items.
-     * Since Java Edition 1.17.1.
+     * The Java inventory state ID from the server. As of Java Edition 1.18.1 this value has one instance per player.
+     * If this is out of sync with the server when a packet containing it is handled, the server will resync items.
+     * This field has existed since Java Edition 1.17.1.
      */
     @Getter
     @Setter
     private int stateId;
+    /**
+     * See {@link org.geysermc.geyser.inventory.click.ClickPlan#execute(boolean)}; used as a hack
+     */
+    @Getter
+    private int nextStateId = -1;
 
     @Getter
     protected final int size;
@@ -123,7 +131,7 @@ public class Inventory {
         }
     }
 
-    protected static void updateItemNetId(GeyserItemStack oldItem, GeyserItemStack newItem, GeyserSession session) {
+    protected void updateItemNetId(GeyserItemStack oldItem, GeyserItemStack newItem, GeyserSession session) {
         if (!newItem.isEmpty()) {
             if (newItem.getItemData(session).equals(oldItem.getItemData(session), false, false, false)) {
                 newItem.setNetId(oldItem.getNetId());
@@ -133,15 +141,15 @@ public class Inventory {
         }
     }
 
-    @Override
-    public String toString() {
-        return "Inventory{" +
-                "id=" + id +
-                ", size=" + size +
-                ", title='" + title + '\'' +
-                ", items=" + Arrays.toString(items) +
-                ", holderPosition=" + holderPosition +
-                ", holderId=" + holderId +
-                '}';
+    /**
+     * See {@link org.geysermc.geyser.inventory.click.ClickPlan#execute(boolean)} for more details.
+     */
+    public void incrementStateId(int count) {
+        // nextStateId == -1 means that it was not needed until now
+        nextStateId = (nextStateId == -1 ? stateId : nextStateId) + count & Short.MAX_VALUE;
+    }
+
+    public void resetNextStateId() {
+        nextStateId = -1;
     }
 }

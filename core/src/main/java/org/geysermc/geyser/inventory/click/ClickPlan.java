@@ -27,22 +27,24 @@ package org.geysermc.geyser.inventory.click;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerActionType;
+import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import lombok.Value;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.inventory.SlotType;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.CraftingInventoryTranslator;
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.inventory.PlayerInventoryTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.jetbrains.annotations.Contract;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -108,31 +110,29 @@ public class ClickPlan {
                 refresh = true;
             }
 
+            int stateId = stateIdHack(action);
+
+            simulateAction(action);
+
             ItemStack clickedItemStack;
             if (!planIter.hasNext() && refresh) {
                 clickedItemStack = InventoryUtils.REFRESH_ITEM;
             } else if (action.click.actionType == ContainerActionType.DROP_ITEM || action.slot == Click.OUTSIDE_SLOT) {
                 clickedItemStack = null;
             } else {
-                clickedItemStack = getItem(action.slot).getItemStack();
-            }
-
-            Int2ObjectMap<ItemStack> affectedSlots = new Int2ObjectOpenHashMap<>();
-            for (Int2ObjectMap.Entry<GeyserItemStack> simulatedSlot : simulatedItems.int2ObjectEntrySet()) {
-                affectedSlots.put(simulatedSlot.getIntKey(), simulatedSlot.getValue().getItemStack());
+                // The action must be simulated first as Java expects the new contents of the cursor (as of 1.18.1)
+                clickedItemStack = simulatedCursor.getItemStack();
             }
 
             ServerboundContainerClickPacket clickPacket = new ServerboundContainerClickPacket(
                     inventory.getId(),
-                    inventory.getStateId(),
+                    stateId,
                     action.slot,
                     action.click.actionType,
                     action.click.action,
                     clickedItemStack,
-                    affectedSlots
+                    Collections.emptyMap() // Anything else we change, at this time, should have a packet sent to address
             );
-
-            simulateAction(action);
 
             session.sendDownstreamPacket(clickPacket);
         }
@@ -243,6 +243,67 @@ public class ClickPlan {
         }
     }
 
+    private int stateIdHack(ClickAction action) {
+        int stateId;
+        if (inventory.getNextStateId() != -1) {
+            stateId = inventory.getNextStateId();
+        } else {
+            stateId = inventory.getStateId();
+        }
+
+        // This is a hack.
+        // Java will never ever send more than one container click packet per set of actions.
+        // Bedrock might, and this would generally fall into one of two categories:
+        // - Bedrock is sending an item directly from one slot to another, without picking it up, that cannot
+        //   be expressed with a shift click
+        // - Bedrock wants to pick up or place an arbitrary amount of items that cannot be expressed from
+        //   one left/right click action.
+        // When Bedrock does one of these actions and sends multiple packets, a 1.17.1+ server will
+        // increment the state ID on each confirmation packet it sends back (I.E. set slot). Then when it
+        // reads our next packet, because we kept the same state ID but the server incremented it, it'll be
+        // desynced and send the entire inventory contents back at us.
+        // This hack therefore increments the state ID to what the server will presumably send back to us.
+        // (This won't be perfect, but should get us through most vanilla situations, and if this is wrong the
+        // server will just send a set content packet back at us)
+        if (inventory.getContainerType() == ContainerType.CRAFTING && CraftingInventoryTranslator.isCraftingGrid(action.slot)) {
+            // 1.18.1 sends a second set slot update for any action in the crafting grid
+            // And an additional packet if something is removed (Mojmap: CraftingContainer#removeItem)
+            //TODO this code kind of really sucks; it's potentially possible to see what Bedrock sends us and send a PlaceRecipePacket
+            int stateIdIncrements;
+            GeyserItemStack clicked = getItem(action.slot);
+            if (action.click == Click.LEFT) {
+                if (!clicked.isEmpty() && !InventoryUtils.canStack(simulatedCursor, clicked)) {
+                    // An item is removed from the crafting table; yes deletion
+                    stateIdIncrements = 3;
+                } else {
+                    // We can stack and we add all the items to the crafting slot; no deletion
+                    stateIdIncrements = 2;
+                }
+            } else if (action.click == Click.RIGHT) {
+                if (simulatedCursor.isEmpty() && !clicked.isEmpty()) {
+                    // Items are taken; yes deletion
+                    stateIdIncrements = 3;
+                } else if ((!simulatedCursor.isEmpty() && clicked.isEmpty()) || InventoryUtils.canStack(simulatedCursor, clicked)) {
+                    // Adding our cursor item to the slot; no deletion
+                    stateIdIncrements = 2;
+                } else {
+                    // ?? nothing I guess
+                    stateIdIncrements = 2;
+                }
+            } else {
+                if (session.getGeyser().getConfig().isDebugMode()) {
+                    session.getGeyser().getLogger().debug("Not sure how to handle state ID hack in crafting table: " + plan);
+                }
+                stateIdIncrements = 2;
+            }
+            inventory.incrementStateId(stateIdIncrements);
+        } else {
+            inventory.incrementStateId(1);
+        }
+
+        return stateId;
+    }
+
     //TODO
     private void reduceCraftingGrid(boolean makeAll) {
         if (gridSize == -1)
@@ -272,8 +333,9 @@ public class ClickPlan {
     }
 
     /**
-     * @return a new set of all affected slots. This isn't a constant variable; it's newly generated each time it is run.
+     * @return a new set of all affected slots.
      */
+    @Contract("-> new")
     public IntSet getAffectedSlots() {
         IntSet affectedSlots = new IntOpenHashSet();
         for (ClickAction action : plan) {
@@ -284,13 +346,6 @@ public class ClickPlan {
         return affectedSlots;
     }
 
-    @Value
-    private static class ClickAction {
-        Click click;
-        /**
-         * Java slot
-         */
-        int slot;
-        boolean force;
+    private record ClickAction(Click click, int slot, boolean force) {
     }
 }
