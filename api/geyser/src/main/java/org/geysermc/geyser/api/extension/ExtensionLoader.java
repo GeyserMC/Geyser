@@ -27,15 +27,47 @@ package org.geysermc.geyser.api.extension;
 
 import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
 import org.geysermc.geyser.api.extension.exception.InvalidExtensionException;
-
 import java.io.File;
-import java.util.regex.Pattern;
 
 public interface ExtensionLoader {
+    /**
+     * Loads an extension from a given file
+     *
+     * @param file the file to load the extension from
+     * @return the loaded extension
+     * @throws InvalidExtensionException
+     */
     GeyserExtension loadExtension(File file) throws InvalidExtensionException;
+
+    /**
+     * Gets an extension's description from a given file
+     *
+     * @param file the file to get the description from
+     * @return the extension's description
+     * @throws InvalidDescriptionException
+     */
     ExtensionDescription extensionDescription(File file) throws InvalidDescriptionException;
-    Pattern[] extensionFilters();
+
+    /**
+     * Gets a class by its name from the extension's classloader
+     *
+     * @param name the name of the class
+     * @return the class
+     * @throws ClassNotFoundException
+     */
     Class<?> classByName(final String name) throws ClassNotFoundException;
-    void enableExtension(Extension extension);
-    void disableExtension(Extension extension);
+
+    /**
+     * Enables an extension
+     *
+     * @param extension the extension to enable
+     */
+    void enableExtension(GeyserExtension extension);
+
+    /**
+     * Disables an extension
+     *
+     * @param extension the extension to disable
+     */
+    void disableExtension(GeyserExtension extension);
 }

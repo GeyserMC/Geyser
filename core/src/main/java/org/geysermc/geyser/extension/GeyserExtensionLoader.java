@@ -27,7 +27,6 @@ package org.geysermc.geyser.extension;
 
 import org.geysermc.api.Geyser;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.extension.ExtensionLoader;
 import org.geysermc.geyser.api.extension.GeyserExtension;
 import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
@@ -80,7 +79,7 @@ public class GeyserExtensionLoader implements ExtensionLoader {
 
     private void setup(GeyserExtension extension, GeyserExtensionDescription description, File dataFolder, File file) {
         GeyserExtensionLogger logger = new GeyserExtensionLogger(GeyserImpl.getInstance().getLogger(), description.name());
-        extension.init(Geyser.api(), logger, this, description, dataFolder, file);
+        extension.init(Geyser.api(), this, logger, description, dataFolder, file);
         extension.onLoad();
     }
 
@@ -131,7 +130,6 @@ public class GeyserExtensionLoader implements ExtensionLoader {
         }
     }
 
-    @Override
     public Pattern[] extensionFilters() {
         return new Pattern[] { Pattern.compile("^.+\\.jar$") };
     }
@@ -152,33 +150,29 @@ public class GeyserExtensionLoader implements ExtensionLoader {
         }
     }
 
-    public void setClass(String name, final Class<?> clazz) {
+    void setClass(String name, final Class<?> clazz) {
         if(!classes.containsKey(name)) {
             classes.put(name,clazz);
         }
     }
 
-    protected void removeClass(String name) {
+    void removeClass(String name) {
         Class<?> clazz = classes.remove(name);
     }
 
     @Override
-    public void enableExtension(Extension extension) {
-        if (extension instanceof GeyserExtension) {
-            if(!extension.isEnabled()) {
-                GeyserImpl.getInstance().getLogger().info("Enabled extension " + extension.description().name());
-                ((GeyserExtension) extension).setEnabled(true);
-            }
+    public void enableExtension(GeyserExtension extension) {
+        if (!extension.isEnabled()) {
+            GeyserImpl.getInstance().getLogger().info("Enabled extension " + extension.description().name());
+            extension.setEnabled(true);
         }
     }
 
     @Override
-    public void disableExtension(Extension extension) {
-        if (extension instanceof GeyserExtension) {
-            if(extension.isEnabled()) {
-                GeyserImpl.getInstance().getLogger().info("Disabled extension " + extension.description().name());
-                ((GeyserExtension) extension).setEnabled(false);
-            }
+    public void disableExtension(GeyserExtension extension) {
+        if (extension.isEnabled()) {
+            GeyserImpl.getInstance().getLogger().info("Disabled extension " + extension.description().name());
+            extension.setEnabled(false);
         }
     }
 }

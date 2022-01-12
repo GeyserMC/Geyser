@@ -30,34 +30,52 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 
-public class GeyserExtension implements Extension {
+public class GeyserExtension {
     private boolean initialized = false;
     private boolean enabled = false;
     private File file = null;
     private File dataFolder = null;
     private ClassLoader classLoader = null;
-    private ExtensionLoader loader;
-    private ExtensionLogger logger;
+    private ExtensionLoader loader = null;
+    private ExtensionLogger logger = null;
     private ExtensionDescription description = null;
     private GeyserApiBase api = null;
 
-    @Override
+    /**
+     * Called when the extension is loaded
+     */
     public void onLoad() {
+
     }
 
-    @Override
+    /**
+     * Called when the extension is enabled
+     */
     public void onEnable() {
+
     }
 
-    @Override
+    /**
+     * Called when the extension is disabled
+     */
     public void onDisable() {
+
     }
 
-    @Override
+    /**
+     * Gets if the extension is enabled
+     *
+     * @return true if the extension is enabled
+     */
     public boolean isEnabled() {
         return this.enabled;
     }
 
+    /**
+     * Gets if the extension is enabled
+     *
+     * @return true if the extension is enabled
+     */
     public void setEnabled(boolean value) {
         if (this.enabled != value) {
             this.enabled = value;
@@ -69,27 +87,34 @@ public class GeyserExtension implements Extension {
         }
     }
 
-    @Override
-    public boolean isDisabled() {
-        return !this.enabled;
-    }
-
-    @Override
+    /**
+     * Gets the extension's data folder
+     *
+     * @return the extension's data folder
+     */
     public File dataFolder() {
         return this.dataFolder;
     }
 
-    @Override
+    /**
+     * Gets the extension's description
+     *
+     * @return the extension's description
+     */
     public ExtensionDescription description() {
         return this.description;
     }
 
-    @Override
+    /**
+     * Gets the extension's name
+     *
+     * @return the extension's name
+     */
     public String name() {
         return this.description.name();
     }
 
-    public void init(GeyserApiBase api, ExtensionLogger logger, ExtensionLoader loader, ExtensionDescription description, File dataFolder, File file) {
+    public void init(GeyserApiBase api, ExtensionLoader loader, ExtensionLogger logger, ExtensionDescription description, File dataFolder, File file) {
         if (!this.initialized) {
             this.initialized = true;
             this.file = file;
@@ -102,7 +127,12 @@ public class GeyserExtension implements Extension {
         }
     }
 
-    @Override
+    /**
+     * Gets a resource from the extension jar file
+     *
+     * @param filename the file name
+     * @return the input stream
+     */
     public InputStream getResource(String filename) {
         if (filename == null) {
             throw new IllegalArgumentException("Filename cannot be null");
@@ -123,7 +153,12 @@ public class GeyserExtension implements Extension {
         }
     }
 
-    @Override
+    /**
+     * Saves a resource from the extension jar file to the extension's data folder
+     *
+     * @param filename the file name
+     * @param replace whether to replace the file if it already exists
+     */
     public void saveResource(String filename, boolean replace) {
         if (filename == null || filename.equals("")) {
             throw new IllegalArgumentException("ResourcePath cannot be null or empty");
@@ -161,22 +196,38 @@ public class GeyserExtension implements Extension {
         }
     }
 
-    @Override
+    /**
+     * Gets the extension's class loader
+     *
+     * @return the extension's class loader
+     */
     public ClassLoader classLoader() {
         return this.classLoader;
     }
 
-    @Override
+    /**
+     * Gets the extension's loader
+     *
+     * @return the extension's loader
+     */
     public ExtensionLoader extensionLoader() {
         return this.loader;
     }
 
-    @Override
+    /**
+     * Gets the extension's logger
+     *
+     * @return the extension's logger
+     */
     public ExtensionLogger logger() {
         return this.logger;
     }
 
-    @Override
+    /**
+     * Gets the {@link GeyserApiBase} instance
+     *
+     * @return the {@link GeyserApiBase} instance
+     */
     public GeyserApiBase geyserApi() {
         return this.api;
     }

@@ -33,7 +33,7 @@ import java.util.*;
 public class GeyserExtensionDescription implements org.geysermc.geyser.api.extension.ExtensionDescription {
     private String name;
     private String main;
-    private List<String> api;
+    private String api;
     private String version;
     private final List<String> authors = new ArrayList<>();
 
@@ -47,19 +47,18 @@ public class GeyserExtensionDescription implements org.geysermc.geyser.api.exten
     private void loadMap(Map<String, Object> yamlMap) throws InvalidDescriptionException {
         this.name = ((String) yamlMap.get("name")).replaceAll("[^A-Za-z0-9 _.-]", "");
         if (this.name.equals("")) {
-            throw new InvalidDescriptionException("Invalid extension name");
+            throw new InvalidDescriptionException("Invalid extension name, cannot be empty");
         }
         this.name = this.name.replace(" ", "_");
         this.version = String.valueOf(yamlMap.get("version"));
         this.main = (String) yamlMap.get("main");
 
         Object api = yamlMap.get("api");
-        if (api instanceof List) {
-            this.api = (List<String>) api;
+        if (api instanceof String) {
+            this.api = (String) api;
         } else {
-            List<String> list = new ArrayList<>();
-            list.add((String) api);
-            this.api = list;
+            this.api = "0.0.0";
+            throw new InvalidDescriptionException("Invalid api version format, should be a string: major.minor.patch");
         }
 
         if (yamlMap.containsKey("author")) {
@@ -67,7 +66,11 @@ public class GeyserExtensionDescription implements org.geysermc.geyser.api.exten
         }
 
         if (yamlMap.containsKey("authors")) {
-            this.authors.addAll((Collection<? extends String>) yamlMap.get("authors"));
+            try {
+                this.authors.addAll((Collection<? extends String>) yamlMap.get("authors"));
+            } catch (Exception e) {
+                throw new InvalidDescriptionException("Invalid authors format, should be a list of strings", e);
+            }
         }
     }
 
@@ -82,7 +85,7 @@ public class GeyserExtensionDescription implements org.geysermc.geyser.api.exten
     }
 
     @Override
-    public List<String> ApiVersions() {
+    public String ApiVersion() {
         return api;
     }
 

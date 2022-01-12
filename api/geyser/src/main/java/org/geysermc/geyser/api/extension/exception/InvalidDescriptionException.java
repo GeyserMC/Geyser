@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.api.extension.exception;
 
+/**
+ * Thrown when an extension's description is invalid.
+ */
 public class InvalidDescriptionException extends Exception {
     public InvalidDescriptionException(Throwable cause) {
         super(cause);

@@ -25,12 +25,41 @@
 
 package org.geysermc.geyser.api.extension;
 
-import java.util.*;
+import java.util.List;
 
 public interface ExtensionDescription {
+    /**
+     * Gets the extension's name
+     *
+     * @return the extension's name
+     */
     String name();
+
+    /**
+     * Gets the extension's main class
+     *
+     * @return the extension's main class
+     */
     String main();
-    List<String> ApiVersions();
+
+    /**
+     * Gets the extension's api version
+     *
+     * @return the extension's api version
+     */
+    String ApiVersion();
+
+    /**
+     * Gets the extension's description
+     *
+     * @return the extension's description
+     */
     String version();
+
+    /**
+     * Gets the extension's authors
+     *
+     * @return the extension's authors
+     */
     List<String> authors();
 }

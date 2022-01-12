@@ -28,6 +28,7 @@ package org.geysermc.geyser.api.extension;
 public interface ExtensionLogger {
     /**
      * Get the logger prefix
+     *
      * @return the logger prefix
      */
     String prefix();

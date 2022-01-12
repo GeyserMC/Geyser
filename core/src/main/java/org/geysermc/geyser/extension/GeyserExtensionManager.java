@@ -26,9 +26,9 @@
 package org.geysermc.geyser.extension;
 
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.extension.ExtensionDescription;
 import org.geysermc.geyser.api.extension.GeyserExtension;
+
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.*;
@@ -37,35 +37,34 @@ import java.util.regex.Pattern;
 public class GeyserExtensionManager {
     private static GeyserExtensionManager geyserExtensionManager = null;
 
-    protected Map<String, Extension> extensions = new LinkedHashMap<>();
+    protected Map<String, GeyserExtension> extensions = new LinkedHashMap<>();
     protected Map<Pattern, GeyserExtensionLoader> fileAssociations = new HashMap<>();
 
     public static void init() {
         GeyserImpl.getInstance().getLogger().info("Loading extensions...");
+
         geyserExtensionManager = new GeyserExtensionManager();
         geyserExtensionManager.registerInterface(GeyserExtensionLoader.class);
         geyserExtensionManager.loadExtensions(new File("extensions"));
-        GeyserImpl.getInstance().getLogger().info("Loaded " + geyserExtensionManager.extensions.size() + " extensions.");
 
-        for (Extension extension : geyserExtensionManager.getExtensions().values()) {
-            if (!extension.isEnabled()) {
-                geyserExtensionManager.enableExtension(extension);
-            }
-        }
+        String plural = geyserExtensionManager.extensions.size() == 1 ? "" : "s";
+        GeyserImpl.getInstance().getLogger().info("Loaded " + geyserExtensionManager.extensions.size() + " extension" + plural);
+
+        geyserExtensionManager.enableExtensions();
     }
 
     public static GeyserExtensionManager getExtensionManager() {
         return geyserExtensionManager;
     }
 
-    public Extension getExtension(String name) {
+    public GeyserExtension getExtension(String name) {
         if (this.extensions.containsKey(name)) {
             return this.extensions.get(name);
         }
         return null;
     }
 
-    public Map<String, Extension> getExtensions() {
+    public Map<String, GeyserExtension> getExtensions() {
         return this.extensions;
     }
 
@@ -124,8 +123,8 @@ public class GeyserExtensionManager {
         return null;
     }
 
-    public Map<String, Extension> loadExtensions(File dictionary) {
-        if (GeyserImpl.VERSION.equalsIgnoreCase("dev")) {
+    public Map<String, GeyserExtension> loadExtensions(File dictionary) {
+        if (GeyserImpl.VERSION.equalsIgnoreCase("dev")) { // If your IDE says this is always true, ignore it, it isn't.
             GeyserImpl.getInstance().getLogger().error("Cannot load extensions in a development environment, aborting extension loading");
             return new HashMap<>();
         }
@@ -133,6 +132,8 @@ public class GeyserExtensionManager {
             GeyserImpl.getInstance().getLogger().error("Something went wrong with the Geyser version number, aborting extension loading");
             return new HashMap<>();
         }
+
+        String[] apiVersion = GeyserImpl.VERSION.split("\\.");
 
         if (!dictionary.exists()) {
             dictionary.mkdir();
@@ -142,7 +143,7 @@ public class GeyserExtensionManager {
         }
 
         Map<String, File> extensions = new LinkedHashMap<>();
-        Map<String, Extension> loadedExtensions = new LinkedHashMap<>();
+        Map<String, GeyserExtension> loadedExtensions = new LinkedHashMap<>();
 
         for (final GeyserExtensionLoader loader : this.fileAssociations.values()) {
             for (File file : dictionary.listFiles((dir, name) -> {
@@ -167,47 +168,35 @@ public class GeyserExtensionManager {
                             continue;
                         }
 
-                        boolean compatible = false;
-
-                        for (String version : description.ApiVersions()) {
-                            try {
-                                //Check the format: majorVersion.minorVersion.patch
-                                if (!Pattern.matches("^[0-9]+\\.[0-9]+\\.[0-9]+$", version)) {
-                                    throw new IllegalArgumentException();
-                                }
-                            } catch (NullPointerException | IllegalArgumentException e) {
-                                GeyserImpl.getInstance().getLogger().error("Could't load extension " + name + ": Wrong API format");
-                                continue;
+                        try {
+                            //Check the format: majorVersion.minorVersion.patch
+                            if (!Pattern.matches("^[0-9]+\\.[0-9]+\\.[0-9]+$", description.ApiVersion())) {
+                                throw new IllegalArgumentException();
                             }
-
-                            String[] versionArray = version.split("\\.");
-                            String[] apiVersion = GeyserImpl.VERSION.split("\\.");
-
-                            //Completely different API version
-                            if (!Objects.equals(Integer.valueOf(versionArray[0]), Integer.valueOf(apiVersion[0]))) {
-                                GeyserImpl.getInstance().getLogger().error("Couldn't load extension " + name + ": Wrong API version, current version: " + apiVersion[0] + "." + apiVersion[1]);
-                                continue;
-                            }
-
-                            //If the extension requires new API features, being backwards compatible
-                            if (Integer.parseInt(versionArray[1]) > Integer.parseInt(apiVersion[1])) {
-                                GeyserImpl.getInstance().getLogger().error("Couldn't load extension " + name + ": Wrong API version, current version: " + apiVersion[0] + "." + apiVersion[1]);
-                                continue;
-                            }
-
-                            compatible = true;
-                            break;
+                        } catch (NullPointerException | IllegalArgumentException e) {
+                            GeyserImpl.getInstance().getLogger().error("Couldn't load extension " + name + ": Wrong API version format, should be 'majorVersion.minorVersion.patch', current version: " + apiVersion[0] + "." + apiVersion[1]);
+                            continue;
                         }
 
-                        if (!compatible) {
-                            GeyserImpl.getInstance().getLogger().error("Couldn't load extension " + name +": Incompatible API version");
+                        String[] versionArray = description.ApiVersion().split("\\.");
+
+                        //Completely different API version
+                        if (!Objects.equals(Integer.valueOf(versionArray[0]), Integer.valueOf(apiVersion[0]))) {
+                            GeyserImpl.getInstance().getLogger().error("Couldn't load extension " + name + ": Wrong API version, current version: " + apiVersion[0] + "." + apiVersion[1]);
+                            continue;
+                        }
+
+                        //If the extension requires new API features, being backwards compatible
+                        if (Integer.parseInt(versionArray[1]) > Integer.parseInt(apiVersion[1])) {
+                            GeyserImpl.getInstance().getLogger().error("Couldn't load extension " + name + ": Wrong API version, current version: " + apiVersion[0] + "." + apiVersion[1]);
+                            continue;
                         }
 
                         extensions.put(name, file);
                         loadedExtensions.put(name, this.loadExtension(file, this.fileAssociations));
                     }
                 } catch (Exception e) {
-                    GeyserImpl.getInstance().getLogger().error("Couldn't load " +file.getName()+ " in folder " + dictionary + ": ", e);
+                    GeyserImpl.getInstance().getLogger().error("Couldn't load " + file.getName() + " in folder " + dictionary.getAbsolutePath() + ": ", e);
                 }
             }
         }
@@ -215,7 +204,7 @@ public class GeyserExtensionManager {
         return loadedExtensions;
     }
 
-    public void enableExtension(Extension extension) {
+    public void enableExtension(GeyserExtension extension) {
         if (!extension.isEnabled()) {
             try {
                 extension.extensionLoader().enableExtension(extension);
@@ -226,7 +215,7 @@ public class GeyserExtensionManager {
         }
     }
 
-    public void disableExtension(Extension extension) {
+    public void disableExtension(GeyserExtension extension) {
         if (extension.isEnabled()) {
             try {
                 extension.extensionLoader().disableExtension(extension);
@@ -236,8 +225,14 @@ public class GeyserExtensionManager {
         }
     }
 
+    public void enableExtensions() {
+        for (GeyserExtension extension : this.getExtensions().values()) {
+            this.enableExtension(extension);
+        }
+    }
+
     public void disableExtensions() {
-        for (Extension extension : this.getExtensions().values()) {
+        for (GeyserExtension extension : this.getExtensions().values()) {
             this.disableExtension(extension);
         }
     }

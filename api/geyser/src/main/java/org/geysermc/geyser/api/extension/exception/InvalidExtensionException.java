@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.api.extension.exception;
 
+/**
+ * Thrown when an extension is invalid.
+ */
 public class InvalidExtensionException extends Exception {
     public InvalidExtensionException(Throwable cause) {
         super(cause);
