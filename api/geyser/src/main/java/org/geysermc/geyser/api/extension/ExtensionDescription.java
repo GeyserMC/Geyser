@@ -28,7 +28,7 @@ package org.geysermc.geyser.api.extension;
 import java.util.List;
 
 /**
- * This is the Geyer extension description
+ * This is the Geyser extension description
  */
 public interface ExtensionDescription {
     /**
