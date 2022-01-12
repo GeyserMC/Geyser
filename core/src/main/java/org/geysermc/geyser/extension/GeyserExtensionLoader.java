@@ -97,21 +97,7 @@ public class GeyserExtensionLoader implements ExtensionLoader {
             }
 
             stream = jarFile.getInputStream(descriptionEntry);
-
-            InputStreamReader reader = new InputStreamReader(stream);
-            StringBuilder builder = new StringBuilder();
-            String temp;
-            BufferedReader bufferedReader = new BufferedReader(reader);
-            temp = bufferedReader.readLine();
-            while (temp != null) {
-                if (builder.length() != 0) {
-                    builder.append("\n");
-                }
-                builder.append(temp);
-                temp = bufferedReader.readLine();
-            }
-
-            return new GeyserExtensionDescription(builder.toString());
+            return new GeyserExtensionDescription(stream);
         } catch (IOException e) {
             throw new InvalidDescriptionException(e);
         } finally {
@@ -151,7 +137,7 @@ public class GeyserExtensionLoader implements ExtensionLoader {
     }
 
     void setClass(String name, final Class<?> clazz) {
-        if(!classes.containsKey(name)) {
+        if (!classes.containsKey(name)) {
             classes.put(name,clazz);
         }
     }

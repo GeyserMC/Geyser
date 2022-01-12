@@ -28,6 +28,10 @@ package org.geysermc.geyser.extension;
 import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.*;
 
 public class GeyserExtensionDescription implements org.geysermc.geyser.api.extension.ExtensionDescription {
@@ -37,7 +41,32 @@ public class GeyserExtensionDescription implements org.geysermc.geyser.api.exten
     private String version;
     private final List<String> authors = new ArrayList<>();
 
+    public GeyserExtensionDescription(InputStream inputStream) throws InvalidDescriptionException {
+        try {
+            InputStreamReader reader = new InputStreamReader(inputStream);
+            StringBuilder builder = new StringBuilder();
+            String temp;
+            BufferedReader bufferedReader = new BufferedReader(reader);
+            temp = bufferedReader.readLine();
+            while (temp != null) {
+                if (builder.length() != 0) {
+                    builder.append("\n");
+                }
+                builder.append(temp);
+                temp = bufferedReader.readLine();
+            }
+
+            this.loadString(builder.toString());
+        } catch (IOException e) {
+            throw new InvalidDescriptionException(e);
+        }
+    }
+
     public GeyserExtensionDescription(String yamlString) throws InvalidDescriptionException {
+        this.loadString(yamlString);
+    }
+
+    private void loadString(String yamlString) throws InvalidDescriptionException {
         DumperOptions dumperOptions = new DumperOptions();
         dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         Yaml yaml = new Yaml(dumperOptions);

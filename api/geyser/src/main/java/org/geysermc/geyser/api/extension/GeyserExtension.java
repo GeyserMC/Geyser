@@ -75,9 +75,7 @@ public class GeyserExtension {
     }
 
     /**
-     * Gets if the extension is enabled
-     *
-     * @return true if the extension is enabled
+     * Enables or disables the extension
      */
     public void setEnabled(boolean value) {
         if (this.enabled != value) {

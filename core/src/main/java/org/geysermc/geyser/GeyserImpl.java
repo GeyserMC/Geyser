@@ -123,6 +123,8 @@ public class GeyserImpl implements GeyserApi {
     private final PlatformType platformType;
     private final GeyserBootstrap bootstrap;
 
+    private final GeyserExtensionManager extensionManager;
+
     private Metrics metrics;
 
     private static GeyserImpl instance;
@@ -155,7 +157,8 @@ public class GeyserImpl implements GeyserApi {
         MessageTranslator.init();
         MinecraftLocale.init();
 
-        GeyserExtensionManager.init();
+        extensionManager = new GeyserExtensionManager();
+        extensionManager.init();
 
         start();
 
@@ -199,6 +202,8 @@ public class GeyserImpl implements GeyserApi {
         ScoreboardUpdater.init();
 
         ResourcePack.loadPacks();
+
+        extensionManager.enableExtensions();
 
         if (platformType != PlatformType.STANDALONE && config.getRemote().getAddress().equals("auto")) {
             // Set the remote address to localhost since that is where we are always connecting
@@ -460,7 +465,7 @@ public class GeyserImpl implements GeyserApi {
 
         ResourcePack.PACKS.clear();
 
-        GeyserExtensionManager.getInstance().disableExtensions();
+        extensionManager.disableExtensions();
 
         bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.done"));
     }
@@ -468,7 +473,6 @@ public class GeyserImpl implements GeyserApi {
     @Override
     public void reload() {
         shutdown();
-        GeyserExtensionManager.getInstance().enableExtensions();
         bootstrap.onEnable();
     }
 
@@ -512,6 +516,10 @@ public class GeyserImpl implements GeyserApi {
 
     public WorldManager getWorldManager() {
         return bootstrap.getWorldManager();
+    }
+
+    public GeyserExtensionManager getExtensionManager() {
+        return extensionManager;
     }
 
     public static GeyserImpl getInstance() {

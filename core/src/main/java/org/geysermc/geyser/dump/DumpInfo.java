@@ -127,8 +127,8 @@ public class DumpInfo {
         this.flagsInfo = new FlagsInfo();
 
         this.extensionInfo = new ArrayList<>();
-        for (GeyserExtension extension : GeyserExtensionManager.getInstance().getExtensions().values()) {
-            this.extensionInfo.add(new ExtensionInfo(extension.isEnabled(), extension.name(), extension.description().version(), extension.description().main(), extension.description().authors(), extension.description().apiVersion()));
+        for (GeyserExtension extension : GeyserImpl.getInstance().getExtensionManager().getExtensions().values()) {
+            this.extensionInfo.add(new ExtensionInfo(extension.isEnabled(), extension.name(), extension.description().version(), extension.description().apiVersion(), extension.description().main(), extension.description().authors()));
         }
     }
 
@@ -289,8 +289,8 @@ public class DumpInfo {
         public boolean enabled;
         public String name;
         public String version;
+        public String apiVersion;
         public String main;
         public List<String> authors;
-        public String apiVersion;
     }
 }

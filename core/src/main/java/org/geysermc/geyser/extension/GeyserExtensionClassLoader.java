@@ -78,11 +78,11 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
             throw new ClassNotFoundException(name);
         }
         Class<?> result = classes.get(name);
-        if(result == null) {
-            if(checkGlobal) {
+        if (result == null) {
+            if (checkGlobal) {
                 result = loader.classByName(name);
             }
-            if(result == null) {
+            if (result == null) {
                 result = super.findClass(name);
                 if (result != null) {
                     loader.setClass(name, result);

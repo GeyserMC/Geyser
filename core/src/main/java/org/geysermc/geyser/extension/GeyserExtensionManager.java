@@ -28,33 +28,22 @@ package org.geysermc.geyser.extension;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.extension.ExtensionDescription;
 import org.geysermc.geyser.api.extension.GeyserExtension;
-
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.regex.Pattern;
 
 public class GeyserExtensionManager {
-    private static GeyserExtensionManager geyserExtensionManager = null;
-
     protected Map<String, GeyserExtension> extensions = new LinkedHashMap<>();
     protected Map<Pattern, GeyserExtensionLoader> fileAssociations = new HashMap<>();
 
-    public static void init() {
+    public void init() {
         GeyserImpl.getInstance().getLogger().info("Loading extensions...");
 
-        geyserExtensionManager = new GeyserExtensionManager();
-        geyserExtensionManager.registerInterface(GeyserExtensionLoader.class);
-        geyserExtensionManager.loadExtensions(new File("extensions"));
+        this.registerInterface(GeyserExtensionLoader.class);
+        this.loadExtensions(new File("extensions"));
 
-        String plural = geyserExtensionManager.extensions.size() == 1 ? "" : "s";
-        GeyserImpl.getInstance().getLogger().info("Loaded " + geyserExtensionManager.extensions.size() + " extension" + plural);
-
-        geyserExtensionManager.enableExtensions();
-    }
-
-    public static GeyserExtensionManager getInstance() {
-        return geyserExtensionManager;
+        GeyserImpl.getInstance().getLogger().info("Loaded " + this.extensions.size() + " extension(s)");
     }
 
     public GeyserExtension getExtension(String name) {
