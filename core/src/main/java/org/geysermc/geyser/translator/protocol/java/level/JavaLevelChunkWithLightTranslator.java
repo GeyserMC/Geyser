@@ -311,11 +311,8 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
             // As of 1.17.10, Bedrock hardcodes to always read 32 biome sections
             // As of 1.18, this hardcode was lowered to 25
-            int biomeCount = 25;
-            if (session.getUpstream().getProtocolVersion() < Bedrock_v475.V475_CODEC.getProtocolVersion()) {
-                biomeCount = 32;
-            }
-
+            boolean isNewVersion = session.getUpstream().getProtocolVersion() >= Bedrock_v475.V475_CODEC.getProtocolVersion();
+            int biomeCount = isNewVersion ? 25 : 32;
             int dimensionOffset = (overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4;
             for (int i = 0; i < biomeCount; i++) {
                 int biomeYOffset = dimensionOffset + i;
@@ -326,7 +323,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 }
                 if (biomeYOffset >= (chunkSize + yOffset)) {
                     // This biome section goes above the height of the Java world
-                    if (session.getUpstream().getProtocolVersion() >= Bedrock_v475.V475_CODEC.getProtocolVersion()) {
+                    if (isNewVersion) {
                         // A header that says to carry on the biome data from the previous chunk
                         // This notably fixes biomes in the End
                         byteBuf.writeByte((127 << 1) | 1);
