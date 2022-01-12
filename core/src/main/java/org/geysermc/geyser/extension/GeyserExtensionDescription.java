@@ -42,28 +42,10 @@ public class GeyserExtensionDescription implements org.geysermc.geyser.api.exten
     private final List<String> authors = new ArrayList<>();
 
     public GeyserExtensionDescription(InputStream inputStream) throws InvalidDescriptionException {
-        try {
-            InputStreamReader reader = new InputStreamReader(inputStream);
-            StringBuilder builder = new StringBuilder();
-            String temp;
-            BufferedReader bufferedReader = new BufferedReader(reader);
-            temp = bufferedReader.readLine();
-            while (temp != null) {
-                if (builder.length() != 0) {
-                    builder.append("\n");
-                }
-                builder.append(temp);
-                temp = bufferedReader.readLine();
-            }
-
-            this.loadString(builder.toString());
-        } catch (IOException e) {
-            throw new InvalidDescriptionException(e);
-        }
-    }
-
-    public GeyserExtensionDescription(String yamlString) throws InvalidDescriptionException {
-        this.loadString(yamlString);
+        DumperOptions dumperOptions = new DumperOptions();
+        dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+        Yaml yaml = new Yaml(dumperOptions);
+        this.loadMap(yaml.loadAs(inputStream, LinkedHashMap.class));
     }
 
     private void loadString(String yamlString) throws InvalidDescriptionException {
