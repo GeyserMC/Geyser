@@ -28,6 +28,7 @@ package org.geysermc.geyser.extension;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.extension.ExtensionDescription;
 import org.geysermc.geyser.api.extension.GeyserExtension;
+import org.geysermc.geyser.text.GeyserLocale;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.*;
@@ -38,12 +39,12 @@ public class GeyserExtensionManager {
     protected Map<Pattern, GeyserExtensionLoader> fileAssociations = new HashMap<>();
 
     public void init() {
-        GeyserImpl.getInstance().getLogger().info("Loading extensions...");
+        GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.extensions.load.loading"));
 
         this.registerInterface(GeyserExtensionLoader.class);
         this.loadExtensions(new File("extensions"));
 
-        GeyserImpl.getInstance().getLogger().info("Loaded " + this.extensions.size() + " extension(s)");
+        GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.extensions.load.done", this.extensions.size()));
     }
 
     public GeyserExtension getExtension(String name) {
@@ -102,7 +103,7 @@ public class GeyserExtensionManager {
                             }
                         }
                     } catch (Exception e) {
-                        GeyserImpl.getInstance().getLogger().error("Could not load extension", e);
+                        GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed"), e);
                         return null;
                     }
                 }
@@ -114,11 +115,11 @@ public class GeyserExtensionManager {
 
     public Map<String, GeyserExtension> loadExtensions(File dictionary) {
         if (GeyserImpl.VERSION.equalsIgnoreCase("dev")) { // If your IDE says this is always true, ignore it, it isn't.
-            GeyserImpl.getInstance().getLogger().error("Cannot load extensions in a development environment, aborting extension loading");
+            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_dev_environment"));
             return new HashMap<>();
         }
         if (!GeyserImpl.VERSION.contains(".")) {
-            GeyserImpl.getInstance().getLogger().error("Something went wrong with the Geyser version number, aborting extension loading");
+            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_version_number"));
             return new HashMap<>();
         }
 
@@ -153,7 +154,7 @@ public class GeyserExtensionManager {
                         String name = description.name();
 
                         if (extensions.containsKey(name) || this.getExtension(name) != null) {
-                            GeyserImpl.getInstance().getLogger().warning("Found duplicate extension '" + name + "', ignoring '" + file.getName() + "'");
+                            GeyserImpl.getInstance().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.extensions.load.duplicate", name, file.getName()));
                             continue;
                         }
 
@@ -163,7 +164,7 @@ public class GeyserExtensionManager {
                                 throw new IllegalArgumentException();
                             }
                         } catch (NullPointerException | IllegalArgumentException e) {
-                            GeyserImpl.getInstance().getLogger().error("Couldn't load extension " + name + ": Wrong API version format, should be 'majorVersion.minorVersion.patch', current version: " + apiVersion[0] + "." + apiVersion[1]);
+                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_format", name, apiVersion[0] + "." + apiVersion[1]));
                             continue;
                         }
 
@@ -171,13 +172,13 @@ public class GeyserExtensionManager {
 
                         //Completely different API version
                         if (!Objects.equals(Integer.valueOf(versionArray[0]), Integer.valueOf(apiVersion[0]))) {
-                            GeyserImpl.getInstance().getLogger().error("Couldn't load extension " + name + ": Wrong API version, current version: " + apiVersion[0] + "." + apiVersion[1]);
+                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, apiVersion[0] + "." + apiVersion[1]));
                             continue;
                         }
 
                         //If the extension requires new API features, being backwards compatible
                         if (Integer.parseInt(versionArray[1]) > Integer.parseInt(apiVersion[1])) {
-                            GeyserImpl.getInstance().getLogger().error("Couldn't load extension " + name + ": Wrong API version, current version: " + apiVersion[0] + "." + apiVersion[1]);
+                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, apiVersion[0] + "." + apiVersion[1]));
                             continue;
                         }
 
@@ -185,7 +186,7 @@ public class GeyserExtensionManager {
                         loadedExtensions.put(name, this.loadExtension(file, this.fileAssociations));
                     }
                 } catch (Exception e) {
-                    GeyserImpl.getInstance().getLogger().error("Couldn't load " + file.getName() + " in folder " + dictionary.getAbsolutePath() + ": ", e);
+                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_with_name", file.getName(), dictionary.getAbsolutePath()), e);
                 }
             }
         }
@@ -198,7 +199,7 @@ public class GeyserExtensionManager {
             try {
                 extension.extensionLoader().enableExtension(extension);
             } catch (Exception e) {
-                GeyserImpl.getInstance().getLogger().error("Error enabling extension " + extension.name() + ": ", e);
+                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.enable.failed", extension.name()), e);
                 this.disableExtension(extension);
             }
         }
@@ -209,7 +210,7 @@ public class GeyserExtensionManager {
             try {
                 extension.extensionLoader().disableExtension(extension);
             } catch (Exception e) {
-                GeyserImpl.getInstance().getLogger().error("Error disabling extension " + extension.name() + ": ", e);
+                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.disable.failed", extension.name()), e);
             }
         }
     }

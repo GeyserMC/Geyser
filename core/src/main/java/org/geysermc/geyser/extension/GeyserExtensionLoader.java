@@ -31,6 +31,7 @@ import org.geysermc.geyser.api.extension.ExtensionLoader;
 import org.geysermc.geyser.api.extension.GeyserExtension;
 import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
 import org.geysermc.geyser.api.extension.exception.InvalidExtensionException;
+import org.geysermc.geyser.text.GeyserLocale;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -143,13 +144,13 @@ public class GeyserExtensionLoader implements ExtensionLoader {
     }
 
     void removeClass(String name) {
-        Class<?> clazz = classes.remove(name);
+        classes.remove(name);
     }
 
     @Override
     public void enableExtension(GeyserExtension extension) {
         if (!extension.isEnabled()) {
-            GeyserImpl.getInstance().getLogger().info("Enabled extension " + extension.description().name());
+            GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.extensions.enable.success", extension.description().name()));
             extension.setEnabled(true);
         }
     }
@@ -157,7 +158,7 @@ public class GeyserExtensionLoader implements ExtensionLoader {
     @Override
     public void disableExtension(GeyserExtension extension) {
         if (extension.isEnabled()) {
-            GeyserImpl.getInstance().getLogger().info("Disabled extension " + extension.description().name());
+            GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.extensions.disable.success", extension.description().name()));
             extension.setEnabled(false);
         }
     }

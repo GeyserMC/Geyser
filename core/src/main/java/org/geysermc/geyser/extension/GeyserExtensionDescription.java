@@ -28,10 +28,7 @@ package org.geysermc.geyser.extension;
 import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.*;
 
 public class GeyserExtensionDescription implements org.geysermc.geyser.api.extension.ExtensionDescription {
@@ -46,13 +43,6 @@ public class GeyserExtensionDescription implements org.geysermc.geyser.api.exten
         dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         Yaml yaml = new Yaml(dumperOptions);
         this.loadMap(yaml.loadAs(inputStream, LinkedHashMap.class));
-    }
-
-    private void loadString(String yamlString) throws InvalidDescriptionException {
-        DumperOptions dumperOptions = new DumperOptions();
-        dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-        Yaml yaml = new Yaml(dumperOptions);
-        this.loadMap(yaml.loadAs(yamlString, LinkedHashMap.class));
     }
 
     private void loadMap(Map<String, Object> yamlMap) throws InvalidDescriptionException {

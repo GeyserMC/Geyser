@@ -29,8 +29,8 @@ import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.extension.ExtensionLogger;
 
 public class GeyserExtensionLogger implements ExtensionLogger {
-    private GeyserLogger logger;
-    private String loggerPrefix;
+    private final GeyserLogger logger;
+    private final String loggerPrefix;
 
     public GeyserExtensionLogger(GeyserLogger logger, String prefix) {
         this.logger = logger;

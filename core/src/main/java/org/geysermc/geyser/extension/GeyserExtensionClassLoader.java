@@ -37,8 +37,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class GeyserExtensionClassLoader extends URLClassLoader {
-    private GeyserExtensionLoader loader;
-    private Map<String, Class> classes = new HashMap<>();
+    private final GeyserExtensionLoader loader;
+    private final Map<String, Class> classes = new HashMap<>();
     public GeyserExtension extension;
 
     public GeyserExtensionClassLoader(GeyserExtensionLoader loader, ClassLoader parent, ExtensionDescription description, File file) throws InvalidExtensionException, MalformedURLException {
@@ -74,7 +74,7 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
     }
 
     protected Class<?> findClass(String name, boolean checkGlobal) throws ClassNotFoundException {
-        if (name.startsWith("org.geysermc.geyser.") || name.startsWith("org.geysermc.connector.") || name.startsWith("net.minecraft.")) {
+        if (name.startsWith("org.geysermc.geyser.") || name.startsWith("org.geysermc.connector.") || name.startsWith("org.geysermc.platform.") || name.startsWith("org.geysermc.floodgate.") || name.startsWith("org.geysermc.api.") || name.startsWith("org.geysermc.processor.") || name.startsWith("net.minecraft.")) {
             throw new ClassNotFoundException(name);
         }
         Class<?> result = classes.get(name);
