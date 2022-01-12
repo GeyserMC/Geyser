@@ -85,7 +85,7 @@ public class GeyserExtensionDescription implements org.geysermc.geyser.api.exten
     }
 
     @Override
-    public String ApiVersion() {
+    public String apiVersion() {
         return api;
     }
 

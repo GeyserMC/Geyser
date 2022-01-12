@@ -29,6 +29,9 @@ import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
 import org.geysermc.geyser.api.extension.exception.InvalidExtensionException;
 import java.io.File;
 
+/**
+ * The extension loader is responsible for loading, unloading, enabling and disabling extensions
+ */
 public interface ExtensionLoader {
     /**
      * Loads an extension from a given file

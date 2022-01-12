@@ -27,6 +27,9 @@ package org.geysermc.geyser.api.extension;
 
 import java.util.List;
 
+/**
+ * This is the Geyer extension description
+ */
 public interface ExtensionDescription {
     /**
      * Gets the extension's name
@@ -47,7 +50,7 @@ public interface ExtensionDescription {
      *
      * @return the extension's api version
      */
-    String ApiVersion();
+    String apiVersion();
 
     /**
      * Gets the extension's description

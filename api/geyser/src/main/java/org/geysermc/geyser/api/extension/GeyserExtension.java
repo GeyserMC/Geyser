@@ -30,6 +30,9 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 
+/**
+ * This class is to be extended by a Geyser extension
+ */
 public class GeyserExtension {
     private boolean initialized = false;
     private boolean enabled = false;

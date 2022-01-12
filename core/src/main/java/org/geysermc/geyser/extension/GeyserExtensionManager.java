@@ -53,7 +53,7 @@ public class GeyserExtensionManager {
         geyserExtensionManager.enableExtensions();
     }
 
-    public static GeyserExtensionManager getExtensionManager() {
+    public static GeyserExtensionManager getInstance() {
         return geyserExtensionManager;
     }
 
@@ -170,7 +170,7 @@ public class GeyserExtensionManager {
 
                         try {
                             //Check the format: majorVersion.minorVersion.patch
-                            if (!Pattern.matches("^[0-9]+\\.[0-9]+\\.[0-9]+$", description.ApiVersion())) {
+                            if (!Pattern.matches("^[0-9]+\\.[0-9]+\\.[0-9]+$", description.apiVersion())) {
                                 throw new IllegalArgumentException();
                             }
                         } catch (NullPointerException | IllegalArgumentException e) {
@@ -178,7 +178,7 @@ public class GeyserExtensionManager {
                             continue;
                         }
 
-                        String[] versionArray = description.ApiVersion().split("\\.");
+                        String[] versionArray = description.apiVersion().split("\\.");
 
                         //Completely different API version
                         if (!Objects.equals(Integer.valueOf(versionArray[0]), Integer.valueOf(apiVersion[0]))) {

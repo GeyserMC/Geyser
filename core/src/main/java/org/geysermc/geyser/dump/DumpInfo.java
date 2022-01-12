@@ -36,6 +36,8 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.extension.GeyserExtension;
+import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.network.MinecraftProtocol;
@@ -54,10 +56,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter
@@ -76,6 +75,7 @@ public class DumpInfo {
     private LogsInfo logsInfo;
     private final BootstrapDumpInfo bootstrapInfo;
     private final FlagsInfo flagsInfo;
+    private final List<ExtensionInfo> extensionInfo;
 
     public DumpInfo(boolean addLog) {
         this.versionInfo = new VersionInfo();
@@ -125,6 +125,11 @@ public class DumpInfo {
         this.bootstrapInfo = GeyserImpl.getInstance().getBootstrap().getDumpInfo();
 
         this.flagsInfo = new FlagsInfo();
+
+        this.extensionInfo = new ArrayList<>();
+        for (GeyserExtension extension : GeyserExtensionManager.getInstance().getExtensions().values()) {
+            this.extensionInfo.add(new ExtensionInfo(extension.isEnabled(), extension.name(), extension.description().version(), extension.description().main(), extension.description().authors(), extension.description().apiVersion()));
+        }
     }
 
     @Getter
@@ -276,5 +281,16 @@ public class DumpInfo {
         FlagsInfo() {
             this.flags = ManagementFactory.getRuntimeMXBean().getInputArguments();
         }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class ExtensionInfo {
+        public boolean enabled;
+        public String name;
+        public String version;
+        public String main;
+        public List<String> authors;
+        public String apiVersion;
     }
 }

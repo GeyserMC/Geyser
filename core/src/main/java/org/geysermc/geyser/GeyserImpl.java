@@ -460,7 +460,7 @@ public class GeyserImpl implements GeyserApi {
 
         ResourcePack.PACKS.clear();
 
-        GeyserExtensionManager.getExtensionManager().disableExtensions();
+        GeyserExtensionManager.getInstance().disableExtensions();
 
         bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.done"));
     }
@@ -468,6 +468,7 @@ public class GeyserImpl implements GeyserApi {
     @Override
     public void reload() {
         shutdown();
+        GeyserExtensionManager.getInstance().enableExtensions();
         bootstrap.onEnable();
     }
 

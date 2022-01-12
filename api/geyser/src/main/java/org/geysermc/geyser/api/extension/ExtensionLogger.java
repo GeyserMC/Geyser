@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.api.extension;
 
+/**
+ * This is the Geyser extension logger
+ */
 public interface ExtensionLogger {
     /**
      * Get the logger prefix
