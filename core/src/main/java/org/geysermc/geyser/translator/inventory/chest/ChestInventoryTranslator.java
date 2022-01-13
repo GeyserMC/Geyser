@@ -42,7 +42,7 @@ public abstract class ChestInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
-    public boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, ContainerSlotType bedrockSourceContainer,
+    protected boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, ContainerSlotType bedrockSourceContainer,
                                          int javaSourceSlot, ContainerSlotType bedrockDestinationContainer, int javaDestinationSlot) {
         // Reject any item placements that occur in the unusable inventory space
         if (bedrockSourceContainer == ContainerSlotType.CONTAINER && javaSourceSlot >= this.size) {
