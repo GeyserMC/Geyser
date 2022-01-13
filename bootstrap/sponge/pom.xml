@@ -77,6 +77,14 @@
                                     <pattern>com.google.guava</pattern>
                                     <shadedPattern>org.geysermc.geyser.platform.sponge.shaded.google.guava</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>net.kyori.adventure.text.serializer.gson.legacyimpl</pattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.sponge.shaded.kyori.legacyimpl</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>net.kyori.adventure.nbt</pattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.sponge.shaded.kyori.nbt</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>
@@ -88,6 +96,14 @@
                             <exclude>org.yaml:*</exclude>
                             <exclude>org.slf4j:*</exclude>
                             <exclude>org.ow2.asm:*</exclude>
+                            <!-- Exclude all Kyori dependencies except the legacy NBT serializer and NBT-->
+                            <exclude>net.kyori:adventure-api:*</exclude>
+                            <exclude>net.kyori:examination-api:*</exclude>
+                            <exclude>net.kyori:examination-string:*</exclude>
+                            <exclude>net.kyori:adventure-text-serializer-gson:*</exclude>
+                            <exclude>net.kyori:adventure-text-serializer-legacy:*</exclude>
+                            <exclude>net.kyori:adventure-text-serializer-plain:*</exclude>
+                            <exclude>net.kyori:adventure-key:*</exclude>
                         </excludes>
                     </artifactSet>
                 </configuration>

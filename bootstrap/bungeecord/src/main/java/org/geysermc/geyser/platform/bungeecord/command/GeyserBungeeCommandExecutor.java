@@ -39,7 +39,6 @@ import java.util.Arrays;
 import java.util.Collections;
 
 public class GeyserBungeeCommandExecutor extends Command implements TabExecutor {
-
     private final CommandExecutor commandExecutor;
 
     public GeyserBungeeCommandExecutor(CommandManager commandManager) {

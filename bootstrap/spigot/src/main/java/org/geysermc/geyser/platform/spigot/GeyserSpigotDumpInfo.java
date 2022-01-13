@@ -53,7 +53,7 @@ public class GeyserSpigotDumpInfo extends BootstrapDumpInfo {
         this.onlineMode = Bukkit.getOnlineMode();
         String ip = Bukkit.getIp();
         if (AsteriskSerializer.showSensitive || (ip.equals("") || ip.equals("0.0.0.0"))) {
-            this.serverIP = Bukkit.getIp();
+            this.serverIP = ip;
         } else {
             this.serverIP = "***";
         }

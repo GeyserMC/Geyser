@@ -96,7 +96,9 @@
                             <exclude>net.kyori:examination-string:*</exclude>
                             <exclude>net.kyori:adventure-text-serializer-gson:*</exclude>
                             <exclude>net.kyori:adventure-text-serializer-legacy:*</exclude>
+                            <exclude>net.kyori:adventure-text-serializer-plain:*</exclude>
                             <exclude>net.kyori:adventure-nbt:*</exclude>
+                            <exclude>net.kyori:adventure-key:*</exclude>
                         </excludes>
                     </artifactSet>
                 </configuration>
