@@ -36,7 +36,7 @@ permissions:
     default: op
   geyser.command.reload:
     description: Reloads the Geyser configurations. Kicks all players when used!
-    default: false
+    default: op
   geyser.command.version:
     description: Shows the current Geyser version and checks for updates.
     default: op
