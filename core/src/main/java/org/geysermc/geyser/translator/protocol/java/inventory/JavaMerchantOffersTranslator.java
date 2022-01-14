@@ -101,16 +101,20 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
             recipe.putInt("traderExp", trade.getXp());
             recipe.putFloat("priceMultiplierA", trade.getPriceMultiplier());
             recipe.putFloat("priceMultiplierB", 0.0f);
-            recipe.put("sell", getItemTag(session, trade.getOutput(), trade.getOutput().getAmount()));
+            if (trade.getOutput().getAmount() > 0) {
+                recipe.put("sell", getItemTag(session, trade.getOutput(), trade.getOutput().getAmount()));
+            }
 
             // The buy count before demand and special price adjustments
-            recipe.putInt("buyCountA", trade.getFirstInput().getAmount());
-            recipe.putInt("buyCountB", trade.getSecondInput() != null ? trade.getSecondInput().getAmount() : 0);
+            recipe.putInt("buyCountA", Math.max(trade.getFirstInput().getAmount(), 0));
+            recipe.putInt("buyCountB", trade.getSecondInput() != null ? Math.max(trade.getSecondInput().getAmount(), 0) : 0);
 
             recipe.putInt("demand", trade.getDemand()); // Seems to have no effect
             recipe.putInt("tier", packet.getVillagerLevel() > 0 ? packet.getVillagerLevel() - 1 : 0); // -1 crashes client
-            recipe.put("buyA", getItemTag(session, trade.getFirstInput(), trade.getSpecialPrice(), trade.getDemand(), trade.getPriceMultiplier()));
-            if (trade.getSecondInput() != null) {
+            if (trade.getFirstInput().getAmount() > 0) {
+                recipe.put("buyA", getItemTag(session, trade.getFirstInput(), trade.getSpecialPrice(), trade.getDemand(), trade.getPriceMultiplier()));
+            }
+            if (trade.getSecondInput() != null && trade.getSecondInput().getAmount() > 0) {
                 recipe.put("buyB", getItemTag(session, trade.getSecondInput(), trade.getSecondInput().getAmount()));
             }
             recipe.putInt("uses", trade.getNumUses());
