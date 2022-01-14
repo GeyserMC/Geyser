@@ -238,9 +238,9 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 if (entity instanceof LivingEntity) {
                     // Not ideal, but...
                     // LevelEventType.PARTICLE_DEATH_SMOKE doesn't work (as of 1.18.2 Bedrock)
-                    // EntityEventType.DEATH_SMOKE_CLOUD also plays the entity noise
-                    // I wasn't able to figure out how the vanilla Bedrock server does it,
-                    // but it appears to use neither of these.
+                    // EntityEventType.DEATH_SMOKE_CLOUD also plays the entity death noise
+                    // Bedrock sends the particles through EntityEventType.DEATH, but Java despawns the entity
+                    // prematurely so they don't show up.
                     Vector3f position = entity.getPosition();
                     float baseX = position.getX();
                     float baseY = position.getY();
@@ -256,7 +256,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                         LevelEventPacket levelEventPacket = new LevelEventPacket();
                         levelEventPacket.setPosition(Vector3f.from(x, y, z));
                         levelEventPacket.setType(LevelEventType.PARTICLE_EXPLODE);
-                        //session.sendUpstreamPacket(levelEventPacket);
+                        session.sendUpstreamPacket(levelEventPacket);
                     }
                 }
                 break;
