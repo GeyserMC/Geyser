@@ -101,9 +101,7 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
             recipe.putInt("traderExp", trade.getXp());
             recipe.putFloat("priceMultiplierA", trade.getPriceMultiplier());
             recipe.putFloat("priceMultiplierB", 0.0f);
-            if (trade.getOutput().getAmount() > 0) {
-                recipe.put("sell", getItemTag(session, trade.getOutput(), trade.getOutput().getAmount()));
-            }
+            recipe.put("sell", getItemTag(session, trade.getOutput()));
 
             // The buy count before demand and special price adjustments
             recipe.putInt("buyCountA", Math.max(trade.getFirstInput().getAmount(), 0));
@@ -111,12 +109,8 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
 
             recipe.putInt("demand", trade.getDemand()); // Seems to have no effect
             recipe.putInt("tier", packet.getVillagerLevel() > 0 ? packet.getVillagerLevel() - 1 : 0); // -1 crashes client
-            if (trade.getFirstInput().getAmount() > 0) {
-                recipe.put("buyA", getItemTag(session, trade.getFirstInput(), trade.getSpecialPrice(), trade.getDemand(), trade.getPriceMultiplier()));
-            }
-            if (trade.getSecondInput() != null && trade.getSecondInput().getAmount() > 0) {
-                recipe.put("buyB", getItemTag(session, trade.getSecondInput(), trade.getSecondInput().getAmount()));
-            }
+            recipe.put("buyA", getItemTag(session, trade.getFirstInput(), trade.getSpecialPrice(), trade.getDemand(), trade.getPriceMultiplier()));
+            recipe.put("buyB", getItemTag(session, trade.getSecondInput()));
             recipe.putInt("uses", trade.getNumUses());
             recipe.putByte("rewardExp", (byte) 1);
             tags.add(recipe.build());
@@ -152,19 +146,28 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
         session.sendUpstreamPacket(updateTradePacket);
     }
 
+    private static NbtMap getItemTag(GeyserSession session, ItemStack stack) {
+        if (stack == null || stack.getAmount() <= 0) { // Negative item counts appear as air on Java
+            return NbtMap.EMPTY;
+        }
+        return getItemTag(session, stack, session.getItemMappings().getMapping(stack), stack.getAmount());
+    }
+
     private static NbtMap getItemTag(GeyserSession session, ItemStack stack, int specialPrice, int demand, float priceMultiplier) {
+        if (stack.getAmount() <= 0) { // Negative item counts appear as air on Java
+            return NbtMap.EMPTY;
+        }
         ItemMapping mapping = session.getItemMappings().getMapping(stack);
 
         // Bedrock expects all price adjustments to be applied to the item's count
         int count = stack.getAmount() + ((int) Math.max(Math.floor(stack.getAmount() * demand * priceMultiplier), 0)) + specialPrice;
         count = MathUtils.constrain(count, 1, mapping.getStackSize());
 
-        return getItemTag(session, stack, count);
+        return getItemTag(session, stack, mapping, count);
     }
 
-    private static NbtMap getItemTag(GeyserSession session, ItemStack stack, int count) {
+    private static NbtMap getItemTag(GeyserSession session, ItemStack stack, ItemMapping mapping, int count) {
         ItemData itemData = ItemTranslator.translateToBedrock(session, stack);
-        ItemMapping mapping = session.getItemMappings().getMapping(stack);
 
         NbtMapBuilder builder = NbtMap.builder();
         builder.putByte("Count", (byte) count);
