@@ -109,6 +109,23 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             case ITEM_USE:
                 switch (packet.getActionType()) {
                     case 0 -> {
+                        Vector3i blockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getBlockFace());
+
+                        if (session.getGeyser().getConfig().isDisableBedrockScaffolding()) {
+                            float yaw = session.getPlayerEntity().getYaw();
+                            boolean isGodBridging = switch (packet.getBlockFace()) {
+                                case 2 -> yaw <= -135f || yaw > 135f;
+                                case 3 -> yaw <= 45f && yaw > -45f;
+                                case 4 -> yaw > 45f && yaw <= 135f;
+                                case 5 -> yaw <= -45f && yaw > -135f;
+                                default -> false;
+                            };
+                            if (isGodBridging) {
+                                restoreCorrectBlock(session, blockPos, packet);
+                                return;
+                            }
+                        }
+
                         // Check to make sure the client isn't spamming interaction
                         // Based on Nukkit 1.0, with changes to ensure holding down still works
                         boolean hasAlreadyClicked = System.currentTimeMillis() - session.getLastInteractionTime() < 110.0 &&
@@ -138,7 +155,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             }
                         }
 
-                        Vector3i blockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getBlockFace());
                         /*
                         Checks to ensure that the range will be accepted by the server.
                         "Not in range" doesn't refer to how far a vanilla client goes (that's a whole other mess),

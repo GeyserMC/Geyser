@@ -105,6 +105,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("show-coordinates")
     private boolean showCoordinates = true;
 
+    @JsonProperty("disable-bedrock-scaffolding")
+    private boolean disableBedrockScaffolding = false;
+
     @JsonDeserialize(using = EmoteOffhandWorkaroundOption.Deserializer.class)
     @JsonProperty("emote-offhand-workaround")
     private EmoteOffhandWorkaroundOption emoteOffhandWorkaround = EmoteOffhandWorkaroundOption.DISABLED;
