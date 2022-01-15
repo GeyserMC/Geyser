@@ -27,7 +27,7 @@ package org.geysermc.api;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.api.session.Connection;
+import org.geysermc.api.connection.Connection;
 
 import java.util.List;
 import java.util.UUID;

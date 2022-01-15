@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.api.connection;
 
-import org.geysermc.api.session.Connection;
+import org.geysermc.api.connection.Connection;
 
 /**
  * Represents a player session used in Geyser.

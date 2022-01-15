@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api.session;
+package org.geysermc.api.connection;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
