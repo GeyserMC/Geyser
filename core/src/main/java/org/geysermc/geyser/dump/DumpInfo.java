@@ -36,8 +36,8 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.extension.GeyserExtension;
-import org.geysermc.geyser.extension.GeyserExtensionManager;
+import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.network.MinecraftProtocol;
@@ -127,7 +127,7 @@ public class DumpInfo {
         this.flagsInfo = new FlagsInfo();
 
         this.extensionInfo = new ArrayList<>();
-        for (GeyserExtension extension : GeyserImpl.getInstance().getExtensionManager().getExtensions().values()) {
+        for (Extension extension : GeyserApi.api().extensionManager().extensions()) {
             this.extensionInfo.add(new ExtensionInfo(extension.isEnabled(), extension.name(), extension.description().version(), extension.description().apiVersion(), extension.description().main(), extension.description().authors()));
         }
     }

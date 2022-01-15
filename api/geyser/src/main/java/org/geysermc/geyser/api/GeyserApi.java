@@ -27,8 +27,10 @@ package org.geysermc.geyser.api;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.api.Geyser;
 import org.geysermc.api.GeyserApiBase;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.extension.ExtensionManager;
 
 import java.util.List;
 import java.util.UUID;
@@ -78,4 +80,20 @@ public interface GeyserApi extends GeyserApiBase {
      */
     @NonNull
     List<? extends GeyserConnection> onlineConnections();
+
+    /**
+     * Gets the {@link ExtensionManager}.
+     *
+     * @return the extension manager
+     */
+    ExtensionManager extensionManager();
+
+    /**
+     * Gets the current {@link GeyserApiBase} instance.
+     *
+     * @return the current geyser api instance
+     */
+    static GeyserApi api() {
+        return Geyser.api(GeyserApi.class);
+    }
 }

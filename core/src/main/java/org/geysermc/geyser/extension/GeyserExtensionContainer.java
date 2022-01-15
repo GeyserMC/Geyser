@@ -23,54 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.extension;
+package org.geysermc.geyser.extension;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.extension.ExtensionDescription;
+import org.geysermc.geyser.api.extension.ExtensionLoader;
+import org.geysermc.geyser.api.extension.ExtensionLogger;
 
-import java.util.List;
+import java.nio.file.Path;
 
-/**
- * This is the Geyser extension description
- */
-public interface ExtensionDescription {
+@Accessors(fluent = true)
+@Getter
+@RequiredArgsConstructor
+public class GeyserExtensionContainer {
+    private final Extension extension;
+    private final Path dataFolder;
+    private final ExtensionDescription description;
+    private final ExtensionLoader loader;
+    private final ExtensionLogger logger;
 
-    /**
-     * Gets the extension's name
-     *
-     * @return the extension's name
-     */
-    @NonNull
-    String name();
-
-    /**
-     * Gets the extension's main class
-     *
-     * @return the extension's main class
-     */
-    @NonNull
-    String main();
-
-    /**
-     * Gets the extension's api version
-     *
-     * @return the extension's api version
-     */
-    @NonNull
-    String apiVersion();
-
-    /**
-     * Gets the extension's description
-     *
-     * @return the extension's description
-     */
-    @NonNull
-    String version();
-
-    /**
-     * Gets the extension's authors
-     *
-     * @return the extension's authors
-     */
-    @NonNull
-    List<String> authors();
+    @Getter(AccessLevel.NONE) protected boolean enabled;
 }

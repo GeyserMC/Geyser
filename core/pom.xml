@@ -11,7 +11,6 @@
     <artifactId>core</artifactId>
 
     <properties>
-        <adventure.version>4.9.3</adventure.version>
         <fastutil.version>8.5.2</fastutil.version>
         <jackson.version>2.12.4</jackson.version>
         <netty.version>4.1.66.Final</netty.version>

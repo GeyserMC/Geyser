@@ -25,24 +25,25 @@
 
 package org.geysermc.geyser.extension;
 
+import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.extension.ExtensionDescription;
-import org.geysermc.geyser.api.extension.GeyserExtension;
 import org.geysermc.geyser.api.extension.exception.InvalidExtensionException;
-import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 public class GeyserExtensionClassLoader extends URLClassLoader {
     private final GeyserExtensionLoader loader;
-    private final Map<String, Class> classes = new HashMap<>();
-    public GeyserExtension extension;
+    private final Map<String, Class<?>> classes = new HashMap<>();
+    private final Extension extension;
 
-    public GeyserExtensionClassLoader(GeyserExtensionLoader loader, ClassLoader parent, ExtensionDescription description, File file) throws InvalidExtensionException, MalformedURLException {
-        super(new URL[] { file.toURI().toURL() }, parent);
+    public GeyserExtensionClassLoader(GeyserExtensionLoader loader, ClassLoader parent, ExtensionDescription description, Path path) throws InvalidExtensionException, MalformedURLException {
+        super(new URL[] { path.toUri().toURL() }, parent);
         this.loader = loader;
 
         try {
@@ -53,15 +54,15 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
                 throw new InvalidExtensionException("Class " + description.main() + " not found, extension cannot be loaded", ex);
             }
 
-            Class<? extends GeyserExtension> extensionClass;
+            Class<? extends Extension> extensionClass;
             try {
-                extensionClass = jarClass.asSubclass(GeyserExtension.class);
+                extensionClass = jarClass.asSubclass(Extension.class);
             } catch (ClassCastException ex) {
                 throw new InvalidExtensionException("Main class " + description.main() + " should extends GeyserExtension, but extends " + jarClass.getSuperclass().getSimpleName(), ex);
             }
 
-            extension = extensionClass.newInstance();
-        } catch (IllegalAccessException ex) {
+            this.extension = extensionClass.getConstructor().newInstance();
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
             throw new InvalidExtensionException("No public constructor", ex);
         } catch (InstantiationException ex) {
             throw new InvalidExtensionException("Abnormal extension type", ex);
@@ -74,26 +75,28 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
     }
 
     protected Class<?> findClass(String name, boolean checkGlobal) throws ClassNotFoundException {
-        if (name.startsWith("org.geysermc.geyser.") || name.startsWith("org.geysermc.connector.") || name.startsWith("org.geysermc.platform.") || name.startsWith("org.geysermc.floodgate.") || name.startsWith("org.geysermc.api.") || name.startsWith("org.geysermc.processor.") || name.startsWith("net.minecraft.")) {
+        if (name.startsWith("org.geysermc.geyser.") || name.startsWith("net.minecraft.")) {
             throw new ClassNotFoundException(name);
         }
-        Class<?> result = classes.get(name);
+        Class<?> result = this.classes.get(name);
         if (result == null) {
             if (checkGlobal) {
-                result = loader.classByName(name);
+                result = this.loader.classByName(name);
             }
+
             if (result == null) {
                 result = super.findClass(name);
                 if (result != null) {
-                    loader.setClass(name, result);
+                    this.loader.setClass(name, result);
                 }
             }
-            classes.put(name, result);
+
+            this.classes.put(name, result);
         }
         return result;
     }
 
-    Set<String> getClasses() {
-        return classes.keySet();
+    public Extension extension() {
+        return this.extension;
     }
 }

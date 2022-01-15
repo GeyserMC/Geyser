@@ -25,52 +25,72 @@
 
 package org.geysermc.geyser.api.extension;
 
-import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
-import org.geysermc.geyser.api.extension.exception.InvalidExtensionException;
-import java.io.File;
+import org.checkerframework.checker.nullness.qual.NonNull;
+
+import java.nio.file.Path;
 
 /**
  * The extension loader is responsible for loading, unloading, enabling and disabling extensions
  */
-public interface ExtensionLoader {
-    /**
-     * Loads an extension from a given file
-     *
-     * @param file the file to load the extension from
-     * @return the loaded extension
-     * @throws InvalidExtensionException
-     */
-    GeyserExtension loadExtension(File file) throws InvalidExtensionException;
+public abstract class ExtensionLoader {
 
     /**
-     * Gets an extension's description from a given file
+     * Gets if the given {@link Extension} is enabled.
      *
-     * @param file the file to get the description from
-     * @return the extension's description
-     * @throws InvalidDescriptionException
+     * @param extension the extension
+     * @return if the extension is enabled
      */
-    ExtensionDescription extensionDescription(File file) throws InvalidDescriptionException;
+    protected abstract boolean isEnabled(@NonNull Extension extension);
 
     /**
-     * Gets a class by its name from the extension's classloader
-     *
-     * @param name the name of the class
-     * @return the class
-     * @throws ClassNotFoundException
-     */
-    Class<?> classByName(final String name) throws ClassNotFoundException;
-
-    /**
-     * Enables an extension
+     * Sets if the given {@link Extension} is enabled.
      *
      * @param extension the extension to enable
+     * @param enabled if the extension should be enabled
      */
-    void enableExtension(GeyserExtension extension);
+    protected abstract void setEnabled(@NonNull Extension extension, boolean enabled);
 
     /**
-     * Disables an extension
+     * Gets the given {@link Extension}'s data folder.
      *
-     * @param extension the extension to disable
+     * @param extension the extension
+     * @return the data folder of the given extension
      */
-    void disableExtension(GeyserExtension extension);
+    @NonNull
+    protected abstract Path dataFolder(@NonNull Extension extension);
+
+    /**
+     * Gets the given {@link Extension}'s {@link ExtensionDescription}.
+     *
+     * @param extension the extension
+     * @return the description of the given extension
+     */
+    @NonNull
+    protected abstract ExtensionDescription description(@NonNull Extension extension);
+
+    /**
+     * Gets the {@link ExtensionLogger} for the given {@link Extension}.
+     *
+     * @param extension the extension
+     * @return the extension logger for the given extension
+     */
+    @NonNull
+    protected abstract ExtensionLogger logger(@NonNull Extension extension);
+
+    /**
+     * Loads all extensions.
+     *
+     * @param extensionManager the extension manager
+     */
+    protected abstract void loadAllExtensions(@NonNull ExtensionManager extensionManager);
+
+    /**
+     * Registers the given {@link Extension} with the given {@link ExtensionManager}.
+     *
+     * @param extension the extension
+     * @param extensionManager the extension manager
+     */
+    protected void register(@NonNull Extension extension, @NonNull ExtensionManager extensionManager) {
+        extensionManager.register(extension, this);
+    }
 }

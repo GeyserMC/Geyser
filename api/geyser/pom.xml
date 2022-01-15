@@ -6,6 +6,7 @@
         <groupId>org.geysermc</groupId>
         <artifactId>api-parent</artifactId>
         <version>2.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -14,6 +15,8 @@
     <properties>
         <maven.compiler.source>16</maven.compiler.source>
         <maven.compiler.target>16</maven.compiler.target>
+
+        <adventure.version>4.9.3</adventure.version>
     </properties>
 
     <dependencies>
@@ -22,6 +25,12 @@
             <artifactId>checker-qual</artifactId>
             <version>3.19.0</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-api</artifactId>
+            <version>${adventure.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.geysermc</groupId>
