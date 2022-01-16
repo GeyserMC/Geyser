@@ -143,6 +143,7 @@ cache-images: 0
 allow-custom-skulls: true
 
 # The maximum number of custom skulls to be displayed per player. Increasing this may decrease performance on weaker devices.
+# Setting this to -1 will cause all custom skulls to be displayed regardless of distance or number.
 max-visible-custom-skulls: 128
 
 # The radius in blocks around the player in which custom skulls are displayed.
