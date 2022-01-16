@@ -40,3 +40,6 @@ permissions:
   geyser.command.version:
     description: Shows the current Geyser version and checks for updates.
     default: op
+  geyser.command.extensions:
+    description: Shows all the loaded extensions.
+    default: op
