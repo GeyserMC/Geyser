@@ -111,10 +111,12 @@ public class SkullCache {
         if (skull != null && skull.entity != null) {
             freeSkullEntity(skull);
 
-            inRangeSkulls.remove(skull);
-            if (cullingEnabled && inRangeSkulls.size() >= maxVisibleSkulls) {
-                // Reassign entity to the closest skull without an entity
-                assignSkullEntity(inRangeSkulls.get(maxVisibleSkulls - 1));
+            if (cullingEnabled) {
+                inRangeSkulls.remove(skull);
+                if (inRangeSkulls.size() >= maxVisibleSkulls) {
+                    // Reassign entity to the closest skull without an entity
+                    assignSkullEntity(inRangeSkulls.get(maxVisibleSkulls - 1));
+                }
             }
         }
     }
