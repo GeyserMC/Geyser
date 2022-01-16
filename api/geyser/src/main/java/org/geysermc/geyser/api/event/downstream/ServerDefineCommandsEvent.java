@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.event.downstream;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.Cancellable;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
@@ -38,7 +39,7 @@ public class ServerDefineCommandsEvent extends ConnectionEvent implements Cancel
     private final Set<? extends CommandInfo> commands;
     private boolean cancelled;
 
-    public ServerDefineCommandsEvent(GeyserConnection connection, Set<? extends CommandInfo> commands) {
+    public ServerDefineCommandsEvent(@NonNull GeyserConnection connection, @NonNull Set<? extends CommandInfo> commands) {
         super(connection);
         this.commands = commands;
     }
@@ -48,6 +49,7 @@ public class ServerDefineCommandsEvent extends ConnectionEvent implements Cancel
      *
      * @return a mutable collection of the commands sent over
      */
+    @NonNull
     public Set<? extends CommandInfo> commands() {
         return this.commands;
     }

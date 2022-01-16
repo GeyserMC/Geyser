@@ -25,22 +25,26 @@
 
 package org.geysermc.geyser.api.event.connection;
 
-import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.Event;
 
 /**
  * An event that contains a {@link GeyserConnection}.
  */
-@RequiredArgsConstructor
 public abstract class ConnectionEvent implements Event {
     private final GeyserConnection connection;
+
+    public ConnectionEvent(@NonNull GeyserConnection connection) {
+        this.connection = connection;
+    }
 
     /**
      * Gets the {@link GeyserConnection}.
      *
      * @return the connection
      */
+    @NonNull
     public GeyserConnection connection() {
         return this.connection;
     }

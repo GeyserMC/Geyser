@@ -25,10 +25,6 @@
 
 package org.geysermc.geyser.api.event;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.experimental.Accessors;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -58,9 +54,6 @@ public @interface Subscribe {
     /**
      * Represents the post order of an event.
      */
-    @Accessors(fluent = true)
-    @Getter
-    @AllArgsConstructor
     enum PostOrder {
 
         /**
@@ -68,12 +61,12 @@ public @interface Subscribe {
          * allow for other events to customize
          * the outcome
          */
-        LOWEST(net.kyori.event.PostOrders.FIRST),
+        FIRST(net.kyori.event.PostOrders.FIRST),
 
         /**
          * The second lowest priority.
          */
-        LOW(net.kyori.event.PostOrders.EARLY),
+        EARLY(net.kyori.event.PostOrders.EARLY),
 
         /**
          * Normal priority. Event is neither
@@ -84,14 +77,27 @@ public @interface Subscribe {
         /**
          * The second highest priority
          */
-        HIGH(net.kyori.event.PostOrders.LATE),
+        LATE(net.kyori.event.PostOrders.LATE),
 
         /**
          * The highest of importance! Event is called
          * last and has the final say in the outcome
          */
-        HIGHEST(net.kyori.event.PostOrders.LAST);
+        LAST(net.kyori.event.PostOrders.LAST);
 
         private final int postOrder;
+
+        PostOrder(int postOrder) {
+            this.postOrder = postOrder;
+        }
+
+        /**
+         * The numerical post order value.
+         *
+         * @return numerical post order value
+         */
+        public int postOrder() {
+            return this.postOrder;
+        }
     }
 }

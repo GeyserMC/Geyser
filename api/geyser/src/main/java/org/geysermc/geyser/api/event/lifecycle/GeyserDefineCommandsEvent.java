@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.event.lifecycle;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.command.CommandManager;
 import org.geysermc.geyser.api.event.Event;
@@ -38,5 +39,5 @@ import java.util.Map;
  * @param commands a mutable list of the currently
  *                 registered default commands
  */
-public record GeyserDefineCommandsEvent(CommandManager commandManager, Map<String, Command> commands) implements Event {
+public record GeyserDefineCommandsEvent(@NonNull CommandManager commandManager, @NonNull Map<String, Command> commands) implements Event {
 }
