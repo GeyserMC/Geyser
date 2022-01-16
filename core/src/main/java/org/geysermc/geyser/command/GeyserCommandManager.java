@@ -63,6 +63,7 @@ public abstract class GeyserCommandManager extends CommandManager {
         register(new StatisticsCommand(geyser, "statistics", "geyser.commands.statistics.desc", "geyser.command.statistics"));
         register(new AdvancementsCommand("advancements", "geyser.commands.advancements.desc", "geyser.command.advancements"));
         register(new AdvancedTooltipsCommand("tooltips", "geyser.commands.advancedtooltips.desc", "geyser.command.tooltips"));
+        register(new ExtensionsCommand(geyser, "extensions", "geyser.commands.extensions.desc", "geyser.command.extensions"));
         if (GeyserImpl.getInstance().getPlatformType() == PlatformType.STANDALONE) {
             register(new StopCommand(geyser, "stop", "geyser.commands.stop.desc", "geyser.command.stop"));
         }
