@@ -29,6 +29,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import org.geysermc.geyser.api.event.ExtensionEventBus;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.extension.ExtensionDescription;
 import org.geysermc.geyser.api.extension.ExtensionLoader;
@@ -45,6 +46,7 @@ public class GeyserExtensionContainer {
     private final ExtensionDescription description;
     private final ExtensionLoader loader;
     private final ExtensionLogger logger;
+    private final ExtensionEventBus eventBus;
 
     @Getter(AccessLevel.NONE) protected boolean enabled;
 }

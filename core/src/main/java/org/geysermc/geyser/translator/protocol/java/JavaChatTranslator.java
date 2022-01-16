@@ -49,7 +49,7 @@ public class JavaChatTranslator extends PacketTranslator<ClientboundChatPacket> 
         });
 
         textPacket.setNeedsTranslation(false);
-        textPacket.setMessage(MessageTranslator.convertMessage(packet.getMessage(), session.getLocale()));
+        textPacket.setMessage(MessageTranslator.convertMessage(packet.getMessage(), session.locale()));
 
         session.sendUpstreamPacket(textPacket);
     }

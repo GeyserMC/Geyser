@@ -26,8 +26,8 @@
 package org.geysermc.geyser.platform.sponge.command;
 
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandExecutor;
-import org.geysermc.geyser.command.CommandSender;
+import org.geysermc.geyser.command.GeyserCommandExecutor;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.session.GeyserSession;
@@ -45,7 +45,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class GeyserSpongeCommandExecutor extends CommandExecutor implements CommandCallable {
+public class GeyserSpongeCommandExecutor extends GeyserCommandExecutor implements CommandCallable {
 
     public GeyserSpongeCommandExecutor(GeyserImpl geyser) {
         super(geyser);
@@ -53,14 +53,14 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
 
     @Override
     public CommandResult process(CommandSource source, String arguments) {
-        CommandSender commandSender = new SpongeCommandSender(source);
+        GeyserCommandSource commandSender = new SpongeCommandSource(source);
         GeyserSession session = getGeyserSession(commandSender);
 
         String[] args = arguments.split(" ");
         if (args.length > 0) {
             GeyserCommand command = getCommand(args[0]);
             if (command != null) {
-                if (!source.hasPermission(command.getPermission())) {
+                if (!source.hasPermission(command.permission())) {
                     // Not ideal to use log here but we dont get a session
                     source.sendMessage(Text.of(ChatColor.RED + GeyserLocale.getLocaleStringLog("geyser.bootstrap.command.permission_fail")));
                     return CommandResult.success();
@@ -80,7 +80,7 @@ public class GeyserSpongeCommandExecutor extends CommandExecutor implements Comm
     @Override
     public List<String> getSuggestions(CommandSource source, String arguments, @Nullable Location<World> targetPosition) {
         if (arguments.split(" ").length == 1) {
-            return tabComplete(new SpongeCommandSender(source));
+            return tabComplete(new SpongeCommandSource(source));
         }
         return Collections.emptyList();
     }

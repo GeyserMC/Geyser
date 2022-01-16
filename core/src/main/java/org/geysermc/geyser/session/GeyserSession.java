@@ -79,7 +79,7 @@ import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.command.CommandSender;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.entity.InteractiveTagManager;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
@@ -122,7 +122,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
-public class GeyserSession implements GeyserConnection, CommandSender {
+public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private final GeyserImpl geyser;
     private final UpstreamSession upstream;
@@ -876,7 +876,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
                 if (cause instanceof UnexpectedEncryptionException) {
                     if (remoteAuthType != AuthType.FLOODGATE) {
                         // Server expects online mode
-                        disconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.authentication_type_mismatch", getLocale());
+                        disconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.authentication_type_mismatch", locale());
                         // Explain that they may be looking for Floodgate.
                         geyser.getLogger().warning(GeyserLocale.getLocaleStringLog(
                                 geyser.getPlatformType() == PlatformType.STANDALONE ?
@@ -886,14 +886,14 @@ public class GeyserSession implements GeyserConnection, CommandSender {
                         ));
                     } else {
                         // Likely that Floodgate is not configured correctly.
-                        disconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.floodgate_login_error", getLocale());
+                        disconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.floodgate_login_error", locale());
                         if (geyser.getPlatformType() == PlatformType.STANDALONE) {
                             geyser.getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.remote.floodgate_login_error_standalone"));
                         }
                     }
                 } else if (cause instanceof ConnectException) {
                     // Server is offline, probably
-                    disconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.server_offline", getLocale());
+                    disconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.server_offline", locale());
                 } else {
                     disconnectMessage = MessageTranslator.convertMessageLenient(event.getReason());
                 }
@@ -1156,7 +1156,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     }
 
     @Override
-    public String getLocale() {
+    public String locale() {
         return clientData.getLanguageCode();
      }
 

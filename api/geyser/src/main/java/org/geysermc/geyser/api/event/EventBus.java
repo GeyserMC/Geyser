@@ -40,18 +40,7 @@ public interface EventBus {
     /**
      * Subscribes to the given event see {@link EventSubscription}.
      *
-     * @param eventClass the class of the event
-     * @param consumer the consumer for handling the event
-     * @param <T> the event class
-     * @return the event subscription
-     */
-    @NonNull
-    <T extends Event> EventSubscription<T> subscribe(@NonNull Class<T> eventClass, @NonNull Consumer<? super T> consumer);
-
-    /**
-     * Subscribes to the given event see {@link EventSubscription}.
-     *
-     * The difference between this method and {@link #subscribe(Class, Consumer)}
+     * The difference between this method and {@link ExtensionEventBus#subscribe(Class, Consumer)}
      * is that this method takes in an extension parameter which allows for
      * the event to be unsubscribed upon extension disable and reloads.
      *
@@ -78,6 +67,13 @@ public interface EventBus {
      * @param eventHolder the listener
      */
     void register(@NonNull Extension extension, @NonNull Object eventHolder);
+
+    /**
+     * Unregisters all events from a given {@link Extension}.
+     *
+     * @param extension the extension
+     */
+     void unregisterAll(@NonNull Extension extension);
 
     /**
      * Fires the given {@link Event}.

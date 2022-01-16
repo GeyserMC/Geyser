@@ -102,7 +102,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         session.setRenderDistance(packet.getViewDistance());
 
         // We need to send our skin parts to the server otherwise java sees us with no hat, jacket etc
-        String locale = session.getLocale();
+        String locale = session.locale();
         // TODO customize
         ServerboundClientInformationPacket infoPacket = new ServerboundClientInformationPacket(locale, (byte) session.getRenderDistance(), ChatVisibility.FULL, true, SKIN_PART_VALUES, HandPreference.RIGHT_HAND, false, true);
         session.sendDownstreamPacket(infoPacket);

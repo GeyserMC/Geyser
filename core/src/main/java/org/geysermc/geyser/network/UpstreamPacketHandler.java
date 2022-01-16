@@ -112,7 +112,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().getConfig().isForceResourcePacks());
         session.sendUpstreamPacket(resourcePacksInfo);
 
-        GeyserLocale.loadGeyserLocale(session.getLocale());
+        GeyserLocale.loadGeyserLocale(session.locale());
         return true;
     }
 
@@ -208,7 +208,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         if (session.isLoggingIn()) {
             SetTitlePacket titlePacket = new SetTitlePacket();
             titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
-            titlePacket.setText(GeyserLocale.getPlayerLocaleString("geyser.auth.login.wait", session.getLocale()));
+            titlePacket.setText(GeyserLocale.getPlayerLocaleString("geyser.auth.login.wait", session.locale()));
             titlePacket.setFadeInTime(0);
             titlePacket.setFadeOutTime(1);
             titlePacket.setStayTime(2);

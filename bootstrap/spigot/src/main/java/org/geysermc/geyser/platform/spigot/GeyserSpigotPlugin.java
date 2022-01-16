@@ -34,7 +34,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserBootstrap;
-import org.geysermc.geyser.command.CommandManager;
+import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -48,7 +48,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.geyser.platform.spigot.command.GeyserSpigotCommandManager;
-import org.geysermc.geyser.platform.spigot.command.SpigotCommandSender;
+import org.geysermc.geyser.platform.spigot.command.SpigotCommandSource;
 import org.geysermc.geyser.platform.spigot.world.GeyserPistonListener;
 import org.geysermc.geyser.platform.spigot.world.GeyserSpigot1_11CraftingListener;
 import org.geysermc.geyser.platform.spigot.world.GeyserSpigotBlockPlaceListener;
@@ -161,6 +161,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         }
 
         this.geyserCommandManager = new GeyserSpigotCommandManager(geyser);
+        this.geyserCommandManager.init();
 
         boolean isViaVersion = Bukkit.getPluginManager().getPlugin("ViaVersion") != null;
         if (isViaVersion) {
@@ -182,7 +183,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         boolean isPre1_12 = !isCompatible(Bukkit.getServer().getVersion(), "1.12.0");
         // Set if we need to use a different method for getting a player's locale
-        SpigotCommandSender.setUseLegacyLocaleMethod(isPre1_12);
+        SpigotCommandSource.setUseLegacyLocaleMethod(isPre1_12);
 
         // We want to do this late in the server startup process to allow plugins such as ViaVersion and ProtocolLib
         // To do their job injecting, then connect into *that*
@@ -267,7 +268,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     }
 
     @Override
-    public CommandManager getGeyserCommandManager() {
+    public GeyserCommandManager getGeyserCommandManager() {
         return this.geyserCommandManager;
     }
 

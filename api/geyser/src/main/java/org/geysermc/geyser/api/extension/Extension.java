@@ -27,6 +27,7 @@ package org.geysermc.geyser.api.extension;
 
 import org.geysermc.api.GeyserApiBase;
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.event.ExtensionEventBus;
 
 import java.nio.file.Path;
 
@@ -78,6 +79,15 @@ public interface Extension {
      */
     default Path dataFolder() {
         return this.extensionLoader().dataFolder(this);
+    }
+
+    /**
+     * Gets the {@link ExtensionEventBus}.
+     *
+     * @return the extension event bus
+     */
+    default ExtensionEventBus eventBus() {
+        return this.extensionLoader().eventBus(this);
     }
 
     /**

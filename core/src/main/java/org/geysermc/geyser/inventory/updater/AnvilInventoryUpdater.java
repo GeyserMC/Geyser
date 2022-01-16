@@ -115,7 +115,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
 
             // Changing the item in the input slot resets the name field on Bedrock, but
             // does not result in a FilterTextPacket
-            String originalName = MessageTranslator.convertToPlainText(ItemUtils.getCustomName(input.getNbt()), session.getLocale());
+            String originalName = MessageTranslator.convertToPlainText(ItemUtils.getCustomName(input.getNbt()), session.locale());
             ServerboundRenameItemPacket renameItemPacket = new ServerboundRenameItemPacket(originalName);
             session.sendDownstreamPacket(renameItemPacket);
 
@@ -427,7 +427,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         String originalName = ItemUtils.getCustomName(anvilContainer.getInput().getNbt());
         if (bedrock && originalName != null && anvilContainer.getNewName() != null) {
             // Check text and formatting
-            String legacyOriginalName = MessageTranslator.convertMessageLenient(originalName, session.getLocale());
+            String legacyOriginalName = MessageTranslator.convertMessageLenient(originalName, session.locale());
             return !legacyOriginalName.equals(anvilContainer.getNewName());
         }
         return !Objects.equals(originalName, ItemUtils.getCustomName(anvilContainer.getResult().getNbt()));

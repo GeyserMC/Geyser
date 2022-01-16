@@ -157,7 +157,7 @@ public abstract class ItemTranslator {
 
         nbt = translateDisplayProperties(session, nbt, bedrockItem);
         if (session.isAdvancedTooltips()) {
-            nbt = addAdvancedTooltips(nbt, session.getItemMappings().getMapping(stack), session.getLocale());
+            nbt = addAdvancedTooltips(nbt, session.getItemMappings().getMapping(stack), session.locale());
         }
 
         ItemStack itemStack = new ItemStack(stack.getId(), stack.getAmount(), nbt);
@@ -474,7 +474,7 @@ public abstract class ItemTranslator {
                 String name = ((StringTag) display.get("Name")).getValue();
 
                 // Get the translated name and prefix it with a reset char
-                name = MessageTranslator.convertMessageLenient(name, session.getLocale());
+                name = MessageTranslator.convertMessageLenient(name, session.locale());
 
                 // Add the new name tag
                 display.put(new StringTag("Name", name));
@@ -500,7 +500,7 @@ public abstract class ItemTranslator {
 
             String translationKey = mapping.getTranslationString();
             // Reset formatting since Bedrock defaults to italics
-            display.put(new StringTag("Name", "§r§" + translationColor + MinecraftLocale.getLocaleString(translationKey, session.getLocale())));
+            display.put(new StringTag("Name", "§r§" + translationColor + MinecraftLocale.getLocaleString(translationKey, session.locale())));
         }
 
         return tag;

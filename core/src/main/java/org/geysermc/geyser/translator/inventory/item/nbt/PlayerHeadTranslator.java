@@ -56,7 +56,7 @@ public class PlayerHeadTranslator extends NbtItemStackTranslator {
                 }
                 // Add correct name of player skull
                 // TODO: It's always yellow, even with a custom name. Handle?
-                String displayName = "\u00a7r\u00a7e" + MinecraftLocale.getLocaleString("block.minecraft.player_head.named", session.getLocale()).replace("%s", name.getValue());
+                String displayName = "\u00a7r\u00a7e" + MinecraftLocale.getLocaleString("block.minecraft.player_head.named", session.locale()).replace("%s", name.getValue());
                 if (!itemTag.contains("display")) {
                     itemTag.put(new CompoundTag("display"));
                 }

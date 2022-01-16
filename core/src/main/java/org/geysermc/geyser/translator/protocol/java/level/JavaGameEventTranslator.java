@@ -153,7 +153,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
             case INVALID_BED:
                 // Not sent as a proper message? Odd.
                 session.sendMessage(MinecraftLocale.getLocaleString("block.minecraft.spawn.not_valid",
-                        session.getLocale()));
+                        session.locale()));
                 break;
             case ARROW_HIT_PLAYER:
                 PlaySoundPacket arrowSoundPacket = new PlaySoundPacket();

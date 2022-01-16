@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.extension;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.event.ExtensionEventBus;
 
 import java.nio.file.Path;
 
@@ -67,6 +68,15 @@ public abstract class ExtensionLoader {
      */
     @NonNull
     protected abstract ExtensionDescription description(@NonNull Extension extension);
+
+    /**
+     * Gets the given {@link Extension}'s {@link ExtensionEventBus}.
+     *
+     * @param extension the extension
+     * @return the extension's event bus
+     */
+    @NonNull
+    protected abstract ExtensionEventBus eventBus(@NonNull Extension extension);
 
     /**
      * Gets the {@link ExtensionLogger} for the given {@link Extension}.

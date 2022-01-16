@@ -226,7 +226,7 @@ public class LoginEncryptionUtils {
 
         session.sendForm(
                 SimpleForm.builder()
-                        .translator(GeyserLocale::getPlayerLocaleString, session.getLocale())
+                        .translator(GeyserLocale::getPlayerLocaleString, session.locale())
                         .title("geyser.auth.login.form.notice.title")
                         .content("geyser.auth.login.form.notice.desc")
                         .optionalButton("geyser.auth.login.form.notice.btn_login.mojang", isPasswordAuthEnabled)
@@ -257,14 +257,14 @@ public class LoginEncryptionUtils {
                                 return;
                             }
 
-                            session.disconnect(GeyserLocale.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.getLocale()));
+                            session.disconnect(GeyserLocale.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.locale()));
                         }));
     }
 
     public static void buildAndShowLoginDetailsWindow(GeyserSession session) {
         session.sendForm(
                 CustomForm.builder()
-                        .translator(GeyserLocale::getPlayerLocaleString, session.getLocale())
+                        .translator(GeyserLocale::getPlayerLocaleString, session.locale())
                         .title("geyser.auth.login.form.details.title")
                         .label("geyser.auth.login.form.details.desc")
                         .input("geyser.auth.login.form.details.email", "account@geysermc.org", "")
@@ -286,7 +286,7 @@ public class LoginEncryptionUtils {
     public static void buildAndShowMicrosoftAuthenticationWindow(GeyserSession session) {
         session.sendForm(
                 SimpleForm.builder()
-                        .translator(GeyserLocale::getPlayerLocaleString, session.getLocale())
+                        .translator(GeyserLocale::getPlayerLocaleString, session.locale())
                         .title("geyser.auth.login.form.notice.btn_login.microsoft")
                         .button("geyser.auth.login.method.browser")
                         .button("geyser.auth.login.method.password")
@@ -303,7 +303,7 @@ public class LoginEncryptionUtils {
                             } else if (response.getClickedButtonId() == 1) {
                                 buildAndShowLoginDetailsWindow(session);
                             } else {
-                                session.disconnect(GeyserLocale.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.getLocale()));
+                                session.disconnect(GeyserLocale.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.locale()));
                             }
                         }));
     }
@@ -326,7 +326,7 @@ public class LoginEncryptionUtils {
                             }
 
                             if (response.getClickedButtonId() == 1) {
-                                session.disconnect(GeyserLocale.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.getLocale()));
+                                session.disconnect(GeyserLocale.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.locale()));
                             }
                         })
         );

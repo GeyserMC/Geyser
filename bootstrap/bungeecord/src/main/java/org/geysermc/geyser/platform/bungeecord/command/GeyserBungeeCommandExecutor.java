@@ -30,7 +30,7 @@ import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.plugin.Command;
 import net.md_5.bungee.api.plugin.TabExecutor;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandExecutor;
+import org.geysermc.geyser.command.GeyserCommandExecutor;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -39,30 +39,30 @@ import java.util.Arrays;
 import java.util.Collections;
 
 public class GeyserBungeeCommandExecutor extends Command implements TabExecutor {
-    private final CommandExecutor commandExecutor;
+    private final GeyserCommandExecutor commandExecutor;
 
     public GeyserBungeeCommandExecutor(GeyserImpl geyser) {
         super("geyser");
 
-        this.commandExecutor = new CommandExecutor(geyser);
+        this.commandExecutor = new GeyserCommandExecutor(geyser);
     }
 
     @Override
     public void execute(CommandSender sender, String[] args) {
-        BungeeCommandSender commandSender = new BungeeCommandSender(sender);
+        BungeeCommandSource commandSender = new BungeeCommandSource(sender);
         GeyserSession session = this.commandExecutor.getGeyserSession(commandSender);
 
         if (args.length > 0) {
             GeyserCommand command = this.commandExecutor.getCommand(args[0]);
             if (command != null) {
-                if (!sender.hasPermission(command.getPermission())) {
-                    String message = GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", commandSender.getLocale());
+                if (!sender.hasPermission(command.permission())) {
+                    String message = GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.permission_fail", commandSender.locale());
 
                     commandSender.sendMessage(ChatColor.RED + message);
                     return;
                 }
                 if (command.isBedrockOnly() && session == null) {
-                    String message = GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", commandSender.getLocale());
+                    String message = GeyserLocale.getPlayerLocaleString("geyser.bootstrap.command.bedrock_only", commandSender.locale());
 
                     commandSender.sendMessage(ChatColor.RED + message);
                     return;
@@ -77,7 +77,7 @@ public class GeyserBungeeCommandExecutor extends Command implements TabExecutor 
     @Override
     public Iterable<String> onTabComplete(CommandSender sender, String[] args) {
         if (args.length == 1) {
-            return commandExecutor.tabComplete(new BungeeCommandSender(sender));
+            return commandExecutor.tabComplete(new BungeeCommandSource(sender));
         } else {
             return Collections.emptyList();
         }

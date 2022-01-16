@@ -45,7 +45,7 @@ public class SettingsUtils {
      */
     public static CustomForm buildForm(GeyserSession session) {
         // Cache the language for cleaner access
-        String language = session.getLocale();
+        String language = session.locale();
 
         CustomForm.Builder builder = CustomForm.builder()
                 .translator(SettingsUtils::translateEntry, language)

@@ -42,7 +42,7 @@ public class AxolotlBucketTranslator extends NbtItemStackTranslator {
         // Bedrock Edition displays the properties of the axolotl. Java does not.
         // To work around this, set the custom name to the Axolotl translation and it's displayed correctly
         itemTag.put(new ByteTag("AppendCustomName", (byte) 1));
-        itemTag.put(new StringTag("CustomName", MinecraftLocale.getLocaleString("entity.minecraft.axolotl", session.getLocale())));
+        itemTag.put(new StringTag("CustomName", MinecraftLocale.getLocaleString("entity.minecraft.axolotl", session.locale())));
         // Boilerplate required so the nametag does not appear as "Bucket of "
         itemTag.put(new StringTag("ColorID", ""));
         itemTag.put(new StringTag("BodyID", ""));

@@ -27,7 +27,8 @@ package org.geysermc.geyser.command.defaults;
 
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandSender;
+import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.session.GeyserSession;
@@ -54,25 +55,25 @@ public class HelpCommand extends GeyserCommand {
      * @param args Not used.
      */
     @Override
-    public void execute(GeyserSession session, CommandSender sender, String[] args) {
+    public void execute(GeyserSession session, GeyserCommandSource sender, String[] args) {
         int page = 1;
         int maxPage = 1;
-        String header = GeyserLocale.getPlayerLocaleString("geyser.commands.help.header", sender.getLocale(), page, maxPage);
+        String header = GeyserLocale.getPlayerLocaleString("geyser.commands.help.header", sender.locale(), page, maxPage);
         sender.sendMessage(header);
 
-        Map<String, GeyserCommand> cmds = geyser.getCommandManager().getCommands();
-        for (Map.Entry<String, GeyserCommand> entry : cmds.entrySet()) {
-            GeyserCommand cmd = entry.getValue();
+        Map<String, Command> cmds = geyser.commandManager().getCommands();
+        for (Map.Entry<String, Command> entry : cmds.entrySet()) {
+            Command cmd = entry.getValue();
 
             // Standalone hack-in since it doesn't have a concept of permissions
-            if (geyser.getPlatformType() == PlatformType.STANDALONE || sender.hasPermission(cmd.getPermission())) {
+            if (geyser.getPlatformType() == PlatformType.STANDALONE || sender.hasPermission(cmd.permission())) {
                 // Only list commands the player can actually run
                 if (cmd.isBedrockOnly() && session == null) {
                     continue;
                 }
 
                 sender.sendMessage(ChatColor.YELLOW + "/geyser " + entry.getKey() + ChatColor.WHITE + ": " +
-                        GeyserLocale.getPlayerLocaleString(cmd.getDescription(), sender.getLocale()));
+                        GeyserLocale.getPlayerLocaleString(cmd.description(), sender.locale()));
             }
         }
     }

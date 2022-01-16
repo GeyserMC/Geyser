@@ -61,7 +61,7 @@ public class BasicItemTranslator extends NbtItemStackTranslator {
             List<Tag> lore = new ArrayList<>();
             for (Tag tag : listTag.getValue()) {
                 if (!(tag instanceof StringTag)) continue;
-                lore.add(new StringTag("", MessageTranslator.convertMessageLenient(((StringTag) tag).getValue(), session.getLocale())));
+                lore.add(new StringTag("", MessageTranslator.convertMessageLenient(((StringTag) tag).getValue(), session.locale())));
             }
             displayTag.put(new ListTag("Lore", lore));
         }

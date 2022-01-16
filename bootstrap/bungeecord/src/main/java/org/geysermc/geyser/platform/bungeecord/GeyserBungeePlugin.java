@@ -30,7 +30,7 @@ import net.md_5.bungee.api.plugin.Plugin;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserBootstrap;
-import org.geysermc.geyser.command.CommandManager;
+import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
@@ -126,6 +126,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         this.geyserInjector.initializeLocalChannel(this);
 
         this.geyserCommandManager = new GeyserBungeeCommandManager(geyser);
+        this.geyserCommandManager.init();
 
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserBungeePingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
@@ -157,7 +158,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     }
 
     @Override
-    public CommandManager getGeyserCommandManager() {
+    public GeyserCommandManager getGeyserCommandManager() {
         return this.geyserCommandManager;
     }
 

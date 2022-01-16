@@ -28,6 +28,7 @@ package org.geysermc.geyser.extension;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.ExtensionEventBus;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.extension.ExtensionDescription;
 import org.geysermc.geyser.api.extension.ExtensionLoader;
@@ -35,6 +36,7 @@ import org.geysermc.geyser.api.extension.ExtensionLogger;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
 import org.geysermc.geyser.api.extension.exception.InvalidExtensionException;
+import org.geysermc.geyser.extension.event.GeyserExtensionEventBus;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.io.IOException;
@@ -83,12 +85,12 @@ public class GeyserExtensionLoader extends ExtensionLoader {
         }
 
         this.classLoaders.put(description.name(), loader);
-        return this.setup(loader.extension(), description, dataFolder);
+        return this.setup(loader.extension(), description, dataFolder, new GeyserExtensionEventBus(GeyserImpl.getInstance().eventBus(), loader.extension()));
     }
 
-    private GeyserExtensionContainer setup(Extension extension, GeyserExtensionDescription description, Path dataFolder) {
+    private GeyserExtensionContainer setup(Extension extension, GeyserExtensionDescription description, Path dataFolder, ExtensionEventBus eventBus) {
         GeyserExtensionLogger logger = new GeyserExtensionLogger(GeyserImpl.getInstance().getLogger(), description.name());
-        GeyserExtensionContainer container = new GeyserExtensionContainer(extension, dataFolder, description, this, logger);
+        GeyserExtensionContainer container = new GeyserExtensionContainer(extension, dataFolder, description, this, logger, eventBus);
         extension.onLoad();
         return container;
     }
@@ -244,6 +246,12 @@ public class GeyserExtensionLoader extends ExtensionLoader {
     @Override
     protected ExtensionDescription description(@NonNull Extension extension) {
         return this.extensionContainers.get(extension).description();
+    }
+
+    @NonNull
+    @Override
+    protected ExtensionEventBus eventBus(@NonNull Extension extension) {
+        return this.extensionContainers.get(extension).eventBus();
     }
 
     @NonNull

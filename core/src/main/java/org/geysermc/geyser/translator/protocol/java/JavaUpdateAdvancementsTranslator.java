@@ -84,13 +84,13 @@ public class JavaUpdateAdvancementsTranslator extends PacketTranslator<Clientbou
                     // Java uses some pink color for toast challenge completes
                     String color = advancement.getDisplayData().getFrameType() == Advancement.DisplayData.FrameType.CHALLENGE ?
                             "§d" : "§a";
-                    String advancementName = MessageTranslator.convertMessage(advancement.getDisplayData().getTitle(), session.getLocale());
+                    String advancementName = MessageTranslator.convertMessage(advancement.getDisplayData().getTitle(), session.locale());
 
                     // Send an action bar message stating they earned an achievement
                     // Sent for instances where broadcasting advancements through chat are disabled
                     SetTitlePacket titlePacket = new SetTitlePacket();
                     titlePacket.setText(color + "[" + MinecraftLocale.getLocaleString("advancements.toast." +
-                            advancement.getDisplayData().getFrameType().toString().toLowerCase(), session.getLocale()) + "]§f " + advancementName);
+                            advancement.getDisplayData().getFrameType().toString().toLowerCase(), session.locale()) + "]§f " + advancementName);
                     titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
                     titlePacket.setFadeOutTime(3);
                     titlePacket.setFadeInTime(3);

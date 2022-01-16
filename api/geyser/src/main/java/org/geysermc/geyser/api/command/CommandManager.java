@@ -23,37 +23,45 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.sponge.command;
+package org.geysermc.geyser.api.command;
 
-import lombok.AllArgsConstructor;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-import org.geysermc.geyser.command.CommandSender;
-import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.command.source.ConsoleSource;
-import org.spongepowered.api.text.Text;
+import java.util.Map;
 
-@AllArgsConstructor
-public class SpongeCommandSender implements CommandSender {
+/**
+ * Manages Bedrock commands within Geyser.
+ */
+public abstract class CommandManager {
 
-    private CommandSource handle;
+    /**
+     * Provides a {@link Command.Builder}.
+     *
+     * @param sourceType the command source type
+     * @param <T> the type
+     * @return a command builder
+     */
+    protected abstract <T extends CommandSource> Command.Builder<T> provideBuilder(Class<T> sourceType);
 
-    @Override
-    public String name() {
-        return handle.getName();
-    }
+    /**
+     * Registers the given {@link Command}.
+     *
+     * @param command the command to register
+     */
+    public abstract void register(@NonNull Command command);
 
-    @Override
-    public void sendMessage(String message) {
-        handle.sendMessage(Text.of(message));
-    }
+    /**
+     * Unregisters the given {@link Command}.
+     *
+     * @param command the command to unregister
+     */
+    public abstract void unregister(@NonNull Command command);
 
-    @Override
-    public boolean isConsole() {
-        return handle instanceof ConsoleSource;
-    }
-
-    @Override
-    public boolean hasPermission(String permission) {
-        return handle.hasPermission(permission);
-    }
+    /**
+     * Gets all the registered {@link Command}s.
+     *
+     * @return all the registered commands
+     */
+    @NonNull
+    public abstract Map<String, Command> commands();
 }

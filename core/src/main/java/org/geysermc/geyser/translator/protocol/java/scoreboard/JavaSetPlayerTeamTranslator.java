@@ -67,8 +67,8 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
                         .setName(MessageTranslator.convertMessage(packet.getDisplayName()))
                         .setColor(packet.getColor())
                         .setNameTagVisibility(packet.getNameTagVisibility())
-                        .setPrefix(MessageTranslator.convertMessage(packet.getPrefix(), session.getLocale()))
-                        .setSuffix(MessageTranslator.convertMessage(packet.getSuffix(), session.getLocale()));
+                        .setPrefix(MessageTranslator.convertMessage(packet.getPrefix(), session.locale()))
+                        .setSuffix(MessageTranslator.convertMessage(packet.getSuffix(), session.locale()));
 
                 if (packet.getPlayers().length != 0) {
                     if ((team.getNameTagVisibility() != NameTagVisibility.ALWAYS && !team.isVisibleFor(session.getPlayerEntity().getUsername()))
@@ -98,8 +98,8 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
                 team.setName(MessageTranslator.convertMessage(packet.getDisplayName()))
                         .setColor(packet.getColor())
                         .setNameTagVisibility(packet.getNameTagVisibility())
-                        .setPrefix(MessageTranslator.convertMessage(packet.getPrefix(), session.getLocale()))
-                        .setSuffix(MessageTranslator.convertMessage(packet.getSuffix(), session.getLocale()))
+                        .setPrefix(MessageTranslator.convertMessage(packet.getPrefix(), session.locale()))
+                        .setSuffix(MessageTranslator.convertMessage(packet.getSuffix(), session.locale()))
                         .setUpdateType(UpdateType.UPDATE);
 
                 if (oldVisibility != team.getNameTagVisibility()

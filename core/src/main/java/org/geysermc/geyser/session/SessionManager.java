@@ -80,7 +80,7 @@ public final class SessionManager {
     public void disconnectAll(String message) {
         Collection<GeyserSession> sessions = getAllSessions();
         for (GeyserSession session : sessions) {
-            session.disconnect(GeyserLocale.getPlayerLocaleString(message, session.getLocale()));
+            session.disconnect(GeyserLocale.getPlayerLocaleString(message, session.locale()));
         }
     }
 

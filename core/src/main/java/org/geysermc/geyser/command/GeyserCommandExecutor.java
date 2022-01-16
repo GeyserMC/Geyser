@@ -27,6 +27,7 @@ package org.geysermc.geyser.command;
 
 import lombok.AllArgsConstructor;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.session.GeyserSession;
 
 import javax.annotation.Nullable;
@@ -39,16 +40,16 @@ import java.util.Map;
  * Represents helper functions for listening to {@code /geyser} commands.
  */
 @AllArgsConstructor
-public class CommandExecutor {
+public class GeyserCommandExecutor {
 
     protected final GeyserImpl geyser;
 
     public GeyserCommand getCommand(String label) {
-        return geyser.getCommandManager().getCommands().get(label);
+        return (GeyserCommand) geyser.commandManager().commands().get(label);
     }
 
     @Nullable
-    public GeyserSession getGeyserSession(CommandSender sender) {
+    public GeyserSession getGeyserSession(GeyserCommandSource sender) {
         if (sender.isConsole()) {
             return null;
         }
@@ -70,20 +71,19 @@ public class CommandExecutor {
      *               If the command sender does not have the permission for a given command, the command will not be shown.
      * @return A list of command names to include in the tab complete
      */
-    public List<String> tabComplete(CommandSender sender) {
+    public List<String> tabComplete(GeyserCommandSource sender) {
         if (getGeyserSession(sender) != null) {
             // Bedrock doesn't get tab completions or argument suggestions
             return Collections.emptyList();
         }
 
         List<String> availableCommands = new ArrayList<>();
-        Map<String, GeyserCommand> commands = geyser.getCommandManager().getCommands();
+        Map<String, Command> commands = geyser.commandManager().getCommands();
 
         // Only show commands they have permission to use
-        for (Map.Entry<String, GeyserCommand> entry : commands.entrySet()) {
-            GeyserCommand geyserCommand = entry.getValue();
-            if (sender.hasPermission(geyserCommand.getPermission())) {
-
+        for (Map.Entry<String, Command> entry : commands.entrySet()) {
+            Command geyserCommand = entry.getValue();
+            if (sender.hasPermission(geyserCommand.permission())) {
                 if (geyserCommand.isBedrockOnly()) {
                     // Don't show commands the JE player can't run
                     continue;

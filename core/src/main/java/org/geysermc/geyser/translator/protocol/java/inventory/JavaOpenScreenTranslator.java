@@ -57,8 +57,8 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
             return;
         }
 
-        String name = MessageTranslator.convertMessageLenient(packet.getName(), session.getLocale());
-        name = MinecraftLocale.getLocaleString(name, session.getLocale());
+        String name = MessageTranslator.convertMessageLenient(packet.getName(), session.locale());
+        name = MinecraftLocale.getLocaleString(name, session.locale());
 
         Inventory newInventory = newTranslator.createInventory(name, packet.getContainerId(), packet.getType(), session.getPlayerInventory());
         if (openInventory != null) {

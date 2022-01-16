@@ -90,15 +90,18 @@ public class GeyserExtensionManager extends ExtensionManager {
 
     public void enableExtension(Extension extension) {
         if (!extension.isEnabled()) {
-            GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.extensions.enable.success", extension.description().name()));
             extension.setEnabled(true);
+            GeyserImpl.getInstance().eventBus().register(extension, extension);
+            GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.extensions.enable.success", extension.description().name()));
         }
     }
 
     private void disableExtension(@NonNull Extension extension) {
         if (extension.isEnabled()) {
-            GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.extensions.disable.success", extension.description().name()));
+            GeyserImpl.getInstance().eventBus().unregisterAll(extension);
+
             extension.setEnabled(false);
+            GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.extensions.disable.success", extension.description().name()));
         }
     }
 

@@ -63,7 +63,7 @@ public interface EventSubscription<T extends Event> {
      *
      * @return the extension that owns this subscription
      */
-    @Nullable
+    @NonNull
     Extension owner();
 
     /**

@@ -29,19 +29,19 @@ import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import org.geysermc.geyser.command.CommandSender;
+import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Locale;
 
-public class VelocityCommandSender implements CommandSender {
+public class VelocityCommandSource implements GeyserCommandSource {
 
     private final CommandSource handle;
 
-    public VelocityCommandSender(CommandSource handle) {
+    public VelocityCommandSource(CommandSource handle) {
         this.handle = handle;
         // Ensure even Java players' languages are loaded
-        GeyserLocale.loadGeyserLocale(getLocale());
+        GeyserLocale.loadGeyserLocale(this.locale());
     }
 
     @Override
@@ -65,7 +65,7 @@ public class VelocityCommandSender implements CommandSender {
     }
 
     @Override
-    public String getLocale() {
+    public String locale() {
         if (handle instanceof Player) {
             Locale locale = ((Player) handle).getPlayerSettings().getLocale();
             return GeyserLocale.formatLocale(locale.getLanguage() + "_" + locale.getCountry());

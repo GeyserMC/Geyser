@@ -54,8 +54,8 @@ public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPack
 
             String originalName = ItemUtils.getCustomName(anvilContainer.getInput().getNbt());
 
-            String plainOriginalName = MessageTranslator.convertToPlainText(originalName, session.getLocale());
-            String plainNewName = MessageTranslator.convertToPlainText(packet.getText(), session.getLocale());
+            String plainOriginalName = MessageTranslator.convertToPlainText(originalName, session.locale());
+            String plainNewName = MessageTranslator.convertToPlainText(packet.getText(), session.locale());
             if (!plainOriginalName.equals(plainNewName)) {
                 // Strip out formatting since Java Edition does not allow it
                 packet.setText(plainNewName);

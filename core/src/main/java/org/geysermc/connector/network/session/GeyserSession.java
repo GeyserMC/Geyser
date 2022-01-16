@@ -136,7 +136,7 @@ public class GeyserSession {
     }
 
     public String getLocale() {
-        return this.handle.getLocale();
+        return this.handle.locale();
     }
 
     public void sendUpstreamPacket(BedrockPacket packet) {

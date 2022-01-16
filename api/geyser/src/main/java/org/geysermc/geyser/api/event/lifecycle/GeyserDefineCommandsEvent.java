@@ -23,45 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.command;
+package org.geysermc.geyser.api.event.lifecycle;
 
-import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.command.CommandManager;
+import org.geysermc.geyser.api.event.Event;
+
+import java.util.Map;
 
 /**
- * Implemented on top of any class that can send a command.
- * For example, it wraps around Spigot's CommandSender class.
+ * Called when commands are defined within Geyser.
+ *
+ * @param commandManager the command manager
+ * @param commands a mutable list of the currently
+ *                 registered default commands
  */
-public interface CommandSender {
-
-    String name();
-
-    default void sendMessage(String[] messages) {
-        for (String message : messages) {
-            sendMessage(message);
-        }
-    }
-
-    void sendMessage(String message);
-
-    /**
-     * @return true if the specified sender is from the console.
-     */
-    boolean isConsole();
-
-    /**
-     * Returns the locale of the command sender. Defaults to the default locale at {@link GeyserLocale#getDefaultLocale()}.
-     * 
-     * @return the locale of the command sender.
-     */
-    default String getLocale() {
-        return GeyserLocale.getDefaultLocale();
-    }
-
-    /**
-     * Checks if the CommandSender has a permission
-     *
-     * @param permission The permission node to check
-     * @return true if the CommandSender has the requested permission, false if not
-     */
-    boolean hasPermission(String permission);
+public record GeyserDefineCommandsEvent(CommandManager commandManager, Map<String, Command> commands) implements Event {
 }

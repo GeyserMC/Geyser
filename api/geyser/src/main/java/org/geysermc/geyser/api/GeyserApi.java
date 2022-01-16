@@ -29,6 +29,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.Geyser;
 import org.geysermc.api.GeyserApiBase;
+import org.geysermc.geyser.api.command.CommandManager;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.extension.ExtensionManager;
@@ -88,6 +89,13 @@ public interface GeyserApi extends GeyserApiBase {
      * @return the extension manager
      */
     ExtensionManager extensionManager();
+
+    /**
+     * Gets the {@link CommandManager}.
+     *
+     * @return the command manager
+     */
+    CommandManager commandManager();
 
     /**
      * Gets the {@link EventBus} for handling

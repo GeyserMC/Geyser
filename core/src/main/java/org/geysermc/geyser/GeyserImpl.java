@@ -52,7 +52,7 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
-import org.geysermc.geyser.command.CommandManager;
+import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.event.GeyserEventBus;
@@ -470,12 +470,11 @@ public class GeyserImpl implements GeyserApi {
             skinUploader.close();
         }
         newsHandler.shutdown();
-        this.getCommandManager().getCommands().clear();
+        this.commandManager().getCommands().clear();
 
         ResourcePack.PACKS.clear();
 
         this.eventBus.fire(new GeyserShutdownEvent());
-
         this.extensionManager.disableExtensions();
 
         bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.done"));
@@ -505,6 +504,11 @@ public class GeyserImpl implements GeyserApi {
     }
 
     @Override
+    public GeyserCommandManager commandManager() {
+        return this.bootstrap.getGeyserCommandManager();
+    }
+
+    @Override
     public EventBus eventBus() {
         return this.eventBus;
     }
@@ -529,10 +533,6 @@ public class GeyserImpl implements GeyserApi {
 
     public GeyserConfiguration getConfig() {
         return bootstrap.getGeyserConfig();
-    }
-
-    public CommandManager getCommandManager() {
-        return bootstrap.getGeyserCommandManager();
     }
 
     public WorldManager getWorldManager() {

@@ -23,19 +23,37 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.standalone.command;
+package org.geysermc.geyser.platform.sponge.command;
 
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandManager;
+import lombok.AllArgsConstructor;
 
-public class GeyserCommandManager extends CommandManager {
+import org.geysermc.geyser.command.GeyserCommandSource;
+import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.source.ConsoleSource;
+import org.spongepowered.api.text.Text;
 
-    public GeyserCommandManager(GeyserImpl geyser) {
-        super(geyser);
+@AllArgsConstructor
+public class SpongeCommandSource implements GeyserCommandSource {
+
+    private CommandSource handle;
+
+    @Override
+    public String name() {
+        return handle.getName();
     }
 
     @Override
-    public String getDescription(String command) {
-        return ""; // this is not sent over the protocol, so we return none
+    public void sendMessage(String message) {
+        handle.sendMessage(Text.of(message));
+    }
+
+    @Override
+    public boolean isConsole() {
+        return handle instanceof ConsoleSource;
+    }
+
+    @Override
+    public boolean hasPermission(String permission) {
+        return handle.hasPermission(permission);
     }
 }

@@ -42,7 +42,7 @@ public class JavaSetTitleTextTranslator extends PacketTranslator<ClientboundSetT
         if (packet.getText() == null || Component.empty().equals(packet.getText())) { // This can happen, see https://github.com/KyoriPowered/adventure/issues/447
             text = " ";
         } else {
-            text = MessageTranslator.convertMessage(packet.getText(), session.getLocale());
+            text = MessageTranslator.convertMessage(packet.getText(), session.locale());
         }
 
         SetTitlePacket titlePacket = new SetTitlePacket();

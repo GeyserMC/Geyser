@@ -38,6 +38,7 @@ import lombok.Getter;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
@@ -145,6 +146,8 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         // Will be initialized after the proxy has been bound
 
         this.geyserCommandManager = new GeyserVelocityCommandManager(geyser);
+        this.geyserCommandManager.init();
+
         this.commandManager.register("geyser", new GeyserVelocityCommandExecutor(geyser));
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
@@ -174,7 +177,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     }
 
     @Override
-    public org.geysermc.geyser.command.CommandManager getGeyserCommandManager() {
+    public GeyserCommandManager getGeyserCommandManager() {
         return this.geyserCommandManager;
     }
 

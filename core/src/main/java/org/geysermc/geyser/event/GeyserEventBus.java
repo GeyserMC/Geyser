@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.event;
 
+import net.kyori.event.EventSubscriber;
 import net.kyori.event.SimpleEventBus;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.event.Event;
@@ -37,16 +38,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class GeyserEventBus implements EventBus {
     private final SimpleEventBus<Event> bus = new SimpleEventBus<>(Event.class);
-
-    @NonNull
-    @Override
-    public <T extends Event> EventSubscription<T> subscribe(@NonNull Class<T> eventClass, @NonNull Consumer<? super T> consumer) {
-        return this.subscribe(eventClass, consumer, null, Subscribe.Priority.NORMAL);
-    }
 
     @NonNull
     @Override
@@ -84,6 +80,11 @@ public class GeyserEventBus implements EventBus {
                 }
             }, extension, subscribe.priority());
         }
+    }
+
+    @Override
+    public void unregisterAll(@NonNull Extension extension) {
+        this.bus.unregister((Predicate<EventSubscriber<?>>) subscriber -> extension.equals(((GeyserEventSubscription<?>) subscriber).owner()));
     }
 
     @Override
