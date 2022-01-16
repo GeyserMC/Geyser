@@ -121,7 +121,7 @@ public class ChunkUtils {
         if (chunkPos == null || !chunkPos.equals(newChunkPos)) {
             NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
             chunkPublisherUpdatePacket.setPosition(position);
-            chunkPublisherUpdatePacket.setRadius(session.getRenderDistance() << 4);
+            chunkPublisherUpdatePacket.setRadius(session.getServerRenderDistance() << 4);
             session.sendUpstreamPacket(chunkPublisherUpdatePacket);
 
             session.setLastChunkPosition(newChunkPos);

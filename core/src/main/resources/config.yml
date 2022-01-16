@@ -125,6 +125,9 @@ show-cooldown: title
 # Controls if coordinates are shown to players.
 show-coordinates: true
 
+# Whether Bedrock players are blocked from performing their scaffolding-style bridging.
+disable-bedrock-scaffolding: false
+
 # If set, when a Bedrock player performs any emote, it will swap the offhand and mainhand items, just like the Java Edition keybind
 # There are three options this can be set to:
 # disabled - the default/fallback, which doesn't apply this workaround

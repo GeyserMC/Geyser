@@ -26,14 +26,15 @@
 package org.geysermc.geyser.translator.protocol.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundEntityEventPacket;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.*;
-import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.EvokerFangsEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.LivingEntity;
@@ -41,6 +42,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Translator(packet = ClientboundEntityEventPacket.class)
@@ -234,7 +236,28 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 break;
             case MAKE_POOF_PARTICLES:
                 if (entity instanceof LivingEntity) {
-                    entityEventPacket.setType(EntityEventType.DEATH_SMOKE_CLOUD);
+                    // Not ideal, but...
+                    // LevelEventType.PARTICLE_DEATH_SMOKE doesn't work (as of 1.18.2 Bedrock)
+                    // EntityEventType.DEATH_SMOKE_CLOUD also plays the entity death noise
+                    // Bedrock sends the particles through EntityEventType.DEATH, but Java despawns the entity
+                    // prematurely so they don't show up.
+                    Vector3f position = entity.getPosition();
+                    float baseX = position.getX();
+                    float baseY = position.getY();
+                    float baseZ = position.getZ();
+                    float height = entity.getDefinition().height();
+                    float width = entity.getDefinition().width();
+                    Random random = ThreadLocalRandom.current();
+                    for (int i = 0; i < 20; i++) {
+                        // Reconstruct the Java Edition (1.18.1) logic, but in floats
+                        float x = baseX + width * (2.0f * random.nextFloat() - 1f);
+                        float y = baseY + height * random.nextFloat();
+                        float z = baseZ + width * (2.0f * random.nextFloat() - 1f);
+                        LevelEventPacket levelEventPacket = new LevelEventPacket();
+                        levelEventPacket.setPosition(Vector3f.from(x, y, z));
+                        levelEventPacket.setType(LevelEventType.PARTICLE_EXPLODE);
+                        session.sendUpstreamPacket(levelEventPacket);
+                    }
                 }
                 break;
         }

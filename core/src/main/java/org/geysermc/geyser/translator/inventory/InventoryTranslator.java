@@ -136,7 +136,7 @@ public abstract class InventoryTranslator {
      * Should be overrided if this request matches a certain criteria and shouldn't be treated normally.
      * E.G. anvil renaming or enchanting
      */
-    public boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
+    protected boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
         return false;
     }
 
@@ -864,8 +864,8 @@ public abstract class InventoryTranslator {
         Map<ContainerSlotType, List<ItemStackResponsePacket.ItemEntry>> containerMap = new HashMap<>();
         for (int slot : affectedSlots) {
             BedrockContainerSlot bedrockSlot = javaSlotToBedrockContainer(slot);
-            List<ItemStackResponsePacket.ItemEntry> list = containerMap.computeIfAbsent(bedrockSlot.getContainer(), k -> new ArrayList<>());
-            list.add(makeItemEntry(session, bedrockSlot.getSlot(), inventory.getItem(slot)));
+            List<ItemStackResponsePacket.ItemEntry> list = containerMap.computeIfAbsent(bedrockSlot.container(), k -> new ArrayList<>());
+            list.add(makeItemEntry(session, bedrockSlot.slot(), inventory.getItem(slot)));
         }
 
         List<ItemStackResponsePacket.ContainerEntry> containerEntries = new ArrayList<>();

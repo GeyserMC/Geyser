@@ -234,31 +234,31 @@ public class ClickPlan {
                     }
                     break;
                 case SWAP_TO_HOTBAR_1:
-                    swap(action.slot, 36, clicked);
+                    swap(action.slot, inventory.getOffsetForHotbar(0), clicked);
                     break;
                 case SWAP_TO_HOTBAR_2:
-                    swap(action.slot, 37, clicked);
+                    swap(action.slot, inventory.getOffsetForHotbar(1), clicked);
                     break;
                 case SWAP_TO_HOTBAR_3:
-                    swap(action.slot, 38, clicked);
+                    swap(action.slot, inventory.getOffsetForHotbar(2), clicked);
                     break;
                 case SWAP_TO_HOTBAR_4:
-                    swap(action.slot, 39, clicked);
+                    swap(action.slot, inventory.getOffsetForHotbar(3), clicked);
                     break;
                 case SWAP_TO_HOTBAR_5:
-                    swap(action.slot, 40, clicked);
+                    swap(action.slot, inventory.getOffsetForHotbar(4), clicked);
                     break;
                 case SWAP_TO_HOTBAR_6:
-                    swap(action.slot, 41, clicked);
+                    swap(action.slot, inventory.getOffsetForHotbar(5), clicked);
                     break;
                 case SWAP_TO_HOTBAR_7:
-                    swap(action.slot, 42, clicked);
+                    swap(action.slot, inventory.getOffsetForHotbar(6), clicked);
                     break;
                 case SWAP_TO_HOTBAR_8:
-                    swap(action.slot, 43, clicked);
+                    swap(action.slot, inventory.getOffsetForHotbar(7), clicked);
                     break;
                 case SWAP_TO_HOTBAR_9:
-                    swap(action.slot, 44, clicked);
+                    swap(action.slot, inventory.getOffsetForHotbar(8), clicked);
                     break;
                 case LEFT_SHIFT:
                     //TODO

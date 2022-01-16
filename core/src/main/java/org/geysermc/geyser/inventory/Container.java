@@ -30,6 +30,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
+import org.jetbrains.annotations.Range;
 
 /**
  * Combination of {@link Inventory} and {@link PlayerInventory}
@@ -57,6 +58,11 @@ public class Container extends Inventory {
         } else {
             return playerInventory.getItem(slot - this.size + InventoryTranslator.PLAYER_INVENTORY_OFFSET);
         }
+    }
+
+    @Override
+    public int getOffsetForHotbar(@Range(from = 0, to = 8) int slot) {
+        return playerInventory.getOffsetForHotbar(slot) - InventoryTranslator.PLAYER_INVENTORY_OFFSET + this.size;
     }
 
     @Override

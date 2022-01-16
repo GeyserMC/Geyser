@@ -23,18 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java.level;
+package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundSetChunkCacheRadiusPacket;
+import com.nukkitx.protocol.bedrock.packet.RequestChunkRadiusPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
-@Translator(packet = ClientboundSetChunkCacheRadiusPacket.class)
-public class JavaSetChunkCacheRadiusTranslator extends PacketTranslator<ClientboundSetChunkCacheRadiusPacket> {
+/**
+ * Sent when the client updates its desired render distance.
+ */
+@Translator(packet = RequestChunkRadiusPacket.class)
+public class BedrockRequestChunkRadiusTranslator extends PacketTranslator<RequestChunkRadiusPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundSetChunkCacheRadiusPacket packet) {
-        session.setServerRenderDistance(packet.getViewDistance());
+    public void translate(GeyserSession session, RequestChunkRadiusPacket packet) {
+        session.setClientRenderDistance(packet.getRadius());
+
+        if (session.isLoggedIn()) {
+            session.sendJavaClientSettings();
+        }
     }
 }
