@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.event;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.extension.Extension;
 
 import java.util.function.Consumer;
@@ -62,7 +63,7 @@ public interface EventSubscription<T extends Event> {
      *
      * @return the extension that owns this subscription
      */
-    @NonNull
+    @Nullable
     Extension owner();
 
     /**
