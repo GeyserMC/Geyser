@@ -34,12 +34,12 @@ import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.extension.ExtensionLoader;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class GeyserExtensionManager extends ExtensionManager {
-    private static final Key BASE_KEY = Key.key("geysermc", "base");
+    private static final Key BASE_EXTENSION_LOADER_KEY = Key.key("geysermc", "base");
 
     private final Map<String, Extension> extensions = new LinkedHashMap<>();
     private final Map<Extension, ExtensionLoader> extensionsLoaders = new LinkedHashMap<>();
@@ -47,8 +47,7 @@ public class GeyserExtensionManager extends ExtensionManager {
     public void init() {
         GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.extensions.load.loading"));
 
-        this.registerExtensionLoader(BASE_KEY, new GeyserExtensionLoader());
-
+        Registries.EXTENSION_LOADERS.register(BASE_EXTENSION_LOADER_KEY, new GeyserExtensionLoader());
         for (ExtensionLoader loader : this.extensionLoaders().values()) {
             this.loadAllExtensions(loader);
         }
@@ -130,23 +129,23 @@ public class GeyserExtensionManager extends ExtensionManager {
 
     @Nullable
     @Override
-    public ExtensionLoader extensionLoader(@NonNull Key identifier) {
-        return Registries.EXTENSION_LOADERS.get(identifier);
+    public ExtensionLoader extensionLoader(@NonNull String identifier) {
+        return Registries.EXTENSION_LOADERS.get(Key.key(identifier));
     }
 
     @Override
-    public void registerExtensionLoader(@NonNull Key identifier, @NotNull ExtensionLoader extensionLoader) {
-        Registries.EXTENSION_LOADERS.register(identifier, extensionLoader);
+    public void registerExtensionLoader(@NonNull String identifier, @NonNull ExtensionLoader extensionLoader) {
+        Registries.EXTENSION_LOADERS.register(Key.key(identifier), extensionLoader);
     }
 
     @NonNull
     @Override
-    public Map<Key, ExtensionLoader> extensionLoaders() {
-        return Collections.unmodifiableMap(Registries.EXTENSION_LOADERS.get());
+    public Map<String, ExtensionLoader> extensionLoaders() {
+        return Registries.EXTENSION_LOADERS.get().entrySet().stream().collect(Collectors.toMap(key -> key.getKey().asString(), Map.Entry::getValue));
     }
 
     @Override
-    public void register(@NotNull Extension extension, @NotNull ExtensionLoader loader) {
+    public void register(@NonNull Extension extension, @NonNull ExtensionLoader loader) {
         this.extensionsLoaders.put(extension, loader);
         this.extensions.put(extension.name(), extension);
     }

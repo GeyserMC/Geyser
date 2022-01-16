@@ -25,10 +25,8 @@
 
 package org.geysermc.geyser.api.extension;
 
-import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Map;
@@ -45,7 +43,7 @@ public abstract class ExtensionManager {
      * @return an extension with the given name
      */
     @Nullable
-    public abstract Extension extension(@NotNull String name);
+    public abstract Extension extension(@NonNull String name);
 
     /**
      * Enables the given {@link Extension}.
@@ -68,7 +66,7 @@ public abstract class ExtensionManager {
      * @return the extension loader for loading the given extension
      */
     @Nullable
-    public abstract ExtensionLoader extensionLoader(@NotNull Extension extension);
+    public abstract ExtensionLoader extensionLoader(@NonNull Extension extension);
 
     /**
      * Gets all the {@link Extension}s currently loaded.
@@ -85,7 +83,7 @@ public abstract class ExtensionManager {
      * @return the extension loader at the given identifier
      */
     @Nullable
-    public abstract ExtensionLoader extensionLoader(@NonNull Key identifier);
+    public abstract ExtensionLoader extensionLoader(@NonNull String identifier);
 
     /**
      * Registers an {@link ExtensionLoader} with the given identifier.
@@ -93,7 +91,7 @@ public abstract class ExtensionManager {
      * @param identifier the identifier
      * @param extensionLoader the extension loader
      */
-    public abstract void registerExtensionLoader(@NonNull Key identifier, @NotNull ExtensionLoader extensionLoader);
+    public abstract void registerExtensionLoader(@NonNull String identifier, @NonNull ExtensionLoader extensionLoader);
 
     /**
      * Gets all the currently registered {@link ExtensionLoader}s.
@@ -101,7 +99,7 @@ public abstract class ExtensionManager {
      * @return all the currently registered extension loaders
      */
     @NonNull
-    public abstract Map<Key, ExtensionLoader> extensionLoaders();
+    public abstract Map<String, ExtensionLoader> extensionLoaders();
 
     /**
      * Registers an {@link Extension} with the given {@link ExtensionLoader}.
@@ -109,12 +107,12 @@ public abstract class ExtensionManager {
      * @param extension the extension
      * @param loader the loader
      */
-    public abstract void register(@NotNull Extension extension, @NotNull ExtensionLoader loader);
+    public abstract void register(@NonNull Extension extension, @NonNull ExtensionLoader loader);
 
     /**
      * Loads all extensions from the given {@link ExtensionLoader}.
      */
-    protected final void loadAllExtensions(@NotNull ExtensionLoader extensionLoader) {
+    protected final void loadAllExtensions(@NonNull ExtensionLoader extensionLoader) {
         extensionLoader.loadAllExtensions(this);
     }
 }
