@@ -47,7 +47,7 @@ public class GeyserEventBus implements EventBus {
     @NonNull
     @Override
     public <T extends Event> EventSubscription<T> subscribe(@NonNull Extension extension, @NonNull Class<T> eventClass, @NonNull Consumer<? super T> consumer) {
-        return this.subscribe(eventClass, consumer, extension, Subscribe.Priority.NORMAL);
+        return this.subscribe(eventClass, consumer, extension, Subscribe.PostOrder.NORMAL);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class GeyserEventBus implements EventBus {
                 } catch (IllegalAccessException | InvocationTargetException ex) {
                     ex.printStackTrace();
                 }
-            }, extension, subscribe.priority());
+            }, extension, subscribe.postOrder());
         }
     }
 
@@ -103,8 +103,8 @@ public class GeyserEventBus implements EventBus {
                 .collect(Collectors.toSet());
     }
 
-    private <T extends Event> EventSubscription<T> subscribe(Class<T> eventClass, Consumer<? super T> handler, Extension extension, Subscribe.Priority priority) {
-        GeyserEventSubscription<T> eventSubscription = new GeyserEventSubscription<>(this, eventClass, handler, extension, priority);
+    private <T extends Event> EventSubscription<T> subscribe(Class<T> eventClass, Consumer<? super T> handler, Extension extension, Subscribe.PostOrder postOrder) {
+        GeyserEventSubscription<T> eventSubscription = new GeyserEventSubscription<>(this, eventClass, handler, extension, postOrder);
         this.bus.register(eventClass, eventSubscription);
         return eventSubscription;
     }

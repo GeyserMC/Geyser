@@ -47,7 +47,7 @@ public class GeyserEventSubscription<T extends Event> implements EventSubscripti
     private final Class<T> eventClass;
     private final Consumer<? super T> eventConsumer;
     private final Extension owner;
-    private final Subscribe.Priority priority;
+    private final Subscribe.PostOrder order;
     @Getter(AccessLevel.NONE) private boolean active;
 
     @Override
@@ -77,6 +77,6 @@ public class GeyserEventSubscription<T extends Event> implements EventSubscripti
 
     @Override
     public int postOrder() {
-        return this.priority.postOrder();
+        return this.order.postOrder();
     }
 }

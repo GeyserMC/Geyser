@@ -28,7 +28,6 @@ package org.geysermc.geyser.api.event;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -50,20 +49,19 @@ import java.lang.annotation.Target;
 public @interface Subscribe {
 
     /**
-     * The {@link Priority} of the event
+     * The {@link PostOrder} of the event
      *
-     * @return the priority of the event
+     * @return the post order of the event
      */
-    @NonNull
-    Priority priority() default Priority.NORMAL;
+    Subscribe.PostOrder postOrder() default PostOrder.NORMAL;
 
     /**
-     * Represents the priority of an event.
+     * Represents the post order of an event.
      */
     @Accessors(fluent = true)
     @Getter
     @AllArgsConstructor
-    enum Priority {
+    enum PostOrder {
 
         /**
          * The lowest priority. Called first to

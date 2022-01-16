@@ -26,7 +26,6 @@
 package org.geysermc.geyser.api.event;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.extension.Extension;
 
 import java.util.function.Consumer;
@@ -67,11 +66,11 @@ public interface EventSubscription<T extends Event> {
     Extension owner();
 
     /**
-     * Gets the priority of this event subscription.
+     * Gets the post order of this event subscription.
      *
-     * @return the priority of this event subscription
+     * @return the post order of this event subscription
      */
-    Subscribe.Priority priority();
+    Subscribe.PostOrder order();
 
     /**
      * Gets if this event subscription is active.
