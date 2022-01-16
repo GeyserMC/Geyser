@@ -23,12 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.connection;
-
-import org.geysermc.api.connection.Connection;
+package org.geysermc.geyser.api.event;
 
 /**
- * Represents a player connection used in Geyser.
+ * Represents a cancellable event.
  */
-public interface GeyserConnection extends Connection {
+public interface Cancellable {
+
+    /**
+     * Gets if the event is cancelled.
+     *
+     * @return if the event is cancelled
+     */
+    boolean isCancelled();
+
+    /**
+     * Cancels the event.
+     *
+     * @param cancelled if the event is cancelled
+     */
+    void setCancelled(boolean cancelled);
 }

@@ -23,12 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.connection;
-
-import org.geysermc.api.connection.Connection;
+package org.geysermc.geyser.api.event;
 
 /**
- * Represents a player connection used in Geyser.
+ * Represents an event.
  */
-public interface GeyserConnection extends Connection {
+public interface Event {
+
+    /**
+     * Gets if the event is async.
+     *
+     * @return if the event is async
+     */
+    default boolean isAsync() {
+        return false;
+    }
 }

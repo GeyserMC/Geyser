@@ -23,12 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.connection;
+package org.geysermc.geyser.api.event.lifecycle;
 
-import org.geysermc.api.connection.Connection;
+import org.geysermc.geyser.api.event.Event;
 
 /**
- * Represents a player connection used in Geyser.
+ * Called when Geyser has completed initializing.
  */
-public interface GeyserConnection extends Connection {
+public class GeyserPostInitializeEvent implements Event {
 }

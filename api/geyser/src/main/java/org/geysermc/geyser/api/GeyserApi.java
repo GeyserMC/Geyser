@@ -30,6 +30,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.Geyser;
 import org.geysermc.api.GeyserApiBase;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 
 import java.util.List;
@@ -87,6 +88,14 @@ public interface GeyserApi extends GeyserApiBase {
      * @return the extension manager
      */
     ExtensionManager extensionManager();
+
+    /**
+     * Gets the {@link EventBus} for handling
+     * Geyser events.
+     *
+     * @return the event bus
+     */
+    EventBus eventBus();
 
     /**
      * Gets the current {@link GeyserApiBase} instance.

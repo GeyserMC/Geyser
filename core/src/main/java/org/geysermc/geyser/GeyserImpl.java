@@ -49,9 +49,13 @@ import org.geysermc.floodgate.crypto.Base64Topping;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.event.EventBus;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
 import org.geysermc.geyser.command.CommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.ConnectorServerEventHandler;
@@ -123,6 +127,7 @@ public class GeyserImpl implements GeyserApi {
     private final PlatformType platformType;
     private final GeyserBootstrap bootstrap;
 
+    private final EventBus eventBus;
     private final GeyserExtensionManager extensionManager;
 
     private Metrics metrics;
@@ -158,6 +163,7 @@ public class GeyserImpl implements GeyserApi {
         MinecraftLocale.init();
 
         /* Load Extensions */
+        this.eventBus = new GeyserEventBus();
         this.extensionManager = new GeyserExtensionManager();
         this.extensionManager.init();
 
@@ -411,6 +417,8 @@ public class GeyserImpl implements GeyserApi {
         }
 
         newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
+
+        this.eventBus.fire(new GeyserPostInitializeEvent());
     }
 
     @Override
@@ -466,6 +474,8 @@ public class GeyserImpl implements GeyserApi {
 
         ResourcePack.PACKS.clear();
 
+        this.eventBus.fire(new GeyserShutdownEvent());
+
         this.extensionManager.disableExtensions();
 
         bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.done"));
@@ -492,6 +502,11 @@ public class GeyserImpl implements GeyserApi {
     @Override
     public GeyserExtensionManager extensionManager() {
         return this.extensionManager;
+    }
+
+    @Override
+    public EventBus eventBus() {
+        return this.eventBus;
     }
 
     public static GeyserImpl start(PlatformType platformType, GeyserBootstrap bootstrap) {

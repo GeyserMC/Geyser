@@ -244,6 +244,13 @@
             <version>${adventure.version}</version>
             <scope>compile</scope>
         </dependency>
+        <!-- Kyori Misc -->
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>event-api</artifactId>
+            <version>3.0.0</version>
+            <scope>compile</scope>
+        </dependency>
         <!-- Other -->
         <dependency>
             <groupId>junit</groupId>
