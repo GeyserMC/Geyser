@@ -36,11 +36,12 @@ import lombok.Setter;
 import lombok.ToString;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
+import org.jetbrains.annotations.Range;
 
 import java.util.Arrays;
 
 @ToString
-public class Inventory {
+public abstract class Inventory {
 
     @Getter
     protected final int id;
@@ -109,6 +110,8 @@ public class Inventory {
         }
         return items[slot];
     }
+
+    public abstract int getOffsetForHotbar(@Range(from = 0, to = 8) int slot);
 
     public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
         if (slot > this.size) {

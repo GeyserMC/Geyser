@@ -26,10 +26,12 @@
 package org.geysermc.geyser.inventory;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
+import org.jetbrains.annotations.Range;
+
+import javax.annotation.Nonnull;
 
 public class PlayerInventory extends Inventory {
     /**
@@ -41,7 +43,7 @@ public class PlayerInventory extends Inventory {
     private int heldItemSlot;
 
     @Getter
-    @NonNull
+    @Nonnull
     private GeyserItemStack cursor = GeyserItemStack.EMPTY;
 
     public PlayerInventory() {
@@ -49,7 +51,12 @@ public class PlayerInventory extends Inventory {
         heldItemSlot = 0;
     }
 
-    public void setCursor(@NonNull GeyserItemStack newCursor, GeyserSession session) {
+    @Override
+    public int getOffsetForHotbar(@Range(from = 0, to = 8) int slot) {
+        return slot + 36;
+    }
+
+    public void setCursor(@Nonnull GeyserItemStack newCursor, GeyserSession session) {
         updateItemNetId(cursor, newCursor, session);
         cursor = newCursor;
     }
@@ -62,7 +69,7 @@ public class PlayerInventory extends Inventory {
         return items[36 + heldItemSlot];
     }
 
-    public void setItemInHand(@NonNull GeyserItemStack item) {
+    public void setItemInHand(@Nonnull GeyserItemStack item) {
         if (36 + heldItemSlot > this.size) {
             GeyserImpl.getInstance().getLogger().debug("Held item slot was larger than expected!");
             return;

@@ -52,7 +52,7 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
     }
 
     @Override
-    public boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
+    protected boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
         // First is pre-1.18. TODO remove after 1.17.40 support is dropped and refactor stonecutter support to use CraftRecipeStackRequestActionData's recipe ID
         return action.getType() == StackRequestActionType.CRAFT_NON_IMPLEMENTED_DEPRECATED || action.getType() == StackRequestActionType.CRAFT_RECIPE;
     }
