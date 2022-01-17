@@ -154,7 +154,7 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
     }
 
     private static NbtMap getItemTag(GeyserSession session, ItemStack stack, int specialPrice, int demand, float priceMultiplier) {
-        if (stack.getAmount() <= 0) { // Negative item counts appear as air on Java
+        if (stack == null || stack.getAmount() <= 0) { // Negative item counts appear as air on Java
             return NbtMap.EMPTY;
         }
         ItemMapping mapping = session.getItemMappings().getMapping(stack);
