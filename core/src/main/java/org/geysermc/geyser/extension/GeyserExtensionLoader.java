@@ -90,9 +90,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
     private GeyserExtensionContainer setup(Extension extension, GeyserExtensionDescription description, Path dataFolder, ExtensionEventBus eventBus) {
         GeyserExtensionLogger logger = new GeyserExtensionLogger(GeyserImpl.getInstance().getLogger(), description.name());
-        GeyserExtensionContainer container = new GeyserExtensionContainer(extension, dataFolder, description, this, logger, eventBus);
-        extension.onLoad();
-        return container;
+        return new GeyserExtensionContainer(extension, dataFolder, description, this, logger, eventBus);
     }
 
     public GeyserExtensionDescription extensionDescription(Path path) throws InvalidDescriptionException {
@@ -225,15 +223,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
     @Override
     protected void setEnabled(@NonNull Extension extension, boolean enabled) {
-        boolean isEnabled = this.extensionContainers.get(extension).enabled;
-        if (isEnabled != enabled) {
-            this.extensionContainers.get(extension).enabled = enabled;
-            if (enabled) {
-                extension.onEnable();
-            } else {
-                extension.onDisable();
-            }
-        }
+        this.extensionContainers.get(extension).enabled = enabled;
     }
 
     @NonNull

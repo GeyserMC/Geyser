@@ -37,24 +37,6 @@ import java.nio.file.Path;
 public interface Extension {
 
     /**
-     * Called when the extension is loaded
-     */
-    default void onLoad() {
-    }
-
-    /**
-     * Called when the extension is enabled
-     */
-    default void onEnable() {
-    }
-
-    /**
-     * Called when the extension is disabled
-     */
-    default void onDisable() {
-    }
-
-    /**
      * Gets if the extension is enabled
      *
      * @return true if the extension is enabled

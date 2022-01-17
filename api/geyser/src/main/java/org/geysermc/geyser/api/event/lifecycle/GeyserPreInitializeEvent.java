@@ -31,10 +31,10 @@ import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 
 /**
- * Called when Geyser has completed initializing.
+ * Called when Geyser is starting to initialize.
  *
  * @param extensionManager the extension manager
  * @param eventBus the event bus
  */
-public record GeyserPostInitializeEvent(@NonNull ExtensionManager extensionManager, @NonNull EventBus eventBus) implements Event {
+public record GeyserPreInitializeEvent(@NonNull ExtensionManager extensionManager, @NonNull EventBus eventBus) implements Event {
 }

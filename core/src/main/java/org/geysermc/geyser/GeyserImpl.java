@@ -51,6 +51,7 @@ import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -166,6 +167,8 @@ public class GeyserImpl implements GeyserApi {
         this.eventBus = new GeyserEventBus();
         this.extensionManager = new GeyserExtensionManager();
         this.extensionManager.init();
+
+        this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
 
         start();
 
@@ -418,7 +421,7 @@ public class GeyserImpl implements GeyserApi {
 
         newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
 
-        this.eventBus.fire(new GeyserPostInitializeEvent());
+        this.eventBus.fire(new GeyserPostInitializeEvent(this.extensionManager, this.eventBus));
     }
 
     @Override
@@ -474,7 +477,7 @@ public class GeyserImpl implements GeyserApi {
 
         ResourcePack.PACKS.clear();
 
-        this.eventBus.fire(new GeyserShutdownEvent());
+        this.eventBus.fire(new GeyserShutdownEvent(this.extensionManager, this.commandManager(), this.eventBus));
         this.extensionManager.disableExtensions();
 
         bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.done"));
