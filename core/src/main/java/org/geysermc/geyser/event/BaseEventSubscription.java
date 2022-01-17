@@ -23,60 +23,36 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event;
+package org.geysermc.geyser.event;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.event.Event;
+import org.geysermc.geyser.api.event.EventBus;
+import org.geysermc.geyser.api.event.Subscribe;
 import org.geysermc.geyser.api.extension.Extension;
 
-/**
- * Represents a subscribed listener to a {@link Event}. Wraps around
- * the event and is capable of unsubscribing from the event or give
- * information about it.
- *
- * @param <T> the class of the event
- */
-public interface EventSubscription<T extends Event> {
+import java.util.function.Consumer;
 
-    /**
-     * Gets the event class.
-     *
-     * @return the event class
-     */
-    @NonNull
-    Class<T> eventClass();
+@Getter
+@Accessors(fluent = true)
+public class BaseEventSubscription<T extends Event> extends AbstractEventSubscription<T> {
+    private final Consumer<? super T> eventConsumer;
 
-    /**
-     * Gets the {@link Extension} that owns this
-     * event subscription.
-     *
-     * @return the extension that owns this subscription
-     */
-    @NonNull
-    Extension owner();
+    public BaseEventSubscription(EventBus eventBus, Class<T> eventClass, Extension owner, Subscribe.PostOrder order, Consumer<? super T> eventConsumer) {
+        super(eventBus, eventClass, owner, order);
 
-    /**
-     * Gets the post order of this event subscription.
-     *
-     * @return the post order of this event subscription
-     */
-    Subscribe.PostOrder order();
+        this.eventConsumer = eventConsumer;
+    }
 
-    /**
-     * Gets if this event subscription is active.
-     *
-     * @return if this event subscription is active
-     */
-    boolean isActive();
-
-    /**
-     * Unsubscribes from this event listener
-     */
-    void unsubscribe();
-
-    /**
-     * Invokes the given event
-     *
-     * @param event the event
-     */
-    void invoke(@NonNull T event) throws Throwable;
+    @Override
+    public void invoke(@NonNull T event) throws Throwable {
+        try {
+            this.eventConsumer.accept(event);
+        } catch (Throwable ex) {
+            this.owner.logger().warning("Unable to fire event " + event.getClass().getSimpleName() + " with subscription " + this.eventConsumer.getClass().getSimpleName());
+            ex.printStackTrace();
+        }
+    }
 }

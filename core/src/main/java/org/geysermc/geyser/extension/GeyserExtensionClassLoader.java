@@ -35,7 +35,6 @@ import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class GeyserExtensionClassLoader extends URLClassLoader {
     private final GeyserExtensionLoader loader;

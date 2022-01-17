@@ -30,24 +30,20 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.kyori.event.EventSubscriber;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.event.Event;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.EventSubscription;
 import org.geysermc.geyser.api.event.Subscribe;
 import org.geysermc.geyser.api.extension.Extension;
 
-import java.util.function.Consumer;
-
 @Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor
-public class GeyserEventSubscription<T extends Event> implements EventSubscription<T>, EventSubscriber<T> {
-    private final EventBus eventBus;
-    private final Class<T> eventClass;
-    private final Consumer<? super T> eventConsumer;
-    private final Extension owner;
-    private final Subscribe.PostOrder order;
+public abstract class AbstractEventSubscription<T extends Event> implements EventSubscription<T>, EventSubscriber<T> {
+    protected final EventBus eventBus;
+    protected final Class<T> eventClass;
+    protected final Extension owner;
+    protected final Subscribe.PostOrder order;
     @Getter(AccessLevel.NONE) private boolean active;
 
     @Override
@@ -63,16 +59,6 @@ public class GeyserEventSubscription<T extends Event> implements EventSubscripti
 
         this.active = false;
         this.eventBus.unsubscribe(this);
-    }
-
-    @Override
-    public void invoke(@NonNull T event) throws Throwable {
-        try {
-            this.eventConsumer.accept(event);
-        } catch (Throwable ex) {
-            this.owner.logger().warning("Unable to fire event " + event.getClass().getSimpleName() + " with subscription " + this.eventConsumer.getClass().getSimpleName());
-            ex.printStackTrace();
-        }
     }
 
     @Override

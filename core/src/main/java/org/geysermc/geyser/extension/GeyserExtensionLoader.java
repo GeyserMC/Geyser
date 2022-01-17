@@ -110,14 +110,14 @@ public class GeyserExtensionLoader extends ExtensionLoader {
     public Class<?> classByName(final String name) throws ClassNotFoundException{
         Class<?> clazz = this.classes.get(name);
         try {
-            for(GeyserExtensionClassLoader loader : this.classLoaders.values()) {
+            for (GeyserExtensionClassLoader loader : this.classLoaders.values()) {
                 try {
                     clazz = loader.findClass(name,false);
                 } catch(NullPointerException ignored) {
                 }
             }
             return clazz;
-        } catch(NullPointerException s) {
+        } catch (NullPointerException s) {
             return null;
         }
     }

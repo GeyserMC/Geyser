@@ -33,15 +33,19 @@ import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.EventSubscription;
 import org.geysermc.geyser.api.event.Subscribe;
 import org.geysermc.geyser.api.extension.Extension;
+import org.lanternpowered.lmbda.LambdaFactory;
 
-import java.lang.reflect.InvocationTargetException;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class GeyserEventBus implements EventBus {
+    private static final MethodHandles.Lookup CALLER = MethodHandles.lookup();
+
     private final SimpleEventBus<Event> bus = new SimpleEventBus<>(Event.class);
 
     @NonNull
@@ -52,7 +56,7 @@ public class GeyserEventBus implements EventBus {
 
     @Override
     public <T extends Event> void unsubscribe(@NonNull EventSubscription<T> subscription) {
-        this.bus.unregister((GeyserEventSubscription<T>) subscription);
+        this.bus.unregister((AbstractEventSubscription<T>) subscription);
     }
 
     @SuppressWarnings("unchecked")
@@ -72,19 +76,19 @@ public class GeyserEventBus implements EventBus {
             }
 
             Subscribe subscribe = method.getAnnotation(Subscribe.class);
-            this.subscribe((Class<? extends Event>) method.getParameters()[0].getType(), (event) -> {
-                try {
-                    method.invoke(eventHolder, event);
-                } catch (IllegalAccessException | InvocationTargetException ex) {
-                    ex.printStackTrace();
-                }
-            }, extension, subscribe.postOrder());
+
+            try {
+                Class<? extends Event> type = (Class<? extends Event>) method.getParameters()[0].getType();
+                this.subscribe(type, eventHolder, LambdaFactory.createBiConsumer(CALLER.unreflect(method)), extension, subscribe.postOrder());
+            } catch (IllegalAccessException ex) {
+                ex.printStackTrace();
+            }
         }
     }
 
     @Override
     public void unregisterAll(@NonNull Extension extension) {
-        this.bus.unregister((Predicate<EventSubscriber<?>>) subscriber -> extension.equals(((GeyserEventSubscription<?>) subscriber).owner()));
+        this.bus.unregister((Predicate<EventSubscriber<?>>) subscriber -> extension.equals(((AbstractEventSubscription<?>) subscriber).owner()));
     }
 
     @Override
@@ -104,7 +108,13 @@ public class GeyserEventBus implements EventBus {
     }
 
     private <T extends Event> EventSubscription<T> subscribe(Class<T> eventClass, Consumer<? super T> handler, Extension extension, Subscribe.PostOrder postOrder) {
-        GeyserEventSubscription<T> eventSubscription = new GeyserEventSubscription<>(this, eventClass, handler, extension, postOrder);
+        BaseEventSubscription<T> eventSubscription = new BaseEventSubscription<>(this, eventClass, extension, postOrder, handler);
+        this.bus.register(eventClass, eventSubscription);
+        return eventSubscription;
+    }
+
+    private <T extends Event> EventSubscription<T> subscribe(Class<T> eventClass, Object eventHolder, BiConsumer<Object, ? super T> handler, Extension extension, Subscribe.PostOrder postOrder) {
+        GeneratedEventSubscription<T> eventSubscription = new GeneratedEventSubscription<>(this, eventClass, extension, postOrder, eventHolder, handler);
         this.bus.register(eventClass, eventSubscription);
         return eventSubscription;
     }
