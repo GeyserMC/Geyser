@@ -469,9 +469,8 @@ public abstract class ItemTranslator {
     public static CompoundTag translateDisplayProperties(GeyserSession session, CompoundTag tag, ItemMapping mapping, char translationColor) {
         boolean hasCustomName = false;
         if (tag != null) {
-            CompoundTag display = tag.get("display");
-            if (display != null && display.contains("Name")) {
-                String name = ((StringTag) display.get("Name")).getValue();
+            if (tag.get("display") instanceof CompoundTag display && display.get("Name") instanceof StringTag tagName) {
+                String name = tagName.getValue();
 
                 // Get the translated name and prefix it with a reset char
                 name = MessageTranslator.convertMessageLenient(name, session.getLocale());
@@ -491,8 +490,10 @@ public abstract class ItemTranslator {
             if (tag == null) {
                 tag = new CompoundTag("");
             }
-            CompoundTag display = tag.get("display");
-            if (display == null) {
+            CompoundTag display;
+            if (tag.get("display") instanceof CompoundTag oldDisplay) {
+                display = oldDisplay;
+            } else {
                 display = new CompoundTag("display");
                 // Add to the new root tag
                 tag.put(display);
