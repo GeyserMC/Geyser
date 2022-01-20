@@ -169,8 +169,8 @@ public class FileUtils {
      * @return The byte array of the file
      */
     public static byte[] readAllBytes(File file) {
-        try (InputStream inputStream = new FileInputStream(file)) {
-            return readAllBytes(inputStream);
+        try (InputStream stream = new FileInputStream(file)) {
+            return stream.readAllBytes();
         } catch (IOException e) {
             throw new RuntimeException("Cannot read " + file);
         }
@@ -182,27 +182,9 @@ public class FileUtils {
      */
     public static byte[] readAllBytes(String resource) {
         try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource(resource)) {
-            return readAllBytes(stream);
+            return stream.readAllBytes();
         } catch (IOException e) {
             throw new RuntimeException("Error while trying to read internal input stream!", e);
-        }
-    }
-
-    /**
-     * @param stream the InputStream to read off of
-     * @return the byte array of an InputStream
-     */
-    public static byte[] readAllBytes(InputStream stream) {
-        try {
-            int size = stream.available();
-            byte[] bytes = new byte[size];
-            try (BufferedInputStream buf = new BufferedInputStream(stream)) {
-                //noinspection ResultOfMethodCallIgnored
-                buf.read(bytes, 0, bytes.length);
-            }
-            return bytes;
-        } catch (IOException e) {
-            throw new RuntimeException("Error while trying to read input stream!", e);
         }
     }
 
