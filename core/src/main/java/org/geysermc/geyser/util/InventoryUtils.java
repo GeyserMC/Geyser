@@ -41,6 +41,7 @@ import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
+import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -50,6 +51,7 @@ import org.geysermc.geyser.translator.inventory.chest.DoubleChestInventoryTransl
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -329,5 +331,21 @@ public class InventoryUtils {
         hotbarPacket.setSelectHotbarSlot(true);
         session.sendUpstreamPacket(hotbarPacket);
         // No need to send a Java packet as Bedrock sends a confirmation packet back that we translate
+    }
+
+    @Nullable
+    public static Click getClickForHotbarSwap(int slot) {
+        return switch (slot) {
+            case 0 -> Click.SWAP_TO_HOTBAR_1;
+            case 1 -> Click.SWAP_TO_HOTBAR_2;
+            case 2 -> Click.SWAP_TO_HOTBAR_3;
+            case 3 -> Click.SWAP_TO_HOTBAR_4;
+            case 4 -> Click.SWAP_TO_HOTBAR_5;
+            case 5 -> Click.SWAP_TO_HOTBAR_6;
+            case 6 -> Click.SWAP_TO_HOTBAR_7;
+            case 7 -> Click.SWAP_TO_HOTBAR_8;
+            case 8 -> Click.SWAP_TO_HOTBAR_9;
+            default -> null;
+        };
     }
 }

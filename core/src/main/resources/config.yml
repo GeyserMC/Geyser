@@ -128,6 +128,10 @@ show-coordinates: true
 # Whether Bedrock players are blocked from performing their scaffolding-style bridging.
 disable-bedrock-scaffolding: false
 
+# Whether Bedrock players can right-click outside of their inventory to replace armor in their inventory, even if the
+# armor slot is already occupied (which Java Edition doesn't allow)
+always-quick-change-armor: false
+
 # If set, when a Bedrock player performs any emote, it will swap the offhand and mainhand items, just like the Java Edition keybind
 # There are three options this can be set to:
 # disabled - the default/fallback, which doesn't apply this workaround

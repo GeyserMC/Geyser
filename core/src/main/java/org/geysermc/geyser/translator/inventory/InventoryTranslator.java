@@ -313,18 +313,7 @@ public abstract class InventoryTranslator {
 
                     if (!isSourceCursor && destination.getContainer() == ContainerSlotType.HOTBAR || destination.getContainer() == ContainerSlotType.HOTBAR_AND_INVENTORY) {
                         // Tell the server we're pressing one of the hotbar keys to save clicks
-                        Click click = switch (destination.getSlot()) {
-                            case 0 -> Click.SWAP_TO_HOTBAR_1;
-                            case 1 -> Click.SWAP_TO_HOTBAR_2;
-                            case 2 -> Click.SWAP_TO_HOTBAR_3;
-                            case 3 -> Click.SWAP_TO_HOTBAR_4;
-                            case 4 -> Click.SWAP_TO_HOTBAR_5;
-                            case 5 -> Click.SWAP_TO_HOTBAR_6;
-                            case 6 -> Click.SWAP_TO_HOTBAR_7;
-                            case 7 -> Click.SWAP_TO_HOTBAR_8;
-                            case 8 -> Click.SWAP_TO_HOTBAR_9;
-                            default -> null;
-                        };
+                        Click click = InventoryUtils.getClickForHotbarSwap(destination.getSlot());
                         if (click != null) {
                             plan.add(click, sourceSlot);
                             break;
