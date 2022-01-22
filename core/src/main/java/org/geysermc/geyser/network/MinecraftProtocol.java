@@ -60,7 +60,7 @@ public final class MinecraftProtocol {
     static {
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v465.V465_CODEC);
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v471.V471_CODEC);
-        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder().minecraftVersion("1.18.0/1.18.1/1.18.2").build());
     }
 
     /**
