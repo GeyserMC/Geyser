@@ -29,11 +29,7 @@ import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.ExtensionEventBus;
-import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.api.extension.ExtensionDescription;
-import org.geysermc.geyser.api.extension.ExtensionLoader;
-import org.geysermc.geyser.api.extension.ExtensionLogger;
-import org.geysermc.geyser.api.extension.ExtensionManager;
+import org.geysermc.geyser.api.extension.*;
 import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
 import org.geysermc.geyser.api.extension.exception.InvalidExtensionException;
 import org.geysermc.geyser.extension.event.GeyserExtensionEventBus;
@@ -90,7 +86,8 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
     private GeyserExtensionContainer setup(Extension extension, GeyserExtensionDescription description, Path dataFolder, ExtensionEventBus eventBus) {
         GeyserExtensionLogger logger = new GeyserExtensionLogger(GeyserImpl.getInstance().getLogger(), description.name());
-        return new GeyserExtensionContainer(extension, dataFolder, description, this, logger, eventBus);
+        GeyserExtensionConfig config = new GeyserExtensionConfig(dataFolder.resolve("config.yml").toAbsolutePath().toString(), logger);
+        return new GeyserExtensionContainer(extension, dataFolder, description, config, this, logger, eventBus);
     }
 
     public GeyserExtensionDescription extensionDescription(Path path) throws InvalidDescriptionException {
@@ -236,6 +233,19 @@ public class GeyserExtensionLoader extends ExtensionLoader {
     @Override
     protected ExtensionDescription description(@NonNull Extension extension) {
         return this.extensionContainers.get(extension).description();
+    }
+
+    @NonNull
+    @Override
+    protected ExtensionConfig config(@NonNull Extension extension) {
+        return this.extensionContainers.get(extension).config();
+    }
+
+    @NonNull
+    @Override
+    protected ExtensionConfig config(@NonNull Extension extension, String name) {
+        GeyserExtensionContainer container = this.extensionContainers.get(extension);
+        return new GeyserExtensionConfig(container.dataFolder().resolve(name).toAbsolutePath().toString(), container.logger());
     }
 
     @NonNull

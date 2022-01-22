@@ -100,6 +100,25 @@ public interface Extension {
     }
 
     /**
+     * Gets the {@link ExtensionConfig} from the extension data folder.
+     *
+     * @return the extension's config
+     */
+    default ExtensionConfig config() {
+        return this.extensionLoader().config(this);
+    }
+
+    /**
+     * Gets an {@link ExtensionConfig} with a given name in the extension data folder. You should probably cache this.
+     *
+     * @param name the name of the config
+     * @return the config
+     */
+    default ExtensionConfig config(String name) {
+        return this.extensionLoader().config(this, name);
+    }
+
+    /**
      * Gets the extension's logger
      *
      * @return the extension's logger

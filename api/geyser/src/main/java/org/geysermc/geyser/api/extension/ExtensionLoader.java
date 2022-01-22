@@ -70,6 +70,25 @@ public abstract class ExtensionLoader {
     protected abstract ExtensionDescription description(@NonNull Extension extension);
 
     /**
+     * Gets the given {@link Extension}'s {@link ExtensionConfig} from it's data folder.
+     *
+     * @param extension the extension
+     * @return the config of the given extension
+     */
+    @NonNull
+    protected abstract ExtensionConfig config(@NonNull Extension extension);
+
+    /**
+     * Gets an {@link ExtensionConfig} from the given {@link Extension}'s data folder.
+     *
+     * @param extension the extension
+     * @param name the name of the config
+     * @return a config of the given extension
+     */
+    @NonNull
+    protected abstract ExtensionConfig config(@NonNull Extension extension, String name);
+
+    /**
      * Gets the given {@link Extension}'s {@link ExtensionEventBus}.
      *
      * @param extension the extension

@@ -30,10 +30,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import org.geysermc.geyser.api.event.ExtensionEventBus;
-import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.api.extension.ExtensionDescription;
-import org.geysermc.geyser.api.extension.ExtensionLoader;
-import org.geysermc.geyser.api.extension.ExtensionLogger;
+import org.geysermc.geyser.api.extension.*;
 
 import java.nio.file.Path;
 
@@ -44,6 +41,7 @@ public class GeyserExtensionContainer {
     private final Extension extension;
     private final Path dataFolder;
     private final ExtensionDescription description;
+    private final ExtensionConfig config;
     private final ExtensionLoader loader;
     private final ExtensionLogger logger;
     private final ExtensionEventBus eventBus;
