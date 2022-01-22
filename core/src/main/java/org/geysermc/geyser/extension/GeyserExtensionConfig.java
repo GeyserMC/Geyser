@@ -53,6 +53,7 @@ public class GeyserExtensionConfig implements ExtensionConfig {
     private void load(File file, ConfigSection defaults) {
         this.correct = true;
         this.file = file;
+
         if (!this.file.exists()) {
             try {
                 this.file.getParentFile().mkdirs();
@@ -60,6 +61,7 @@ public class GeyserExtensionConfig implements ExtensionConfig {
             } catch (IOException e) {
                 logger.error(GeyserLocale.getLocaleStringLog("geyser.extensions.config.failed_create", this.file.getAbsolutePath()), e);
             }
+
             this.config = defaults;
             this.save();
         } else {
@@ -75,10 +77,13 @@ public class GeyserExtensionConfig implements ExtensionConfig {
                     logger.error(GeyserLocale.getLocaleStringLog("geyser.extensions.config.failed_read", this.file.getAbsolutePath()), e);
                     return;
                 }
+
                 this.parseContent(resultStringBuilder.toString());
+
                 if (!this.correct) {
                     return;
                 }
+
                 if (this.setDefault(defaults) > 0) {
                     this.save();
                 }
@@ -90,15 +95,20 @@ public class GeyserExtensionConfig implements ExtensionConfig {
     public void reload() {
         this.config.clear();
         this.correct = false;
+
         if (this.file == null) {
             throw new IllegalStateException("Failed to reload Config. File object is undefined.");
         }
+
         this.load(this.file, new ConfigSection());
     }
 
     @Override
     public void save() {
-        if (this.file == null) throw new IllegalStateException("Failed to save Config. File object is undefined.");
+        if (this.file == null) {
+            throw new IllegalStateException("Failed to save Config. File object is undefined.");
+        }
+
         if (this.correct) {
             DumperOptions dumperOptions = new DumperOptions();
             dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
@@ -196,10 +206,13 @@ public class GeyserExtensionConfig implements ExtensionConfig {
     @Override
     public List<String> getStringList(String path) {
         List value = this.getList(path);
+
         if (value == null) {
             return new ArrayList<>(0);
         }
+
         List<String> result = new ArrayList<>();
+
         for (Object o : value) {
             if (o instanceof String || o instanceof Number || o instanceof Boolean || o instanceof Character) {
                 result.add(String.valueOf(o));
@@ -211,9 +224,11 @@ public class GeyserExtensionConfig implements ExtensionConfig {
     @Override
     public List<Integer> getIntegerList(String path) {
         List<?> list = getList(path);
+
         if (list == null) {
             return new ArrayList<>(0);
         }
+
         List<Integer> result = new ArrayList<>();
 
         for (Object object : list) {
@@ -237,10 +252,13 @@ public class GeyserExtensionConfig implements ExtensionConfig {
     @Override
     public List<Boolean> getBooleanList(String path) {
         List<?> list = getList(path);
+
         if (list == null) {
             return new ArrayList<>(0);
         }
+
         List<Boolean> result = new ArrayList<>();
+
         for (Object object : list) {
             if (object instanceof Boolean) {
                 result.add((Boolean) object);
@@ -258,10 +276,13 @@ public class GeyserExtensionConfig implements ExtensionConfig {
     @Override
     public List<Double> getDoubleList(String path) {
         List<?> list = getList(path);
+
         if (list == null) {
             return new ArrayList<>(0);
         }
+
         List<Double> result = new ArrayList<>();
+
         for (Object object : list) {
             if (object instanceof Double) {
                 result.add((Double) object);
@@ -283,10 +304,13 @@ public class GeyserExtensionConfig implements ExtensionConfig {
     @Override
     public List<Float> getFloatList(String path) {
         List<?> list = getList(path);
+
         if (list == null) {
             return new ArrayList<>(0);
         }
+
         List<Float> result = new ArrayList<>();
+
         for (Object object : list) {
             if (object instanceof Float) {
                 result.add((Float) object);
@@ -308,10 +332,13 @@ public class GeyserExtensionConfig implements ExtensionConfig {
     @Override
     public List<Long> getLongList(String path) {
         List<?> list = getList(path);
+
         if (list == null) {
             return new ArrayList<>(0);
         }
+
         List<Long> result = new ArrayList<>();
+
         for (Object object : list) {
             if (object instanceof Long) {
                 result.add((Long) object);
@@ -435,10 +462,17 @@ public class GeyserExtensionConfig implements ExtensionConfig {
 
     @Override
     public boolean contains(String key, boolean ignoreCase) {
-        if (ignoreCase) key = key.toLowerCase();
+        if (ignoreCase) {
+            key = key.toLowerCase();
+        }
+
         for (String existKey : this.getKeys(true)) {
-            if (ignoreCase) existKey = existKey.toLowerCase();
-            if (existKey.equals(key)) return true;
+            if (ignoreCase) {
+                existKey = existKey.toLowerCase();
+            }
+            if (existKey.equals(key)) {
+                return true;
+            }
         }
         return false;
     }
@@ -492,7 +526,10 @@ public class GeyserExtensionConfig implements ExtensionConfig {
 
         public ConfigSection(LinkedHashMap<String, Object> map) {
             this();
-            if (map == null || map.isEmpty()) return;
+            if (map == null || map.isEmpty()) {
+                return;
+            }
+
             for (Map.Entry<String, Object> entry : map.entrySet()) {
                 if (entry.getValue() instanceof LinkedHashMap) {
                     super.put(entry.getKey(), new ConfigSection((LinkedHashMap) entry.getValue()));
@@ -527,10 +564,18 @@ public class GeyserExtensionConfig implements ExtensionConfig {
         }
 
         public <T> T get(String path, T defaultValue) {
-            if (path == null || path.isEmpty()) return defaultValue;
-            if (super.containsKey(path)) return (T) super.get(path);
+            if (path == null || path.isEmpty()) {
+                return defaultValue;
+            }
+
+            if (super.containsKey(path)) {
+                return (T) super.get(path);
+            }
+
             String[] keys = path.split("\\.", 2);
-            if (!super.containsKey(keys[0])) return defaultValue;
+            if (!super.containsKey(keys[0])) {
+                return defaultValue;
+            }
             Object value = super.get(keys[0]);
             if (value instanceof ConfigSection) {
                 ConfigSection section = (ConfigSection) value;
@@ -543,17 +588,24 @@ public class GeyserExtensionConfig implements ExtensionConfig {
             String[] subKeys = path.split("\\.", 2);
             if (subKeys.length > 1) {
                 ConfigSection childSection = new ConfigSection();
-                if (this.containsKey(subKeys[0]) && super.get(subKeys[0]) instanceof ConfigSection)
+                if (this.containsKey(subKeys[0]) && super.get(subKeys[0]) instanceof ConfigSection) {
                     childSection = (ConfigSection) super.get(subKeys[0]);
+                }
                 childSection.set(subKeys[1], value);
                 super.put(subKeys[0], childSection);
-            } else super.put(subKeys[0], value);
+            } else {
+                super.put(subKeys[0], value);
+            }
         }
 
         public void remove(String path) {
-            if (path == null || path.isEmpty()) return;
-            if (super.containsKey(path)) super.remove(path);
-            else if (this.containsKey(".")) {
+            if (path == null || path.isEmpty()) {
+                return;
+            }
+
+            if (super.containsKey(path)) {
+                super.remove(path);
+            } else if (this.containsKey(".")) {
                 String[] keys = path.split("\\.", 2);
                 if (super.get(keys[0]) instanceof ConfigSection) {
                     ConfigSection section = (ConfigSection) super.get(keys[0]);
