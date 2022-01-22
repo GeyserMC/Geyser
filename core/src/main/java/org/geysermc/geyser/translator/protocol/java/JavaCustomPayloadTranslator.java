@@ -25,19 +25,19 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCustomPayloadPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCustomPayloadPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCustomPayloadPacket;
 import com.google.common.base.Charsets;
 import com.nukkitx.protocol.bedrock.packet.TransferPacket;
+import org.geysermc.cumulus.Forms;
+import org.geysermc.cumulus.form.Form;
+import org.geysermc.cumulus.util.FormType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.cumulus.Form;
-import org.geysermc.cumulus.Forms;
-import org.geysermc.cumulus.util.FormType;
 
 import java.nio.charset.StandardCharsets;
 
@@ -68,8 +68,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
 
             String dataString = new String(data, 3, data.length - 3, Charsets.UTF_8);
 
-            Form form = Forms.fromJson(dataString, type);
-            form.setResponseHandler(response -> {
+            Form form = Forms.fromJson(dataString, type, (ignored, response) -> {
                 byte[] raw = response.getBytes(StandardCharsets.UTF_8);
                 byte[] finalData = new byte[raw.length + 2];
 

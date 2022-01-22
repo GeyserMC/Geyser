@@ -29,13 +29,12 @@ import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSeenAdvancementsPacket;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.geyser.level.GeyserAdvancement;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
-import org.geysermc.cumulus.SimpleForm;
-import org.geysermc.cumulus.response.SimpleFormResponse;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.util.HashMap;
 import java.util.List;
@@ -87,18 +86,13 @@ public class AdvancementsCache {
             builder.content("advancements.empty");
         }
 
-        builder.responseHandler((form, responseData) -> {
-            SimpleFormResponse response = form.parseResponse(responseData);
-            if (!response.isCorrect()) {
-                return;
-            }
-
+        builder.validResultHandler((form, response) -> {
             String id = "";
 
             int advancementIndex = 0;
             for (Map.Entry<String, GeyserAdvancement> advancement : storedAdvancements.entrySet()) {
                 if (advancement.getValue().getParentId() == null) { // Root advancement
-                    if (advancementIndex == response.getClickedButtonId()) {
+                    if (advancementIndex == response.clickedButtonId()) {
                         id = advancement.getKey();
                         break;
                     } else {
@@ -148,21 +142,18 @@ public class AdvancementsCache {
 
         builder.button(GeyserLocale.getPlayerLocaleString("gui.back", language));
 
-        builder.responseHandler((form, responseData) -> {
-            SimpleFormResponse response = form.parseResponse(responseData);
-            if (!response.isCorrect()) {
-                // Indicate that we have closed the current advancement tab
-                session.sendDownstreamPacket(new ServerboundSeenAdvancementsPacket());
-                return;
-            }
+        builder.closedResultHandler(form -> {
+            // Indicate that we have closed the current advancement tab
+            session.sendDownstreamPacket(new ServerboundSeenAdvancementsPacket());
 
+        }).validResultHandler((form, response) -> {
             GeyserAdvancement advancement = null;
             int advancementIndex = 0;
             // Loop around to find the advancement that the client pressed
             for (GeyserAdvancement advancementEntry : storedAdvancements.values()) {
                 if (advancementEntry.getParentId() != null &&
                         currentAdvancementCategoryId.equals(advancementEntry.getRootId(this))) {
-                    if (advancementIndex == response.getClickedButtonId()) {
+                    if (advancementIndex == response.clickedButtonId()) {
                         advancement = advancementEntry;
                         break;
                     } else {
@@ -219,12 +210,7 @@ public class AdvancementsCache {
                         .title(MessageTranslator.convertMessage(advancement.getDisplayData().getTitle()))
                         .content(content)
                         .button(GeyserLocale.getPlayerLocaleString("gui.back", language))
-                        .responseHandler((form, responseData) -> {
-                            SimpleFormResponse response = form.parseResponse(responseData);
-                            if (response.isCorrect()) {
-                                buildAndShowListForm();
-                            }
-                        })
+                        .validResultHandler((form, response) -> buildAndShowListForm())
         );
     }
 
