@@ -39,6 +39,7 @@ import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandExecutor;
 import org.geysermc.geyser.platform.sponge.command.GeyserSpongeCommandManager;
+import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.Command;
 import org.spongepowered.api.config.ConfigDir;
@@ -170,7 +171,7 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
      * @param event not required
      */
     @Listener
-    public void onStartedEngine(@Nullable StartedEngineEvent<?> event) {
+    public void onStartedEngine(@Nullable StartedEngineEvent<Server> event) {
         if (!enabled) {
             return;
         }
@@ -178,10 +179,13 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         if (Sponge.server().boundAddress().isPresent()) {
             InetSocketAddress javaAddr = Sponge.server().boundAddress().get();
 
-            // Don't change the ip if its listening on all interfaces
             // By default this should be 127.0.0.1 but may need to be changed in some circumstances
             if (this.geyserConfig.getRemote().getAddress().equalsIgnoreCase("auto")) {
                 this.geyserConfig.setAutoconfiguredRemote(true);
+                // Don't change the ip if its listening on all interfaces
+                if (!javaAddr.getHostString().equals("0.0.0.0") && !javaAddr.getHostString().equals("")) {
+                    this.geyserConfig.getRemote().setAddress(javaAddr.getHostString());
+                }
                 geyserConfig.getRemote().setPort(javaAddr.getPort());
             }
         }
@@ -190,8 +194,6 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             geyserConfig.getBedrock().setPort(geyserConfig.getRemote().getPort());
         }
 
-        this.geyserLogger = new GeyserSpongeLogger(logger, geyserConfig.isDebugMode());
-        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
         this.geyser = GeyserImpl.start(PlatformType.SPONGE, this);
 
         if (geyserConfig.isLegacyPingPassthrough()) {
@@ -200,12 +202,12 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
             this.geyserSpongePingPassthrough = new GeyserSpongePingPassthrough();
         }
 
-        this.geyserCommandManager.registerDefaults(geyser); // register the subcommands once we have the connector
+        this.geyserCommandManager.registerDefaults(geyser); // register the subcommands once we have GeyserImpl
         this.geyserCommandExecutor.setCommandManager(geyserCommandManager); // re-assign the command manager in the case this was a reload
     }
 
     @Listener
-    public void onEngineStopping(StoppingEngineEvent<?> event) {
+    public void onEngineStopping(StoppingEngineEvent<Server> event) {
         onDisable();
     }
 
