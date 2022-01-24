@@ -34,7 +34,7 @@ import java.util.Map;
 /**
  * A write-only wrapper for temporarily storing entity metadata that will be sent to Bedrock.
  */
-public class GeyserDirtyMetadata {
+public final class GeyserDirtyMetadata {
     private final Map<EntityData, Object> metadata = new Object2ObjectLinkedOpenHashMap<>();
 
     public void put(EntityData entityData, Object value) {

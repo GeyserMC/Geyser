@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
@@ -40,21 +41,26 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.inventory.*;
 import com.nukkitx.protocol.bedrock.packet.*;
+import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.CommandBlockMinecartEntity;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.sound.EntitySoundInteractionTranslator;
+import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.translator.sound.EntitySoundInteractionTranslator;
 import org.geysermc.geyser.util.BlockUtils;
+import org.geysermc.geyser.util.InventoryUtils;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -269,16 +275,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.setInteracting(true);
                     }
                     case 1 -> {
-                        if (packet.getActions().size() == 1 && packet.getLegacySlots().size() > 0) {
-                            InventoryActionData actionData = packet.getActions().get(0);
-                            LegacySetItemSlotData slotData = packet.getLegacySlots().get(0);
-                            if (slotData.getContainerId() == 6 && actionData.getToItem().getId() != 0) {
-                                // The player is trying to swap out an armor piece that already has an item in it
-                                // Java Edition does not allow this; let's revert it
-                                session.getInventoryTranslator().updateInventory(session, session.getPlayerInventory());
-                            }
-                        }
-
                         // Handled when sneaking
                         if (session.getPlayerInventory().getItemInHand().getJavaId() == mappings.getStoredItems().shield().getJavaId()) {
                             break;
@@ -298,6 +294,39 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         ServerboundUseItemPacket useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND);
                         session.sendDownstreamPacket(useItemPacket);
+
+                        List<LegacySetItemSlotData> legacySlots = packet.getLegacySlots();
+                        if (packet.getActions().size() == 1 && legacySlots.size() > 0) {
+                            InventoryActionData actionData = packet.getActions().get(0);
+                            LegacySetItemSlotData slotData = legacySlots.get(0);
+                            if (slotData.getContainerId() == 6 && actionData.getToItem().getId() != 0) {
+                                // The player is trying to swap out an armor piece that already has an item in it
+                                if (session.getGeyser().getConfig().isAlwaysQuickChangeArmor()) {
+                                    // Java doesn't know when a player is in its own inventory and not, so we
+                                    // can abuse this feature to send a swap inventory packet
+                                    int bedrockHotbarSlot = packet.getHotbarSlot();
+                                    Click click = InventoryUtils.getClickForHotbarSwap(bedrockHotbarSlot);
+                                    if (click != null && slotData.getSlots().length != 0) {
+                                        Inventory playerInventory = session.getPlayerInventory();
+                                        // Bedrock sends us the index of the slot in the armor container; armor in Java
+                                        // Edition is offset by 5 in the player inventory
+                                        int armorSlot = slotData.getSlots()[0] + 5;
+                                        GeyserItemStack armorSlotItem = playerInventory.getItem(armorSlot);
+                                        GeyserItemStack hotbarItem = playerInventory.getItem(playerInventory.getOffsetForHotbar(bedrockHotbarSlot));
+                                        playerInventory.setItem(armorSlot, hotbarItem, session);
+                                        playerInventory.setItem(bedrockHotbarSlot, armorSlotItem, session);
+
+                                        ServerboundContainerClickPacket clickPacket = new ServerboundContainerClickPacket(
+                                                playerInventory.getId(), playerInventory.getStateId(), armorSlot,
+                                                click.actionType, click.action, null, Collections.emptyMap());
+                                        session.sendDownstreamPacket(clickPacket);
+                                    }
+                                } else {
+                                    // Disallowed; let's revert
+                                    session.getInventoryTranslator().updateInventory(session, session.getPlayerInventory());
+                                }
+                            }
+                        }
                     }
                     case 2 -> {
                         int blockState = session.getGameMode() == GameMode.CREATIVE ?
