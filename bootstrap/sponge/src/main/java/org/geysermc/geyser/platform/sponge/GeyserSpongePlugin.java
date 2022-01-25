@@ -130,16 +130,10 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
         try {
             configFile = FileUtils.fileOrCopiedFromResource(new File(configDir, "config.yml"), "config.yml",
                     (file) -> file.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
-        } catch (IOException ex) {
-            logger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"));
-            ex.printStackTrace();
-            return;
-        }
 
-        try {
             this.geyserConfig = FileUtils.loadConfig(configFile, GeyserSpongeConfiguration.class);
         } catch (IOException ex) {
-            logger.warn(GeyserLocale.getLocaleStringLog("geyser.config.failed"));
+            logger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"));
             ex.printStackTrace();
             onDisable();
             return;
