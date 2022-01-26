@@ -60,7 +60,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
             // receive: first byte is form type, second and third are the id, remaining is the form data
             // respond: first and second byte id, remaining is form response data
 
-            FormType type = FormType.getByOrdinal(data[0]);
+            FormType type = FormType.fromOrdinal(data[0]);
             if (type == null) {
                 throw new NullPointerException(
                         "Got type " + data[0] + " which isn't a valid form type!");
