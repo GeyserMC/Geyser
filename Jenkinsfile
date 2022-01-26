@@ -22,8 +22,10 @@ pipeline {
 
         stage ('Deploy') {
             when {
-                branch "master"
-                branch "feature/cumulus-1.1" // allow Floodgate to build
+                anyOf {
+                    branch "master"
+                    branch "feature/cumulus-1.1" // allow Floodgate to build
+                }
             }
 
             steps {
