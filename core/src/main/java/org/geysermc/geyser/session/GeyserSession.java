@@ -796,6 +796,13 @@ public class GeyserSession implements GeyserConnection, CommandSender {
                             FloodgateSkinUploader skinUploader = geyser.getSkinUploader();
                             FloodgateCipher cipher = geyser.getCipher();
 
+                            String bedrockAddress = upstream.getAddress().getAddress().getHostAddress();
+                            // both BungeeCord and Velocity remove the IPv6 scope (if there is one) for Spigot
+                            int ipv6ScopeIndex = bedrockAddress.indexOf('%');
+                            if (ipv6ScopeIndex != -1) {
+                                bedrockAddress = bedrockAddress.substring(0, ipv6ScopeIndex);
+                            }
+
                             encryptedData = cipher.encryptFromString(BedrockData.of(
                                     clientData.getGameVersion(),
                                     authData.name(),
@@ -804,7 +811,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
                                     clientData.getLanguageCode(),
                                     clientData.getUiProfile().ordinal(),
                                     clientData.getCurrentInputMode().ordinal(),
-                                    upstream.getAddress().getAddress().getHostAddress(),
+                                    bedrockAddress,
                                     skinUploader.getId(),
                                     skinUploader.getVerifyCode()
                             ).toString());
