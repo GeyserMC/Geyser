@@ -35,7 +35,9 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.jetbrains.annotations.Range;
 
 import java.util.Arrays;
@@ -136,7 +138,9 @@ public abstract class Inventory {
 
     protected void updateItemNetId(GeyserItemStack oldItem, GeyserItemStack newItem, GeyserSession session) {
         if (!newItem.isEmpty()) {
-            if (newItem.getItemData(session).equals(oldItem.getItemData(session), false, false, false)) {
+            ItemMapping oldMapping = ItemTranslator.getBedrockItemMapping(session, oldItem);
+            ItemMapping newMapping = ItemTranslator.getBedrockItemMapping(session, newItem);
+            if (oldMapping.getBedrockId() == newMapping.getBedrockId()) {
                 newItem.setNetId(oldItem.getNetId());
             } else {
                 newItem.setNetId(session.getNextItemNetId());

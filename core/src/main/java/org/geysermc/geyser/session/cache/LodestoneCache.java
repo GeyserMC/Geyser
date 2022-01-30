@@ -30,9 +30,6 @@ import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 
 import javax.annotation.Nullable;
@@ -43,7 +40,7 @@ import java.util.WeakHashMap;
  * A temporary cache for lodestone information.
  * Bedrock requests the lodestone position information separately from the item.
  */
-public class LodestoneCache {
+public final class LodestoneCache {
     /**
      * A list of any GeyserItemStacks that are lodestones. Used mainly to minimize Bedrock's "pop-in" effect
      * when a new item has been created; instead we can re-use already existing IDs
@@ -121,8 +118,16 @@ public class LodestoneCache {
     }
 
     public @Nullable LodestonePos getPos(int id) {
-        // We should not need to check the activeLodestones map as Bedrock should already be aware of this ID
-        return this.lodestones.remove(id);
+        LodestonePos pos = this.lodestones.remove(id);
+        if (pos != null) {
+            return pos;
+        }
+        for (LodestonePos activePos : this.activeLodestones.values()) {
+            if (activePos.id == id) {
+                return activePos;
+            }
+        }
+        return null;
     }
 
     public void clear() {
@@ -131,16 +136,7 @@ public class LodestoneCache {
         this.lodestones.clear();
     }
 
-    @Getter
-    @AllArgsConstructor
-    @EqualsAndHashCode
-    public static class LodestonePos {
-        private final int id;
-        private final int x;
-        private final int y;
-        private final int z;
-        private final String dimension;
-
+    public record LodestonePos(int id, int x, int y, int z, String dimension) {
         boolean equals(int x, int y, int z, String dimension) {
             return this.x == x && this.y == y && this.z == z && this.dimension.equals(dimension);
         }
