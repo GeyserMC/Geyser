@@ -819,4 +819,8 @@ public class SkinProvider {
             };
         }
     }
+
+    public static void init() {
+        // no-op
+    }
 }

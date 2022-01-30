@@ -62,6 +62,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.SessionManager;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
+import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
@@ -153,6 +154,7 @@ public class GeyserImpl implements GeyserApi {
         ItemTranslator.init();
         MessageTranslator.init();
         MinecraftLocale.init();
+        SkinProvider.init();
 
         start();
 
