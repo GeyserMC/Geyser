@@ -57,7 +57,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         builder.put("SkullType", skullVariant);
     }
 
-    public static CompletableFuture<GameProfile> getProfile(CompoundTag tag) {
+    private static CompletableFuture<GameProfile> getProfile(CompoundTag tag) {
         CompoundTag owner = tag.get("SkullOwner");
         if (owner != null) {
             CompoundTag properties = owner.get("Properties");
@@ -81,7 +81,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
 
     public static void translateSkull(GeyserSession session, CompoundTag tag, int posX, int posY, int posZ, int blockState) {
         Vector3i blockPosition = Vector3i.from(posX, posY, posZ);
-        SkullBlockEntityTranslator.getProfile(tag).whenComplete((profile, throwable) -> {
+        getProfile(tag).whenComplete((profile, throwable) -> {
             if (profile == null) {
                 session.getGeyser().getLogger().debug("Custom skull with invalid SkullOwner tag: " + blockPosition + " " + tag);
                 return;

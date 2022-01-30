@@ -89,6 +89,9 @@ public class SkullPlayerEntity extends PlayerEntity {
         session.sendUpstreamPacket(addPlayerPacket);
     }
 
+    /**
+     * Hide the player entity so that it can be reused for a different skull.
+     */
     public void free() {
         setFlag(EntityFlag.INVISIBLE, true);
         updateBedrockMetadata();
