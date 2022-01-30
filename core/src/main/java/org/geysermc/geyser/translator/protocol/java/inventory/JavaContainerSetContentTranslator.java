@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetContentPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.session.GeyserSession;
@@ -43,9 +44,26 @@ public class JavaContainerSetContentTranslator extends PacketTranslator<Clientbo
         if (inventory == null)
             return;
 
-        inventory.setStateId(packet.getStateId());
-
+        int inventorySize = inventory.getSize();
         for (int i = 0; i < packet.getItems().length; i++) {
+            if (i > inventorySize) {
+                GeyserImpl geyser = session.getGeyser();
+                geyser.getLogger().warning("ClientboundContainerSetContentPacket sent to " + session.name()
+                        + " that exceeds inventory size!");
+                if (geyser.getConfig().isDebugMode()) {
+                    geyser.getLogger().debug(packet);
+                    geyser.getLogger().debug(inventory);
+                }
+                InventoryTranslator translator = session.getInventoryTranslator();
+                if (translator != null) {
+                    translator.updateInventory(session, inventory);
+                }
+                // 1.18.1 behavior: the previous items will be correctly set, but the state ID and carried item will not
+                // as this produces a stack trace on the client.
+                // If Java processes this correctly in the future, we can revert this behavior
+                return;
+            }
+
             GeyserItemStack newItem = GeyserItemStack.from(packet.getItems()[i]);
             inventory.setItem(i, newItem, session);
         }
@@ -54,6 +72,10 @@ public class JavaContainerSetContentTranslator extends PacketTranslator<Clientbo
         if (translator != null) {
             translator.updateInventory(session, inventory);
         }
+
+        int stateId = packet.getStateId();
+        session.setEmulatePost1_16Logic(stateId > 0 || stateId != inventory.getStateId());
+        inventory.setStateId(stateId);
 
         session.getPlayerInventory().setCursor(GeyserItemStack.from(packet.getCarriedItem()), session);
         InventoryUtils.updateCursor(session);

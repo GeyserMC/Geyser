@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
@@ -41,6 +42,8 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.inventory.*;
 import com.nukkitx.protocol.bedrock.packet.*;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.CommandBlockMinecartEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -59,7 +62,6 @@ import org.geysermc.geyser.translator.sound.EntitySoundInteractionTranslator;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.InventoryUtils;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -316,9 +318,13 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                         playerInventory.setItem(armorSlot, hotbarItem, session);
                                         playerInventory.setItem(bedrockHotbarSlot, armorSlotItem, session);
 
+                                        Int2ObjectMap<ItemStack> changedSlots = new Int2ObjectOpenHashMap<>(2);
+                                        changedSlots.put(armorSlot, hotbarItem.getItemStack());
+                                        changedSlots.put(bedrockHotbarSlot, armorSlotItem.getItemStack());
+
                                         ServerboundContainerClickPacket clickPacket = new ServerboundContainerClickPacket(
                                                 playerInventory.getId(), playerInventory.getStateId(), armorSlot,
-                                                click.actionType, click.action, null, Collections.emptyMap());
+                                                click.actionType, click.action, null, changedSlots);
                                         session.sendDownstreamPacket(clickPacket);
                                     }
                                 } else {
