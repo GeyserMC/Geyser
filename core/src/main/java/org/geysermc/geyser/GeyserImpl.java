@@ -154,7 +154,6 @@ public class GeyserImpl implements GeyserApi {
         ItemTranslator.init();
         MessageTranslator.init();
         MinecraftLocale.init();
-        SkinProvider.init();
 
         start();
 
@@ -196,6 +195,8 @@ public class GeyserImpl implements GeyserApi {
         logger.setDebug(config.isDebugMode());
 
         ScoreboardUpdater.init();
+
+        SkinProvider.registerCacheImageTask(this);
 
         ResourcePack.loadPacks();
 
