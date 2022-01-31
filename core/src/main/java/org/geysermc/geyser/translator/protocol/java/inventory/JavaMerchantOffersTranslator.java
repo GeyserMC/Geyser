@@ -43,6 +43,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.MathUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,16 +100,17 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
             recipe.putInt("maxUses", trade.isTradeDisabled() ? 0 : trade.getMaxUses());
             recipe.putInt("traderExp", trade.getXp());
             recipe.putFloat("priceMultiplierA", trade.getPriceMultiplier());
-            recipe.put("sell", getItemTag(session, trade.getOutput(), 0));
             recipe.putFloat("priceMultiplierB", 0.0f);
-            recipe.putInt("buyCountB", trade.getSecondInput() != null ? trade.getSecondInput().getAmount() : 0);
-            recipe.putInt("buyCountA", trade.getFirstInput().getAmount());
-            recipe.putInt("demand", trade.getDemand());
+            recipe.put("sell", getItemTag(session, trade.getOutput()));
+
+            // The buy count before demand and special price adjustments
+            recipe.putInt("buyCountA", Math.max(trade.getFirstInput().getAmount(), 0));
+            recipe.putInt("buyCountB", trade.getSecondInput() != null ? Math.max(trade.getSecondInput().getAmount(), 0) : 0);
+
+            recipe.putInt("demand", trade.getDemand()); // Seems to have no effect
             recipe.putInt("tier", packet.getVillagerLevel() > 0 ? packet.getVillagerLevel() - 1 : 0); // -1 crashes client
-            recipe.put("buyA", getItemTag(session, trade.getFirstInput(), trade.getSpecialPrice()));
-            if (trade.getSecondInput() != null) {
-                recipe.put("buyB", getItemTag(session, trade.getSecondInput(), 0));
-            }
+            recipe.put("buyA", getItemTag(session, trade.getFirstInput(), trade.getSpecialPrice(), trade.getDemand(), trade.getPriceMultiplier()));
+            recipe.put("buyB", getItemTag(session, trade.getSecondInput()));
             recipe.putInt("uses", trade.getNumUses());
             recipe.putByte("rewardExp", (byte) 1);
             tags.add(recipe.build());
@@ -144,12 +146,31 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
         session.sendUpstreamPacket(updateTradePacket);
     }
 
-    private static NbtMap getItemTag(GeyserSession session, ItemStack stack, int specialPrice) {
-        ItemData itemData = ItemTranslator.translateToBedrock(session, stack);
+    private static NbtMap getItemTag(GeyserSession session, ItemStack stack) {
+        if (stack == null || stack.getAmount() <= 0) { // Negative item counts appear as air on Java
+            return NbtMap.EMPTY;
+        }
+        return getItemTag(session, stack, session.getItemMappings().getMapping(stack), stack.getAmount());
+    }
+
+    private static NbtMap getItemTag(GeyserSession session, ItemStack stack, int specialPrice, int demand, float priceMultiplier) {
+        if (stack == null || stack.getAmount() <= 0) { // Negative item counts appear as air on Java
+            return NbtMap.EMPTY;
+        }
         ItemMapping mapping = session.getItemMappings().getMapping(stack);
 
+        // Bedrock expects all price adjustments to be applied to the item's count
+        int count = stack.getAmount() + ((int) Math.max(Math.floor(stack.getAmount() * demand * priceMultiplier), 0)) + specialPrice;
+        count = MathUtils.constrain(count, 1, mapping.getStackSize());
+
+        return getItemTag(session, stack, mapping, count);
+    }
+
+    private static NbtMap getItemTag(GeyserSession session, ItemStack stack, ItemMapping mapping, int count) {
+        ItemData itemData = ItemTranslator.translateToBedrock(session, stack);
+
         NbtMapBuilder builder = NbtMap.builder();
-        builder.putByte("Count", (byte) (Math.max(itemData.getCount() + specialPrice, 1)));
+        builder.putByte("Count", (byte) count);
         builder.putShort("Damage", (short) itemData.getDamage());
         builder.putString("Name", mapping.getBedrockIdentifier());
         if (itemData.getTag() != null) {
