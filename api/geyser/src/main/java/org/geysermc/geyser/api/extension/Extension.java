@@ -114,8 +114,8 @@ public interface Extension {
      * @param name the name of the config
      * @return the config
      */
-    default ExtensionConfig config(String name) {
-        return this.extensionLoader().config(this, name);
+    default ExtensionConfig config(String name, ExtensionConfigType type) {
+        return this.extensionLoader().config(this, name, type);
     }
 
     /**
