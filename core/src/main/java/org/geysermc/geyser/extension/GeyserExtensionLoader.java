@@ -32,6 +32,7 @@ import org.geysermc.geyser.api.event.ExtensionEventBus;
 import org.geysermc.geyser.api.extension.*;
 import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
 import org.geysermc.geyser.api.extension.exception.InvalidExtensionException;
+import org.geysermc.geyser.extension.config.YamlExtensionConfig;
 import org.geysermc.geyser.extension.event.GeyserExtensionEventBus;
 import org.geysermc.geyser.text.GeyserLocale;
 
@@ -86,7 +87,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
     private GeyserExtensionContainer setup(Extension extension, GeyserExtensionDescription description, Path dataFolder, ExtensionEventBus eventBus) {
         GeyserExtensionLogger logger = new GeyserExtensionLogger(GeyserImpl.getInstance().getLogger(), description.name());
-        GeyserExtensionConfig config = new GeyserExtensionConfig(dataFolder.resolve("config.yml").toAbsolutePath().toString(), logger);
+        YamlExtensionConfig config = new YamlExtensionConfig(dataFolder.resolve("config.yml").toAbsolutePath().toString(), logger);
         return new GeyserExtensionContainer(extension, dataFolder, description, config, this, logger, eventBus);
     }
 
@@ -235,17 +236,19 @@ public class GeyserExtensionLoader extends ExtensionLoader {
         return this.extensionContainers.get(extension).description();
     }
 
-    @NonNull
     @Override
     protected ExtensionConfig config(@NonNull Extension extension) {
         return this.extensionContainers.get(extension).config();
     }
 
-    @NonNull
     @Override
-    protected ExtensionConfig config(@NonNull Extension extension, String name) {
+    protected ExtensionConfig config(@NonNull Extension extension, @NonNull String name, @NonNull ExtensionConfigType type) {
         GeyserExtensionContainer container = this.extensionContainers.get(extension);
-        return new GeyserExtensionConfig(container.dataFolder().resolve(name).toAbsolutePath().toString(), container.logger());
+        if (type == ExtensionConfigType.YAML) {
+            return new YamlExtensionConfig(container.dataFolder().resolve(name).toAbsolutePath().toString(), container.logger());
+        } else {
+            return null;
+        }
     }
 
     @NonNull

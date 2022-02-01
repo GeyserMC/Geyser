@@ -23,62 +23,62 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.extension;
+package org.geysermc.geyser.extension.config;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.extension.ExtensionConfig;
 import org.geysermc.geyser.api.extension.ExtensionLogger;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
-public class GeyserExtensionConfig implements ExtensionConfig {
+public class YamlExtensionConfig implements ExtensionConfig {
     private ConfigSection config;
-    private File file;
+    private Path file;
     private boolean correct = false;
     private ExtensionLogger logger;
 
-    public GeyserExtensionConfig(File file, ExtensionLogger logger) {
+    public YamlExtensionConfig(@NonNull Path file, @NonNull ExtensionLogger logger) {
         this.logger = logger;
         this.load(file, new ConfigSection());
     }
 
-    public GeyserExtensionConfig(String file, ExtensionLogger logger) {
+    public YamlExtensionConfig(@NonNull String file, @NonNull ExtensionLogger logger) {
         this.logger = logger;
-        this.load(new File(file), new ConfigSection());
+        this.load(Path.of(file), new ConfigSection());
     }
 
-    private void load(File file, ConfigSection defaults) {
+    private void load(@NonNull Path file, @NonNull ConfigSection defaults) {
         this.correct = true;
         this.file = file;
 
-        if (!this.file.exists()) {
+        if (!Files.exists(file)) {
             try {
-                this.file.getParentFile().mkdirs();
-                this.file.createNewFile();
+                Files.createDirectory(this.file.getParent());
+                Files.createFile(this.file);
             } catch (IOException e) {
-                logger.error(GeyserLocale.getLocaleStringLog("geyser.extensions.config.failed_create", this.file.getAbsolutePath()), e);
+                logger.error(GeyserLocale.getLocaleStringLog("geyser.extensions.config.failed_create", this.file.toAbsolutePath().toString()), e);
             }
 
             this.config = defaults;
             this.save();
         } else {
             if (this.correct) {
-                StringBuilder resultStringBuilder = new StringBuilder();
+                String path;
                 try {
-                    BufferedReader br = new BufferedReader(new FileReader(this.file));
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        resultStringBuilder.append(line).append("\n");
-                    }
+                    path = Files.readString(this.file);
                 } catch (IOException e) {
-                    logger.error(GeyserLocale.getLocaleStringLog("geyser.extensions.config.failed_read", this.file.getAbsolutePath()), e);
+                    logger.error(GeyserLocale.getLocaleStringLog("geyser.extensions.config.failed_read", this.file.toAbsolutePath().toString()), e);
                     return;
                 }
 
-                this.parseContent(resultStringBuilder.toString());
+                this.parseContent(path);
 
                 if (!this.correct) {
                     return;
@@ -117,94 +117,92 @@ public class GeyserExtensionConfig implements ExtensionConfig {
             StringBuilder content = new StringBuilder(yaml.dump(this.config));
 
             try {
-                BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-                writer.write(content.toString());
-                writer.close();
+                Files.writeString(this.file, content.toString());
             } catch (IOException e) {
-                this.logger.error(GeyserLocale.getLocaleStringLog("geyser.extensions.config.failed_save", this.file.getAbsolutePath()), e);
+                this.logger.error(GeyserLocale.getLocaleStringLog("geyser.extensions.config.failed_save", this.file.toAbsolutePath().toString()), e);
             }
         }
     }
 
     @Override
-    public void set(String path, Object value) {
+    public void set(@NonNull String path, Object value) {
         this.config.set(path, value);
     }
 
     @Override
-    public Object get(String path) {
+    public Object get(@NonNull String path) {
         return this.config.get(path);
     }
 
     @Override
-    public int getInt(String path) {
+    public int getInt(@NonNull String path) {
         return this.config.get(path, (Number) 0).intValue();
     }
 
     @Override
-    public boolean isInt(String path) {
+    public boolean isInt(@NonNull String path) {
         Object val = this.config.get(path);
         return val instanceof Integer;
     }
 
     @Override
-    public long getLong(String path) {
+    public long getLong(@NonNull String path) {
         return this.config.get(path, (Number) 0).longValue();
     }
 
     @Override
-    public boolean isLong(String path) {
+    public boolean isLong(@NonNull String path) {
         Object val = this.config.get(path);
         return val instanceof Long;
     }
 
     @Override
-    public double getDouble(String path) {
+    public double getDouble(@NonNull String path) {
         return this.config.get(path, (Number) 0).doubleValue();
     }
 
     @Override
-    public boolean isDouble(String path) {
+    public boolean isDouble(@NonNull String path) {
         Object val = this.config.get(path);
         return val instanceof Double;
     }
 
     @Override
-    public String getString(String path) {
+    public String getString(@NonNull String path) {
         Object result = this.config.get(path, "");
         return String.valueOf(result);
     }
 
     @Override
-    public boolean isString(String path) {
+    public boolean isString(@NonNull String path) {
         Object val = get(path);
         return val instanceof String;
     }
 
     @Override
-    public boolean getBoolean(String path) {
+    public boolean getBoolean(@NonNull String path) {
         return this.config.get(path, false);
     }
 
     @Override
-    public boolean isBoolean(String path) {
+    public boolean isBoolean(@NonNull String path) {
         Object val = get(path);
         return val instanceof Boolean;
     }
 
     @Override
-    public List getList(String path) {
+    public List getList(@NonNull String path) {
         return this.config.get(path, null);
     }
 
     @Override
-    public boolean isList(String path) {
+    public boolean isList(@NonNull String path) {
         Object val = get(path);
         return val instanceof List;
     }
 
     @Override
-    public List<String> getStringList(String path) {
+    public List<String> getStringList(@NonNull String path) {
         List value = this.getList(path);
 
         if (value == null) {
@@ -222,7 +220,7 @@ public class GeyserExtensionConfig implements ExtensionConfig {
     }
 
     @Override
-    public List<Integer> getIntegerList(String path) {
+    public List<Integer> getIntegerList(@NonNull String path) {
         List<?> list = getList(path);
 
         if (list == null) {
@@ -250,7 +248,7 @@ public class GeyserExtensionConfig implements ExtensionConfig {
     }
 
     @Override
-    public List<Boolean> getBooleanList(String path) {
+    public List<Boolean> getBooleanList(@NonNull String path) {
         List<?> list = getList(path);
 
         if (list == null) {
@@ -274,7 +272,7 @@ public class GeyserExtensionConfig implements ExtensionConfig {
     }
 
     @Override
-    public List<Double> getDoubleList(String path) {
+    public List<Double> getDoubleList(@NonNull String path) {
         List<?> list = getList(path);
 
         if (list == null) {
@@ -302,7 +300,7 @@ public class GeyserExtensionConfig implements ExtensionConfig {
     }
 
     @Override
-    public List<Float> getFloatList(String path) {
+    public List<Float> getFloatList(@NonNull String path) {
         List<?> list = getList(path);
 
         if (list == null) {
@@ -330,7 +328,7 @@ public class GeyserExtensionConfig implements ExtensionConfig {
     }
 
     @Override
-    public List<Long> getLongList(String path) {
+    public List<Long> getLongList(@NonNull String path) {
         List<?> list = getList(path);
 
         if (list == null) {
@@ -358,7 +356,7 @@ public class GeyserExtensionConfig implements ExtensionConfig {
     }
 
     @Override
-    public List<Byte> getByteList(String path) {
+    public List<Byte> getByteList(@NonNull String path) {
         List<?> list = getList(path);
 
         if (list == null) {
@@ -387,7 +385,7 @@ public class GeyserExtensionConfig implements ExtensionConfig {
     }
 
     @Override
-    public List<Character> getCharacterList(String path) {
+    public List<Character> getCharacterList(@NonNull String path) {
         List<?> list = getList(path);
 
         if (list == null) {
@@ -414,7 +412,7 @@ public class GeyserExtensionConfig implements ExtensionConfig {
     }
 
     @Override
-    public List<Short> getShortList(String path) {
+    public List<Short> getShortList(@NonNull String path) {
         List<?> list = getList(path);
 
         if (list == null) {
@@ -443,7 +441,7 @@ public class GeyserExtensionConfig implements ExtensionConfig {
     }
 
     @Override
-    public List<Map> getMapList(String path) {
+    public List<Map> getMapList(@NonNull String path) {
         List<Map> list = getList(path);
         List<Map> result = new ArrayList<>();
 
@@ -461,7 +459,7 @@ public class GeyserExtensionConfig implements ExtensionConfig {
     }
 
     @Override
-    public boolean contains(String key, boolean ignoreCase) {
+    public boolean contains(@NonNull String key, boolean ignoreCase) {
         if (ignoreCase) {
             key = key.toLowerCase();
         }
@@ -478,12 +476,12 @@ public class GeyserExtensionConfig implements ExtensionConfig {
     }
 
     @Override
-    public boolean contains(String key) {
+    public boolean contains(@NonNull String key) {
         return this.contains(key, false);
     }
 
     @Override
-    public void remove(String path) {
+    public void remove(@NonNull String path) {
         this.config.remove(path);
     }
 
@@ -497,13 +495,13 @@ public class GeyserExtensionConfig implements ExtensionConfig {
         return this.getKeys(true);
     }
 
-    private int setDefault(ConfigSection map) {
+    private int setDefault(@NonNull ConfigSection map) {
         int size = this.config.size();
         this.config = this.fillDefaults(map, this.config);
         return this.config.size() - size;
     }
 
-    private ConfigSection fillDefaults(ConfigSection defaultMap, ConfigSection data) {
+    private ConfigSection fillDefaults(@NonNull ConfigSection defaultMap, @NonNull ConfigSection data) {
         for (String key : defaultMap.keySet()) {
             if (!data.containsKey(key)) {
                 data.put(key, defaultMap.get(key));
@@ -512,7 +510,7 @@ public class GeyserExtensionConfig implements ExtensionConfig {
         return data;
     }
 
-    private void parseContent(String content) {
+    private void parseContent(@NonNull String content) {
         DumperOptions dumperOptions = new DumperOptions();
         dumperOptions.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         Yaml yaml = new Yaml(dumperOptions);
@@ -524,9 +522,9 @@ public class GeyserExtensionConfig implements ExtensionConfig {
             super();
         }
 
-        public ConfigSection(LinkedHashMap<String, Object> map) {
+        public ConfigSection(@NonNull LinkedHashMap<String, Object> map) {
             this();
-            if (map == null || map.isEmpty()) {
+            if (map.isEmpty()) {
                 return;
             }
 
@@ -541,7 +539,7 @@ public class GeyserExtensionConfig implements ExtensionConfig {
             }
         }
 
-        private List parseList(List list) {
+        private List parseList(@NonNull List list) {
             List<Object> newList = new ArrayList<>();
 
             for (Object o : list) {
@@ -559,12 +557,12 @@ public class GeyserExtensionConfig implements ExtensionConfig {
             return new ConfigSection(this);
         }
 
-        public Object get(String path) {
+        public Object get(@NonNull String path) {
             return this.get(path, null);
         }
 
-        public <T> T get(String path, T defaultValue) {
-            if (path == null || path.isEmpty()) {
+        public <T> T get(@NonNull String path, @Nullable T defaultValue) {
+            if (path.isEmpty()) {
                 return defaultValue;
             }
 
@@ -584,7 +582,7 @@ public class GeyserExtensionConfig implements ExtensionConfig {
             return defaultValue;
         }
 
-        public void set(String path, Object value) {
+        public void set(@NonNull String path, @NonNull Object value) {
             String[] subKeys = path.split("\\.", 2);
             if (subKeys.length > 1) {
                 ConfigSection childSection = new ConfigSection();
@@ -598,8 +596,8 @@ public class GeyserExtensionConfig implements ExtensionConfig {
             }
         }
 
-        public void remove(String path) {
-            if (path == null || path.isEmpty()) {
+        public void remove(@NonNull String path) {
+            if (path.isEmpty()) {
                 return;
             }
 

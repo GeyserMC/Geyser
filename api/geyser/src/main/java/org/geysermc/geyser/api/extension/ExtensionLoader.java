@@ -75,7 +75,6 @@ public abstract class ExtensionLoader {
      * @param extension the extension
      * @return the config of the given extension
      */
-    @NonNull
     protected abstract ExtensionConfig config(@NonNull Extension extension);
 
     /**
@@ -85,8 +84,7 @@ public abstract class ExtensionLoader {
      * @param name the name of the config
      * @return a config of the given extension
      */
-    @NonNull
-    protected abstract ExtensionConfig config(@NonNull Extension extension, String name);
+    protected abstract ExtensionConfig config(@NonNull Extension extension, String name, ExtensionConfigType type);
 
     /**
      * Gets the given {@link Extension}'s {@link ExtensionEventBus}.
