@@ -25,9 +25,14 @@
 
 package org.geysermc.geyser.api.extension;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 import java.util.List;
 import java.util.Map;
 
+/**
+ * This is the Geyser extension configuration class.
+ */
 public interface ExtensionConfig {
     /**
      * Reloads the config
@@ -45,7 +50,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @param value The value to set
      */
-    void set(String path, Object value);
+    void set(@NonNull String path, @NonNull Object value);
 
     /**
      * Gets a value from the config
@@ -53,7 +58,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value as an {@link Object}
      */
-    Object get(String path);
+    Object get(@NonNull String path);
 
     /**
      * Gets and integer from the config
@@ -61,7 +66,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
-    int getInt(String path);
+    int getInt(@NonNull String path);
 
     /**
      * Gets if a value is an integer
@@ -69,7 +74,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return True if the value is an integer
      */
-    boolean isInt(String path);
+    boolean isInt(@NonNull String path);
 
     /**
      * Gets a long from the config
@@ -77,7 +82,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
-    long getLong(String path);
+    long getLong(@NonNull String path);
 
     /**
      * Gets if a value is a long
@@ -85,7 +90,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return True if the value is a long
      */
-    boolean isLong(String path);
+    boolean isLong(@NonNull String path);
 
     /**
      * Gets a double from the config
@@ -93,7 +98,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
-    double getDouble(String path);
+    double getDouble(@NonNull String path);
 
     /**
      * Gets if a value is a double
@@ -101,7 +106,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return True if the value is a double
      */
-    boolean isDouble(String path);
+    boolean isDouble(@NonNull String path);
 
     /**
      * Gets a string from the config
@@ -109,7 +114,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
-    String getString(String path);
+    String getString(@NonNull String path);
 
     /**
      * Gets if a value is a string
@@ -117,7 +122,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return True if the value is a string
      */
-    boolean isString(String path);
+    boolean isString(@NonNull String path);
 
     /**
      * Gets a boolean from the config
@@ -125,7 +130,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
-    boolean getBoolean(String path);
+    boolean getBoolean(@NonNull String path);
 
     /**
      * Gets if a value is a boolean
@@ -133,7 +138,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return True if the value is a boolean
      */
-    boolean isBoolean(String path);
+    boolean isBoolean(@NonNull String path);
 
     /**
      * Gets a list form the config
@@ -141,7 +146,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
-    List getList(String path);
+    List getList(@NonNull String path);
 
     /**
      * Gets if a value is a list
@@ -149,7 +154,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return True if the value is a list
      */
-    boolean isList(String path);
+    boolean isList(@NonNull String path);
 
     /**
      * Gets a string list from the config
@@ -157,7 +162,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
-    List<String> getStringList(String path);
+    List<String> getStringList(@NonNull String path);
 
     /**
      * Gets an integer list from the config
@@ -165,7 +170,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
-    List<Integer> getIntegerList(String path);
+    List<Integer> getIntegerList(@NonNull String path);
 
     /**
      * Gets a boolean list from the config
@@ -173,7 +178,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
-    List<Boolean> getBooleanList(String path);
+    List<Boolean> getBooleanList(@NonNull String path);
 
     /**
      * Gets a double list from the config
@@ -181,14 +186,14 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
-    List<Double> getDoubleList(String path);
+    List<Double> getDoubleList(@NonNull String path);
 
     /**
      * Gets a float list from the config
      * @param path The path to the value
      * @return The value
      */
-    List<Float> getFloatList(String path);
+    List<Float> getFloatList(@NonNull String path);
 
     /**
      * Gets a long list from the config
@@ -196,7 +201,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
-    List<Long> getLongList(String path);
+    List<Long> getLongList(@NonNull String path);
 
     /**
      * Gets a list of bytes from the config
@@ -204,7 +209,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
-    List<Byte> getByteList(String path);
+    List<Byte> getByteList(@NonNull String path);
 
     /**
      * Gets a list of characters from the config
@@ -212,7 +217,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
-    List<Character> getCharacterList(String path);
+    List<Character> getCharacterList(@NonNull String path);
 
     /**
      * Gets a list of shorts from the config
@@ -220,7 +225,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
-    List<Short> getShortList(String path);
+    List<Short> getShortList(@NonNull String path);
 
     /**
      * Gets a list of maps from the config
@@ -228,7 +233,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
-    List<Map> getMapList(String path);
+    List<Map> getMapList(@NonNull String path);
 
     /**
      * Gets if a config contains a value
@@ -237,7 +242,7 @@ public interface ExtensionConfig {
      * @param ignoreCase If the path should be case sensitive
      * @return True if the config contains the value
      */
-    boolean contains(String path, boolean ignoreCase);
+    boolean contains(@NonNull String path, boolean ignoreCase);
 
     /**
      * Gets if a config contains a value
@@ -245,14 +250,14 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return True if the config contains the value
      */
-    boolean contains(String path);
+    boolean contains(@NonNull String path);
 
     /**
      * Removes a value from the config
      *
      * @param path The path to the value
      */
-    void remove(String path);
+    void remove(@NonNull String path);
 
     /**
      * Gets all the keys in the config

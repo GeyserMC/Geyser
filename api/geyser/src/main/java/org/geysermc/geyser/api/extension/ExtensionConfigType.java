@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.api.extension;
 
+/**
+ * The type of extension config.
+ */
 public enum ExtensionConfigType {
     YAML
 }
