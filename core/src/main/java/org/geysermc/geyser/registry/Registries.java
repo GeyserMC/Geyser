@@ -31,7 +31,6 @@ import com.github.steveice10.mc.protocol.data.game.level.event.SoundEvent;
 import com.github.steveice10.mc.protocol.data.game.level.particle.ParticleType;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
-import com.github.steveice10.mc.protocol.data.game.statistic.CustomStatistic;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
@@ -43,26 +42,25 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
-import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
-import org.geysermc.geyser.translator.sound.SoundTranslator;
-import org.geysermc.geyser.translator.sound.SoundInteractionTranslator;
-import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
-import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
 import org.geysermc.geyser.registry.loader.*;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
+import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
 import org.geysermc.geyser.registry.populator.RecipeRegistryPopulator;
 import org.geysermc.geyser.registry.type.EnchantmentData;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.registry.type.ParticleMapping;
 import org.geysermc.geyser.registry.type.SoundMapping;
+import org.geysermc.geyser.translator.collision.BlockCollision;
+import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
+import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
+import org.geysermc.geyser.translator.sound.SoundInteractionTranslator;
+import org.geysermc.geyser.translator.sound.SoundTranslator;
 
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.IntFunction;
 
 /**
  * Holds all the common registries in Geyser.
@@ -96,7 +94,7 @@ public final class Registries {
     /**
      * A mapped registry containing which holds block IDs to its {@link BlockCollision}.
      */
-    public static final SimpleMappedRegistry<Integer, BlockCollision> COLLISIONS = SimpleMappedRegistry.create(Pair.of("org.geysermc.geyser.translator.collision.CollisionRemapper", "mappings/collision.json"), CollisionRegistryLoader::new);
+    public static final IntMappedRegistry<BlockCollision> COLLISIONS = IntMappedRegistry.create(Pair.of("org.geysermc.geyser.translator.collision.CollisionRemapper", "mappings/collision.json"), CollisionRegistryLoader::new);
 
     /**
      * A versioned registry which holds a {@link RecipeType} to a corresponding list of {@link CraftingData}.
@@ -149,7 +147,7 @@ public final class Registries {
      * A mapped registry holding the available records, with the ID of the record being the key, and the {@link com.nukkitx.protocol.bedrock.data.SoundEvent}
      * as the value.
      */
-    public static final SimpleMappedRegistry<Integer, com.nukkitx.protocol.bedrock.data.SoundEvent> RECORDS = SimpleMappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
+    public static final IntMappedRegistry<com.nukkitx.protocol.bedrock.data.SoundEvent> RECORDS = IntMappedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
     /**
      * A mapped registry holding sound identifiers to their corresponding {@link SoundMapping}.
