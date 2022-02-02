@@ -63,7 +63,7 @@ public interface ExtensionConfig {
     Object get(@NonNull String path);
 
     /**
-     * Gets and integer from the config
+     * Gets an integer from the config
      *
      * @param path The path to the value
      * @return The value
@@ -71,7 +71,7 @@ public interface ExtensionConfig {
     int getInt(@NonNull String path);
 
     /**
-     * Gets if a value is an integer
+     * Checks if a value is an integer
      *
      * @param path The path to the value
      * @return True if the value is an integer
@@ -87,7 +87,7 @@ public interface ExtensionConfig {
     long getLong(@NonNull String path);
 
     /**
-     * Gets if a value is a long
+     * Checks if a value is a long
      *
      * @param path The path to the value
      * @return True if the value is a long
@@ -103,7 +103,7 @@ public interface ExtensionConfig {
     double getDouble(@NonNull String path);
 
     /**
-     * Gets if a value is a double
+     * Checks if a value is a double
      *
      * @param path The path to the value
      * @return True if the value is a double
@@ -120,7 +120,7 @@ public interface ExtensionConfig {
     String getString(@NonNull String path);
 
     /**
-     * Gets if a value is a string
+     * Checks if a value is a string
      *
      * @param path The path to the value
      * @return True if the value is a string
@@ -136,7 +136,7 @@ public interface ExtensionConfig {
     boolean getBoolean(@NonNull String path);
 
     /**
-     * Gets if a value is a boolean
+     * Checks if a value is a boolean
      *
      * @param path The path to the value
      * @return True if the value is a boolean
@@ -144,7 +144,7 @@ public interface ExtensionConfig {
     boolean isBoolean(@NonNull String path);
 
     /**
-     * Gets a list form the config
+     * Gets a list from the config
      *
      * @param path The path to the value
      * @return The value
@@ -153,7 +153,7 @@ public interface ExtensionConfig {
     List getList(@NonNull String path);
 
     /**
-     * Gets if a value is a list
+     * Checks if a value is a list
      *
      * @param path The path to the value
      * @return True if the value is a list
@@ -250,7 +250,7 @@ public interface ExtensionConfig {
     List<Map> getMapList(@NonNull String path);
 
     /**
-     * Gets if a config contains a value
+     * Checks if a config contains a value
      *
      * @param path The path to the value
      * @param ignoreCase If the path should be case sensitive
@@ -259,7 +259,7 @@ public interface ExtensionConfig {
     boolean contains(@NonNull String path, boolean ignoreCase);
 
     /**
-     * Gets if a config contains a value
+     * Checks if a config contains a value
      *
      * @param path The path to the value
      * @return True if the config contains the value
