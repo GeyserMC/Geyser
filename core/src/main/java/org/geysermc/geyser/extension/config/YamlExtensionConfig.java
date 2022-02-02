@@ -125,10 +125,11 @@ public class YamlExtensionConfig implements ExtensionConfig {
     }
 
     @Override
-    public void set(@NonNull String path, Object value) {
+    public void set(@NonNull String path, @Nullable Object value) {
         this.config.set(path, value);
     }
 
+    @Nullable
     @Override
     public Object get(@NonNull String path) {
         return this.config.get(path);
@@ -167,6 +168,7 @@ public class YamlExtensionConfig implements ExtensionConfig {
         return val instanceof Double;
     }
 
+    @NonNull
     @Override
     public String getString(@NonNull String path) {
         Object result = this.config.get(path, "");
@@ -190,6 +192,7 @@ public class YamlExtensionConfig implements ExtensionConfig {
         return val instanceof Boolean;
     }
 
+    @Nullable
     @Override
     public List getList(@NonNull String path) {
         return this.config.get(path, null);
@@ -201,6 +204,7 @@ public class YamlExtensionConfig implements ExtensionConfig {
         return val instanceof List;
     }
 
+    @NonNull
     @Override
     public List<String> getStringList(@NonNull String path) {
         List value = this.getList(path);
@@ -219,6 +223,7 @@ public class YamlExtensionConfig implements ExtensionConfig {
         return result;
     }
 
+    @NonNull
     @Override
     public List<Integer> getIntegerList(@NonNull String path) {
         List<?> list = getList(path);
@@ -247,6 +252,7 @@ public class YamlExtensionConfig implements ExtensionConfig {
         return result;
     }
 
+    @NonNull
     @Override
     public List<Boolean> getBooleanList(@NonNull String path) {
         List<?> list = getList(path);
@@ -271,6 +277,7 @@ public class YamlExtensionConfig implements ExtensionConfig {
         return result;
     }
 
+    @NonNull
     @Override
     public List<Double> getDoubleList(@NonNull String path) {
         List<?> list = getList(path);
@@ -299,6 +306,7 @@ public class YamlExtensionConfig implements ExtensionConfig {
         return result;
     }
 
+    @NonNull
     @Override
     public List<Float> getFloatList(@NonNull String path) {
         List<?> list = getList(path);
@@ -327,6 +335,7 @@ public class YamlExtensionConfig implements ExtensionConfig {
         return result;
     }
 
+    @NonNull
     @Override
     public List<Long> getLongList(@NonNull String path) {
         List<?> list = getList(path);
@@ -355,6 +364,7 @@ public class YamlExtensionConfig implements ExtensionConfig {
         return result;
     }
 
+    @NonNull
     @Override
     public List<Byte> getByteList(@NonNull String path) {
         List<?> list = getList(path);
@@ -384,6 +394,7 @@ public class YamlExtensionConfig implements ExtensionConfig {
         return result;
     }
 
+    @NonNull
     @Override
     public List<Character> getCharacterList(@NonNull String path) {
         List<?> list = getList(path);
@@ -411,6 +422,7 @@ public class YamlExtensionConfig implements ExtensionConfig {
         return result;
     }
 
+    @NonNull
     @Override
     public List<Short> getShortList(@NonNull String path) {
         List<?> list = getList(path);
@@ -440,6 +452,7 @@ public class YamlExtensionConfig implements ExtensionConfig {
         return result;
     }
 
+    @NonNull
     @Override
     public List<Map> getMapList(@NonNull String path) {
         List<Map> list = getList(path);
@@ -485,11 +498,13 @@ public class YamlExtensionConfig implements ExtensionConfig {
         this.config.remove(path);
     }
 
+    @NonNull
     @Override
     public List<String> getKeys(boolean deep) {
         return this.config.getKeys(deep);
     }
 
+    @NonNull
     @Override
     public List<String> getKeys() {
         return this.getKeys(true);
@@ -501,6 +516,7 @@ public class YamlExtensionConfig implements ExtensionConfig {
         return this.config.size() - size;
     }
 
+    @NonNull
     private ConfigSection fillDefaults(@NonNull ConfigSection defaultMap, @NonNull ConfigSection data) {
         for (String key : defaultMap.keySet()) {
             if (!data.containsKey(key)) {
@@ -539,6 +555,7 @@ public class YamlExtensionConfig implements ExtensionConfig {
             }
         }
 
+        @NonNull
         private List parseList(@NonNull List list) {
             List<Object> newList = new ArrayList<>();
 
@@ -553,14 +570,17 @@ public class YamlExtensionConfig implements ExtensionConfig {
             return newList;
         }
 
+        @NonNull
         public ConfigSection getAll() {
             return new ConfigSection(this);
         }
 
+        @Nullable
         public Object get(@NonNull String path) {
             return this.get(path, null);
         }
 
+        @Nullable
         public <T> T get(@NonNull String path, @Nullable T defaultValue) {
             if (path.isEmpty()) {
                 return defaultValue;
@@ -582,7 +602,7 @@ public class YamlExtensionConfig implements ExtensionConfig {
             return defaultValue;
         }
 
-        public void set(@NonNull String path, @NonNull Object value) {
+        public void set(@NonNull String path, @Nullable Object value) {
             String[] subKeys = path.split("\\.", 2);
             if (subKeys.length > 1) {
                 ConfigSection childSection = new ConfigSection();
@@ -612,6 +632,7 @@ public class YamlExtensionConfig implements ExtensionConfig {
             }
         }
 
+        @NonNull
         public List<String> getKeys(boolean deep) {
             List<String> keys = new LinkedList<>();
             this.forEach((key, value) -> {

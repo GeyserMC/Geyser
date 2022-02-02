@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.extension;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.api.GeyserApiBase;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.event.ExtensionEventBus;
@@ -114,7 +115,7 @@ public interface Extension {
      * @param name the name of the config
      * @return the config
      */
-    default ExtensionConfig config(String name, ExtensionConfigType type) {
+    default ExtensionConfig config(String name, @NonNull ExtensionConfigType type) {
         return this.extensionLoader().config(this, name, type);
     }
 

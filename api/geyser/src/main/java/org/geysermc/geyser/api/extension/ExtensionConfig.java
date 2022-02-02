@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.extension;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -50,7 +51,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @param value The value to set
      */
-    void set(@NonNull String path, @NonNull Object value);
+    void set(@NonNull String path, @Nullable Object value);
 
     /**
      * Gets a value from the config
@@ -58,6 +59,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value as an {@link Object}
      */
+    @Nullable
     Object get(@NonNull String path);
 
     /**
@@ -114,6 +116,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
+    @NonNull
     String getString(@NonNull String path);
 
     /**
@@ -146,6 +149,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
+    @Nullable
     List getList(@NonNull String path);
 
     /**
@@ -162,6 +166,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
+    @NonNull
     List<String> getStringList(@NonNull String path);
 
     /**
@@ -170,6 +175,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
+    @NonNull
     List<Integer> getIntegerList(@NonNull String path);
 
     /**
@@ -178,6 +184,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
+    @NonNull
     List<Boolean> getBooleanList(@NonNull String path);
 
     /**
@@ -186,6 +193,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
+    @NonNull
     List<Double> getDoubleList(@NonNull String path);
 
     /**
@@ -193,6 +201,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
+    @NonNull
     List<Float> getFloatList(@NonNull String path);
 
     /**
@@ -201,6 +210,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
+    @NonNull
     List<Long> getLongList(@NonNull String path);
 
     /**
@@ -209,6 +219,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
+    @NonNull
     List<Byte> getByteList(@NonNull String path);
 
     /**
@@ -217,6 +228,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
+    @NonNull
     List<Character> getCharacterList(@NonNull String path);
 
     /**
@@ -225,6 +237,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
+    @NonNull
     List<Short> getShortList(@NonNull String path);
 
     /**
@@ -233,6 +246,7 @@ public interface ExtensionConfig {
      * @param path The path to the value
      * @return The value
      */
+    @NonNull
     List<Map> getMapList(@NonNull String path);
 
     /**
@@ -265,6 +279,7 @@ public interface ExtensionConfig {
      * @param deep Should include child keys
      * @return The keys
      */
+    @NonNull
     List<String> getKeys(boolean deep);
 
     /**
@@ -272,5 +287,6 @@ public interface ExtensionConfig {
      *
      * @return The keys
      */
+    @NonNull
     List<String> getKeys();
 }
