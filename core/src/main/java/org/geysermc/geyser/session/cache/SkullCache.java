@@ -129,6 +129,7 @@ public class SkullCache {
                 return;
             }
             lastPlayerPosition = session.getPlayerEntity().getPosition();
+
             inRangeSkulls.clear();
             for (Skull skull : skulls.values()) {
                 skull.distanceSquared = skull.position.distanceSquared(lastPlayerPosition.getX(), lastPlayerPosition.getY(), lastPlayerPosition.getZ());
@@ -140,11 +141,12 @@ public class SkullCache {
             }
             inRangeSkulls.sort(Comparator.comparingInt(Skull::getDistanceSquared));
 
-            for (int i = maxVisibleSkulls; i < inRangeSkulls.size(); i++) {
-                freeSkullEntity(inRangeSkulls.get(i));
-            }
-            for (int i = 0; i < Math.min(maxVisibleSkulls, inRangeSkulls.size()); i++) {
-                assignSkullEntity(inRangeSkulls.get(i));
+            for (int i = inRangeSkulls.size() - 1; i >= 0; i--) {
+                if (i < maxVisibleSkulls) {
+                    assignSkullEntity(inRangeSkulls.get(i));
+                } else {
+                    freeSkullEntity(inRangeSkulls.get(i));
+                }
             }
         }
 
