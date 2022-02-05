@@ -28,6 +28,7 @@ package org.geysermc.geyser.inventory.click;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerActionType;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
+import com.github.steveice10.mc.protocol.data.game.inventory.MoveToHotbarAction;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -381,6 +382,10 @@ public final class ClickPlan {
         for (ClickAction action : plan) {
             if (translator.getSlotType(action.slot) == SlotType.NORMAL && action.slot != Click.OUTSIDE_SLOT) {
                 affectedSlots.add(action.slot);
+                if (action.click.actionType == ContainerActionType.MOVE_TO_HOTBAR_SLOT) {
+                    //TODO won't work if offhand is added
+                    affectedSlots.add(inventory.getOffsetForHotbar(((MoveToHotbarAction) action.click.action).ordinal()));
+                }
             }
         }
         return affectedSlots;
