@@ -1,4 +1,4 @@
-main: org.geysermc.platform.bungeecord.GeyserBungeePlugin
+main: org.geysermc.geyser.platform.bungeecord.GeyserBungeePlugin
 name: ${outputName}-BungeeCord
 author: ${project.organization.name}
 website: ${project.organization.url}

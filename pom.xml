@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.geysermc</groupId>
     <artifactId>geyser-parent</artifactId>
-    <version>1.4.1-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Geyser</name>
     <description>Allows for players from Minecraft Bedrock Edition to join Minecraft Java Edition servers.</description>
@@ -15,8 +15,8 @@
         <outputName>Geyser</outputName>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>16</maven.compiler.source>
+        <maven.compiler.target>16</maven.compiler.target>
     </properties>
 
     <organization>
@@ -31,12 +31,27 @@
     </scm>
 
     <modules>
+        <module>ap</module>
+        <module>api</module>
         <module>bootstrap</module>
         <module>common</module>
-        <module>connector</module>
+        <module>core</module>
     </modules>
 
+    <pluginRepositories>
+        <!-- Remove once maven-shade-plugin gets a stable release that supports Java 16 -->
+        <pluginRepository>
+            <id>apache.snapshots</id>
+            <url>https://repository.apache.org/snapshots/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
     <repositories>
+        <!-- Remove once maven-shade-plugin gets a stable release that supports Java 16 -->
+        <repository>
+            <id>apache.snapshots</id>
+            <url>https://repository.apache.org/snapshots/</url>
+        </repository>
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>

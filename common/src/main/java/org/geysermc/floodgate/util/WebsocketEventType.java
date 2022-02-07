@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -81,11 +81,11 @@ public enum WebsocketEventType {
         this.id = id;
     }
 
-    public static WebsocketEventType getById(int id) {
+    public static WebsocketEventType fromId(int id) {
         return VALUES.length > id ? VALUES[id] : null;
     }
 
-    public int getId() {
+    public int id() {
         return id;
     }
 }
