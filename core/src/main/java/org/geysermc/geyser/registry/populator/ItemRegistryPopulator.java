@@ -61,6 +61,8 @@ import java.util.*;
 public class ItemRegistryPopulator {
     private static final Map<String, PaletteVersion> PALETTE_VERSIONS;
 
+    public static List<CustomItem> customItems = new ArrayList<>();
+
     static {
         PALETTE_VERSIONS = new Object2ObjectOpenHashMap<>();
         PALETTE_VERSIONS.put("1_17_40", new PaletteVersion(Bedrock_v471.V471_CODEC.getProtocolVersion(), Collections.emptyMap()));
@@ -202,6 +204,7 @@ public class ItemRegistryPopulator {
 
             int itemIndex = 0;
             int javaFurnaceMinecartId = 0;
+            List<Integer> javaCustomItems = new ArrayList<>();
             boolean usingFurnaceMinecart = GeyserImpl.getInstance().getConfig().isAddNonBedrockItems();
 
             Set<String> javaOnlyItems = new ObjectOpenHashSet<>();
@@ -416,6 +419,10 @@ public class ItemRegistryPopulator {
 
             itemNames.add("minecraft:furnace_minecart");
 
+            for (CustomItem item : customItems) {
+                itemNames.add(item.getId());
+            }
+
             int lodestoneCompassId = entries.get("minecraft:lodestone_compass").getId();
             if (lodestoneCompassId == 0) {
                 throw new RuntimeException("Lodestone compass not found in item palette!");
@@ -435,17 +442,17 @@ public class ItemRegistryPopulator {
             identifierToMapping.put(lodestoneEntry.getJavaIdentifier(), lodestoneEntry);
 
             ComponentItemData furnaceMinecartData = null;
+            int additionalItemId = mappings.size() + 1;
+
             if (usingFurnaceMinecart) {
                 // Add the furnace minecart as a custom item
-                int furnaceMinecartId = mappings.size() + 1;
-
-                entries.put("geysermc:furnace_minecart", new StartGamePacket.ItemEntry("geysermc:furnace_minecart", (short) furnaceMinecartId, true));
+                entries.put("geysermc:furnace_minecart", new StartGamePacket.ItemEntry("geysermc:furnace_minecart", (short) additionalItemId, true));
 
                 mappings.put(javaFurnaceMinecartId, ItemMapping.builder()
                         .javaIdentifier("minecraft:furnace_minecart")
                         .bedrockIdentifier("geysermc:furnace_minecart")
                         .javaId(javaFurnaceMinecartId)
-                        .bedrockId(furnaceMinecartId)
+                        .bedrockId(additionalItemId)
                         .bedrockData(0)
                         .bedrockBlockId(-1)
                         .stackSize(1)
@@ -453,12 +460,12 @@ public class ItemRegistryPopulator {
 
                 creativeItems.add(ItemData.builder()
                         .netId(netId)
-                        .id(furnaceMinecartId)
+                        .id(additionalItemId)
                         .count(1).build());
 
                 NbtMapBuilder builder = NbtMap.builder();
                 builder.putString("name", "geysermc:furnace_minecart")
-                        .putInt("id", furnaceMinecartId);
+                        .putInt("id", additionalItemId);
 
                 NbtMapBuilder itemProperties = NbtMap.builder();
 
@@ -491,6 +498,48 @@ public class ItemRegistryPopulator {
                 furnaceMinecartData = new ComponentItemData("geysermc:furnace_minecart", builder.build());
             }
 
+            List<ComponentItemData> customItemComponents = new ArrayList<>();
+
+            for (CustomItem item : customItems) {
+                additionalItemId++;
+                String namespace = item.getId();
+                entries.put(namespace, new StartGamePacket.ItemEntry(namespace, (short) additionalItemId, true));
+                mappings.put(javaFurnaceMinecartId, ItemMapping.builder()
+                        .javaIdentifier(namespace)
+                        .bedrockIdentifier(namespace)
+                        .javaId(javaFurnaceMinecartId)
+                        .bedrockId(additionalItemId)
+                        .bedrockData(0)
+                        .bedrockBlockId(-1)
+                        .stackSize(item.stackSize)
+                        .build());
+
+                creativeItems.add(ItemData.builder()
+                        .netId(netId)
+                        .id(additionalItemId)
+                        .count(1).build());
+
+                NbtMapBuilder builder = NbtMap.builder();
+                builder.putString("name", namespace)
+                        .putInt("id", additionalItemId);
+
+                NbtMapBuilder componentBuilder = NbtMap.builder();
+                componentBuilder.putCompound("minecraft:icon", NbtMap.builder().putString("texture", item.path).build());
+                componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", "item." + item.path + ".name").build());
+
+                NbtMapBuilder itemProperties = NbtMap.builder();
+
+                itemProperties.putBoolean("allow_off_hand", true);
+                itemProperties.putBoolean("hand_equipped", false);
+                itemProperties.putInt("max_stack_size", item.stackSize);
+                itemProperties.putInt("creative_category", 4);
+
+                componentBuilder.putCompound("item_properties", itemProperties.build());
+                builder.putCompound("components", componentBuilder.build());
+
+                customItemComponents.add(new ComponentItemData(namespace, builder.build()));
+            }
+
             ItemMappings itemMappings = ItemMappings.builder()
                     .items(mappings)
                     .creativeItems(creativeItems.toArray(new ItemData[0]))
@@ -503,9 +552,26 @@ public class ItemRegistryPopulator {
                     .spawnEggIds(spawnEggs)
                     .carpets(carpets)
                     .furnaceMinecartData(furnaceMinecartData)
+                    .customItemData(customItemComponents)
                     .build();
 
             Registries.ITEMS.register(palette.getValue().protocolVersion(), itemMappings);
+        }
+    }
+
+    public static class CustomItem {
+        public String namespace;
+        public String path;
+        public int stackSize;
+
+        public CustomItem(String namespace, String path, int stackSize) {
+            this.namespace = namespace;
+            this.path = path;
+            this.stackSize = stackSize;
+        }
+
+        public String getId() {
+            return namespace + ":" + path;
         }
     }
 }

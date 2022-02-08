@@ -64,6 +64,8 @@ public class ItemMappings {
 
     @Nullable ComponentItemData furnaceMinecartData;
 
+    @Nullable List<ComponentItemData> customItemData;
+
     /**
      * Gets an {@link ItemMapping} from the given {@link ItemStack}.
      *
