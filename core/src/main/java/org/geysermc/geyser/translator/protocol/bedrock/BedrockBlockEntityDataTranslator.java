@@ -44,6 +44,15 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
         String id = tag.getString("id");
         if (id.equals("Sign")) {
             String text = tag.getString("Text");
+            Position pos = new Position(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
+            // Check if there is undetermined sign update packet
+            if (session.getLastSignUpdatePacket() != null && !session.getLastSignUpdatePacket().getPosition().equals(pos)) {
+                // We send the packet to the server
+                session.sendDownstreamPacket(session.getLastSignUpdatePacket());
+                // We set the sign text&packet cached in the session to null to indicate there is no work-in-progress sign
+                session.setLastSignMessage(null);
+                session.setLastSignUpdatePacket(null);
+            }
             // This is the reason why this all works - Bedrock sends packets every time you update the sign, Java only wants the final packet
             // But Bedrock sends one final packet when you're done editing the sign, which should be equal to the last message since there's no edits
             // So if the latest update does not match the last cached update then it's still being edited
@@ -106,7 +115,6 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             }
             // Put the final line on since it isn't done in the for loop
             if (iterator < lines.length) lines[iterator] = newMessage.toString();
-            Position pos = new Position(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
             ServerboundSignUpdatePacket signUpdatePacket = new ServerboundSignUpdatePacket(pos, lines);
             session.setLastSignUpdatePacket(signUpdatePacket);
         } else if (id.equals("JigsawBlock")) {

@@ -554,7 +554,14 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         bedrockServerSession.addDisconnectHandler(disconnectReason -> {
             InetAddress address = bedrockServerSession.getRealAddress().getAddress();
             geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, disconnectReason));
-
+            // Check if there is undetermined sign update packet
+            if (this.getLastSignUpdatePacket() != null) {
+                // We send the packet to the server
+                this.sendDownstreamPacket(this.getLastSignUpdatePacket());
+                // We set the sign text&packet cached in the session to null to indicate there is no work-in-progress sign
+                this.setLastSignMessage(null);
+                this.setLastSignUpdatePacket(null);
+            }
             disconnect(disconnectReason.name());
             geyser.getSessionManager().removeSession(this);
         });
