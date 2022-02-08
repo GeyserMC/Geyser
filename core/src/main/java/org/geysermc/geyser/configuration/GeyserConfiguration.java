@@ -76,6 +76,10 @@ public interface GeyserConfiguration {
 
     boolean isShowCoordinates();
 
+    boolean isDisableBedrockScaffolding();
+
+    boolean isAlwaysQuickChangeArmor();
+
     EmoteOffhandWorkaroundOption getEmoteOffhandWorkaround();
 
     String getDefaultLocale();

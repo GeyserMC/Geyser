@@ -117,7 +117,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
     }
 
     @Override
-    public boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
+    protected boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
         // If the LOOM_MATERIAL slot is not empty, we are crafting a pattern that does not come from an item
         // Remove the CRAFT_NON_IMPLEMENTED_DEPRECATED when 1.17.30 is dropped
         return (action.getType() == StackRequestActionType.CRAFT_NON_IMPLEMENTED_DEPRECATED || action.getType() == StackRequestActionType.CRAFT_LOOM)

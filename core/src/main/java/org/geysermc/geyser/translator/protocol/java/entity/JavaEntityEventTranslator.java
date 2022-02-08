@@ -245,8 +245,8 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                     float baseX = position.getX();
                     float baseY = position.getY();
                     float baseZ = position.getZ();
-                    float height = entity.getDefinition().height();
-                    float width = entity.getDefinition().width();
+                    float height = entity.getBoundingBoxHeight();
+                    float width = entity.getBoundingBoxWidth();
                     Random random = ThreadLocalRandom.current();
                     for (int i = 0; i < 20; i++) {
                         // Reconstruct the Java Edition (1.18.1) logic, but in floats

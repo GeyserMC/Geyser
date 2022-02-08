@@ -59,7 +59,7 @@ public class TippedArrowTranslator extends ItemTranslator {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
+    protected ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
         if (!mapping.getJavaIdentifier().equals("minecraft:tipped_arrow") || itemStack.getNbt() == null) {
             // We're only concerned about minecraft:arrow when translating Bedrock -> Java
             return super.translateToBedrock(itemStack, mapping, mappings);

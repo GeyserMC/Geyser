@@ -136,7 +136,7 @@ public class ArmorStandEntity extends LivingEntity {
             }
 
             isSmall = newIsSmall;
-            if (!isMarker) {
+            if (!isMarker && !isInvisible) { // Addition for isInvisible check caused by https://github.com/GeyserMC/Geyser/issues/2780
                 toggleSmallStatus();
             }
         }

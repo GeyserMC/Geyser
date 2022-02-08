@@ -38,10 +38,14 @@ import com.github.steveice10.mc.protocol.data.ProtocolState;
 import com.github.steveice10.mc.protocol.data.UnexpectedEncryptionException;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.entity.player.HandPreference;
 import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
+import com.github.steveice10.mc.protocol.data.game.setting.ChatVisibility;
+import com.github.steveice10.mc.protocol.data.game.setting.SkinPart;
 import com.github.steveice10.mc.protocol.data.game.statistic.CustomStatistic;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.packet.handshake.serverbound.ClientIntentionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientInformationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import com.github.steveice10.mc.protocol.packet.login.serverbound.ServerboundCustomQueryPacket;
@@ -245,7 +249,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Setter
     private Vector2i lastChunkPosition = null;
-    private int renderDistance;
+    @Setter
+    private int clientRenderDistance = -1;
+    private int serverRenderDistance;
 
     // Exposed for GeyserConnect usage
     protected boolean sentSpawnPacket;
@@ -354,6 +360,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private Int2ObjectMap<IntList> stonecutterRecipes;
+
+    /**
+     * Starting in 1.17, Java servers expect the <code>carriedItem</code> parameter of the serverbound click container
+     * packet to be the current contents of the mouse after the transaction has been done. 1.16 expects the clicked slot
+     * contents before any transaction is done. With the current ViaVersion structure, if we do not send what 1.16 expects
+     * and send multiple click container packets, then successive transactions will be rejected.
+     */
+    @Setter
+    private boolean emulatePost1_16Logic = true;
 
     /**
      * The current attack speed of the player. Used for sending proper cooldown timings.
@@ -797,6 +812,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                             FloodgateSkinUploader skinUploader = geyser.getSkinUploader();
                             FloodgateCipher cipher = geyser.getCipher();
 
+                            String bedrockAddress = upstream.getAddress().getAddress().getHostAddress();
+                            // both BungeeCord and Velocity remove the IPv6 scope (if there is one) for Spigot
+                            int ipv6ScopeIndex = bedrockAddress.indexOf('%');
+                            if (ipv6ScopeIndex != -1) {
+                                bedrockAddress = bedrockAddress.substring(0, ipv6ScopeIndex);
+                            }
+
                             encryptedData = cipher.encryptFromString(BedrockData.of(
                                     clientData.getGameVersion(),
                                     authData.name(),
@@ -805,7 +827,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                                     clientData.getLanguageCode(),
                                     clientData.getUiProfile().ordinal(),
                                     clientData.getCurrentInputMode().ordinal(),
-                                    upstream.getAddress().getAddress().getHostAddress(),
+                                    bedrockAddress,
                                     skinUploader.getId(),
                                     skinUploader.getVerifyCode()
                             ).toString());
@@ -1167,9 +1189,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return clientData.getLanguageCode();
      }
 
-    public void setRenderDistance(int renderDistance) {
+    public void setServerRenderDistance(int renderDistance) {
         renderDistance = GenericMath.ceil(++renderDistance * MathUtils.SQRT_OF_TWO); //square to circle
-        this.renderDistance = renderDistance;
+        this.serverRenderDistance = renderDistance;
 
         ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
         chunkRadiusUpdatedPacket.setRadius(renderDistance);
@@ -1426,6 +1448,27 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         flags.add(AdventureSetting.AUTO_JUMP);
 
         sendUpstreamPacket(adventureSettingsPacket);
+    }
+
+    private int getRenderDistance() {
+        if (clientRenderDistance != -1) {
+            // The client has sent a render distance
+            return clientRenderDistance;
+        }
+        return serverRenderDistance;
+    }
+
+    // We need to send our skin parts to the server otherwise java sees us with no hat, jacket etc
+    private static final List<SkinPart> SKIN_PARTS = Arrays.asList(SkinPart.values());
+
+    /**
+     * Send a packet to the server to indicate client render distance, locale, skin parts, and hand preference.
+     */
+    public void sendJavaClientSettings() {
+        ServerboundClientInformationPacket clientSettingsPacket = new ServerboundClientInformationPacket(locale(),
+                getRenderDistance(), ChatVisibility.FULL, true, SKIN_PARTS,
+                HandPreference.RIGHT_HAND, false, true);
+        sendDownstreamPacket(clientSettingsPacket);
     }
 
     /**

@@ -31,7 +31,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Used to list recipes that we can definitely use the recipe book for (and therefore save on packet usage)
@@ -42,9 +42,11 @@ public class JavaRecipeTranslator extends PacketTranslator<ClientboundRecipePack
     @Override
     public void translate(GeyserSession session, ClientboundRecipePacket packet) {
         if (packet.getAction() == UnlockRecipesAction.REMOVE) {
-            session.getUnlockedRecipes().removeAll(Arrays.asList(packet.getRecipes()));
+            for (String identifier : packet.getRecipes()) {
+                session.getUnlockedRecipes().remove(identifier);
+            }
         } else {
-            session.getUnlockedRecipes().addAll(Arrays.asList(packet.getRecipes()));
+            Collections.addAll(session.getUnlockedRecipes(), packet.getRecipes());
         }
     }
 }

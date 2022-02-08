@@ -25,21 +25,23 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.ClientCommand;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientCommandPacket;
-import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
+import com.nukkitx.protocol.bedrock.packet.RequestChunkRadiusPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
-@Translator(packet = RespawnPacket.class)
-public class BedrockRespawnTranslator extends PacketTranslator<RespawnPacket> {
+/**
+ * Sent when the client updates its desired render distance.
+ */
+@Translator(packet = RequestChunkRadiusPacket.class)
+public class BedrockRequestChunkRadiusTranslator extends PacketTranslator<RequestChunkRadiusPacket> {
 
     @Override
-    public void translate(GeyserSession session, RespawnPacket packet) {
-        if (packet.getState() == RespawnPacket.State.CLIENT_READY) {
-            ServerboundClientCommandPacket javaRespawnPacket = new ServerboundClientCommandPacket(ClientCommand.RESPAWN);
-            session.sendDownstreamPacket(javaRespawnPacket);
+    public void translate(GeyserSession session, RequestChunkRadiusPacket packet) {
+        session.setClientRenderDistance(packet.getRadius());
+
+        if (session.isLoggedIn()) {
+            session.sendJavaClientSettings();
         }
     }
 }

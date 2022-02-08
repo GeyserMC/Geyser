@@ -86,13 +86,14 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
             ChunkUtils.updateChunkPosition(session, pos.toInt());
 
-            session.getGeyser().getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.entity.player.spawn", packet.getX(), packet.getY(), packet.getZ()));
+            if (session.getGeyser().getConfig().isDebugMode()) {
+                session.getGeyser().getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.entity.player.spawn", packet.getX(), packet.getY(), packet.getZ()));
+            }
             return;
         }
 
-        Entity vehicle = session.getPlayerEntity().getVehicle();
-        if (packet.isDismountVehicle() && vehicle != null) {
-
+        Entity vehicle;
+        if (packet.isDismountVehicle() && (vehicle = session.getPlayerEntity().getVehicle()) != null) {
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             linkPacket.setEntityLink(new EntityLinkData(vehicle.getGeyserId(), entity.getGeyserId(), EntityLinkData.Type.REMOVE, false, false));
             session.sendUpstreamPacket(linkPacket);

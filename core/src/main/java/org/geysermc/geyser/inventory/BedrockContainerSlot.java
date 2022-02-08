@@ -26,10 +26,6 @@
 package org.geysermc.geyser.inventory;
 
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
-import lombok.Value;
 
-@Value
-public class BedrockContainerSlot {
-    ContainerSlotType container;
-    int slot;
+public record BedrockContainerSlot(ContainerSlotType container, int slot) {
 }

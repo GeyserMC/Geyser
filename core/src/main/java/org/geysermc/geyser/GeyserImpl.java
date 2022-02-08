@@ -69,6 +69,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.SessionManager;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
+import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
@@ -220,6 +221,8 @@ public class GeyserImpl implements GeyserApi {
         logger.setDebug(config.isDebugMode());
 
         ScoreboardUpdater.init();
+
+        SkinProvider.registerCacheImageTask(this);
 
         ResourcePack.loadPacks();
 

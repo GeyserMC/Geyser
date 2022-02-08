@@ -155,7 +155,7 @@ public class BannerTranslator extends ItemTranslator {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
+    protected ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
         if (itemStack.getNbt() == null) {
             return super.translateToBedrock(itemStack, mapping, mappings);
         }
@@ -163,9 +163,7 @@ public class BannerTranslator extends ItemTranslator {
         ItemData.Builder builder = super.translateToBedrock(itemStack, mapping, mappings);
 
         CompoundTag blockEntityTag = itemStack.getNbt().get("BlockEntityTag");
-        if (blockEntityTag != null && blockEntityTag.contains("Patterns")) {
-            ListTag patterns = blockEntityTag.get("Patterns");
-
+        if (blockEntityTag != null && blockEntityTag.get("Patterns") instanceof ListTag patterns) {
             NbtMapBuilder nbtBuilder = builder.build().getTag().toBuilder(); //TODO fix ugly hack
             if (patterns.equals(OMINOUS_BANNER_PATTERN)) {
                 // Remove the current patterns and set the ominous banner type
