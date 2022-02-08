@@ -40,6 +40,8 @@ public class CustomItemData {
 
     private int textureSize;
 
+    private CustomRenderOffsets renderOffsets;
+
     public CustomItemData(Integer customModelData, String name) {
         this.customModelData = customModelData;
         this.name = name;
@@ -48,6 +50,7 @@ public class CustomItemData {
         this.allowOffhand = false;
         this.isHat = false;
         this.textureSize = 16;
+        this.renderOffsets = null;
     }
 
     /**
@@ -156,5 +159,23 @@ public class CustomItemData {
      */
     public void setTextureSize(int textureSize) {
         this.textureSize = textureSize;
+    }
+
+    /**
+     * Gets the item's render offsets.
+     *
+     * @return the item's render offsets
+     */
+    public CustomRenderOffsets renderOffsets() {
+        return this.renderOffsets;
+    }
+
+    /**
+     * Sets the item's render offsets.
+     *
+     * @param renderOffsets the item's render offsets
+     */
+    public void setRenderOffsets(CustomRenderOffsets renderOffsets) {
+        this.renderOffsets = renderOffsets;
     }
 }

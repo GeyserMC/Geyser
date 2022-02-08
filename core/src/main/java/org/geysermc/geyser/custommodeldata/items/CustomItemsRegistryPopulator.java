@@ -31,6 +31,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.custommodeldata.CustomItemData;
+import org.geysermc.geyser.custommodeldata.GeyserCustomRenderOffsets;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -134,6 +135,9 @@ public class CustomItemsRegistryPopulator {
             } else if (baseItem.endsWith("_helmet") || customItemData.isHat()) {
                 componentBuilder.putString("minecraft:render_offsets", "helmets");
                 componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.head").build());
+            } else if (customItemData.renderOffsets() != null) {
+                GeyserCustomRenderOffsets renderOffsets = GeyserCustomRenderOffsets.fromCustomRenderOffsets(customItemData.renderOffsets());
+                componentBuilder.putCompound("minecraft:render_offsets", renderOffsets.toNbtMap());
             } else if (customItemData.textureSize() != 16) {
                 componentBuilder.putCompound("minecraft:render_offsets",
                         NbtMap.builder().putCompound("main_hand", NbtMap.builder()
