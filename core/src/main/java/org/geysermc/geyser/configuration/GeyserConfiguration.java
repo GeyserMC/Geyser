@@ -90,6 +90,8 @@ public interface GeyserConfiguration {
 
     boolean isXboxAchievementsEnabled();
 
+    boolean isCustomModelDataEnabled();
+
     int getCacheImages();
 
     boolean isAllowCustomSkulls();

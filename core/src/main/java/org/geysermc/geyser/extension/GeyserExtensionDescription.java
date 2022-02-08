@@ -26,13 +26,14 @@
 package org.geysermc.geyser.extension;
 
 import org.geysermc.geyser.api.extension.ExtensionDescription;
+import org.geysermc.geyser.api.extension.ExtensionLoadTime;
 import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import java.io.Reader;
 import java.util.*;
 
-public record GeyserExtensionDescription(String name, String main, String apiVersion, String version, List<String> authors) implements ExtensionDescription {
+public record GeyserExtensionDescription(String name, String main, String apiVersion, String version, List<String> authors, ExtensionLoadTime loadTime) implements ExtensionDescription {
     @SuppressWarnings("unchecked")
     public static GeyserExtensionDescription fromYaml(Reader reader) throws InvalidDescriptionException {
         DumperOptions dumperOptions = new DumperOptions();
@@ -71,6 +72,15 @@ public record GeyserExtensionDescription(String name, String main, String apiVer
             }
         }
 
-        return new GeyserExtensionDescription(name, main, apiVersion, version, authors);
+        ExtensionLoadTime loadTime = ExtensionLoadTime.POST_INITIALIZE; //This is not something that should really be changed by default
+        if (yamlMap.containsKey("loadTime")) {
+            try {
+                loadTime = ExtensionLoadTime.valueOf((String) yamlMap.get("loadTime"));
+            } catch (Exception e) {
+                throw new InvalidDescriptionException("Invalid loadTime format, should be a string: PRE_INITIALIZE, POST_INITIALIZE", e);
+            }
+        }
+
+        return new GeyserExtensionDescription(name, main, apiVersion, version, authors, loadTime);
     }
 }

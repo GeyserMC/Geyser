@@ -68,7 +68,7 @@ public class ItemRegistryPopulator {
         PALETTE_VERSIONS.put("1_18_0", new PaletteVersion(Bedrock_v475.V475_CODEC.getProtocolVersion(), Collections.emptyMap()));
     }
 
-    private record PaletteVersion(int protocolVersion, Map<String, String> additionalTranslatedItems) {
+    public record PaletteVersion(int protocolVersion, Map<String, String> additionalTranslatedItems) {
     }
 
     public static void populate() {
@@ -503,9 +503,14 @@ public class ItemRegistryPopulator {
                     .spawnEggIds(spawnEggs)
                     .carpets(carpets)
                     .furnaceMinecartData(furnaceMinecartData)
+                    .customItemsData(new ArrayList<>())
                     .build();
 
             Registries.ITEMS.register(palette.getValue().protocolVersion(), itemMappings);
         }
+    }
+
+    public static Map<String, PaletteVersion> getPaletteVersions() {
+        return PALETTE_VERSIONS;
     }
 }

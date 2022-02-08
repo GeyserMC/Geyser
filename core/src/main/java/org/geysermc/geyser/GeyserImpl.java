@@ -55,6 +55,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.custommodeldata.GeyserCustomModelDataManager;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
@@ -130,6 +131,7 @@ public class GeyserImpl implements GeyserApi {
 
     private final EventBus eventBus;
     private final GeyserExtensionManager extensionManager;
+    private final GeyserCustomModelDataManager customModelDataManager;
 
     private Metrics metrics;
 
@@ -154,21 +156,29 @@ public class GeyserImpl implements GeyserApi {
         logger.info("");
         logger.info("******************************************");
 
-        /* Initialize translators and registries */
-        BlockRegistries.init();
+        /* Initialize registries */
         Registries.init();
+        BlockRegistries.init();
 
+        /* Initialize custom model data manager */
+        this.customModelDataManager = new GeyserCustomModelDataManager();
+        this.customModelDataManager.loadMappingsFromJson();
+
+        /* Initialize event bus */
+        this.eventBus = new GeyserEventBus();
+
+        /* Load Extensions */
+        this.extensionManager = new GeyserExtensionManager();
+        this.extensionManager.init();
+
+        this.extensionManager.enablePreInitializeExtensions();
+        this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
+
+        /* Initialize translators */
         EntityDefinitions.init();
         ItemTranslator.init();
         MessageTranslator.init();
         MinecraftLocale.init();
-
-        /* Load Extensions */
-        this.eventBus = new GeyserEventBus();
-        this.extensionManager = new GeyserExtensionManager();
-        this.extensionManager.init();
-
-        this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
 
         start();
 
@@ -514,6 +524,11 @@ public class GeyserImpl implements GeyserApi {
     @Override
     public EventBus eventBus() {
         return this.eventBus;
+    }
+
+    @Override
+    public GeyserCustomModelDataManager customModelDataManager() {
+        return this.customModelDataManager;
     }
 
     public static GeyserImpl start(PlatformType platformType, GeyserBootstrap bootstrap) {

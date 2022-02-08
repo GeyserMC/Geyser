@@ -549,9 +549,16 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Set the hardcoded shield ID to the ID we just defined in StartGamePacket
         upstream.getSession().getHardcodedBlockingId().set(this.itemMappings.getStoredItems().shield().getBedrockId());
 
-        if (this.itemMappings.getFurnaceMinecartData() != null) {
+        if (this.itemMappings.getFurnaceMinecartData() != null || GeyserImpl.getInstance().getConfig().isCustomModelDataEnabled()) {
             ItemComponentPacket componentPacket = new ItemComponentPacket();
-            componentPacket.getItems().add(this.itemMappings.getFurnaceMinecartData());
+            if (this.itemMappings.getFurnaceMinecartData() != null) {
+                componentPacket.getItems().add(this.itemMappings.getFurnaceMinecartData());
+            }
+
+            if (GeyserImpl.getInstance().getConfig().isCustomModelDataEnabled()) {
+                componentPacket.getItems().addAll(this.itemMappings.getCustomItemsData());
+            }
+
             upstream.sendPacket(componentPacket);
         }
 
@@ -1242,6 +1249,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         settings.setServerAuthoritativeBlockBreaking(false);
         startGamePacket.setPlayerMovementSettings(settings);
 
+        startGamePacket.getExperiments().add(new ExperimentData("data_driven_items", true));
         if (upstream.getProtocolVersion() <= Bedrock_v471.V471_CODEC.getProtocolVersion()) {
             startGamePacket.getExperiments().add(new ExperimentData("caves_and_cliffs", true));
         }

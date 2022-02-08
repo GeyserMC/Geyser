@@ -173,6 +173,8 @@ public abstract class ItemTranslator {
             builder.blockRuntimeId(bedrockItem.getBedrockBlockId());
         }
 
+        builder = translateCustomModelData(nbt, builder, bedrockItem);
+
         if (nbt != null) {
             // Translate the canDestroy and canPlaceOn Java NBT
             ListTag canDestroy = nbt.get("CanDestroy");
@@ -282,6 +284,10 @@ public abstract class ItemTranslator {
         if (itemStack.getNbt() != null) {
             builder.tag(this.translateNbtToBedrock(itemStack.getNbt()));
         }
+
+        CompoundTag nbt = itemStack.getNbt();
+        builder = translateCustomModelData(nbt, builder, mapping);
+
         return builder;
     }
 
@@ -504,6 +510,20 @@ public abstract class ItemTranslator {
         }
 
         return tag;
+    }
+
+    /**
+     * Translates the custom model data of an item
+     */
+    public static ItemData.Builder translateCustomModelData(CompoundTag nbt, ItemData.Builder builder, ItemMapping mapping) {
+        if (nbt != null && nbt.get("CustomModelData") != null) {
+            int customModelData = ((IntTag) nbt.get("CustomModelData")).getValue();
+            if (mapping.getCustomModelData().containsKey(customModelData)) {
+                builder.id(mapping.getCustomModelData().get(customModelData));
+                builder.damage(0);
+            }
+        }
+        return builder;
     }
 
     /**

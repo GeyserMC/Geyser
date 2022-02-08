@@ -133,6 +133,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("xbox-achievements-enabled")
     private boolean xboxAchievementsEnabled = false;
 
+    @JsonProperty("custom-model-data-enabled")
+    private boolean customModelDataEnabled = true;
+
     private MetricsInfo metrics = new MetricsInfo();
 
     @Getter

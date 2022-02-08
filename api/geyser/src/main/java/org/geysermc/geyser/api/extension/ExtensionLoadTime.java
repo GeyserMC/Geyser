@@ -25,60 +25,7 @@
 
 package org.geysermc.geyser.api.extension;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-
-import java.util.List;
-
-/**
- * This is the Geyser extension description
- */
-public interface ExtensionDescription {
-
-    /**
-     * Gets the extension's name
-     *
-     * @return the extension's name
-     */
-    @NonNull
-    String name();
-
-    /**
-     * Gets the extension's main class
-     *
-     * @return the extension's main class
-     */
-    @NonNull
-    String main();
-
-    /**
-     * Gets the extension's api version
-     *
-     * @return the extension's api version
-     */
-    @NonNull
-    String apiVersion();
-
-    /**
-     * Gets the extension's description
-     *
-     * @return the extension's description
-     */
-    @NonNull
-    String version();
-
-    /**
-     * Gets the extension's authors
-     *
-     * @return the extension's authors
-     */
-    @NonNull
-    List<String> authors();
-
-    /**
-     * Gets the extensison's load time. Shouldn't really be chnaged by default.
-     *
-     * @return the extension's load time
-     */
-    @NonNull
-    ExtensionLoadTime loadTime();
+public enum ExtensionLoadTime {
+    PRE_INITIALIZE,
+    POST_INITIALIZE
 }

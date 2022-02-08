@@ -31,6 +31,7 @@ import org.geysermc.api.Geyser;
 import org.geysermc.api.GeyserApiBase;
 import org.geysermc.geyser.api.command.CommandManager;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.custommodeldata.CustomModelDataManager;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 
@@ -104,6 +105,13 @@ public interface GeyserApi extends GeyserApiBase {
      * @return the event bus
      */
     EventBus eventBus();
+
+    /**
+     * Gets the {@link CustomModelDataManager}.
+     *
+     * @return the custom model data manager
+     */
+    CustomModelDataManager customModelDataManager();
 
     /**
      * Gets the current {@link GeyserApiBase} instance.
