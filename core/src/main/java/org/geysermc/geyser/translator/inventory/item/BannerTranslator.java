@@ -114,11 +114,6 @@ public class BannerTranslator extends ItemTranslator {
     public static NbtMap getBedrockBannerPattern(CompoundTag pattern) {
         String patternName = (String) pattern.get("Pattern").getValue();
 
-        // Return null if its the globe pattern as it doesn't exist on bedrock
-        if (patternName.equals("glb")) {
-            return null;
-        }
-
         return NbtMap.builder()
                 .putInt("Color", 15 - (int) pattern.get("Color").getValue())
                 .putString("Pattern", patternName)
