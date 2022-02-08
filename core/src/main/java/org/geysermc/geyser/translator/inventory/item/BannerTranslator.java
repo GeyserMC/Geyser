@@ -112,11 +112,9 @@ public class BannerTranslator extends ItemTranslator {
      * @return The Bedrock edition format pattern nbt
      */
     public static NbtMap getBedrockBannerPattern(CompoundTag pattern) {
-        String patternName = (String) pattern.get("Pattern").getValue();
-
         return NbtMap.builder()
                 .putInt("Color", 15 - (int) pattern.get("Color").getValue())
-                .putString("Pattern", patternName)
+                .putString("Pattern", (String) pattern.get("Pattern").getValue())
                 .build();
     }
 
