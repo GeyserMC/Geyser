@@ -46,6 +46,7 @@ import com.github.steveice10.mc.protocol.data.game.statistic.CustomStatistic;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.packet.handshake.serverbound.ClientIntentionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientInformationPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundSignUpdatePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import com.github.steveice10.mc.protocol.packet.login.serverbound.ServerboundCustomQueryPacket;
@@ -464,6 +465,15 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      */
     @Setter
     private String lastSignMessage;
+
+    /**
+     * Stores the last sign update packet.
+     * Bedrock sends packets every time you update the sign, sometimes even sends duplicated packets,
+     * while Java only wants the final packet.
+     * Until determine that the user has finished editing(started moving/interacting), we send the packet to the server.
+     */
+    @Setter
+    private ServerboundSignUpdatePacket lastSignUpdatePacket;
 
     /**
      * Stores a map of all statistics sent from the server.

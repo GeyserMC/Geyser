@@ -60,6 +60,15 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
             session.getBookEditCache().checkForSend();
         }
 
+        // Check if there is undetermined sign update packet
+        if (session.getLastSignUpdatePacket() != null) {
+            // We send the packet to the server
+            session.sendDownstreamPacket(session.getLastSignUpdatePacket());
+            // We set the sign text&packet cached in the session to null to indicate there is no work-in-progress sign
+            session.setLastSignMessage(null);
+            session.setLastSignUpdatePacket(null);
+        }
+
         Vector3i vector = packet.getBlockPosition();
 
         switch (packet.getAction()) {

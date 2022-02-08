@@ -108,11 +108,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             if (iterator < lines.length) lines[iterator] = newMessage.toString();
             Position pos = new Position(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
             ServerboundSignUpdatePacket signUpdatePacket = new ServerboundSignUpdatePacket(pos, lines);
-            session.sendDownstreamPacket(signUpdatePacket);
-
-            // We set the sign text cached in the session to null to indicate there is no work-in-progress sign
-            session.setLastSignMessage(null);
-
+            session.setLastSignUpdatePacket(signUpdatePacket);
         } else if (id.equals("JigsawBlock")) {
             // Client has just sent a jigsaw block update
             Position pos = new Position(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));

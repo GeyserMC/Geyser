@@ -156,6 +156,15 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         if (entity.getRightParrot() != null) {
             entity.getRightParrot().moveAbsolute(entity.getPosition(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
         }
+
+        // Check if there is undetermined sign update packet
+        if (session.getLastSignUpdatePacket() != null && (positionChanged || rotationChanged)) {
+            // We send the packet to the server
+            session.sendDownstreamPacket(session.getLastSignUpdatePacket());
+            // We set the sign text&packet cached in the session to null to indicate there is no work-in-progress sign
+            session.setLastSignMessage(null);
+            session.setLastSignUpdatePacket(null);
+        }
     }
 
     private boolean isInvalidNumber(float val) {
