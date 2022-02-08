@@ -1900,6 +1900,10 @@
         "id" : 434
     },
     {
+        "name" : "minecraft:globe_banner_pattern",
+        "id" : 628
+    },
+    {
         "name" : "minecraft:glow_berries",
         "id" : 631
     },
