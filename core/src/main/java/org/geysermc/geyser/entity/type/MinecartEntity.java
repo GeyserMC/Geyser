@@ -62,6 +62,6 @@ public class MinecartEntity extends Entity {
     @Override
     public Vector3f getBedrockRotation() {
         // Note: minecart rotation on rails does not care about the actual rotation value
-        return Vector3f.from(0, yaw, 0);
+        return Vector3f.from(0, getYaw(), 0);
     }
 }
