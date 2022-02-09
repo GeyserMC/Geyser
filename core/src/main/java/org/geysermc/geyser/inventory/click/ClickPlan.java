@@ -75,6 +75,11 @@ public final class ClickPlan {
         gridSize = translator.getGridSize();
     }
 
+    private void resetSimulation() {
+        this.simulatedItems.clear();
+        this.simulatedCursor = session.getPlayerInventory().getCursor().copy();
+    }
+
     public void add(Click click, int slot) {
         add(click, slot, false);
     }
@@ -89,10 +94,14 @@ public final class ClickPlan {
 
         ClickAction action = new ClickAction(click, slot, force);
         plan.add(action);
+        // RUNNING THE SIMULATION HERE IS IMPORTANT. The contents of the simulation are used in complex, multi-stage tasks
+        // such as autocrafting.
+        simulateAction(action);
     }
 
     public void execute(boolean refresh) {
         //update geyser inventory after simulation to avoid net id desync
+        resetSimulation();
         ListIterator<ClickAction> planIter = plan.listIterator();
         while (planIter.hasNext()) {
             ClickAction action = planIter.next();
@@ -190,7 +199,9 @@ public final class ClickPlan {
      * Does not need to be called for the cursor
      */
     private void onSlotItemChange(int slot, GeyserItemStack itemStack) {
-        changedItems.put(slot, itemStack.getItemStack());
+        if (changedItems != null) {
+            changedItems.put(slot, itemStack.getItemStack());
+        }
     }
 
     private void simulateAction(ClickAction action) {
