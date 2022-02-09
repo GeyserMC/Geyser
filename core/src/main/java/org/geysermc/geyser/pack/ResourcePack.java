@@ -26,12 +26,12 @@
 package org.geysermc.geyser.pack;
 
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.downstream.GeyserLoadResourcePacksEvent;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -68,7 +68,14 @@ public class ResourcePack {
             return;
         }
 
-        for (File file : directory.listFiles()) {
+        List<File> resourcePacks = new ArrayList<>(Arrays.asList(directory.listFiles()));
+        GeyserLoadResourcePacksEvent event = new GeyserLoadResourcePacksEvent(resourcePacks);
+        GeyserImpl.getInstance().eventBus().fire(event);
+        if (event.resourcePacks().isEmpty()) {
+            return;
+        }
+
+        for (File file : resourcePacks) {
             if (file.getName().endsWith(".zip") || file.getName().endsWith(".mcpack")) {
                 ResourcePack pack = new ResourcePack();
 
