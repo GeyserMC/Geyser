@@ -31,12 +31,14 @@ import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
+import com.github.steveice10.mc.protocol.data.game.recipe.data.SmithingRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.StoneCuttingRecipeData;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
+import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
 import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -75,6 +77,8 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         Map<RecipeType, List<CraftingData>> recipeTypes = Registries.CRAFTING_DATA.forVersion(session.getUpstream().getProtocolVersion());
         // Get the last known network ID (first used for the pregenerated recipes) and increment from there.
         int netId = InventoryUtils.LAST_RECIPE_NET_ID + 1;
+
+        boolean applySmithingRecipes = session.getUpstream().getProtocolVersion() >= Bedrock_v486.V486_CODEC.getProtocolVersion();
 
         Int2ObjectMap<Recipe> recipeMap = new Int2ObjectOpenHashMap<>(Registries.RECIPES.forVersion(session.getUpstream().getProtocolVersion()));
         Int2ObjectMap<List<StoneCuttingRecipeData>> unsortedStonecutterData = new Int2ObjectOpenHashMap<>();
@@ -127,6 +131,27 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     }
                     data.add(stoneCuttingData);
                     // Save for processing after all recipes have been received
+                }
+                case SMITHING -> {
+                    // Required to translate these as of 1.18.10, or else they cannot be crafted
+                    if (!applySmithingRecipes) {
+                        continue;
+                    }
+
+                    SmithingRecipeData recipeData = (SmithingRecipeData) recipe.getData();
+                    ItemData output = ItemTranslator.translateToBedrock(session, recipeData.getResult());
+                    for (ItemStack base : recipeData.getBase().getOptions()) {
+                        ItemData bedrockBase = ItemTranslator.translateToBedrock(session, base);
+
+                        for (ItemStack addition : recipeData.getAddition().getOptions()) {
+                            ItemData bedrockAddition = ItemTranslator.translateToBedrock(session, addition);
+
+                            UUID uuid = UUID.randomUUID();
+                            craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
+                                    Arrays.asList(bedrockBase, bedrockAddition),
+                                    Collections.singletonList(output), uuid, "smithing_table", 2, netId++));
+                        }
+                    }
                 }
                 default -> {
                     List<CraftingData> craftingData = recipeTypes.get(recipe.getType());
