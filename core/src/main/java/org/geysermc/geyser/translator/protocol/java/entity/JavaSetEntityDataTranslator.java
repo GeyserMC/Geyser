@@ -27,12 +27,12 @@ package org.geysermc.geyser.translator.protocol.java.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundSetEntityDataPacket;
-import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.InteractiveTagManager;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.entity.InteractiveTagManager;
 
 @Translator(packet = ClientboundSetEntityDataPacket.class)
 public class JavaSetEntityDataTranslator extends PacketTranslator<ClientboundSetEntityDataPacket> {

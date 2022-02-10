@@ -28,8 +28,8 @@ package org.geysermc.geyser.registry.populator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import com.nukkitx.nbt.*;
-import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
 import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
+import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -46,7 +46,10 @@ import org.geysermc.geyser.util.BlockUtils;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.zip.GZIPInputStream;
 
@@ -59,8 +62,34 @@ public class BlockRegistryPopulator {
 
     static {
         ImmutableMap.Builder<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> stateMapperBuilder = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
-                .put(ObjectIntPair.of("1_17_30", Bedrock_v465.V465_CODEC.getProtocolVersion()), EMPTY_MAPPER)
-                .put(ObjectIntPair.of("1_17_40", Bedrock_v471.V471_CODEC.getProtocolVersion()), EMPTY_MAPPER);
+                .put(ObjectIntPair.of("1_17_40", Bedrock_v471.V471_CODEC.getProtocolVersion()), EMPTY_MAPPER)
+                .put(ObjectIntPair.of("1_18_10", Bedrock_v486.V486_CODEC.getProtocolVersion()), (bedrockIdentifier, statesBuilder) -> {
+                    statesBuilder.remove("no_drop_bit"); // Used in skulls
+                    if (bedrockIdentifier.equals("minecraft:glow_lichen")) {
+                        // Moved around north, south, west
+                        int bits = (int) statesBuilder.get("multi_face_direction_bits");
+                        boolean north = (bits & (1 << 2)) != 0;
+                        boolean south = (bits & (1 << 3)) != 0;
+                        boolean west = (bits & (1 << 4)) != 0;
+                        if (north) {
+                            bits |= 1 << 4;
+                        } else {
+                            bits &= ~(1 << 4);
+                        }
+                        if (south) {
+                            bits |= 1 << 2;
+                        } else {
+                            bits &= ~(1 << 2);
+                        }
+                        if (west) {
+                            bits |= 1 << 3;
+                        } else {
+                            bits &= ~(1 << 3);
+                        }
+                        statesBuilder.put("multi_face_direction_bits", bits);
+                    }
+                    return null;
+                });
 
         BLOCK_MAPPERS = stateMapperBuilder.build();
     }

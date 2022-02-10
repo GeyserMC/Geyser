@@ -64,7 +64,7 @@ public class GeyserSession {
     }
 
     public int getRenderDistance() {
-        return this.handle.getRenderDistance();
+        return this.handle.getServerRenderDistance();
     }
 
     public boolean isSentSpawnPacket() {

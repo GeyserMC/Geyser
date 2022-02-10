@@ -25,14 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.level.event.BonemealGrowEventData;
-import com.github.steveice10.mc.protocol.data.game.level.event.BreakBlockEventData;
-import com.github.steveice10.mc.protocol.data.game.level.event.BreakPotionEventData;
-import com.github.steveice10.mc.protocol.data.game.level.event.ComposterEventData;
-import com.github.steveice10.mc.protocol.data.game.level.event.DragonFireballEventData;
-import com.github.steveice10.mc.protocol.data.game.level.event.ParticleEvent;
-import com.github.steveice10.mc.protocol.data.game.level.event.RecordEventData;
-import com.github.steveice10.mc.protocol.data.game.level.event.SmokeEventData;
+import com.github.steveice10.mc.protocol.data.game.level.event.*;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
@@ -40,14 +33,13 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
-import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.MinecraftLocale;
+import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
-import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.text.MinecraftLocale;
 
 import java.util.Collections;
 import java.util.Locale;
@@ -218,8 +210,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 case BREAK_EYE_OF_ENDER -> effectPacket.setType(LevelEventType.PARTICLE_EYE_OF_ENDER_DEATH);
                 case MOB_SPAWN -> effectPacket.setType(LevelEventType.PARTICLE_MOB_BLOCK_SPAWN); // TODO: Check, but I don't think I really verified this ever went into effect on Java
                 case BONEMEAL_GROW_WITH_SOUND, BONEMEAL_GROW -> {
-                    effectPacket.setType((particleEvent == ParticleEvent.BONEMEAL_GROW
-                            && session.getUpstream().getProtocolVersion() >= Bedrock_v465.V465_CODEC.getProtocolVersion()) ? LevelEventType.PARTICLE_TURTLE_EGG : LevelEventType.PARTICLE_CROP_GROWTH);
+                    effectPacket.setType(particleEvent == ParticleEvent.BONEMEAL_GROW ? LevelEventType.PARTICLE_TURTLE_EGG : LevelEventType.PARTICLE_CROP_GROWTH);
 
                     BonemealGrowEventData growEventData = (BonemealGrowEventData) packet.getData();
                     effectPacket.setData(growEventData.getParticleCount());

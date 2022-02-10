@@ -51,13 +51,11 @@ public class BasicItemTranslator extends NbtItemStackTranslator {
             }
         }
 
-        CompoundTag displayTag = itemTag.get("display");
-        if (displayTag == null) {
+        if (!(itemTag.get("display") instanceof CompoundTag displayTag)) {
             return;
         }
 
-        Tag loreTag = displayTag.get("Lore");
-        if (loreTag instanceof ListTag listTag) {
+        if (displayTag.get("Lore") instanceof ListTag listTag) {
             List<Tag> lore = new ArrayList<>();
             for (Tag tag : listTag.getValue()) {
                 if (!(tag instanceof StringTag)) continue;

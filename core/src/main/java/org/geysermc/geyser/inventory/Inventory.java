@@ -31,17 +31,19 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.math.vector.Vector3i;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
+import org.jetbrains.annotations.Range;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 
 @ToString
-public class Inventory {
-
+public abstract class Inventory {
     @Getter
     protected final int id;
 
@@ -69,8 +71,7 @@ public class Inventory {
     protected final ContainerType containerType;
 
     @Getter
-    @Setter
-    protected String title;
+    protected final String title;
 
     protected final GeyserItemStack[] items;
 
@@ -110,7 +111,9 @@ public class Inventory {
         return items[slot];
     }
 
-    public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
+    public abstract int getOffsetForHotbar(@Range(from = 0, to = 8) int slot);
+
+    public void setItem(int slot, @Nonnull GeyserItemStack newItem, GeyserSession session) {
         if (slot > this.size) {
             session.getGeyser().getLogger().debug("Tried to set an item out of bounds! " + this);
             return;
@@ -133,7 +136,9 @@ public class Inventory {
 
     protected void updateItemNetId(GeyserItemStack oldItem, GeyserItemStack newItem, GeyserSession session) {
         if (!newItem.isEmpty()) {
-            if (newItem.getItemData(session).equals(oldItem.getItemData(session), false, false, false)) {
+            ItemMapping oldMapping = ItemTranslator.getBedrockItemMapping(session, oldItem);
+            ItemMapping newMapping = ItemTranslator.getBedrockItemMapping(session, newItem);
+            if (oldMapping.getBedrockId() == newMapping.getBedrockId()) {
                 newItem.setNetId(oldItem.getNetId());
             } else {
                 newItem.setNetId(session.getNextItemNetId());

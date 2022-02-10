@@ -54,7 +54,7 @@ public class PotionTranslator extends ItemTranslator {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
+    protected ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
         if (itemStack.getNbt() == null) return super.translateToBedrock(itemStack, mapping, mappings);
         Tag potionTag = itemStack.getNbt().get("Potion");
         if (potionTag instanceof StringTag) {
