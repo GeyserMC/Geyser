@@ -554,6 +554,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         bedrockServerSession.addDisconnectHandler(disconnectReason -> {
             InetAddress address = bedrockServerSession.getRealAddress().getAddress();
             geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, disconnectReason));
+
             disconnect(disconnectReason.name());
             geyser.getSessionManager().removeSession(this);
         });
