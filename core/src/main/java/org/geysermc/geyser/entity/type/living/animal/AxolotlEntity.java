@@ -56,7 +56,7 @@ public class AxolotlEntity extends AnimalEntity {
 
     @Override
     public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
-        return javaIdentifierStripped.equals("tropical_fish_bucket");
+        return session.getTagCache().isAxolotlTemptItem(mapping);
     }
 
     @Override

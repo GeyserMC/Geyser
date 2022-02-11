@@ -53,6 +53,7 @@ public class TagCache {
     private IntList requiresDiamondTool;
 
     /* Items */
+    private IntList axolotlTemptItems;
     private IntList flowers;
     private IntList foxFood;
     private IntList piglinLoved;
@@ -77,6 +78,7 @@ public class TagCache {
         this.requiresDiamondTool = IntList.of(blockTags.get("minecraft:needs_diamond_tool"));
 
         Map<String, int[]> itemTags = packet.getTags().get("minecraft:item");
+        this.axolotlTemptItems = IntList.of(itemTags.get("minecraft:axolotl_tempt_items"));
         this.flowers = IntList.of(itemTags.get("minecraft:flowers"));
         this.foxFood = IntList.of(itemTags.get("minecraft:fox_food"));
         this.piglinLoved = IntList.of(itemTags.get("minecraft:piglin_loved"));
@@ -102,9 +104,14 @@ public class TagCache {
         this.requiresIronTool = IntLists.emptyList();
         this.requiresDiamondTool = IntLists.emptyList();
 
+        this.axolotlTemptItems = IntLists.emptyList();
         this.flowers = IntLists.emptyList();
         this.foxFood = IntLists.emptyList();
         this.piglinLoved = IntLists.emptyList();
+    }
+
+    public boolean isAxolotlTemptItem(ItemMapping itemMapping) {
+        return axolotlTemptItems.contains(itemMapping.getJavaId());
     }
 
     public boolean isFlower(ItemMapping mapping) {
