@@ -362,6 +362,11 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     private Int2ObjectMap<IntList> stonecutterRecipes;
 
     /**
+     * Whether to work around 1.13's different behavior in villager trading menus.
+     */
+    @Setter
+    private boolean emulatePost1_14Logic = true;
+    /**
      * Starting in 1.17, Java servers expect the <code>carriedItem</code> parameter of the serverbound click container
      * packet to be the current contents of the mouse after the transaction has been done. 1.16 expects the clicked slot
      * contents before any transaction is done. With the current ViaVersion structure, if we do not send what 1.16 expects

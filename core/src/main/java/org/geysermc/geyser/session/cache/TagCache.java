@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Map;
 
@@ -61,7 +62,7 @@ public class TagCache {
         clear();
     }
 
-    public void loadPacket(ClientboundUpdateTagsPacket packet) {
+    public void loadPacket(GeyserSession session, ClientboundUpdateTagsPacket packet) {
         Map<String, int[]> blockTags = packet.getTags().get("minecraft:block");
         this.leaves = IntList.of(blockTags.get("minecraft:leaves"));
         this.wool = IntList.of(blockTags.get("minecraft:wool"));
@@ -79,6 +80,13 @@ public class TagCache {
         this.flowers = IntList.of(itemTags.get("minecraft:flowers"));
         this.foxFood = IntList.of(itemTags.get("minecraft:fox_food"));
         this.piglinLoved = IntList.of(itemTags.get("minecraft:piglin_loved"));
+
+        // Hack btw
+        boolean emulatePost1_14Logic = itemTags.get("minecraft:signs").length > 1;
+        session.setEmulatePost1_14Logic(emulatePost1_14Logic);
+        if (session.getGeyser().getLogger().isDebug()) {
+            session.getGeyser().getLogger().debug("Emulating post 1.14 villager logic for " + session.name() + "? " + emulatePost1_14Logic);
+        }
     }
 
     public void clear() {
