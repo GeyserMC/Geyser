@@ -46,7 +46,6 @@ import com.github.steveice10.mc.protocol.data.game.statistic.CustomStatistic;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.packet.handshake.serverbound.ClientIntentionPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientInformationPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundSignUpdatePacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import com.github.steveice10.mc.protocol.packet.login.serverbound.ServerboundCustomQueryPacket;
@@ -166,6 +165,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     private final LodestoneCache lodestoneCache;
     private final PistonCache pistonCache;
     private final PreferencesCache preferencesCache;
+    private final SignUpdateCache signUpdateCache;
     private final TagCache tagCache;
     private final WorldCache worldCache;
 
@@ -458,24 +458,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     private boolean thunder = false;
 
     /**
-     * Stores the last text inputted into a sign.
-     * <p>
-     * Bedrock sends packets every time you update the sign, Java only wants the final packet.
-     * Until we determine that the user has finished editing, we save the sign's current status.
-     */
-    @Setter
-    private String lastSignMessage;
-
-    /**
-     * Stores the last sign update packet.
-     * Bedrock sends packets every time you update the sign, sometimes even sends duplicated packets,
-     * while Java only wants the final packet.
-     * Until determine that the user has finished editing(started moving/interacting), we send the packet to the server.
-     */
-    @Setter
-    private ServerboundSignUpdatePacket lastSignUpdatePacket;
-
-    /**
      * Stores a map of all statistics sent from the server.
      * The server only sends new statistics back to us, so in order to show all statistics we need to cache existing ones.
      */
@@ -518,6 +500,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         this.lodestoneCache = new LodestoneCache();
         this.pistonCache = new PistonCache(this);
         this.preferencesCache = new PreferencesCache(this);
+        this.signUpdateCache = new SignUpdateCache(this);
         this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
 
@@ -964,14 +947,10 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     }
 
     public void disconnect(String reason) {
-        // Check if there is undetermined sign update packet
-        if (this.getLastSignUpdatePacket() != null) {
-            // We send the packet to the server
-            this.sendDownstreamPacket(this.getLastSignUpdatePacket());
-            // We set the sign text&packet cached in the session to null to indicate there is no work-in-progress sign
-            this.setLastSignMessage(null);
-            this.setLastSignUpdatePacket(null);
-        }
+        // Send book & sign update before player disconnect
+        this.getBookEditCache().checkForSend();
+        this.getSignUpdateCache().checkForSend();
+
         if (!closed) {
             loggedIn = false;
             if (downstream != null) {

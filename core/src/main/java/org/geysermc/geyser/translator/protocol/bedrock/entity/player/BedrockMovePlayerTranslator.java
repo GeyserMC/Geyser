@@ -64,8 +64,9 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
         session.setLastMovementTimestamp(System.currentTimeMillis());
 
-        // Send book update before the player moves
+        // Send book & sign update before the player moves
         session.getBookEditCache().checkForSend();
+        session.getSignUpdateCache().checkForSend();
 
         // Ignore movement packets until Bedrock's position matches the teleported position
         if (session.getUnconfirmedTeleport() != null) {
@@ -155,15 +156,6 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         }
         if (entity.getRightParrot() != null) {
             entity.getRightParrot().moveAbsolute(entity.getPosition(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
-        }
-
-        // Check if there is undetermined sign update packet
-        if (session.getLastSignUpdatePacket() != null && (positionChanged || rotationChanged)) {
-            // We send the packet to the server
-            session.sendDownstreamPacket(session.getLastSignUpdatePacket());
-            // We set the sign text&packet cached in the session to null to indicate there is no work-in-progress sign
-            session.setLastSignMessage(null);
-            session.setLastSignUpdatePacket(null);
         }
     }
 

@@ -79,8 +79,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
     @Override
     public void translate(GeyserSession session, InventoryTransactionPacket packet) {
-        // Send book updates before opening inventories
+        // Send book & sign updates before opening inventories
         session.getBookEditCache().checkForSend();
+        session.getSignUpdateCache().checkForSend();
 
         ItemMappings mappings = session.getItemMappings();
 
