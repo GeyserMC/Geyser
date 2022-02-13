@@ -566,6 +566,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         if (this.itemMappings.getFurnaceMinecartData() != null || GeyserImpl.getInstance().getConfig().isCustomModelDataEnabled()) {
             ItemComponentPacket componentPacket = new ItemComponentPacket();
+
             if (this.itemMappings.getFurnaceMinecartData() != null) {
                 componentPacket.getItems().add(this.itemMappings.getFurnaceMinecartData());
             }

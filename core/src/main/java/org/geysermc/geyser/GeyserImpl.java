@@ -55,7 +55,9 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
-import org.geysermc.geyser.custommodeldata.GeyserCustomModelDataManager;
+import org.geysermc.geyser.custom.GeyserCustomManager;
+import org.geysermc.geyser.custom.items.GeyserCustomItemManager;
+import org.geysermc.geyser.custom.mappings.MappingsConfigReader;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
@@ -132,7 +134,7 @@ public class GeyserImpl implements GeyserApi {
 
     private final EventBus eventBus;
     private final GeyserExtensionManager extensionManager;
-    private final GeyserCustomModelDataManager customModelDataManager;
+    private final GeyserCustomManager customManager;
 
     private Metrics metrics;
 
@@ -162,8 +164,8 @@ public class GeyserImpl implements GeyserApi {
         BlockRegistries.init();
 
         /* Initialize custom model data manager */
-        this.customModelDataManager = new GeyserCustomModelDataManager();
-        this.customModelDataManager.loadMappingsFromJson();
+        this.customManager = new GeyserCustomManager();
+        this.customManager.loadMappingsFromJson();
 
         /* Initialize event bus */
         this.eventBus = new GeyserEventBus();
@@ -530,8 +532,8 @@ public class GeyserImpl implements GeyserApi {
     }
 
     @Override
-    public GeyserCustomModelDataManager customModelDataManager() {
-        return this.customModelDataManager;
+    public GeyserCustomManager customManager() {
+        return this.customManager;
     }
 
     public static GeyserImpl start(PlatformType platformType, GeyserBootstrap bootstrap) {

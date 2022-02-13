@@ -23,17 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.custommodeldata;
+package org.geysermc.geyser.custom.mappings;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.custommodeldata.CustomItemData;
+import org.geysermc.geyser.custom.GeyserCustomManager;
+import org.geysermc.geyser.custom.mappings.versions.MappingsReader;
+import org.geysermc.geyser.custom.mappings.versions.MappingsReader_v1_0_0;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
 
 public class MappingsConfigReader {
+    private static final Map<String, MappingsReader> MAPPING_READERS = new HashMap<>();
+
+    public static void init(GeyserCustomManager customManager) {
+        MAPPING_READERS.put("1.0.0", new MappingsReader_v1_0_0(customManager));
+    }
+
     public static Path getCustomMappingsDirectory() {
         return GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("custom_mappings");
     }
@@ -46,44 +56,26 @@ public class MappingsConfigReader {
         return files;
     }
 
-    public static CustomItemData readItemMappingEntry(Map.Entry<String, JsonNode> data) {
-        if (data == null) {
-            return null;
+    public static void readMappingsFromJson(File file) {
+        JsonNode mappingsRoot;
+        try {
+            mappingsRoot = GeyserImpl.JSON_MAPPER.readTree(file);
+        } catch (IOException e) {
+            GeyserImpl.getInstance().getLogger().error("Failed to read custom mapping file: " + file.getName(), e);
+            return;
         }
 
-        JsonNode node = data.getValue();
-        CustomItemData customItemData = null;
-
-        if (node != null && node.isObject()) {
-            if (node.has("name")) {
-                Integer customModelData = Integer.parseInt(data.getKey());
-                String name = node.get("name").asText();
-
-                customItemData = new CustomItemData(customModelData, name);
-
-                //The next entries are optional
-                if (node.has("display_name")) {
-                    customItemData.setDisplayName(node.get("display_name").asText());
-                }
-
-                if (node.has("is_tool")) {
-                    customItemData.setIsTool(node.get("is_tool").asBoolean());
-                }
-
-                if (node.has("allow_offhand")) {
-                    customItemData.setAllowOffhand(node.get("allow_offhand").asBoolean());
-                }
-
-                if (node.has("is_hat")) {
-                    customItemData.setIsHat(node.get("is_hat").asBoolean());
-                }
-
-                if (node.has("texture_size")) {
-                    customItemData.setTextureSize(node.get("texture_size").asInt());
-                }
-            }
+        if (!mappingsRoot.has("format_version")) {
+            GeyserImpl.getInstance().getLogger().error("Mappings file " + file.getName() + " is missing the format version field!");
+            return;
         }
 
-        return customItemData;
+        String formatVersion = mappingsRoot.get("format_version").asText();
+        if (!MAPPING_READERS.containsKey(formatVersion)) {
+            GeyserImpl.getInstance().getLogger().error("Mappings file " + file.getName() + " has an unknown format version: " + formatVersion);
+            return;
+        }
+
+        MAPPING_READERS.get(formatVersion).readMappings(file, mappingsRoot);
     }
 }

@@ -64,7 +64,6 @@ public class ItemMapping {
     String translationString;
 
     Int2IntMap customModelData = new Int2IntOpenHashMap();
-    Int2ObjectMap<String> customModelData2BedrockIdentifier = new Int2ObjectOpenHashMap<>();
 
     int maxDamage;
 

@@ -23,26 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.custommodeldata.items;
+package org.geysermc.geyser.custom.items;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.custommodeldata.CustomItemData;
-import org.geysermc.geyser.custommodeldata.GeyserCustomRenderOffsets;
+import org.geysermc.geyser.api.custom.items.CustomItemData;
+import org.geysermc.geyser.api.custom.items.CustomItemRegistrationType;
+import org.geysermc.geyser.custom.GeyserCustomRenderOffsets;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class CustomItemsRegistryPopulator {
-    public static void addToRegistry(String baseItem, CustomItemData customItemData) {
+    public static Map<Integer, String> addToRegistry(String baseItem, CustomItemData customItemData) {
         if (!GeyserImpl.getInstance().getConfig().isCustomModelDataEnabled()) {
-            return;
+            return null;
         }
 
         float scale1 = (float) (0.075 / (customItemData.textureSize() / 16f));
@@ -50,6 +52,7 @@ public class CustomItemsRegistryPopulator {
         float scale3 = (float) (0.075 / (customItemData.textureSize() / 16f * 2.4f));
 
         String customItemName = "geysermc:" + customItemData.name();
+        Map<Integer, String> customIdMappings = new HashMap<>();
 
         for (Map.Entry<String, ItemRegistryPopulator.PaletteVersion> palette : ItemRegistryPopulator.getPaletteVersions().entrySet()) {
             ItemMappings itemMappings = Registries.ITEMS.get(palette.getValue().protocolVersion());
@@ -126,15 +129,22 @@ public class CustomItemsRegistryPopulator {
             if (baseItem.endsWith("_boots")) {
                 componentBuilder.putString("minecraft:render_offsets", "boots");
                 componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.feet").build());
+                componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", ItemDataBuilder.getArmorProtection(baseItem)).build());
             } else if (baseItem.endsWith("_chestplate")) {
                 componentBuilder.putString("minecraft:render_offsets", "chestplates");
                 componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.chest").build());
+
+                componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", ItemDataBuilder.getArmorProtection(baseItem)).build());
             } else if (baseItem.endsWith("_leggings")) {
                 componentBuilder.putString("minecraft:render_offsets", "leggings");
                 componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.legs").build());
+                componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", ItemDataBuilder.getArmorProtection(baseItem)).build());
             } else if (baseItem.endsWith("_helmet") || customItemData.isHat()) {
                 componentBuilder.putString("minecraft:render_offsets", "helmets");
                 componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.head").build());
+                if (baseItem.endsWith("_helmet")) {
+                    componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", ItemDataBuilder.getArmorProtection(baseItem)).build());
+                }
             } else if (customItemData.renderOffsets() != null) {
                 GeyserCustomRenderOffsets renderOffsets = GeyserCustomRenderOffsets.fromCustomRenderOffsets(customItemData.renderOffsets());
                 componentBuilder.putCompound("minecraft:render_offsets", renderOffsets.toNbtMap());
@@ -151,9 +161,14 @@ public class CustomItemsRegistryPopulator {
             componentBuilder.putCompound("item_properties", itemProperties.build());
             builder.putCompound("components", componentBuilder.build());
 
-            javaItem.getCustomModelData().put(customItemData.customModelData().intValue(), customItemId);
+            if (customItemData.registrationType() == CustomItemRegistrationType.CUSTOM_MODEL_DATA) {
+                javaItem.getCustomModelData().put(customItemData.customModelData().intValue(), customItemId);
+            }
             itemMappings.getCustomItemsData().add(new ComponentItemData(customItemName, builder.build()));
+            customIdMappings.put(customItemId, customItemName);
         }
+
+        return customIdMappings;
     }
 
     private static NbtMap XYZToNbtMap(float x, float y, float z) {

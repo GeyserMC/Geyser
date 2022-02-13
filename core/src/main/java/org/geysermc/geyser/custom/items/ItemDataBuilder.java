@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.custommodeldata.items;
+package org.geysermc.geyser.custom.items;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtType;
@@ -31,7 +31,7 @@ import com.nukkitx.nbt.NbtType;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ToolBreakSpeeds {
+public class ItemDataBuilder {
     public static float toolTierToSpeed(String toolTier) {
         return switch (toolTier) {
             case "wooden" -> 2f;
@@ -110,5 +110,36 @@ public class ToolBreakSpeeds {
         //All speeds need adding
 
         return createDigger(speeds);
+    }
+
+    public static int getArmorProtection(String baseItem) {
+        return switch (baseItem) {
+            case "minecraft:leather_helmet" -> 1;
+            case "minecraft:leather_chestplate" -> 3;
+            case "minecraft:leather_leggings" -> 2;
+            case "minecraft:leather_boots" -> 1;
+            case "minecraft:golden_helmet" -> 2;
+            case "minecraft:golden_chestplate" -> 5;
+            case "minecraft:golden_leggings" -> 3;
+            case "minecraft:golden_boots" -> 1;
+            case "minecraft:chainmail_helmet" -> 2;
+            case "minecraft:chainmail_chestplate" -> 5;
+            case "minecraft:chainmail_leggings" -> 4;
+            case "minecraft:chainmail_boots" -> 1;
+            case "minecraft:iron_helmet" -> 2;
+            case "minecraft:iron_chestplate" -> 6;
+            case "minecraft:iron_leggings" -> 5;
+            case "minecraft:iron_boots" -> 2;
+            case "minecraft:diamond_helmet" -> 3;
+            case "minecraft:diamond_chestplate" -> 8;
+            case "minecraft:diamond_leggings" -> 6;
+            case "minecraft:diamond_boots" -> 3;
+            case "minecraft:netherite_helmet" -> 3;
+            case "minecraft:netheritechestplate" -> 8;
+            case "minecraft:netherite_leggings" -> 6;
+            case "minecraft:netherite_boots" -> 3;
+            case "minecraft:turtle_helmet" -> 2;
+            default -> 1;
+        };
     }
 }

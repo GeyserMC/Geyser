@@ -23,10 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.custommodeldata;
+package org.geysermc.geyser.custom;
 
 import com.nukkitx.nbt.NbtMap;
-import org.geysermc.geyser.api.custommodeldata.CustomRenderOffsets;
+import org.geysermc.geyser.api.custom.CustomRenderOffsets;
 
 public record GeyserCustomRenderOffsets(GeyserHand mainHand, GeyserHand offhand) {
     public static GeyserCustomRenderOffsets fromCustomRenderOffsets(CustomRenderOffsets customRenderOffsets) {

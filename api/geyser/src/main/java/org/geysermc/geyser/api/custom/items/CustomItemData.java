@@ -23,13 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.custommodeldata;
+package org.geysermc.geyser.api.custom.items;
+
+import org.geysermc.geyser.api.custom.CustomRenderOffsets;
 
 /**
  * This is used to store data for a custom item.
  */
 public class CustomItemData {
+    private CustomItemRegistrationType registrationType;
+
     private Integer customModelData;
+    private Double damagePredicate;
 
     private String name;
     private String displayName;
@@ -43,8 +48,29 @@ public class CustomItemData {
     private CustomRenderOffsets renderOffsets;
 
     public CustomItemData(Integer customModelData, String name) {
+        this.registrationType = CustomItemRegistrationType.CUSTOM_MODEL_DATA;
+
         this.customModelData = customModelData;
+        this.damagePredicate = null;
+
         this.name = name;
+
+        this.displayName = name;
+        this.isTool = false;
+        this.allowOffhand = false;
+        this.isHat = false;
+        this.textureSize = 16;
+        this.renderOffsets = null;
+    }
+
+    public CustomItemData(Double damagePredicate, String name) {
+        this.registrationType = CustomItemRegistrationType.DAMAGE_PREDICATE;
+
+        this.customModelData = null;
+        this.damagePredicate = damagePredicate;
+
+        this.name = name;
+
         this.displayName = name;
         this.isTool = false;
         this.allowOffhand = false;
@@ -54,12 +80,30 @@ public class CustomItemData {
     }
 
     /**
+     * Gets the registration type of the item.
+     *
+     * @return the registration type of the item.
+     */
+    public CustomItemRegistrationType registrationType() {
+        return this.registrationType;
+    }
+
+    /**
      * Gets the item's custom model data.
      *
      * @return the item's custom model data
      */
     public Integer customModelData() {
         return this.customModelData;
+    }
+
+    /**
+     * Gets the item's damage predicate.
+     *
+     * @return the item's damage predicate
+     */
+    public Double damagePredicate() {
+        return this.damagePredicate;
     }
 
     /**

@@ -121,7 +121,7 @@ public abstract class ItemTranslator {
                 }
             }
             if (itemStack.getNbt().isEmpty()) {
-                // Otherwise, seems to causes issues with villagers accepting books, and I don't see how this will break anything else. - Camotoy
+                // Otherwise, seems to cause issues with villagers accepting books, and I don't see how this will break anything else. - Camotoy
                 itemStack = new ItemStack(itemStack.getId(), itemStack.getAmount(), null);
             }
         }
@@ -534,7 +534,6 @@ public abstract class ItemTranslator {
             int customModelData = ((IntTag) nbt.get("CustomModelData")).getValue();
             if (mapping.getCustomModelData().containsKey(customModelData)) {
                 builder.id(mapping.getCustomModelData().get(customModelData));
-                builder.damage(0);
             }
         }
         return builder;

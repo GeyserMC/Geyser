@@ -23,27 +23,38 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.custommodeldata;
+package org.geysermc.geyser.api.custom;
 
-/**
- * This class is used to store the render offsets of custom items.
- */
-public record CustomRenderOffsets(Hand mainHand, Hand offhand) {
+import org.geysermc.geyser.api.custom.items.CustomItemManager;
+
+import java.io.File;
+
+public abstract class CustomManager {
     /**
-     * The hand that is used for the offset.
+     * Loads the custom items from the custom mappings folder.
      */
-    public record Hand(Offset firstPerson, Offset thirdPerson) {
+    public abstract void loadMappingsFromJson();
+
+    /**
+     * Loads mappings from a json file.
+     *
+     * @param file the file to load from
+     */
+    public abstract void loadMappingsFromJson(File file);
+
+    /**
+     * Loads mappings from a json file.
+     *
+     * @param file the file path for the file to load from
+     */
+    public final void loadMappingsFromJson(String file) {
+        this.loadMappingsFromJson(new File(file));
     }
 
     /**
-     * The offset of the item.
+     * Gets the {@link CustomItemManager}.
+     *
+     * @return the {@link CustomItemManager}
      */
-    public record Offset(OffsetXYZ position, OffsetXYZ rotation, OffsetXYZ scale) {
-    }
-
-    /**
-     * X, Y and Z positions for the offset.
-     */
-    public record OffsetXYZ(float x, float y, float z) {
-    }
+    public abstract CustomItemManager getItemManager();
 }

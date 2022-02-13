@@ -23,7 +23,9 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.custommodeldata;
+package org.geysermc.geyser.api.custom.items;
+
+import org.geysermc.geyser.api.custom.items.CustomItemData;
 
 import java.io.File;
 import java.util.List;
@@ -32,7 +34,7 @@ import java.util.Map;
 /**
  * This class is used to manage custom item data.
  */
-public abstract class CustomModelDataManager {
+public abstract class CustomItemManager {
     /**
      * Registers a custom item.
      *
@@ -42,40 +44,12 @@ public abstract class CustomModelDataManager {
     public abstract void registerCustomItem(String baseItem, CustomItemData customItemData);
 
     /**
-     * Registers multiple custom items.
-     *
-     * @param baseItem the base (java) item
-     * @param customItemData the custom item data to register
-     */
-    public final void registerCustomItems(String baseItem, CustomItemData... customItemData) {
-        for (CustomItemData data : customItemData) {
-            this.registerCustomItem(baseItem, data);
-        }
-    }
-
-    /**
-     * Loads mappings from a json file.
-     *
-     * @param file the file to load from
-     */
-    public abstract void loadMappingsFromJson(File file);
-
-    /**
-     * Loads mappings from a json file.
-     *
-     * @param file the file path for the file to load from
-     */
-    public final void loadMappingsFromJson(String file) {
-        this.loadMappingsFromJson(new File(file));
-    }
-
-    /**
      * Gets the custom item data for the given base item.
      *
      * @param baseItem the base item
      * @return the custom item data
      */
-    public abstract List<CustomItemData> getCustomItemData(String baseItem);
+    public abstract List<CustomItemData> customItemData(String baseItem);
 
     /**
      * Gets all the custom item data.
@@ -83,4 +57,12 @@ public abstract class CustomModelDataManager {
      * @return all the custom item data
      */
     public abstract Map<String, List<CustomItemData>> getCustomMappings();
+
+    /**
+     * Gets an item string identifier for the given id
+     *
+     * @param id the id
+     * @return the item string identifier
+     */
+    public abstract String itemStringFromId(Integer id);
 }
