@@ -33,6 +33,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
+import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.AutoCraftRecipeStackRequestActionData;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.CraftRecipeStackRequestActionData;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
@@ -147,6 +148,25 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
         // We set the net ID to the trade index + 1. This doesn't appear to cause issues and means we don't have to
         // store a map of net ID to trade index on our end.
         int tradeChoice = ((CraftRecipeStackRequestActionData) request.getActions()[0]).getRecipeNetworkId() - 1;
+        return handleTrade(session, inventory, request, tradeChoice);
+    }
+
+    @Override
+    public ItemStackResponsePacket.Response translateAutoCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+        if (session.getUpstream().getProtocolVersion() < Bedrock_v486.V486_CODEC.getProtocolVersion()) {
+            // We're not crafting here
+            // Called at least by consoles when pressing a trade option button
+            return translateRequest(session, inventory, request);
+        }
+
+        // 1.18.10 update - seems impossible to call without consoles/controller input
+        // We set the net ID to the trade index + 1. This doesn't appear to cause issues and means we don't have to
+        // store a map of net ID to trade index on our end.
+        int tradeChoice = ((AutoCraftRecipeStackRequestActionData) request.getActions()[0]).getRecipeNetworkId() - 1;
+        return handleTrade(session, inventory, request, tradeChoice);
+    }
+
+    private ItemStackResponsePacket.Response handleTrade(GeyserSession session, Inventory inventory, ItemStackRequest request, int tradeChoice) {
         ServerboundSelectTradePacket packet = new ServerboundSelectTradePacket(tradeChoice);
         session.sendDownstreamPacket(packet);
 
@@ -175,13 +195,6 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
             // Revert this request, for now
             return rejectRequest(request);
         }
-    }
-
-    @Override
-    public ItemStackResponsePacket.Response translateAutoCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
-        // We're not crafting here
-        // Called at least by consoles when pressing a trade option button
-        return translateRequest(session, inventory, request);
     }
 
     @Override
