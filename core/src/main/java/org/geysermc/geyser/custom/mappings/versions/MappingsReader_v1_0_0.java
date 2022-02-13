@@ -27,7 +27,7 @@ package org.geysermc.geyser.custom.mappings.versions;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.custom.exception.InvalidCustomMappingsFileException;
+import org.geysermc.geyser.custom.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.api.custom.items.CustomItemData;
 import org.geysermc.geyser.custom.GeyserCustomManager;
 

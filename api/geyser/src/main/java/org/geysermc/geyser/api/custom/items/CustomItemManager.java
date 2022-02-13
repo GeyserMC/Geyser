@@ -56,7 +56,7 @@ public abstract class CustomItemManager {
      *
      * @return all the custom item data
      */
-    public abstract Map<String, List<CustomItemData>> getCustomMappings();
+    public abstract Map<String, List<CustomItemData>> customMappings();
 
     /**
      * Gets an item string identifier for the given id

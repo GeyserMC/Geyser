@@ -57,7 +57,7 @@ public class GeyserCustomItemManager extends CustomItemManager {
     }
 
     @Override
-    public Map<String, List<CustomItemData>> getCustomMappings() {
+    public Map<String, List<CustomItemData>> customMappings() {
         return this.customMappings;
     }
 
