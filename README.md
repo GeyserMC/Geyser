@@ -4,6 +4,8 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Build Status](https://ci.opencollab.dev/job/Geyser/job/master/badge/icon)](https://ci.opencollab.dev/job/GeyserMC/job/Geyser/job/master/)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=GeyserMC_Geyser&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=GeyserMC_Geyser)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=GeyserMC_Geyser&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=GeyserMC_Geyser)
 [![Discord](https://img.shields.io/discord/613163671870242838.svg?color=%237289da&label=discord)](https://discord.gg/geysermc)
 [![Crowdin](https://badges.crowdin.net/geyser/localized.svg)](https://translate.geysermc.org/)
 
