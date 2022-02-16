@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.custom.items;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.geyser.api.custom.items.CustomItemData;
 import org.geysermc.geyser.api.custom.items.CustomItemManager;
 
@@ -35,7 +37,7 @@ import java.util.Map;
 
 public class GeyserCustomItemManager extends CustomItemManager {
     private Map<String, List<CustomItemData>> customMappings = new HashMap<>();
-    private Map<Integer, String> customIdMappings = new HashMap<>();
+    private Int2ObjectMap<String> customIdMappings = new Int2ObjectOpenHashMap<>();
 
     @Override
     public void registerCustomItem(String baseItem, CustomItemData customItemData) {

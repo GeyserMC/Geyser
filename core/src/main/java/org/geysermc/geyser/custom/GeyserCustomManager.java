@@ -46,7 +46,7 @@ public class GeyserCustomManager extends CustomManager {
     @Override
     public void loadMappingsFromJson() {
         Path customMappingsDirectory = MappingsConfigReader.getCustomMappingsDirectory();
-        if (Files.exists(customMappingsDirectory)) {
+        if (!Files.exists(customMappingsDirectory)) {
             try {
                 Files.createDirectories(customMappingsDirectory);
             } catch (IOException e) {

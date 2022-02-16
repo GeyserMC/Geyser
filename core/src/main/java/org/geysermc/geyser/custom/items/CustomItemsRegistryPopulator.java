@@ -126,25 +126,35 @@ public class CustomItemsRegistryPopulator {
             }
             itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
-            if (baseItem.endsWith("_boots")) {
-                componentBuilder.putString("minecraft:render_offsets", "boots");
-                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.feet").build());
-                componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", ItemDataBuilder.getArmorProtection(baseItem)).build());
-            } else if (baseItem.endsWith("_chestplate")) {
-                componentBuilder.putString("minecraft:render_offsets", "chestplates");
-                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.chest").build());
-
-                componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", ItemDataBuilder.getArmorProtection(baseItem)).build());
-            } else if (baseItem.endsWith("_leggings")) {
-                componentBuilder.putString("minecraft:render_offsets", "leggings");
-                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.legs").build());
-                componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", ItemDataBuilder.getArmorProtection(baseItem)).build());
-            } else if (baseItem.endsWith("_helmet") || customItemData.isHat()) {
+            GeyserImpl.getInstance().getLogger().info("Adding item: " + customItemName + " - " + javaItem.getArmorType() + " - " + javaItem.getArmorTier() + " - " + javaItem.getProtectionValue());
+            if (javaItem.isArmor()) {
+                switch (javaItem.getArmorType()) {
+                    case "boots" -> {
+                        componentBuilder.putString("minecraft:render_offsets", "boots");
+                        componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.feet").build());
+                        componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", javaItem.getProtectionValue()).build());
+                    }
+                    case "chestplate" -> {
+                        componentBuilder.putString("minecraft:render_offsets", "chestplates");
+                        componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.chest").build());
+                        componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", javaItem.getProtectionValue()).build());
+                    }
+                    case "leggings" -> {
+                        componentBuilder.putString("minecraft:render_offsets", "leggings");
+                        componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.legs").build());
+                        componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", javaItem.getProtectionValue()).build());
+                    }
+                    case "helmet" -> {
+                        componentBuilder.putString("minecraft:render_offsets", "helmets");
+                        componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.head").build());
+                        if (baseItem.endsWith("_helmet")) {
+                            componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", javaItem.getProtectionValue()).build());
+                        }
+                    }
+                }
+            } else if (customItemData.isHat()) {
                 componentBuilder.putString("minecraft:render_offsets", "helmets");
                 componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.head").build());
-                if (baseItem.endsWith("_helmet")) {
-                    componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", ItemDataBuilder.getArmorProtection(baseItem)).build());
-                }
             } else if (customItemData.renderOffsets() != null) {
                 GeyserCustomRenderOffsets renderOffsets = GeyserCustomRenderOffsets.fromCustomRenderOffsets(customItemData.renderOffsets());
                 componentBuilder.putCompound("minecraft:render_offsets", renderOffsets.toNbtMap());

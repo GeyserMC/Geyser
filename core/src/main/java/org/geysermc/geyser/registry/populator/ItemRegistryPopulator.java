@@ -378,6 +378,19 @@ public class ItemRegistryPopulator {
                                 .toolTier("");
                     }
                 }
+
+                if (mappingItem.getArmorType() != null) {
+                    if (mappingItem.getArmorTier() != null) {
+                        mappingBuilder = mappingBuilder.armorType(mappingItem.getArmorType().intern())
+                                .armorTier(mappingItem.getArmorTier().intern())
+                                .protectionValue(mappingItem.getProtectionValue());
+                    } else {
+                        mappingBuilder = mappingBuilder.armorType(mappingItem.getArmorType().intern())
+                                .armorTier("")
+                                .protectionValue(mappingItem.getProtectionValue());
+                    }
+                }
+
                 if (javaOnlyItems.contains(javaIdentifier)) {
                     // These items don't exist on Bedrock, so set up a variable that indicates they should have custom names
                     mappingBuilder = mappingBuilder.translationString((bedrockBlockId != -1 ? "block." : "item.") + entry.getKey().replace(":", "."));
