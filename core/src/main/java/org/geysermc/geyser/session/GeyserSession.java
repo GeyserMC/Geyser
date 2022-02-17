@@ -564,14 +564,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Set the hardcoded shield ID to the ID we just defined in StartGamePacket
         upstream.getSession().getHardcodedBlockingId().set(this.itemMappings.getStoredItems().shield().getBedrockId());
 
-        if (this.itemMappings.getFurnaceMinecartData() != null || GeyserImpl.getInstance().getConfig().isCustomModelDataEnabled()) {
+        if (GeyserImpl.getInstance().getConfig().isAddNonBedrockItems() || this.itemMappings.getFurnaceMinecartData() != null) {
             ItemComponentPacket componentPacket = new ItemComponentPacket();
 
             if (this.itemMappings.getFurnaceMinecartData() != null) {
                 componentPacket.getItems().add(this.itemMappings.getFurnaceMinecartData());
             }
 
-            if (GeyserImpl.getInstance().getConfig().isCustomModelDataEnabled()) {
+            if (this.itemMappings.getCustomItemsData().size() != 0) {
                 componentPacket.getItems().addAll(this.itemMappings.getCustomItemsData());
             }
 

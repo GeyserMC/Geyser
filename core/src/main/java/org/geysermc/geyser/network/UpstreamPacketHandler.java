@@ -161,7 +161,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.getUuid().toString(), header.getVersionString(), ""));
                 }
 
-                if (session.getItemMappings().getFurnaceMinecartData() != null || GeyserImpl.getInstance().getConfig().isCustomModelDataEnabled()) {
+                if (GeyserImpl.getInstance().getConfig().isAddNonBedrockItems() || session.getItemMappings().getFurnaceMinecartData() != null) {
                     // Allow custom items to work
                     stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
                 }

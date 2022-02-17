@@ -47,7 +47,7 @@ public class GeyserCustomItemManager extends CustomItemManager {
             this.customMappings.put(baseItem, new ArrayList<>(List.of(customItemData)));
         }
 
-        Map<Integer, String> out = CustomItemsRegistryPopulator.addToRegistry(baseItem, customItemData);
+        Int2ObjectMap<String> out = CustomItemsRegistryPopulator.addToRegistry(baseItem, customItemData);
         if (out != null) {
             this.customIdMappings.putAll(out);
         }

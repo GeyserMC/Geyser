@@ -530,10 +530,12 @@ public abstract class ItemTranslator {
      * Translates the custom model data of an item
      */
     public static ItemData.Builder translateCustomModelData(CompoundTag nbt, ItemData.Builder builder, ItemMapping mapping) {
-        if (nbt != null && nbt.get("CustomModelData") != null) {
-            int customModelData = ((IntTag) nbt.get("CustomModelData")).getValue();
-            if (mapping.getCustomModelData().containsKey(customModelData)) {
-                builder.id(mapping.getCustomModelData().get(customModelData));
+        if (nbt != null) {
+            if (nbt.get("CustomModelData") instanceof IntTag customModelDataTag) {
+                int customModelData = customModelDataTag.getValue();
+                if (mapping.getCustomModelData().containsKey(customModelData)) {
+                    builder.id(mapping.getCustomModelData().get(customModelData));
+                }
             }
         }
         return builder;

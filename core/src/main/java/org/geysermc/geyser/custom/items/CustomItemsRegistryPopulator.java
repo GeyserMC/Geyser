@@ -29,6 +29,8 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.custom.items.CustomItemData;
 import org.geysermc.geyser.api.custom.items.CustomItemRegistrationType;
@@ -42,8 +44,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CustomItemsRegistryPopulator {
-    public static Map<Integer, String> addToRegistry(String baseItem, CustomItemData customItemData) {
-        if (!GeyserImpl.getInstance().getConfig().isCustomModelDataEnabled()) {
+    public static Int2ObjectMap<String> addToRegistry(String baseItem, CustomItemData customItemData) {
+        if (!GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
             return null;
         }
 
@@ -52,7 +54,7 @@ public class CustomItemsRegistryPopulator {
         float scale3 = (float) (0.075 / (customItemData.textureSize() / 16f * 2.4f));
 
         String customItemName = "geysermc:" + customItemData.name();
-        Map<Integer, String> customIdMappings = new HashMap<>();
+        Int2ObjectMap<String> customIdMappings = new Int2ObjectOpenHashMap<>();
 
         for (Map.Entry<String, ItemRegistryPopulator.PaletteVersion> palette : ItemRegistryPopulator.getPaletteVersions().entrySet()) {
             ItemMappings itemMappings = Registries.ITEMS.get(palette.getValue().protocolVersion());
@@ -126,7 +128,6 @@ public class CustomItemsRegistryPopulator {
             }
             itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
-            GeyserImpl.getInstance().getLogger().info("Adding item: " + customItemName + " - " + javaItem.getArmorType() + " - " + javaItem.getArmorTier() + " - " + javaItem.getProtectionValue());
             if (javaItem.isArmor()) {
                 switch (javaItem.getArmorType()) {
                     case "boots" -> {

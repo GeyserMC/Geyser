@@ -169,9 +169,6 @@ force-resource-packs: true
 # THIS DISABLES ALL COMMANDS FROM SUCCESSFULLY RUNNING FOR BEDROCK IN-GAME, as otherwise Bedrock thinks you are cheating.
 xbox-achievements-enabled: false
 
-# This allows you to convert custom model data to a bedrock custom item.
-custom-model-data-enabled: true
-
 # bStats is a stat tracker that is entirely anonymous and tracks only basic information
 # about Geyser, such as how many people are online, how many servers are using Geyser,
 # what OS is being used, etc. You can learn more about bStats here: https://bstats.org/.

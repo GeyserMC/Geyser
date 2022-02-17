@@ -101,6 +101,7 @@ public final class ClickPlan {
 
     public void execute(boolean refresh) {
         //update geyser inventory after simulation to avoid net id desync
+        resetSimulation();
         ListIterator<ClickAction> planIter = plan.listIterator();
         while (planIter.hasNext()) {
             ClickAction action = planIter.next();
