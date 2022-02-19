@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,6 +42,11 @@ public class BedrockAdventureSettingsTranslator extends PacketTranslator<Adventu
         boolean isFlying = packet.getSettings().contains(AdventureSetting.FLYING);
         if (!isFlying && session.getGameMode() == GameMode.SPECTATOR) {
             // We should always be flying in spectator mode
+            session.sendAdventureSettings();
+            return;
+        } else if (isFlying && session.getPlayerEntity().getFlag(EntityFlag.SWIMMING) && session.getCollisionManager().isPlayerInWater()) {
+            // As of 1.18.1, Java Edition cannot fly while in water, but it can fly while crawling
+            // If this isn't present, swimming on a 1.13.2 server and then attempting to fly will put you into a flying/swimming state that is invalid on JE
             session.sendAdventureSettings();
             return;
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -104,6 +104,12 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @JsonProperty("show-coordinates")
     private boolean showCoordinates = true;
+
+    @JsonProperty("disable-bedrock-scaffolding")
+    private boolean disableBedrockScaffolding = false;
+
+    @JsonProperty("always-quick-change-armor")
+    private boolean alwaysQuickChangeArmor = false;
 
     @JsonDeserialize(using = EmoteOffhandWorkaroundOption.Deserializer.class)
     @JsonProperty("emote-offhand-workaround")

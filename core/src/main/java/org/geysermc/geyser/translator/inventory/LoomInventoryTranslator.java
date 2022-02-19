@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -102,7 +102,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
     }
 
     @Override
-    public boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, ContainerSlotType bedrockSourceContainer,
+    protected boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, ContainerSlotType bedrockSourceContainer,
                                          int javaSourceSlot, ContainerSlotType bedrockDestinationContainer, int javaDestinationSlot) {
         if (javaDestinationSlot != 1) {
             return false;
@@ -117,7 +117,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator {
     }
 
     @Override
-    public boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
+    protected boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
         // If the LOOM_MATERIAL slot is not empty, we are crafting a pattern that does not come from an item
         // Remove the CRAFT_NON_IMPLEMENTED_DEPRECATED when 1.17.30 is dropped
         return (action.getType() == StackRequestActionType.CRAFT_NON_IMPLEMENTED_DEPRECATED || action.getType() == StackRequestActionType.CRAFT_LOOM)

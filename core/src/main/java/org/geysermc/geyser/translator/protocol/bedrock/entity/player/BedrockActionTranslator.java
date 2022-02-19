@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -77,16 +77,20 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.sendUpstreamPacket(attributesPacket);
                 break;
             case START_SWIMMING:
-                if (!session.getPlayerEntity().getFlag(EntityFlag.SWIMMING)) {
+                if (!entity.getFlag(EntityFlag.SWIMMING)) {
                     ServerboundPlayerCommandPacket startSwimPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SPRINTING);
                     session.sendDownstreamPacket(startSwimPacket);
+
+                    session.setSwimming(true);
                 }
                 break;
             case STOP_SWIMMING:
                 // Prevent packet spam when Bedrock players are crawling near the edge of a block
-                if (session.isSwimmingInWater()) {
+                if (!session.getCollisionManager().mustPlayerCrawlHere()) {
                     ServerboundPlayerCommandPacket stopSwimPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SPRINTING);
                     session.sendDownstreamPacket(stopSwimPacket);
+
+                    session.setSwimming(false);
                 }
                 break;
             case START_GLIDE:
@@ -135,14 +139,14 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.setSneaking(false);
                 break;
             case START_SPRINT:
-                if (!session.getPlayerEntity().getFlag(EntityFlag.SWIMMING)) {
+                if (!entity.getFlag(EntityFlag.SWIMMING)) {
                     ServerboundPlayerCommandPacket startSprintPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SPRINTING);
                     session.sendDownstreamPacket(startSprintPacket);
                     session.setSprinting(true);
                 }
                 break;
             case STOP_SPRINT:
-                if (!session.getPlayerEntity().getFlag(EntityFlag.SWIMMING)) {
+                if (!entity.getFlag(EntityFlag.SWIMMING)) {
                     ServerboundPlayerCommandPacket stopSprintPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SPRINTING);
                     session.sendDownstreamPacket(stopSprintPacket);
                 }

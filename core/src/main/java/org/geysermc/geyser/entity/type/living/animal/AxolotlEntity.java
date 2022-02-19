@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,7 +56,7 @@ public class AxolotlEntity extends AnimalEntity {
 
     @Override
     public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
-        return javaIdentifierStripped.equals("tropical_fish_bucket");
+        return session.getTagCache().isAxolotlTemptItem(mapping);
     }
 
     @Override

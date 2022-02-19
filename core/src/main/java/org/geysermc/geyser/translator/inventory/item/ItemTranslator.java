@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
@@ -157,18 +158,13 @@ public abstract class ItemTranslator {
 
         nbt = translateDisplayProperties(session, nbt, bedrockItem);
         if (session.isAdvancedTooltips()) {
-            nbt = addAdvancedTooltips(nbt, session.getItemMappings().getMapping(stack), session.getLocale());
+            nbt = addAdvancedTooltips(nbt, bedrockItem, session.getLocale());
         }
 
         ItemStack itemStack = new ItemStack(stack.getId(), stack.getAmount(), nbt);
 
-        ItemData.Builder builder;
-        ItemTranslator itemStackTranslator = ITEM_STACK_TRANSLATORS.get(bedrockItem.getJavaId());
-        if (itemStackTranslator != null) {
-            builder = itemStackTranslator.translateToBedrock(itemStack, bedrockItem, session.getItemMappings());
-        } else {
-            builder = DEFAULT_TRANSLATOR.translateToBedrock(itemStack, bedrockItem, session.getItemMappings());
-        }
+        ItemTranslator itemStackTranslator = ITEM_STACK_TRANSLATORS.getOrDefault(bedrockItem.getJavaId(), DEFAULT_TRANSLATOR);
+        ItemData.Builder builder = itemStackTranslator.translateToBedrock(itemStack, bedrockItem, session.getItemMappings());
         if (bedrockItem.isBlock()) {
             builder.blockRuntimeId(bedrockItem.getBedrockBlockId());
         }
@@ -263,6 +259,19 @@ public abstract class ItemTranslator {
         return canModifyBedrock;
     }
 
+    /**
+     * Given an item stack, determine the item mapping that should be applied to Bedrock players.
+     */
+    @Nonnull
+    public static ItemMapping getBedrockItemMapping(GeyserSession session, @Nonnull GeyserItemStack itemStack) {
+        if (itemStack.isEmpty()) {
+            return ItemMapping.AIR;
+        }
+        int javaId = itemStack.getJavaId();
+        return ITEM_STACK_TRANSLATORS.getOrDefault(javaId, DEFAULT_TRANSLATOR)
+                .getItemMapping(javaId, itemStack.getNbt(), session.getItemMappings());
+    }
+
     private static final ItemTranslator DEFAULT_TRANSLATOR = new ItemTranslator() {
         @Override
         public List<ItemMapping> getAppliedItems() {
@@ -270,7 +279,7 @@ public abstract class ItemTranslator {
         }
     };
 
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
+    protected ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
         if (itemStack == null) {
             // Return, essentially, air
             return ItemData.builder();
@@ -294,6 +303,10 @@ public abstract class ItemTranslator {
     }
 
     public abstract List<ItemMapping> getAppliedItems();
+
+    protected ItemMapping getItemMapping(int javaId, CompoundTag nbt, ItemMappings mappings) {
+        return mappings.getMapping(javaId);
+    }
 
     public NbtMap translateNbtToBedrock(CompoundTag tag) {
         NbtMapBuilder builder = NbtMap.builder();
@@ -469,9 +482,8 @@ public abstract class ItemTranslator {
     public static CompoundTag translateDisplayProperties(GeyserSession session, CompoundTag tag, ItemMapping mapping, char translationColor) {
         boolean hasCustomName = false;
         if (tag != null) {
-            CompoundTag display = tag.get("display");
-            if (display != null && display.contains("Name")) {
-                String name = ((StringTag) display.get("Name")).getValue();
+            if (tag.get("display") instanceof CompoundTag display && display.get("Name") instanceof StringTag tagName) {
+                String name = tagName.getValue();
 
                 // Get the translated name and prefix it with a reset char
                 name = MessageTranslator.convertMessageLenient(name, session.getLocale());
@@ -491,8 +503,10 @@ public abstract class ItemTranslator {
             if (tag == null) {
                 tag = new CompoundTag("");
             }
-            CompoundTag display = tag.get("display");
-            if (display == null) {
+            CompoundTag display;
+            if (tag.get("display") instanceof CompoundTag oldDisplay) {
+                display = oldDisplay;
+            } else {
                 display = new CompoundTag("display");
                 // Add to the new root tag
                 tag.put(display);

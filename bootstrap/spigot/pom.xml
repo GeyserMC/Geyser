@@ -6,11 +6,15 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>bootstrap-parent</artifactId>
-        <version>2.0.0-SNAPSHOT</version>
+        <version>2.0.1-SNAPSHOT</version>
     </parent>
     <artifactId>bootstrap-spigot</artifactId>
 
     <repositories>
+        <repository>
+            <id>papermc</id>
+            <url>https://papermc.io/repo/repository/maven-public/</url>
+        </repository>
         <repository>
             <id>viaversion-repo</id>
             <url>https://repo.viaversion.com</url>
@@ -21,13 +25,13 @@
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>core</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
+            <version>2.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>1.15.2-R0.1-SNAPSHOT</version>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.18.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

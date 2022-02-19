@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -65,6 +65,8 @@ import java.util.concurrent.TimeUnit;
 
 @Getter @Setter
 public class PlayerEntity extends LivingEntity {
+    public static final float SNEAKING_POSE_HEIGHT = 1.5f;
+
     private GameProfile profile;
     private String username;
     private boolean playerList = true;  // Player is in the player list
@@ -380,15 +382,26 @@ public class PlayerEntity extends LivingEntity {
     @Override
     protected void setDimensions(Pose pose) {
         float height;
+        float width;
         switch (pose) {
-            case SNEAKING -> height = 1.5f;
-            case FALL_FLYING, SPIN_ATTACK, SWIMMING -> height = 0.6f;
+            case SNEAKING -> {
+                height = SNEAKING_POSE_HEIGHT;
+                width = definition.width();
+            }
+            case FALL_FLYING, SPIN_ATTACK, SWIMMING -> {
+                height = 0.6f;
+                width = definition.width();
+            }
+            case DYING -> {
+                height = 0.2f;
+                width = 0.2f;
+            }
             default -> {
                 super.setDimensions(pose);
                 return;
             }
         }
-        setBoundingBoxWidth(definition.width());
+        setBoundingBoxWidth(width);
         setBoundingBoxHeight(height);
     }
 

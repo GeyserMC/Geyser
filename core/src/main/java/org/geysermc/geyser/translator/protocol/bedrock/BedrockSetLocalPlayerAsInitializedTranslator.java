@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -55,6 +55,9 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
                     if (session.getOpenInventory() != null && session.getOpenInventory().isPending()) {
                         InventoryUtils.openInventory(session, session.getOpenInventory());
                     }
+
+                    // What am I to expect - as of Bedrock 1.18
+                    session.getFormCache().resendAllForms();
                 }
             }
         }
