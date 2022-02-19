@@ -27,6 +27,7 @@ package org.geysermc.geyser.custom.mappings.versions;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.custom.items.registration.CustomModelDataItemType;
 import org.geysermc.geyser.custom.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.api.custom.items.CustomItemData;
 import org.geysermc.geyser.custom.GeyserCustomManager;
@@ -76,9 +77,9 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
 
         CustomItemData customItemData;
         if (node.has("custom_model_data")) {
-            customItemData = new CustomItemData(node.get("custom_model_data").asInt(), name);
+            customItemData = new CustomItemData(new CustomModelDataItemType(node.get("custom_model_data").asInt()), name);
         } else if (node.has("damage_predicate")) {
-            customItemData = new CustomItemData(node.get("damage_predicate").asDouble(), name);
+            throw new InvalidCustomMappingsFileException("Item entry " + name + " uses a damage predicate, which is not supported yet");
         } else {
             throw new InvalidCustomMappingsFileException("Item entry " + name + " has no custom model data or damage predicate");
         }

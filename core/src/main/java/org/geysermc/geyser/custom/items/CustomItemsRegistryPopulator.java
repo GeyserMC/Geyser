@@ -33,14 +33,14 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.custom.items.CustomItemData;
-import org.geysermc.geyser.api.custom.items.CustomItemRegistrationType;
+import org.geysermc.geyser.api.custom.items.registration.CustomItemRegistrationType;
+import org.geysermc.geyser.api.custom.items.registration.CustomModelDataItemType;
 import org.geysermc.geyser.custom.GeyserCustomRenderOffsets;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class CustomItemsRegistryPopulator {
@@ -172,8 +172,11 @@ public class CustomItemsRegistryPopulator {
             componentBuilder.putCompound("item_properties", itemProperties.build());
             builder.putCompound("components", componentBuilder.build());
 
-            if (customItemData.registrationType() == CustomItemRegistrationType.CUSTOM_MODEL_DATA) {
-                javaItem.getCustomModelData().put(customItemData.customModelData().intValue(), customItemId);
+            if (customItemData.registrationType().type() == CustomItemRegistrationType.Type.CUSTOM_MODEL_DATA) {
+                CustomModelDataItemType registrationType = (CustomModelDataItemType) customItemData.registrationType();
+                javaItem.getCustomModelData().put(registrationType.customModelData(), customItemId);
+            } else {
+                GeyserImpl.getInstance().getLogger().warning("The custom item " + customItemData.name() + " has no recognised registration type: " + customItemData.registrationType().type());
             }
             itemMappings.getCustomItemsData().add(new ComponentItemData(customItemName, builder.build()));
             customIdMappings.put(customItemId, customItemName);

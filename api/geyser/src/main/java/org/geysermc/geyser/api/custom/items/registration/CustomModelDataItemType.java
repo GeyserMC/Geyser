@@ -23,9 +23,34 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.custom.items;
+package org.geysermc.geyser.api.custom.items.registration;
 
-public enum CustomItemRegistrationType {
-    CUSTOM_MODEL_DATA,
-    DAMAGE_PREDICATE
+/**
+ * This is the class for registering custom model data items.
+ */
+public class CustomModelDataItemType implements CustomItemRegistrationType {
+    private final int customModelData;
+
+    public CustomModelDataItemType(int customModelData) {
+        this.customModelData = customModelData;
+    }
+
+    /**
+     * Gets the type of this registration.
+     *
+     * @return the type of this registration.
+     */
+    @Override
+    public Type type() {
+        return Type.CUSTOM_MODEL_DATA;
+    }
+
+    /**
+     * Gets the custom model data of this registration.
+     *
+     * @return the custom model data of this registration.
+     */
+    public int customModelData() {
+        return this.customModelData;
+    }
 }
