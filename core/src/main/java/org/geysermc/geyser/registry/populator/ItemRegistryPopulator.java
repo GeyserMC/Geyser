@@ -224,8 +224,14 @@ public class ItemRegistryPopulator {
                     // This items has a mapping specifically for this version of the game
                     mappingItem = entry.getValue();
                 }
+
+                String bedrockIdentifier;
                 if (javaIdentifier.equals("minecraft:music_disc_otherside") && palette.getValue().protocolVersion() <= Bedrock_v471.V471_CODEC.getProtocolVersion()) {
-                    mappingItem.setBedrockIdentifier("minecraft:music_disc_pigstep");
+                    bedrockIdentifier = "minecraft:music_disc_pigstep";
+                } else if (javaIdentifier.equals("minecraft:globe_banner_pattern") && palette.getValue().protocolVersion() < Bedrock_v486.V486_CODEC.getProtocolVersion()) {
+                    bedrockIdentifier = "minecraft:banner_pattern";
+                } else {
+                    bedrockIdentifier = mappingItem.getBedrockIdentifier();
                 }
 
                 if (usingFurnaceMinecart && javaIdentifier.equals("minecraft:furnace_minecart")) {
@@ -233,7 +239,7 @@ public class ItemRegistryPopulator {
                     itemIndex++;
                     continue;
                 }
-                String bedrockIdentifier = mappingItem.getBedrockIdentifier().intern();
+
                 int bedrockId = bedrockIdentifierToId.getInt(bedrockIdentifier);
                 if (bedrockId == Short.MIN_VALUE) {
                     throw new RuntimeException("Missing Bedrock ID in mappings: " + bedrockIdentifier);
@@ -358,7 +364,7 @@ public class ItemRegistryPopulator {
                 ItemMapping.ItemMappingBuilder mappingBuilder = ItemMapping.builder()
                         .javaIdentifier(javaIdentifier)
                         .javaId(itemIndex)
-                        .bedrockIdentifier(bedrockIdentifier)
+                        .bedrockIdentifier(bedrockIdentifier.intern())
                         .bedrockId(bedrockId)
                         .bedrockData(mappingItem.getBedrockData())
                         .bedrockBlockId(bedrockBlockId)

@@ -37,6 +37,7 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -96,10 +97,7 @@ public class BannerTranslator extends ItemTranslator {
     public static NbtList<NbtMap> convertBannerPattern(ListTag patterns) {
         List<NbtMap> tagsList = new ArrayList<>();
         for (Tag patternTag : patterns.getValue()) {
-            NbtMap newPatternTag = getBedrockBannerPattern((CompoundTag) patternTag);
-            if (newPatternTag != null) {
-                tagsList.add(newPatternTag);
-            }
+            tagsList.add(getBedrockBannerPattern((CompoundTag) patternTag));
         }
 
         return new NbtList<>(NbtType.COMPOUND, tagsList);
@@ -111,17 +109,11 @@ public class BannerTranslator extends ItemTranslator {
      * @param pattern Java edition pattern nbt
      * @return The Bedrock edition format pattern nbt
      */
-    public static NbtMap getBedrockBannerPattern(CompoundTag pattern) {
-        String patternName = (String) pattern.get("Pattern").getValue();
-
-        // Return null if its the globe pattern as it doesn't exist on bedrock
-        if (patternName.equals("glb")) {
-            return null;
-        }
-
+    @Nonnull
+    private static NbtMap getBedrockBannerPattern(CompoundTag pattern) {
         return NbtMap.builder()
                 .putInt("Color", 15 - (int) pattern.get("Color").getValue())
-                .putString("Pattern", patternName)
+                .putString("Pattern", (String) pattern.get("Pattern").getValue())
                 .build();
     }
 
