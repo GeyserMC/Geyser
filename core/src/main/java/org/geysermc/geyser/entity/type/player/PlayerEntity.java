@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,17 +47,16 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import org.geysermc.geyser.text.ChatColor;
-import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.scoreboard.Objective;
 import org.geysermc.geyser.scoreboard.Score;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.scoreboard.UpdateType;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -66,6 +65,8 @@ import java.util.concurrent.TimeUnit;
 
 @Getter @Setter
 public class PlayerEntity extends LivingEntity {
+    public static final float SNEAKING_POSE_HEIGHT = 1.5f;
+
     private GameProfile profile;
     private String username;
     private boolean playerList = true;  // Player is in the player list
@@ -81,7 +82,7 @@ public class PlayerEntity extends LivingEntity {
      */
     private ParrotEntity rightParrot;
 
-    public PlayerEntity(GeyserSession session, long entityId, long geyserId, GameProfile gameProfile, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public PlayerEntity(GeyserSession session, int entityId, long geyserId, GameProfile gameProfile, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, gameProfile.getId(), EntityDefinitions.PLAYER, position, motion, yaw, pitch, headYaw);
 
         profile = gameProfile;
@@ -123,14 +124,6 @@ public class PlayerEntity extends LivingEntity {
         dirtyMetadata.apply(addPlayerPacket.getMetadata());
 
         setFlagsDirty(false);
-
-        long linkedEntityId = session.getEntityCache().getCachedPlayerEntityLink(entityId);
-        if (linkedEntityId != -1) {
-            Entity linkedEntity = session.getEntityCache().getEntityByJavaId(linkedEntityId);
-            if (linkedEntity != null) {
-                addPlayerPacket.getEntityLinks().add(new EntityLinkData(linkedEntity.getGeyserId(), geyserId, EntityLinkData.Type.RIDER, false, false));
-            }
-        }
 
         valid = true;
         session.sendUpstreamPacket(addPlayerPacket);
@@ -352,12 +345,7 @@ public class PlayerEntity extends LivingEntity {
         if (team != null) {
             if (team.isVisibleFor(session.getPlayerEntity().getUsername())) {
                 TeamColor color = team.getColor();
-                String chatColor;
-                if (color == TeamColor.NONE) {
-                    chatColor = ChatColor.RESET;
-                } else {
-                    chatColor = MessageTranslator.toChatColor(color);
-                }
+                String chatColor = MessageTranslator.toChatColor(color);
                 // We have to emulate what modern Java text already does for us and add the color to each section
                 String prefix = team.getCurrentData().getPrefix();
                 String suffix = team.getCurrentData().getSuffix();
@@ -394,15 +382,26 @@ public class PlayerEntity extends LivingEntity {
     @Override
     protected void setDimensions(Pose pose) {
         float height;
+        float width;
         switch (pose) {
-            case SNEAKING -> height = 1.5f;
-            case FALL_FLYING, SPIN_ATTACK, SWIMMING -> height = 0.6f;
+            case SNEAKING -> {
+                height = SNEAKING_POSE_HEIGHT;
+                width = definition.width();
+            }
+            case FALL_FLYING, SPIN_ATTACK, SWIMMING -> {
+                height = 0.6f;
+                width = definition.width();
+            }
+            case DYING -> {
+                height = 0.2f;
+                width = 0.2f;
+            }
             default -> {
                 super.setDimensions(pose);
                 return;
             }
         }
-        setBoundingBoxWidth(definition.width());
+        setBoundingBoxWidth(width);
         setBoundingBoxHeight(height);
     }
 

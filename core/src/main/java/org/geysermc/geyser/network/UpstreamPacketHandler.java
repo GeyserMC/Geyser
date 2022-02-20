@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@ import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
 import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.session.GeyserSession;
@@ -70,7 +71,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         BedrockPacketCodec packetCodec = MinecraftProtocol.getBedrockCodec(loginPacket.getProtocolVersion());
         if (packetCodec == null) {
-            String supportedVersions = MinecraftProtocol.getAllSupportedVersions();
+            String supportedVersions = MinecraftProtocol.getAllSupportedBedrockVersions();
             if (loginPacket.getProtocolVersion() > MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
                 // Too early to determine session locale
                 session.getGeyser().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
@@ -196,6 +197,12 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.auth.stored_credentials", session.getAuthData().name()));
                 session.setMicrosoftAccount(info.isMicrosoftAccount());
                 session.authenticate(info.getEmail(), info.getPassword());
+                return true;
+            }
+        }
+        PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getTask(session.getAuthData().xuid());
+        if (task != null) {
+            if (task.getAuthentication().isDone() && session.onMicrosoftLoginComplete(task)) {
                 return true;
             }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,8 +57,8 @@ public class GeyserSpigotPingPassthrough implements IGeyserPingPassthrough {
             Bukkit.getOnlinePlayers().stream().map(Player::getName).forEach(geyserPingInfo.getPlayerList()::add);
             return geyserPingInfo;
         } catch (Exception e) {
-            logger.debug("Error while getting Bukkit ping passthrough: " + e.toString());
-            return new GeyserPingInfo(null, null, null);
+            logger.debug("Error while getting Bukkit ping passthrough: " + e);
+            return null;
         }
     }
 
@@ -79,5 +79,4 @@ public class GeyserSpigotPingPassthrough implements IGeyserPingPassthrough {
             return Collections.emptyIterator();
         }
     }
-
 }

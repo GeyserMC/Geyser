@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,7 @@ public class BedrockMoveEntityAbsoluteTranslator extends PacketTranslator<MoveEn
     public void translate(GeyserSession session, MoveEntityAbsolutePacket packet) {
         session.setLastVehicleMoveTimestamp(System.currentTimeMillis());
 
-        Entity ridingEntity = session.getRidingVehicleEntity();
+        Entity ridingEntity = session.getPlayerEntity().getVehicle();
         if (ridingEntity != null && session.getWorldBorder().isPassingIntoBorderBoundaries(packet.getPosition(), false)) {
             Vector3f position = Vector3f.from(ridingEntity.getPosition().getX(), packet.getPosition().getY(),
                     ridingEntity.getPosition().getZ());

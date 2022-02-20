@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.platform.spigot;
 
+import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.viaversion.viaversion.bukkit.handlers.BukkitChannelInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -34,10 +35,12 @@ import org.bukkit.Bukkit;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.network.netty.GeyserInjector;
 import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
+import org.geysermc.geyser.network.netty.LocalSession;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.net.InetAddress;
 import java.util.List;
 
 public class GeyserSpigotInjector extends GeyserInjector {
@@ -128,6 +131,8 @@ public class GeyserSpigotInjector extends GeyserInjector {
         allServerChannels.add(channelFuture);
         this.localChannel = channelFuture;
         this.serverSocketAddress = channelFuture.channel().localAddress();
+
+        workAroundWeirdBug(bootstrap);
     }
 
     @SuppressWarnings("unchecked")
@@ -156,6 +161,18 @@ public class GeyserSpigotInjector extends GeyserInjector {
             throw new RuntimeException();
         }
         return childHandler;
+    }
+
+    /**
+     * Work around an odd bug where the first connection might not initialize all channel handlers on the main pipeline -
+     * send a dummy status request down that acts as the first connection, then.
+     * For the future, if someone wants to properly fix this - as of December 28, 2021, it happens on 1.16.5/1.17.1/1.18.1 EXCEPT Spigot 1.16.5
+     */
+    private void workAroundWeirdBug(GeyserBootstrap bootstrap) {
+        LocalSession session = new LocalSession(bootstrap.getGeyserConfig().getRemote().getAddress(),
+                bootstrap.getGeyserConfig().getRemote().getPort(), this.serverSocketAddress,
+                InetAddress.getLoopbackAddress().getHostAddress(), new MinecraftProtocol());
+        session.connect();
     }
 
     @Override

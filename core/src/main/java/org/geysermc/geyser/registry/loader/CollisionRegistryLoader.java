@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -50,10 +50,10 @@ import java.util.regex.Pattern;
 /**
  * Loads collision data from the given resource path.
  */
-public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String, Map<Integer, BlockCollision>> {
+public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String, Int2ObjectMap<BlockCollision>> {
 
     @Override
-    public Map<Integer, BlockCollision> load(Pair<String, String> input) {
+    public Int2ObjectMap<BlockCollision> load(Pair<String, String> input) {
         Int2ObjectMap<BlockCollision> collisions = new Int2ObjectOpenHashMap<>();
 
         Map<Class<?>, CollisionInfo> annotationMap = new IdentityHashMap<>();

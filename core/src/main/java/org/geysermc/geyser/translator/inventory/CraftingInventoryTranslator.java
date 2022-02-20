@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,6 +38,11 @@ public class CraftingInventoryTranslator extends AbstractBlockInventoryTranslato
     }
 
     @Override
+    public int getGridSize() {
+        return 9;
+    }
+
+    @Override
     public SlotType getSlotType(int javaSlot) {
         if (javaSlot == 0) {
             return SlotType.OUTPUT;
@@ -47,7 +52,7 @@ public class CraftingInventoryTranslator extends AbstractBlockInventoryTranslato
 
     @Override
     public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
-        if (slot >= 1 && slot <= 9) {
+        if (isCraftingGrid(slot)) {
             return new BedrockContainerSlot(ContainerSlotType.CRAFTING_INPUT, slot + 31);
         }
         if (slot == 0) {
@@ -75,5 +80,9 @@ public class CraftingInventoryTranslator extends AbstractBlockInventoryTranslato
             return slot == 0 ? 50 : slot + 31;
         }
         return super.javaSlotToBedrock(slot);
+    }
+
+    public static boolean isCraftingGrid(int slot) {
+        return slot >= 1 && slot <= 9;
     }
 }

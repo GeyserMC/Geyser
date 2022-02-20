@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ public class JavaMoveVehicleTranslator extends PacketTranslator<ClientboundMoveV
 
     @Override
     public void translate(GeyserSession session, ClientboundMoveVehiclePacket packet) {
-        Entity entity = session.getRidingVehicleEntity();
+        Entity entity = session.getPlayerEntity().getVehicle();
         if (entity == null) return;
 
         entity.moveAbsolute(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()), packet.getYaw(), packet.getPitch(), false, true);

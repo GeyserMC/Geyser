@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,12 +37,11 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
-import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
 import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
-import org.geysermc.geyser.registry.type.ItemMapping;
 
 import java.util.UUID;
 
@@ -77,7 +76,7 @@ public class ItemFrameEntity extends Entity {
      */
     private boolean changed = true;
 
-    public ItemFrameEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, Direction direction) {
+    public ItemFrameEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, Direction direction) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, 0f);
 
         NbtMapBuilder blockBuilder = NbtMap.builder()
@@ -85,10 +84,8 @@ public class ItemFrameEntity extends Entity {
                 .putInt("version", session.getBlockMappings().getBlockStateVersion());
         NbtMapBuilder statesBuilder = NbtMap.builder()
                 .putInt("facing_direction", direction.ordinal())
-                .putByte("item_frame_map_bit", (byte) 0);
-        if (session.getUpstream().getProtocolVersion() >= Bedrock_v465.V465_CODEC.getProtocolVersion()) {
-            statesBuilder.putByte("item_frame_photo_bit", (byte) 0);
-        }
+                .putByte("item_frame_map_bit", (byte) 0)
+                .putByte("item_frame_photo_bit", (byte) 0);
         blockBuilder.put("states", statesBuilder.build());
 
         bedrockRuntimeId = session.getBlockMappings().getItemFrame(blockBuilder.build());

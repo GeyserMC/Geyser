@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,6 @@ package org.geysermc.geyser.util;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.DoubleTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
@@ -40,14 +39,14 @@ import it.unimi.dsi.fastutil.ints.IntLists;
 import lombok.experimental.UtilityClass;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
 
 import static org.geysermc.geyser.level.block.BlockStateValues.JAVA_AIR_ID;
 
@@ -122,7 +121,7 @@ public class ChunkUtils {
         if (chunkPos == null || !chunkPos.equals(newChunkPos)) {
             NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
             chunkPublisherUpdatePacket.setPosition(position);
-            chunkPublisherUpdatePacket.setRadius(session.getRenderDistance() << 4);
+            chunkPublisherUpdatePacket.setRadius(session.getServerRenderDistance() << 4);
             session.sendUpstreamPacket(chunkPublisherUpdatePacket);
 
             session.setLastChunkPosition(newChunkPos);
@@ -205,27 +204,31 @@ public class ChunkUtils {
         session.getChunkCache().updateBlock(position.getX(), position.getY(), position.getZ(), blockState);
     }
 
+    public static void sendEmptyChunk(GeyserSession session, int chunkX, int chunkZ, boolean forceUpdate) {
+        LevelChunkPacket data = new LevelChunkPacket();
+        data.setChunkX(chunkX);
+        data.setChunkZ(chunkZ);
+        data.setSubChunksLength(0);
+        data.setData(EMPTY_CHUNK_DATA);
+        data.setCachingEnabled(false);
+        session.sendUpstreamPacket(data);
+
+        if (forceUpdate) {
+            Vector3i pos = Vector3i.from(chunkX << 4, 80, chunkZ << 4);
+            UpdateBlockPacket blockPacket = new UpdateBlockPacket();
+            blockPacket.setBlockPosition(pos);
+            blockPacket.setDataLayer(0);
+            blockPacket.setRuntimeId(1);
+            session.sendUpstreamPacket(blockPacket);
+        }
+    }
+
     public static void sendEmptyChunks(GeyserSession session, Vector3i position, int radius, boolean forceUpdate) {
         int chunkX = position.getX() >> 4;
         int chunkZ = position.getZ() >> 4;
         for (int x = -radius; x <= radius; x++) {
             for (int z = -radius; z <= radius; z++) {
-                LevelChunkPacket data = new LevelChunkPacket();
-                data.setChunkX(chunkX + x);
-                data.setChunkZ(chunkZ + z);
-                data.setSubChunksLength(0);
-                data.setData(EMPTY_CHUNK_DATA);
-                data.setCachingEnabled(false);
-                session.sendUpstreamPacket(data);
-
-                if (forceUpdate) {
-                    Vector3i pos = Vector3i.from(chunkX + x << 4, 80, chunkZ + z << 4);
-                    UpdateBlockPacket blockPacket = new UpdateBlockPacket();
-                    blockPacket.setBlockPosition(pos);
-                    blockPacket.setDataLayer(0);
-                    blockPacket.setRuntimeId(1);
-                    session.sendUpstreamPacket(blockPacket);
-                }
+                sendEmptyChunk(session, chunkX + x, chunkZ + z, forceUpdate);
             }
         }
     }
@@ -264,7 +267,10 @@ public class ChunkUtils {
         session.getChunkCache().setHeightY(maxY);
 
         // Load world coordinate scale for the world border
-        double coordinateScale = ((DoubleTag) dimensionTag.get("coordinate_scale")).getValue();
+        double coordinateScale = ((Number) dimensionTag.get("coordinate_scale").getValue()).doubleValue();
         session.getWorldBorder().setWorldCoordinateScale(coordinateScale);
+
+        // Set if piglins/hoglins should shake
+        session.setDimensionPiglinSafe(((Number) dimensionTag.get("piglin_safe").getValue()).byteValue() != (byte) 0);
     }
 }

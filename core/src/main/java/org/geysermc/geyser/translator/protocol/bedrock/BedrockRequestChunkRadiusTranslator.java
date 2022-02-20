@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,16 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.factory;
+package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.geyser.entity.type.PaintingEntity;
+import com.nukkitx.protocol.bedrock.packet.RequestChunkRadiusPacket;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.level.PaintingType;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
 
-import java.util.UUID;
+/**
+ * Sent when the client updates its desired render distance.
+ */
+@Translator(packet = RequestChunkRadiusPacket.class)
+public class BedrockRequestChunkRadiusTranslator extends PacketTranslator<RequestChunkRadiusPacket> {
 
-public interface PaintingEntityFactory extends EntityFactory<PaintingEntity> {
+    @Override
+    public void translate(GeyserSession session, RequestChunkRadiusPacket packet) {
+        session.setClientRenderDistance(packet.getRadius());
 
-    PaintingEntity create(GeyserSession session, long entityId, long geyserId, UUID uuid, Vector3f position, PaintingType paintingName, int direction);
+        if (session.isLoggedIn()) {
+            session.sendJavaClientSettings();
+        }
+    }
 }

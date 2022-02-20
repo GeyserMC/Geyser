@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,7 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -96,10 +97,7 @@ public class BannerTranslator extends ItemTranslator {
     public static NbtList<NbtMap> convertBannerPattern(ListTag patterns) {
         List<NbtMap> tagsList = new ArrayList<>();
         for (Tag patternTag : patterns.getValue()) {
-            NbtMap newPatternTag = getBedrockBannerPattern((CompoundTag) patternTag);
-            if (newPatternTag != null) {
-                tagsList.add(newPatternTag);
-            }
+            tagsList.add(getBedrockBannerPattern((CompoundTag) patternTag));
         }
 
         return new NbtList<>(NbtType.COMPOUND, tagsList);
@@ -111,17 +109,11 @@ public class BannerTranslator extends ItemTranslator {
      * @param pattern Java edition pattern nbt
      * @return The Bedrock edition format pattern nbt
      */
-    public static NbtMap getBedrockBannerPattern(CompoundTag pattern) {
-        String patternName = (String) pattern.get("Pattern").getValue();
-
-        // Return null if its the globe pattern as it doesn't exist on bedrock
-        if (patternName.equals("glb")) {
-            return null;
-        }
-
+    @Nonnull
+    private static NbtMap getBedrockBannerPattern(CompoundTag pattern) {
         return NbtMap.builder()
                 .putInt("Color", 15 - (int) pattern.get("Color").getValue())
-                .putString("Pattern", patternName)
+                .putString("Pattern", (String) pattern.get("Pattern").getValue())
                 .build();
     }
 
@@ -155,7 +147,7 @@ public class BannerTranslator extends ItemTranslator {
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
+    protected ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
         if (itemStack.getNbt() == null) {
             return super.translateToBedrock(itemStack, mapping, mappings);
         }
@@ -163,9 +155,7 @@ public class BannerTranslator extends ItemTranslator {
         ItemData.Builder builder = super.translateToBedrock(itemStack, mapping, mappings);
 
         CompoundTag blockEntityTag = itemStack.getNbt().get("BlockEntityTag");
-        if (blockEntityTag != null && blockEntityTag.contains("Patterns")) {
-            ListTag patterns = blockEntityTag.get("Patterns");
-
+        if (blockEntityTag != null && blockEntityTag.get("Patterns") instanceof ListTag patterns) {
             NbtMapBuilder nbtBuilder = builder.build().getTag().toBuilder(); //TODO fix ugly hack
             if (patterns.equals(OMINOUS_BANNER_PATTERN)) {
                 // Remove the current patterns and set the ominous banner type

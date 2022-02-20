@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,11 +28,12 @@ package org.geysermc.geyser.network;
 import com.github.steveice10.mc.protocol.codec.MinecraftCodec;
 import com.github.steveice10.mc.protocol.codec.PacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
-import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
 import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
+import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -44,7 +45,7 @@ public final class MinecraftProtocol {
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
      */
-    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v475.V475_CODEC;
+    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v486.V486_CODEC;
     /**
      * A list of all supported Bedrock versions that can join Geyser
      */
@@ -57,8 +58,8 @@ public final class MinecraftProtocol {
     private static final PacketCodec DEFAULT_JAVA_CODEC = MinecraftCodec.CODEC;
 
     static {
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v465.V465_CODEC);
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v471.V471_CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v475.V475_CODEC.toBuilder().minecraftVersion("1.18.0/1.18.1/1.18.2").build());
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
     }
 
@@ -86,12 +87,12 @@ public final class MinecraftProtocol {
     }
 
     /**
-     * Gets the supported Minecraft: Java Edition version name.
+     * Gets the supported Minecraft: Java Edition version names.
      *
-     * @return the supported Minecraft: Java Edition version name
+     * @return the supported Minecraft: Java Edition version names
      */
-    public static String getJavaVersion() {
-        return DEFAULT_JAVA_CODEC.getMinecraftVersion();
+    public static List<String> getJavaVersions() {
+        return Arrays.asList("1.18", "1.18.1");
     }
 
     /**
@@ -104,12 +105,24 @@ public final class MinecraftProtocol {
     }
 
     /**
-     * @return a string showing all supported versions for this Geyser instance
+     * @return a string showing all supported Bedrock versions for this Geyser instance
      */
-    public static String getAllSupportedVersions() {
+    public static String getAllSupportedBedrockVersions() {
         StringJoiner joiner = new StringJoiner(", ");
         for (BedrockPacketCodec packetCodec : SUPPORTED_BEDROCK_CODECS) {
             joiner.add(packetCodec.getMinecraftVersion());
+        }
+
+        return joiner.toString();
+    }
+
+    /**
+     * @return a string showing all supported Java versions for this Geyser instance
+     */
+    public static String getAllSupportedJavaVersions() {
+        StringJoiner joiner = new StringJoiner(", ");
+        for (String version : getJavaVersions()) {
+            joiner.add(version);
         }
 
         return joiner.toString();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -78,7 +78,7 @@ public class ArmorStandEntity extends LivingEntity {
      */
     private boolean positionUpdateRequired = false;
 
-    public ArmorStandEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public ArmorStandEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
@@ -136,7 +136,7 @@ public class ArmorStandEntity extends LivingEntity {
             }
 
             isSmall = newIsSmall;
-            if (!isMarker) {
+            if (!isMarker && !isInvisible) { // Addition for isInvisible check caused by https://github.com/GeyserMC/Geyser/issues/2780
                 toggleSmallStatus();
             }
         }
@@ -146,13 +146,14 @@ public class ArmorStandEntity extends LivingEntity {
         isMarker = (xd & 0x10) == 0x10;
         if (oldIsMarker != isMarker) {
             if (isMarker) {
-                dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, 0.0f);
-                dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, 0.0f);
+                setBoundingBoxWidth(0.0f);
+                setBoundingBoxHeight(0.0f);
                 dirtyMetadata.put(EntityData.SCALE, 0f);
             } else {
                 toggleSmallStatus();
             }
 
+            updateMountOffset();
             updateSecondEntityStatus(false);
         }
 
@@ -376,8 +377,8 @@ public class ArmorStandEntity extends LivingEntity {
      * If this armor stand is not a marker, set its bounding box size and scale.
      */
     private void toggleSmallStatus() {
-        dirtyMetadata.put(EntityData.BOUNDING_BOX_WIDTH, isSmall ? 0.25f : definition.width());
-        dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, isSmall ? 0.9875f : definition.height());
+        setBoundingBoxWidth(isSmall ? 0.25f : definition.width());
+        setBoundingBoxHeight(isSmall ? 0.9875f : definition.height());
         dirtyMetadata.put(EntityData.SCALE, isSmall ? 0.55f : 1f);
     }
 

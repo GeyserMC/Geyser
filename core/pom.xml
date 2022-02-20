@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.geysermc</groupId>
         <artifactId>geyser-parent</artifactId>
-        <version>2.0.0-SNAPSHOT</version>
+        <version>2.0.1-SNAPSHOT</version>
     </parent>
     <artifactId>core</artifactId>
 
@@ -21,19 +21,19 @@
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>ap</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
+            <version>2.0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>geyser-api</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
+            <version>2.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.geysermc</groupId>
             <artifactId>common</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
+            <version>2.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
         <!-- Jackson JSON and YAML serialization -->
@@ -83,7 +83,7 @@
         </dependency>
         <dependency>
             <groupId>com.nukkitx.fastutil</groupId>
-            <artifactId>fastutil-long-long-maps</artifactId>
+            <artifactId>fastutil-int-long-maps</artifactId>
             <version>${fastutil.version}</version>
             <scope>compile</scope>
         </dependency>
@@ -120,8 +120,8 @@
         </dependency>
         <dependency>
             <groupId>com.github.CloudburstMC.Protocol</groupId>
-            <artifactId>bedrock-v475</artifactId>
-            <version>c22aa595</version>
+            <artifactId>bedrock-v486</artifactId>
+            <version>0cd24c0</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
@@ -155,7 +155,7 @@
         <dependency>
             <groupId>com.github.GeyserMC</groupId>
             <artifactId>MCProtocolLib</artifactId>
-            <version>a991afe</version>
+            <version>6a23a780</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>

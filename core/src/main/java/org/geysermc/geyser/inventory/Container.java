@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,9 +27,11 @@ package org.geysermc.geyser.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import lombok.Getter;
-import lombok.NonNull;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
+import org.jetbrains.annotations.Range;
+
+import javax.annotation.Nonnull;
 
 /**
  * Combination of {@link Inventory} and {@link PlayerInventory}
@@ -60,7 +62,12 @@ public class Container extends Inventory {
     }
 
     @Override
-    public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
+    public int getOffsetForHotbar(@Range(from = 0, to = 8) int slot) {
+        return playerInventory.getOffsetForHotbar(slot) - InventoryTranslator.PLAYER_INVENTORY_OFFSET + this.size;
+    }
+
+    @Override
+    public void setItem(int slot, @Nonnull GeyserItemStack newItem, GeyserSession session) {
         if (slot < this.size) {
             super.setItem(slot, newItem, session);
         } else {

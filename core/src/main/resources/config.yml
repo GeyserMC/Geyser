@@ -81,6 +81,10 @@ floodgate-key-file: key.pem
 #    password: "this isn't really my password"
 #    microsoft-account: false
 
+# Specify how many seconds to wait while user authorizes Geyser to access their Microsoft account.
+# User is allowed to disconnect from the server during this period.
+pending-authentication-timeout: 120
+
 # Bedrock clients can freeze when opening up the command prompt for the first time if given a lot of commands.
 # Disabling this will prevent command suggestions from being sent and solve freezing for Bedrock clients.
 command-suggestions: true
@@ -125,6 +129,13 @@ show-cooldown: title
 # Controls if coordinates are shown to players.
 show-coordinates: true
 
+# Whether Bedrock players are blocked from performing their scaffolding-style bridging.
+disable-bedrock-scaffolding: false
+
+# Whether Bedrock players can right-click outside of their inventory to replace armor in their inventory, even if the
+# armor slot is already occupied (which Java Edition doesn't allow)
+always-quick-change-armor: false
+
 # If set, when a Bedrock player performs any emote, it will swap the offhand and mainhand items, just like the Java Edition keybind
 # There are three options this can be set to:
 # disabled - the default/fallback, which doesn't apply this workaround
@@ -148,10 +159,9 @@ allow-custom-skulls: true
 # This option requires a restart of Geyser in order to change its setting.
 add-non-bedrock-items: true
 
-# Bedrock prevents building and displaying blocks above Y127 in the Nether -
-# enabling this config option works around that by changing the Nether dimension ID
-# to the End ID. The main downside to this is that the sky will resemble that of
-# the end sky in the nether, but ultimately it's the only way for this feature to work.
+# Bedrock prevents building and displaying blocks above Y127 in the Nether.
+# This config option works around that by changing the Nether dimension ID to the End ID. 
+# The main downside to this is that the entire Nether will have the same red fog rather than having different fog for each biome.
 above-bedrock-nether-building: false
 
 # Force clients to load all resource packs if there are any.
@@ -172,10 +182,6 @@ metrics:
   enabled: true
   # UUID of server, don't change!
   uuid: generateduuid
-
-# Specify how many seconds to wait while user authorises Geyser to access their Microsoft account
-# User is allowed to disconnect from the server during this period.
-pending-authentication-timeout: 120
 
 # ADVANCED OPTIONS - DO NOT TOUCH UNLESS YOU KNOW WHAT YOU ARE DOING!
 

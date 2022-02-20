@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -62,9 +62,16 @@ public class VersionCommand extends GeyserCommand {
         } else {
             bedrockVersions = MinecraftProtocol.SUPPORTED_BEDROCK_CODECS.get(0).getMinecraftVersion();
         }
+        String javaVersions;
+        List<String> supportedJavaVersions = MinecraftProtocol.getJavaVersions();
+        if (supportedJavaVersions.size() > 1) {
+            javaVersions = supportedJavaVersions.get(0) + " - " + supportedJavaVersions.get(supportedJavaVersions.size() - 1);
+        } else {
+            javaVersions = supportedJavaVersions.get(0);
+        }
 
         sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.version", sender.getLocale(),
-                GeyserImpl.NAME, GeyserImpl.VERSION, MinecraftProtocol.getJavaVersion(), bedrockVersions));
+                GeyserImpl.NAME, GeyserImpl.VERSION, javaVersions, bedrockVersions));
 
         // Disable update checking in dev mode and for players in Geyser Standalone
         if (GeyserImpl.getInstance().productionEnvironment() && !(!sender.isConsole() && geyser.getPlatformType() == PlatformType.STANDALONE)) {
