@@ -31,11 +31,14 @@ import com.github.steveice10.mc.auth.service.MsaAuthenticationService;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
-import lombok.experimental.NonFinal;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.SneakyThrows;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.*;
 
 /**
@@ -55,34 +58,35 @@ public class PendingMicrosoftAuthentication {
                 });
     }
 
-    public AuthenticationTask getTask(@NonNull String userKey) {
+    public AuthenticationTask getTask(@Nonnull String userKey) {
         return authentications.getIfPresent(userKey);
     }
 
     @SneakyThrows(ExecutionException.class)
-    public AuthenticationTask getOrCreateTask(@NonNull String userKey) {
+    public AuthenticationTask getOrCreateTask(@Nonnull String userKey) {
         return authentications.get(userKey);
     }
 
-    @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
     public class AuthenticationTask {
         private static final Executor DELAYED_BY_ONE_SECOND = CompletableFuture.delayedExecutor(1, TimeUnit.SECONDS);
 
-        MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserImpl.OAUTH_CLIENT_ID);
-        String userKey;
-        long timeoutMs;
+        @Getter
+        private final MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserImpl.OAUTH_CLIENT_ID);
+        private final String userKey;
+        private final long timeoutMs;
 
-        @NonFinal
-        long remainingTimeMs;
+        private long remainingTimeMs;
 
-        @NonFinal
         @Setter
-        boolean online = true;
+        private boolean online = true;
 
         @Getter
-        CompletableFuture<MsaAuthenticationService.MsCodeResponse> code;
+        private final CompletableFuture<MsaAuthenticationService.MsCodeResponse> code;
         @Getter
-        CompletableFuture<MsaAuthenticationService> authentication;
+        private final CompletableFuture<MsaAuthenticationService> authentication;
+
+        @Getter
+        private volatile Throwable loginException;
 
         private AuthenticationTask(String userKey, long timeoutMs) {
             this.userKey = userKey;
@@ -95,6 +99,7 @@ public class PendingMicrosoftAuthentication {
             // Once the code is received, continuously try to request the access token, profile, etc
             this.code.thenRun(() -> performLoginAttempt(System.currentTimeMillis()));
             this.authentication.whenComplete((r, ex) -> {
+                this.loginException = ex;
                 // avoid memory leak, in case player doesn't connect again
                 CompletableFuture.delayedExecutor(timeoutMs, TimeUnit.MILLISECONDS).execute(this::cleanup);
             });
@@ -105,7 +110,11 @@ public class PendingMicrosoftAuthentication {
         }
 
         public void cleanup() {
-            authentications.asMap().remove(userKey, this);
+            GeyserLogger logger = GeyserImpl.getInstance().getLogger();
+            if (logger.isDebug()) {
+                logger.debug("Cleaning up authentication task for " + userKey);
+            }
+            authentications.invalidate(userKey);
         }
 
         private MsaAuthenticationService.MsCodeResponse tryGetCode() throws CompletionException {
