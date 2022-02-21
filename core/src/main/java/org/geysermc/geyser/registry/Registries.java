@@ -43,6 +43,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
+import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.registry.loader.*;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
@@ -141,7 +142,7 @@ public final class Registries {
     /**
      * A versioned registry holding all the recipes, with the net ID being the key, and {@link Recipe} as the value.
      */
-    public static final VersionedRegistry<Int2ObjectMap<Recipe>> RECIPES = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
+    public static final VersionedRegistry<Int2ObjectMap<GeyserRecipe>> RECIPES = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
     /**
      * A mapped registry holding the available records, with the ID of the record being the key, and the {@link com.nukkitx.protocol.bedrock.data.SoundEvent}

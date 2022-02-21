@@ -32,27 +32,26 @@ import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.common.PlatformType;
-import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.command.CommandManager;
-import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
-import org.geysermc.geyser.network.MinecraftProtocol;
 import org.geysermc.geyser.level.WorldManager;
+import org.geysermc.geyser.network.MinecraftProtocol;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.Constants;
-import org.geysermc.geyser.util.FileUtils;
-import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.geyser.platform.spigot.command.GeyserSpigotCommandManager;
 import org.geysermc.geyser.platform.spigot.command.SpigotCommandSender;
 import org.geysermc.geyser.platform.spigot.world.GeyserPistonListener;
-import org.geysermc.geyser.platform.spigot.world.GeyserSpigot1_11CraftingListener;
 import org.geysermc.geyser.platform.spigot.world.GeyserSpigotBlockPlaceListener;
 import org.geysermc.geyser.platform.spigot.world.manager.*;
+import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -234,11 +233,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
 
         Bukkit.getServer().getPluginManager().registerEvents(new GeyserPistonListener(geyser, this.geyserWorldManager), this);
-
-        if (isPre1_12) {
-            // Register events needed to send all recipes to the client
-            Bukkit.getServer().getPluginManager().registerEvents(new GeyserSpigot1_11CraftingListener(geyser), this);
-        }
 
         this.getCommand("geyser").setExecutor(new GeyserSpigotCommandExecutor(geyser));
 

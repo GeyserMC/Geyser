@@ -39,7 +39,6 @@ import com.github.steveice10.mc.protocol.data.UnexpectedEncryptionException;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.entity.player.HandPreference;
-import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.setting.ChatVisibility;
 import com.github.steveice10.mc.protocol.data.game.setting.SkinPart;
 import com.github.steveice10.mc.protocol.data.game.statistic.CustomStatistic;
@@ -94,6 +93,7 @@ import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
+import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.netty.LocalSession;
@@ -350,7 +350,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     private Entity mouseoverEntity;
 
     @Setter
-    private Int2ObjectMap<Recipe> craftingRecipes;
+    private Int2ObjectMap<GeyserRecipe> craftingRecipes;
     private final Set<String> unlockedRecipes;
     private final AtomicInteger lastRecipeNetId;
 
