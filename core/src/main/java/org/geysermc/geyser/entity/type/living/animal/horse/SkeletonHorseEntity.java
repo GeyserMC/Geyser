@@ -23,44 +23,32 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.sound;
+package org.geysermc.geyser.entity.type.living.animal.horse;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import com.nukkitx.math.vector.Vector3f;
+import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 
-/**
- * Marks if a class should be handled as a
- * {@link SoundInteractionTranslator}.
- */
-@Retention(value = RetentionPolicy.RUNTIME)
-public @interface SoundTranslator {
+import javax.annotation.Nonnull;
+import java.util.UUID;
 
-    /**
-     * The identifier(s) that the placed block must contain
-     * one of. Leave empty to ignore.
-     *
-     * Only applies to interaction handlers that are an
-     * instance of {@link BlockSoundInteractionTranslator}.
-     *
-     * @return the value the interacted block must contain
-     */
-    String[] blocks() default {};
+public class SkeletonHorseEntity extends AbstractHorseEntity {
+    public SkeletonHorseEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    }
 
-    /**
-     * The identifier(s) that the player's hand item
-     * must contain one of. Leave empty to ignore.
-     *
-     * @return the value the item in the player's hand must contain
-     */
-    String[] items() default {};
+    @Nonnull
+    @Override
+    protected InteractiveTag testMobInteraction(@Nonnull GeyserItemStack itemInHand) {
+        return testUndeadHorseInteraction(itemInHand);
+    }
 
-    /**
-     * Controls if the interaction should still be
-     * called even if the player is sneaking while
-     * holding something in their hand.
-     *
-     * @return if the interaction should continue when player
-     *         is holding something in their hand
-     */
-    boolean ignoreSneakingWhileHolding() default false;
+    @Nonnull
+    @Override
+    protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
+        return undeadHorseInteract(itemInHand);
+    }
 }

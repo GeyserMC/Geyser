@@ -163,6 +163,13 @@ public class InventoryUtils {
     }
 
     /**
+     * Checks to see if an item stack represents air or has no count.
+     */
+    public static boolean isEmpty(@Nullable ItemStack itemStack) {
+        return itemStack == null || itemStack.getId() == ItemMapping.AIR.getJavaId() || itemStack.getAmount() <= 0;
+    }
+
+    /**
      * Returns a barrier block with custom name and lore to explain why
      * part of the inventory is unusable.
      *

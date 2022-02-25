@@ -40,7 +40,6 @@ import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.entity.InteractiveTagManager;
 
 @Translator(packet = InteractPacket.class)
 public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> {
@@ -84,7 +83,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                         return;
                     }
 
-                    InteractiveTagManager.updateTag(session, interactEntity);
+                    interactEntity.updateInteractiveTag();
                 } else {
                     if (session.getMouseoverEntity() != null) {
                         // No interactive tag should be sent

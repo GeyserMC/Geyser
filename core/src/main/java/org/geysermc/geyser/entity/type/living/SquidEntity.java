@@ -120,6 +120,11 @@ public class SquidEntity extends WaterEntity implements Tickable {
         return Vector3f.from(pitch, yaw, yaw);
     }
 
+    @Override
+    protected boolean canBeLeashed() {
+        return isNotLeashed();
+    }
+
     private void checkInWater() {
         if (getFlag(EntityFlag.RIDING)) {
             inWater = false;
