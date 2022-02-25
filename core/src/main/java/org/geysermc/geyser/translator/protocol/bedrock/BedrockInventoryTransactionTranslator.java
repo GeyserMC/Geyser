@@ -43,6 +43,7 @@ import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.inventory.*;
 import com.nukkitx.protocol.bedrock.packet.*;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.CommandBlockMinecartEntity;
@@ -50,6 +51,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -91,18 +93,41 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                     InventoryActionData containerAction = packet.getActions().get(1);
                     if (worldAction.getSource().getType() == InventorySource.Type.WORLD_INTERACTION
                             && worldAction.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
-                        if (session.getPlayerInventory().getHeldItemSlot() != containerAction.getSlot() ||
-                                session.getPlayerInventory().getItemInHand().isEmpty()) {
+                        boolean dropAll = worldAction.getToItem().getCount() > 1;
+
+                        if (session.getPlayerInventory().getHeldItemSlot() != containerAction.getSlot()) {
+                            // Dropping an item that you don't have selected isn't supported in Java, but we can workaround it with an inventory hack
+                            PlayerInventory inventory = session.getPlayerInventory();
+                            int hotbarSlot = inventory.getOffsetForHotbar(containerAction.getSlot());
+                            Click clickType = dropAll ? Click.DROP_ALL : Click.DROP_ONE;
+                            Int2ObjectMap<ItemStack> changedItem;
+                            if (dropAll) {
+                                inventory.setItem(hotbarSlot, GeyserItemStack.EMPTY, session);
+                                changedItem = Int2ObjectMaps.singleton(hotbarSlot, null);
+                            } else {
+                                GeyserItemStack itemStack = inventory.getItem(hotbarSlot);
+                                if (itemStack.isEmpty()) {
+                                    return;
+                                }
+                                itemStack.sub(1);
+                                changedItem = Int2ObjectMaps.singleton(hotbarSlot, itemStack.getItemStack());
+                            }
+                            ServerboundContainerClickPacket dropPacket = new ServerboundContainerClickPacket(
+                                    inventory.getId(), inventory.getStateId(), hotbarSlot, clickType.actionType, clickType.action,
+                                    inventory.getCursor().getItemStack(), changedItem);
+                            session.sendDownstreamPacket(dropPacket);
+                            return;
+                        }
+                        if (session.getPlayerInventory().getItemInHand().isEmpty()) {
                             return;
                         }
 
-                        boolean dropAll = worldAction.getToItem().getCount() > 1;
-                        ServerboundPlayerActionPacket dropAllPacket = new ServerboundPlayerActionPacket(
+                        ServerboundPlayerActionPacket dropPacket = new ServerboundPlayerActionPacket(
                                 dropAll ? PlayerAction.DROP_ITEM_STACK : PlayerAction.DROP_ITEM,
                                 BlockUtils.POSITION_ZERO,
                                 Direction.DOWN
                         );
-                        session.sendDownstreamPacket(dropAllPacket);
+                        session.sendDownstreamPacket(dropPacket);
 
                         if (dropAll) {
                             session.getPlayerInventory().setItemInHand(GeyserItemStack.EMPTY);
