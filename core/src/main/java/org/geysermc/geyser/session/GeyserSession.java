@@ -84,7 +84,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
-import org.geysermc.geyser.entity.InteractiveTagManager;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -448,6 +447,9 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      * If the current player is flying
      */
     private boolean flying = false;
+
+    @Setter
+    private boolean instabuild = false;
 
     /**
      * Caches current rain status.
@@ -1081,7 +1083,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
 
         if (mouseoverEntity != null) {
             // Horses, etc can change their property depending on if you're sneaking
-            InteractiveTagManager.updateTag(this, mouseoverEntity);
+            mouseoverEntity.updateInteractiveTag();
         }
     }
 
@@ -1529,6 +1531,19 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         }
         PlayerFogPacket packet = new PlayerFogPacket();
         packet.getFogStack().addAll(this.fogNameSpaces);
+        sendUpstreamPacket(packet);
+    }
+
+    public boolean canUseCommandBlocks() {
+        return instabuild && opPermissionLevel >= 2;
+    }
+
+    public void playSoundEvent(SoundEvent sound, Vector3f position) {
+        LevelSoundEvent2Packet packet = new LevelSoundEvent2Packet();
+        packet.setPosition(position);
+        packet.setSound(sound);
+        packet.setIdentifier(":");
+        packet.setExtraData(-1);
         sendUpstreamPacket(packet);
     }
 }

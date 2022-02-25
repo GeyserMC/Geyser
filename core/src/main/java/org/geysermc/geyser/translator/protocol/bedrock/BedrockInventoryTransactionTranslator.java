@@ -33,10 +33,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.*;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
@@ -46,7 +43,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.entity.type.CommandBlockMinecartEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -60,8 +56,9 @@ import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.sound.EntitySoundInteractionTranslator;
 import org.geysermc.geyser.util.BlockUtils;
+import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InventoryUtils;
 
 import java.util.List;
@@ -176,14 +173,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         if (session.getBlockMappings().isItemFrame(packet.getBlockRuntimeId())) {
                             Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
                             if (itemFrameEntity != null) {
-                                int entityId = itemFrameEntity.getEntityId();
-                                Vector3f vector = packet.getClickPosition();
-                                ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(entityId,
-                                        InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
-                                ServerboundInteractPacket interactAtPacket = new ServerboundInteractPacket(entityId,
-                                        InteractAction.INTERACT_AT, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND, session.isSneaking());
-                                session.sendDownstreamPacket(interactPacket);
-                                session.sendDownstreamPacket(interactAtPacket);
+                                processEntityInteraction(session, packet, itemFrameEntity);
                                 break;
                             }
                         }
@@ -422,27 +412,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 //https://wiki.vg/Protocol#Interact_Entity
                 switch (packet.getActionType()) {
                     case 0: //Interact
-                        if (entity instanceof CommandBlockMinecartEntity) {
-                            // The UI is handled client-side on Java Edition
-                            // Ensure OP permission level and gamemode is appropriate
-                            if (session.getOpPermissionLevel() < 2 || session.getGameMode() != GameMode.CREATIVE) return;
-                            ContainerOpenPacket openPacket = new ContainerOpenPacket();
-                            openPacket.setBlockPosition(Vector3i.ZERO);
-                            openPacket.setId((byte) 1);
-                            openPacket.setType(ContainerType.COMMAND_BLOCK);
-                            openPacket.setUniqueEntityId(entity.getGeyserId());
-                            session.sendUpstreamPacket(openPacket);
-                            break;
-                        }
-                        Vector3f vector = packet.getClickPosition().sub(entity.getPosition());
-                        ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(entity.getEntityId(),
-                                InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
-                        ServerboundInteractPacket interactAtPacket = new ServerboundInteractPacket(entity.getEntityId(),
-                                InteractAction.INTERACT_AT, vector.getX(), vector.getY(), vector.getZ(), Hand.MAIN_HAND, session.isSneaking());
-                        session.sendDownstreamPacket(interactPacket);
-                        session.sendDownstreamPacket(interactAtPacket);
-
-                        EntitySoundInteractionTranslator.handleEntityInteraction(session, packet.getClickPosition(), entity);
+                        processEntityInteraction(session, packet, entity);
                         break;
                     case 1: //Attack
                         if (entity.getDefinition() == EntityDefinitions.ENDER_DRAGON) {
@@ -459,6 +429,46 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         break;
                 }
                 break;
+        }
+    }
+
+    private void processEntityInteraction(GeyserSession session, InventoryTransactionPacket packet, Entity entity) {
+        Vector3f entityPosition = entity.getPosition();
+        if (!session.getWorldBorder().isInsideBorderBoundaries(entityPosition)) {
+            // No transaction is able to go through (as of Java Edition 1.18.1)
+            return;
+        }
+
+        Vector3f clickPosition = packet.getClickPosition().sub(entityPosition);
+        boolean isSpectator = session.getGameMode() == GameMode.SPECTATOR;
+        for (Hand hand : EntityUtils.HANDS) {
+            session.sendDownstreamPacket(new ServerboundInteractPacket(entity.getEntityId(),
+                    InteractAction.INTERACT_AT, clickPosition.getX(), clickPosition.getY(), clickPosition.getZ(),
+                    hand, session.isSneaking()));
+
+            InteractionResult result;
+            if (isSpectator) {
+                result = InteractionResult.PASS;
+            } else {
+                result = entity.interactAt(hand);
+            }
+
+            if (!result.consumesAction()) {
+                session.sendDownstreamPacket(new ServerboundInteractPacket(entity.getEntityId(),
+                        InteractAction.INTERACT, hand, session.isSneaking()));
+                if (!isSpectator) {
+                    result = entity.interact(hand);
+                }
+            }
+
+            if (result.consumesAction()) {
+                if (result.shouldSwing() && hand == Hand.OFF_HAND) {
+                    // Currently, Bedrock will send us the arm swing packet in most cases. But it won't for offhand.
+                    session.sendDownstreamPacket(new ServerboundSwingPacket(hand));
+                    // Note here to look into sending the animation packet back to Bedrock
+                }
+                return;
+            }
         }
     }
 

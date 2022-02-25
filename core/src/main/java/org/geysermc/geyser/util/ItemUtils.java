@@ -26,9 +26,11 @@
 package org.geysermc.geyser.util;
 
 import com.github.steveice10.opennbt.tag.builtin.*;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import org.geysermc.geyser.session.GeyserSession;
 
 public class ItemUtils {
+    private static Int2IntMap DYE_COLORS = null;
 
     public static int getEnchantmentLevel(CompoundTag itemNBTData, String enchantmentId) {
         ListTag enchantments = (itemNBTData == null ? null : itemNBTData.get("Enchantments"));
@@ -72,5 +74,20 @@ public class ItemUtils {
             }
         }
         return null;
+    }
+
+    /**
+     * Return the dye color associated with this Java item ID, if any. Returns -1 if no dye color exists for this item.
+     */
+    public static int dyeColorFor(int javaId) {
+        return DYE_COLORS.get(javaId);
+    }
+
+    public static void setDyeColors(Int2IntMap dyeColors) {
+        if (DYE_COLORS != null) {
+            throw new RuntimeException();
+        }
+        dyeColors.defaultReturnValue(-1);
+        DYE_COLORS = dyeColors;
     }
 }

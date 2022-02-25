@@ -56,4 +56,14 @@ public class HoglinEntity extends AnimalEntity {
     public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
         return javaIdentifierStripped.equals("crimson_fungus");
     }
+
+    @Override
+    protected boolean canBeLeashed() {
+        return isNotLeashed();
+    }
+
+    @Override
+    protected boolean isEnemy() {
+        return true;
+    }
 }

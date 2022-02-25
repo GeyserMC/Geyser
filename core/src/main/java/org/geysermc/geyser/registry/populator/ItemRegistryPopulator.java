@@ -38,10 +38,7 @@ import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
 import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.*;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
@@ -49,6 +46,8 @@ import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.*;
+import org.geysermc.geyser.util.ItemUtils;
+import org.geysermc.geyser.util.collection.FixedInt2IntMap;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -83,6 +82,10 @@ public class ItemRegistryPopulator {
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java runtime item IDs", e);
         }
+
+        // We can reduce some operations as Java information is the same across all palette versions
+        boolean firstMappingsPass = true;
+        Int2IntMap dyeColors = new FixedInt2IntMap();
 
         /* Load item palette */
         for (Map.Entry<String, PaletteVersion> palette : PALETTE_VERSIONS.entrySet()) {
@@ -369,7 +372,8 @@ public class ItemRegistryPopulator {
                         .bedrockData(mappingItem.getBedrockData())
                         .bedrockBlockId(bedrockBlockId)
                         .stackSize(stackSize)
-                        .maxDamage(mappingItem.getMaxDamage());
+                        .maxDamage(mappingItem.getMaxDamage())
+                        .hasSuspiciousStewEffect(mappingItem.isHasSuspiciousStewEffect());
 
                 if (mappingItem.getRepairMaterials() != null) {
                     mappingBuilder = mappingBuilder.repairMaterials(new ObjectOpenHashSet<>(mappingItem.getRepairMaterials()));
@@ -416,6 +420,10 @@ public class ItemRegistryPopulator {
                 identifierToMapping.put(javaIdentifier, mapping);
 
                 itemNames.add(javaIdentifier);
+
+                if (firstMappingsPass && mappingItem.getDyeColor() != -1) {
+                    dyeColors.put(itemIndex, mappingItem.getDyeColor());
+                }
 
                 itemIndex++;
             }
@@ -512,6 +520,10 @@ public class ItemRegistryPopulator {
                     .build();
 
             Registries.ITEMS.register(palette.getValue().protocolVersion(), itemMappings);
+
+            firstMappingsPass = false;
         }
+
+        ItemUtils.setDyeColors(dyeColors);
     }
 }

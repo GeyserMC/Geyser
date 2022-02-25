@@ -26,11 +26,13 @@
 package org.geysermc.geyser.entity.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.util.InteractionResult;
 
 import java.util.UUID;
 
@@ -42,6 +44,7 @@ public class FurnaceMinecartEntity extends DefaultBlockMinecartEntity {
     }
 
     public void setHasFuel(BooleanEntityMetadata entityMetadata) {
+        // Note: Java ticks this entity and gives it particles if it has fuel
         hasFuel = entityMetadata.getPrimitiveValue();
         updateDefaultBlockMetadata();
     }
@@ -50,5 +53,11 @@ public class FurnaceMinecartEntity extends DefaultBlockMinecartEntity {
     public void updateDefaultBlockMetadata() {
         dirtyMetadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getBedrockBlockId(hasFuel ? BlockStateValues.JAVA_FURNACE_LIT_ID : BlockStateValues.JAVA_FURNACE_ID));
         dirtyMetadata.put(EntityData.DISPLAY_OFFSET, 6);
+    }
+
+    @Override
+    public InteractionResult interact(Hand hand) {
+        // Always works since you can "push" it this way
+        return InteractionResult.SUCCESS;
     }
 }

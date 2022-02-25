@@ -26,18 +26,25 @@
 package org.geysermc.geyser.util;
 
 import com.github.steveice10.mc.protocol.data.game.entity.Effect;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
+import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Locale;
 
 public final class EntityUtils {
+    /**
+     * A constant array of the two hands that a player can interact with an entity.
+     */
+    public static final Hand[] HANDS = Hand.values();
 
     /**
      * @return a new String array of all known effect identifiers
@@ -195,6 +202,26 @@ public final class EntityUtils {
             passenger.getDirtyMetadata().put(EntityData.RIDER_MIN_ROTATION, 0f);
             passenger.getDirtyMetadata().put(EntityData.RIDER_ROTATION_OFFSET, 0f);
         }
+    }
+
+    /**
+     * Determine if an action would result in a successful bucketing of the given entity.
+     */
+    public static boolean attemptToBucket(GeyserSession session, GeyserItemStack itemInHand) {
+        return itemInHand.getJavaId() == session.getItemMappings().getStoredItems().waterBucket();
+    }
+
+    /**
+     * Attempt to determine the result of saddling the given entity.
+     */
+    public static InteractionResult attemptToSaddle(GeyserSession session, Entity entityToSaddle, GeyserItemStack itemInHand) {
+        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().saddle()) {
+            if (!entityToSaddle.getFlag(EntityFlag.SADDLED) && !entityToSaddle.getFlag(EntityFlag.BABY)) {
+                // Saddle
+                return InteractionResult.SUCCESS;
+            }
+        }
+        return InteractionResult.PASS;
     }
 
     private EntityUtils() {

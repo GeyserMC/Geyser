@@ -25,9 +25,11 @@
 
 package org.geysermc.geyser.entity.type;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.InteractionResult;
 
 import java.util.UUID;
 
@@ -38,4 +40,9 @@ public class LeashKnotEntity extends Entity {
         super(session, entityId, geyserId, uuid, definition, position.add(0.5f, 0.25f, 0.5f), motion, yaw, pitch, headYaw);
     }
 
+    @Override
+    public InteractionResult interact(Hand hand) {
+        // Un-leashing the knot
+        return InteractionResult.SUCCESS;
+    }
 }

@@ -31,9 +31,13 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.geyser.util.InteractionResult;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class AxolotlEntity extends AnimalEntity {
@@ -62,5 +66,20 @@ public class AxolotlEntity extends AnimalEntity {
     @Override
     protected int getMaxAir() {
         return 6000;
+    }
+
+    @Override
+    protected boolean canBeLeashed() {
+        return true;
+    }
+
+    @Nonnull
+    @Override
+    protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
+        if (EntityUtils.attemptToBucket(session, itemInHand)) {
+            return InteractionResult.SUCCESS;
+        } else {
+            return super.mobInteract(itemInHand);
+        }
     }
 }

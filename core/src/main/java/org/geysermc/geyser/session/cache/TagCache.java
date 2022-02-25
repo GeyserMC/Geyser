@@ -28,16 +28,19 @@ package org.geysermc.geyser.session.cache;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateTagsPacket;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
 
 /**
  * Manages information sent from the {@link ClientboundUpdateTagsPacket}. If that packet is not sent, all lists here
  * will remain empty, matching Java Edition behavior.
  */
+@ParametersAreNonnullByDefault
 public class TagCache {
     /* Blocks */
     private IntList leaves;
@@ -54,9 +57,11 @@ public class TagCache {
 
     /* Items */
     private IntList axolotlTemptItems;
+    private IntList fishes;
     private IntList flowers;
     private IntList foxFood;
     private IntList piglinLoved;
+    private IntList smallFlowers;
 
     public TagCache() {
         // Ensure all lists are non-null
@@ -79,9 +84,11 @@ public class TagCache {
 
         Map<String, int[]> itemTags = packet.getTags().get("minecraft:item");
         this.axolotlTemptItems = IntList.of(itemTags.get("minecraft:axolotl_tempt_items"));
+        this.fishes = IntList.of(itemTags.get("minecraft:fishes"));
         this.flowers = IntList.of(itemTags.get("minecraft:flowers"));
         this.foxFood = IntList.of(itemTags.get("minecraft:fox_food"));
         this.piglinLoved = IntList.of(itemTags.get("minecraft:piglin_loved"));
+        this.smallFlowers = IntList.of(itemTags.get("minecraft:small_flowers"));
 
         // Hack btw
         boolean emulatePost1_14Logic = itemTags.get("minecraft:signs").length > 1;
@@ -105,13 +112,19 @@ public class TagCache {
         this.requiresDiamondTool = IntLists.emptyList();
 
         this.axolotlTemptItems = IntLists.emptyList();
+        this.fishes = IntLists.emptyList();
         this.flowers = IntLists.emptyList();
         this.foxFood = IntLists.emptyList();
         this.piglinLoved = IntLists.emptyList();
+        this.smallFlowers = IntLists.emptyList();
     }
 
     public boolean isAxolotlTemptItem(ItemMapping itemMapping) {
         return axolotlTemptItems.contains(itemMapping.getJavaId());
+    }
+
+    public boolean isFish(GeyserItemStack itemStack) {
+        return fishes.contains(itemStack.getJavaId());
     }
 
     public boolean isFlower(ItemMapping mapping) {
@@ -124,6 +137,10 @@ public class TagCache {
 
     public boolean shouldPiglinAdmire(ItemMapping mapping) {
         return piglinLoved.contains(mapping.getJavaId());
+    }
+
+    public boolean isSmallFlower(GeyserItemStack itemStack) {
+        return smallFlowers.contains(itemStack.getJavaId());
     }
 
     public boolean isAxeEffective(BlockMapping blockMapping) {
