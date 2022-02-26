@@ -35,6 +35,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.custom.items.CustomItemData;
 import org.geysermc.geyser.api.custom.items.registration.CustomItemRegistrationType;
 import org.geysermc.geyser.api.custom.items.registration.CustomModelDataItemType;
+import org.geysermc.geyser.custom.GeyserCustomManager;
 import org.geysermc.geyser.custom.GeyserCustomRenderOffsets;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
@@ -53,7 +54,7 @@ public class CustomItemsRegistryPopulator {
         float scale2 = (float) (0.125 / (customItemData.textureSize() / 16f));
         float scale3 = (float) (0.075 / (customItemData.textureSize() / 16f * 2.4f));
 
-        String customItemName = "geysermc:" + customItemData.name();
+        String customItemName = GeyserCustomManager.CUSTOM_PREFIX + customItemData.name();
         Int2ObjectMap<String> customIdMappings = new Int2ObjectOpenHashMap<>();
 
         for (Map.Entry<String, ItemRegistryPopulator.PaletteVersion> palette : ItemRegistryPopulator.getPaletteVersions().entrySet()) {

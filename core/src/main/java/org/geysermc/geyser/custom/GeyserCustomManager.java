@@ -38,6 +38,8 @@ import java.nio.file.Path;
 public class GeyserCustomManager extends CustomManager {
     private GeyserCustomItemManager customItemManager;
 
+    public static final String CUSTOM_PREFIX = "geysercmd:";
+
     public GeyserCustomManager() {
         this.customItemManager = new GeyserCustomItemManager();
         MappingsConfigReader.init(this);
