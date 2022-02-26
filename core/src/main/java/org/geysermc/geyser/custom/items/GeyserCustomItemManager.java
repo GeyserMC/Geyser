@@ -27,13 +27,16 @@ package org.geysermc.geyser.custom.items;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.custom.items.CustomItemData;
 import org.geysermc.geyser.api.custom.items.CustomItemManager;
+import org.geysermc.geyser.custom.GeyserCustomManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class GeyserCustomItemManager extends CustomItemManager {
     private Map<String, List<CustomItemData>> customMappings = new HashMap<>();
@@ -47,7 +50,18 @@ public class GeyserCustomItemManager extends CustomItemManager {
             this.customMappings.put(baseItem, new ArrayList<>(List.of(customItemData)));
         }
 
-        Int2ObjectMap<String> out = CustomItemsRegistryPopulator.addToRegistry(baseItem, customItemData);
+        int nameExists = 0;
+        for (String name : this.customIdMappings.values()) {
+            String addName = GeyserCustomManager.CUSTOM_PREFIX + customItemData.name();
+            if (Pattern.matches("^" + addName +"(_([0-9])+)?$", name)) {
+                nameExists++;
+            }
+        }
+        if (nameExists != 0) {
+            GeyserImpl.getInstance().getLogger().warning("Custom item name '" + customItemData.name() + "' already exists and was registered again!");
+        }
+
+        Int2ObjectMap<String> out = CustomItemsRegistryPopulator.addToRegistry(baseItem, customItemData, nameExists);
         if (out != null) {
             this.customIdMappings.putAll(out);
         }

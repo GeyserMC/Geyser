@@ -45,7 +45,7 @@ import org.geysermc.geyser.registry.type.ItemMappings;
 import java.util.Map;
 
 public class CustomItemsRegistryPopulator {
-    public static Int2ObjectMap<String> addToRegistry(String baseItem, CustomItemData customItemData) {
+    public static Int2ObjectMap<String> addToRegistry(String baseItem, CustomItemData customItemData, int nameExists) {
         if (!GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
             return null;
         }
@@ -55,6 +55,10 @@ public class CustomItemsRegistryPopulator {
         float scale3 = (float) (0.075 / (customItemData.textureSize() / 16f * 2.4f));
 
         String customItemName = GeyserCustomManager.CUSTOM_PREFIX + customItemData.name();
+        if (nameExists != 0) {
+            customItemName += "_" + nameExists;
+        }
+
         Int2ObjectMap<String> customIdMappings = new Int2ObjectOpenHashMap<>();
 
         for (Map.Entry<String, ItemRegistryPopulator.PaletteVersion> palette : ItemRegistryPopulator.getPaletteVersions().entrySet()) {
