@@ -48,6 +48,7 @@ import org.geysermc.cumulus.SimpleForm;
 import org.geysermc.cumulus.response.CustomFormResponse;
 import org.geysermc.cumulus.response.ModalFormResponse;
 import org.geysermc.cumulus.response.SimpleFormResponse;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import javax.crypto.SecretKey;
@@ -312,10 +313,23 @@ public class LoginEncryptionUtils {
      * Shows the code that a user must input into their browser
      */
     public static void buildAndShowMicrosoftCodeWindow(GeyserSession session, MsaAuthenticationService.MsCodeResponse msCode) {
+        StringBuilder message = new StringBuilder("%xbox.signin.website\n")
+                .append(ChatColor.AQUA)
+                .append("%xbox.signin.url")
+                .append(ChatColor.RESET)
+                .append("\n%xbox.signin.enterCode\n")
+                .append(ChatColor.GREEN)
+                .append(msCode.user_code);
+        int timeout = session.getGeyser().getConfig().getPendingAuthenticationTimeout();
+        if (timeout != 0) {
+            message.append("\n\n")
+                    .append(ChatColor.RESET)
+                    .append(GeyserLocale.getPlayerLocaleString("geyser.auth.login.timeout", session.getLocale(), String.valueOf(timeout)));
+        }
         session.sendForm(
                 ModalForm.builder()
                         .title("%xbox.signin")
-                        .content("%xbox.signin.website\n%xbox.signin.url\n%xbox.signin.enterCode\n" + msCode.user_code)
+                        .content(message.toString())
                         .button1("%gui.done")
                         .button2("%menu.disconnect")
                         .responseHandler((form, responseData) -> {

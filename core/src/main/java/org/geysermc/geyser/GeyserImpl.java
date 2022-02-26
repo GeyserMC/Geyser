@@ -59,6 +59,7 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.session.SessionManager;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
@@ -124,6 +125,8 @@ public class GeyserImpl implements GeyserApi {
     private final GeyserBootstrap bootstrap;
 
     private Metrics metrics;
+
+    private PendingMicrosoftAuthentication pendingMicrosoftAuthentication;
 
     private static GeyserImpl instance;
 
@@ -267,6 +270,8 @@ public class GeyserImpl implements GeyserApi {
         } else {
             logger.debug("Not getting git properties for the news handler as we are in a development environment.");
         }
+
+        pendingMicrosoftAuthentication = new PendingMicrosoftAuthentication(config.getPendingAuthenticationTimeout());
 
         this.newsHandler = new NewsHandler(branch, buildNumber);
 

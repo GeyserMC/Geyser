@@ -141,6 +141,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     private MetricsInfo metrics = new MetricsInfo();
 
+    @JsonProperty("pending-authentication-timeout")
+    private int pendingAuthenticationTimeout = 120;
+
     @Getter
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class BedrockConfiguration implements IBedrockConfiguration {
