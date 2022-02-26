@@ -37,9 +37,13 @@ import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 
+import javax.annotation.Nonnull;
 import java.util.Set;
 import java.util.UUID;
 
@@ -121,5 +125,155 @@ public class AbstractHorseEntity extends AnimalEntity {
     @Override
     public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
         return DONKEY_AND_HORSE_FOODS.contains(javaIdentifierStripped);
+    }
+
+    @Nonnull
+    @Override
+    protected InteractiveTag testMobInteraction(@Nonnull GeyserItemStack itemInHand) {
+        boolean isBaby = isBaby();
+        if (!isBaby) {
+            if (getFlag(EntityFlag.TAMED) && session.isSneaking()) {
+                return InteractiveTag.OPEN_CONTAINER;
+            }
+
+            if (!passengers.isEmpty()) {
+                return super.testMobInteraction(itemInHand);
+            }
+        }
+
+        if (!itemInHand.isEmpty()) {
+            if (canEat(itemInHand)) {
+                return InteractiveTag.FEED;
+            }
+
+            if (testSaddle(itemInHand)) {
+                return InteractiveTag.SADDLE;
+            }
+
+            if (!getFlag(EntityFlag.TAMED)) {
+                // Horse will become mad
+                return InteractiveTag.NONE;
+            }
+
+            if (testForChest(itemInHand)) {
+                return InteractiveTag.ATTACH_CHEST;
+            }
+
+            if (additionalTestForInventoryOpen(itemInHand) || !isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.getJavaId() == session.getItemMappings().getStoredItems().saddle()) {
+                // Will open the inventory to be saddled
+                return InteractiveTag.OPEN_CONTAINER;
+            }
+        }
+
+        if (isBaby) {
+            return super.testMobInteraction(itemInHand);
+        } else {
+            return InteractiveTag.MOUNT;
+        }
+    }
+
+    @Nonnull
+    @Override
+    protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
+        boolean isBaby = isBaby();
+        if (!isBaby) {
+            if (getFlag(EntityFlag.TAMED) && session.isSneaking()) {
+                // Will open the inventory
+                return InteractionResult.SUCCESS;
+            }
+
+            if (!passengers.isEmpty()) {
+                return super.mobInteract(itemInHand);
+            }
+        }
+
+        if (!itemInHand.isEmpty()) {
+            if (canEat(itemInHand)) {
+                if (isBaby) {
+                    playEntityEvent(EntityEventType.BABY_ANIMAL_FEED);
+                }
+                return InteractionResult.CONSUME;
+            }
+
+            if (testSaddle(itemInHand)) {
+                return InteractionResult.SUCCESS;
+            }
+
+            if (!getFlag(EntityFlag.TAMED)) {
+                // Horse will become mad
+                return InteractionResult.SUCCESS;
+            }
+
+            if (testForChest(itemInHand)) {
+                // TODO looks like chest is also handled client side
+                return InteractionResult.SUCCESS;
+            }
+
+            // Note: yes, this code triggers for llamas too. lol (as of Java Edition 1.18.1)
+            if (additionalTestForInventoryOpen(itemInHand) || (!isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.getJavaId() == session.getItemMappings().getStoredItems().saddle())) {
+                // Will open the inventory to be saddled
+                return InteractionResult.SUCCESS;
+            }
+        }
+
+        if (isBaby) {
+            return super.mobInteract(itemInHand);
+        } else {
+            // Attempt to mount
+            // TODO client-set flags sitting standing?
+            return InteractionResult.SUCCESS;
+        }
+    }
+
+    protected boolean testSaddle(@Nonnull GeyserItemStack itemInHand) {
+        return isAlive() && !getFlag(EntityFlag.BABY) && getFlag(EntityFlag.TAMED);
+    }
+
+    protected boolean testForChest(@Nonnull GeyserItemStack itemInHand) {
+        return false;
+    }
+
+    protected boolean additionalTestForInventoryOpen(@Nonnull GeyserItemStack itemInHand) {
+        return itemInHand.getMapping(session).getJavaIdentifier().endsWith("_horse_armor");
+    }
+
+    /* Just a place to stuff common code for the undead variants without having duplicate code */
+
+    protected final InteractiveTag testUndeadHorseInteraction(@Nonnull GeyserItemStack itemInHand) {
+        if (!getFlag(EntityFlag.TAMED)) {
+            return InteractiveTag.NONE;
+        } else if (isBaby()) {
+            return testMobInteraction(itemInHand);
+        } else if (session.isSneaking()) {
+            return InteractiveTag.OPEN_CONTAINER;
+        } else if (!passengers.isEmpty()) {
+            return testMobInteraction(itemInHand);
+        } else {
+            if (session.getItemMappings().getStoredItems().saddle() == itemInHand.getJavaId()) {
+                return InteractiveTag.OPEN_CONTAINER;
+            }
+
+            if (testSaddle(itemInHand)) {
+                return InteractiveTag.SADDLE;
+            }
+
+            return InteractiveTag.RIDE_HORSE;
+        }
+    }
+
+    protected final InteractionResult undeadHorseInteract(@Nonnull GeyserItemStack itemInHand) {
+        if (!getFlag(EntityFlag.TAMED)) {
+            return InteractionResult.PASS;
+        } else if (isBaby()) {
+            return mobInteract(itemInHand);
+        } else if (session.isSneaking()) {
+            // Opens inventory
+            return InteractionResult.SUCCESS;
+        } else if (!passengers.isEmpty()) {
+            return mobInteract(itemInHand);
+        } else {
+            // The client tests for saddle but it doesn't matter for us at this point.
+            return InteractionResult.SUCCESS;
+        }
     }
 }

@@ -23,62 +23,44 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type.living.animal;
+package org.geysermc.geyser.entity.type.living;
 
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.registry.type.ItemMapping;
-import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 
 import javax.annotation.Nonnull;
 import java.util.UUID;
 
-public class PigEntity extends AnimalEntity {
-
-    public PigEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+public class DolphinEntity extends WaterEntity {
+    public DolphinEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
-    public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
-        return javaIdentifierStripped.equals("carrot") || javaIdentifierStripped.equals("potato") || javaIdentifierStripped.equals("beetroot");
+    protected boolean canBeLeashed() {
+        return true;
     }
 
     @Nonnull
     @Override
     protected InteractiveTag testMobInteraction(@Nonnull GeyserItemStack itemInHand) {
-        if (!canEat(itemInHand) && getFlag(EntityFlag.SADDLED) && passengers.isEmpty() && !session.isSneaking()) {
-            // Mount
-            return InteractiveTag.MOUNT;
-        } else {
-            InteractiveTag superTag = super.testMobInteraction(itemInHand);
-            if (superTag != InteractiveTag.NONE) {
-                return superTag;
-            } else {
-                return EntityUtils.attemptToSaddle(session, this, itemInHand).consumesAction()
-                        ? InteractiveTag.SADDLE : InteractiveTag.NONE;
-            }
+        if (!itemInHand.isEmpty() && session.getTagCache().isFish(itemInHand)) {
+            return InteractiveTag.FEED;
         }
+        return super.testMobInteraction(itemInHand);
     }
 
     @Nonnull
     @Override
     protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
-        if (!canEat(itemInHand) && getFlag(EntityFlag.SADDLED) && passengers.isEmpty() && !session.isSneaking()) {
-            // Mount
+        if (!itemInHand.isEmpty() && session.getTagCache().isFish(itemInHand)) {
+            // Feed
             return InteractionResult.SUCCESS;
-        } else {
-            InteractionResult superResult = super.mobInteract(itemInHand);
-            if (superResult.consumesAction()) {
-                return superResult;
-            } else {
-                return EntityUtils.attemptToSaddle(session, this, itemInHand);
-            }
         }
+        return super.mobInteract(itemInHand);
     }
 }

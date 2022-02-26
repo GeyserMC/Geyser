@@ -44,4 +44,9 @@ public class GhastEntity extends FlyingEntity {
         // If the ghast is attacking
         dirtyMetadata.put(EntityData.CHARGE_AMOUNT, (byte) (entityMetadata.getPrimitiveValue() ? 1 : 0));
     }
+
+    @Override
+    protected boolean isEnemy() {
+        return true;
+    }
 }

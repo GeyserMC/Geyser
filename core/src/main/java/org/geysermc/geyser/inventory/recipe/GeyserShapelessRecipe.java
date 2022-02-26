@@ -23,44 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.sound;
+package org.geysermc.geyser.inventory.recipe;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
+import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
 
-/**
- * Marks if a class should be handled as a
- * {@link SoundInteractionTranslator}.
- */
-@Retention(value = RetentionPolicy.RUNTIME)
-public @interface SoundTranslator {
+public record GeyserShapelessRecipe(Ingredient[] ingredients, ItemStack result) implements GeyserRecipe {
 
-    /**
-     * The identifier(s) that the placed block must contain
-     * one of. Leave empty to ignore.
-     *
-     * Only applies to interaction handlers that are an
-     * instance of {@link BlockSoundInteractionTranslator}.
-     *
-     * @return the value the interacted block must contain
-     */
-    String[] blocks() default {};
+    public GeyserShapelessRecipe(ShapelessRecipeData data) {
+        this(data.getIngredients(), data.getResult());
+    }
 
-    /**
-     * The identifier(s) that the player's hand item
-     * must contain one of. Leave empty to ignore.
-     *
-     * @return the value the item in the player's hand must contain
-     */
-    String[] items() default {};
-
-    /**
-     * Controls if the interaction should still be
-     * called even if the player is sneaking while
-     * holding something in their hand.
-     *
-     * @return if the interaction should continue when player
-     *         is holding something in their hand
-     */
-    boolean ignoreSneakingWhileHolding() default false;
+    @Override
+    public boolean isShaped() {
+        return false;
+    }
 }

@@ -27,10 +27,14 @@ package org.geysermc.geyser.entity.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 
 import java.util.UUID;
 
@@ -63,5 +67,40 @@ public class MinecartEntity extends Entity {
     public Vector3f getBedrockRotation() {
         // Note: minecart rotation on rails does not care about the actual rotation value
         return Vector3f.from(0, yaw, 0);
+    }
+
+    @Override
+    protected InteractiveTag testInteraction(Hand hand) {
+        if (definition == EntityDefinitions.CHEST_MINECART || definition == EntityDefinitions.HOPPER_MINECART) {
+            return InteractiveTag.OPEN_CONTAINER;
+        } else {
+            if (session.isSneaking()) {
+                return InteractiveTag.NONE;
+            } else if (!passengers.isEmpty()) {
+                // Can't enter if someone is inside
+                return InteractiveTag.NONE;
+            } else {
+                // Attempt to enter
+                return InteractiveTag.RIDE_MINECART;
+            }
+        }
+    }
+
+    @Override
+    public InteractionResult interact(Hand hand) {
+        if (definition == EntityDefinitions.CHEST_MINECART || definition == EntityDefinitions.HOPPER_MINECART) {
+            // Opening the UI of this minecart
+            return InteractionResult.SUCCESS;
+        } else {
+            if (session.isSneaking()) {
+                return InteractionResult.PASS;
+            } else if (!passengers.isEmpty()) {
+                // Can't enter if someone is inside
+                return InteractionResult.PASS;
+            } else {
+                // Attempt to enter
+                return InteractionResult.SUCCESS;
+            }
+        }
     }
 }

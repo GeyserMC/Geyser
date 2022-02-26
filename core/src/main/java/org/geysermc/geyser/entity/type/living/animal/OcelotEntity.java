@@ -26,10 +26,15 @@
 package org.geysermc.geyser.entity.type.living.animal;
 
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class OcelotEntity extends AnimalEntity {
@@ -41,5 +46,27 @@ public class OcelotEntity extends AnimalEntity {
     @Override
     public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
         return javaIdentifierStripped.equals("cod") || javaIdentifierStripped.equals("salmon");
+    }
+
+    @Nonnull
+    @Override
+    protected InteractiveTag testMobInteraction(@Nonnull GeyserItemStack itemInHand) {
+        if (!getFlag(EntityFlag.TRUSTING) && canEat(itemInHand) && session.getPlayerEntity().getPosition().distanceSquared(position) < 9f) {
+            // Attempt to feed
+            return InteractiveTag.FEED;
+        } else {
+            return super.testMobInteraction(itemInHand);
+        }
+    }
+
+    @Nonnull
+    @Override
+    protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
+        if (!getFlag(EntityFlag.TRUSTING) && canEat(itemInHand) && session.getPlayerEntity().getPosition().distanceSquared(position) < 9f) {
+            // Attempt to feed
+            return InteractionResult.SUCCESS;
+        } else {
+            return super.mobInteract(itemInHand);
+        }
     }
 }

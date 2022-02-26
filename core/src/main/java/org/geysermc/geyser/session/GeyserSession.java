@@ -39,7 +39,6 @@ import com.github.steveice10.mc.protocol.data.UnexpectedEncryptionException;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.entity.player.HandPreference;
-import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.setting.ChatVisibility;
 import com.github.steveice10.mc.protocol.data.game.setting.SkinPart;
 import com.github.steveice10.mc.protocol.data.game.statistic.CustomStatistic;
@@ -85,7 +84,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
-import org.geysermc.geyser.entity.InteractiveTagManager;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -94,6 +92,7 @@ import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
+import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.netty.LocalSession;
@@ -350,7 +349,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private Entity mouseoverEntity;
 
     @Setter
-    private Int2ObjectMap<Recipe> craftingRecipes;
+    private Int2ObjectMap<GeyserRecipe> craftingRecipes;
     private final Set<String> unlockedRecipes;
     private final AtomicInteger lastRecipeNetId;
 
@@ -361,6 +360,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private Int2ObjectMap<IntList> stonecutterRecipes;
 
+    /**
+     * Whether to work around 1.13's different behavior in villager trading menus.
+     */
+    @Setter
+    private boolean emulatePost1_14Logic = true;
     /**
      * Starting in 1.17, Java servers expect the <code>carriedItem</code> parameter of the serverbound click container
      * packet to be the current contents of the mouse after the transaction has been done. 1.16 expects the clicked slot
@@ -443,6 +447,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * If the current player is flying
      */
     private boolean flying = false;
+
+    @Setter
+    private boolean instabuild = false;
 
     /**
      * Caches current rain status.
@@ -1084,7 +1091,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         if (mouseoverEntity != null) {
             // Horses, etc can change their property depending on if you're sneaking
-            InteractiveTagManager.updateTag(this, mouseoverEntity);
+            mouseoverEntity.updateInteractiveTag();
         }
     }
 
@@ -1533,6 +1540,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
         PlayerFogPacket packet = new PlayerFogPacket();
         packet.getFogStack().addAll(this.fogNameSpaces);
+        sendUpstreamPacket(packet);
+    }
+
+    public boolean canUseCommandBlocks() {
+        return instabuild && opPermissionLevel >= 2;
+    }
+
+    public void playSoundEvent(SoundEvent sound, Vector3f position) {
+        LevelSoundEvent2Packet packet = new LevelSoundEvent2Packet();
+        packet.setPosition(position);
+        packet.setSound(sound);
+        packet.setIdentifier(":");
+        packet.setExtraData(-1);
         sendUpstreamPacket(packet);
     }
 }

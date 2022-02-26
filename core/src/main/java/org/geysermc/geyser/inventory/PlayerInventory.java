@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.inventory;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.GeyserImpl;
@@ -59,6 +60,10 @@ public class PlayerInventory extends Inventory {
     public void setCursor(@Nonnull GeyserItemStack newCursor, GeyserSession session) {
         updateItemNetId(cursor, newCursor, session);
         cursor = newCursor;
+    }
+
+    public GeyserItemStack getItemInHand(@Nonnull Hand hand) {
+        return hand == Hand.OFF_HAND ? getOffhand() : getItemInHand();
     }
 
     public GeyserItemStack getItemInHand() {

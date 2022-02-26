@@ -33,6 +33,9 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
@@ -48,10 +51,12 @@ import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.ChunkUtils;
+import org.geysermc.geyser.util.InteractionResult;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -167,6 +172,36 @@ public class LivingEntity extends Entity {
         // Default health needs to be specified as the max health in order for maximum hearts to show correctly on mounted entities
         // Round health value up, so that Bedrock doesn't consider the entity to be dead when health is between 0 and 1
         return new AttributeData(GeyserAttributeType.HEALTH.getBedrockIdentifier(), 0f, this.maxHealth, (float) Math.ceil(this.health), this.maxHealth);
+    }
+
+    @Override
+    public boolean isAlive() {
+        return this.valid && health > 0f;
+    }
+
+    @Override
+    public InteractionResult interact(Hand hand) {
+        GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand(hand);
+        if (itemStack.getJavaId() == session.getItemMappings().getStoredItems().nameTag()) {
+            InteractionResult result = checkInteractWithNameTag(itemStack);
+            if (result.consumesAction()) {
+                return result;
+            }
+        }
+
+        return super.interact(hand);
+    }
+
+    /**
+     * Checks to see if a nametag interaction would go through.
+     */
+    protected final InteractionResult checkInteractWithNameTag(GeyserItemStack itemStack) {
+        CompoundTag nbt = itemStack.getNbt();
+        if (nbt != null && nbt.get("display") instanceof CompoundTag displayTag && displayTag.get("Name") instanceof StringTag) {
+            // The mob shall be named
+            return InteractionResult.SUCCESS;
+        }
+        return InteractionResult.PASS;
     }
 
     public void updateArmor(GeyserSession session) {
