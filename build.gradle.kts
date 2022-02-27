@@ -39,7 +39,7 @@ subprojects {
         when (this) {
             in platforms -> plugins.apply("geyser.platform-conventions")
             api -> plugins.apply("geyser.shadow-conventions")
-            else -> plugins.apply("geyser.base-conventions")
+            else -> plugins.apply("geyser.shadow-conventions")
         }
     }
 }
