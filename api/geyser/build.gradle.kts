@@ -1,0 +1,3 @@
+dependencies {
+    api(projects.api)
+}

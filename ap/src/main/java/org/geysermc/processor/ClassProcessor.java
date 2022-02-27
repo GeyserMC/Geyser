@@ -163,6 +163,7 @@ public class ClassProcessor extends AbstractProcessor {
             this.processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Reading existing " + this.annotationClassName + " list from " + this.outputPath);
             return Files.newBufferedReader(this.outputPath);
         }
+
         FileObject obj = this.processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, "", this.annotationClassName);
         if (obj != null) {
             this.processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Reading existing " + this.annotationClassName + " list from " + obj.toUri());

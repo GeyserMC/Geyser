@@ -1,0 +1,1 @@
+provided("net.kyori", "event-api", Versions.eventVersion)

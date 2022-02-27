@@ -91,6 +91,6 @@ public class GeyserConnector {
     }
 
     public boolean isProductionEnvironment() {
-        return GeyserImpl.getInstance().productionEnvironment();
+        return GeyserImpl.getInstance().isProductionEnvironment();
     }
 }

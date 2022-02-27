@@ -27,6 +27,7 @@ package org.geysermc.geyser.platform.bungeecord;
 
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -40,7 +41,6 @@ import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandExecutor;
 import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandManager;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;

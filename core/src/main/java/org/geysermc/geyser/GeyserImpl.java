@@ -99,8 +99,11 @@ public class GeyserImpl implements GeyserApi {
             .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
 
     public static final String NAME = "Geyser";
-    public static final String GIT_VERSION = "DEV"; // A fallback for running in IDEs
-    public static final String VERSION = "DEV"; // A fallback for running in IDEs
+    public static final String GIT_VERSION = "${gitVersion}"; // A fallback for running in IDEs
+    public static final String VERSION = "${version}"; // A fallback for running in IDEs
+
+    public static final int BUILD_NUMBER = Integer.parseInt("${buildNumber}");
+    public static final String BRANCH = "${branch}";
 
     /**
      * Oauth client ID for Microsoft authentication
@@ -268,25 +271,7 @@ public class GeyserImpl implements GeyserApi {
             }
         }
 
-        String branch = "unknown";
-        int buildNumber = -1;
-        if (this.productionEnvironment()) {
-            try (InputStream stream = bootstrap.getResource("git.properties")) {
-                Properties gitProperties = new Properties();
-                gitProperties.load(stream);
-                branch = gitProperties.getProperty("git.branch");
-                String build = gitProperties.getProperty("git.build.number");
-                if (build != null) {
-                    buildNumber = Integer.parseInt(build);
-                }
-            } catch (Throwable e) {
-                logger.error("Failed to read git.properties", e);
-            }
-        } else {
-            logger.debug("Not getting git properties for the news handler as we are in a development environment.");
-        }
-
-        this.newsHandler = new NewsHandler(branch, buildNumber);
+        this.newsHandler = new NewsHandler(BRANCH, BUILD_NUMBER);
 
         CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
@@ -499,9 +484,9 @@ public class GeyserImpl implements GeyserApi {
      * @return true if the version number is not 'DEV'.
      */
     @Override
-    public boolean productionEnvironment() {
-        //noinspection ConstantConditions - changes in production
-        return !"DEV".equals(GeyserImpl.VERSION);
+    public boolean isProductionEnvironment() {
+        // noinspection ConstantConditions - changes in production
+        return !"git-local/dev-0000000".equals(GeyserImpl.GIT_VERSION);
     }
 
     @Override

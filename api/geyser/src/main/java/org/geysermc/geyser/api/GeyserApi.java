@@ -55,9 +55,9 @@ public interface GeyserApi extends GeyserApiBase {
      * Gets if this Geyser instance is running in an IDE. This only needs to be used in cases where files
      * expected to be in a jarfile are not present.
      *
-     * @return true if the version number is not 'DEV'.
+     * @return if we are in a production environment
      */
-    boolean productionEnvironment();
+    boolean isProductionEnvironment();
 
     /**
      * {@inheritDoc}
