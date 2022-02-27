@@ -1,3 +1,5 @@
+import org.gradle.accessors.dm.ApProjectDependency
+
 plugins {
     `java-library`
     id("geyser.build-logic")

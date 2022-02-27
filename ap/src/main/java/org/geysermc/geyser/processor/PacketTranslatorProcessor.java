@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.processor;
+package org.geysermc.geyser.processor;
 
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
@@ -31,8 +31,8 @@ import javax.lang.model.SourceVersion;
 
 @SupportedAnnotationTypes("*")
 @SupportedSourceVersion(SourceVersion.RELEASE_16)
-public class BlockEntityProcessor extends ClassProcessor {
-    public BlockEntityProcessor() {
-        super("org.geysermc.geyser.translator.level.block.entity.BlockEntity");
+public class PacketTranslatorProcessor extends ClassProcessor {
+    public PacketTranslatorProcessor() {
+        super("org.geysermc.geyser.translator.protocol.Translator");
     }
 }

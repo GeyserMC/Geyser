@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.processor;
+package org.geysermc.geyser.processor;
 
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
@@ -31,8 +31,8 @@ import javax.lang.model.SourceVersion;
 
 @SupportedAnnotationTypes("*")
 @SupportedSourceVersion(SourceVersion.RELEASE_16)
-public class CollisionRemapperProcessor extends ClassProcessor {
-    public CollisionRemapperProcessor() {
-        super("org.geysermc.geyser.translator.collision.CollisionRemapper");
+public class SoundHandlerProcessor extends ClassProcessor {
+    public SoundHandlerProcessor() {
+        super("org.geysermc.geyser.translator.sound.SoundTranslator");
     }
 }
