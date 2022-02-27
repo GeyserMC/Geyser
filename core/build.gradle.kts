@@ -70,10 +70,10 @@ dependencies {
     testImplementation("junit", "junit", Versions.junitVersion)
 
     // Annotation Processors
+    api(projects.ap)
+
     annotationProcessor(projects.ap)
 }
-
-provided(projects.ap)
 
 configure<BlossomExtension> {
     val mainFile = "src/main/java/org/geysermc/geyser/GeyserImpl.java"
