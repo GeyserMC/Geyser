@@ -11,7 +11,7 @@ pipeline {
         stage ('Build') {
             steps {
                 sh 'git submodule update --init --recursive'
-                sh './gradlew shadowJar'
+                sh './gradlew clean build'
             }
             post {
                 success {
