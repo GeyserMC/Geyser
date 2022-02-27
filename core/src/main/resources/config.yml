@@ -81,6 +81,10 @@ floodgate-key-file: key.pem
 #    password: "this isn't really my password"
 #    microsoft-account: false
 
+# Specify how many seconds to wait while user authorizes Geyser to access their Microsoft account.
+# User is allowed to disconnect from the server during this period.
+pending-authentication-timeout: 120
+
 # Bedrock clients can freeze when opening up the command prompt for the first time if given a lot of commands.
 # Disabling this will prevent command suggestions from being sent and solve freezing for Bedrock clients.
 command-suggestions: true

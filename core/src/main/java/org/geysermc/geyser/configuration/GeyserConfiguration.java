@@ -100,6 +100,8 @@ public interface GeyserConfiguration {
 
     IMetricsInfo getMetrics();
 
+    int getPendingAuthenticationTimeout();
+
     interface IBedrockConfiguration {
 
         String getAddress();

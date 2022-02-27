@@ -41,7 +41,5 @@ public abstract class MappingsReader {
 
     public abstract void readMappings(File file, JsonNode mappingsRoot);
 
-    public abstract void readItemMappings(File file, JsonNode mappingsRoot);
-
     public abstract CustomItemData readItemMappingEntry(JsonNode node) throws InvalidCustomMappingsFileException;
 }

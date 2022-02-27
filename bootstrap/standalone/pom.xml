@@ -47,17 +47,17 @@
         <dependency>
             <groupId>org.jline</groupId>
             <artifactId>jline-terminal</artifactId>
-            <version>3.20.0</version>
+            <version>3.21.0</version>
         </dependency>
         <dependency>
             <groupId>org.jline</groupId>
             <artifactId>jline-terminal-jna</artifactId>
-            <version>3.20.0</version>
+            <version>3.21.0</version>
         </dependency>
         <dependency>
             <groupId>org.jline</groupId>
             <artifactId>jline-reader</artifactId>
-            <version>3.20.0</version>
+            <version>3.21.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>

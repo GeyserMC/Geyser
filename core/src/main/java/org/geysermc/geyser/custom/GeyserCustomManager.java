@@ -61,6 +61,8 @@ public class GeyserCustomManager extends CustomManager {
         for (File mappingsFile : mappingsFiles) {
             this.loadMappingsFromJson(mappingsFile);
         }
+
+        GeyserImpl.getInstance().getLogger().info("Registered " + this.customItemManager.registeredItemCount() + " custom items.");
     }
 
     @Override

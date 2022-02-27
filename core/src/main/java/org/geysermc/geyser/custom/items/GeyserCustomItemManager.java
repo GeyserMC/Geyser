@@ -81,4 +81,13 @@ public class GeyserCustomItemManager extends CustomItemManager {
     public String itemStringFromId(Integer id) {
         return this.customIdMappings.get(id);
     }
+
+    public int registeredItemCount() {
+        int count = 0;
+        for (List<CustomItemData> list : this.customMappings.values()) {
+            count += list.size();
+        }
+
+        return count;
+    }
 }

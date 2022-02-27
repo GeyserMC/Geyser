@@ -44,7 +44,6 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
         this.readItemMappings(file, mappingsRoot);
     }
 
-    @Override
     public void readItemMappings(File file, JsonNode mappingsRoot) {
         JsonNode itemsNode = mappingsRoot.get("items");
 
