@@ -46,6 +46,10 @@ import java.util.concurrent.*;
  * It permits user to exit the server while they authorize Geyser to access their Microsoft account.
  */
 public class PendingMicrosoftAuthentication {
+    /**
+     * For GeyserConnect usage.
+     */
+    private boolean storeServerInformation = false;
     private final LoadingCache<String, AuthenticationTask> authentications;
 
     public PendingMicrosoftAuthentication(int timeoutSeconds) {
@@ -53,7 +57,8 @@ public class PendingMicrosoftAuthentication {
                 .build(new CacheLoader<>() {
                     @Override
                     public AuthenticationTask load(@NonNull String userKey) {
-                        return new AuthenticationTask(userKey, timeoutSeconds * 1000L);
+                        return storeServerInformation ? new ProxyAuthenticationTask(userKey, timeoutSeconds * 1000L)
+                                : new AuthenticationTask(userKey, timeoutSeconds * 1000L);
                     }
                 });
     }
@@ -65,6 +70,11 @@ public class PendingMicrosoftAuthentication {
     @SneakyThrows(ExecutionException.class)
     public AuthenticationTask getOrCreateTask(@Nonnull String userKey) {
         return authentications.get(userKey);
+    }
+
+    @SuppressWarnings("unused") // GeyserConnect
+    public void setStoreServerInformation() {
+        storeServerInformation = true;
     }
 
     public class AuthenticationTask {
@@ -156,6 +166,17 @@ public class PendingMicrosoftAuthentication {
         @Override
         public String toString() {
             return getClass().getSimpleName() + "{userKey='" + userKey + "'}";
+        }
+    }
+
+    @Getter
+    @Setter
+    public final class ProxyAuthenticationTask extends AuthenticationTask {
+        private String server;
+        private int port;
+
+        private ProxyAuthenticationTask(String userKey, long timeoutMs) {
+            super(userKey, timeoutMs);
         }
     }
 
