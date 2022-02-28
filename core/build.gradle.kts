@@ -1,6 +1,8 @@
 import net.kyori.indra.git.IndraGitExtension
 import net.kyori.blossom.BlossomExtension
 
+import java.io.ByteArrayOutputStream
+
 plugins {
     id("net.kyori.blossom")
     id("net.kyori.indra.git")
@@ -81,10 +83,20 @@ configure<BlossomExtension> {
     val indra = the<IndraGitExtension>()
 
     val mainFile = "src/main/java/org/geysermc/geyser/GeyserImpl.java"
-    val gitVersion = "git-${indra.branch()?.name ?: "DEV"}-${indra.commit()?.name?.substring(0, 7) ?: "0000000"}"
+    val gitVersion = "git-${branchName()}-${indra.commit()?.name?.substring(0, 7) ?: "0000000"}"
 
     replaceToken("\${version}", "${project.version} ($gitVersion)", mainFile)
     replaceToken("\${gitVersion}", gitVersion, mainFile)
     replaceToken("\${buildNumber}", Integer.parseInt(System.getProperty("BUILD_NUMBER", "-1")), mainFile)
-    replaceToken("\${branch}", indra.branch()?.name ?: "DEV", mainFile)
+    replaceToken("\${branch}", branchName(), mainFile)
+}
+
+fun Project.branchName(): String {
+    val out = ByteArrayOutputStream()
+    exec {
+        commandLine = listOf("git", "rev-parse", "--abbrev-ref", "HEAD")
+        standardOutput = out
+    }
+
+    return out.toString(Charsets.UTF_8.name()).trim()
 }
