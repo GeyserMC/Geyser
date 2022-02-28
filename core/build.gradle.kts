@@ -87,16 +87,12 @@ configure<BlossomExtension> {
 
     replaceToken("\${version}", "${project.version} ($gitVersion)", mainFile)
     replaceToken("\${gitVersion}", gitVersion, mainFile)
-    replaceToken("\${buildNumber}", Integer.parseInt(System.getProperty("BUILD_NUMBER", "-1")), mainFile)
+    replaceToken("\${buildNumber}", buildNumber(), mainFile)
     replaceToken("\${branch}", branchName(), mainFile)
 }
 
-fun Project.branchName(): String {
-    val out = ByteArrayOutputStream()
-    exec {
-        commandLine = listOf("git", "rev-parse", "--abbrev-ref", "HEAD")
-        standardOutput = out
-    }
+fun Project.branchName(): String =
+        System.getenv("GIT_BRANCH") ?: "local/dev"
 
-    return out.toString(Charsets.UTF_8.name()).trim()
-}
+fun Project.buildNumber(): Int =
+    Integer.parseInt(System.getenv("BUILD_NUMBER") ?: "-1")
