@@ -1,7 +1,9 @@
+import net.kyori.indra.git.IndraGitExtension
 import net.kyori.blossom.BlossomExtension
 
 plugins {
     id("net.kyori.blossom")
+    id("net.kyori.indra.git")
 }
 
 dependencies {
@@ -76,11 +78,13 @@ dependencies {
 }
 
 configure<BlossomExtension> {
+    val indra = the<IndraGitExtension>()
+
     val mainFile = "src/main/java/org/geysermc/geyser/GeyserImpl.java"
-    val gitVersion = "git-${branchName()}-${commitHashAbbrev()}"
+    val gitVersion = "git-${indra.branchName()}-${indra.commit()?.name?.substring(0, 7)}"
 
     replaceToken("\${version}", "${project.version} ($gitVersion)", mainFile)
     replaceToken("\${gitVersion}", gitVersion, mainFile)
-    replaceToken("\${buildNumber}", buildNumber(), mainFile)
-    replaceToken("\${branch}", branchName(), mainFile)
+    replaceToken("\${buildNumber}", Integer.parseInt(System.getProperty("BUILD_NUMBER", "-1")), mainFile)
+    replaceToken("\${branch}", indra.branchName(), mainFile)
 }

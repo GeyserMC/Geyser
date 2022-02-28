@@ -24,25 +24,9 @@
  */
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import net.kyori.indra.git.IndraGitExtension
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.kotlin.dsl.named
-import org.gradle.kotlin.dsl.the
-
-fun Project.lastCommitHash(): String? =
-    the<IndraGitExtension>().commit()?.name?.substring(0, 7)
-
-// retrieved from https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project
-// some properties might be specific to Jenkins
-fun Project.branchName(): String =
-    System.getProperty("GIT_BRANCH", "local/dev")
-fun Project.commitHashAbbrev(): String =
-    System.getProperty("GIT_COMMIT", "0000000")
-fun Project.versionName(): String =
-    System.getProperty("GIT_VERSION", "local/dev")
-fun Project.buildNumber(): Int =
-    Integer.parseInt(System.getProperty("BUILD_NUMBER", "-1"))
 
 fun Project.relocate(pattern: String) {
     tasks.named<ShadowJar>("shadowJar") {
