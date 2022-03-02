@@ -134,7 +134,7 @@ public class AbstractHorseEntity extends AnimalEntity {
     }
 
     @Nonnull
-    protected InteractiveTag testHorseInteraction(@Nonnull GeyserItemStack itemInHand) {
+    protected final InteractiveTag testHorseInteraction(@Nonnull GeyserItemStack itemInHand) {
         boolean isBaby = isBaby();
         if (!isBaby) {
             if (getFlag(EntityFlag.TAMED) && session.isSneaking()) {
