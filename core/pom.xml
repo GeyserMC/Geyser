@@ -147,7 +147,7 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.github.RednedEpic</groupId>
+            <groupId>com.github.GeyserMC</groupId>
             <artifactId>MCAuthLib</artifactId>
             <version>6c99331</version>
             <scope>compile</scope>
@@ -159,11 +159,11 @@
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
-                    <groupId>com.github.steveice10</groupId>
+                    <groupId>com.github.GeyserMC</groupId>
                     <artifactId>packetlib</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>com.github.steveice10</groupId>
+                    <groupId>com.github.GeyserMC</groupId>
                     <artifactId>mcauthlib</artifactId>
                 </exclusion>
             </exclusions>
