@@ -62,6 +62,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private BedrockConfiguration bedrock = new BedrockConfiguration();
     private RemoteConfiguration remote = new RemoteConfiguration();
 
+    @JsonProperty("saved-user-logins")
+    private List<String> savedUserLogins = Collections.emptyList();
+
     @JsonProperty("floodgate-key-file")
     private String floodgateKeyFile = "key.pem";
 

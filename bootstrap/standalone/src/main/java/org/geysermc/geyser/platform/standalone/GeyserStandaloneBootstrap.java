@@ -276,6 +276,12 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     }
 
     @Override
+    public Path getSavedUserLoginsFolder() {
+        // Return the location of the config
+        return new File(configFilename).getAbsoluteFile().getParentFile().toPath();
+    }
+
+    @Override
     public BootstrapDumpInfo getDumpInfo() {
         return new GeyserStandaloneDumpInfo(this);
     }

@@ -190,6 +190,14 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private boolean couldLoginUserByName(String bedrockUsername) {
+        if (geyser.getConfig().getSavedUserLogins().contains(bedrockUsername)) {
+            String refreshToken = geyser.refreshTokenFor(bedrockUsername);
+            if (refreshToken != null) {
+                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.auth.stored_credentials", session.getAuthData().name()));
+                session.authenticateWithRefreshToken(refreshToken);
+                return true;
+            }
+        }
         if (geyser.getConfig().getUserAuths() != null) {
             GeyserConfiguration.IUserAuthenticationInfo info = geyser.getConfig().getUserAuths().get(bedrockUsername);
 
