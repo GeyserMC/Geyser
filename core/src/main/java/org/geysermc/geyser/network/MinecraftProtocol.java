@@ -57,7 +57,9 @@ public final class MinecraftProtocol {
     static {
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v471.V471_CODEC);
         SUPPORTED_BEDROCK_CODECS.add(Bedrock_v475.V475_CODEC.toBuilder().minecraftVersion("1.18.0/1.18.1/1.18.2").build());
-        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC);
+        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
+                .minecraftVersion("1.18.10/1.18.12") // 1.18.11 is also supported, but was only on Switch and since that auto-updates it's not needed
+                .build());
     }
 
     /**
