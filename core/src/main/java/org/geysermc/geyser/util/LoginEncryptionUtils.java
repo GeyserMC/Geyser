@@ -262,6 +262,48 @@ public class LoginEncryptionUtils {
                         }));
     }
 
+    /**
+     * Build a window that explains the user's credentials will be saved to the system.
+     */
+    public static void buildAndShowConsentWindow(GeyserSession session) {
+        String locale = session.getLocale();
+        session.sendForm(
+                SimpleForm.builder()
+                        .title("%gui.signIn")
+                        .content(GeyserLocale.getPlayerLocaleString("geyser.auth.login.save_token.warning", locale) +
+                                "\n\n" +
+                                GeyserLocale.getPlayerLocaleString("geyser.auth.login.save_token.proceed", locale))
+                        .button("%gui.ok")
+                        .button("%gui.decline")
+                        .responseHandler((form, responseData) -> {
+                            SimpleFormResponse response = form.parseResponse(responseData);
+                            if (response.isCorrect() && response.getClickedButtonId() == 0) {
+                                session.authenticateWithMicrosoftCode(true);
+                            } else {
+                                session.disconnect("%disconnect.quitting");
+                            }
+                        }));
+    }
+
+    public static void buildAndShowTokenExpiredWindow(GeyserSession session) {
+        String locale = session.getLocale();
+        session.sendForm(
+                SimpleForm.builder()
+                        .title(GeyserLocale.getPlayerLocaleString("geyser.auth.login.form.expired", locale))
+                        .content(GeyserLocale.getPlayerLocaleString("geyser.auth.login.save_token.expired", locale) +
+                                "\n\n" +
+                                GeyserLocale.getPlayerLocaleString("geyser.auth.login.save_token.proceed", locale))
+                        .button("%gui.ok")
+                        .responseHandler((form, responseData) -> {
+                            SimpleFormResponse response = form.parseResponse(responseData);
+                            if (response.isCorrect()) {
+                                session.authenticateWithMicrosoftCode(true);
+                            } else {
+                                session.disconnect("%disconnect.quitting");
+                            }
+                        }));
+    }
+
     public static void buildAndShowLoginDetailsWindow(GeyserSession session) {
         session.sendForm(
                 CustomForm.builder()

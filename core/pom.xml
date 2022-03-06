@@ -146,23 +146,23 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.github.RednedEpic</groupId>
+            <groupId>com.github.GeyserMC</groupId>
             <artifactId>MCAuthLib</artifactId>
-            <version>6c99331</version>
+            <version>d9d773e</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.github.GeyserMC</groupId>
             <artifactId>MCProtocolLib</artifactId>
-            <version>7efa636</version>
+            <version>0771504</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
-                    <groupId>com.github.steveice10</groupId>
+                    <groupId>com.github.GeyserMC</groupId>
                     <artifactId>packetlib</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>com.github.steveice10</groupId>
+                    <groupId>com.github.GeyserMC</groupId>
                     <artifactId>mcauthlib</artifactId>
                 </exclusion>
             </exclusions>

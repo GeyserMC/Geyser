@@ -130,6 +130,11 @@ public class AbstractHorseEntity extends AnimalEntity {
     @Nonnull
     @Override
     protected InteractiveTag testMobInteraction(@Nonnull GeyserItemStack itemInHand) {
+        return testHorseInteraction(itemInHand);
+    }
+
+    @Nonnull
+    protected final InteractiveTag testHorseInteraction(@Nonnull GeyserItemStack itemInHand) {
         boolean isBaby = isBaby();
         if (!isBaby) {
             if (getFlag(EntityFlag.TAMED) && session.isSneaking()) {
@@ -175,6 +180,11 @@ public class AbstractHorseEntity extends AnimalEntity {
     @Nonnull
     @Override
     protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
+        return mobHorseInteract(itemInHand);
+    }
+
+    @Nonnull
+    protected final InteractionResult mobHorseInteract(@Nonnull GeyserItemStack itemInHand) {
         boolean isBaby = isBaby();
         if (!isBaby) {
             if (getFlag(EntityFlag.TAMED) && session.isSneaking()) {
@@ -243,11 +253,11 @@ public class AbstractHorseEntity extends AnimalEntity {
         if (!getFlag(EntityFlag.TAMED)) {
             return InteractiveTag.NONE;
         } else if (isBaby()) {
-            return testMobInteraction(itemInHand);
+            return testHorseInteraction(itemInHand);
         } else if (session.isSneaking()) {
             return InteractiveTag.OPEN_CONTAINER;
         } else if (!passengers.isEmpty()) {
-            return testMobInteraction(itemInHand);
+            return testHorseInteraction(itemInHand);
         } else {
             if (session.getItemMappings().getStoredItems().saddle() == itemInHand.getJavaId()) {
                 return InteractiveTag.OPEN_CONTAINER;
@@ -265,12 +275,12 @@ public class AbstractHorseEntity extends AnimalEntity {
         if (!getFlag(EntityFlag.TAMED)) {
             return InteractionResult.PASS;
         } else if (isBaby()) {
-            return mobInteract(itemInHand);
+            return mobHorseInteract(itemInHand);
         } else if (session.isSneaking()) {
             // Opens inventory
             return InteractionResult.SUCCESS;
         } else if (!passengers.isEmpty()) {
-            return mobInteract(itemInHand);
+            return mobHorseInteract(itemInHand);
         } else {
             // The client tests for saddle but it doesn't matter for us at this point.
             return InteractionResult.SUCCESS;

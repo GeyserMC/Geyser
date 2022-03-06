@@ -91,8 +91,6 @@ public class PendingMicrosoftAuthentication {
         private boolean online = true;
 
         @Getter
-        private final CompletableFuture<MsaAuthenticationService.MsCodeResponse> code;
-        @Getter
         private final CompletableFuture<MsaAuthenticationService> authentication;
 
         @Getter
@@ -103,11 +101,7 @@ public class PendingMicrosoftAuthentication {
             this.timeoutMs = timeoutMs;
             this.remainingTimeMs = timeoutMs;
 
-            // Request the code
-            this.code = CompletableFuture.supplyAsync(this::tryGetCode);
             this.authentication = new CompletableFuture<>();
-            // Once the code is received, continuously try to request the access token, profile, etc
-            this.code.thenRun(() -> performLoginAttempt(System.currentTimeMillis()));
             this.authentication.whenComplete((r, ex) -> {
                 this.loginException = ex;
                 // avoid memory leak, in case player doesn't connect again
@@ -127,9 +121,20 @@ public class PendingMicrosoftAuthentication {
             authentications.invalidate(userKey);
         }
 
-        private MsaAuthenticationService.MsCodeResponse tryGetCode() throws CompletionException {
+        public CompletableFuture<MsaAuthenticationService.MsCodeResponse> getCode(boolean offlineAccess) {
+            // Request the code
+            CompletableFuture<MsaAuthenticationService.MsCodeResponse> code = CompletableFuture.supplyAsync(() -> tryGetCode(offlineAccess));
+            // Once the code is received, continuously try to request the access token, profile, etc
+            code.thenRun(() -> performLoginAttempt(System.currentTimeMillis()));
+            return code;
+        }
+
+        /**
+         * @param offlineAccess whether we want a refresh token for later use.
+         */
+        private MsaAuthenticationService.MsCodeResponse tryGetCode(boolean offlineAccess) throws CompletionException {
             try {
-                return msaAuthenticationService.getAuthCode();
+                return msaAuthenticationService.getAuthCode(offlineAccess);
             } catch (RequestException e) {
                 throw new CompletionException(e);
             }
