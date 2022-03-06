@@ -266,7 +266,7 @@ public class LoginEncryptionUtils {
      * Build a window that explains the user's credentials will be saved to the system.
      */
     public static void buildAndShowConsentWindow(GeyserSession session) {
-        String locale = session.getLocale();
+        String locale = session.locale();
         session.sendForm(
                 SimpleForm.builder()
                         .title("%gui.signIn")
@@ -286,7 +286,7 @@ public class LoginEncryptionUtils {
     }
 
     public static void buildAndShowTokenExpiredWindow(GeyserSession session) {
-        String locale = session.getLocale();
+        String locale = session.locale();
         session.sendForm(
                 SimpleForm.builder()
                         .title(GeyserLocale.getPlayerLocaleString("geyser.auth.login.form.expired", locale))

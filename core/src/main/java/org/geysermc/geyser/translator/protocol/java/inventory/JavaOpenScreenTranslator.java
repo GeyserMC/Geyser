@@ -56,7 +56,7 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
             return;
         }
 
-        String name = MessageTranslator.convertMessage(packet.getTitle(), session.getLocale());
+        String name = MessageTranslator.convertMessage(packet.getTitle(), session.locale());
 
         Inventory newInventory = newTranslator.createInventory(name, packet.getContainerId(), packet.getType(), session.getPlayerInventory());
         if (openInventory != null) {
