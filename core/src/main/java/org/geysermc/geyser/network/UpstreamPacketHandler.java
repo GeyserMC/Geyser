@@ -74,11 +74,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             String supportedVersions = MinecraftProtocol.getAllSupportedBedrockVersions();
             if (loginPacket.getProtocolVersion() > MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
                 // Too early to determine session locale
-                session.getGeyser().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
                 return true;
             } else if (loginPacket.getProtocolVersion() < MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
-                session.getGeyser().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
                 return true;
             }

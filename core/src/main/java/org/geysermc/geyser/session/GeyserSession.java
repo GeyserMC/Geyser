@@ -112,6 +112,7 @@ import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MathUtils;
 
+import javax.annotation.Nonnull;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -125,13 +126,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Getter
 public class GeyserSession implements GeyserConnection, CommandSender {
 
-    private final GeyserImpl geyser;
-    private final UpstreamSession upstream;
+    private final @Nonnull GeyserImpl geyser;
+    private final @Nonnull UpstreamSession upstream;
     /**
      * The loop where all packets and ticking is processed to prevent concurrency issues.
      * If this is manually called, ensure that any exceptions are properly handled.
      */
-    private final EventLoop eventLoop;
+    private final @Nonnull EventLoop eventLoop;
     private TcpSession downstream;
     @Setter
     private AuthData authData;
@@ -547,11 +548,14 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         }
 
         bedrockServerSession.addDisconnectHandler(disconnectReason -> {
-            InetAddress address = bedrockServerSession.getRealAddress().getAddress();
-            geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, disconnectReason));
+            String message = switch (disconnectReason) {
+                // A generic message that just means the player quit normally.
+                case CLOSED_BY_REMOTE_PEER -> GeyserLocale.getLocaleStringLog("geyser.network.disconnect.closed_by_remote_peer");
+                case TIMED_OUT -> GeyserLocale.getLocaleStringLog("geyser.network.disconnect.timed_out");
+                default -> disconnectReason.name();
+            };
 
-            disconnect(disconnectReason.name());
-            geyser.getSessionManager().removeSession(this);
+            disconnect(message);
         });
 
         this.remoteAddress = geyser.getConfig().getRemote().getAddress();
@@ -1009,11 +1013,16 @@ public class GeyserSession implements GeyserConnection, CommandSender {
             loggedIn = false;
             if (downstream != null) {
                 downstream.disconnect(reason);
+            } else {
+                // Downstream's disconnect will fire an event that prints a log message
+                // Otherwise, we print a message here
+                InetAddress address = upstream.getAddress().getAddress();
+                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, reason));
             }
-            if (upstream != null && !upstream.isClosed()) {
-                geyser.getSessionManager().removeSession(this);
+            if (!upstream.isClosed()) {
                 upstream.disconnect(reason);
             }
+            geyser.getSessionManager().removeSession(this);
             if (authData != null) {
                 PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getTask(authData.xuid());
                 if (task != null) {
