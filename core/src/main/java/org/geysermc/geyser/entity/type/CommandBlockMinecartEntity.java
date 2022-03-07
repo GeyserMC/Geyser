@@ -25,10 +25,16 @@
 
 package org.geysermc.geyser.entity.type;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 
 import java.util.UUID;
 
@@ -54,5 +60,31 @@ public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
     public void updateDefaultBlockMetadata() {
         dirtyMetadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getCommandBlockRuntimeId());
         dirtyMetadata.put(EntityData.DISPLAY_OFFSET, 6);
+    }
+
+    @Override
+    protected InteractiveTag testInteraction(Hand hand) {
+        if (session.canUseCommandBlocks()) {
+            return InteractiveTag.OPEN_CONTAINER;
+        } else {
+            return InteractiveTag.NONE;
+        }
+    }
+
+    @Override
+    public InteractionResult interact(Hand hand) {
+        if (session.canUseCommandBlocks()) {
+            // Client-side GUI required
+            ContainerOpenPacket openPacket = new ContainerOpenPacket();
+            openPacket.setBlockPosition(Vector3i.ZERO);
+            openPacket.setId((byte) 1);
+            openPacket.setType(ContainerType.COMMAND_BLOCK);
+            openPacket.setUniqueEntityId(geyserId);
+            session.sendUpstreamPacket(openPacket);
+
+            return InteractionResult.SUCCESS;
+        } else {
+            return InteractionResult.PASS;
+        }
     }
 }

@@ -66,20 +66,19 @@ remote:
 # If you're using a plugin version of Floodgate on the same server, the key will automatically be picked up from Floodgate.
 floodgate-key-file: key.pem
 
-# The Xbox/Minecraft Bedrock username is the key for the Java server auth-info.
-# This allows automatic configuration/login to the remote Java server.
-# If you are brave enough to put your Mojang account info into a config file.
-# Uncomment the lines below to enable this feature.
-#userAuths:
-#  BedrockAccountUsername: # Your Minecraft: Bedrock Edition username
-#    email: javaccountemail@example.com # Your Minecraft: Java Edition email
-#    password: javaccountpassword123 # Your Minecraft: Java Edition password
-#    microsoft-account: true # Whether the account is a Mojang or Microsoft account.
-#
-#  bluerkelp2: 
-#    email: not_really_my_email_address_mr_minecrafter53267@gmail.com 
-#    password: "this isn't really my password"
-#    microsoft-account: false
+# For online mode authentication type only.
+# Stores a list of Bedrock players that should have their Java Edition account saved after login.
+# This saves a token that can be reused to authenticate the player later. This does not save emails or passwords,
+# but you should still be cautious when adding to this list and giving others access to this Geyser instance's files.
+# Removing a name from this list will delete its cached login information on the next Geyser startup.
+# The file for this is in the same folder as this config, named "saved-refresh-tokens.json".
+saved-user-logins:
+  - ThisExampleUsernameShouldBeLongEnoughToNeverBeAnXboxUsername
+  - ThisOtherExampleUsernameShouldAlsoBeLongEnough
+
+# Specify how many seconds to wait while user authorizes Geyser to access their Microsoft account.
+# User is allowed to disconnect from the server during this period.
+pending-authentication-timeout: 120
 
 # Bedrock clients can freeze when opening up the command prompt for the first time if given a lot of commands.
 # Disabling this will prevent command suggestions from being sent and solve freezing for Bedrock clients.

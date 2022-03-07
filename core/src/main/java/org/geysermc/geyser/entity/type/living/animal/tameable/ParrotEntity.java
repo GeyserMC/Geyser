@@ -26,10 +26,15 @@
 package org.geysermc.geyser.entity.type.living.animal.tameable;
 
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class ParrotEntity extends TameableEntity {
@@ -40,6 +45,46 @@ public class ParrotEntity extends TameableEntity {
 
     @Override
     public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
-        return javaIdentifierStripped.contains("seeds") || javaIdentifierStripped.equals("cookie");
+        return false;
+    }
+
+    private boolean isTameFood(String javaIdentifierStripped) {
+        return javaIdentifierStripped.contains("seeds");
+    }
+
+    private boolean isPoisonousFood(String javaIdentifierStripped) {
+        return javaIdentifierStripped.equals("cookie");
+    }
+
+    @Nonnull
+    @Override
+    protected InteractiveTag testMobInteraction(@Nonnull GeyserItemStack itemInHand) {
+        String javaIdentifierStripped = itemInHand.getMapping(session).getJavaIdentifier().replace("minecraft:", "");
+        boolean tame = getFlag(EntityFlag.TAMED);
+        if (!tame && isTameFood(javaIdentifierStripped)) {
+            return InteractiveTag.FEED;
+        } else if (isPoisonousFood(javaIdentifierStripped)) {
+            return InteractiveTag.FEED;
+        } else if (onGround && tame && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
+            // Sitting/standing
+            return getFlag(EntityFlag.SITTING) ? InteractiveTag.STAND : InteractiveTag.SIT;
+        }
+        return super.testMobInteraction(itemInHand);
+    }
+
+    @Nonnull
+    @Override
+    protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
+        String javaIdentifierStripped = itemInHand.getMapping(session).getJavaIdentifier().replace("minecraft:", "");
+        boolean tame = getFlag(EntityFlag.TAMED);
+        if (!tame && isTameFood(javaIdentifierStripped)) {
+            return InteractionResult.SUCCESS;
+        } else if (isPoisonousFood(javaIdentifierStripped)) {
+            return InteractionResult.SUCCESS;
+        } else if (onGround && tame && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
+            // Sitting/standing
+            return InteractionResult.SUCCESS;
+        }
+        return super.mobInteract(itemInHand);
     }
 }

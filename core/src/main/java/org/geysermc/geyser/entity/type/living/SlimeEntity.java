@@ -42,4 +42,9 @@ public class SlimeEntity extends MobEntity {
     public void setScale(IntEntityMetadata entityMetadata) {
         dirtyMetadata.put(EntityData.SCALE, 0.10f + entityMetadata.getPrimitiveValue());
     }
+
+    @Override
+    protected boolean isEnemy() {
+        return true;
+    }
 }

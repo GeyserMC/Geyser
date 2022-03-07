@@ -37,6 +37,8 @@ public final class Constants {
 
     public static final String FLOODGATE_DOWNLOAD_LOCATION = "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/";
 
+    static final String SAVED_REFRESH_TOKEN_FILE = "saved-refresh-tokens.json";
+
     static {
         URI wsUri = null;
         try {

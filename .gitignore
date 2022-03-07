@@ -239,8 +239,9 @@ nbdist/
 run/
 config.yml
 logs/
-public-key.pem
+key.pem
 locales/
 /cache/
 /packs/
 /dump.json
+/saved-refresh-tokens.json

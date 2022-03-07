@@ -26,14 +26,18 @@
 package org.geysermc.geyser.translator.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSelectTradePacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityLinkData;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
+import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.AutoCraftRecipeStackRequestActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.CraftRecipeStackRequestActionData;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
+import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.inventory.Inventory;
@@ -44,6 +48,9 @@ import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.inventory.updater.InventoryUpdater;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
+import org.geysermc.geyser.util.InventoryUtils;
+
+import java.util.concurrent.TimeUnit;
 
 public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     private final InventoryUpdater updater;
@@ -132,10 +139,62 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
     }
 
     @Override
+    public ItemStackResponsePacket.Response translateCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+        if (session.getUpstream().getProtocolVersion() < Bedrock_v486.V486_CODEC.getProtocolVersion()) {
+            return super.translateCraftingRequest(session, inventory, request);
+        }
+
+        // Behavior as of 1.18.10.
+        // We set the net ID to the trade index + 1. This doesn't appear to cause issues and means we don't have to
+        // store a map of net ID to trade index on our end.
+        int tradeChoice = ((CraftRecipeStackRequestActionData) request.getActions()[0]).getRecipeNetworkId() - 1;
+        return handleTrade(session, inventory, request, tradeChoice);
+    }
+
+    @Override
     public ItemStackResponsePacket.Response translateAutoCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
-        // We're not crafting here
-        // Called at least by consoles when pressing a trade option button
-        return translateRequest(session, inventory, request);
+        if (session.getUpstream().getProtocolVersion() < Bedrock_v486.V486_CODEC.getProtocolVersion()) {
+            // We're not crafting here
+            // Called at least by consoles when pressing a trade option button
+            return translateRequest(session, inventory, request);
+        }
+
+        // 1.18.10 update - seems impossible to call without consoles/controller input
+        // We set the net ID to the trade index + 1. This doesn't appear to cause issues and means we don't have to
+        // store a map of net ID to trade index on our end.
+        int tradeChoice = ((AutoCraftRecipeStackRequestActionData) request.getActions()[0]).getRecipeNetworkId() - 1;
+        return handleTrade(session, inventory, request, tradeChoice);
+    }
+
+    private ItemStackResponsePacket.Response handleTrade(GeyserSession session, Inventory inventory, ItemStackRequest request, int tradeChoice) {
+        ServerboundSelectTradePacket packet = new ServerboundSelectTradePacket(tradeChoice);
+        session.sendDownstreamPacket(packet);
+
+        if (session.isEmulatePost1_14Logic()) {
+            // 1.18 Java cooperates nicer than older versions
+            if (inventory instanceof MerchantContainer merchantInventory) {
+                merchantInventory.onTradeSelected(session, tradeChoice);
+            }
+            return translateRequest(session, inventory, request);
+        } else {
+            // 1.18 servers works fine without a workaround, but ViaVersion needs to work around 1.13 servers,
+            // so we need to work around that with the delay. Specifically they force a window refresh after a
+            // trade packet has been sent.
+            session.scheduleInEventLoop(() -> {
+                if (inventory instanceof MerchantContainer merchantInventory) {
+                    merchantInventory.onTradeSelected(session, tradeChoice);
+                    // Ignore output since we don't want to send a delayed response packet back to the client
+                    translateRequest(session, inventory, request);
+
+                    // Resync items once more
+                    updateInventory(session, inventory);
+                    InventoryUtils.updateCursor(session);
+                }
+            }, 100, TimeUnit.MILLISECONDS);
+
+            // Revert this request, for now
+            return rejectRequest(request);
+        }
     }
 
     @Override

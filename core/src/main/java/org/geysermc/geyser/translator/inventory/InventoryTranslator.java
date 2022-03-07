@@ -28,9 +28,6 @@ package org.geysermc.geyser.translator.inventory;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
-import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
@@ -45,6 +42,9 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.inventory.click.ClickPlan;
+import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.chest.DoubleChestInventoryTranslator;
 import org.geysermc.geyser.translator.inventory.chest.SingleChestInventoryTranslator;
@@ -535,7 +535,6 @@ public abstract class InventoryTranslator {
         }
         int gridDimensions = gridSize == 4 ? 2 : 3;
 
-        Recipe recipe;
         Ingredient[] ingredients = new Ingredient[0];
         ItemStack output = null;
         int recipeWidth = 0;
@@ -564,7 +563,7 @@ public abstract class InventoryTranslator {
                     craftState = CraftState.RECIPE_ID;
 
                     int recipeId = autoCraftAction.getRecipeNetworkId();
-                    recipe = session.getCraftingRecipes().get(recipeId);
+                    GeyserRecipe recipe = session.getCraftingRecipes().get(recipeId);
                     if (recipe == null) {
                         return rejectRequest(request);
                     }
@@ -578,24 +577,21 @@ public abstract class InventoryTranslator {
                         }
                     }
 
-                    switch (recipe.getType()) {
-                        case CRAFTING_SHAPED -> {
-                            ShapedRecipeData shapedData = (ShapedRecipeData) recipe.getData();
-                            ingredients = shapedData.getIngredients();
-                            recipeWidth = shapedData.getWidth();
-                            output = shapedData.getResult();
-                            if (shapedData.getWidth() > gridDimensions || shapedData.getHeight() > gridDimensions) {
-                                return rejectRequest(request);
-                            }
+                    if (recipe.isShaped()) {
+                        GeyserShapedRecipe shapedRecipe = (GeyserShapedRecipe) recipe;
+                        ingredients = shapedRecipe.ingredients();
+                        recipeWidth = shapedRecipe.width();
+                        output = shapedRecipe.result();
+                        if (recipeWidth > gridDimensions || shapedRecipe.height() > gridDimensions) {
+                            return rejectRequest(request);
                         }
-                        case CRAFTING_SHAPELESS -> {
-                            ShapelessRecipeData shapelessData = (ShapelessRecipeData) recipe.getData();
-                            ingredients = shapelessData.getIngredients();
-                            recipeWidth = gridDimensions;
-                            output = shapelessData.getResult();
-                            if (ingredients.length > gridSize) {
-                                return rejectRequest(request);
-                            }
+                    } else {
+                        GeyserShapelessRecipe shapelessRecipe = (GeyserShapelessRecipe) recipe;
+                        ingredients = shapelessRecipe.ingredients();
+                        recipeWidth = gridDimensions;
+                        output = shapelessRecipe.result();
+                        if (ingredients.length > gridSize) {
+                            return rejectRequest(request);
                         }
                     }
                     break;

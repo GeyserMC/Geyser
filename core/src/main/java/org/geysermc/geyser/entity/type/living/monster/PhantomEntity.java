@@ -48,4 +48,9 @@ public class PhantomEntity extends FlyingEntity {
         setBoundingBoxHeight(boundsScale * definition.height());
         dirtyMetadata.put(EntityData.SCALE, modelScale);
     }
+
+    @Override
+    protected boolean isEnemy() {
+        return true;
+    }
 }

@@ -30,7 +30,6 @@ import com.nukkitx.math.vector.Vector2d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayerFogPacket;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.entity.EntityDefinitions;
@@ -38,7 +37,6 @@ import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 
 import javax.annotation.Nonnull;
-import java.util.Collections;
 
 public class WorldBorder {
     private static final double DEFAULT_WORLD_BORDER_SIZE = 5.9999968E7D;
@@ -131,11 +129,14 @@ public class WorldBorder {
     }
 
     /**
-     * @return true as long the entity is within the world limits.
+     * @return true as long as the player entity is within the world limits.
      */
     public boolean isInsideBorderBoundaries() {
-        Vector3f entityPosition = session.getPlayerEntity().getPosition();
-        return entityPosition.getX() > minX && entityPosition.getX() < maxX && entityPosition.getZ() > minZ && entityPosition.getZ() < maxZ;
+        return isInsideBorderBoundaries(session.getPlayerEntity().getPosition());
+    }
+
+    public boolean isInsideBorderBoundaries(Vector3f position) {
+        return position.getX() > minX && position.getX() < maxX && position.getZ() > minZ && position.getZ() < maxZ;
     }
 
     /**

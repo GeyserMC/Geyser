@@ -62,6 +62,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private BedrockConfiguration bedrock = new BedrockConfiguration();
     private RemoteConfiguration remote = new RemoteConfiguration();
 
+    @JsonProperty("saved-user-logins")
+    private List<String> savedUserLogins = Collections.emptyList();
+
     @JsonProperty("floodgate-key-file")
     private String floodgateKeyFile = "key.pem";
 
@@ -140,6 +143,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private boolean xboxAchievementsEnabled = false;
 
     private MetricsInfo metrics = new MetricsInfo();
+
+    @JsonProperty("pending-authentication-timeout")
+    private int pendingAuthenticationTimeout = 120;
 
     @Getter
     @JsonIgnoreProperties(ignoreUnknown = true)

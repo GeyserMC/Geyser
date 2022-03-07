@@ -30,19 +30,69 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
+import org.geysermc.geyser.util.ItemUtils;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class SheepEntity extends AnimalEntity {
+    private int color;
 
     public SheepEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     public void setSheepFlags(ByteEntityMetadata entityMetadata) {
-        byte xd = ((ByteEntityMetadata) entityMetadata).getPrimitiveValue();
+        byte xd = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.SHEARED, (xd & 0x10) == 0x10);
-        dirtyMetadata.put(EntityData.COLOR, xd);
+        color = xd & 15;
+        dirtyMetadata.put(EntityData.COLOR, (byte) color);
+    }
+
+    @Nonnull
+    @Override
+    protected InteractiveTag testMobInteraction(@Nonnull GeyserItemStack itemInHand) {
+        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().shears()) {
+            return InteractiveTag.SHEAR;
+        } else {
+            InteractiveTag tag = super.testMobInteraction(itemInHand);
+            if (tag != InteractiveTag.NONE) {
+                return tag;
+            } else {
+                int color = ItemUtils.dyeColorFor(itemInHand.getJavaId());
+                if (canDye(color)) {
+                    return InteractiveTag.DYE;
+                }
+                return InteractiveTag.NONE;
+            }
+        }
+    }
+
+    @Nonnull
+    @Override
+    protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
+        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().shears()) {
+            return InteractionResult.CONSUME;
+        } else {
+            InteractionResult superResult = super.mobInteract(itemInHand);
+            if (superResult.consumesAction()) {
+                return superResult;
+            } else {
+                int color = ItemUtils.dyeColorFor(itemInHand.getJavaId());
+                if (canDye(color)) {
+                    // Dyeing the sheep
+                    return InteractionResult.SUCCESS;
+                }
+                return InteractionResult.PASS;
+            }
+        }
+    }
+
+    private boolean canDye(int color) {
+        return color != -1 && color != this.color && !getFlag(EntityFlag.SHEARED);
     }
 }

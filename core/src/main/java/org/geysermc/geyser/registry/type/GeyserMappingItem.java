@@ -44,4 +44,6 @@ public class GeyserMappingItem {
     @JsonProperty("tool_tier") String toolTier;
     @JsonProperty("max_damage") int maxDamage = 0;
     @JsonProperty("repair_materials") List<String> repairMaterials;
+    @JsonProperty("has_suspicious_stew_effect") boolean hasSuspiciousStewEffect = false;
+    @JsonProperty("dye_color") int dyeColor = -1;
 }
