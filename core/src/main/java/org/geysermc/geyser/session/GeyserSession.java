@@ -349,7 +349,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
 
     @Setter
     private Int2ObjectMap<GeyserRecipe> craftingRecipes;
-    private final Set<String> unlockedRecipes;
     private final AtomicInteger lastRecipeNetId;
 
     /**
@@ -527,7 +526,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         this.playerInventory = new PlayerInventory();
         this.openInventory = null;
         this.craftingRecipes = new Int2ObjectOpenHashMap<>();
-        this.unlockedRecipes = new ObjectOpenHashSet<>();
         this.lastRecipeNetId = new AtomicInteger(1);
 
         this.spawned = false;
