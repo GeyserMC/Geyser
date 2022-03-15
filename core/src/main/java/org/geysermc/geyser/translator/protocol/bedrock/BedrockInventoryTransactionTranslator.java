@@ -411,22 +411,20 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                 //https://wiki.vg/Protocol#Interact_Entity
                 switch (packet.getActionType()) {
-                    case 0: //Interact
-                        processEntityInteraction(session, packet, entity);
-                        break;
-                    case 1: //Attack
+                    case 0 -> processEntityInteraction(session, packet, entity); // Interact
+                    case 1 -> { // Attack
+                        int entityId;
                         if (entity.getDefinition() == EntityDefinitions.ENDER_DRAGON) {
                             // Redirects the attack to its body entity, this only happens when
                             // attacking the underbelly of the ender dragon
-                            ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(entity.getEntityId() + 3,
-                                    InteractAction.ATTACK, session.isSneaking());
-                            session.sendDownstreamPacket(attackPacket);
+                            entityId = entity.getEntityId() + 3;
                         } else {
-                            ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(entity.getEntityId(),
-                                    InteractAction.ATTACK, session.isSneaking());
-                            session.sendDownstreamPacket(attackPacket);
+                            entityId = entity.getEntityId();
                         }
-                        break;
+                        ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(entityId,
+                                InteractAction.ATTACK, session.isSneaking());
+                        session.sendDownstreamPacket(attackPacket);
+                    }
                 }
                 break;
         }
