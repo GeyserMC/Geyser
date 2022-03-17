@@ -60,6 +60,7 @@ public interface Connection {
      *
      * @param address The address of the server
      * @param port The port of the server
+     * @return true if the transfer was a success
      */
-    void transfer(@NonNull String address, int port);
+    boolean transfer(@NonNull String address, int port);
 }
