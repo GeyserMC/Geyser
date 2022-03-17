@@ -1326,6 +1326,15 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     }
 
     @Override
+    public void transferConnection(@NonNull String address, int port) {
+        Objects.requireNonNull(address);
+        TransferPacket transferPacket = new TransferPacket();
+        transferPacket.setAddress(address);
+        transferPacket.setPort(port);
+        sendUpstreamPacket(transferPacket);
+    }
+
+    @Override
     public void sendMessage(String message) {
         TextPacket textPacket = new TextPacket();
         textPacket.setPlatformChatId("");

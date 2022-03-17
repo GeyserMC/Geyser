@@ -55,5 +55,11 @@ public interface Connection {
      */
     String xuid();
 
-
+    /**
+     * Transfer the connection to a server. The current server is a valid target.
+     *
+     * @param address The address of the server
+     * @param port The port of the server
+     */
+    void transferConnection(@NonNull String address, int port);
 }
