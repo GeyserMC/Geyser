@@ -61,5 +61,5 @@ public interface Connection {
      * @param address The address of the server
      * @param port The port of the server
      */
-    void transferConnection(@NonNull String address, int port);
+    void transfer(@NonNull String address, int port);
 }

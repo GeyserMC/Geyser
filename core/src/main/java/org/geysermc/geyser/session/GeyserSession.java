@@ -1326,7 +1326,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     }
 
     @Override
-    public void transferConnection(@NonNull String address, int port) {
+    public void transfer(@NonNull String address, int port) {
         Objects.requireNonNull(address);
         TransferPacket transferPacket = new TransferPacket();
         transferPacket.setAddress(address);
