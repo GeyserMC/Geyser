@@ -625,17 +625,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         upstream.sendPacket(gamerulePacket);
     }
 
-    public void login() {
-        if (this.remoteAuthType != AuthType.ONLINE) {
-            if (this.remoteAuthType == AuthType.OFFLINE) {
-                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.auth.login.offline"));
-            } else {
-                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.auth.login.floodgate"));
-            }
-            authenticate(authData.name());
-        }
-    }
-
     public void authenticate(String username) {
         authenticate(username, "");
     }
@@ -1044,10 +1033,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         }
 
         closed = true;
-    }
-
-    public void close() {
-        disconnect(GeyserLocale.getPlayerLocaleString("geyser.network.close", getClientData().getLanguageCode()));
     }
 
     /**
