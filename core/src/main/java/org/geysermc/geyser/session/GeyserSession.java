@@ -78,6 +78,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.common.PlatformType;
 import org.geysermc.cumulus.Form;
 import org.geysermc.cumulus.util.FormBuilder;
@@ -1325,9 +1326,14 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         return authData.xuid();
     }
 
+    @SuppressWarnings("ConstantConditions") // Need to enforce the parameter annotations
     @Override
-    public boolean transfer(@NonNull String address, int port) {
-        Objects.requireNonNull(address);
+    public boolean transfer(@NonNull String address, @IntRange(from = 0, to = 65535) int port) {
+        if (address == null || address.isBlank()) {
+            throw new IllegalArgumentException("Server address cannot be null or blank");
+        } else if (port < 0 || port > 65535) {
+            throw new IllegalArgumentException("Server port must be between 0 and 65535, was " + port);
+        }
         TransferPacket transferPacket = new TransferPacket();
         transferPacket.setAddress(address);
         transferPacket.setPort(port);
