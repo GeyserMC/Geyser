@@ -52,6 +52,8 @@ public class WebUtils {
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
             con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION); // Otherwise Java 8 fails on checking updates
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(10000);
 
             return connectionToString(con);
         } catch (Exception e) {
