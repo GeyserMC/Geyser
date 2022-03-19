@@ -601,6 +601,8 @@ public class SkinProvider {
 
         HttpURLConnection con = (HttpURLConnection) new URL(imageUrl).openConnection();
         con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+        con.setConnectTimeout(10000);
+        con.setReadTimeout(10000);
 
         BufferedImage image = ImageIO.read(con.getInputStream());
         if (image == null) throw new NullPointerException();
