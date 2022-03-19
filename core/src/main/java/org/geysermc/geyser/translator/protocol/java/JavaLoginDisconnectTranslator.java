@@ -37,6 +37,8 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
+import java.util.List;
+
 @Translator(packet = ClientboundLoginDisconnectPacket.class)
 public class JavaLoginDisconnectTranslator extends PacketTranslator<ClientboundLoginDisconnectPacket> {
 
@@ -44,7 +46,7 @@ public class JavaLoginDisconnectTranslator extends PacketTranslator<ClientboundL
     public void translate(GeyserSession session, ClientboundLoginDisconnectPacket packet) {
         Component disconnectReason = packet.getReason();
 
-        boolean isOutdatedMessage;
+        boolean isOutdatedMessage = false;
         if (disconnectReason instanceof TranslatableComponent component) {
             String key = component.key();
             isOutdatedMessage = "multiplayer.disconnect.incompatible".equals(key) ||
@@ -53,9 +55,21 @@ public class JavaLoginDisconnectTranslator extends PacketTranslator<ClientboundL
                     // Reproduced on 1.15.2 server with ViaVersion 4.0.0-21w20a with 1.18.2 Java client
                     || key.startsWith("Outdated server!");
         } else {
-            // Reproduced with vanilla 1.8.8 server and 1.18.2 Java client
-            isOutdatedMessage = disconnectReason instanceof TextComponent component
-                    && component.content().startsWith("Outdated server!");
+            if (disconnectReason instanceof TextComponent component) {
+                if (component.content().startsWith("Outdated server!")) {
+                    // Reproduced with vanilla 1.8.8 server and 1.18.2 Java client
+                    isOutdatedMessage = true;
+                } else {
+                    List<Component> children = component.children();
+                    for (int i = 0; i < children.size(); i++) {
+                        if (children.get(i) instanceof TextComponent child && child.content().startsWith("Outdated server!")) {
+                            // Reproduced on Paper 1.17.1
+                            isOutdatedMessage = true;
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         String serverDisconnectMessage = MessageTranslator.convertMessage(disconnectReason, session.getLocale());
