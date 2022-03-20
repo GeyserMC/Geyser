@@ -29,6 +29,7 @@ import org.geysermc.api.GeyserApiBase;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.event.ExtensionEventBus;
 
+import java.nio.file.FileSystem;
 import java.nio.file.Path;
 
 /**
@@ -61,6 +62,15 @@ public interface Extension {
      */
     default Path dataFolder() {
         return this.extensionLoader().dataFolder(this);
+    }
+
+    /**
+     * Get the extension's file system
+     *
+     * @return the extension's file system
+     */
+    default FileSystem fileSystem() {
+        return this.extensionLoader().fileSystem(this);
     }
 
     /**

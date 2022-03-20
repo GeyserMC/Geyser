@@ -28,6 +28,7 @@ package org.geysermc.geyser.api.extension;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.event.ExtensionEventBus;
 
+import java.nio.file.FileSystem;
 import java.nio.file.Path;
 
 /**
@@ -59,6 +60,15 @@ public abstract class ExtensionLoader {
      */
     @NonNull
     protected abstract Path dataFolder(@NonNull Extension extension);
+
+    /**
+     * Gets the given {@link Extension}'s file system.
+     *
+     * @param extension the extension
+     * @return the file system of the given extension
+     */
+    @NonNull
+    protected abstract FileSystem fileSystem(@NonNull Extension extension);
 
     /**
      * Gets the given {@link Extension}'s {@link ExtensionDescription}.

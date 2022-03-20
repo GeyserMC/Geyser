@@ -35,6 +35,7 @@ import org.geysermc.geyser.api.extension.ExtensionDescription;
 import org.geysermc.geyser.api.extension.ExtensionLoader;
 import org.geysermc.geyser.api.extension.ExtensionLogger;
 
+import java.nio.file.FileSystem;
 import java.nio.file.Path;
 
 @Accessors(fluent = true)
@@ -43,6 +44,7 @@ import java.nio.file.Path;
 public class GeyserExtensionContainer {
     private final Extension extension;
     private final Path dataFolder;
+    private final FileSystem fileSystem;
     private final ExtensionDescription description;
     private final ExtensionLoader loader;
     private final ExtensionLogger logger;

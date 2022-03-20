@@ -46,6 +46,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -84,18 +85,24 @@ public class GeyserExtensionLoader extends ExtensionLoader {
             throw new InvalidExtensionException(e);
         }
 
+        FileSystem fileSystem;
+        try {
+            fileSystem = FileSystems.newFileSystem(path, Collections.emptyMap(), null);
+        } catch (IOException e) {
+            throw new InvalidExtensionException(e);
+        }
+
         this.classLoaders.put(description.name(), loader);
-        return this.setup(loader.extension(), description, dataFolder, new GeyserExtensionEventBus(GeyserImpl.getInstance().eventBus(), loader.extension()));
+        return this.setup(loader.extension(), description, dataFolder, fileSystem, new GeyserExtensionEventBus(GeyserImpl.getInstance().eventBus(), loader.extension()));
     }
 
-    private GeyserExtensionContainer setup(Extension extension, GeyserExtensionDescription description, Path dataFolder, ExtensionEventBus eventBus) {
+    private GeyserExtensionContainer setup(Extension extension, GeyserExtensionDescription description, Path dataFolder, FileSystem fileSystem, ExtensionEventBus eventBus) {
         GeyserExtensionLogger logger = new GeyserExtensionLogger(GeyserImpl.getInstance().getLogger(), description.name());
-        return new GeyserExtensionContainer(extension, dataFolder, description, this, logger, eventBus);
+        return new GeyserExtensionContainer(extension, dataFolder, fileSystem, description, this, logger, eventBus);
     }
 
     public GeyserExtensionDescription extensionDescription(Path path) throws InvalidDescriptionException {
-        Map<String, String> environment = new HashMap<>();
-        try (FileSystem fileSystem = FileSystems.newFileSystem(path, environment, null)) {
+        try (FileSystem fileSystem = FileSystems.newFileSystem(path, Collections.emptyMap(), null)) {
             Path extensionYml = fileSystem.getPath("extension.yml");
             return GeyserExtensionDescription.fromYaml(Files.newBufferedReader(extensionYml));
         } catch (IOException ex) {
@@ -230,6 +237,12 @@ public class GeyserExtensionLoader extends ExtensionLoader {
     @Override
     protected Path dataFolder(@NonNull Extension extension) {
         return this.extensionContainers.get(extension).dataFolder();
+    }
+
+    @NonNull
+    @Override
+    protected FileSystem fileSystem(@NonNull Extension extension) {
+        return this.extensionContainers.get(extension).fileSystem();
     }
 
     @NonNull
