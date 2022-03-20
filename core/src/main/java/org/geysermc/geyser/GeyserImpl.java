@@ -55,6 +55,7 @@ import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
+import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -62,6 +63,7 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.level.WorldManager;
+import org.geysermc.geyser.network.BedrockListenerImpl;
 import org.geysermc.geyser.network.ConnectorServerEventHandler;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.RemoteServerImpl;
@@ -145,6 +147,7 @@ public class GeyserImpl implements GeyserApi {
     private final GeyserExtensionManager extensionManager;
 
     private final RemoteServer remoteServer;
+    private final BedrockListener bedrockListener;
 
     private Metrics metrics;
 
@@ -210,6 +213,14 @@ public class GeyserImpl implements GeyserApi {
                 GameProtocol.getJavaProtocolVersion(),
                 GameProtocol.getJavaMinecraftVersion(),
                 config.getRemote().getAuthType()
+        );
+
+        this.bedrockListener = new BedrockListenerImpl(
+                config.getBedrock().getAddress(),
+                config.getBedrock().getPort(),
+                config.getBedrock().getMotd1(),
+                config.getBedrock().getMotd2(),
+                config.getBedrock().getServerName()
         );
 
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
@@ -571,8 +582,13 @@ public class GeyserImpl implements GeyserApi {
     }
 
     @Override
-    public RemoteServer getDefaultRemoteServer() {
-        return null;
+    public RemoteServer defaultRemoteServer() {
+        return this.remoteServer;
+    }
+
+    @Override
+    public BedrockListener bedrockListener() {
+        return this.bedrockListener;
     }
 
     public static GeyserImpl start(PlatformType platformType, GeyserBootstrap bootstrap) {

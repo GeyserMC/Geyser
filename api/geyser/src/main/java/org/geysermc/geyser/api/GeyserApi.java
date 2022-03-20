@@ -33,6 +33,7 @@ import org.geysermc.geyser.api.command.CommandManager;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.extension.ExtensionManager;
+import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
 
 import java.util.List;
@@ -112,7 +113,15 @@ public interface GeyserApi extends GeyserApiBase {
      *
      * @return the default remote server used within Geyser
      */
-    RemoteServer getDefaultRemoteServer();
+    RemoteServer defaultRemoteServer();
+
+    /**
+     * Gets the {@link BedrockListener} used for listening
+     * for Minecraft: Bedrock Edition client connections.
+     *
+     * @return the listener used for Bedrock client connectins
+     */
+    BedrockListener bedrockListener();
 
     /**
      * Gets the current {@link GeyserApiBase} instance.
