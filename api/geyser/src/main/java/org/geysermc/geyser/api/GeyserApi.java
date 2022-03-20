@@ -35,6 +35,8 @@ import org.geysermc.geyser.api.custom.CustomManager;
 import org.geysermc.geyser.api.custom.items.CustomItemManager;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.extension.ExtensionManager;
+import org.geysermc.geyser.api.network.BedrockListener;
+import org.geysermc.geyser.api.network.RemoteServer;
 
 import java.util.List;
 import java.util.UUID;
@@ -57,9 +59,9 @@ public interface GeyserApi extends GeyserApiBase {
      * Gets if this Geyser instance is running in an IDE. This only needs to be used in cases where files
      * expected to be in a jarfile are not present.
      *
-     * @return true if the version number is not 'DEV'.
+     * @return if we are in a production environment
      */
-    boolean productionEnvironment();
+    boolean isProductionEnvironment();
 
     /**
      * {@inheritDoc}
@@ -113,6 +115,31 @@ public interface GeyserApi extends GeyserApiBase {
      * @return the custom model data manager
      */
     CustomManager customManager();
+
+    /**
+     * Get's the default {@link RemoteServer} configured
+     * within the config file that is used by default.
+     *
+     * @return the default remote server used within Geyser
+     */
+    RemoteServer defaultRemoteServer();
+
+    /**
+     * Gets the {@link BedrockListener} used for listening
+     * for Minecraft: Bedrock Edition client connections.
+     *
+     * @return the listener used for Bedrock client connectins
+     */
+    BedrockListener bedrockListener();
+
+    /**
+     * Gets the maximum number of players that
+     * can join this Geyser instance.
+     *
+     * @return the maximum number of players that
+     *         can join this Geyser instance
+     */
+    int maxPlayers();
 
     /**
      * Gets the current {@link GeyserApiBase} instance.

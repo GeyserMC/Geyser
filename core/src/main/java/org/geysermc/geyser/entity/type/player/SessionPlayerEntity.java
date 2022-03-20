@@ -38,6 +38,7 @@ import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
 
@@ -165,6 +166,16 @@ public class SessionPlayerEntity extends PlayerEntity {
             maxHealth += 1;
         }
         return super.createHealthAttribute();
+    }
+
+    @Override
+    protected boolean hasShield(boolean offhand, ItemMapping shieldMapping) {
+        // Must be overridden to point to the player's inventory cache
+        if (offhand) {
+            return session.getPlayerInventory().getOffhand().getJavaId() == shieldMapping.getJavaId();
+        } else {
+            return session.getPlayerInventory().getItemInHand().getJavaId() == shieldMapping.getJavaId();
+        }
     }
 
     @Override

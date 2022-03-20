@@ -32,7 +32,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.geysermc.geyser.network.MinecraftProtocol;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 
 import java.util.Set;
@@ -42,7 +42,7 @@ import java.util.Set;
 @EqualsAndHashCode
 public class ItemMapping {
     public static final ItemMapping AIR = new ItemMapping("minecraft:air", "minecraft:air", 0, 0, 0,
-            BlockRegistries.BLOCKS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getBedrockAirId(),
+            BlockRegistries.BLOCKS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getBedrockAirId(),
             64, null, null, null, null, 0, null, 0, null, false);
 
     String javaIdentifier;

@@ -56,11 +56,11 @@ public class GeyserSession {
     }
 
     public String getRemoteAddress() {
-        return this.handle.getRemoteAddress();
+        return this.handle.remoteServer().address();
     }
 
     public int getRemotePort() {
-        return this.handle.getRemotePort();
+        return this.handle.remoteServer().port();
     }
 
     public int getRenderDistance() {
@@ -100,7 +100,7 @@ public class GeyserSession {
     }
 
     public void login() {
-        this.handle.login();
+        throw new UnsupportedOperationException();
     }
 
     public void authenticate(String username) {
@@ -120,7 +120,7 @@ public class GeyserSession {
     }
 
     public void close() {
-        this.handle.close();
+        throw new UnsupportedOperationException();
     }
 
     public void executeInEventLoop(Runnable runnable) {

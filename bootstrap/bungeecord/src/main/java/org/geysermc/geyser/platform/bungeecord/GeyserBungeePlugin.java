@@ -27,11 +27,12 @@ package org.geysermc.geyser.platform.bungeecord;
 
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.command.GeyserCommandManager;
-import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
@@ -40,7 +41,6 @@ import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandExecutor;
 import org.geysermc.geyser.platform.bungeecord.command.GeyserBungeeCommandManager;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -109,13 +109,13 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             return;
         }
 
-        if (geyserConfig.getRemote().getAuthType() == AuthType.FLOODGATE && getProxy().getPluginManager().getPlugin("floodgate") == null) {
+        if (geyserConfig.getRemote().getAuthType() == AuthType.HYBRID && getProxy().getPluginManager().getPlugin("floodgate") == null) {
             geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             return;
         } else if (geyserConfig.isAutoconfiguredRemote() && getProxy().getPluginManager().getPlugin("floodgate") != null) {
             // Floodgate installed means that the user wants Floodgate authentication
             geyserLogger.debug("Auto-setting to Floodgate authentication.");
-            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
+            geyserConfig.getRemote().setAuthType(AuthType.HYBRID);
         }
 
         geyserConfig.loadFloodgate(this);

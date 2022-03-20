@@ -29,7 +29,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.nukkitx.nbt.util.VarInts;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.MinecraftProtocol;
+import org.geysermc.geyser.network.GameProtocol;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -83,7 +83,7 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
             ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream();
             DataOutputStream handshake = new DataOutputStream(byteArrayStream);
             handshake.write(0x0);
-            VarInts.writeUnsignedInt(handshake, MinecraftProtocol.getJavaProtocolVersion());
+            VarInts.writeUnsignedInt(handshake, GameProtocol.getJavaProtocolVersion());
             VarInts.writeUnsignedInt(handshake, address.length());
             handshake.writeBytes(address);
             handshake.writeShort(port);

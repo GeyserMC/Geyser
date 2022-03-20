@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.java;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.packet.login.clientbound.ClientboundGameProfilePacket;
-import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -40,7 +40,7 @@ public class JavaGameProfileTranslator extends PacketTranslator<ClientboundGameP
     @Override
     public void translate(GeyserSession session, ClientboundGameProfilePacket packet) {
         PlayerEntity playerEntity = session.getPlayerEntity();
-        AuthType remoteAuthType = session.getRemoteAuthType();
+        AuthType remoteAuthType = session.remoteServer().authType();
 
         // Required, or else Floodgate players break with Spigot chunk caching
         GameProfile profile = packet.getProfile();
@@ -54,7 +54,7 @@ public class JavaGameProfileTranslator extends PacketTranslator<ClientboundGameP
             SkinManager.handleBedrockSkin(playerEntity, session.getClientData());
         }
 
-        if (remoteAuthType == AuthType.FLOODGATE) {
+        if (remoteAuthType == AuthType.HYBRID) {
             // We'll send the skin upload a bit after the handshake packet (aka this packet),
             // because otherwise the global server returns the data too fast.
             session.getAuthData().upload(session.getGeyser());

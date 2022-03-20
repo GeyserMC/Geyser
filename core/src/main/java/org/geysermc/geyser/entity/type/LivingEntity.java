@@ -99,13 +99,15 @@ public class LivingEntity extends Entity {
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
         byte xd = entityMetadata.getPrimitiveValue();
 
-        // Blocking gets triggered when using a bow, but if we set USING_ITEM for all items, it may look like
-        // you're "mining" with ex. a shield.
+        boolean isUsingItem = (xd & 0x01) == 0x01;
+        boolean isUsingOffhand = (xd & 0x02) == 0x02;
+
         ItemMapping shield = session.getItemMappings().getStoredItems().shield();
-        boolean isUsingShield = (getHand().getId() == shield.getBedrockId() ||
-                getHand().equals(ItemData.AIR) && getOffHand().getId() == shield.getBedrockId());
-        setFlag(EntityFlag.USING_ITEM, (xd & 0x01) == 0x01 && !isUsingShield);
-        setFlag(EntityFlag.BLOCKING, (xd & 0x01) == 0x01);
+        boolean isUsingShield = hasShield(isUsingOffhand, shield);
+
+        setFlag(EntityFlag.USING_ITEM, isUsingItem && !isUsingShield);
+        // Override the blocking
+        setFlag(EntityFlag.BLOCKING, isUsingItem && isUsingShield);
 
         // Riptide spin attack
         setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, (xd & 0x04) == 0x04);
@@ -139,6 +141,14 @@ public class LivingEntity extends Entity {
             // Player is no longer sleeping
             dirtyMetadata.put(EntityData.PLAYER_FLAGS, (byte) 0);
             return null;
+        }
+    }
+
+    protected boolean hasShield(boolean offhand, ItemMapping shieldMapping) {
+        if (offhand) {
+            return offHand.getId() == shieldMapping.getBedrockId();
+        } else {
+            return hand.getId() == shieldMapping.getBedrockId();
         }
     }
 

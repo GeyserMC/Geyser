@@ -55,6 +55,8 @@ import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
+import org.geysermc.geyser.api.network.BedrockListener;
+import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.custom.GeyserCustomManager;
@@ -64,7 +66,10 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.level.WorldManager;
+import org.geysermc.geyser.network.BedrockListenerImpl;
 import org.geysermc.geyser.network.ConnectorServerEventHandler;
+import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.network.RemoteServerImpl;
 import org.geysermc.geyser.pack.ResourcePack;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -72,7 +77,7 @@ import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.session.SessionManager;
-import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -86,7 +91,6 @@ import javax.naming.directory.InitialDirContext;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -109,8 +113,11 @@ public class GeyserImpl implements GeyserApi {
             .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES);
 
     public static final String NAME = "Geyser";
-    public static final String GIT_VERSION = "DEV"; // A fallback for running in IDEs
-    public static final String VERSION = "DEV"; // A fallback for running in IDEs
+    public static final String GIT_VERSION = "${gitVersion}"; // A fallback for running in IDEs
+    public static final String VERSION = "${version}"; // A fallback for running in IDEs
+
+    public static final int BUILD_NUMBER = Integer.parseInt("${buildNumber}");
+    public static final String BRANCH = "${branch}";
 
     /**
      * Oauth client ID for Microsoft authentication
@@ -142,6 +149,9 @@ public class GeyserImpl implements GeyserApi {
     private final EventBus eventBus;
     private final GeyserExtensionManager extensionManager;
     private final GeyserCustomManager customManager;
+
+    private final RemoteServer remoteServer;
+    private final BedrockListener bedrockListener;
 
     private Metrics metrics;
 
@@ -209,6 +219,22 @@ public class GeyserImpl implements GeyserApi {
             }
         }
 
+        this.remoteServer = new RemoteServerImpl(
+                config.getRemote().getAddress(),
+                config.getRemote().getPort(),
+                GameProtocol.getJavaProtocolVersion(),
+                GameProtocol.getJavaMinecraftVersion(),
+                config.getRemote().getAuthType()
+        );
+
+        this.bedrockListener = new BedrockListenerImpl(
+                config.getBedrock().getAddress(),
+                config.getBedrock().getPort(),
+                config.getBedrock().getMotd1(),
+                config.getBedrock().getMotd2(),
+                config.getBedrock().getServerName()
+        );
+
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
         String message = GeyserLocale.getLocaleStringLog("geyser.core.finish.done", new DecimalFormat("#.###").format(completeTime)) + " ";
         if (isGui) {
@@ -221,7 +247,7 @@ public class GeyserImpl implements GeyserApi {
 
         if (platformType == PlatformType.STANDALONE) {
             logger.warning(GeyserLocale.getLocaleStringLog("geyser.core.movement_warn"));
-        } else if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
+        } else if (config.getRemote().getAuthType() == AuthType.HYBRID) {
             VersionCheckUtils.checkForOutdatedFloodgate(logger);
         }
     }
@@ -279,7 +305,7 @@ public class GeyserImpl implements GeyserApi {
         // Ensure that PacketLib does not create an event loop for handling packets; we'll do that ourselves
         TcpSession.USE_EVENT_LOOP_FOR_PACKETS = false;
 
-        if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
+        if (config.getRemote().getAuthType() == AuthType.HYBRID) {
             try {
                 Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
                 cipher = new AesCipher(new Base64Topping());
@@ -291,27 +317,9 @@ public class GeyserImpl implements GeyserApi {
             }
         }
 
-        String branch = "unknown";
-        int buildNumber = -1;
-        if (this.productionEnvironment()) {
-            try (InputStream stream = bootstrap.getResource("git.properties")) {
-                Properties gitProperties = new Properties();
-                gitProperties.load(stream);
-                branch = gitProperties.getProperty("git.branch");
-                String build = gitProperties.getProperty("git.build.number");
-                if (build != null) {
-                    buildNumber = Integer.parseInt(build);
-                }
-            } catch (Throwable e) {
-                logger.error("Failed to read git.properties", e);
-            }
-        } else {
-            logger.debug("Not getting git properties for the news handler as we are in a development environment.");
-        }
-
         pendingMicrosoftAuthentication = new PendingMicrosoftAuthentication(config.getPendingAuthenticationTimeout());
 
-        this.newsHandler = new NewsHandler(branch, buildNumber);
+        this.newsHandler = new NewsHandler(BRANCH, BUILD_NUMBER);
 
         CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
@@ -565,9 +573,9 @@ public class GeyserImpl implements GeyserApi {
      * @return true if the version number is not 'DEV'.
      */
     @Override
-    public boolean productionEnvironment() {
-        //noinspection ConstantConditions - changes in production
-        return !"DEV".equals(GeyserImpl.VERSION);
+    public boolean isProductionEnvironment() {
+        // noinspection ConstantConditions - changes in production
+        return !"git-local/dev-0000000".equals(GeyserImpl.GIT_VERSION);
     }
 
     @Override
@@ -588,6 +596,20 @@ public class GeyserImpl implements GeyserApi {
     @Override
     public GeyserCustomManager customManager() {
         return this.customManager;
+    }
+
+    public RemoteServer defaultRemoteServer() {
+        return this.remoteServer;
+    }
+
+    @Override
+    public BedrockListener bedrockListener() {
+        return this.bedrockListener;
+    }
+
+    @Override
+    public int maxPlayers() {
+        return this.getConfig().getMaxPlayers();
     }
 
     public static GeyserImpl start(PlatformType platformType, GeyserBootstrap bootstrap) {

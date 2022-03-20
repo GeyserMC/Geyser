@@ -33,7 +33,7 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
-import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.pack.ResourcePack;
@@ -69,14 +69,14 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return true;
         }
 
-        BedrockPacketCodec packetCodec = MinecraftProtocol.getBedrockCodec(loginPacket.getProtocolVersion());
+        BedrockPacketCodec packetCodec = GameProtocol.getBedrockCodec(loginPacket.getProtocolVersion());
         if (packetCodec == null) {
-            String supportedVersions = MinecraftProtocol.getAllSupportedBedrockVersions();
-            if (loginPacket.getProtocolVersion() > MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
+            String supportedVersions = GameProtocol.getAllSupportedBedrockVersions();
+            if (loginPacket.getProtocolVersion() > GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
                 // Too early to determine session locale
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
                 return true;
-            } else if (loginPacket.getProtocolVersion() < MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
+            } else if (loginPacket.getProtocolVersion() < GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
                 return true;
             }

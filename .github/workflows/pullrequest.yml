@@ -9,47 +9,43 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
       - name: Set up JDK 16
         uses: actions/setup-java@v1
         with:
+          distribution: 'temurin'
           java-version: 16
+          cache: 'gradle'
       - name: submodules-init
         uses: snickerbockers/submodules-init@v4
-      - name: Build with Maven
-        run: mvn -B package -T 2C
+      - name: Build with Gradle
+        run: ./gradlew build
       - name: Archive artifacts (Geyser Standalone)
         uses: actions/upload-artifact@v2
         if: success()
         with:
           name: Geyser Standalone
-          path: bootstrap/standalone/target/Geyser.jar
+          path: bootstrap/standalone/build/libs/Geyser.jar
       - name: Archive artifacts (Geyser Spigot)
         uses: actions/upload-artifact@v2
         if: success()
         with:
           name: Geyser Spigot
-          path: bootstrap/spigot/target/Geyser-Spigot.jar
+          path: bootstrap/spigot/build/libs/Geyser-Spigot.jar
       - name: Archive artifacts (Geyser BungeeCord)
         uses: actions/upload-artifact@v2
         if: success()
         with:
           name: Geyser BungeeCord
-          path: bootstrap/bungeecord/target/Geyser-BungeeCord.jar
+          path: bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
       - name: Archive artifacts (Geyser Sponge)
         uses: actions/upload-artifact@v2
         if: success()
         with:
           name: Geyser Sponge
-          path: bootstrap/sponge/target/Geyser-Sponge.jar
+          path: bootstrap/sponge/build/libs/Geyser-Sponge.jar
       - name: Archive artifacts (Geyser Velocity)
         uses: actions/upload-artifact@v2
         if: success()
         with:
           name: Geyser Velocity
-          path: bootstrap/velocity/target/Geyser-Velocity.jar
+          path: bootstrap/velocity/build/libs/Geyser-Velocity.jar

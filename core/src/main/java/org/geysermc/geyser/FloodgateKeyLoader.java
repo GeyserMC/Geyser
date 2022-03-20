@@ -26,7 +26,7 @@
 package org.geysermc.geyser;
 
 import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
-import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.nio.file.Files;
@@ -34,7 +34,7 @@ import java.nio.file.Path;
 
 public class FloodgateKeyLoader {
     public static Path getKeyPath(GeyserJacksonConfiguration config, Path floodgateDataFolder, Path geyserDataFolder, GeyserLogger logger) {
-        if (config.getRemote().getAuthType() != AuthType.FLOODGATE) {
+        if (config.getRemote().getAuthType() != AuthType.HYBRID) {
             return geyserDataFolder.resolve(config.getFloodgateKeyFile());
         }
 

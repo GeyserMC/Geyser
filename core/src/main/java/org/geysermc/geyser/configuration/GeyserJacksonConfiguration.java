@@ -35,7 +35,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.network.CIDRMatcher;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -208,7 +208,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         private int port = 25565;
 
         @Setter
-        @JsonDeserialize(using = AuthType.Deserializer.class)
+        @JsonDeserialize(using = AuthTypeDeserializer.class)
         @JsonProperty("auth-type")
         private AuthType authType = AuthType.ONLINE;
 
@@ -272,6 +272,13 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
                 System.err.println(GeyserLocale.getLocaleStringLog("geyser.bootstrap.config.invalid_port"));
                 return 25565;
             }
+        }
+    }
+
+    public static class AuthTypeDeserializer extends JsonDeserializer<AuthType> {
+        @Override
+        public AuthType deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            return AuthType.getByName(p.getValueAsString());
         }
     }
 }

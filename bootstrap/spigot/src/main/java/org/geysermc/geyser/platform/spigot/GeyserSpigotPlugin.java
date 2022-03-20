@@ -40,7 +40,7 @@ import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.WorldManager;
-import org.geysermc.geyser.network.MinecraftProtocol;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.spigot.command.GeyserSpigotCommandExecutor;
@@ -49,7 +49,7 @@ import org.geysermc.geyser.platform.spigot.command.SpigotCommandSource;
 import org.geysermc.geyser.platform.spigot.world.GeyserPistonListener;
 import org.geysermc.geyser.platform.spigot.world.GeyserSpigotBlockPlaceListener;
 import org.geysermc.geyser.platform.spigot.world.manager.*;
-import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 
@@ -136,14 +136,14 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return;
         }
 
-        if (geyserConfig.getRemote().getAuthType() == AuthType.FLOODGATE && Bukkit.getPluginManager().getPlugin("floodgate") == null) {
+        if (geyserConfig.getRemote().getAuthType() == AuthType.HYBRID && Bukkit.getPluginManager().getPlugin("floodgate") == null) {
             geyserLogger.severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed") + " " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.disabling"));
             this.getPluginLoader().disablePlugin(this);
             return;
         } else if (geyserConfig.isAutoconfiguredRemote() && Bukkit.getPluginManager().getPlugin("floodgate") != null) {
             // Floodgate installed means that the user wants Floodgate authentication
             geyserLogger.debug("Auto-setting to Floodgate authentication.");
-            geyserConfig.getRemote().setAuthType(AuthType.FLOODGATE);
+            geyserConfig.getRemote().setAuthType(AuthType.HYBRID);
         }
 
         geyserConfig.loadFloodgate(this);
@@ -344,7 +344,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
      */
     private boolean isViaVersionNeeded() {
         ProtocolVersion serverVersion = getServerProtocolVersion();
-        List<ProtocolPathEntry> protocolList = Via.getManager().getProtocolManager().getProtocolPath(MinecraftProtocol.getJavaProtocolVersion(),
+        List<ProtocolPathEntry> protocolList = Via.getManager().getProtocolManager().getProtocolPath(GameProtocol.getJavaProtocolVersion(),
                 serverVersion.getVersion());
         if (protocolList == null) {
             // No translation needed!

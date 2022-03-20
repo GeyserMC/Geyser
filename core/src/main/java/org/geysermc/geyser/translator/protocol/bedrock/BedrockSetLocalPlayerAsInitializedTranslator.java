@@ -26,7 +26,7 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import com.nukkitx.protocol.bedrock.packet.SetLocalPlayerAsInitializedPacket;
-import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -41,7 +41,7 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
             if (!session.getUpstream().isInitialized()) {
                 session.getUpstream().setInitialized(true);
 
-                if (session.getRemoteAuthType() == AuthType.ONLINE) {
+                if (session.remoteServer().authType() == AuthType.ONLINE) {
                     if (!session.isLoggedIn()) {
                         if (session.getGeyser().getConfig().getSavedUserLogins().contains(session.name())) {
                             if (session.getGeyser().refreshTokenFor(session.name()) == null) {

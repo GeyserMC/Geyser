@@ -38,6 +38,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.appender.RollingRandomAccessFileAppender;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -179,6 +180,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                 logger.removeAppender(appender);
             }
         }
+
         if (useGui && gui == null) {
             gui = new GeyserStandaloneGUI();
             gui.redirectSystemStreams();
