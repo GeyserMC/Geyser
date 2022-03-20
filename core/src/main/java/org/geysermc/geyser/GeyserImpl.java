@@ -591,6 +591,11 @@ public class GeyserImpl implements GeyserApi {
         return this.bedrockListener;
     }
 
+    @Override
+    public int maxPlayers() {
+        return this.getConfig().getMaxPlayers();
+    }
+
     public static GeyserImpl start(PlatformType platformType, GeyserBootstrap bootstrap) {
         if (instance == null) {
             return new GeyserImpl(platformType, bootstrap);

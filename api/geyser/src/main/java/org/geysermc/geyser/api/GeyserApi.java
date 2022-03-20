@@ -124,6 +124,15 @@ public interface GeyserApi extends GeyserApiBase {
     BedrockListener bedrockListener();
 
     /**
+     * Gets the maximum number of players that
+     * can join this Geyser instance.
+     *
+     * @return the maximum number of players that
+     *         can join this Geyser instance
+     */
+    int maxPlayers();
+
+    /**
      * Gets the current {@link GeyserApiBase} instance.
      *
      * @return the current geyser api instance
