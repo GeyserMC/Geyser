@@ -36,10 +36,10 @@ dependencies {
         exclude("com.nukkitx", "nbt")
     }
 
-    api("com.github.RednedEpic", "MCAuthLib", Versions.mcauthlibVersion)
+    api("com.github.GeyserMC", "MCAuthLib", Versions.mcauthlibVersion)
     api("com.github.GeyserMC", "MCProtocolLib", Versions.mcprotocollibversion) {
-        exclude("com.github.steveice10", "packetlib")
-        exclude("com.github.steveice10", "mcauthlib")
+        exclude("com.github.GeyserMC", "packetlib")
+        exclude("com.github.GeyserMC", "mcauthlib")
     }
 
     api("com.github.steveice10", "packetlib", Versions.packetlibVersion) {

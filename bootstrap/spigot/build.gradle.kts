@@ -1,6 +1,6 @@
 val paperVersion = "1.17.1-R0.1-SNAPSHOT" // Needed because we do not support Java 17 yet
 val viaVersion = "4.0.0"
-val adaptersVersion = "1.3-SNAPSHOT"
+val adaptersVersion = "1.4-SNAPSHOT"
 
 dependencies {
     api(projects.core)
