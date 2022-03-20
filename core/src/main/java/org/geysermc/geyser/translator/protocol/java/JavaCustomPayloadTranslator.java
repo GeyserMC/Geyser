@@ -102,8 +102,6 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
             transferPacket.setAddress(address);
             transferPacket.setPort(port);
             session.sendUpstreamPacket(transferPacket);
-        } else {
-            logger.warning("Unknown plugin message channel: " + channel);
         }
     }
 }
