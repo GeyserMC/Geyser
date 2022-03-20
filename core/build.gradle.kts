@@ -77,6 +77,13 @@ dependencies {
     annotationProcessor(projects.ap)
 }
 
+publishing {
+    publications.named<MavenPublication>("mavenJava") {
+        artifact(tasks["jar"])
+        artifact(tasks["sourcesJar"])
+    }
+}
+
 configure<BlossomExtension> {
     val indra = the<IndraGitExtension>()
 
