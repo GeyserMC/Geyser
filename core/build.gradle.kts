@@ -1,8 +1,6 @@
 import net.kyori.indra.git.IndraGitExtension
 import net.kyori.blossom.BlossomExtension
 
-import java.io.ByteArrayOutputStream
-
 plugins {
     id("net.kyori.blossom")
     id("net.kyori.indra.git")
@@ -74,7 +72,7 @@ dependencies {
     testImplementation("junit", "junit", Versions.junitVersion)
 
     // Annotation Processors
-    api(projects.ap)
+    compileOnly(projects.ap)
 
     annotationProcessor(projects.ap)
 }
