@@ -39,6 +39,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -167,7 +168,11 @@ public class ClassProcessor extends AbstractProcessor {
         FileObject obj = this.processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, "", this.annotationClassName);
         if (obj != null) {
             this.processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "Reading existing " + this.annotationClassName + " list from " + obj.toUri());
-            return new BufferedReader(obj.openReader(false));
+            try {
+                return new BufferedReader(obj.openReader(false));
+            } catch (NoSuchFileException ignored) {
+                return null;
+            }
         }
         return null;
     }
