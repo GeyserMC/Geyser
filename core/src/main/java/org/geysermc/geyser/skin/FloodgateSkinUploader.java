@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Getter;
+import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;
@@ -47,8 +48,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
-
-import static org.geysermc.geyser.util.PluginMessageUtils.getSkinChannel;
 
 public final class FloodgateSkinUploader {
     private final ObjectMapper JACKSON = new ObjectMapper();
@@ -126,7 +125,7 @@ public final class FloodgateSkinUploader {
 
                                 byte[] bytes = (value + '\0' + signature)
                                         .getBytes(StandardCharsets.UTF_8);
-                                PluginMessageUtils.sendMessage(session, getSkinChannel(), bytes);
+                                PluginMessageUtils.sendMessage(session, PluginMessageChannels.SKIN, bytes);
                             }
                             break;
                         case LOG_MESSAGE:
