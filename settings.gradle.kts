@@ -32,6 +32,11 @@ dependencyResolutionManagement {
         mavenLocal()
         mavenCentral()
 
+        // ViaVersion
+        maven("https://repo.viaversion.com") {
+            name = "viaversion"
+        }
+
         maven("https://jitpack.io") {
             content { includeGroupByRegex("com\\.github\\..*") }
         }
