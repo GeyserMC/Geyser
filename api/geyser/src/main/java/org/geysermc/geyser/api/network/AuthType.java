@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.api.network;
 
-import lombok.Getter;
-
-@Getter
 public enum AuthType {
     OFFLINE,
     ONLINE,
