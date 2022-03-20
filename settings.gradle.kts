@@ -37,6 +37,9 @@ dependencyResolutionManagement {
             name = "viaversion"
         }
 
+        // Sponge
+        maven("https://repo.spongepowered.org/repository/maven-public/")
+
         maven("https://jitpack.io") {
             content { includeGroupByRegex("com\\.github\\..*") }
         }
