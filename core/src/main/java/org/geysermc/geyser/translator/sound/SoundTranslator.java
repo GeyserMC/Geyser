@@ -55,17 +55,6 @@ public @interface SoundTranslator {
     String[] items() default {};
 
     /**
-     * The identifier(s) that the interacted entity must have.
-     * Leave empty to ignore.
-     *
-     * Only applies to interaction handlers that are an
-     * instance of {@link EntitySoundInteractionTranslator}.
-     *
-     * @return the value the item in the player's hand must contain
-     */
-    String[] entities() default {};
-
-    /**
      * Controls if the interaction should still be
      * called even if the player is sneaking while
      * holding something in their hand.

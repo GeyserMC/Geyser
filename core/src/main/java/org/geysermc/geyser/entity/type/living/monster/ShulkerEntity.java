@@ -65,4 +65,9 @@ public class ShulkerEntity extends GolemEntity {
             dirtyMetadata.put(EntityData.VARIANT, Math.abs(color - 15));
         }
     }
+
+    @Override
+    protected boolean isEnemy() {
+        return true;
+    }
 }

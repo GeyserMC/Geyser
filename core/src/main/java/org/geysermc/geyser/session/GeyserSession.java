@@ -26,7 +26,6 @@
 package org.geysermc.geyser.session;
 
 import com.github.steveice10.mc.auth.data.GameProfile;
-import com.github.steveice10.mc.auth.exception.request.AuthPendingException;
 import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
 import com.github.steveice10.mc.auth.service.AuthenticationService;
@@ -39,7 +38,6 @@ import com.github.steveice10.mc.protocol.data.UnexpectedEncryptionException;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.entity.player.HandPreference;
-import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.setting.ChatVisibility;
 import com.github.steveice10.mc.protocol.data.game.setting.SkinPart;
 import com.github.steveice10.mc.protocol.data.game.statistic.CustomStatistic;
@@ -85,7 +83,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
-import org.geysermc.geyser.entity.InteractiveTagManager;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -94,6 +91,7 @@ import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
+import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.netty.LocalSession;
@@ -114,13 +112,13 @@ import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MathUtils;
 
+import javax.annotation.Nonnull;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -128,13 +126,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Getter
 public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
-    private final GeyserImpl geyser;
-    private final UpstreamSession upstream;
+    private final @Nonnull GeyserImpl geyser;
+    private final @Nonnull UpstreamSession upstream;
     /**
      * The loop where all packets and ticking is processed to prevent concurrency issues.
      * If this is manually called, ensure that any exceptions are properly handled.
      */
-    private final EventLoop eventLoop;
+    private final @Nonnull EventLoop eventLoop;
     private TcpSession downstream;
     @Setter
     private AuthData authData;
@@ -350,7 +348,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private Entity mouseoverEntity;
 
     @Setter
-    private Int2ObjectMap<Recipe> craftingRecipes;
+    private Int2ObjectMap<GeyserRecipe> craftingRecipes;
     private final Set<String> unlockedRecipes;
     private final AtomicInteger lastRecipeNetId;
 
@@ -361,6 +359,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private Int2ObjectMap<IntList> stonecutterRecipes;
 
+    /**
+     * Whether to work around 1.13's different behavior in villager trading menus.
+     */
+    @Setter
+    private boolean emulatePost1_14Logic = true;
     /**
      * Starting in 1.17, Java servers expect the <code>carriedItem</code> parameter of the serverbound click container
      * packet to be the current contents of the mouse after the transaction has been done. 1.16 expects the clicked slot
@@ -443,6 +446,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * If the current player is flying
      */
     private boolean flying = false;
+
+    @Setter
+    private boolean instabuild = false;
 
     /**
      * Caches current rain status.
@@ -542,11 +548,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         bedrockServerSession.addDisconnectHandler(disconnectReason -> {
-            InetAddress address = bedrockServerSession.getRealAddress().getAddress();
-            geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, disconnectReason));
+            String message = switch (disconnectReason) {
+                // A generic message that just means the player quit normally.
+                case CLOSED_BY_REMOTE_PEER -> GeyserLocale.getLocaleStringLog("geyser.network.disconnect.closed_by_remote_peer");
+                case TIMED_OUT -> GeyserLocale.getLocaleStringLog("geyser.network.disconnect.timed_out");
+                default -> disconnectReason.name();
+            };
 
-            disconnect(disconnectReason.name());
-            geyser.getSessionManager().removeSession(this);
+            disconnect(message);
         });
 
         this.remoteAddress = geyser.getConfig().getRemote().getAddress();
@@ -632,7 +641,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         loggingIn = true;
 
         // Use a future to prevent timeouts as all the authentication is handled sync
-        // This will be changed with the new protocol library.
         CompletableFuture.supplyAsync(() -> {
             try {
                 if (password != null && !password.isEmpty()) {
@@ -689,10 +697,58 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         });
     }
 
+    public void authenticateWithRefreshToken(String refreshToken) {
+        if (loggedIn) {
+            geyser.getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", getAuthData().name()));
+            return;
+        }
+
+        loggingIn = true;
+
+        CompletableFuture.supplyAsync(() -> {
+            MsaAuthenticationService service = new MsaAuthenticationService(GeyserImpl.OAUTH_CLIENT_ID);
+            service.setRefreshToken(refreshToken);
+            try {
+                service.login();
+            } catch (RequestException e) {
+                geyser.getLogger().error("Error while attempting to use refresh token for " + name() + "!", e);
+                return Boolean.FALSE;
+            }
+
+            GameProfile profile = service.getSelectedProfile();
+            if (profile == null) {
+                // Java account is offline
+                disconnect(GeyserLocale.getPlayerLocaleString("geyser.network.remote.invalid_account", clientData.getLanguageCode()));
+                return null;
+            }
+
+            protocol = new MinecraftProtocol(profile, service.getAccessToken());
+            geyser.saveRefreshToken(name(), service.getRefreshToken());
+            return Boolean.TRUE;
+        }).whenComplete((successful, ex) -> {
+            if (this.closed) {
+                return;
+            }
+            if (successful == Boolean.FALSE) {
+                // The player is waiting for a spawn packet, so let's spawn them in now to show them forms
+                connect();
+                // Will be cached for after login
+                LoginEncryptionUtils.buildAndShowTokenExpiredWindow(this);
+                return;
+            }
+
+            connectDownstream();
+        });
+    }
+
+    public void authenticateWithMicrosoftCode() {
+        authenticateWithMicrosoftCode(false);
+    }
+
     /**
      * Present a form window to the user asking to log in with another web browser
      */
-    public void authenticateWithMicrosoftCode() {
+    public void authenticateWithMicrosoftCode(boolean offlineAccess) {
         if (loggedIn) {
             geyser.getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", getAuthData().name()));
             return;
@@ -705,65 +761,64 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         packet.setTime(16000);
         sendUpstreamPacket(packet);
 
-        // new thread so clients don't timeout
-        MsaAuthenticationService msaAuthenticationService = new MsaAuthenticationService(GeyserImpl.OAUTH_CLIENT_ID);
+        final PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getOrCreateTask(
+                getAuthData().xuid()
+        );
+        task.setOnline(true);
+        task.resetTimer();
 
-        // Use a future to prevent timeouts as all the authentication is handled sync
-        // This will be changed with the new protocol library.
-        CompletableFuture.supplyAsync(() -> {
-            try {
-                return msaAuthenticationService.getAuthCode();
-            } catch (RequestException e) {
-                throw new CompletionException(e);
-            }
-        }).whenComplete((response, ex) -> {
-            if (ex != null) {
-                ex.printStackTrace();
-                disconnect(ex.toString());
-                return;
-            }
-            LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
-            attemptCodeAuthentication(msaAuthenticationService);
-        });
+        if (task.getAuthentication().isDone()) {
+            onMicrosoftLoginComplete(task);
+        } else {
+            task.getCode(offlineAccess).whenComplete((response, ex) -> {
+                boolean connected = !closed;
+                if (ex != null) {
+                    if (connected) {
+                        geyser.getLogger().error("Failed to get Microsoft auth code", ex);
+                        disconnect(ex.toString());
+                    }
+                    task.cleanup(); // error getting auth code -> clean up immediately
+                } else if (connected) {
+                    LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, response);
+                    task.getAuthentication().whenComplete((r, $) -> onMicrosoftLoginComplete(task));
+                }
+            });
+        }
     }
 
     /**
-     * Poll every second to see if the user has successfully signed in
+     * If successful, also begins connecting to the Java server.
      */
-    private void attemptCodeAuthentication(MsaAuthenticationService msaAuthenticationService) {
-        if (loggedIn || closed) {
-            return;
+    public boolean onMicrosoftLoginComplete(PendingMicrosoftAuthentication.AuthenticationTask task) {
+        if (closed) {
+            return false;
         }
-        CompletableFuture.supplyAsync(() -> {
-            try {
-                msaAuthenticationService.login();
-                GameProfile profile = msaAuthenticationService.getSelectedProfile();
-                if (profile == null) {
-                    // Java account is offline
-                    disconnect(GeyserLocale.getPlayerLocaleString("geyser.network.remote.invalid_account", clientData.getLanguageCode()));
-                    return null;
-                }
-
-                return new MinecraftProtocol(profile, msaAuthenticationService.getAccessToken());
-            } catch (RequestException e) {
-                throw new CompletionException(e);
-            }
-        }).whenComplete((response, ex) -> {
-            if (ex != null) {
-                if (!(ex instanceof CompletionException completionException) || !(completionException.getCause() instanceof AuthPendingException)) {
-                    geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
-                    disconnect(ex.toString());
-                } else {
-                    // Wait one second before trying again
-                    geyser.getScheduledThread().schedule(() -> attemptCodeAuthentication(msaAuthenticationService), 1, TimeUnit.SECONDS);
-                }
-                return;
-            }
-            if (!closed) {
-                this.protocol = response;
+        task.cleanup(); // player is online -> remove pending authentication immediately
+        Throwable ex = task.getLoginException();
+        if (ex != null) {
+            geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
+            disconnect(ex.toString());
+        } else {
+            MsaAuthenticationService service = task.getMsaAuthenticationService();
+            GameProfile selectedProfile = service.getSelectedProfile();
+            if (selectedProfile == null) {
+                disconnect(GeyserLocale.getPlayerLocaleString(
+                        "geyser.network.remote.invalid_account",
+                        clientData.getLanguageCode()
+                ));
+            } else {
+                this.protocol = new MinecraftProtocol(
+                        selectedProfile,
+                        service.getAccessToken()
+                );
                 connectDownstream();
+
+                // Save our refresh token for later use
+                geyser.saveRefreshToken(name(), service.getRefreshToken());
+                return true;
             }
-        });
+        }
+        return false;
     }
 
     /**
@@ -958,10 +1013,21 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             loggedIn = false;
             if (downstream != null) {
                 downstream.disconnect(reason);
+            } else {
+                // Downstream's disconnect will fire an event that prints a log message
+                // Otherwise, we print a message here
+                InetAddress address = upstream.getAddress().getAddress();
+                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, reason));
             }
-            if (upstream != null && !upstream.isClosed()) {
-                geyser.getSessionManager().removeSession(this);
+            if (!upstream.isClosed()) {
                 upstream.disconnect(reason);
+            }
+            geyser.getSessionManager().removeSession(this);
+            if (authData != null) {
+                PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getTask(authData.xuid());
+                if (task != null) {
+                    task.setOnline(false);
+                }
             }
         }
 
@@ -1076,7 +1142,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         if (mouseoverEntity != null) {
             // Horses, etc can change their property depending on if you're sneaking
-            InteractiveTagManager.updateTag(this, mouseoverEntity);
+            mouseoverEntity.updateInteractiveTag();
         }
     }
 
@@ -1524,6 +1590,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
         PlayerFogPacket packet = new PlayerFogPacket();
         packet.getFogStack().addAll(this.fogNameSpaces);
+        sendUpstreamPacket(packet);
+    }
+
+    public boolean canUseCommandBlocks() {
+        return instabuild && opPermissionLevel >= 2;
+    }
+
+    public void playSoundEvent(SoundEvent sound, Vector3f position) {
+        LevelSoundEvent2Packet packet = new LevelSoundEvent2Packet();
+        packet.setPosition(position);
+        packet.setSound(sound);
+        packet.setIdentifier(":");
+        packet.setExtraData(-1);
         sendUpstreamPacket(packet);
     }
 }

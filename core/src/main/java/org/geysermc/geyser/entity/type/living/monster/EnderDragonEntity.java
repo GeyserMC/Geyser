@@ -151,6 +151,11 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
     }
 
     @Override
+    protected boolean isEnemy() {
+        return true;
+    }
+
+    @Override
     public void tick() {
         effectTick();
         if (!getFlag(EntityFlag.NO_AI) && isAlive()) {
@@ -286,10 +291,6 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
         playSoundPacket.setVolume(2.5f);
         playSoundPacket.setPitch(0.8f + random.nextFloat() * 0.3f);
         session.sendUpstreamPacket(playSoundPacket);
-    }
-
-    private boolean isAlive() {
-        return health > 0;
     }
 
     private boolean isHovering() {

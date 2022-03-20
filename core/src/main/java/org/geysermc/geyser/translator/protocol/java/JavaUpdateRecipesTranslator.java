@@ -42,6 +42,9 @@ import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
 import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -80,7 +83,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
 
         boolean applySmithingRecipes = session.getUpstream().getProtocolVersion() >= Bedrock_v486.V486_CODEC.getProtocolVersion();
 
-        Int2ObjectMap<Recipe> recipeMap = new Int2ObjectOpenHashMap<>(Registries.RECIPES.forVersion(session.getUpstream().getProtocolVersion()));
+        Int2ObjectMap<GeyserRecipe> recipeMap = new Int2ObjectOpenHashMap<>(Registries.RECIPES.forVersion(session.getUpstream().getProtocolVersion()));
         Int2ObjectMap<List<StoneCuttingRecipeData>> unsortedStonecutterData = new Int2ObjectOpenHashMap<>();
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
@@ -100,7 +103,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                         UUID uuid = UUID.randomUUID();
                         craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
                                 Arrays.asList(inputs), Collections.singletonList(output), uuid, "crafting_table", 0, netId));
-                        recipeMap.put(netId++, recipe);
+                        recipeMap.put(netId++, new GeyserShapelessRecipe(shapelessRecipeData));
                     }
                 }
                 case CRAFTING_SHAPED -> {
@@ -118,7 +121,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                         craftingDataPacket.getCraftingData().add(CraftingData.fromShaped(uuid.toString(),
                                 shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), Arrays.asList(inputs),
                                 Collections.singletonList(output), uuid, "crafting_table", 0, netId));
-                        recipeMap.put(netId++, recipe);
+                        recipeMap.put(netId++, new GeyserShapedRecipe(shapedRecipeData));
                     }
                 }
                 case STONECUTTING -> {

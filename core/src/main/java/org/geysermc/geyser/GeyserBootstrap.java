@@ -98,6 +98,13 @@ public interface GeyserBootstrap {
     Path getConfigFolder();
 
     /**
+     * @return the folder where user tokens are saved. This should always point to the location of the config.
+     */
+    default Path getSavedUserLoginsFolder() {
+        return getConfigFolder();
+    }
+
+    /**
      * Information used for the bootstrap section of the debug dump
      *
      * @return The info about the bootstrap

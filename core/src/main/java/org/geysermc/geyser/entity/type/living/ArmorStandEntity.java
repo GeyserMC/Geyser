@@ -28,6 +28,8 @@ package org.geysermc.geyser.entity.type.living;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Rotation;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -39,6 +41,7 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.InteractionResult;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -234,6 +237,16 @@ public class ArmorStandEntity extends LivingEntity {
         if (primaryEntity) {
             isInvisible = value;
             updateSecondEntityStatus(false);
+        }
+    }
+
+    @Override
+    public InteractionResult interactAt(Hand hand) {
+        if (!isMarker && session.getPlayerInventory().getItemInHand(hand).getJavaId() != session.getItemMappings().getStoredItems().nameTag()) {
+            // Java Edition returns SUCCESS if in spectator mode, but this is overrided with an earlier check on the client
+            return InteractionResult.CONSUME;
+        } else {
+            return InteractionResult.PASS;
         }
     }
 

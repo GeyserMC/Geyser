@@ -27,9 +27,6 @@ package org.geysermc.geyser.translator.protocol.java.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
-import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
-import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetSlotPacket;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
@@ -38,6 +35,7 @@ import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.inventory.PlayerInventoryTranslator;
@@ -165,9 +163,8 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                 }
             }
 
-            ShapedRecipeData data = new ShapedRecipeData(width, height, "", javaIngredients, item);
             // Cache this recipe so we know the client has received it
-            session.getCraftingRecipes().put(newRecipeId, new Recipe(RecipeType.CRAFTING_SHAPED, uuid.toString(), data));
+            session.getCraftingRecipes().put(newRecipeId, new GeyserShapedRecipe(width, height, javaIngredients, item));
 
             CraftingDataPacket craftPacket = new CraftingDataPacket();
             craftPacket.getCraftingData().add(CraftingData.fromShaped(

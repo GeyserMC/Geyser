@@ -35,6 +35,6 @@ public class JavaUpdateTagsTranslator extends PacketTranslator<ClientboundUpdate
 
     @Override
     public void translate(GeyserSession session, ClientboundUpdateTagsPacket packet) {
-        session.getTagCache().loadPacket(packet);
+        session.getTagCache().loadPacket(session, packet);
     }
 }

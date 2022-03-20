@@ -26,9 +26,12 @@
 package org.geysermc.geyser.entity.type.living.animal.horse;
 
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class ChestedHorseEntity extends AbstractHorseEntity {
@@ -40,5 +43,22 @@ public class ChestedHorseEntity extends AbstractHorseEntity {
     @Override
     protected int getContainerBaseSize() {
         return 16;
+    }
+
+    @Override
+    protected boolean testSaddle(@Nonnull GeyserItemStack itemInHand) {
+        // Not checked here
+        return false;
+    }
+
+    @Override
+    protected boolean testForChest(@Nonnull GeyserItemStack itemInHand) {
+        return itemInHand.getJavaId() == session.getItemMappings().getStoredItems().chest() && !getFlag(EntityFlag.CHESTED);
+    }
+
+    @Override
+    protected boolean additionalTestForInventoryOpen(@Nonnull GeyserItemStack itemInHand) {
+        // Armor won't work on these
+        return false;
     }
 }
