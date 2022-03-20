@@ -28,7 +28,10 @@ package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.*;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.*;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
@@ -39,10 +42,8 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
-import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -105,38 +106,13 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 ServerboundPlayerCommandPacket startSneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.sendDownstreamPacket(startSneakPacket);
 
-                // Toggle the shield, if relevant
-                PlayerInventory playerInv = session.getPlayerInventory();
-                ItemMapping shield = session.getItemMappings().getMapping("minecraft:shield");
-                if ((playerInv.getItemInHand().getJavaId() == shield.getJavaId()) ||
-                        (playerInv.getOffhand().getJavaId() == shield.getJavaId())) {
-                    ServerboundUseItemPacket useItemPacket;
-                    if (playerInv.getItemInHand().getJavaId() == shield.getJavaId()) {
-                        useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND);
-                    } else {
-                        // Else we just assume it's the offhand, to simplify logic and to assure the packet gets sent
-                        useItemPacket = new ServerboundUseItemPacket(Hand.OFF_HAND);
-                    }
-                    session.sendDownstreamPacket(useItemPacket);
-                    session.getPlayerEntity().setFlag(EntityFlag.BLOCKING, true);
-                    // metadata will be updated when sneaking
-                }
-
-                session.setSneaking(true);
+                session.startSneaking();
                 break;
             case STOP_SNEAK:
                 ServerboundPlayerCommandPacket stopSneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SNEAKING);
                 session.sendDownstreamPacket(stopSneakPacket);
 
-                // Stop shield, if necessary
-                if (session.getPlayerEntity().getFlag(EntityFlag.BLOCKING)) {
-                    ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, BlockUtils.POSITION_ZERO, Direction.DOWN);
-                    session.sendDownstreamPacket(releaseItemPacket);
-                    session.getPlayerEntity().setFlag(EntityFlag.BLOCKING, false);
-                    // metadata will be updated when sneaking
-                }
-
-                session.setSneaking(false);
+                session.stopSneaking();
                 break;
             case START_SPRINT:
                 if (!entity.getFlag(EntityFlag.SWIMMING)) {

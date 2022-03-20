@@ -100,7 +100,7 @@ public class GeyserSession {
     }
 
     public void login() {
-        this.handle.login();
+        throw new UnsupportedOperationException();
     }
 
     public void authenticate(String username) {
@@ -120,7 +120,7 @@ public class GeyserSession {
     }
 
     public void close() {
-        this.handle.close();
+        throw new UnsupportedOperationException();
     }
 
     public void executeInEventLoop(Runnable runnable) {

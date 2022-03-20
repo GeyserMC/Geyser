@@ -29,6 +29,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCu
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCustomPayloadPacket;
 import com.google.common.base.Charsets;
 import com.nukkitx.protocol.bedrock.packet.TransferPacket;
+import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.auth.AuthType;
@@ -54,7 +55,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
 
         String channel = packet.getChannel();
 
-        if (channel.equals("floodgate:form")) {
+        if (channel.equals(PluginMessageChannels.FORM)) {
             byte[] data = packet.getData();
 
             // receive: first byte is form type, second and third are the id, remaining is the form data
@@ -81,7 +82,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
             });
             session.sendForm(form);
 
-        } else if (channel.equals("floodgate:transfer")) {
+        } else if (channel.equals(PluginMessageChannels.TRANSFER)) {
             byte[] data = packet.getData();
 
             // port, 4 bytes. remaining data, address.

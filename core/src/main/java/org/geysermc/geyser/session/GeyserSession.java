@@ -36,8 +36,11 @@ import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.ProtocolState;
 import com.github.steveice10.mc.protocol.data.UnexpectedEncryptionException;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
+import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.HandPreference;
+import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.data.game.setting.ChatVisibility;
 import com.github.steveice10.mc.protocol.data.game.setting.SkinPart;
 import com.github.steveice10.mc.protocol.data.game.statistic.CustomStatistic;
@@ -46,6 +49,8 @@ import com.github.steveice10.mc.protocol.packet.handshake.serverbound.ClientInte
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientInformationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
 import com.github.steveice10.mc.protocol.packet.login.serverbound.ServerboundCustomQueryPacket;
 import com.github.steveice10.packetlib.BuiltinFlags;
 import com.github.steveice10.packetlib.Session;
@@ -73,6 +78,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.common.PlatformType;
 import org.geysermc.cumulus.Form;
 import org.geysermc.cumulus.util.FormBuilder;
@@ -97,6 +103,7 @@ import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.AuthType;
@@ -107,10 +114,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.util.ChunkUtils;
-import org.geysermc.geyser.util.DimensionUtils;
-import org.geysermc.geyser.util.LoginEncryptionUtils;
-import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.geyser.util.*;
 
 import javax.annotation.Nonnull;
 import java.net.ConnectException;
@@ -349,7 +353,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Setter
     private Int2ObjectMap<GeyserRecipe> craftingRecipes;
-    private final Set<String> unlockedRecipes;
     private final AtomicInteger lastRecipeNetId;
 
     /**
@@ -422,6 +425,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private long lastVehicleMoveTimestamp = System.currentTimeMillis();
+
+    /**
+     * Counts how many ticks have occurred since an arm animation started.
+     * -1 means there is no active arm swing.
+     */
+    @Getter(AccessLevel.NONE)
+    private int armAnimationTicks = -1;
 
     /**
      * Controls whether the daylight cycle gamerule has been sent to the client, so the sun/moon remain motionless.
@@ -527,7 +537,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.playerInventory = new PlayerInventory();
         this.openInventory = null;
         this.craftingRecipes = new Int2ObjectOpenHashMap<>();
-        this.unlockedRecipes = new ObjectOpenHashSet<>();
         this.lastRecipeNetId = new AtomicInteger(1);
 
         this.spawned = false;
@@ -615,17 +624,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Ensure client doesn't try and do anything funky; the server handles this for us
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
         upstream.sendPacket(gamerulePacket);
-    }
-
-    public void login() {
-        if (this.remoteAuthType != AuthType.ONLINE) {
-            if (this.remoteAuthType == AuthType.OFFLINE) {
-                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.auth.login.offline"));
-            } else {
-                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.auth.login.floodgate"));
-            }
-            authenticate(authData.name());
-        }
     }
 
     public void authenticate(String username) {
@@ -1038,10 +1036,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         closed = true;
     }
 
-    public void close() {
-        disconnect(GeyserLocale.getPlayerLocaleString("geyser.network.close", getClientData().getLanguageCode()));
-    }
-
     /**
      * Executes a task and prints a stack trace if an error occurs.
      */
@@ -1109,6 +1103,34 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             for (Tickable entity : entityCache.getTickableEntities()) {
                 entity.tick();
             }
+
+            if (armAnimationTicks != -1) {
+                // As of 1.18.2 Java Edition, it appears that the swing time is dynamically updated depending on the
+                // player's effect status, but the animation can cut short if the duration suddenly decreases
+                // (from suddenly no longer having mining fatigue, for example)
+                // This math is referenced from Java Edition 1.18.2
+                int swingTotalDuration;
+                int hasteLevel = Math.max(effectCache.getHaste(), effectCache.getConduitPower());
+                if (hasteLevel > 0) {
+                    swingTotalDuration = 6 - hasteLevel;
+                } else {
+                    int miningFatigueLevel = effectCache.getMiningFatigue();
+                    if (miningFatigueLevel > 0) {
+                        swingTotalDuration = 6 + miningFatigueLevel * 2;
+                    } else {
+                        swingTotalDuration = 6;
+                    }
+                }
+                if (++armAnimationTicks >= swingTotalDuration) {
+                    if (sneaking) {
+                        // Attempt to re-activate blocking as our swing animation is up
+                        if (attemptToBlock()) {
+                            playerEntity.updateBedrockMetadata();
+                        }
+                    }
+                    armAnimationTicks = -1;
+                }
+            }
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
@@ -1118,7 +1140,23 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.authData = authData;
     }
 
-    public void setSneaking(boolean sneaking) {
+    public void startSneaking() {
+        // Toggle the shield, if there is no ongoing arm animation
+        // This matches Bedrock Edition behavior as of 1.18.12
+        if (armAnimationTicks == -1) {
+            attemptToBlock();
+        }
+
+        setSneaking(true);
+    }
+
+    public void stopSneaking() {
+        disableBlocking();
+
+        setSneaking(false);
+    }
+
+    private void setSneaking(boolean sneaking) {
         this.sneaking = sneaking;
 
         // Update pose and bounding box on our end
@@ -1204,6 +1242,54 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
+     * Checks to see if a shield is in either hand to activate blocking. If so, it sets the Bedrock client to display
+     * blocking and sends a packet to the Java server.
+     */
+    private boolean attemptToBlock() {
+        ItemMapping shield = itemMappings.getStoredItems().shield();
+
+        ServerboundUseItemPacket useItemPacket;
+        if (playerInventory.getItemInHand().getJavaId() == shield.getJavaId()) {
+            useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND);
+        } else if (playerInventory.getOffhand().getJavaId() == shield.getJavaId()) {
+            useItemPacket = new ServerboundUseItemPacket(Hand.OFF_HAND);
+        } else {
+            // No blocking
+            return false;
+        }
+
+        sendDownstreamPacket(useItemPacket);
+        playerEntity.setFlag(EntityFlag.BLOCKING, true);
+        // Metadata should be updated later
+        return true;
+    }
+
+    /**
+     * Starts ticking the amount of time that the Bedrock client has been swinging their arm, and disables blocking if
+     * blocking.
+     */
+    public void activateArmAnimationTicking() {
+        armAnimationTicks = 0;
+        if (disableBlocking()) {
+            playerEntity.updateBedrockMetadata();
+        }
+    }
+
+    /**
+     * Indicates to the client to stop blocking and tells the Java server the same.
+     */
+    private boolean disableBlocking() {
+        if (playerEntity.getFlag(EntityFlag.BLOCKING)) {
+            ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM,
+                    BlockUtils.POSITION_ZERO, Direction.DOWN);
+            sendDownstreamPacket(releaseItemPacket);
+            playerEntity.setFlag(EntityFlag.BLOCKING, false);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Will be overwritten for GeyserConnect.
      */
     protected void disableSrvResolving() {
@@ -1223,6 +1309,21 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public String xuid() {
         return authData.xuid();
+    }
+
+    @SuppressWarnings("ConstantConditions") // Need to enforce the parameter annotations
+    @Override
+    public boolean transfer(@NonNull String address, @IntRange(from = 0, to = 65535) int port) {
+        if (address == null || address.isBlank()) {
+            throw new IllegalArgumentException("Server address cannot be null or blank");
+        } else if (port < 0 || port > 65535) {
+            throw new IllegalArgumentException("Server port must be between 0 and 65535, was " + port);
+        }
+        TransferPacket transferPacket = new TransferPacket();
+        transferPacket.setAddress(address);
+        transferPacket.setPort(port);
+        sendUpstreamPacket(transferPacket);
+        return true;
     }
 
     @Override

@@ -23,31 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java;
+package org.geysermc.floodgate.pluginmessage;
 
-import com.github.steveice10.mc.protocol.data.game.UnlockRecipesAction;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundRecipePacket;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
+import com.google.common.base.Charsets;
 
-import java.util.Collections;
+public final class PluginMessageChannels {
+    public static final String SKIN = "floodgate:skin";
+    public static final String FORM = "floodgate:form";
+    public static final String TRANSFER = "floodgate:transfer";
 
-/**
- * Used to list recipes that we can definitely use the recipe book for (and therefore save on packet usage)
- */
-@Translator(packet = ClientboundRecipePacket.class)
-public class JavaRecipeTranslator extends PacketTranslator<ClientboundRecipePacket> {
+    private static final byte[] FLOODGATE_REGISTER_DATA = String.join("\0", SKIN, FORM, TRANSFER).getBytes(Charsets.UTF_8);
 
-    @Override
-    public void translate(GeyserSession session, ClientboundRecipePacket packet) {
-        if (packet.getAction() == UnlockRecipesAction.REMOVE) {
-            for (String identifier : packet.getRecipes()) {
-                session.getUnlockedRecipes().remove(identifier);
-            }
-        } else {
-            Collections.addAll(session.getUnlockedRecipes(), packet.getRecipes());
-        }
+    /**
+     * Get the prebuilt register data as a byte array
+     *
+     * @return the register data of the Floodgate channels
+     */
+    public static byte[] getFloodgateRegisterData() {
+        return FLOODGATE_REGISTER_DATA;
     }
 }
-
