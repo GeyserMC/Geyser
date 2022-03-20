@@ -56,11 +56,11 @@ public class GeyserSession {
     }
 
     public String getRemoteAddress() {
-        return this.handle.getRemoteAddress();
+        return this.handle.remoteServer().address();
     }
 
     public int getRemotePort() {
-        return this.handle.getRemotePort();
+        return this.handle.remoteServer().port();
     }
 
     public int getRenderDistance() {

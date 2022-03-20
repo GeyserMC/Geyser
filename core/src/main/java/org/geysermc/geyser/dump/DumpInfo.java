@@ -40,7 +40,7 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
-import org.geysermc.geyser.network.MinecraftProtocol;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.WebUtils;
@@ -216,11 +216,11 @@ public class DumpInfo {
         private final int javaProtocol;
 
         MCInfo() {
-            this.bedrockVersions = MinecraftProtocol.SUPPORTED_BEDROCK_CODECS.stream().map(BedrockPacketCodec::getMinecraftVersion).toList();
-            this.bedrockProtocols = MinecraftProtocol.SUPPORTED_BEDROCK_CODECS.stream().map(BedrockPacketCodec::getProtocolVersion).toList();
-            this.defaultBedrockProtocol = MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion();
-            this.javaVersions = MinecraftProtocol.getJavaVersions();
-            this.javaProtocol = MinecraftProtocol.getJavaProtocolVersion();
+            this.bedrockVersions = GameProtocol.SUPPORTED_BEDROCK_CODECS.stream().map(BedrockPacketCodec::getMinecraftVersion).toList();
+            this.bedrockProtocols = GameProtocol.SUPPORTED_BEDROCK_CODECS.stream().map(BedrockPacketCodec::getProtocolVersion).toList();
+            this.defaultBedrockProtocol = GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion();
+            this.javaVersions = GameProtocol.getJavaVersions();
+            this.javaProtocol = GameProtocol.getJavaProtocolVersion();
         }
     }
 

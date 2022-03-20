@@ -78,6 +78,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.common.PlatformType;
 import org.geysermc.cumulus.Form;
@@ -87,6 +88,7 @@ import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
@@ -106,7 +108,7 @@ import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.auth.AuthData;
-import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.session.cache.*;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
@@ -143,14 +145,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private BedrockClientData clientData;
 
-    /* Setter for GeyserConnect */
+    @Accessors(fluent = true)
     @Setter
-    private String remoteAddress;
-    @Setter
-    private int remotePort;
-    @Setter
-    private AuthType remoteAuthType;
-    /* Setter for GeyserConnect */
+    private RemoteServer remoteServer;
 
     @Deprecated
     @Setter
@@ -567,9 +564,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             disconnect(message);
         });
 
-        this.remoteAddress = geyser.getConfig().getRemote().getAddress();
-        this.remotePort = geyser.getConfig().getRemote().getPort();
-        this.remoteAuthType = geyser.getConfig().getRemote().getAuthType();
+        this.remoteServer = geyser.getRemoteServer();
     }
 
     /**
@@ -666,7 +661,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                     // However, this doesn't affect the final username as Floodgate is still in charge of that.
                     // So if you have (for example) replace spaces enabled on Floodgate the spaces will re-appear.
                     String validUsername = username;
-                    if (remoteAuthType == AuthType.FLOODGATE) {
+                    if (this.remoteServer.authType() == AuthType.HYBRID) {
                         validUsername = username.replace(' ', '_');
                     }
 
@@ -823,17 +818,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * After getting whatever credentials needed, we attempt to join the Java server.
      */
     private void connectDownstream() {
-        boolean floodgate = this.remoteAuthType == AuthType.FLOODGATE;
+        boolean floodgate = this.remoteServer.authType() == AuthType.HYBRID;
 
         // Start ticking
         tickThread = eventLoop.scheduleAtFixedRate(this::tick, 50, 50, TimeUnit.MILLISECONDS);
 
         if (geyser.getBootstrap().getSocketAddress() != null) {
             // We're going to connect through the JVM and not through TCP
-            downstream = new LocalSession(this.remoteAddress, this.remotePort,
+            downstream = new LocalSession(this.remoteServer.address(), this.remoteServer.port(),
                     geyser.getBootstrap().getSocketAddress(), upstream.getAddress().getAddress().getHostAddress(), this.protocol);
         } else {
-            downstream = new TcpClientSession(this.remoteAddress, this.remotePort, this.protocol);
+            downstream = new TcpClientSession(this.remoteServer.address(), this.remoteServer.port(), this.protocol);
             disableSrvResolving();
         }
 
@@ -913,13 +908,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 } else {
                     // Connected to an IP address
                     geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.remote.connect",
-                            authData.name(), protocol.getProfile().getName(), remoteAddress));
+                            authData.name(), protocol.getProfile().getName(), remoteServer.address()));
                 }
 
                 UUID uuid = protocol.getProfile().getId();
                 if (uuid == null) {
                     // Set what our UUID *probably* is going to be
-                    if (remoteAuthType == AuthType.FLOODGATE) {
+                    if (remoteServer.authType() == AuthType.HYBRID) {
                         uuid = new UUID(0, Long.parseLong(authData.xuid()));
                     } else {
                         uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + protocol.getProfile().getName()).getBytes(StandardCharsets.UTF_8));
@@ -949,7 +944,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 String disconnectMessage;
                 Throwable cause = event.getCause();
                 if (cause instanceof UnexpectedEncryptionException) {
-                    if (remoteAuthType != AuthType.FLOODGATE) {
+                    if (remoteServer.authType() != AuthType.HYBRID) {
                         // Server expects online mode
                         disconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.authentication_type_mismatch", locale());
                         // Explain that they may be looking for Floodgate.
@@ -976,7 +971,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 if (downstream instanceof LocalSession) {
                     geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.remote.disconnect_internal", authData.name(), disconnectMessage));
                 } else {
-                    geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.remote.disconnect", authData.name(), remoteAddress, disconnectMessage));
+                    geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.remote.disconnect", authData.name(), remoteServer.address(), disconnectMessage));
                 }
                 if (cause != null) {
                     cause.printStackTrace();

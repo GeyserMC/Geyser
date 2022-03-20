@@ -23,48 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.auth;
+package org.geysermc.geyser.network;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import lombok.Getter;
+import org.geysermc.geyser.api.network.AuthType;
+import org.geysermc.geyser.api.network.RemoteServer;
 
-import java.io.IOException;
-
-@Getter
-public enum AuthType {
-    OFFLINE,
-    ONLINE,
-    FLOODGATE;
-
-    public static final AuthType[] VALUES = values();
-
-    public static AuthType getById(int id) {
-        return id < VALUES.length ? VALUES[id] : OFFLINE;
-    }
-
-    /**
-     * Convert the AuthType string (from config) to the enum, ONLINE on fail
-     *
-     * @param name AuthType string
-     *
-     * @return The converted AuthType
-     */
-    public static AuthType getByName(String name) {
-        String upperCase = name.toUpperCase();
-        for (AuthType type : VALUES) {
-            if (type.name().equals(upperCase)) {
-                return type;
-            }
-        }
-        return ONLINE;
-    }
-
-    public static class Deserializer extends JsonDeserializer<AuthType> {
-        @Override
-        public AuthType deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-            return getByName(p.getValueAsString());
-        }
-    }
+public record RemoteServerImpl(String address, int port, int protocolVersion, String minecraftVersion, AuthType authType) implements RemoteServer {
 }

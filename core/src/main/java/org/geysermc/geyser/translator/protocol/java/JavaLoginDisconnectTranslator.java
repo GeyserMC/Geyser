@@ -30,7 +30,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.geysermc.common.PlatformType;
-import org.geysermc.geyser.network.MinecraftProtocol;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -79,7 +79,7 @@ public class JavaLoginDisconnectTranslator extends PacketTranslator<ClientboundL
             PlatformType platform = session.getGeyser().getPlatformType();
             String outdatedType = (platform == PlatformType.BUNGEECORD || platform == PlatformType.VELOCITY) ?
                     "geyser.network.remote.outdated.proxy" : "geyser.network.remote.outdated.server";
-            disconnectMessage = GeyserLocale.getPlayerLocaleString(outdatedType, locale, MinecraftProtocol.getJavaVersions().get(0)) + '\n'
+            disconnectMessage = GeyserLocale.getPlayerLocaleString(outdatedType, locale, GameProtocol.getJavaVersions().get(0)) + '\n'
                     + GeyserLocale.getPlayerLocaleString("geyser.network.remote.original_disconnect_message", locale, serverDisconnectMessage);
         } else {
             disconnectMessage = serverDisconnectMessage;

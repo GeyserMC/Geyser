@@ -37,7 +37,7 @@ import java.util.*;
 /**
  * Contains information about the supported protocols in Geyser.
  */
-public final class MinecraftProtocol {
+public final class GameProtocol {
     /**
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
@@ -104,6 +104,15 @@ public final class MinecraftProtocol {
     }
 
     /**
+     * Gets the supported Minecraft: Java Edition version.
+     *
+     * @return the supported Minecraft: Java Edition version
+     */
+    public static String getJavaMinecraftVersion() {
+        return DEFAULT_JAVA_CODEC.getMinecraftVersion();
+    }
+
+    /**
      * @return a string showing all supported Bedrock versions for this Geyser instance
      */
     public static String getAllSupportedBedrockVersions() {
@@ -127,6 +136,6 @@ public final class MinecraftProtocol {
         return joiner.toString();
     }
 
-    private MinecraftProtocol() {
+    private GameProtocol() {
     }
 }

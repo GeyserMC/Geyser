@@ -29,7 +29,7 @@ import com.viaversion.viaversion.api.Via;
 import org.bukkit.Bukkit;
 import org.bukkit.UnsafeValues;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.network.MinecraftProtocol;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.lang.reflect.InvocationTargetException;
@@ -48,7 +48,7 @@ public final class GeyserSpigotVersionChecker {
         try {
             // This method is only present on later versions of Paper
             UnsafeValues.class.getMethod("getProtocolVersion");
-            if (Bukkit.getUnsafe().getProtocolVersion() != MinecraftProtocol.getJavaProtocolVersion()) {
+            if (Bukkit.getUnsafe().getProtocolVersion() != GameProtocol.getJavaProtocolVersion()) {
                 sendOutdatedMessage(logger);
             }
             return;
@@ -82,7 +82,7 @@ public final class GeyserSpigotVersionChecker {
                     }
                     return;
                 }
-                if (protocolVersion != MinecraftProtocol.getJavaProtocolVersion()) {
+                if (protocolVersion != GameProtocol.getJavaProtocolVersion()) {
                     sendOutdatedMessage(logger);
                 }
                 return;
@@ -94,13 +94,13 @@ public final class GeyserSpigotVersionChecker {
     private static void checkViaVersionSupportedVersions(GeyserLogger logger) {
         // Run after ViaVersion has obtained the server protocol version
         Via.getPlatform().runSync(() -> {
-            if (Via.getAPI().getSupportedVersions().contains(MinecraftProtocol.getJavaProtocolVersion())) {
+            if (Via.getAPI().getSupportedVersions().contains(GameProtocol.getJavaProtocolVersion())) {
                 // Via supports this protocol version; we will be able to connect.
                 return;
             }
-            if (Via.getAPI().getFullSupportedVersions().contains(MinecraftProtocol.getJavaProtocolVersion())) {
+            if (Via.getAPI().getFullSupportedVersions().contains(GameProtocol.getJavaProtocolVersion())) {
                 // ViaVersion supports our protocol, but the user has blocked them from connecting.
-                logger.warning(GeyserLocale.getLocaleStringLog("geyser.bootstrap.viaversion.blocked", MinecraftProtocol.getAllSupportedJavaVersions()));
+                logger.warning(GeyserLocale.getLocaleStringLog("geyser.bootstrap.viaversion.blocked", GameProtocol.getAllSupportedJavaVersions()));
                 return;
             }
             // Else, presumably, ViaVersion is not updated.
@@ -114,7 +114,7 @@ public final class GeyserSpigotVersionChecker {
     }
 
     private static void sendOutdatedMessage(GeyserLogger logger) {
-        logger.warning(GeyserLocale.getLocaleStringLog("geyser.bootstrap.no_supported_protocol", MinecraftProtocol.getAllSupportedJavaVersions(), VIAVERSION_DOWNLOAD_URL));
+        logger.warning(GeyserLocale.getLocaleStringLog("geyser.bootstrap.no_supported_protocol", GameProtocol.getAllSupportedJavaVersions(), VIAVERSION_DOWNLOAD_URL));
     }
 
     private GeyserSpigotVersionChecker() {

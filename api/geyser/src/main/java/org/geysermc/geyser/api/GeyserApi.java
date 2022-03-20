@@ -33,6 +33,7 @@ import org.geysermc.geyser.api.command.CommandManager;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.extension.ExtensionManager;
+import org.geysermc.geyser.api.network.RemoteServer;
 
 import java.util.List;
 import java.util.UUID;
@@ -104,6 +105,14 @@ public interface GeyserApi extends GeyserApiBase {
      * @return the event bus
      */
     EventBus eventBus();
+
+    /**
+     * Get's the default {@link RemoteServer} configured
+     * within the config file that is used by default.
+     *
+     * @return the default remote server used within Geyser
+     */
+    RemoteServer getDefaultRemoteServer();
 
     /**
      * Gets the current {@link GeyserApiBase} instance.

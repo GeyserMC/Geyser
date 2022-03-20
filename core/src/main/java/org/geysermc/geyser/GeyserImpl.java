@@ -55,6 +55,7 @@ import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
+import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
@@ -62,6 +63,8 @@ import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.ConnectorServerEventHandler;
+import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.network.RemoteServerImpl;
 import org.geysermc.geyser.pack.ResourcePack;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -69,7 +72,7 @@ import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.session.SessionManager;
-import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -83,7 +86,6 @@ import javax.naming.directory.InitialDirContext;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -141,6 +143,8 @@ public class GeyserImpl implements GeyserApi {
 
     private final EventBus eventBus;
     private final GeyserExtensionManager extensionManager;
+
+    private final RemoteServer remoteServer;
 
     private Metrics metrics;
 
@@ -200,6 +204,14 @@ public class GeyserImpl implements GeyserApi {
             }
         }
 
+        this.remoteServer = new RemoteServerImpl(
+                config.getRemote().getAddress(),
+                config.getRemote().getPort(),
+                GameProtocol.getJavaProtocolVersion(),
+                GameProtocol.getJavaMinecraftVersion(),
+                config.getRemote().getAuthType()
+        );
+
         double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
         String message = GeyserLocale.getLocaleStringLog("geyser.core.finish.done", new DecimalFormat("#.###").format(completeTime)) + " ";
         if (isGui) {
@@ -212,7 +224,7 @@ public class GeyserImpl implements GeyserApi {
 
         if (platformType == PlatformType.STANDALONE) {
             logger.warning(GeyserLocale.getLocaleStringLog("geyser.core.movement_warn"));
-        } else if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
+        } else if (config.getRemote().getAuthType() == AuthType.HYBRID) {
             VersionCheckUtils.checkForOutdatedFloodgate(logger);
         }
     }
@@ -270,7 +282,7 @@ public class GeyserImpl implements GeyserApi {
         // Ensure that PacketLib does not create an event loop for handling packets; we'll do that ourselves
         TcpSession.USE_EVENT_LOOP_FOR_PACKETS = false;
 
-        if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
+        if (config.getRemote().getAuthType() == AuthType.HYBRID) {
             try {
                 Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
                 cipher = new AesCipher(new Base64Topping());
@@ -556,6 +568,11 @@ public class GeyserImpl implements GeyserApi {
     @Override
     public EventBus eventBus() {
         return this.eventBus;
+    }
+
+    @Override
+    public RemoteServer getDefaultRemoteServer() {
+        return null;
     }
 
     public static GeyserImpl start(PlatformType platformType, GeyserBootstrap bootstrap) {

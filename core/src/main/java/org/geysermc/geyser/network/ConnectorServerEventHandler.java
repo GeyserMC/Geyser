@@ -50,7 +50,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     /*
     The following constants are all used to ensure the ping does not reach a length where it is unparsable by the Bedrock client
      */
-    private static final int MINECRAFT_VERSION_BYTES_LENGTH = MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion().getBytes(StandardCharsets.UTF_8).length;
+    private static final int MINECRAFT_VERSION_BYTES_LENGTH = GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion().getBytes(StandardCharsets.UTF_8).length;
     private static final int BRAND_BYTES_LENGTH = GeyserImpl.NAME.getBytes(StandardCharsets.UTF_8).length;
     /**
      * The MOTD, sub-MOTD and Minecraft version ({@link #MINECRAFT_VERSION_BYTES_LENGTH}) combined cannot reach this length.
@@ -104,8 +104,8 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
         pong.setEdition("MCPE");
         pong.setGameType("Survival"); // Can only be Survival or Creative as of 1.16.210.59
         pong.setNintendoLimited(false);
-        pong.setProtocolVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion());
-        pong.setVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()); // Required to not be empty as of 1.16.210.59. Can only contain . and numbers.
+        pong.setProtocolVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion());
+        pong.setVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()); // Required to not be empty as of 1.16.210.59. Can only contain . and numbers.
         pong.setIpv4Port(config.getBedrock().getPort());
 
         if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
@@ -167,7 +167,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
     @Override
     public void onSessionCreation(@Nonnull BedrockServerSession bedrockServerSession) {
         try {
-            bedrockServerSession.setPacketCodec(MinecraftProtocol.DEFAULT_BEDROCK_CODEC);
+            bedrockServerSession.setPacketCodec(GameProtocol.DEFAULT_BEDROCK_CODEC);
             bedrockServerSession.setLogging(true);
             bedrockServerSession.setCompressionLevel(geyser.getConfig().getBedrock().getCompressionLevel());
             bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(geyser, new GeyserSession(geyser, bedrockServerSession, eventLoopGroup.next())));

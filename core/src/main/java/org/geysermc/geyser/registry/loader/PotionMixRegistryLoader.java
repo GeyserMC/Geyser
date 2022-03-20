@@ -26,7 +26,7 @@
 package org.geysermc.geyser.registry.loader;
 
 import com.nukkitx.protocol.bedrock.data.inventory.PotionMixData;
-import org.geysermc.geyser.network.MinecraftProtocol;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.inventory.item.Potion;
@@ -103,7 +103,7 @@ public class PotionMixRegistryLoader implements RegistryLoader<Object, Set<Potio
     }
 
     private static ItemMapping getNonNull(String javaIdentifier) {
-        ItemMapping itemMapping = Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getMapping(javaIdentifier);
+        ItemMapping itemMapping = Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getMapping(javaIdentifier);
         if (itemMapping == null)
             throw new NullPointerException("No item entry exists for java identifier: " + javaIdentifier);
 
