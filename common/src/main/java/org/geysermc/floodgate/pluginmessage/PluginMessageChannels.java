@@ -23,26 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.level.block.entity;
+package org.geysermc.floodgate.pluginmessage;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.level.block.BlockStateValues;
+import com.google.common.base.Charsets;
 
-/**
- * Does not implement BlockEntityTranslator because it's only a block entity in Bedrock
- */
-public class NoteblockBlockEntityTranslator {
+public final class PluginMessageChannels {
+    public static final String SKIN = "floodgate:skin";
+    public static final String FORM = "floodgate:form";
+    public static final String TRANSFER = "floodgate:transfer";
 
-    public static void translate(GeyserSession session, Position position) {
-        int blockState = session.getGeyser().getWorldManager().getBlockAt(session, position);
-        BlockEventPacket blockEventPacket = new BlockEventPacket();
-        blockEventPacket.setBlockPosition(Vector3i.from(position.getX(), position.getY(), position.getZ()));
-        blockEventPacket.setEventType(0);
-        blockEventPacket.setEventData(BlockStateValues.getNoteblockPitch(blockState));
-        session.sendUpstreamPacket(blockEventPacket);
+    private static final byte[] FLOODGATE_REGISTER_DATA = String.join("\0", SKIN, FORM, TRANSFER).getBytes(Charsets.UTF_8);
+
+    /**
+     * Get the prebuilt register data as a byte array
+     *
+     * @return the register data of the Floodgate channels
+     */
+    public static byte[] getFloodgateRegisterData() {
+        return FLOODGATE_REGISTER_DATA;
     }
-
 }

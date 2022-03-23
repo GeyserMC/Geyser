@@ -115,10 +115,12 @@ public class SkinProvider {
         WEARING_CUSTOM_SKULL = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkull\"}}", wearingCustomSkull, false);
         String wearingCustomSkullSlim = new String(FileUtils.readAllBytes("bedrock/skin/geometry.humanoid.wearingCustomSkullSlim.json"), StandardCharsets.UTF_8);
         WEARING_CUSTOM_SKULL_SLIM = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkullSlim\"}}", wearingCustomSkullSlim, false);
+    }
 
+    public static void registerCacheImageTask(GeyserImpl geyser) {
         // Schedule Daily Image Expiry if we are caching them
-        if (GeyserImpl.getInstance().getConfig().getCacheImages() > 0) {
-            GeyserImpl.getInstance().getScheduledThread().scheduleAtFixedRate(() -> {
+        if (geyser.getConfig().getCacheImages() > 0) {
+            geyser.getScheduledThread().scheduleAtFixedRate(() -> {
                 File cacheFolder = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("images").toFile();
                 if (!cacheFolder.exists()) {
                     return;
@@ -599,6 +601,8 @@ public class SkinProvider {
 
         HttpURLConnection con = (HttpURLConnection) new URL(imageUrl).openConnection();
         con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+        con.setConnectTimeout(10000);
+        con.setReadTimeout(10000);
 
         BufferedImage image = ImageIO.read(con.getInputStream());
         if (image == null) throw new NullPointerException();

@@ -35,13 +35,10 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
 import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
+import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
+import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.*;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
@@ -49,6 +46,8 @@ import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.*;
+import org.geysermc.geyser.util.ItemUtils;
+import org.geysermc.geyser.util.collection.FixedInt2IntMap;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -63,9 +62,9 @@ public class ItemRegistryPopulator {
 
     static {
         PALETTE_VERSIONS = new Object2ObjectOpenHashMap<>();
-        PALETTE_VERSIONS.put("1_17_30", new PaletteVersion(Bedrock_v465.V465_CODEC.getProtocolVersion(), Collections.emptyMap()));
         PALETTE_VERSIONS.put("1_17_40", new PaletteVersion(Bedrock_v471.V471_CODEC.getProtocolVersion(), Collections.emptyMap()));
         PALETTE_VERSIONS.put("1_18_0", new PaletteVersion(Bedrock_v475.V475_CODEC.getProtocolVersion(), Collections.emptyMap()));
+        PALETTE_VERSIONS.put("1_18_10", new PaletteVersion(Bedrock_v486.V486_CODEC.getProtocolVersion(), Collections.emptyMap()));
     }
 
     private record PaletteVersion(int protocolVersion, Map<String, String> additionalTranslatedItems) {
@@ -83,6 +82,10 @@ public class ItemRegistryPopulator {
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java runtime item IDs", e);
         }
+
+        // We can reduce some operations as Java information is the same across all palette versions
+        boolean firstMappingsPass = true;
+        Int2IntMap dyeColors = new FixedInt2IntMap();
 
         /* Load item palette */
         for (Map.Entry<String, PaletteVersion> palette : PALETTE_VERSIONS.entrySet()) {
@@ -163,6 +166,9 @@ public class ItemRegistryPopulator {
                 if (identifier.equals("minecraft:debug_stick")) {
                     // Just shows an empty texture; either way it doesn't exist in the creative menu on Java
                     continue;
+                } else if (identifier.equals("minecraft:empty_map") && damage == 2) {
+                    // Bedrock-only as its own item
+                    continue;
                 }
                 StartGamePacket.ItemEntry entry = entries.get(identifier);
                 int id = -1;
@@ -224,8 +230,14 @@ public class ItemRegistryPopulator {
                     // This items has a mapping specifically for this version of the game
                     mappingItem = entry.getValue();
                 }
+
+                String bedrockIdentifier;
                 if (javaIdentifier.equals("minecraft:music_disc_otherside") && palette.getValue().protocolVersion() <= Bedrock_v471.V471_CODEC.getProtocolVersion()) {
-                    mappingItem.setBedrockIdentifier("minecraft:music_disc_pigstep");
+                    bedrockIdentifier = "minecraft:music_disc_pigstep";
+                } else if (javaIdentifier.equals("minecraft:globe_banner_pattern") && palette.getValue().protocolVersion() < Bedrock_v486.V486_CODEC.getProtocolVersion()) {
+                    bedrockIdentifier = "minecraft:banner_pattern";
+                } else {
+                    bedrockIdentifier = mappingItem.getBedrockIdentifier();
                 }
 
                 if (usingFurnaceMinecart && javaIdentifier.equals("minecraft:furnace_minecart")) {
@@ -233,7 +245,7 @@ public class ItemRegistryPopulator {
                     itemIndex++;
                     continue;
                 }
-                String bedrockIdentifier = mappingItem.getBedrockIdentifier().intern();
+
                 int bedrockId = bedrockIdentifierToId.getInt(bedrockIdentifier);
                 if (bedrockId == Short.MIN_VALUE) {
                     throw new RuntimeException("Missing Bedrock ID in mappings: " + bedrockIdentifier);
@@ -358,12 +370,13 @@ public class ItemRegistryPopulator {
                 ItemMapping.ItemMappingBuilder mappingBuilder = ItemMapping.builder()
                         .javaIdentifier(javaIdentifier)
                         .javaId(itemIndex)
-                        .bedrockIdentifier(bedrockIdentifier)
+                        .bedrockIdentifier(bedrockIdentifier.intern())
                         .bedrockId(bedrockId)
                         .bedrockData(mappingItem.getBedrockData())
                         .bedrockBlockId(bedrockBlockId)
                         .stackSize(stackSize)
-                        .maxDamage(mappingItem.getMaxDamage());
+                        .maxDamage(mappingItem.getMaxDamage())
+                        .hasSuspiciousStewEffect(mappingItem.isHasSuspiciousStewEffect());
 
                 if (mappingItem.getRepairMaterials() != null) {
                     mappingBuilder = mappingBuilder.repairMaterials(new ObjectOpenHashSet<>(mappingItem.getRepairMaterials()));
@@ -410,6 +423,10 @@ public class ItemRegistryPopulator {
                 identifierToMapping.put(javaIdentifier, mapping);
 
                 itemNames.add(javaIdentifier);
+
+                if (firstMappingsPass && mappingItem.getDyeColor() != -1) {
+                    dyeColors.put(itemIndex, mappingItem.getDyeColor());
+                }
 
                 itemIndex++;
             }
@@ -506,6 +523,10 @@ public class ItemRegistryPopulator {
                     .build();
 
             Registries.ITEMS.register(palette.getValue().protocolVersion(), itemMappings);
+
+            firstMappingsPass = false;
         }
+
+        ItemUtils.setDyeColors(dyeColors);
     }
 }

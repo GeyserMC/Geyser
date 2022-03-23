@@ -27,6 +27,7 @@ package org.geysermc.geyser.util;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
+import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundPickItemPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
@@ -42,16 +43,20 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.click.Click;
+import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
+import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
 import org.geysermc.geyser.translator.inventory.chest.DoubleChestInventoryTranslator;
-import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.type.ItemMapping;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -155,6 +160,13 @@ public class InventoryUtils {
         if (item1 == null || item2 == null)
             return false;
         return item1.equals(item2, false, true, true);
+    }
+
+    /**
+     * Checks to see if an item stack represents air or has no count.
+     */
+    public static boolean isEmpty(@Nullable ItemStack itemStack) {
+        return itemStack == null || itemStack.getId() == ItemMapping.AIR.getJavaId() || itemStack.getAmount() <= 0;
     }
 
     /**
@@ -347,5 +359,115 @@ public class InventoryUtils {
             case 8 -> Click.SWAP_TO_HOTBAR_9;
             default -> null;
         };
+    }
+
+    /**
+     * Test all known recipes to find a valid match
+     *
+     * @param output if not null, the recipe has to output this item
+     */
+    @Nullable
+    public static GeyserRecipe getValidRecipe(final GeyserSession session, final @Nullable ItemStack output, final IntFunction<GeyserItemStack> inventoryGetter,
+                                        final int gridDimensions, final int firstRow, final int height, final int firstCol, final int width) {
+        int nonAirCount = 0; // Used for shapeless recipes for amount of items needed in recipe
+        for (int row = firstRow; row < height + firstRow; row++) {
+            for (int col = firstCol; col < width + firstCol; col++) {
+                if (!inventoryGetter.apply(col + (row * gridDimensions) + 1).isEmpty()) {
+                    nonAirCount++;
+                }
+            }
+        }
+
+        recipes:
+        for (GeyserRecipe recipe : session.getCraftingRecipes().values()) {
+            if (recipe.isShaped()) {
+                GeyserShapedRecipe shapedRecipe = (GeyserShapedRecipe) recipe;
+                if (output != null && !shapedRecipe.result().equals(output)) {
+                    continue;
+                }
+                Ingredient[] ingredients = shapedRecipe.ingredients();
+                if (shapedRecipe.width() != width || shapedRecipe.height() != height || width * height != ingredients.length) {
+                    continue;
+                }
+
+                if (!testShapedRecipe(ingredients, inventoryGetter, gridDimensions, firstRow, height, firstCol, width)) {
+                    Ingredient[] mirroredIngredients = new Ingredient[ingredients.length];
+                    for (int row = 0; row < height; row++) {
+                        for (int col = 0; col < width; col++) {
+                            mirroredIngredients[col + (row * width)] = ingredients[(width - 1 - col) + (row * width)];
+                        }
+                    }
+
+                    if (Arrays.equals(ingredients, mirroredIngredients) ||
+                            !testShapedRecipe(mirroredIngredients, inventoryGetter, gridDimensions, firstRow, height, firstCol, width)) {
+                        continue;
+                    }
+                }
+            } else {
+                GeyserShapelessRecipe data = (GeyserShapelessRecipe) recipe;
+                if (output != null && !data.result().equals(output)) {
+                    continue;
+                }
+                if (nonAirCount != data.ingredients().length) {
+                    // There is an amount of items on the crafting table that is not the same as the ingredient count so this is invalid
+                    continue;
+                }
+                for (int i = 0; i < data.ingredients().length; i++) {
+                    Ingredient ingredient = data.ingredients()[i];
+                    for (ItemStack itemStack : ingredient.getOptions()) {
+                        boolean inventoryHasItem = false;
+                        // Iterate only over the crafting table to find this item
+                        crafting:
+                        for (int row = firstRow; row < height + firstRow; row++) {
+                            for (int col = firstCol; col < width + firstCol; col++) {
+                                GeyserItemStack geyserItemStack = inventoryGetter.apply(col + (row * gridDimensions) + 1);
+                                if (geyserItemStack.isEmpty()) {
+                                    inventoryHasItem = itemStack == null || itemStack.getId() == 0;
+                                    if (inventoryHasItem) {
+                                        break crafting;
+                                    }
+                                } else if (itemStack.equals(geyserItemStack.getItemStack(1))) {
+                                    inventoryHasItem = true;
+                                    break crafting;
+                                }
+                            }
+                        }
+                        if (!inventoryHasItem) {
+                            continue recipes;
+                        }
+                    }
+                }
+            }
+            return recipe;
+        }
+        return null;
+    }
+
+    private static boolean testShapedRecipe(final Ingredient[] ingredients, final IntFunction<GeyserItemStack> inventoryGetter,
+                                            final int gridDimensions, final int firstRow, final int height, final int firstCol, final int width) {
+        int ingredientIndex = 0;
+        for (int row = firstRow; row < height + firstRow; row++) {
+            for (int col = firstCol; col < width + firstCol; col++) {
+                GeyserItemStack geyserItemStack = inventoryGetter.apply(col + (row * gridDimensions) + 1);
+                Ingredient ingredient = ingredients[ingredientIndex++];
+                if (ingredient.getOptions().length == 0) {
+                    if (!geyserItemStack.isEmpty()) {
+                        return false;
+                    }
+                } else {
+                    boolean inventoryHasItem = false;
+                    for (ItemStack item : ingredient.getOptions()) {
+                        if (Objects.equals(geyserItemStack.getItemStack(1), item)) {
+                            inventoryHasItem = true;
+                            break;
+                        }
+                    }
+                    if (!inventoryHasItem) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 }

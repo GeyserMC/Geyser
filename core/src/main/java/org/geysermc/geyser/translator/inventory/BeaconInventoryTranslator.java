@@ -38,16 +38,15 @@ import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequ
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
+import it.unimi.dsi.fastutil.ints.IntSets;
 import org.geysermc.geyser.inventory.BeaconContainer;
+import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InventoryUtils;
-
-import java.util.Collections;
 
 public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator {
     public BeaconInventoryTranslator() {
@@ -114,7 +113,7 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
         BeaconPaymentStackRequestActionData beaconPayment = (BeaconPaymentStackRequestActionData) request.getActions()[0];
         ServerboundSetBeaconPacket packet = new ServerboundSetBeaconPacket(beaconPayment.getPrimaryEffect(), beaconPayment.getSecondaryEffect());
         session.sendDownstreamPacket(packet);
-        return acceptRequest(request, makeContainerEntries(session, inventory, Collections.emptySet()));
+        return acceptRequest(request, makeContainerEntries(session, inventory, IntSets.emptySet()));
     }
 
     @Override

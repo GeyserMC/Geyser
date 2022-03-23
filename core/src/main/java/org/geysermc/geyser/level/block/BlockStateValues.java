@@ -38,6 +38,8 @@ import org.geysermc.geyser.util.collection.FixedInt2ByteMap;
 import org.geysermc.geyser.util.collection.FixedInt2IntMap;
 import org.geysermc.geyser.util.collection.LecternHasBookMap;
 
+import java.util.Locale;
+
 /**
  * Used for block entities if the Java block state contains Bedrock block information.
  */
@@ -47,6 +49,7 @@ public final class BlockStateValues {
     private static final Int2ByteMap COMMAND_BLOCK_VALUES = new Int2ByteOpenHashMap();
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
+    private static final IntSet HORIZONTAL_FACING_JIGSAWS = new IntOpenHashSet();
     private static final LecternHasBookMap LECTERN_BOOK_STATES = new LecternHasBookMap();
     private static final Int2IntMap NOTEBLOCK_PITCHES = new FixedInt2IntMap();
     private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
@@ -170,12 +173,22 @@ public final class BlockStateValues {
         JsonNode shulkerDirection = blockData.get("shulker_direction");
         if (shulkerDirection != null) {
             BlockStateValues.SHULKERBOX_DIRECTIONS.put(javaBlockState, (byte) shulkerDirection.intValue());
+            return;
         }
 
         if (javaId.startsWith("minecraft:water")) {
             String strLevel = javaId.substring(javaId.lastIndexOf("level=") + 6, javaId.length() - 1);
             int level = Integer.parseInt(strLevel);
             WATER_LEVEL.put(javaBlockState, level);
+            return;
+        }
+
+        if (javaId.startsWith("minecraft:jigsaw[orientation=")) {
+            String blockStateData = javaId.substring(javaId.indexOf("orientation=") + "orientation=".length(), javaId.lastIndexOf('_'));
+            Direction direction = Direction.valueOf(blockStateData.toUpperCase(Locale.ROOT));
+            if (direction.isHorizontal()) {
+                HORIZONTAL_FACING_JIGSAWS.add(javaBlockState);
+            }
         }
     }
 
@@ -228,6 +241,13 @@ public final class BlockStateValues {
      */
     public static Int2ObjectMap<String> getFlowerPotValues() {
         return FLOWER_POT_VALUES;
+    }
+
+    /**
+     * @return a set of all forward-facing jigsaws, to use as a fallback if NBT is missing.
+     */
+    public static IntSet getHorizontalFacingJigsaws() {
+        return HORIZONTAL_FACING_JIGSAWS;
     }
 
     /**

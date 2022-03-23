@@ -26,6 +26,7 @@
 package org.geysermc.api.session;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.common.value.qual.IntRange;
 
 import java.util.UUID;
 
@@ -55,5 +56,13 @@ public interface Connection {
      */
     String xuid();
 
-
+    /**
+     * Transfer the connection to a server. A Bedrock player can successfully transfer to the same server they are
+     * currently playing on.
+     *
+     * @param address The address of the server
+     * @param port The port of the server
+     * @return true if the transfer was a success
+     */
+    boolean transfer(@NonNull String address, @IntRange(from = 0, to = 65535) int port);
 }

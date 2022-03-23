@@ -29,12 +29,11 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.Cli
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
-import org.geysermc.geyser.text.MinecraftLocale;
 
 @Translator(packet = ClientboundOpenScreenPacket.class)
 public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenScreenPacket> {
@@ -57,8 +56,7 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
             return;
         }
 
-        String name = MessageTranslator.convertMessageLenient(packet.getName(), session.getLocale());
-        name = MinecraftLocale.getLocaleString(name, session.getLocale());
+        String name = MessageTranslator.convertMessage(packet.getTitle(), session.getLocale());
 
         Inventory newInventory = newTranslator.createInventory(name, packet.getContainerId(), packet.getType(), session.getPlayerInventory());
         if (openInventory != null) {

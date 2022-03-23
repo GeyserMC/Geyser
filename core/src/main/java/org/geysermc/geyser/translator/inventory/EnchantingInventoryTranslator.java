@@ -27,23 +27,22 @@ package org.geysermc.geyser.translator.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
-import com.nukkitx.protocol.bedrock.data.inventory.*;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
+import com.nukkitx.protocol.bedrock.data.inventory.EnchantOptionData;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
+import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.CraftRecipeStackRequestActionData;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import com.nukkitx.protocol.bedrock.packet.PlayerEnchantOptionsPacket;
-import org.geysermc.geyser.inventory.EnchantingContainer;
-import org.geysermc.geyser.inventory.GeyserEnchantOption;
-import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
+import it.unimi.dsi.fastutil.ints.IntSets;
+import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.inventory.item.Enchantment;
+import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 public class EnchantingInventoryTranslator extends AbstractBlockInventoryTranslator {
     public EnchantingInventoryTranslator() {
@@ -130,7 +129,7 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
         }
         ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(inventory.getId(), javaSlot);
         session.sendDownstreamPacket(packet);
-        return acceptRequest(request, makeContainerEntries(session, inventory, Collections.emptySet()));
+        return acceptRequest(request, makeContainerEntries(session, inventory, IntSets.emptySet()));
     }
 
     @Override

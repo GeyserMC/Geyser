@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser;
 
+import javax.annotation.Nullable;
+
 public interface GeyserLogger {
 
     /**
@@ -77,6 +79,15 @@ public interface GeyserLogger {
      * @param message the message to log
      */
     void debug(String message);
+
+    /**
+     * Logs an object to console if debug mode is enabled
+     *
+     * @param object the object to log
+     */
+    default void debug(@Nullable Object object) {
+        debug(String.valueOf(object));
+    }
 
     /**
      * Sets if the logger should print debug messages

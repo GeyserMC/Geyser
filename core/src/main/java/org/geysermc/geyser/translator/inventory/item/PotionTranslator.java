@@ -42,19 +42,8 @@ import java.util.stream.Collectors;
 @ItemRemapper
 public class PotionTranslator extends ItemTranslator {
 
-    private final List<ItemMapping> appliedItems;
-
-    public PotionTranslator() {
-        appliedItems = Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
-                .getItems()
-                .values()
-                .stream()
-                .filter(entry -> entry.getJavaIdentifier().endsWith("potion"))
-                .collect(Collectors.toList());
-    }
-
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
+    protected ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
         if (itemStack.getNbt() == null) return super.translateToBedrock(itemStack, mapping, mappings);
         Tag potionTag = itemStack.getNbt().get("Potion");
         if (potionTag instanceof StringTag) {
@@ -84,6 +73,11 @@ public class PotionTranslator extends ItemTranslator {
 
     @Override
     public List<ItemMapping> getAppliedItems() {
-        return appliedItems;
+        return Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
+                .getItems()
+                .values()
+                .stream()
+                .filter(entry -> entry.getJavaIdentifier().endsWith("potion"))
+                .collect(Collectors.toList());
     }
 }

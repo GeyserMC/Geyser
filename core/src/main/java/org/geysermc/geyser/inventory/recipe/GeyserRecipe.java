@@ -23,29 +23,14 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java;
-
-import com.github.steveice10.mc.protocol.data.game.UnlockRecipesAction;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundRecipePacket;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
-
-import java.util.Arrays;
+package org.geysermc.geyser.inventory.recipe;
 
 /**
- * Used to list recipes that we can definitely use the recipe book for (and therefore save on packet usage)
+ * A more compact version of {@link com.github.steveice10.mc.protocol.data.game.recipe.Recipe}.
  */
-@Translator(packet = ClientboundRecipePacket.class)
-public class JavaRecipeTranslator extends PacketTranslator<ClientboundRecipePacket> {
-
-    @Override
-    public void translate(GeyserSession session, ClientboundRecipePacket packet) {
-        if (packet.getAction() == UnlockRecipesAction.REMOVE) {
-            session.getUnlockedRecipes().removeAll(Arrays.asList(packet.getRecipes()));
-        } else {
-            session.getUnlockedRecipes().addAll(Arrays.asList(packet.getRecipes()));
-        }
-    }
+public interface GeyserRecipe {
+    /**
+     * Whether the recipe is flexible or not in which items can be placed where.
+     */
+    boolean isShaped();
 }
-

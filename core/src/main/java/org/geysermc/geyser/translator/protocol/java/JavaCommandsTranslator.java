@@ -27,6 +27,8 @@ package org.geysermc.geyser.translator.protocol.java;
 
 import com.github.steveice10.mc.protocol.data.game.command.CommandNode;
 import com.github.steveice10.mc.protocol.data.game.command.CommandParser;
+import com.github.steveice10.mc.protocol.data.game.command.properties.ResourceProperties;
+import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
 import com.nukkitx.protocol.bedrock.data.command.CommandData;
 import com.nukkitx.protocol.bedrock.data.command.CommandEnumData;
@@ -58,6 +60,7 @@ import java.util.*;
 public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommandsPacket> {
 
     private static final String[] ALL_EFFECT_IDENTIFIERS = EntityUtils.getAllEffectIdentifiers();
+    private static final String[] ATTRIBUTES = AttributeType.Builtin.BUILTIN.keySet().toArray(new String[0]);
     private static final String[] ENUM_BOOLEAN = {"true", "false"};
     private static final String[] VALID_COLORS;
     private static final String[] VALID_SCOREBOARD_SLOTS;
@@ -203,10 +206,11 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
      * Convert Java edition command types to Bedrock edition
      *
      * @param session the session
-     * @param parser Command type to convert
+     * @param node Command type to convert
      * @return Bedrock parameter data type
      */
-    private static Object mapCommandType(GeyserSession session, CommandParser parser) {
+    private static Object mapCommandType(GeyserSession session, CommandNode node) {
+        CommandParser parser = node.getParser();
         if (parser == null) {
             return CommandParam.STRING;
         }
@@ -229,6 +233,14 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case COLOR -> VALID_COLORS;
             case SCOREBOARD_SLOT -> VALID_SCOREBOARD_SLOTS;
             case MOB_EFFECT -> ALL_EFFECT_IDENTIFIERS;
+            case RESOURCE, RESOURCE_OR_TAG -> {
+                String resource = ((ResourceProperties) node.getProperties()).getRegistryKey();
+                if (resource.equals("minecraft:attribute")) {
+                    yield ATTRIBUTES;
+                } else {
+                    yield CommandParam.STRING;
+                }
+            }
             default -> CommandParam.STRING;
         };
     }
@@ -302,7 +314,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                     }
                 } else {
                     // Put the non-enum param into the list
-                    Object mappedType = mapCommandType(session, paramNode.getParser());
+                    Object mappedType = mapCommandType(session, paramNode);
                     CommandEnumData enumData = null;
                     CommandParam type = null;
                     if (mappedType instanceof String[]) {

@@ -38,6 +38,11 @@ public class CraftingInventoryTranslator extends AbstractBlockInventoryTranslato
     }
 
     @Override
+    public int getGridSize() {
+        return 9;
+    }
+
+    @Override
     public SlotType getSlotType(int javaSlot) {
         if (javaSlot == 0) {
             return SlotType.OUTPUT;

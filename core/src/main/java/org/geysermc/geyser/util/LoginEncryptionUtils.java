@@ -48,6 +48,7 @@ import org.geysermc.cumulus.SimpleForm;
 import org.geysermc.cumulus.response.CustomFormResponse;
 import org.geysermc.cumulus.response.ModalFormResponse;
 import org.geysermc.cumulus.response.SimpleFormResponse;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import javax.crypto.SecretKey;
@@ -261,6 +262,48 @@ public class LoginEncryptionUtils {
                         }));
     }
 
+    /**
+     * Build a window that explains the user's credentials will be saved to the system.
+     */
+    public static void buildAndShowConsentWindow(GeyserSession session) {
+        String locale = session.getLocale();
+        session.sendForm(
+                SimpleForm.builder()
+                        .title("%gui.signIn")
+                        .content(GeyserLocale.getPlayerLocaleString("geyser.auth.login.save_token.warning", locale) +
+                                "\n\n" +
+                                GeyserLocale.getPlayerLocaleString("geyser.auth.login.save_token.proceed", locale))
+                        .button("%gui.ok")
+                        .button("%gui.decline")
+                        .responseHandler((form, responseData) -> {
+                            SimpleFormResponse response = form.parseResponse(responseData);
+                            if (response.isCorrect() && response.getClickedButtonId() == 0) {
+                                session.authenticateWithMicrosoftCode(true);
+                            } else {
+                                session.disconnect("%disconnect.quitting");
+                            }
+                        }));
+    }
+
+    public static void buildAndShowTokenExpiredWindow(GeyserSession session) {
+        String locale = session.getLocale();
+        session.sendForm(
+                SimpleForm.builder()
+                        .title(GeyserLocale.getPlayerLocaleString("geyser.auth.login.form.expired", locale))
+                        .content(GeyserLocale.getPlayerLocaleString("geyser.auth.login.save_token.expired", locale) +
+                                "\n\n" +
+                                GeyserLocale.getPlayerLocaleString("geyser.auth.login.save_token.proceed", locale))
+                        .button("%gui.ok")
+                        .responseHandler((form, responseData) -> {
+                            SimpleFormResponse response = form.parseResponse(responseData);
+                            if (response.isCorrect()) {
+                                session.authenticateWithMicrosoftCode(true);
+                            } else {
+                                session.disconnect("%disconnect.quitting");
+                            }
+                        }));
+    }
+
     public static void buildAndShowLoginDetailsWindow(GeyserSession session) {
         session.sendForm(
                 CustomForm.builder()
@@ -312,10 +355,23 @@ public class LoginEncryptionUtils {
      * Shows the code that a user must input into their browser
      */
     public static void buildAndShowMicrosoftCodeWindow(GeyserSession session, MsaAuthenticationService.MsCodeResponse msCode) {
+        StringBuilder message = new StringBuilder("%xbox.signin.website\n")
+                .append(ChatColor.AQUA)
+                .append("%xbox.signin.url")
+                .append(ChatColor.RESET)
+                .append("\n%xbox.signin.enterCode\n")
+                .append(ChatColor.GREEN)
+                .append(msCode.user_code);
+        int timeout = session.getGeyser().getConfig().getPendingAuthenticationTimeout();
+        if (timeout != 0) {
+            message.append("\n\n")
+                    .append(ChatColor.RESET)
+                    .append(GeyserLocale.getPlayerLocaleString("geyser.auth.login.timeout", session.getLocale(), String.valueOf(timeout)));
+        }
         session.sendForm(
                 ModalForm.builder()
                         .title("%xbox.signin")
-                        .content("%xbox.signin.website\n%xbox.signin.url\n%xbox.signin.enterCode\n" + msCode.user_code)
+                        .content(message.toString())
                         .button1("%gui.done")
                         .button2("%menu.disconnect")
                         .responseHandler((form, responseData) -> {

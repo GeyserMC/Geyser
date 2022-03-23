@@ -28,9 +28,10 @@ package org.geysermc.geyser.translator.level.block.entity;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.geysermc.geyser.translator.inventory.item.BannerTranslator;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.translator.inventory.item.nbt.BannerTranslator;
 
 @BlockEntity(type = BlockEntityType.BANNER)
 public class BannerBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
@@ -45,8 +46,7 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
             return;
         }
 
-        if (tag.contains("Patterns")) {
-            ListTag patterns = tag.get("Patterns");
+        if (tag.get("Patterns") instanceof ListTag patterns) {
             if (patterns.equals(BannerTranslator.OMINOUS_BANNER_PATTERN)) {
                 // This is an ominous banner; don't try to translate the raw patterns (it doesn't translate correctly)
                 // and tell the Bedrock client that this is an ominous banner
@@ -56,8 +56,9 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
             }
         }
 
-        if (tag.contains("CustomName")) {
-            builder.put("CustomName", tag.get("CustomName").getValue());
+        Tag customName = tag.get("CustomName");
+        if (customName != null) {
+            builder.put("CustomName", customName.getValue());
         }
     }
 }

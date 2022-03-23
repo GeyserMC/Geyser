@@ -31,15 +31,27 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.Cli
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.session.GeyserSession;
 
-@Getter
-@Setter
 public class MerchantContainer extends Container {
+    @Getter @Setter
     private Entity villager;
+    @Setter
     private VillagerTrade[] villagerTrades;
+    @Getter @Setter
     private ClientboundMerchantOffersPacket pendingOffersPacket;
 
     public MerchantContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
         super(title, id, size, containerType, playerInventory);
+    }
+
+    public void onTradeSelected(GeyserSession session, int slot) {
+        if (villagerTrades != null && slot >= 0 && slot < villagerTrades.length) {
+            VillagerTrade trade = villagerTrades[slot];
+            setItem(2, GeyserItemStack.from(trade.getOutput()), session);
+            // TODO this logic doesn't add up
+            session.getPlayerEntity().addFakeTradeExperience(trade.getXp());
+            session.getPlayerEntity().updateBedrockMetadata();
+        }
     }
 }

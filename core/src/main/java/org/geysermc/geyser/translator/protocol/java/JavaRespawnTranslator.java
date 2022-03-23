@@ -46,6 +46,8 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
     public void translate(GeyserSession session, ClientboundRespawnPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
 
+        session.setSpawned(false);
+
         entity.setHealth(entity.getMaxHealth());
         entity.getAttributes().put(GeyserAttributeType.HEALTH, entity.createHealthAttribute());
 

@@ -34,7 +34,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.CooldownUtils;
-import org.geysermc.geyser.entity.InteractiveTagManager;
 
 import java.util.concurrent.TimeUnit;
 
@@ -70,7 +69,7 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
 
         // Update the interactive tag, if an entity is present
         if (session.getMouseoverEntity() != null) {
-            InteractiveTagManager.updateTag(session, session.getMouseoverEntity());
+            session.getMouseoverEntity().updateInteractiveTag();
         }
     }
 }
