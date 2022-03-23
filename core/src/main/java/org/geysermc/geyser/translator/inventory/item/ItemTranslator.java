@@ -303,13 +303,16 @@ public abstract class ItemTranslator {
         return new ItemStack(mapping.getJavaId(), itemData.getCount(), this.translateToJavaNBT("", itemData.getTag()));
     }
 
+    /**
+     * Used for initialization only and only called once.
+     */
     public abstract List<ItemMapping> getAppliedItems();
 
     protected ItemMapping getItemMapping(int javaId, CompoundTag nbt, ItemMappings mappings) {
         return mappings.getMapping(javaId);
     }
 
-    public NbtMap translateNbtToBedrock(CompoundTag tag) {
+    protected NbtMap translateNbtToBedrock(CompoundTag tag) {
         NbtMapBuilder builder = NbtMap.builder();
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
             for (String str : tag.getValue().keySet()) {
@@ -388,7 +391,7 @@ public abstract class ItemTranslator {
         return null;
     }
 
-    public CompoundTag translateToJavaNBT(String name, NbtMap tag) {
+    private CompoundTag translateToJavaNBT(String name, NbtMap tag) {
         CompoundTag javaTag = new CompoundTag(name);
         Map<String, Tag> javaValue = javaTag.getValue();
         if (tag != null && !tag.isEmpty()) {

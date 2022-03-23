@@ -166,6 +166,9 @@ public class ItemRegistryPopulator {
                 if (identifier.equals("minecraft:debug_stick")) {
                     // Just shows an empty texture; either way it doesn't exist in the creative menu on Java
                     continue;
+                } else if (identifier.equals("minecraft:empty_map") && damage == 2) {
+                    // Bedrock-only as its own item
+                    continue;
                 }
                 StartGamePacket.ItemEntry entry = entries.get(identifier);
                 int id = -1;

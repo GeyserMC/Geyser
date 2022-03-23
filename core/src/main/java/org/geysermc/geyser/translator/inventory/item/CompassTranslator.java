@@ -41,17 +41,6 @@ import java.util.stream.Collectors;
 @ItemRemapper
 public class CompassTranslator extends ItemTranslator {
 
-    private final List<ItemMapping> appliedItems;
-
-    public CompassTranslator() {
-        appliedItems = Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
-                .getItems()
-                .values()
-                .stream()
-                .filter(entry -> entry.getJavaIdentifier().endsWith("compass"))
-                .collect(Collectors.toList());
-    }
-
     @Override
     protected ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
         if (isLodestoneCompass(itemStack.getNbt())) {
@@ -89,6 +78,11 @@ public class CompassTranslator extends ItemTranslator {
 
     @Override
     public List<ItemMapping> getAppliedItems() {
-        return appliedItems;
+        return Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
+                .getItems()
+                .values()
+                .stream()
+                .filter(entry -> entry.getJavaIdentifier().endsWith("compass"))
+                .collect(Collectors.toList());
     }
 }
