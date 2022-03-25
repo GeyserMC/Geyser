@@ -25,12 +25,10 @@
 
 package org.geysermc.geyser.platform.spigot;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.data.MappingData;
 import com.viaversion.viaversion.api.protocol.ProtocolPathEntry;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
-import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
@@ -47,7 +45,7 @@ import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.MinecraftProtocol;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
-import org.geysermc.geyser.platform.spigot.command.GeyserPaperCommandListener;
+import org.geysermc.geyser.platform.spigot.command.GeyserBrigadierSupport;
 import org.geysermc.geyser.platform.spigot.command.GeyserSpigotCommandExecutor;
 import org.geysermc.geyser.platform.spigot.command.GeyserSpigotCommandManager;
 import org.geysermc.geyser.platform.spigot.command.SpigotCommandSender;
@@ -245,22 +243,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         boolean brigadierSupported = CommodoreProvider.isSupported();
         geyserLogger.debug("Brigadier supported? " + brigadierSupported);
         if (brigadierSupported) {
-            // Enable command completions if supported
-            // This is beneficial because this is sent over the network and Bedrock can see it
-            Commodore commodore = CommodoreProvider.getCommodore(this);
-            LiteralArgumentBuilder<?> builder = LiteralArgumentBuilder.literal("geyser");
-            for (String command : geyserCommandManager.getCommands().keySet()) {
-                builder.then(LiteralArgumentBuilder.literal(command));
-            }
-            commodore.register(pluginCommand, builder);
-
-            try {
-                Class.forName("com.destroystokyo.paper.event.brigadier.AsyncPlayerSendCommandsEvent");
-                Bukkit.getServer().getPluginManager().registerEvents(new GeyserPaperCommandListener(), this);
-                geyserLogger.debug("Successfully registered AsyncPlayerSendCommandsEvent listener.");
-            } catch (ClassNotFoundException e) {
-                geyserLogger.debug("Not registering AsyncPlayerSendCommandsEvent listener.");
-            }
+            GeyserBrigadierSupport.loadBrigadier(this, pluginCommand);
         }
 
         // Check to ensure the current setup can support the protocol version Geyser uses
