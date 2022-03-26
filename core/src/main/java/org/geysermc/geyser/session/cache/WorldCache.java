@@ -82,6 +82,8 @@ public final class WorldCache {
         trueTitleFadeInTime = fadeInTime;
         trueTitleStayTime = stayTime;
         trueTitleFadeOutTime = fadeOutTime;
+        // The translator will sync this for us
+        titleTimesNeedReset = false;
     }
 
     /**
@@ -90,7 +92,6 @@ public final class WorldCache {
     public void synchronizeCorrectTitleTimes() {
         if (titleTimesNeedReset) {
             forceSyncCorrectTitleTimes();
-            titleTimesNeedReset = false;
         }
     }
 
@@ -105,6 +106,7 @@ public final class WorldCache {
         titlePacket.setXuid("");
 
         session.sendUpstreamPacket(titlePacket);
+        titleTimesNeedReset = false;
     }
 
     /**
