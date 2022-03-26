@@ -13,7 +13,7 @@
     <properties>
         <adventure.version>4.9.3</adventure.version>
         <fastutil.version>8.5.2</fastutil.version>
-        <jackson.version>2.13.2.1</jackson.version>
+        <jackson.version>2.13.2</jackson.version>
         <netty.version>4.1.66.Final</netty.version>
     </properties>
 
@@ -52,7 +52,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
+            <version>${jackson.version}.1</version> <!-- Extra .1 as databind is a slightly different version -->
             <scope>compile</scope>
         </dependency>
         <dependency>
