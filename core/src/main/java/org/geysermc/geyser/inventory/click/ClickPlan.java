@@ -152,7 +152,6 @@ public final class ClickPlan {
                     clickedItemStack,
                     changedItems
             );
-            System.out.println(clickPacket);
 
             session.sendDownstreamPacket(clickPacket);
         }
