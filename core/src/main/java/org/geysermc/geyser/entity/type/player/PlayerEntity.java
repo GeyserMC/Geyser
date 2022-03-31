@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.entity.type.player;
 
-import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
@@ -61,15 +60,21 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Getter @Setter
 public class PlayerEntity extends LivingEntity {
     public static final float SNEAKING_POSE_HEIGHT = 1.5f;
 
-    private GameProfile profile;
     private String username;
-    private boolean playerList = true;  // Player is in the player list
+    private boolean playerList = true; // Player is in the player list
+
+    /**
+     * The textures property from the GameProfile.
+     */
+    @Nullable
+    private String texturesProperty;
 
     private Vector3i bedPosition;
 
@@ -82,11 +87,12 @@ public class PlayerEntity extends LivingEntity {
      */
     private ParrotEntity rightParrot;
 
-    public PlayerEntity(GeyserSession session, int entityId, long geyserId, GameProfile gameProfile, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, gameProfile.getId(), EntityDefinitions.PLAYER, position, motion, yaw, pitch, headYaw);
+    public PlayerEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, Vector3f position,
+                        Vector3f motion, float yaw, float pitch, float headYaw, String username, @Nullable String texturesProperty) {
+        super(session, entityId, geyserId, uuid, EntityDefinitions.PLAYER, position, motion, yaw, pitch, headYaw);
 
-        profile = gameProfile;
-        username = gameProfile.getName();
+        this.username = username;
+        this.texturesProperty = texturesProperty;
     }
 
     @Override

@@ -26,7 +26,6 @@
 package org.geysermc.geyser.skin;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
@@ -34,9 +33,9 @@ import com.nukkitx.protocol.bedrock.data.skin.ImageData;
 import com.nukkitx.protocol.bedrock.data.skin.SerializedSkin;
 import com.nukkitx.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.text.GeyserLocale;
 
@@ -54,7 +53,7 @@ public class SkinManager {
      * Builds a Bedrock player list entry from our existing, cached Bedrock skin information
      */
     public static PlayerListPacket.Entry buildCachedEntry(GeyserSession session, PlayerEntity playerEntity) {
-        GameProfileData data = GameProfileData.from(playerEntity.getProfile());
+        GameProfileData data = GameProfileData.from(playerEntity);
         SkinProvider.Cape cape = SkinProvider.getCachedCape(data.capeUrl());
         SkinProvider.SkinGeometry geometry = SkinProvider.SkinGeometry.getLegacy(data.isAlex());
 
@@ -65,8 +64,8 @@ public class SkinManager {
 
         return buildEntryManually(
                 session,
-                playerEntity.getProfile().getId(),
-                playerEntity.getProfile().getName(),
+                playerEntity.getUuid(),
+                playerEntity.getUsername(),
                 playerEntity.getGeyserId(),
                 skin.getTextureUrl(),
                 skin.getSkinData(),
@@ -227,31 +226,31 @@ public class SkinManager {
         }
 
         /**
-         * Generate the GameProfileData from the given GameProfile
+         * Generate the GameProfileData from the given player entity
          *
-         * @param profile GameProfile to build the GameProfileData from
+         * @param entity entity to build the GameProfileData from
          * @return The built GameProfileData
          */
-        public static GameProfileData from(GameProfile profile) {
+        public static GameProfileData from(PlayerEntity entity) {
             try {
-                GameProfile.Property skinProperty = profile.getProperty("textures");
+                String texturesProperty = entity.getTexturesProperty();
 
-                if (skinProperty == null) {
+                if (texturesProperty == null) {
                     // Likely offline mode
-                    return loadBedrockOrOfflineSkin(profile);
+                    return loadBedrockOrOfflineSkin(entity);
                 }
-                GameProfileData data = loadFromJson(skinProperty.getValue());
+                GameProfileData data = loadFromJson(texturesProperty);
                 if (data != null) {
                     return data;
                 } else {
-                    return loadBedrockOrOfflineSkin(profile);
+                    return loadBedrockOrOfflineSkin(entity);
                 }
             } catch (IOException exception) {
-                GeyserImpl.getInstance().getLogger().debug("Something went wrong while processing skin for " + profile.getName());
+                GeyserImpl.getInstance().getLogger().debug("Something went wrong while processing skin for " + entity.getUsername());
                 if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                     exception.printStackTrace();
                 }
-                return loadBedrockOrOfflineSkin(profile);
+                return loadBedrockOrOfflineSkin(entity);
             }
         }
 
@@ -280,14 +279,15 @@ public class SkinManager {
          * @return default skin with default cape when texture data is invalid, or the Bedrock player's skin if this
          * is a Bedrock player.
          */
-        private static GameProfileData loadBedrockOrOfflineSkin(GameProfile profile) {
+        private static GameProfileData loadBedrockOrOfflineSkin(PlayerEntity entity) {
             // Fallback to the offline mode of working it out
-            boolean isAlex = (Math.abs(profile.getId().hashCode() % 2) == 1);
+            UUID uuid = entity.getUuid();
+            boolean isAlex = (Math.abs(uuid.hashCode() % 2) == 1);
 
             String skinUrl = isAlex ? SkinProvider.EMPTY_SKIN_ALEX.getTextureUrl() : SkinProvider.EMPTY_SKIN.getTextureUrl();
             String capeUrl = SkinProvider.EMPTY_CAPE.getTextureUrl();
             if (("steve".equals(skinUrl) || "alex".equals(skinUrl)) && GeyserImpl.getInstance().getConfig().getRemote().getAuthType() != AuthType.ONLINE) {
-                GeyserSession session = GeyserImpl.getInstance().connectionByUuid(profile.getId());
+                GeyserSession session = GeyserImpl.getInstance().connectionByUuid(uuid);
 
                 if (session != null) {
                     skinUrl = session.getClientData().getSkinId();
