@@ -121,10 +121,6 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
 
 
     private CompoundTag remapEnchantment(CompoundTag tag) {
-        Tag javaEnchLvl = tag.get("lvl");
-        if (!(javaEnchLvl instanceof ShortTag || javaEnchLvl instanceof IntTag))
-            return null;
-
         Tag javaEnchId = tag.get("id");
         if (!(javaEnchId instanceof StringTag))
             return null;
@@ -135,9 +131,12 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
             return null;
         }
 
+        Tag javaEnchLvl = tag.get("lvl");
+
         CompoundTag bedrockTag = new CompoundTag("");
         bedrockTag.put(new ShortTag("id", (short) enchantment.ordinal()));
-        bedrockTag.put(new ShortTag("lvl", ((Number) javaEnchLvl.getValue()).shortValue()));
+        // If the tag cannot parse, Java Edition 1.18.2 sets to 0
+        bedrockTag.put(new ShortTag("lvl", javaEnchLvl != null && javaEnchLvl.getValue() instanceof Number lvl ? lvl.shortValue() : 0));
         return bedrockTag;
     }
 
