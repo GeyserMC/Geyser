@@ -284,7 +284,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 }
                             }
                         }
-                        ItemMapping handItem = mappings.getMapping(packet.getItemInHand());
+                        ItemMapping handItem = session.getPlayerInventory().getItemInHand().getMapping(session);
                         if (handItem.isBlock()) {
                             session.setLastBlockPlacePosition(blockPos);
                             session.setLastBlockPlacedId(handItem.getJavaIdentifier());

@@ -128,7 +128,7 @@ public class ItemRegistryPopulator {
             IntList spawnEggs = new IntArrayList();
             List<ItemData> carpets = new ObjectArrayList<>();
 
-            Int2ObjectMap<ItemMapping> mappings = new Int2ObjectOpenHashMap<>();
+            List<ItemMapping> mappings = new ObjectArrayList<>();
             // Temporary mapping to create stored items
             Map<String, ItemMapping> identifierToMapping = new Object2ObjectOpenHashMap<>();
 
@@ -243,6 +243,8 @@ public class ItemRegistryPopulator {
                 if (usingFurnaceMinecart && javaIdentifier.equals("minecraft:furnace_minecart")) {
                     javaFurnaceMinecartId = itemIndex;
                     itemIndex++;
+                    // Will be added later
+                    mappings.add(null);
                     continue;
                 }
 
@@ -419,7 +421,7 @@ public class ItemRegistryPopulator {
                     spawnEggs.add(mapping.getBedrockId());
                 }
 
-                mappings.put(itemIndex, mapping);
+                mappings.add(mapping);
                 identifierToMapping.put(javaIdentifier, mapping);
 
                 itemNames.add(javaIdentifier);
@@ -440,16 +442,14 @@ public class ItemRegistryPopulator {
 
             // Add the lodestone compass since it doesn't exist on java but we need it for item conversion
             ItemMapping lodestoneEntry = ItemMapping.builder()
-                    .javaIdentifier("minecraft:lodestone_compass")
+                    .javaIdentifier("")
                     .bedrockIdentifier("minecraft:lodestone_compass")
-                    .javaId(itemIndex)
+                    .javaId(-1)
                     .bedrockId(lodestoneCompassId)
                     .bedrockData(0)
                     .bedrockBlockId(-1)
                     .stackSize(1)
                     .build();
-            mappings.put(itemIndex, lodestoneEntry);
-            identifierToMapping.put(lodestoneEntry.getJavaIdentifier(), lodestoneEntry);
 
             ComponentItemData furnaceMinecartData = null;
             if (usingFurnaceMinecart) {
@@ -458,7 +458,7 @@ public class ItemRegistryPopulator {
 
                 entries.put("geysermc:furnace_minecart", new StartGamePacket.ItemEntry("geysermc:furnace_minecart", (short) furnaceMinecartId, true));
 
-                mappings.put(javaFurnaceMinecartId, ItemMapping.builder()
+                mappings.set(javaFurnaceMinecartId, ItemMapping.builder()
                         .javaIdentifier("minecraft:furnace_minecart")
                         .bedrockIdentifier("geysermc:furnace_minecart")
                         .javaId(javaFurnaceMinecartId)
@@ -509,9 +509,9 @@ public class ItemRegistryPopulator {
             }
 
             ItemMappings itemMappings = ItemMappings.builder()
-                    .items(mappings)
+                    .items(mappings.toArray(new ItemMapping[0]))
                     .creativeItems(creativeItems.toArray(new ItemData[0]))
-                    .itemEntries(new ArrayList<>(entries.values()))
+                    .itemEntries(List.copyOf(entries.values()))
                     .itemNames(itemNames.toArray(new String[0]))
                     .storedItems(new StoredItemMappings(identifierToMapping))
                     .javaOnlyItems(javaOnlyItems)
@@ -520,6 +520,7 @@ public class ItemRegistryPopulator {
                     .spawnEggIds(spawnEggs)
                     .carpets(carpets)
                     .furnaceMinecartData(furnaceMinecartData)
+                    .lodestoneCompass(lodestoneEntry)
                     .build();
 
             Registries.ITEMS.register(palette.getValue().protocolVersion(), itemMappings);
