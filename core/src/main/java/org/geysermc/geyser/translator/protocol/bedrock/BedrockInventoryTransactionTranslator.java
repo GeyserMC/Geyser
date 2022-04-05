@@ -139,7 +139,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             case ITEM_USE:
                 switch (packet.getActionType()) {
                     case 0 -> {
-                        Vector3i blockPos = BlockUtils.getBlockPosition(packet.getBlockPosition(), packet.getBlockFace());
+                        final Vector3i packetBlockPosition = packet.getBlockPosition();
+                        Vector3i blockPos = BlockUtils.getBlockPosition(packetBlockPosition, packet.getBlockFace());
 
                         if (session.getGeyser().getConfig().isDisableBedrockScaffolding()) {
                             float yaw = session.getPlayerEntity().getYaw();
@@ -159,8 +160,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         // Check to make sure the client isn't spamming interaction
                         // Based on Nukkit 1.0, with changes to ensure holding down still works
                         boolean hasAlreadyClicked = System.currentTimeMillis() - session.getLastInteractionTime() < 110.0 &&
-                                packet.getBlockPosition().distanceSquared(session.getLastInteractionBlockPosition()) < 0.00001;
-                        session.setLastInteractionBlockPosition(packet.getBlockPosition());
+                                packetBlockPosition.distanceSquared(session.getLastInteractionBlockPosition()) < 0.00001;
+                        session.setLastInteractionBlockPosition(packetBlockPosition);
                         session.setLastInteractionPlayerPosition(session.getPlayerEntity().getPosition());
                         if (hasAlreadyClicked) {
                             break;
@@ -204,19 +205,45 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 playerPosition = playerPosition.sub(0, (EntityDefinitions.PLAYER.offset() - 0.2f), 0);
                         } // else, we don't have to modify the position
 
-                        float diffX = playerPosition.getX() - packet.getBlockPosition().getX();
-                        float diffY = playerPosition.getY() - packet.getBlockPosition().getY();
-                        float diffZ = playerPosition.getZ() - packet.getBlockPosition().getZ();
+                        boolean creative = session.getGameMode() == GameMode.CREATIVE;
+
+                        float diffX = playerPosition.getX() - packetBlockPosition.getX();
+                        float diffY = playerPosition.getY() - packetBlockPosition.getY();
+                        float diffZ = playerPosition.getZ() - packetBlockPosition.getZ();
                         if (((diffX * diffX) + (diffY * diffY) + (diffZ * diffZ)) >
-                                (session.getGameMode().equals(GameMode.CREATIVE) ? CREATIVE_EYE_HEIGHT_PLACE_DISTANCE : SURVIVAL_EYE_HEIGHT_PLACE_DISTANCE)) {
+                                (creative ? CREATIVE_EYE_HEIGHT_PLACE_DISTANCE : SURVIVAL_EYE_HEIGHT_PLACE_DISTANCE)) {
                             restoreCorrectBlock(session, blockPos, packet);
                             return;
                         }
 
+                        double clickPositionFullX = (double) packetBlockPosition.getX() + (double) packet.getClickPosition().getX();
+                        double clickPositionFullY = (double) packetBlockPosition.getY() + (double) packet.getClickPosition().getY();
+                        double clickPositionFullZ = (double) packetBlockPosition.getZ() + (double) packet.getClickPosition().getZ();
+
+                        // More recent Paper check - https://github.com/PaperMC/Paper/blob/87e11bf7fdf48ecdf3e1cae383c368b9b61d7df9/patches/server/0470-Move-range-check-for-block-placing-up.patch
+                        double clickDiffX = playerPosition.getX() - clickPositionFullX;
+                        double clickDiffY = playerPosition.getY() - clickPositionFullY;
+                        double clickDiffZ = playerPosition.getZ() - clickPositionFullZ;
+                        if (((clickDiffX * clickDiffX) + (clickDiffY * clickDiffY) + (clickDiffZ * clickDiffZ)) >
+                                (creative ? CREATIVE_EYE_HEIGHT_PLACE_DISTANCE : SURVIVAL_EYE_HEIGHT_PLACE_DISTANCE)) {
+                            restoreCorrectBlock(session, blockPos, packet);
+                            return;
+                        }
+
+                        Vector3f blockCenter = Vector3f.from(packetBlockPosition.getX() + 0.5f, packetBlockPosition.getY() + 0.5f, packetBlockPosition.getZ() + 0.5f);
                         // Vanilla check
                         if (!(session.getPlayerEntity().getPosition().sub(0, EntityDefinitions.PLAYER.offset(), 0)
-                                .distanceSquared(packet.getBlockPosition().toFloat().add(0.5f, 0.5f, 0.5f)) < MAXIMUM_BLOCK_PLACING_DISTANCE)) {
+                                .distanceSquared(blockCenter) < MAXIMUM_BLOCK_PLACING_DISTANCE)) {
                             // The client thinks that its blocks have been successfully placed. Restore the server's blocks instead.
+                            restoreCorrectBlock(session, blockPos, packet);
+                            return;
+                        }
+
+                        // More recent vanilla check (as of 1.18.2)
+                        double clickDistanceX = clickPositionFullX - blockCenter.getX();
+                        double clickDistanceY = clickPositionFullY - blockCenter.getY();
+                        double clickDistanceZ = clickPositionFullZ - blockCenter.getZ();
+                        if (!(Math.abs(clickDistanceX) < 1.0000001D && Math.abs(clickDistanceY) < 1.0000001D && Math.abs(clickDistanceZ) < 1.0000001D)) {
                             restoreCorrectBlock(session, blockPos, packet);
                             return;
                         }
