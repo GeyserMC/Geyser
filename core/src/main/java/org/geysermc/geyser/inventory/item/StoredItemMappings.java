@@ -52,7 +52,6 @@ public class StoredItemMappings {
     private final int goldIngot;
     private final int ironIngot;
     private final int lead;
-    private final ItemMapping lodestoneCompass;
     private final ItemMapping milkBucket;
     private final int nameTag;
     private final ItemMapping powderSnowBucket;
@@ -80,7 +79,6 @@ public class StoredItemMappings {
         this.goldIngot = load(itemMappings, "gold_ingot").getJavaId();
         this.ironIngot = load(itemMappings, "iron_ingot").getJavaId();
         this.lead = load(itemMappings, "lead").getJavaId();
-        this.lodestoneCompass = load(itemMappings, "lodestone_compass");
         this.milkBucket = load(itemMappings, "milk_bucket");
         this.nameTag = load(itemMappings, "name_tag").getJavaId();
         this.powderSnowBucket = load(itemMappings, "powder_snow_bucket");

@@ -12,7 +12,7 @@ dependencies {
 
     // Jackson JSON and YAML serialization
     api("com.fasterxml.jackson.core", "jackson-annotations", Versions.jacksonVersion)
-    api("com.fasterxml.jackson.core", "jackson-databind", Versions.jacksonVersion)
+    api("com.fasterxml.jackson.core", "jackson-databind", Versions.jacksonVersion + ".1") // Extra .1 as databind is a slightly different version
     api("com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml", Versions.jacksonVersion)
     api("com.google.guava", "guava", Versions.guavaVersion)
 

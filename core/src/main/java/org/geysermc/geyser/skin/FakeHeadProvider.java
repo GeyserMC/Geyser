@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.skin;
 
-import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -106,7 +105,7 @@ public class FakeHeadProvider {
 
         session.getPlayerWithCustomHeads().add(entity.getUuid());
 
-        GameProfile.Property texturesProperty = entity.getProfile().getProperty("textures");
+        String texturesProperty = entity.getTexturesProperty();
 
         SkinProvider.EXECUTOR_SERVICE.execute(() -> {
             try {
@@ -182,7 +181,7 @@ public class FakeHeadProvider {
     @Getter
     @Setter
     private static class FakeHeadEntry {
-        private final GameProfile.Property texturesProperty;
+        private final String texturesProperty;
         private final String fakeHeadSkinUrl;
         private PlayerEntity entity;
 
@@ -192,18 +191,7 @@ public class FakeHeadProvider {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             FakeHeadEntry that = (FakeHeadEntry) o;
-            return equals(texturesProperty, that.texturesProperty) && Objects.equals(fakeHeadSkinUrl, that.fakeHeadSkinUrl);
-        }
-
-        private boolean equals(GameProfile.Property a, GameProfile.Property b) {
-            //TODO actually fix this in MCAuthLib
-            if (a == b) {
-                return true;
-            }
-            if (a == null || b == null) {
-                return false;
-            }
-            return Objects.equals(a.getName(), b.getName()) && Objects.equals(a.getValue(), b.getValue()) && Objects.equals(a.getSignature(), b.getSignature());
+            return Objects.equals(texturesProperty, that.texturesProperty) && Objects.equals(fakeHeadSkinUrl, that.fakeHeadSkinUrl);
         }
 
         @Override

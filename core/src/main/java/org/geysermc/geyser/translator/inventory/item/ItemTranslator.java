@@ -47,6 +47,7 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.FileUtils;
 
 import javax.annotation.Nonnull;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -71,11 +72,11 @@ public abstract class ItemTranslator {
 
             try {
                 if (NbtItemStackTranslator.class.isAssignableFrom(clazz)) {
-                    NbtItemStackTranslator nbtItemTranslator = (NbtItemStackTranslator) clazz.newInstance();
+                    NbtItemStackTranslator nbtItemTranslator = (NbtItemStackTranslator) clazz.getDeclaredConstructor().newInstance();
                     loadedNbtItemTranslators.put(nbtItemTranslator, priority);
                     continue;
                 }
-                ItemTranslator itemStackTranslator = (ItemTranslator) clazz.newInstance();
+                ItemTranslator itemStackTranslator = (ItemTranslator) clazz.getDeclaredConstructor().newInstance();
                 List<ItemMapping> appliedItems = itemStackTranslator.getAppliedItems();
                 for (ItemMapping item : appliedItems) {
                     ItemTranslator registered = ITEM_STACK_TRANSLATORS.get(item.getJavaId());
@@ -87,7 +88,7 @@ public abstract class ItemTranslator {
                     }
                     ITEM_STACK_TRANSLATORS.put(item.getJavaId(), itemStackTranslator);
                 }
-            } catch (InstantiationException | IllegalAccessException e) {
+            } catch (InstantiationException | InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
                 GeyserImpl.getInstance().getLogger().error("Could not instantiate annotated item translator " + clazz.getCanonicalName());
             }
         }
@@ -302,13 +303,16 @@ public abstract class ItemTranslator {
         return new ItemStack(mapping.getJavaId(), itemData.getCount(), this.translateToJavaNBT("", itemData.getTag()));
     }
 
+    /**
+     * Used for initialization only and only called once.
+     */
     public abstract List<ItemMapping> getAppliedItems();
 
     protected ItemMapping getItemMapping(int javaId, CompoundTag nbt, ItemMappings mappings) {
         return mappings.getMapping(javaId);
     }
 
-    public NbtMap translateNbtToBedrock(CompoundTag tag) {
+    protected NbtMap translateNbtToBedrock(CompoundTag tag) {
         NbtMapBuilder builder = NbtMap.builder();
         if (tag.getValue() != null && !tag.getValue().isEmpty()) {
             for (String str : tag.getValue().keySet()) {
@@ -387,7 +391,7 @@ public abstract class ItemTranslator {
         return null;
     }
 
-    public CompoundTag translateToJavaNBT(String name, NbtMap tag) {
+    private CompoundTag translateToJavaNBT(String name, NbtMap tag) {
         CompoundTag javaTag = new CompoundTag(name);
         Map<String, Tag> javaValue = javaTag.getValue();
         if (tag != null && !tag.isEmpty()) {

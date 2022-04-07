@@ -24,7 +24,7 @@
  */
 
 object Versions {
-    const val jacksonVersion = "2.12.4"
+    const val jacksonVersion = "2.13.2"
     const val fastutilVersion = "8.5.2"
     const val nettyVersion = "4.1.66.Final"
     const val guavaVersion = "29.0-jre"
