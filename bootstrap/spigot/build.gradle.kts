@@ -1,20 +1,25 @@
 val paperVersion = "1.17.1-R0.1-SNAPSHOT" // Needed because we do not support Java 17 yet
 val viaVersion = "4.0.0"
 val adaptersVersion = "1.4-SNAPSHOT"
+val commodoreVersion = "1.13"
 
 dependencies {
     api(projects.core)
 
     implementation("org.geysermc.geyser.adapters", "spigot-all", adaptersVersion)
+
+    implementation("me.lucko", "commodore", commodoreVersion)
 }
 
 platformRelocate("it.unimi.dsi.fastutil")
 platformRelocate("com.fasterxml.jackson")
 platformRelocate("net.kyori")
 platformRelocate("org.objectweb.asm")
+platformRelocate("me.lucko.commodore")
 
 // These dependencies are already present on the platform
 provided("io.papermc.paper", "paper-api", paperVersion)
+provided("io.papermc.paper", "paper-mojangapi", paperVersion)
 provided("com.viaversion", "viaversion", viaVersion)
 
 application {
@@ -42,5 +47,8 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         exclude(dependency("io.netty:netty-codec-dns:.*"))
         exclude(dependency("io.netty:netty-resolver-dns:.*"))
         exclude(dependency("io.netty:netty-resolver-dns-native-macos:.*"))
+
+        // Commodore includes Brigadier
+        exclude(dependency("com.mojang:.*"))
     }
 }

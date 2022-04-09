@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
@@ -35,15 +34,12 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.skin.SkullSkinManager;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -62,7 +58,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         builder.put("SkullType", skullVariant);
     }
 
-    public static CompletableFuture<GameProfile> getProfile(CompoundTag tag) {
+    private static CompletableFuture<String> getTextures(CompoundTag tag) {
         CompoundTag owner = tag.get("SkullOwner");
         if (owner != null) {
             CompoundTag properties = owner.get("Properties");
@@ -73,13 +69,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
             ListTag textures = properties.get("textures");
             LinkedHashMap<?,?> tag1 = (LinkedHashMap<?,?>) textures.get(0).getValue();
             StringTag texture = (StringTag) tag1.get("Value");
-
-            List<GameProfile.Property> profileProperties = new ArrayList<>();
-
-            GameProfile gameProfile = new GameProfile(UUID.randomUUID(), "");
-            profileProperties.add(new GameProfile.Property("textures", texture.getValue()));
-            gameProfile.setProperties(profileProperties);
-            return CompletableFuture.completedFuture(gameProfile);
+            return CompletableFuture.completedFuture(texture.getValue());
         }
         return CompletableFuture.completedFuture(null);
     }
@@ -108,21 +98,21 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         Vector3i blockPosition = Vector3i.from(posX, posY, posZ);
         Vector3f entityPosition = Vector3f.from(x, y, z);
 
-        getProfile(tag).whenComplete((gameProfile, throwable) -> {
-            if (gameProfile == null) {
+        getTextures(tag).whenComplete((texturesProperty, throwable) -> {
+            if (texturesProperty == null) {
                 session.getGeyser().getLogger().debug("Custom skull with invalid SkullOwner tag: " + blockPosition + " " + tag);
                 return;
             }
 
             if (session.getEventLoop().inEventLoop()) {
-                spawnPlayer(session, gameProfile, blockPosition, entityPosition, rotation, blockState);
+                spawnPlayer(session, texturesProperty, blockPosition, entityPosition, rotation, blockState);
             } else {
-                session.executeInEventLoop(() -> spawnPlayer(session, gameProfile, blockPosition, entityPosition, rotation, blockState));
+                session.executeInEventLoop(() -> spawnPlayer(session, texturesProperty, blockPosition, entityPosition, rotation, blockState));
             }
         });
     }
 
-    private static void spawnPlayer(GeyserSession session, GameProfile profile, Vector3i blockPosition,
+    private static void spawnPlayer(GeyserSession session, String texturesProperty, Vector3i blockPosition,
                                     Vector3f entityPosition, float rotation, int blockState) {
         long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
 
@@ -132,7 +122,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
             existingSkull.despawnEntity(blockPosition);
         }
 
-        SkullPlayerEntity player = new SkullPlayerEntity(session, geyserId, profile, entityPosition, rotation, blockState);
+        SkullPlayerEntity player = new SkullPlayerEntity(session, geyserId, entityPosition, rotation, blockState, texturesProperty);
 
         // Cache entity
         session.getSkullCache().put(blockPosition, player);

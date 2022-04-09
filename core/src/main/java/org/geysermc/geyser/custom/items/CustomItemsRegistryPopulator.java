@@ -29,8 +29,6 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.custom.items.CustomItemData;
 import org.geysermc.geyser.api.custom.items.registration.CustomItemRegistrationType;
@@ -42,10 +40,11 @@ import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class CustomItemsRegistryPopulator {
-    public static Int2ObjectMap<String> addToRegistry(String baseItem, CustomItemData customItemData, int nameExists) {
+    public static GeyserCustomItemData addToRegistry(String baseItem, CustomItemData customItemData, int nameExists, GeyserCustomItemManager customItemManager) {
         if (!GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
             return null;
         }
@@ -59,7 +58,7 @@ public class CustomItemsRegistryPopulator {
             customItemName += "_" + nameExists;
         }
 
-        Int2ObjectMap<String> customIdMappings = new Int2ObjectOpenHashMap<>();
+        GeyserCustomItemData returnData = new GeyserCustomItemData(customItemData, new HashMap<>());
 
         for (Map.Entry<String, ItemRegistryPopulator.PaletteVersion> palette : ItemRegistryPopulator.getPaletteVersions().entrySet()) {
             ItemMappings itemMappings = Registries.ITEMS.get(palette.getValue().protocolVersion());
@@ -68,11 +67,9 @@ public class CustomItemsRegistryPopulator {
             if (javaItem == null) continue;
 
             int javaCustomItemId = javaItem.getJavaId();
-            int customItemId = itemMappings.getItems().size() + 1;
+            int customItemId = itemMappings.getItems().length + customItemManager.registeredItemCount() + 1;
 
-            itemMappings.getItemEntries().add(new StartGamePacket.ItemEntry(customItemName, (short) customItemId, true));
-
-            itemMappings.getItems().put(customItemId, ItemMapping.builder()
+            ItemMapping customItemMapping = ItemMapping.builder()
                     .javaIdentifier(baseItem)
                     .bedrockIdentifier(customItemName)
                     .javaId(javaCustomItemId)
@@ -80,7 +77,9 @@ public class CustomItemsRegistryPopulator {
                     .bedrockData(0)
                     .bedrockBlockId(-1)
                     .stackSize(javaItem.getStackSize())
-                    .build());
+                    .build();
+
+            StartGamePacket.ItemEntry startGamePacketItemEntry = new StartGamePacket.ItemEntry(customItemName, (short) customItemId, true);
 
             NbtMapBuilder builder = NbtMap.builder();
             builder.putString("name", customItemName)
@@ -107,23 +106,23 @@ public class CustomItemsRegistryPopulator {
             boolean canDestroyInCreative = true;
             if (javaItem.isTool()) {
                 float miningSpeed = 1.0f;
-                //float toolSpeed = ToolBreakSpeeds.toolTierToSpeed(javaItem.getToolTier());
+                int toolSpeed = ToolBreakSpeeds.toolTierToSpeed(javaItem.getToolTier());
 
                 if (baseItem.endsWith("_sword")) {
                     miningSpeed = 1.5f;
                     canDestroyInCreative = false;
 
-                    //componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getSwordDigger(toolSpeed)); will crash the client
+                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getSwordDigger(toolSpeed));
                     componentBuilder.putCompound("minecraft:weapon", NbtMap.EMPTY);
                     componentBuilder.putCompound("tag:minecraft:is_sword", NbtMap.EMPTY);
                 } else if (baseItem.endsWith("_pickaxe")) {
-                    //componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getPickaxeDigger(toolSpeed, javaItem.getToolTier())); will crash the client
+                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getPickaxeDigger(toolSpeed, javaItem.getToolTier()));
                     componentBuilder.putCompound("tag:minecraft:is_pickaxe", NbtMap.EMPTY);
                 } else if (baseItem.endsWith("_axe")) {
-                    //componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getAxeDigger(toolSpeed)); will crash the client
+                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getAxeDigger(toolSpeed));
                     componentBuilder.putCompound("tag:minecraft:is_axe", NbtMap.EMPTY);
                 } else if (baseItem.endsWith("_shovel")) {
-                    //componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getShovelDigger(toolSpeed)); will crash the client
+                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getShovelDigger(toolSpeed));
                     componentBuilder.putCompound("tag:minecraft:is_shovel", NbtMap.EMPTY);
                 } else if (baseItem.endsWith("_hoe")) {
                     componentBuilder.putCompound("tag:minecraft:is_hoe", NbtMap.EMPTY);
@@ -183,11 +182,12 @@ public class CustomItemsRegistryPopulator {
             } else {
                 GeyserImpl.getInstance().getLogger().warning("The custom item " + customItemData.name() + " has no recognised registration type: " + customItemData.registrationType().type());
             }
-            itemMappings.getCustomItemsData().add(new ComponentItemData(customItemName, builder.build()));
-            customIdMappings.put(customItemId, customItemName);
+
+            ComponentItemData componentItemData = new ComponentItemData(customItemName, builder.build());
+            returnData.mappings().put(palette.getValue().protocolVersion(), new GeyserCustomItemData.Mapping(componentItemData, customItemMapping, startGamePacketItemEntry, customItemName, customItemId));
         }
 
-        return customIdMappings;
+        return returnData;
     }
 
     private static NbtMap XYZToNbtMap(float x, float y, float z) {

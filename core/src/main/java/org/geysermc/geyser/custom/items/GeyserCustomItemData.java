@@ -23,26 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.level.block.entity;
+package org.geysermc.geyser.custom.items;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.level.block.BlockStateValues;
+import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
+import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
+import org.geysermc.geyser.api.custom.items.CustomItemData;
+import org.geysermc.geyser.registry.type.ItemMapping;
 
-/**
- * Does not implement BlockEntityTranslator because it's only a block entity in Bedrock
- */
-public class NoteblockBlockEntityTranslator {
+import java.util.Map;
 
-    public static void translate(GeyserSession session, Position position) {
-        int blockState = session.getGeyser().getWorldManager().getBlockAt(session, position);
-        BlockEventPacket blockEventPacket = new BlockEventPacket();
-        blockEventPacket.setBlockPosition(Vector3i.from(position.getX(), position.getY(), position.getZ()));
-        blockEventPacket.setEventType(0);
-        blockEventPacket.setEventData(BlockStateValues.getNoteblockPitch(blockState));
-        session.sendUpstreamPacket(blockEventPacket);
+public record GeyserCustomItemData(CustomItemData customItemData, Map<Integer, Mapping> mappings) {
+    public record Mapping(ComponentItemData componentItemData, ItemMapping itemMapping, StartGamePacket.ItemEntry startGamePacketItemEntry, String stringId, int integerId) {
     }
-
 }

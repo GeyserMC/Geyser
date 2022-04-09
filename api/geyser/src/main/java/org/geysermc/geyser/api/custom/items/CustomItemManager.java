@@ -64,5 +64,5 @@ public abstract class CustomItemManager {
      * @param id the id
      * @return the item string identifier
      */
-    public abstract String itemStringFromId(Integer id);
+    public abstract String itemStringFromId(int id);
 }

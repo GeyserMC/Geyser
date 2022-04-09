@@ -172,8 +172,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             // Sort the list by each output item's Java identifier - this is how it's sorted on Java, and therefore
             // We can get the correct order for button pressing
             data.getValue().sort(Comparator.comparing((stoneCuttingRecipeData ->
-                    session.getItemMappings().getItems()
-                            .getOrDefault(stoneCuttingRecipeData.getResult().getId(), ItemMapping.AIR)
+                    session.getItemMappings().getMapping(stoneCuttingRecipeData.getResult())
                             .getJavaIdentifier())));
 
             // Now that it's sorted, let's translate these recipes
@@ -229,7 +228,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     GroupedItem groupedItem = entry.getKey();
                     int idCount = 0;
                     //not optimal
-                    for (ItemMapping mapping : session.getItemMappings().getItems().values()) {
+                    for (ItemMapping mapping : session.getItemMappings().getItems()) {
                         if (mapping.getBedrockId() == groupedItem.id) {
                             idCount++;
                         }

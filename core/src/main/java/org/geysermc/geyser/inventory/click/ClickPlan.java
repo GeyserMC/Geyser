@@ -391,7 +391,7 @@ public final class ClickPlan {
     public IntSet getAffectedSlots() {
         IntSet affectedSlots = new IntOpenHashSet();
         for (ClickAction action : plan) {
-            if (translator.getSlotType(action.slot) == SlotType.NORMAL && action.slot != Click.OUTSIDE_SLOT) {
+            if (translator.getSlotType(action.slot) != SlotType.OUTPUT && action.slot != Click.OUTSIDE_SLOT) {
                 affectedSlots.add(action.slot);
                 if (action.click.actionType == ContainerActionType.MOVE_TO_HOTBAR_SLOT) {
                     //TODO won't work if offhand is added

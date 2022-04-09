@@ -29,21 +29,27 @@ import com.github.steveice10.opennbt.tag.builtin.*;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import org.geysermc.geyser.session.GeyserSession;
 
+import javax.annotation.Nullable;
+
 public class ItemUtils {
     private static Int2IntMap DYE_COLORS = null;
 
-    public static int getEnchantmentLevel(CompoundTag itemNBTData, String enchantmentId) {
-        ListTag enchantments = (itemNBTData == null ? null : itemNBTData.get("Enchantments"));
+    public static int getEnchantmentLevel(@Nullable CompoundTag itemNBTData, String enchantmentId) {
+        if (itemNBTData == null) {
+            return 0;
+        }
+        ListTag enchantments = itemNBTData.get("Enchantments");
         if (enchantments != null) {
-            int enchantmentLevel = 0;
             for (Tag tag : enchantments) {
                 CompoundTag enchantment = (CompoundTag) tag;
                 StringTag enchantId = enchantment.get("id");
                 if (enchantId.getValue().equals(enchantmentId)) {
-                    enchantmentLevel = (int) ((ShortTag) enchantment.get("lvl")).getValue();
+                    Tag lvl = enchantment.get("lvl");
+                    if (lvl != null && lvl.getValue() instanceof Number number) {
+                        return number.intValue();
+                    }
                 }
             }
-            return enchantmentLevel;
         }
         return 0;
     }

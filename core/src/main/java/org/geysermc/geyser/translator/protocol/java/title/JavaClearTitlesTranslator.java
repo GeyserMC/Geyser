@@ -37,11 +37,14 @@ public class JavaClearTitlesTranslator extends PacketTranslator<ClientboundClear
     @Override
     public void translate(GeyserSession session, ClientboundClearTitlesPacket packet) {
         SetTitlePacket titlePacket = new SetTitlePacket();
-        // TODO handle packet.isResetTimes()
         titlePacket.setType(SetTitlePacket.Type.CLEAR);
         titlePacket.setText("");
         titlePacket.setXuid("");
         titlePacket.setPlatformOnlineId("");
         session.sendUpstreamPacket(titlePacket);
+
+        if (packet.isResetTimes()) {
+            session.getWorldCache().resetTitleTimes(true);
+        }
     }
 }

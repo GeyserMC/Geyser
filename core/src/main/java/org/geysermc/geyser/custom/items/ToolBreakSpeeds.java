@@ -32,70 +32,79 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ToolBreakSpeeds {
-    public static float toolTierToSpeed(String toolTier) {
+    public static int toolTierToSpeed(String toolTier) {
         return switch (toolTier) {
-            case "wooden" -> 2f;
-            case "stone" -> 4f;
-            case "iron" -> 6f;
-            case "golden" -> 12f;
-            case "diamond" -> 8f;
-            case "netherite" -> 9f;
-            default -> 1f;
+            case "wooden" -> 2;
+            case "stone" -> 4;
+            case "iron" -> 6;
+            case "golden" -> 12;
+            case "diamond" -> 8;
+            case "netherite" -> 9;
+            default -> 1;
         };
     }
 
-    private static NbtMap createTagBreakSpeed(float speed, String... tags) {
-        String tagString = "query.any_tag('" + tags[0];
+    private static NbtMap createTagBreakSpeed(int speed, String... tags) {
+        StringBuilder builder = new StringBuilder("query.any_tag('");
+        builder.append(tags[0]);
         for (int i = 1; i < tags.length; i++) {
-            tagString += "', '" + tags[i];
+            builder.append("', '").append(tags[i]);
         }
-        tagString += "')";
+        builder.append("')");
 
         return NbtMap.builder()
-                .putCompound("block", NbtMap.builder().putString("tags", tagString).build())
-                .putFloat("speed", 0.5f)
+                .putCompound("block", NbtMap.builder()
+                        .putString("tags", builder.toString())
+                        .putInt("tags_version", 4)
+                        .build())
+                .putInt("speed", speed)
                 .build();
     }
 
-    private static NbtMap createBreakSpeed(float speed, String block) {
+    private static NbtMap createBreakSpeed(int speed, String block) {
         return NbtMap.builder()
-                .putString("block", block)
-                .putFloat("speed", 0.5f)
+                .putCompound("block", NbtMap.builder()
+                        .putString("name", block).build())
+                .putCompound("on_dig", NbtMap.builder()
+                        .putString("event", "tool_durability")
+                        .putInt("target", 0)
+                        .build())
+                .putInt("speed", speed)
                 .build();
     }
 
     private static NbtMap createDigger(List<NbtMap> speeds) {
         return NbtMap.builder()
                 .putBoolean("use_efficiency", true)
+                .putCompound("on_dig", NbtMap.builder()
+                        .putString("event", "tool_durability")
+                        .putInt("target", 0)
+                        .build())
                 .putList("destroy_speeds", NbtType.COMPOUND, speeds)
                 .build();
     }
 
-    public static NbtMap getAxeDigger(float speed) {
+    public static NbtMap getAxeDigger(int speed) {
         List<NbtMap> speeds = new ArrayList<>();
         speeds.add(createTagBreakSpeed(speed, "wood", "pumpkin", "plant"));
-        speeds.add(createBreakSpeed(speed, "minecraft:chest"));
-        speeds.add(createBreakSpeed(speed, "minecraft:melon_block"));
         //All speeds need adding
 
         return createDigger(speeds);
     }
 
-    public static NbtMap getPickaxeDigger(float speed, String toolTier) {
+    public static NbtMap getPickaxeDigger(int speed, String toolTier) {
         List<NbtMap> speeds = new ArrayList<>();
         if (toolTier.equals("diamond") || toolTier.equals("netherite")) {
             speeds.add(createTagBreakSpeed(speed, "stone", "metal", "gravel", "iron_pick_diggable", "diamond_pick_diggable"));
         } else {
             speeds.add(createTagBreakSpeed(speed, "stone", "metal", "gravel", "iron_pick_diggable"));
         }
-        speeds.add(createBreakSpeed(speed, "minecraft:ice"));
-        speeds.add(createBreakSpeed(speed, "minecraft:sandstone"));
         //All speeds need adding
 
         return createDigger(speeds);
     }
 
-    public static NbtMap getShovelDigger(float speed) {
+    public static NbtMap getShovelDigger(int speed) {
         List<NbtMap> speeds = new ArrayList<>();
         speeds.add(createTagBreakSpeed(speed, "dirt", "sand", "gravel", "grass", "snow"));
         //All speeds need adding
@@ -103,7 +112,7 @@ public class ToolBreakSpeeds {
         return createDigger(speeds);
     }
 
-    public static NbtMap getSwordDigger(float speed) {
+    public static NbtMap getSwordDigger(int speed) {
         List<NbtMap> speeds = new ArrayList<>();
         speeds.add(createBreakSpeed(speed, "minecraft:web"));
         speeds.add(createBreakSpeed(speed, "minecraft:bamboo"));

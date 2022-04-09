@@ -65,6 +65,7 @@ import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.*;
 import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import io.netty.channel.Channel;
@@ -584,8 +585,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 componentPacket.getItems().add(this.itemMappings.getFurnaceMinecartData());
             }
 
-            if (this.itemMappings.getCustomItemsData().size() != 0) {
-                componentPacket.getItems().addAll(this.itemMappings.getCustomItemsData());
+            List<ComponentItemData> customItems = this.geyser.getCustomManager().getItemManager().componentItemDataListFromVersion(upstream.getProtocolVersion());
+            if (customItems.size() != 0) {
+                componentPacket.getItems().addAll(customItems);
             }
 
             upstream.sendPacket(componentPacket);
@@ -1423,7 +1425,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // startGamePacket.setCurrentTick(0);
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
-        startGamePacket.setItemEntries(this.itemMappings.getItemEntries());
+
+        List<StartGamePacket.ItemEntry> items = new ArrayList<>(this.itemMappings.getItemEntries());
+        items.addAll(this.geyser.customManager().getItemManager().startGameItemEntryListFromVersion(upstream.getProtocolVersion()));
+        startGamePacket.setItemEntries(items);
+
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
         startGamePacket.setServerEngine(""); // Do we want to fill this in?
