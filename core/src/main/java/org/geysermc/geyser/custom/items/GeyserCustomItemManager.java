@@ -66,11 +66,7 @@ public class GeyserCustomItemManager extends CustomItemManager {
 
         GeyserCustomItemData registeredItem = CustomItemsRegistryPopulator.addToRegistry(baseItem, customItemData, nameExists, this);
         if (registeredItem != null && registeredItem.mappings().size() > 0) {
-            if (this.customMappings.containsKey(baseItem)) {
-                this.customMappings.get(baseItem).add(registeredItem);
-            } else {
-                this.customMappings.put(baseItem, new ArrayList<>(List.of(registeredItem)));
-            }
+            this.customMappings.computeIfAbsent(baseItem, list -> new ArrayList<>()).add(registeredItem);
 
             for (GeyserCustomItemData.Mapping mapping : registeredItem.mappings().values()) {
                 this.customIdMappings.put(mapping.integerId(), mapping.stringId());

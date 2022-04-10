@@ -23,30 +23,43 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.custom.items.registration;
+package org.geysermc.geyser.custom.items.tools;
 
-/**
- * This is the class for registering custom model data items.
- */
-public record CustomModelDataItemType(int customModelData) implements CustomItemRegistrationType {
+public enum ToolTier {
+    WOODEN("wooden", 2),
+    STONE("stone", 4),
+    IRON("iron", 6),
+    GOLDEN("golden", 12),
+    DIAMOND("diamond", 8),
+    NETHERITE("netherite", 9);
 
-    /**
-     * Gets the type of this registration.
-     *
-     * @return the type of this registration.
-     */
-    @Override
-    public Type type() {
-        return Type.CUSTOM_MODEL_DATA;
+    private final String name;
+    private final int speed;
+
+    ToolTier(String name, int speed) {
+        this.name = name;
+        this.speed = speed;
     }
 
-    /**
-     * Gets the custom model data of this registration.
-     *
-     * @return the custom model data of this registration.
-     */
+    public String getName() {
+        return name;
+    }
+
+    public int getSpeed() {
+        return speed;
+    }
+
     @Override
-    public int customModelData() {
-        return this.customModelData;
+    public String toString() {
+        return name;
+    }
+
+    public static ToolTier getByName(String name) {
+        for (ToolTier tier : values()) {
+            if (tier.getName().equals(name)) {
+                return tier;
+            }
+        }
+        return null;
     }
 }

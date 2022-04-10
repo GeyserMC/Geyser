@@ -25,50 +25,125 @@
 
 package org.geysermc.geyser.custom;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.custom.CustomRenderOffsets;
 
 public record GeyserCustomRenderOffsets(GeyserHand mainHand, GeyserHand offhand) {
     public static GeyserCustomRenderOffsets fromCustomRenderOffsets(CustomRenderOffsets customRenderOffsets) {
+        if (customRenderOffsets == null) {
+            return null;
+        }
+
         return new GeyserCustomRenderOffsets(GeyserHand.fromHand(customRenderOffsets.mainHand()), GeyserHand.fromHand(customRenderOffsets.offhand()));
     }
 
     public NbtMap toNbtMap() {
-        return NbtMap.builder()
-                .putCompound("main_hand", this.mainHand().toNbtMap())
-                .putCompound("off_hand", this.offhand().toNbtMap())
-                .build();
+        NbtMap mainHand = null;
+        if (this.mainHand != null) {
+            mainHand = this.mainHand.toNbtMap();
+        }
+        NbtMap offhand = null;
+        if (this.offhand != null) {
+            offhand = this.offhand.toNbtMap();
+        }
+
+        NbtMapBuilder builder = NbtMap.builder();
+        if (mainHand != null) {
+            builder.put("main_hand", mainHand);
+        }
+        if (offhand != null) {
+            builder.put("off_hand", offhand);
+        }
+
+        return builder.build();
     }
 
     public record GeyserHand(GeyserOffset firstPerson, GeyserOffset thirdPerson) {
         public static GeyserHand fromHand(CustomRenderOffsets.Hand hand) {
+            if (hand == null) {
+                return null;
+            }
+
             return new GeyserHand(GeyserOffset.fromOffset(hand.firstPerson()), GeyserOffset.fromOffset(hand.thirdPerson()));
         }
 
         public NbtMap toNbtMap() {
-            return NbtMap.builder()
-                    .putCompound("first_person", this.firstPerson().toNbtMap())
-                    .putCompound("third_person", this.thirdPerson().toNbtMap())
-                    .build();
+            NbtMap firstPerson = null;
+            if (this.firstPerson != null) {
+                firstPerson = this.firstPerson.toNbtMap();
+            }
+            NbtMap thirdPerson = null;
+            if (this.thirdPerson != null) {
+                thirdPerson = this.thirdPerson.toNbtMap();
+            }
+
+            if (firstPerson == null && thirdPerson == null) {
+                return null;
+            }
+
+            NbtMapBuilder builder = NbtMap.builder();
+            if (firstPerson != null) {
+                builder.put("first_person", firstPerson);
+            }
+            if (thirdPerson != null) {
+                builder.put("third_person", thirdPerson);
+            }
+
+            return builder.build();
         }
     }
 
     public record GeyserOffset(GeyserOffsetXYZ position, GeyserOffsetXYZ rotation, GeyserOffsetXYZ scale) {
         public static GeyserOffset fromOffset(CustomRenderOffsets.Offset offset) {
+            if (offset == null) {
+                return null;
+            }
+
             return new GeyserOffset(GeyserOffsetXYZ.fromOffsetXYZ(offset.position()), GeyserOffsetXYZ.fromOffsetXYZ(offset.rotation()), GeyserOffsetXYZ.fromOffsetXYZ(offset.scale()));
         }
 
         public NbtMap toNbtMap() {
-            return NbtMap.builder()
-                    .putCompound("position", this.position().toNbtMap())
-                    .putCompound("rotation", this.rotation().toNbtMap())
-                    .putCompound("scale", this.scale().toNbtMap())
-                    .build();
+            NbtMap position = null;
+            if (this.position != null) {
+                position = this.position.toNbtMap();
+            }
+            NbtMap rotation = null;
+            if (this.rotation != null) {
+                rotation = this.rotation.toNbtMap();
+            }
+            NbtMap scale = null;
+            if (this.scale != null) {
+                scale = this.scale.toNbtMap();
+            }
+
+            if (position == null && rotation == null && scale == null) {
+                return null;
+            }
+
+            NbtMapBuilder builder = NbtMap.builder();
+            if (position != null) {
+                builder.put("position", position);
+            }
+            if (rotation != null) {
+                builder.put("rotation", rotation);
+            }
+            if (scale != null) {
+                builder.put("scale", scale);
+            }
+
+            return builder.build();
         }
     }
 
     public record GeyserOffsetXYZ(float x, float y, float z) {
         public static GeyserOffsetXYZ fromOffsetXYZ(CustomRenderOffsets.OffsetXYZ offsetXYZ) {
+            if (offsetXYZ == null) {
+                return null;
+            }
+
             return new GeyserOffsetXYZ(offsetXYZ.x(), offsetXYZ.y(), offsetXYZ.z());
         }
 
@@ -79,5 +154,58 @@ public record GeyserCustomRenderOffsets(GeyserHand mainHand, GeyserHand offhand)
                     .putFloat("z", this.z)
                     .build();
         }
+    }
+
+    public static CustomRenderOffsets fromJsonNode(JsonNode node) {
+        if (node == null || !node.isObject()) {
+            return null;
+        }
+
+        return new CustomRenderOffsets(
+                getHandOffsets(node, "main_hand"),
+                getHandOffsets(node, "off_hand")
+        );
+    }
+
+    private static CustomRenderOffsets.Hand getHandOffsets(JsonNode node, String hand) {
+        JsonNode tmpNode = node.get(hand);
+        if (tmpNode == null || !tmpNode.isObject()) {
+            return null;
+        }
+
+        return new CustomRenderOffsets.Hand(
+                getPerspectiveOffsets(tmpNode, "first_person"),
+                getPerspectiveOffsets(tmpNode, "third_person")
+        );
+    }
+
+    private static CustomRenderOffsets.Offset getPerspectiveOffsets(JsonNode node, String perspective) {
+        JsonNode tmpNode = node.get(perspective);
+        if (tmpNode == null || !tmpNode.isObject()) {
+            return null;
+        }
+
+        return new CustomRenderOffsets.Offset(
+                getOffsetXYZ(tmpNode, "position"),
+                getOffsetXYZ(tmpNode, "rotation"),
+                getOffsetXYZ(tmpNode, "scale")
+        );
+    }
+
+    private static CustomRenderOffsets.OffsetXYZ getOffsetXYZ(JsonNode node, String offsetType) {
+        JsonNode tmpNode = node.get(offsetType);
+        if (tmpNode == null || !tmpNode.isObject()) {
+            return null;
+        }
+
+        if (!tmpNode.has("x") || !tmpNode.has("y") || !tmpNode.has("z")) {
+            return null;
+        }
+
+        return new CustomRenderOffsets.OffsetXYZ(
+                tmpNode.get("x").floatValue(),
+                tmpNode.get("y").floatValue(),
+                tmpNode.get("z").floatValue()
+        );
     }
 }

@@ -27,7 +27,9 @@ package org.geysermc.geyser.custom.mappings.versions;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.custom.items.registration.CustomModelDataItemType;
+import org.geysermc.geyser.custom.GeyserCustomRenderOffsets;
 import org.geysermc.geyser.custom.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.api.custom.items.CustomItemData;
 import org.geysermc.geyser.custom.GeyserCustomManager;
@@ -102,6 +104,12 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
 
         if (node.has("texture_size")) {
             customItemData.setTextureSize(node.get("texture_size").asInt());
+        }
+
+        if (node.has("render_offsets")) {
+            JsonNode tmpNode = node.get("render_offsets");
+
+            customItemData.setRenderOffsets(GeyserCustomRenderOffsets.fromJsonNode(tmpNode));
         }
 
         return customItemData;

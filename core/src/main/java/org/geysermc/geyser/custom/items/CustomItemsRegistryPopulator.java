@@ -27,6 +27,7 @@ package org.geysermc.geyser.custom.items;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import org.geysermc.geyser.GeyserImpl;
@@ -35,13 +36,13 @@ import org.geysermc.geyser.api.custom.items.registration.CustomItemRegistrationT
 import org.geysermc.geyser.api.custom.items.registration.CustomModelDataItemType;
 import org.geysermc.geyser.custom.GeyserCustomManager;
 import org.geysermc.geyser.custom.GeyserCustomRenderOffsets;
+import org.geysermc.geyser.custom.items.tools.ToolBreakSpeeds;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class CustomItemsRegistryPopulator {
     public static GeyserCustomItemData addToRegistry(String baseItem, CustomItemData customItemData, int nameExists, GeyserCustomItemManager customItemManager) {
@@ -114,20 +115,20 @@ public class CustomItemsRegistryPopulator {
 
                     componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getSwordDigger(toolSpeed));
                     componentBuilder.putCompound("minecraft:weapon", NbtMap.EMPTY);
-                    componentBuilder.putCompound("tag:minecraft:is_sword", NbtMap.EMPTY);
                 } else if (baseItem.endsWith("_pickaxe")) {
                     componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getPickaxeDigger(toolSpeed, javaItem.getToolTier()));
-                    componentBuilder.putCompound("tag:minecraft:is_pickaxe", NbtMap.EMPTY);
+                    setItemTag(componentBuilder, "pickaxe");
                 } else if (baseItem.endsWith("_axe")) {
                     componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getAxeDigger(toolSpeed));
-                    componentBuilder.putCompound("tag:minecraft:is_axe", NbtMap.EMPTY);
+                    setItemTag(componentBuilder, "axe");
                 } else if (baseItem.endsWith("_shovel")) {
                     componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getShovelDigger(toolSpeed));
-                    componentBuilder.putCompound("tag:minecraft:is_shovel", NbtMap.EMPTY);
+                    setItemTag(componentBuilder, "shovel");
                 } else if (baseItem.endsWith("_hoe")) {
-                    componentBuilder.putCompound("tag:minecraft:is_hoe", NbtMap.EMPTY);
+                    setItemTag(componentBuilder, "hoe");
                 }
 
+                itemProperties.putBoolean("hand_equipped", true);
                 itemProperties.putFloat("mining_speed", miningSpeed);
             }
             itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
@@ -157,11 +158,19 @@ public class CustomItemsRegistryPopulator {
                         }
                     }
                 }
-            } else if (customItemData.isHat()) {
+            }
+
+            if (customItemData.isHat()) {
+                componentBuilder.remove("minecraft:render_offsets");
                 componentBuilder.putString("minecraft:render_offsets", "helmets");
+
                 componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.head").build());
-            } else if (customItemData.renderOffsets() != null) {
+            }
+
+            if (customItemData.renderOffsets() != null) {
                 GeyserCustomRenderOffsets renderOffsets = GeyserCustomRenderOffsets.fromCustomRenderOffsets(customItemData.renderOffsets());
+
+                componentBuilder.remove("minecraft:render_offsets");
                 componentBuilder.putCompound("minecraft:render_offsets", renderOffsets.toNbtMap());
             } else if (customItemData.textureSize() != 16) {
                 componentBuilder.putCompound("minecraft:render_offsets",
@@ -188,6 +197,10 @@ public class CustomItemsRegistryPopulator {
         }
 
         return returnData;
+    }
+
+    private static void setItemTag(NbtMapBuilder builder, String tag) {
+        builder.putList("item_tags", NbtType.STRING, List.of("minecraft:is_" + tag));
     }
 
     private static NbtMap XYZToNbtMap(float x, float y, float z) {

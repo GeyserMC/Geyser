@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.custom.items;
+package org.geysermc.geyser.custom.items.tools;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtType;
@@ -33,15 +33,12 @@ import java.util.List;
 
 public class ToolBreakSpeeds {
     public static int toolTierToSpeed(String toolTier) {
-        return switch (toolTier) {
-            case "wooden" -> 2;
-            case "stone" -> 4;
-            case "iron" -> 6;
-            case "golden" -> 12;
-            case "diamond" -> 8;
-            case "netherite" -> 9;
-            default -> 1;
-        };
+        ToolTier tier = ToolTier.getByName(toolTier);
+        if (tier == null) {
+            return 0;
+        } else {
+            return tier.getSpeed();
+        }
     }
 
     private static NbtMap createTagBreakSpeed(int speed, String... tags) {
@@ -94,7 +91,7 @@ public class ToolBreakSpeeds {
 
     public static NbtMap getPickaxeDigger(int speed, String toolTier) {
         List<NbtMap> speeds = new ArrayList<>();
-        if (toolTier.equals("diamond") || toolTier.equals("netherite")) {
+        if (toolTier.equals(ToolTier.DIAMOND.toString()) || toolTier.equals(ToolTier.NETHERITE.toString())) {
             speeds.add(createTagBreakSpeed(speed, "stone", "metal", "gravel", "iron_pick_diggable", "diamond_pick_diggable"));
         } else {
             speeds.add(createTagBreakSpeed(speed, "stone", "metal", "gravel", "iron_pick_diggable"));
