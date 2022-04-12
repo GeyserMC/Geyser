@@ -45,7 +45,7 @@ public class JavaSetTimeTranslator extends PacketTranslator<ClientboundSetTimePa
         // We use modulus to prevent an integer overflow
         // 24000 is the range of ticks that a Minecraft day can be; we times by 8 so all moon phases are visible
         // (Last verified behavior: Bedrock 1.18.12 / Java 1.18.2)
-        setTimePacket.setTime((int) Math.abs(time) % (24000 * 8));
+        setTimePacket.setTime((int) (Math.abs(time) % (24000 * 8)));
         session.sendUpstreamPacket(setTimePacket);
         if (!session.isDaylightCycle() && time >= 0) {
             // Client thinks there is no daylight cycle but there is
