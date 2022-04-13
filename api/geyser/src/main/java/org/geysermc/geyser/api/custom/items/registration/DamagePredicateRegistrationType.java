@@ -23,23 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.custom.mappings.versions;
+package org.geysermc.geyser.api.custom.items.registration;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.geysermc.geyser.api.custom.items.CustomItemData;
-import org.geysermc.geyser.custom.GeyserCustomManager;
-import org.geysermc.geyser.custom.exception.InvalidCustomMappingsFileException;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.io.File;
+/**
+ * This is the class for registering custom model data items.
+ */
+public record DamagePredicateRegistrationType(int damagePredicate) implements CustomItemRegistrationType {
 
-public abstract class MappingsReader {
-    protected GeyserCustomManager customManager;
-
-    public MappingsReader(GeyserCustomManager customManager) {
-        this.customManager = customManager;
+    /**
+     * Gets the type of this registration.
+     *
+     * @return the type of this registration.
+     */
+    @Override
+    public @NonNull Type type() {
+        return Type.DAMAGE_PREDICATE;
     }
 
-    public abstract void readMappings(File file, JsonNode mappingsRoot);
-
-    public abstract CustomItemData readItemMappingEntry(JsonNode node) throws InvalidCustomMappingsFileException;
+    /**
+     * Gets the custom model data of this registration.
+     *
+     * @return the custom model data of this registration.
+     */
+    public int damagePredicate() {
+        return this.damagePredicate;
+    }
 }

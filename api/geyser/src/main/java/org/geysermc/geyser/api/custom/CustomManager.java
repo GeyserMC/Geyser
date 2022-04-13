@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.custom;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.custom.items.CustomItemManager;
 
 import java.io.File;
@@ -40,14 +41,14 @@ public abstract class CustomManager {
      *
      * @param file the file to load from
      */
-    public abstract void loadMappingsFromJson(File file);
+    public abstract void loadMappingsFromJson(@NonNull File file);
 
     /**
      * Loads mappings from a json file.
      *
      * @param file the file path for the file to load from
      */
-    public final void loadMappingsFromJson(String file) {
+    public final void loadMappingsFromJson(@NonNull String file) {
         this.loadMappingsFromJson(new File(file));
     }
 
@@ -56,5 +57,5 @@ public abstract class CustomManager {
      *
      * @return the {@link CustomItemManager}
      */
-    public abstract CustomItemManager getItemManager();
+    public abstract @NonNull CustomItemManager getItemManager();
 }

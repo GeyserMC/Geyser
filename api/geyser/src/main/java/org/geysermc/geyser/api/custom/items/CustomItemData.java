@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.api.custom.items;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.custom.items.registration.CustomItemRegistrationType;
 
@@ -43,7 +45,7 @@ public class CustomItemData {
 
     private CustomRenderOffsets renderOffsets;
 
-    public CustomItemData(CustomItemRegistrationType registrationType, String name) {
+    public CustomItemData(@NonNull CustomItemRegistrationType registrationType, @NonNull String name) {
         this.registrationType = registrationType;
         this.name = name;
 
@@ -70,7 +72,7 @@ public class CustomItemData {
      *
      * @return the item's name
      */
-    public String name() {
+    public @NonNull String name() {
         return this.name;
     }
 
@@ -79,7 +81,7 @@ public class CustomItemData {
      *
      * @return the item's display name
      */
-    public String displayName() {
+    public @NonNull String displayName() {
         return this.displayName;
     }
 
@@ -88,7 +90,7 @@ public class CustomItemData {
      *
      * @param displayName the item's display name
      */
-    public void setDisplayName(String displayName) {
+    public void setDisplayName(@NonNull String displayName) {
         this.displayName = displayName;
     }
 
@@ -169,7 +171,7 @@ public class CustomItemData {
      *
      * @return the item's render offsets
      */
-    public CustomRenderOffsets renderOffsets() {
+    public @Nullable CustomRenderOffsets renderOffsets() {
         return this.renderOffsets;
     }
 
@@ -178,7 +180,7 @@ public class CustomItemData {
      *
      * @param renderOffsets the item's render offsets
      */
-    public void setRenderOffsets(CustomRenderOffsets renderOffsets) {
+    public void setRenderOffsets(@Nullable CustomRenderOffsets renderOffsets) {
         this.renderOffsets = renderOffsets;
     }
 }

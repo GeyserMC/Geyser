@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.api.custom.items;
 
-import org.geysermc.geyser.api.custom.items.CustomItemData;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +41,7 @@ public abstract class CustomItemManager {
      * @param baseItem the base (java) item
      * @param customItemData the custom item data to register
      */
-    public abstract void registerCustomItem(String baseItem, CustomItemData customItemData);
+    public abstract void registerCustomItem(@NonNull String baseItem, @NonNull CustomItemData customItemData);
 
     /**
      * Gets the custom item data for the given base item.
@@ -49,14 +49,14 @@ public abstract class CustomItemManager {
      * @param baseItem the base item
      * @return the custom item data
      */
-    public abstract List<CustomItemData> customItemData(String baseItem);
+    public abstract @NonNull List<CustomItemData> customItemData(@NonNull String baseItem);
 
     /**
      * Gets all the custom item data.
      *
      * @return all the custom item data
      */
-    public abstract Map<String, List<CustomItemData>> customMappings();
+    public abstract @NonNull Map<String, List<CustomItemData>> customMappings();
 
     /**
      * Gets an item string identifier for the given id
@@ -64,5 +64,5 @@ public abstract class CustomItemManager {
      * @param id the id
      * @return the item string identifier
      */
-    public abstract String itemStringFromId(int id);
+    public abstract @Nullable String itemStringFromId(int id);
 }

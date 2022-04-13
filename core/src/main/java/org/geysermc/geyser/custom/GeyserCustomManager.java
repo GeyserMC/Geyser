@@ -29,6 +29,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.custom.CustomManager;
 import org.geysermc.geyser.custom.items.GeyserCustomItemManager;
 import org.geysermc.geyser.custom.mappings.MappingsConfigReader;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +37,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class GeyserCustomManager extends CustomManager {
-    private GeyserCustomItemManager customItemManager;
+    private final GeyserCustomItemManager customItemManager;
 
     public static final String CUSTOM_PREFIX = "geysercmd:";
 
@@ -66,12 +67,12 @@ public class GeyserCustomManager extends CustomManager {
     }
 
     @Override
-    public void loadMappingsFromJson(File file) {
+    public void loadMappingsFromJson(@NotNull File file) {
         MappingsConfigReader.readMappingsFromJson(file);
     }
 
     @Override
-    public GeyserCustomItemManager getItemManager() {
+    public @NotNull GeyserCustomItemManager getItemManager() {
         return this.customItemManager;
     }
 }

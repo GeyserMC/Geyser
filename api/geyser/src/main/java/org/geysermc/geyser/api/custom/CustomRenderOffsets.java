@@ -25,20 +25,22 @@
 
 package org.geysermc.geyser.api.custom;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 /**
  * This class is used to store the render offsets of custom items.
  */
-public record CustomRenderOffsets(Hand mainHand, Hand offhand) {
+public record CustomRenderOffsets(@Nullable Hand mainHand, @Nullable Hand offhand) {
     /**
      * The hand that is used for the offset.
      */
-    public record Hand(Offset firstPerson, Offset thirdPerson) {
+    public record Hand(@Nullable Offset firstPerson, @Nullable Offset thirdPerson) {
     }
 
     /**
      * The offset of the item.
      */
-    public record Offset(OffsetXYZ position, OffsetXYZ rotation, OffsetXYZ scale) {
+    public record Offset(@Nullable OffsetXYZ position, @Nullable OffsetXYZ rotation, @Nullable OffsetXYZ scale) {
     }
 
     /**

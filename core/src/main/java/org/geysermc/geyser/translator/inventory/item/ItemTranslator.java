@@ -170,7 +170,7 @@ public abstract class ItemTranslator {
             builder.blockRuntimeId(bedrockItem.getBedrockBlockId());
         }
 
-        builder = translateCustomModelData(nbt, builder, bedrockItem);
+        builder = translateCustomItem(nbt, builder, bedrockItem);
 
         if (nbt != null) {
             // Translate the canDestroy and canPlaceOn Java NBT
@@ -296,7 +296,7 @@ public abstract class ItemTranslator {
         }
 
         CompoundTag nbt = itemStack.getNbt();
-        builder = translateCustomModelData(nbt, builder, mapping);
+        builder = translateCustomItem(nbt, builder, mapping);
 
         return builder;
     }
@@ -533,12 +533,17 @@ public abstract class ItemTranslator {
     /**
      * Translates the custom model data of an item
      */
-    public static ItemData.Builder translateCustomModelData(CompoundTag nbt, ItemData.Builder builder, ItemMapping mapping) {
+    public static ItemData.Builder translateCustomItem(CompoundTag nbt, ItemData.Builder builder, ItemMapping mapping) {
         if (nbt != null) {
             if (nbt.get("CustomModelData") instanceof IntTag customModelDataTag) {
                 int customModelData = customModelDataTag.getValue();
                 if (mapping.getCustomModelData().containsKey(customModelData)) {
                     builder.id(mapping.getCustomModelData().get(customModelData));
+                }
+            } else if (nbt.get("Damage") instanceof IntTag damageTag) {
+                int damage = damageTag.getValue();
+                if (mapping.getDamagePredicates().containsKey(damage)) {
+                    builder.id(mapping.getDamagePredicates().get(damage));
                 }
             }
         }

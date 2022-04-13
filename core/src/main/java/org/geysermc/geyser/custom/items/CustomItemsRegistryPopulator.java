@@ -33,7 +33,8 @@ import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.custom.items.CustomItemData;
 import org.geysermc.geyser.api.custom.items.registration.CustomItemRegistrationType;
-import org.geysermc.geyser.api.custom.items.registration.CustomModelDataItemType;
+import org.geysermc.geyser.api.custom.items.registration.CustomModelDataRegistrationType;
+import org.geysermc.geyser.api.custom.items.registration.DamagePredicateRegistrationType;
 import org.geysermc.geyser.custom.GeyserCustomManager;
 import org.geysermc.geyser.custom.GeyserCustomRenderOffsets;
 import org.geysermc.geyser.custom.items.tools.ToolBreakSpeeds;
@@ -42,7 +43,9 @@ import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CustomItemsRegistryPopulator {
     public static GeyserCustomItemData addToRegistry(String baseItem, CustomItemData customItemData, int nameExists, GeyserCustomItemManager customItemManager) {
@@ -169,9 +172,10 @@ public class CustomItemsRegistryPopulator {
 
             if (customItemData.renderOffsets() != null) {
                 GeyserCustomRenderOffsets renderOffsets = GeyserCustomRenderOffsets.fromCustomRenderOffsets(customItemData.renderOffsets());
-
-                componentBuilder.remove("minecraft:render_offsets");
-                componentBuilder.putCompound("minecraft:render_offsets", renderOffsets.toNbtMap());
+                if (renderOffsets != null) {
+                    componentBuilder.remove("minecraft:render_offsets");
+                    componentBuilder.putCompound("minecraft:render_offsets", renderOffsets.toNbtMap());
+                }
             } else if (customItemData.textureSize() != 16) {
                 componentBuilder.putCompound("minecraft:render_offsets",
                         NbtMap.builder().putCompound("main_hand", NbtMap.builder()
@@ -186,8 +190,11 @@ public class CustomItemsRegistryPopulator {
             builder.putCompound("components", componentBuilder.build());
 
             if (customItemData.registrationType().type() == CustomItemRegistrationType.Type.CUSTOM_MODEL_DATA) {
-                CustomModelDataItemType registrationType = (CustomModelDataItemType) customItemData.registrationType();
+                CustomModelDataRegistrationType registrationType = (CustomModelDataRegistrationType) customItemData.registrationType();
                 javaItem.getCustomModelData().put(registrationType.customModelData(), customItemId);
+            } else if (customItemData.registrationType().type() == CustomItemRegistrationType.Type.DAMAGE_PREDICATE) {
+                DamagePredicateRegistrationType registrationType = (DamagePredicateRegistrationType) customItemData.registrationType();
+                javaItem.getDamagePredicates().put(registrationType.damagePredicate(), customItemId);
             } else {
                 GeyserImpl.getInstance().getLogger().warning("The custom item " + customItemData.name() + " has no recognised registration type: " + customItemData.registrationType().type());
             }

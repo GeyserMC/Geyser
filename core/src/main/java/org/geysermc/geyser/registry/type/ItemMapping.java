@@ -68,6 +68,7 @@ public class ItemMapping {
     String translationString;
 
     Int2IntMap customModelData = new Int2IntOpenHashMap();
+    Int2IntMap damagePredicates = new Int2IntOpenHashMap();
 
     int maxDamage;
 

@@ -27,12 +27,13 @@ package org.geysermc.geyser.custom.mappings.versions;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.custom.CustomRenderOffsets;
-import org.geysermc.geyser.api.custom.items.registration.CustomModelDataItemType;
+import org.geysermc.geyser.api.custom.items.CustomItemData;
+import org.geysermc.geyser.api.custom.items.registration.CustomItemRegistrationType;
+import org.geysermc.geyser.api.custom.items.registration.CustomModelDataRegistrationType;
+import org.geysermc.geyser.api.custom.items.registration.DamagePredicateRegistrationType;
+import org.geysermc.geyser.custom.GeyserCustomManager;
 import org.geysermc.geyser.custom.GeyserCustomRenderOffsets;
 import org.geysermc.geyser.custom.exception.InvalidCustomMappingsFileException;
-import org.geysermc.geyser.api.custom.items.CustomItemData;
-import org.geysermc.geyser.custom.GeyserCustomManager;
 
 import java.io.File;
 
@@ -65,6 +66,28 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
         }
     }
 
+    private CustomItemRegistrationType readItemRegistrationType(String name, JsonNode node) throws InvalidCustomMappingsFileException {
+        CustomItemRegistrationType registrationType = null;
+        int registrations = 0;
+
+        if (node.has("custom_model_data")) {
+            registrationType = new CustomModelDataRegistrationType(node.get("custom_model_data").asInt());
+            registrations++;
+        }
+        if (node.has("damage_predicate")) {
+            registrationType = new DamagePredicateRegistrationType(node.get("damage_predicate").asInt());
+            registrations++;
+        }
+
+        if (registrations == 1) {
+            return registrationType;
+        } else if (registrations == 0) {
+            throw new InvalidCustomMappingsFileException("Item entry " + name + " has no registration type");
+        } else {
+            throw new InvalidCustomMappingsFileException("Item entry " + name + " has multiple registration types");
+        }
+    }
+
     @Override
     public CustomItemData readItemMappingEntry(JsonNode node) throws InvalidCustomMappingsFileException {
         if (node == null || !node.isObject()) {
@@ -74,16 +97,9 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
         if (!node.has("name")) {
             throw new InvalidCustomMappingsFileException("An item entry has no name");
         }
-        String name = node.get("name").asText();
 
-        CustomItemData customItemData;
-        if (node.has("custom_model_data")) {
-            customItemData = new CustomItemData(new CustomModelDataItemType(node.get("custom_model_data").asInt()), name);
-        } else if (node.has("damage_predicate")) {
-            throw new InvalidCustomMappingsFileException("Item entry " + name + " uses a damage predicate, which is not supported yet");
-        } else {
-            throw new InvalidCustomMappingsFileException("Item entry " + name + " has no custom model data or damage predicate");
-        }
+        String name = node.get("name").asText();
+        CustomItemData customItemData = new CustomItemData(this.readItemRegistrationType(name, node), name);
 
         //The next entries are optional
         if (node.has("display_name")) {

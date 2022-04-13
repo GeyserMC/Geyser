@@ -28,7 +28,6 @@ package org.geysermc.geyser.custom;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.custom.CustomRenderOffsets;
 
 public record GeyserCustomRenderOffsets(GeyserHand mainHand, GeyserHand offhand) {

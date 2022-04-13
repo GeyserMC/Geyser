@@ -27,17 +27,13 @@ package org.geysermc.geyser.custom.items;
 
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.custom.items.CustomItemData;
 import org.geysermc.geyser.api.custom.items.CustomItemManager;
-import org.geysermc.geyser.api.custom.items.registration.CustomItemRegistrationType;
-import org.geysermc.geyser.api.custom.items.registration.CustomModelDataItemType;
 import org.geysermc.geyser.custom.GeyserCustomManager;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,7 +48,7 @@ public class GeyserCustomItemManager extends CustomItemManager {
     private int registeredCustomItems = 0;
 
     @Override
-    public void registerCustomItem(String baseItem, CustomItemData customItemData) {
+    public void registerCustomItem(@NotNull String baseItem, @NotNull CustomItemData customItemData) {
         int nameExists = 0;
         for (String name : this.customIdMappings.values()) {
             String addName = GeyserCustomManager.CUSTOM_PREFIX + customItemData.name();
@@ -77,7 +73,7 @@ public class GeyserCustomItemManager extends CustomItemManager {
     }
 
     @Override
-    public List<CustomItemData> customItemData(String baseItem) {
+    public @NotNull List<CustomItemData> customItemData(@NotNull String baseItem) {
         for (Map.Entry<String, List<GeyserCustomItemData>> entry : this.customMappings.entrySet()) {
             if (entry.getKey().equals(baseItem)) {
                 List<CustomItemData> customItemData = new ArrayList<>();
@@ -91,7 +87,7 @@ public class GeyserCustomItemManager extends CustomItemManager {
     }
 
     @Override
-    public Map<String, List<CustomItemData>> customMappings() {
+    public @NotNull Map<String, List<CustomItemData>> customMappings() {
         Map<String, List<CustomItemData>> mappings = new HashMap<>();
         for (Map.Entry<String, List<GeyserCustomItemData>> entry : this.customMappings.entrySet()) {
             List<CustomItemData> customItemData = new ArrayList<>();
@@ -105,7 +101,11 @@ public class GeyserCustomItemManager extends CustomItemManager {
 
     @Override
     public String itemStringFromId(int id) {
-        return this.customIdMappings.get(id);
+        if (this.customIdMappings.containsKey(id)) {
+            return this.customIdMappings.get(id);
+        } else {
+            return null;
+        }
     }
 
     public int registeredItemCount() {

@@ -25,10 +25,12 @@
 
 package org.geysermc.geyser.api.custom.items.registration;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 /**
  * This is the class for registering custom model data items.
  */
-public record CustomModelDataItemType(int customModelData) implements CustomItemRegistrationType {
+public record CustomModelDataRegistrationType(int customModelData) implements CustomItemRegistrationType {
 
     /**
      * Gets the type of this registration.
@@ -36,7 +38,7 @@ public record CustomModelDataItemType(int customModelData) implements CustomItem
      * @return the type of this registration.
      */
     @Override
-    public Type type() {
+    public @NonNull Type type() {
         return Type.CUSTOM_MODEL_DATA;
     }
 
@@ -45,7 +47,6 @@ public record CustomModelDataItemType(int customModelData) implements CustomItem
      *
      * @return the custom model data of this registration.
      */
-    @Override
     public int customModelData() {
         return this.customModelData;
     }
