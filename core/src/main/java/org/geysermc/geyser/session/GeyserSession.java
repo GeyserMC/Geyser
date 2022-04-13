@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.session;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
@@ -145,6 +146,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private AuthData authData;
     @Setter
     private BedrockClientData clientData;
+    /**
+     * Used for Floodgate skin uploading
+     */
+    @Setter
+    private JsonNode certChainData;
 
     @Accessors(fluent = true)
     @Setter
