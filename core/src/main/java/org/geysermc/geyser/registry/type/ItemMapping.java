@@ -25,13 +25,12 @@
 
 package org.geysermc.geyser.registry.type;
 
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+import org.geysermc.geyser.api.custom.items.CustomItemRegistrationTypes;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 
@@ -67,8 +66,7 @@ public class ItemMapping {
 
     String translationString;
 
-    Int2IntMap customModelData = new Int2IntOpenHashMap();
-    Int2IntMap damagePredicates = new Int2IntOpenHashMap();
+    Object2IntMap<CustomItemRegistrationTypes> customRegistrations = new Object2IntOpenHashMap<>();
 
     int maxDamage;
 

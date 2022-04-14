@@ -34,9 +34,13 @@ import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.ObjectSet;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.custom.items.CustomItemRegistrationTypes;
+import org.geysermc.geyser.custom.items.GeyserCustomItemManager;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -535,15 +539,36 @@ public abstract class ItemTranslator {
      */
     public static ItemData.Builder translateCustomItem(CompoundTag nbt, ItemData.Builder builder, ItemMapping mapping) {
         if (nbt != null) {
-            if (nbt.get("CustomModelData") instanceof IntTag customModelDataTag) {
-                int customModelData = customModelDataTag.getValue();
-                if (mapping.getCustomModelData().containsKey(customModelData)) {
-                    builder.id(mapping.getCustomModelData().get(customModelData));
+            CustomItemRegistrationTypes nbtData = GeyserCustomItemManager.nbtToRegistrationTypes(nbt);
+            for (Object2IntMap.Entry<CustomItemRegistrationTypes> mappingTypes : mapping.getCustomRegistrations().object2IntEntrySet()) {
+                boolean matches = true;
+
+                if (mappingTypes.getKey().unbreakable() != null) {
+                    if (nbtData.unbreakable() == null) {
+                        matches = false;
+                    } else if (mappingTypes.getKey().unbreakable().booleanValue() != nbtData.unbreakable().booleanValue()) {
+                        matches = false;
+                    }
                 }
-            } else if (nbt.get("Damage") instanceof IntTag damageTag) {
-                int damage = damageTag.getValue();
-                if (mapping.getDamagePredicates().containsKey(damage)) {
-                    builder.id(mapping.getDamagePredicates().get(damage));
+
+                if (mappingTypes.getKey().customModelData() != null) {
+                    if (nbtData.customModelData() == null) {
+                        matches = false;
+                    } else if (mappingTypes.getKey().customModelData().intValue() != nbtData.customModelData().intValue()) {
+                        matches = false;
+                    }
+                }
+
+                if (mappingTypes.getKey().damagePredicate() != null) {
+                    if (nbtData.damagePredicate() == null) {
+                        matches = false;
+                    } else if (mappingTypes.getKey().damagePredicate().intValue() != nbtData.damagePredicate().intValue()) {
+                        matches = false;
+                    }
+                }
+
+                if (matches) {
+                    builder.id(mappingTypes.getIntValue());
                 }
             }
         }

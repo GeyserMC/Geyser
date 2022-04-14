@@ -28,9 +28,7 @@ package org.geysermc.geyser.custom.mappings.versions;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.custom.items.CustomItemData;
-import org.geysermc.geyser.api.custom.items.registration.CustomItemRegistrationType;
-import org.geysermc.geyser.api.custom.items.registration.CustomModelDataRegistrationType;
-import org.geysermc.geyser.api.custom.items.registration.DamagePredicateRegistrationType;
+import org.geysermc.geyser.api.custom.items.CustomItemRegistrationTypes;
 import org.geysermc.geyser.custom.GeyserCustomManager;
 import org.geysermc.geyser.custom.GeyserCustomRenderOffsets;
 import org.geysermc.geyser.custom.exception.InvalidCustomMappingsFileException;
@@ -66,26 +64,20 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
         }
     }
 
-    private CustomItemRegistrationType readItemRegistrationType(String name, JsonNode node) throws InvalidCustomMappingsFileException {
-        CustomItemRegistrationType registrationType = null;
-        int registrations = 0;
+    private CustomItemRegistrationTypes readItemRegistrationTypes(JsonNode node) {
+        CustomItemRegistrationTypes registrationTypes = new CustomItemRegistrationTypes();
 
         if (node.has("custom_model_data")) {
-            registrationType = new CustomModelDataRegistrationType(node.get("custom_model_data").asInt());
-            registrations++;
+            registrationTypes.customModelData(node.get("custom_model_data").asInt());
         }
         if (node.has("damage_predicate")) {
-            registrationType = new DamagePredicateRegistrationType(node.get("damage_predicate").asInt());
-            registrations++;
+            registrationTypes.damagePredicate(node.get("damage_predicate").asInt());
+        }
+        if (node.has("unbreakable")) {
+            registrationTypes.unbreakable(node.get("unbreakable").asBoolean());
         }
 
-        if (registrations == 1) {
-            return registrationType;
-        } else if (registrations == 0) {
-            throw new InvalidCustomMappingsFileException("Item entry " + name + " has no registration type");
-        } else {
-            throw new InvalidCustomMappingsFileException("Item entry " + name + " has multiple registration types");
-        }
+        return registrationTypes;
     }
 
     @Override
@@ -99,7 +91,7 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
         }
 
         String name = node.get("name").asText();
-        CustomItemData customItemData = new CustomItemData(this.readItemRegistrationType(name, node), name);
+        CustomItemData customItemData = new CustomItemData(name, this.readItemRegistrationTypes(node));
 
         //The next entries are optional
         if (node.has("display_name")) {

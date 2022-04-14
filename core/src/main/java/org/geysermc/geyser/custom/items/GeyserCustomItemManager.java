@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.custom.items;
 
+import com.github.steveice10.opennbt.tag.builtin.ByteTag;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -32,13 +35,11 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.custom.items.CustomItemData;
 import org.geysermc.geyser.api.custom.items.CustomItemManager;
+import org.geysermc.geyser.api.custom.items.CustomItemRegistrationTypes;
 import org.geysermc.geyser.custom.GeyserCustomManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class GeyserCustomItemManager extends CustomItemManager {
@@ -134,5 +135,23 @@ public class GeyserCustomItemManager extends CustomItemManager {
             }
         }
         return itemEntryList;
+    }
+
+    public static CustomItemRegistrationTypes nbtToRegistrationTypes(CompoundTag nbt) {
+        CustomItemRegistrationTypes registrationTypes = new CustomItemRegistrationTypes();
+
+        if (nbt.get("CustomModelData") instanceof IntTag customModelDataTag) {
+            registrationTypes.customModelData(customModelDataTag.getValue());
+        }
+
+        if (nbt.get("Damage") instanceof IntTag damageTag) {
+            registrationTypes.damagePredicate(damageTag.getValue());
+        }
+
+        if (nbt.get("Unbreakable") instanceof ByteTag unbreakableTag) {
+            registrationTypes.unbreakable(unbreakableTag.getValue() == 1);
+        }
+
+        return registrationTypes;
     }
 }

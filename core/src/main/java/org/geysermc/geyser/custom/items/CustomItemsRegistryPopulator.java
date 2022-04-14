@@ -32,9 +32,6 @@ import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.custom.items.CustomItemData;
-import org.geysermc.geyser.api.custom.items.registration.CustomItemRegistrationType;
-import org.geysermc.geyser.api.custom.items.registration.CustomModelDataRegistrationType;
-import org.geysermc.geyser.api.custom.items.registration.DamagePredicateRegistrationType;
 import org.geysermc.geyser.custom.GeyserCustomManager;
 import org.geysermc.geyser.custom.GeyserCustomRenderOffsets;
 import org.geysermc.geyser.custom.items.tools.ToolBreakSpeeds;
@@ -66,9 +63,13 @@ public class CustomItemsRegistryPopulator {
 
         for (Map.Entry<String, ItemRegistryPopulator.PaletteVersion> palette : ItemRegistryPopulator.getPaletteVersions().entrySet()) {
             ItemMappings itemMappings = Registries.ITEMS.get(palette.getValue().protocolVersion());
-
+            if (itemMappings == null) {
+                continue;
+            }
             ItemMapping javaItem = itemMappings.getMapping(baseItem);
-            if (javaItem == null) continue;
+            if (javaItem == null) {
+                continue;
+            }
 
             int javaCustomItemId = javaItem.getJavaId();
             int customItemId = itemMappings.getItems().length + customItemManager.registeredItemCount() + 1;
@@ -189,14 +190,10 @@ public class CustomItemsRegistryPopulator {
             componentBuilder.putCompound("item_properties", itemProperties.build());
             builder.putCompound("components", componentBuilder.build());
 
-            if (customItemData.registrationType().type() == CustomItemRegistrationType.Type.CUSTOM_MODEL_DATA) {
-                CustomModelDataRegistrationType registrationType = (CustomModelDataRegistrationType) customItemData.registrationType();
-                javaItem.getCustomModelData().put(registrationType.customModelData(), customItemId);
-            } else if (customItemData.registrationType().type() == CustomItemRegistrationType.Type.DAMAGE_PREDICATE) {
-                DamagePredicateRegistrationType registrationType = (DamagePredicateRegistrationType) customItemData.registrationType();
-                javaItem.getDamagePredicates().put(registrationType.damagePredicate(), customItemId);
+            if (customItemData.registrationType().hasRegistrationType()) {
+                javaItem.getCustomRegistrations().put(customItemData.registrationType(), customItemId);
             } else {
-                GeyserImpl.getInstance().getLogger().warning("The custom item " + customItemData.name() + " has no recognised registration type: " + customItemData.registrationType().type());
+                GeyserImpl.getInstance().getLogger().warning("The custom item " + customItemData.name() + " has no registration types");
             }
 
             ComponentItemData componentItemData = new ComponentItemData(customItemName, builder.build());

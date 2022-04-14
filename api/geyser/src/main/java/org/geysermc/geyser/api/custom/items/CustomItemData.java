@@ -28,13 +28,12 @@ package org.geysermc.geyser.api.custom.items;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.custom.CustomRenderOffsets;
-import org.geysermc.geyser.api.custom.items.registration.CustomItemRegistrationType;
 
 /**
  * This is used to store data for a custom item.
  */
 public class CustomItemData {
-    private final CustomItemRegistrationType registrationType;
+    private final CustomItemRegistrationTypes registrationType;
     private final String name;
 
     private String displayName;
@@ -45,7 +44,7 @@ public class CustomItemData {
 
     private CustomRenderOffsets renderOffsets;
 
-    public CustomItemData(@NonNull CustomItemRegistrationType registrationType, @NonNull String name) {
+    public CustomItemData(@NonNull String name, @NonNull CustomItemRegistrationTypes registrationType) {
         this.registrationType = registrationType;
         this.name = name;
 
@@ -59,11 +58,11 @@ public class CustomItemData {
     }
 
     /**
-     * Gets the registration type of the item.
+     * Gets the registration types of the item.
      *
-     * @return the registration type of the item.
+     * @return the registration types of the item.
      */
-    public CustomItemRegistrationType registrationType() {
+    public CustomItemRegistrationTypes registrationType() {
         return this.registrationType;
     }
 
