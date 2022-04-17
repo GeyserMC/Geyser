@@ -35,7 +35,6 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.ObjectSet;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.geyser.GeyserImpl;
@@ -543,10 +542,10 @@ public abstract class ItemTranslator {
             for (Object2IntMap.Entry<CustomItemRegistrationTypes> mappingTypes : mapping.getCustomRegistrations().object2IntEntrySet()) {
                 boolean matches = true;
 
-                if (mappingTypes.getKey().unbreakable() != null) {
-                    if (nbtData.unbreakable() == null) {
+                if (mappingTypes.getKey().unbreaking() != null) {
+                    if (nbtData.unbreaking() == null) {
                         matches = false;
-                    } else if (mappingTypes.getKey().unbreakable().booleanValue() != nbtData.unbreakable().booleanValue()) {
+                    } else if (mappingTypes.getKey().unbreaking().booleanValue() != nbtData.unbreaking().booleanValue()) {
                         matches = false;
                     }
                 }

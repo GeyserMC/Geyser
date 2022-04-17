@@ -39,7 +39,10 @@ import org.geysermc.geyser.api.custom.items.CustomItemRegistrationTypes;
 import org.geysermc.geyser.custom.GeyserCustomManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public class GeyserCustomItemManager extends CustomItemManager {
@@ -149,7 +152,7 @@ public class GeyserCustomItemManager extends CustomItemManager {
         }
 
         if (nbt.get("Unbreakable") instanceof ByteTag unbreakableTag) {
-            registrationTypes.unbreakable(unbreakableTag.getValue() == 1);
+            registrationTypes.unbreaking(unbreakableTag.getValue() == 1);
         }
 
         return registrationTypes;

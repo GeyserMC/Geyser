@@ -27,22 +27,20 @@ package org.geysermc.geyser.api.custom.items;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.util.Objects;
-
 /**
  * This class represents the different types of custom item registration
  */
 public class CustomItemRegistrationTypes {
-    private Boolean unbreakable = null;
+    private Boolean unbreaking = null;
     private Integer customModelData = null;
     private Integer damagePredicate = null;
 
-    public @Nullable Boolean unbreakable() {
-        return unbreakable;
+    public @Nullable Boolean unbreaking() {
+        return unbreaking;
     }
 
-    public void unbreakable(@Nullable Boolean unbreakable) {
-        this.unbreakable = unbreakable;
+    public void unbreaking(@Nullable Boolean unbreaking) {
+        this.unbreaking = unbreaking;
     }
 
     public @Nullable Integer customModelData() {
@@ -67,7 +65,7 @@ public class CustomItemRegistrationTypes {
      * @return true if the item has any registrations set
      */
     public boolean hasRegistrationType() {
-        return this.unbreakable != null ||
+        return this.unbreaking != null ||
                 this.customModelData != null ||
                 this.damagePredicate != null;
     }

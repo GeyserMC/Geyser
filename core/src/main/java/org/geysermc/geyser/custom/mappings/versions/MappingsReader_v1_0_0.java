@@ -73,8 +73,8 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
         if (node.has("damage_predicate")) {
             registrationTypes.damagePredicate(node.get("damage_predicate").asInt());
         }
-        if (node.has("unbreakable")) {
-            registrationTypes.unbreakable(node.get("unbreakable").asBoolean());
+        if (node.has("unbreaking")) {
+            registrationTypes.unbreaking(node.get("unbreaking").asBoolean());
         }
 
         return registrationTypes;
