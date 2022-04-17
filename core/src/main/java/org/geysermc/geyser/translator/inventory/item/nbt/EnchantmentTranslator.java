@@ -136,7 +136,7 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
         CompoundTag bedrockTag = new CompoundTag("");
         bedrockTag.put(new ShortTag("id", (short) enchantment.ordinal()));
         // If the tag cannot parse, Java Edition 1.18.2 sets to 0
-        bedrockTag.put(new ShortTag("lvl", javaEnchLvl != null && javaEnchLvl.getValue() instanceof Number lvl ? lvl.shortValue() : 0));
+        bedrockTag.put(new ShortTag("lvl", javaEnchLvl != null && javaEnchLvl.getValue() instanceof Number lvl ? lvl.shortValue() : (short) 0));
         return bedrockTag;
     }
 

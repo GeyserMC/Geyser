@@ -120,8 +120,8 @@
         </dependency>
         <dependency>
             <groupId>com.github.CloudburstMC.Protocol</groupId>
-            <artifactId>bedrock-v486</artifactId>
-            <version>0cd24c0</version>
+            <artifactId>bedrock-v503</artifactId>
+            <version>29ecd7a</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>

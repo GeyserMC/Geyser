@@ -30,18 +30,18 @@ import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.data.ExperimentData;
 import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
-import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
-import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.pack.ResourcePack;
 import org.geysermc.geyser.pack.ResourcePackManifest;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
+import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.util.*;
+import org.geysermc.geyser.util.LoginEncryptionUtils;
+import org.geysermc.geyser.util.MathUtils;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -163,11 +163,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 if (session.getItemMappings().getFurnaceMinecartData() != null) {
                     // Allow custom items to work
                     stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
-                }
-
-                if (session.getUpstream().getProtocolVersion() <= Bedrock_v471.V471_CODEC.getProtocolVersion()) {
-                    // Allow extended world height in the overworld to work for pre-1.18 clients
-                    stackPacket.getExperiments().add(new ExperimentData("caves_and_cliffs", true));
                 }
 
                 session.sendUpstreamPacket(stackPacket);
