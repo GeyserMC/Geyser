@@ -68,7 +68,6 @@ import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.*;
-import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import it.unimi.dsi.fastutil.ints.*;
@@ -1393,7 +1392,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
-        startGamePacket.setSeed(-1);
+        startGamePacket.setSeed(-1L);
         startGamePacket.setDimensionId(DimensionUtils.javaToBedrock(dimension));
         startGamePacket.setGeneratorId(1);
         startGamePacket.setLevelGameType(GameType.SURVIVAL);
@@ -1446,11 +1445,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         settings.setServerAuthoritativeBlockBreaking(false);
         startGamePacket.setPlayerMovementSettings(settings);
 
+<<<<<<< HEAD
         startGamePacket.getExperiments().add(new ExperimentData("data_driven_items", true));
         if (upstream.getProtocolVersion() <= Bedrock_v471.V471_CODEC.getProtocolVersion()) {
             startGamePacket.getExperiments().add(new ExperimentData("caves_and_cliffs", true));
         }
 
+=======
+>>>>>>> 67f4de978168ff482b00493c662e485717d9e7e0
         upstream.sendPacket(startGamePacket);
     }
 

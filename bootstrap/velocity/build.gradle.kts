@@ -5,7 +5,7 @@ dependencies {
 }
 
 platformRelocate("com.fasterxml.jackson")
-platformRelocate("it.unimi.fastutil")
+platformRelocate("it.unimi.dsi.fastutil")
 platformRelocate("net.kyori.adventure.text.serializer.gson.legacyimpl")
 
 exclude("com.google.*:*")
