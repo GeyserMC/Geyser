@@ -27,6 +27,7 @@ package org.geysermc.geyser.api.custom.items;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
 
 import java.util.List;
 import java.util.Map;
@@ -36,12 +37,14 @@ import java.util.Map;
  */
 public abstract class CustomItemManager {
     /**
-     * Registers a custom item.
+     * Registers a custom item with a base java item. This is used for custom model data etc. Note that you can only register custom items in the {@link GeyserPreInitializeEvent},
+     * and if add non-bedrock items is enabled in the config.
      *
      * @param baseItem the base (java) item
      * @param customItemData the custom item data to register
+     * @return if the item was registered
      */
-    public abstract void registerCustomItem(@NonNull String baseItem, @NonNull CustomItemData customItemData);
+    public abstract boolean registerCustomItem(@NonNull String baseItem, @NonNull CustomItemData customItemData);
 
     /**
      * Gets the custom item data for the given base item.

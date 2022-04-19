@@ -61,7 +61,7 @@ import java.util.*;
  */
 public class ItemRegistryPopulator {
 
-    public record PaletteVersion(int protocolVersion, Map<String, String> additionalTranslatedItems) {
+    private record PaletteVersion(int protocolVersion, Map<String, String> additionalTranslatedItems) {
     }
 
     public static void populate() {
@@ -544,9 +544,5 @@ public class ItemRegistryPopulator {
         }
 
         ItemUtils.setDyeColors(dyeColors);
-    }
-
-    public static Map<String, PaletteVersion> getPaletteVersions() {
-        return PALETTE_VERSIONS;
     }
 }

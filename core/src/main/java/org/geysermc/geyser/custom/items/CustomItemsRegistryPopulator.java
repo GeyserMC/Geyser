@@ -30,39 +30,43 @@ import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
+import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
+import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
+import com.nukkitx.protocol.bedrock.v503.Bedrock_v503;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.custom.items.CustomItemData;
 import org.geysermc.geyser.custom.GeyserCustomManager;
 import org.geysermc.geyser.custom.GeyserCustomRenderOffsets;
 import org.geysermc.geyser.custom.items.tools.ToolBreakSpeeds;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public class CustomItemsRegistryPopulator {
-    public static GeyserCustomItemData addToRegistry(String baseItem, CustomItemData customItemData, int nameExists, GeyserCustomItemManager customItemManager) {
-        if (!GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
-            return null;
-        }
+class CustomItemsRegistryPopulator {
+    private static List<Integer> protocolVersions;
 
-        float scale1 = (float) (0.075 / (customItemData.textureSize() / 16f));
-        float scale2 = (float) (0.125 / (customItemData.textureSize() / 16f));
-        float scale3 = (float) (0.075 / (customItemData.textureSize() / 16f * 2.4f));
+    static {
+        protocolVersions = new ArrayList<>();
+        protocolVersions.add(Bedrock_v475.V475_CODEC.getProtocolVersion());
+        protocolVersions.add(Bedrock_v486.V486_CODEC.getProtocolVersion());
+        protocolVersions.add(Bedrock_v503.V503_CODEC.getProtocolVersion());
+    }
 
+    public static GeyserCustomItemData addToRegistry(String baseItem, CustomItemData customItemData, int nameExists, int customItems) {
         String customItemName = GeyserCustomManager.CUSTOM_PREFIX + customItemData.name();
         if (nameExists != 0) {
             customItemName += "_" + nameExists;
         }
 
-        GeyserCustomItemData returnData = new GeyserCustomItemData(customItemData, new HashMap<>());
+        GeyserCustomItemData returnData = new GeyserCustomItemData();
+        int addNum = 0;
 
-        for (Map.Entry<String, ItemRegistryPopulator.PaletteVersion> palette : ItemRegistryPopulator.getPaletteVersions().entrySet()) {
-            ItemMappings itemMappings = Registries.ITEMS.get(palette.getValue().protocolVersion());
+        for (int protocolVersion : protocolVersions) {
+            addNum++;
+
+            ItemMappings itemMappings = Registries.ITEMS.get(protocolVersion);
             if (itemMappings == null) {
                 continue;
             }
@@ -72,7 +76,7 @@ public class CustomItemsRegistryPopulator {
             }
 
             int javaCustomItemId = javaItem.getJavaId();
-            int customItemId = itemMappings.getItems().length + customItemManager.registeredItemCount() + 1;
+            int customItemId = itemMappings.getItems().length + customItems + addNum;
 
             ItemMapping customItemMapping = ItemMapping.builder()
                     .javaIdentifier(baseItem)
@@ -93,114 +97,142 @@ public class CustomItemsRegistryPopulator {
             NbtMapBuilder itemProperties = NbtMap.builder();
             NbtMapBuilder componentBuilder = NbtMap.builder();
 
-            itemProperties.putCompound("minecraft:icon", NbtMap.builder()
-                    .putString("texture", customItemData.name())
-                    .build());
-            componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", customItemData.displayName()).build());
-
-            itemProperties.putBoolean("allow_off_hand", customItemData.allowOffhand());
-            itemProperties.putBoolean("hand_equipped", customItemData.isTool());
-            itemProperties.putInt("max_stack_size", javaItem.getStackSize()); //Should be the same as the java base item
-            if (javaItem.getMaxDamage() > 0) {
-                componentBuilder.putCompound("minecraft:durability", NbtMap.builder()
-                        .putInt("max_durability", javaItem.getMaxDamage())
-                        .putFloat("damage_chance", 0.1f).build());
-                itemProperties.putBoolean("use_duration", true);
-            }
+            setupBasicItemInfo(javaItem.getMaxDamage(), javaItem.getStackSize(), customItemData, itemProperties, componentBuilder);
 
             boolean canDestroyInCreative = true;
             if (javaItem.isTool()) {
-                float miningSpeed = 1.0f;
-                int toolSpeed = ToolBreakSpeeds.toolTierToSpeed(javaItem.getToolTier());
-
-                if (baseItem.endsWith("_sword")) {
-                    miningSpeed = 1.5f;
-                    canDestroyInCreative = false;
-
-                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getSwordDigger(toolSpeed));
-                    componentBuilder.putCompound("minecraft:weapon", NbtMap.EMPTY);
-                } else if (baseItem.endsWith("_pickaxe")) {
-                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getPickaxeDigger(toolSpeed, javaItem.getToolTier()));
-                    setItemTag(componentBuilder, "pickaxe");
-                } else if (baseItem.endsWith("_axe")) {
-                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getAxeDigger(toolSpeed));
-                    setItemTag(componentBuilder, "axe");
-                } else if (baseItem.endsWith("_shovel")) {
-                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getShovelDigger(toolSpeed));
-                    setItemTag(componentBuilder, "shovel");
-                } else if (baseItem.endsWith("_hoe")) {
-                    setItemTag(componentBuilder, "hoe");
-                }
-
-                itemProperties.putBoolean("hand_equipped", true);
-                itemProperties.putFloat("mining_speed", miningSpeed);
+                canDestroyInCreative = computeToolProperties(javaItem.getToolTier(), javaItem.getToolType(), itemProperties, componentBuilder);
             }
             itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
             if (javaItem.isArmor()) {
-                switch (javaItem.getArmorType()) {
-                    case "boots" -> {
-                        componentBuilder.putString("minecraft:render_offsets", "boots");
-                        componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.feet").build());
-                        componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", javaItem.getProtectionValue()).build());
-                    }
-                    case "chestplate" -> {
-                        componentBuilder.putString("minecraft:render_offsets", "chestplates");
-                        componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.chest").build());
-                        componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", javaItem.getProtectionValue()).build());
-                    }
-                    case "leggings" -> {
-                        componentBuilder.putString("minecraft:render_offsets", "leggings");
-                        componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.legs").build());
-                        componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", javaItem.getProtectionValue()).build());
-                    }
-                    case "helmet" -> {
-                        componentBuilder.putString("minecraft:render_offsets", "helmets");
-                        componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.head").build());
-                        if (baseItem.endsWith("_helmet")) {
-                            componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", javaItem.getProtectionValue()).build());
-                        }
-                    }
-                }
+                computeArmorProperties(javaItem.getArmorType(), javaItem.getProtectionValue(), componentBuilder);
             }
 
-            if (customItemData.isHat()) {
-                componentBuilder.remove("minecraft:render_offsets");
-                componentBuilder.putString("minecraft:render_offsets", "helmets");
-
-                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.head").build());
-            }
-
-            if (customItemData.renderOffsets() != null) {
-                GeyserCustomRenderOffsets renderOffsets = GeyserCustomRenderOffsets.fromCustomRenderOffsets(customItemData.renderOffsets());
-                if (renderOffsets != null) {
-                    componentBuilder.remove("minecraft:render_offsets");
-                    componentBuilder.putCompound("minecraft:render_offsets", renderOffsets.toNbtMap());
-                }
-            } else if (customItemData.textureSize() != 16) {
-                componentBuilder.putCompound("minecraft:render_offsets",
-                        NbtMap.builder().putCompound("main_hand", NbtMap.builder()
-                                        .putCompound("first_person", XYZToNbtMap(scale3, scale3, scale3))
-                                        .putCompound("third_person", XYZToNbtMap(scale1, scale2, scale1)).build())
-                                .putCompound("off_hand", NbtMap.builder()
-                                        .putCompound("first_person", XYZToNbtMap(scale1, scale2, scale1))
-                                        .putCompound("third_person", XYZToNbtMap(scale1, scale2, scale1)).build()).build());
-            }
+            computeRenderOffsets(customItemData, componentBuilder);
 
             componentBuilder.putCompound("item_properties", itemProperties.build());
             builder.putCompound("components", componentBuilder.build());
 
-            if (customItemData.registrationType().hasRegistrationType()) {
-                javaItem.getCustomRegistrations().put(customItemData.registrationType(), customItemId);
+            if (customItemData.registrationTypes().hasRegistrationTypes()) {
+                javaItem.getCustomRegistrations().put(customItemData.registrationTypes(), customItemId);
             } else {
                 GeyserImpl.getInstance().getLogger().warning("The custom item " + customItemData.name() + " has no registration types");
             }
 
             ComponentItemData componentItemData = new ComponentItemData(customItemName, builder.build());
-            returnData.mappings().put(palette.getValue().protocolVersion(), new GeyserCustomItemData.Mapping(componentItemData, customItemMapping, startGamePacketItemEntry, customItemName, customItemId));
+            returnData.addMapping(protocolVersion, new GeyserCustomItemData.Mapping(componentItemData, customItemMapping, startGamePacketItemEntry, customItemName, customItemId));
         }
 
         return returnData;
+    }
+
+    private static void setupBasicItemInfo(int maxDamage, int stackSize, CustomItemData customItemData, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
+        itemProperties.putCompound("minecraft:icon", NbtMap.builder()
+                .putString("texture", customItemData.name())
+                .build());
+        componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", customItemData.displayName()).build());
+
+        itemProperties.putBoolean("allow_off_hand", customItemData.allowOffhand());
+        itemProperties.putBoolean("hand_equipped", customItemData.isTool());
+        itemProperties.putInt("max_stack_size", stackSize);
+        if (maxDamage > 0) {
+            componentBuilder.putCompound("minecraft:durability", NbtMap.builder()
+                    .putInt("max_durability", maxDamage)
+                    .putFloat("damage_chance", 0.1f).build());
+            itemProperties.putBoolean("use_duration", true);
+        }
+    }
+
+    /**
+     * @return can destroy in creative
+     */
+    private static boolean computeToolProperties(String toolTier, String toolType, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
+        boolean canDestroyInCreative = true;
+        float miningSpeed = 1.0f;
+        int toolSpeed = ToolBreakSpeeds.toolTierToSpeed(toolTier);
+
+        switch (toolType) {
+            case "sword" -> {
+                miningSpeed = 1.5f;
+                canDestroyInCreative = false;
+                componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getSwordDigger(toolSpeed));
+                componentBuilder.putCompound("minecraft:weapon", NbtMap.EMPTY);
+            }
+            case "pickaxe" -> {
+                componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getPickaxeDigger(toolSpeed, toolTier));
+                setItemTag(componentBuilder, "pickaxe");
+            }
+            case "axe" -> {
+                componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getAxeDigger(toolSpeed));
+                setItemTag(componentBuilder, "axe");
+            }
+            case "shovel" -> {
+                componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getShovelDigger(toolSpeed));
+                setItemTag(componentBuilder, "shovel");
+            }
+            case "hoe" -> setItemTag(componentBuilder, "hoe");
+        }
+
+        itemProperties.putBoolean("hand_equipped", true);
+        itemProperties.putFloat("mining_speed", miningSpeed);
+
+        return canDestroyInCreative;
+    }
+
+    private static void computeArmorProperties(String armorType, int protectionValue, NbtMapBuilder componentBuilder) {
+        switch (armorType) {
+            case "boots" -> {
+                componentBuilder.putString("minecraft:render_offsets", "boots");
+                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.feet").build());
+                componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", protectionValue).build());
+            }
+            case "chestplate" -> {
+                componentBuilder.putString("minecraft:render_offsets", "chestplates");
+                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.chest").build());
+                componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", protectionValue).build());
+            }
+            case "leggings" -> {
+                componentBuilder.putString("minecraft:render_offsets", "leggings");
+                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.legs").build());
+                componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", protectionValue).build());
+            }
+            case "helmet" -> {
+                componentBuilder.putString("minecraft:render_offsets", "helmets");
+                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.head").build());
+                componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", protectionValue).build());
+            }
+        }
+    }
+
+    private static void computeRenderOffsets(CustomItemData customItemData, NbtMapBuilder componentBuilder) {
+        if (customItemData.isHat()) {
+            componentBuilder.remove("minecraft:render_offsets");
+            componentBuilder.putString("minecraft:render_offsets", "helmets");
+
+            componentBuilder.remove("minecraft:wearable");
+            componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.head").build());
+        }
+
+        if (customItemData.renderOffsets() != null) {
+            GeyserCustomRenderOffsets renderOffsets = GeyserCustomRenderOffsets.fromCustomRenderOffsets(customItemData.renderOffsets());
+            if (renderOffsets != null) {
+                componentBuilder.remove("minecraft:render_offsets");
+                componentBuilder.putCompound("minecraft:render_offsets", renderOffsets.toNbtMap());
+            }
+        } else if (customItemData.textureSize() != 16 && !componentBuilder.containsKey("minecraft:render_offsets")) {
+            float scale1 = (float) (0.075 / (customItemData.textureSize() / 16f));
+            float scale2 = (float) (0.125 / (customItemData.textureSize() / 16f));
+            float scale3 = (float) (0.075 / (customItemData.textureSize() / 16f * 2.4f));
+
+            componentBuilder.putCompound("minecraft:render_offsets",
+                    NbtMap.builder().putCompound("main_hand", NbtMap.builder()
+                                    .putCompound("first_person", XYZToNbtMap(scale3, scale3, scale3))
+                                    .putCompound("third_person", XYZToNbtMap(scale1, scale2, scale1)).build())
+                            .putCompound("off_hand", NbtMap.builder()
+                                    .putCompound("first_person", XYZToNbtMap(scale1, scale2, scale1))
+                                    .putCompound("third_person", XYZToNbtMap(scale1, scale2, scale1)).build()).build());
+        }
     }
 
     private static void setItemTag(NbtMapBuilder builder, String tag) {

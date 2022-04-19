@@ -146,6 +146,8 @@ public class GeyserImpl implements GeyserApi {
     private final PlatformType platformType;
     private final GeyserBootstrap bootstrap;
 
+    private boolean initialized;
+
     private final EventBus eventBus;
     private final GeyserExtensionManager extensionManager;
     private final GeyserCustomManager customManager;
@@ -163,6 +165,7 @@ public class GeyserImpl implements GeyserApi {
 
     private GeyserImpl(PlatformType platformType, GeyserBootstrap bootstrap) {
         instance = this;
+        initialized = false;
 
         Geyser.set(this);
 
@@ -203,6 +206,8 @@ public class GeyserImpl implements GeyserApi {
         ItemTranslator.init();
         MessageTranslator.init();
         MinecraftLocale.init();
+
+        initialized = true;
 
         start();
 
@@ -564,6 +569,10 @@ public class GeyserImpl implements GeyserApi {
     public void reload() {
         shutdown();
         bootstrap.onEnable();
+    }
+
+    public boolean isInitialized() {
+        return this.initialized;
     }
 
     /**

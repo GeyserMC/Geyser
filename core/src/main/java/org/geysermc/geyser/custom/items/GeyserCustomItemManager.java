@@ -46,61 +46,59 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public class GeyserCustomItemManager extends CustomItemManager {
-    private Map<String, List<GeyserCustomItemData>> customMappings = new HashMap<>();
+    private Map<String, List<CustomItemData>> customMappings = new HashMap<>();
+
+    private List<GeyserCustomItemData> registeredCustomItems = new ArrayList<>();
     private Int2ObjectMap<String> customIdMappings = new Int2ObjectOpenHashMap<>();
 
-    private int registeredCustomItems = 0;
+    private boolean canRegister() {
+        return !GeyserImpl.getInstance().isInitialized() && GeyserImpl.getInstance().getConfig().isAddNonBedrockItems();
+    }
 
-    @Override
-    public void registerCustomItem(@NotNull String baseItem, @NotNull CustomItemData customItemData) {
+    private int nameExists(String name) {
         int nameExists = 0;
-        for (String name : this.customIdMappings.values()) {
-            String addName = GeyserCustomManager.CUSTOM_PREFIX + customItemData.name();
-            if (Pattern.matches("^" + addName +"(_([0-9])+)?$", name)) {
+        for (String mappingName : this.customIdMappings.values()) {
+            String addName = GeyserCustomManager.CUSTOM_PREFIX + name;
+            if (Pattern.matches("^" + addName +"(_([0-9])+)?$", mappingName)) {
                 nameExists++;
             }
         }
         if (nameExists != 0) {
-            GeyserImpl.getInstance().getLogger().warning("Custom item name '" + customItemData.name() + "' already exists and was registered again!");
+            GeyserImpl.getInstance().getLogger().warning("Custom item name '" + name + "' already exists and was registered again!");
+        }
+        return nameExists;
+    }
+
+    @Override
+    public boolean registerCustomItem(@NotNull String baseItem, @NotNull CustomItemData customItemData) {
+        if (!this.canRegister()) {
+            return false;
         }
 
-        GeyserCustomItemData registeredItem = CustomItemsRegistryPopulator.addToRegistry(baseItem, customItemData, nameExists, this);
-        if (registeredItem != null && registeredItem.mappings().size() > 0) {
-            this.customMappings.computeIfAbsent(baseItem, list -> new ArrayList<>()).add(registeredItem);
+        GeyserCustomItemData registeredItem = CustomItemsRegistryPopulator.addToRegistry(baseItem, customItemData, this.nameExists(customItemData.name()), this.registeredItemCount());
 
-            for (GeyserCustomItemData.Mapping mapping : registeredItem.mappings().values()) {
+        if (registeredItem.mappingNumber() > 0) {
+            this.customMappings.computeIfAbsent(baseItem, list -> new ArrayList<>()).add(customItemData);
+            this.registeredCustomItems.add(registeredItem);
+
+            for (GeyserCustomItemData.Mapping mapping : registeredItem.getMappings()) {
                 this.customIdMappings.put(mapping.integerId(), mapping.stringId());
             }
 
-            registeredCustomItems++;
+            return true;
+        } else {
+            return false;
         }
     }
 
     @Override
     public @NotNull List<CustomItemData> customItemData(@NotNull String baseItem) {
-        for (Map.Entry<String, List<GeyserCustomItemData>> entry : this.customMappings.entrySet()) {
-            if (entry.getKey().equals(baseItem)) {
-                List<CustomItemData> customItemData = new ArrayList<>();
-                for (GeyserCustomItemData data : entry.getValue()) {
-                    customItemData.add(data.customItemData());
-                }
-                return customItemData;
-            }
-        }
-        return new ArrayList<>();
+        return this.customMappings.getOrDefault(baseItem, new ArrayList<>());
     }
 
     @Override
     public @NotNull Map<String, List<CustomItemData>> customMappings() {
-        Map<String, List<CustomItemData>> mappings = new HashMap<>();
-        for (Map.Entry<String, List<GeyserCustomItemData>> entry : this.customMappings.entrySet()) {
-            List<CustomItemData> customItemData = new ArrayList<>();
-            for (GeyserCustomItemData data : entry.getValue()) {
-                customItemData.add(data.customItemData());
-            }
-            mappings.put(entry.getKey(), customItemData);
-        }
-        return mappings;
+        return this.customMappings;
     }
 
     @Override
@@ -113,29 +111,21 @@ public class GeyserCustomItemManager extends CustomItemManager {
     }
 
     public int registeredItemCount() {
-        return this.registeredCustomItems;
+        return this.registeredCustomItems.size();
     }
 
     public List<ComponentItemData> componentItemDataListFromVersion(int protocolVersion) {
         List<ComponentItemData> componentItemDataList = new ArrayList<>();
-        for (Map.Entry<String, List<GeyserCustomItemData>> entry : this.customMappings.entrySet()) {
-            for (GeyserCustomItemData data : entry.getValue()) {
-                if (data.mappings().containsKey(protocolVersion)) {
-                    componentItemDataList.add(data.mappings().get(protocolVersion).componentItemData());
-                }
-            }
+        for (GeyserCustomItemData registeredItem : this.registeredCustomItems) {
+            componentItemDataList.add(registeredItem.getMapping(protocolVersion).componentItemData());
         }
         return componentItemDataList;
     }
 
     public List<StartGamePacket.ItemEntry> startGameItemEntryListFromVersion(int protocolVersion) {
         List<StartGamePacket.ItemEntry> itemEntryList = new ArrayList<>();
-        for (Map.Entry<String, List<GeyserCustomItemData>> entry : this.customMappings.entrySet()) {
-            for (GeyserCustomItemData data : entry.getValue()) {
-                if (data.mappings().containsKey(protocolVersion)) {
-                    itemEntryList.add(data.mappings().get(protocolVersion).startGamePacketItemEntry());
-                }
-            }
+        for (GeyserCustomItemData registeredItem : this.registeredCustomItems) {
+            itemEntryList.add(registeredItem.getMapping(protocolVersion).startGamePacketItemEntry());
         }
         return itemEntryList;
     }

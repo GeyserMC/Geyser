@@ -95,29 +95,29 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
 
         //The next entries are optional
         if (node.has("display_name")) {
-            customItemData.setDisplayName(node.get("display_name").asText());
+            customItemData.displayName(node.get("display_name").asText());
         }
 
         if (node.has("is_tool")) {
-            customItemData.setIsTool(node.get("is_tool").asBoolean());
+            customItemData.isTool(node.get("is_tool").asBoolean());
         }
 
         if (node.has("allow_offhand")) {
-            customItemData.setAllowOffhand(node.get("allow_offhand").asBoolean());
+            customItemData.allowOffhand(node.get("allow_offhand").asBoolean());
         }
 
         if (node.has("is_hat")) {
-            customItemData.setIsHat(node.get("is_hat").asBoolean());
+            customItemData.isHat(node.get("is_hat").asBoolean());
         }
 
         if (node.has("texture_size")) {
-            customItemData.setTextureSize(node.get("texture_size").asInt());
+            customItemData.textureSize(node.get("texture_size").asInt());
         }
 
         if (node.has("render_offsets")) {
             JsonNode tmpNode = node.get("render_offsets");
 
-            customItemData.setRenderOffsets(GeyserCustomRenderOffsets.fromJsonNode(tmpNode));
+            customItemData.renderOffsets(GeyserCustomRenderOffsets.fromJsonNode(tmpNode));
         }
 
         return customItemData;

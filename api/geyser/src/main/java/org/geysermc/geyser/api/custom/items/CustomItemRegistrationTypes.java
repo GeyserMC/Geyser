@@ -64,7 +64,7 @@ public class CustomItemRegistrationTypes {
      *
      * @return true if the item has any registrations set
      */
-    public boolean hasRegistrationType() {
+    public boolean hasRegistrationTypes() {
         return this.unbreaking != null ||
                 this.customModelData != null ||
                 this.damagePredicate != null;

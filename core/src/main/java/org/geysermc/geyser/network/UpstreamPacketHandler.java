@@ -31,19 +31,14 @@ import com.nukkitx.protocol.bedrock.data.ExperimentData;
 import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.geyser.GeyserImpl;
-<<<<<<< HEAD
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.api.network.AuthType;
-=======
->>>>>>> 67f4de978168ff482b00493c662e485717d9e7e0
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.pack.ResourcePack;
 import org.geysermc.geyser.pack.ResourcePackManifest;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
-import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MathUtils;
@@ -165,7 +160,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     stackPacket.getResourcePacks().add(new ResourcePackStackPacket.Entry(header.getUuid().toString(), header.getVersionString(), ""));
                 }
 
-                if (GeyserImpl.getInstance().getConfig().isAddNonBedrockItems() || session.getItemMappings().getFurnaceMinecartData() != null) {
+                if (GeyserImpl.getInstance().getConfig().isAddNonBedrockItems() || session.getItemMappings().getFurnaceMinecartData() != null || GeyserImpl.getInstance().getCustomManager().getItemManager().registeredItemCount() != 0) {
                     // Allow custom items to work
                     stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
                 }

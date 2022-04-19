@@ -30,9 +30,36 @@ import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import org.geysermc.geyser.api.custom.items.CustomItemData;
 import org.geysermc.geyser.registry.type.ItemMapping;
 
+import java.util.HashMap;
 import java.util.Map;
 
-public record GeyserCustomItemData(CustomItemData customItemData, Map<Integer, Mapping> mappings) {
+public class GeyserCustomItemData {
+    private Map<Integer, Mapping> mappings = new HashMap<>();
+
+    public void addMapping(Integer protocolVersion, Mapping mapping) {
+        if (protocolVersion == null || mapping == null) {
+            throw new IllegalArgumentException("Protocol version and mapping cannot be null");
+        }
+
+        mappings.put(protocolVersion, mapping);
+    }
+
+    public Mapping getMapping(Integer protocolVersion) {
+        if (protocolVersion == null) {
+            throw new IllegalArgumentException("Protocol version cannot be null");
+        }
+
+        return mappings.get(protocolVersion);
+    }
+
+    public Mapping[] getMappings() {
+        return mappings.values().toArray(new Mapping[0]);
+    }
+
+    public int mappingNumber() {
+        return mappings.size();
+    }
+
     public record Mapping(ComponentItemData componentItemData, ItemMapping itemMapping, StartGamePacket.ItemEntry startGamePacketItemEntry, String stringId, int integerId) {
     }
 }

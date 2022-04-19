@@ -62,7 +62,7 @@ public class CustomItemData {
      *
      * @return the registration types of the item.
      */
-    public CustomItemRegistrationTypes registrationType() {
+    public CustomItemRegistrationTypes registrationTypes() {
         return this.registrationType;
     }
 
@@ -89,7 +89,7 @@ public class CustomItemData {
      *
      * @param displayName the item's display name
      */
-    public void setDisplayName(@NonNull String displayName) {
+    public void displayName(@NonNull String displayName) {
         this.displayName = displayName;
     }
 
@@ -107,7 +107,7 @@ public class CustomItemData {
      *
      * @param isTool true if the item is a tool, false otherwise
      */
-    public void setIsTool(boolean isTool) {
+    public void isTool(boolean isTool) {
         this.isTool = isTool;
     }
 
@@ -125,7 +125,7 @@ public class CustomItemData {
      *
      * @param allowOffhand true if the item is allowed to be used in the offhand, false otherwise
      */
-    public void setAllowOffhand(boolean allowOffhand) {
+    public void allowOffhand(boolean allowOffhand) {
         this.allowOffhand = allowOffhand;
     }
 
@@ -143,7 +143,7 @@ public class CustomItemData {
      *
      * @param isHat true if the item is a hat, false otherwise
      */
-    public void setIsHat(boolean isHat) {
+    public void isHat(boolean isHat) {
         this.isHat = isHat;
     }
 
@@ -161,7 +161,7 @@ public class CustomItemData {
      *
      * @param textureSize the item's texture size
      */
-    public void setTextureSize(int textureSize) {
+    public void textureSize(int textureSize) {
         this.textureSize = textureSize;
     }
 
@@ -179,7 +179,7 @@ public class CustomItemData {
      *
      * @param renderOffsets the item's render offsets
      */
-    public void setRenderOffsets(@Nullable CustomRenderOffsets renderOffsets) {
+    public void renderOffsets(@Nullable CustomRenderOffsets renderOffsets) {
         this.renderOffsets = renderOffsets;
     }
 }

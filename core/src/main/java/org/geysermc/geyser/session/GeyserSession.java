@@ -1445,14 +1445,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         settings.setServerAuthoritativeBlockBreaking(false);
         startGamePacket.setPlayerMovementSettings(settings);
 
-<<<<<<< HEAD
-        startGamePacket.getExperiments().add(new ExperimentData("data_driven_items", true));
-        if (upstream.getProtocolVersion() <= Bedrock_v471.V471_CODEC.getProtocolVersion()) {
-            startGamePacket.getExperiments().add(new ExperimentData("caves_and_cliffs", true));
-        }
-
-=======
->>>>>>> 67f4de978168ff482b00493c662e485717d9e7e0
         upstream.sendPacket(startGamePacket);
     }
 
