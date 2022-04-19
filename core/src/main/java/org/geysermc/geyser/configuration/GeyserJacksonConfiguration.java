@@ -36,8 +36,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.network.AuthType;
-import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.network.CIDRMatcher;
+import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.io.IOException;
@@ -240,8 +240,21 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     public static class MetricsInfo implements IMetricsInfo {
         private boolean enabled = true;
 
+        @JsonDeserialize(using = MetricsIdDeserializer.class)
         @JsonProperty("uuid")
         private String uniqueId = UUID.randomUUID().toString();
+
+        private static class MetricsIdDeserializer extends JsonDeserializer<String> {
+            @Override
+            public String deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+                String uuid = p.getValueAsString();
+                if ("generateduuid".equals(uuid)) {
+                    // Compensate for configs not copied from the jar
+                    return UUID.randomUUID().toString();
+                }
+                return uuid;
+            }
+        }
     }
 
     @JsonProperty("scoreboard-packet-threshold")
