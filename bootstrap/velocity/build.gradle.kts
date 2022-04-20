@@ -1,11 +1,12 @@
 val velocityVersion = "3.0.0"
 
 dependencies {
+    annotationProcessor("com.velocitypowered", "velocity-api", velocityVersion)
     api(projects.core)
 }
 
 platformRelocate("com.fasterxml.jackson")
-platformRelocate("it.unimi.fastutil")
+platformRelocate("it.unimi.dsi.fastutil")
 platformRelocate("net.kyori.adventure.text.serializer.gson.legacyimpl")
 
 exclude("com.google.*:*")
