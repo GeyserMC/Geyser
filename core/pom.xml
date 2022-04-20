@@ -121,7 +121,7 @@
         <dependency>
             <groupId>com.github.CloudburstMC.Protocol</groupId>
             <artifactId>bedrock-v503</artifactId>
-            <version>29ecd7a</version>
+            <version>f32c76d</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
