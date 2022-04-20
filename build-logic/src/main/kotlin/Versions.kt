@@ -30,7 +30,7 @@ object Versions {
     const val guavaVersion = "29.0-jre"
     const val nbtVersion = "2.1.0"
     const val websocketVersion = "1.5.1"
-    const val protocolVersion = "0cd24c0"
+    const val protocolVersion = "29ecd7a"
     const val raknetVersion = "1.6.28-SNAPSHOT"
     const val mcauthlibVersion = "d9d773e"
     const val mcprotocollibversion = "0771504"
