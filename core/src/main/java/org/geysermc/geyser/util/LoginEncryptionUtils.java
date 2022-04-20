@@ -155,9 +155,10 @@ public class LoginEncryptionUtils {
             session.setAuthenticationData(new AuthData(
                     extraData.get("displayName").asText(),
                     UUID.fromString(extraData.get("identity").asText()),
-                    extraData.get("XUID").asText(),
-                    certChainData, clientData
+                    extraData.get("XUID").asText()
             ));
+
+            session.setCertChainData(certChainData);
 
             if (payload.get("identityPublicKey").getNodeType() != JsonNodeType.STRING) {
                 throw new RuntimeException("Identity Public Key was not found!");
@@ -169,6 +170,7 @@ public class LoginEncryptionUtils {
 
             JsonNode clientDataJson = JSON_MAPPER.readTree(clientJwt.getPayload().toBytes());
             BedrockClientData data = JSON_MAPPER.convertValue(clientDataJson, BedrockClientData.class);
+            data.setOriginalString(clientData);
             session.setClientData(data);
 
             if (EncryptionUtils.canUseEncryption()) {

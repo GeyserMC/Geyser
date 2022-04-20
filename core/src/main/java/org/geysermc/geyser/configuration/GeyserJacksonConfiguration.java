@@ -36,8 +36,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.network.AuthType;
-import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.network.CIDRMatcher;
+import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.io.IOException;
