@@ -36,12 +36,17 @@ public class JavaSetTitlesAnimationTranslator extends PacketTranslator<Clientbou
 
     @Override
     public void translate(GeyserSession session, ClientboundSetTitlesAnimationPacket packet) {
+        int fadeInTime = packet.getFadeIn();
+        int stayTime = packet.getStay();
+        int fadeOutTime = packet.getFadeOut();
+        session.getWorldCache().setTitleTimes(fadeInTime, stayTime, fadeOutTime);
+
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.TIMES);
         titlePacket.setText("");
-        titlePacket.setFadeInTime(packet.getFadeIn());
-        titlePacket.setFadeOutTime(packet.getFadeOut());
-        titlePacket.setStayTime(packet.getStay());
+        titlePacket.setFadeInTime(fadeInTime);
+        titlePacket.setFadeOutTime(fadeOutTime);
+        titlePacket.setStayTime(stayTime);
         titlePacket.setXuid("");
         titlePacket.setPlatformOnlineId("");
         session.sendUpstreamPacket(titlePacket);

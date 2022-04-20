@@ -29,13 +29,13 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.Builder;
 import lombok.Value;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +48,12 @@ public class ItemMappings {
 
     Map<String, ItemMapping> cachedJavaMappings = new WeakHashMap<>();
 
-    Int2ObjectMap<ItemMapping> items;
+    ItemMapping[] items;
+
+    /**
+     * A unique exception as this is an item in Bedrock, but not in Java.
+     */
+    ItemMapping lodestoneCompass;
 
     ItemData[] creativeItems;
     List<StartGamePacket.ItemEntry> itemEntries;
@@ -70,6 +75,7 @@ public class ItemMappings {
      * @param itemStack the itemstack
      * @return an item entry from the given java edition identifier
      */
+    @Nonnull
     public ItemMapping getMapping(ItemStack itemStack) {
         return this.getMapping(itemStack.getId());
     }
@@ -81,8 +87,9 @@ public class ItemMappings {
      * @param javaId the id
      * @return an item entry from the given java edition identifier
      */
+    @Nonnull
     public ItemMapping getMapping(int javaId) {
-        return this.items.get(javaId);
+        return javaId >= 0 && javaId < this.items.length ? this.items[javaId] : ItemMapping.AIR;
     }
 
     /**
@@ -94,7 +101,7 @@ public class ItemMappings {
      */
     public ItemMapping getMapping(String javaIdentifier) {
         return this.cachedJavaMappings.computeIfAbsent(javaIdentifier, key -> {
-            for (ItemMapping mapping : this.items.values()) {
+            for (ItemMapping mapping : this.items) {
                 if (mapping.getJavaIdentifier().equals(key)) {
                     return mapping;
                 }
@@ -110,11 +117,18 @@ public class ItemMappings {
      * @return an item entry from the given item data
      */
     public ItemMapping getMapping(ItemData data) {
+        int id = data.getId();
+        if (id == 0) {
+            return ItemMapping.AIR;
+        } else if (id == lodestoneCompass.getBedrockId()) {
+            return lodestoneCompass;
+        }
+
         boolean isBlock = data.getBlockRuntimeId() != 0;
         boolean hasDamage = data.getDamage() != 0;
 
-        for (ItemMapping mapping : this.items.values()) {
-            if (mapping.getBedrockId() == data.getId()) {
+        for (ItemMapping mapping : this.items) {
+            if (mapping.getBedrockId() == id) {
                 if (isBlock && !hasDamage) { // Pre-1.16.220 will not use block runtime IDs at all, so we shouldn't check either
                     if (data.getBlockRuntimeId() != mapping.getBedrockBlockId()) {
                         continue;
@@ -135,7 +149,7 @@ public class ItemMappings {
         }
 
         // This will hide the message when the player clicks with an empty hand
-        if (data.getId() != 0 && data.getDamage() != 0) {
+        if (id != 0 && data.getDamage() != 0) {
             GeyserImpl.getInstance().getLogger().debug("Missing mapping for bedrock item " + data.getId() + ":" + data.getDamage());
         }
         return ItemMapping.AIR;
