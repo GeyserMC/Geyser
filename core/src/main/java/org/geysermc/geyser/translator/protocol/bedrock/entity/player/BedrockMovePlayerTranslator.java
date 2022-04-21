@@ -37,14 +37,12 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
+import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
 @Translator(packet = MovePlayerPacket.class)
 public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPacket> {
-    /* The upper and lower bounds to check for the void floor that only exists in Bedrock. These are the constants for the overworld. */
-    private static final int BEDROCK_OVERWORLD_VOID_FLOOR_UPPER_Y = -104;
-    private static final int BEDROCK_OVERWORLD_VOID_FLOOR_LOWER_Y = BEDROCK_OVERWORLD_VOID_FLOOR_UPPER_Y + 2;
 
     @Override
     public void translate(GeyserSession session, MovePlayerPacket packet) {
@@ -124,11 +122,10 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
 
                     if (notMovingUp) {
                         int floorY = position.getFloorY();
-                        // If the client believes the world has extended height, then it also believes the void floor
-                        // still exists, just at a lower spot
-                        boolean extendedWorld = session.getChunkCache().isExtendedHeight();
-                        if (floorY <= (extendedWorld ? BEDROCK_OVERWORLD_VOID_FLOOR_LOWER_Y : -38)
-                                && floorY >= (extendedWorld ? BEDROCK_OVERWORLD_VOID_FLOOR_UPPER_Y : -40)) {
+                        // The void floor is offset about 40 blocks below the bottom of the world
+                        BedrockDimension bedrockDimension = session.getChunkCache().getBedrockDimension();
+                        int voidFloorLocation = bedrockDimension.minY() - 40;
+                        if (floorY <= (voidFloorLocation + 2) && floorY >= voidFloorLocation) {
                             // Work around there being a floor at the bottom of the world and teleport the player below it
                             // Moving from below to above the void floor works fine
                             entity.setPosition(entity.getPosition().sub(0, 4f, 0));

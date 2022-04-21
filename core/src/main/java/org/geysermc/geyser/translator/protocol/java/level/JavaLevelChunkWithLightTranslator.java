@@ -43,7 +43,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.network.VarInts;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
-import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
+import com.nukkitx.protocol.bedrock.v503.Bedrock_v503;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
@@ -52,26 +52,29 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.level.BiomeTranslator;
 import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
-import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
-import org.geysermc.geyser.translator.level.block.entity.SkullBlockEntityTranslator;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.BitArray;
 import org.geysermc.geyser.level.chunk.bitarray.BitArrayVersion;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.level.BedrockDimension;
+import org.geysermc.geyser.translator.level.BiomeTranslator;
+import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
+import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
+import org.geysermc.geyser.translator.level.block.entity.SkullBlockEntityTranslator;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.geyser.util.ChunkUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.BitSet;
+import java.util.List;
+import java.util.Map;
 
 import static org.geysermc.geyser.util.ChunkUtils.*;
 
@@ -98,13 +101,13 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         BitSet waterloggedPaletteIds = new BitSet();
         BitSet pistonOrFlowerPaletteIds = new BitSet();
 
-        boolean overworld = session.getChunkCache().isExtendedHeight();
-        int maxBedrockSectionY = ((overworld ? MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD : MAXIMUM_ACCEPTED_HEIGHT) >> 4) - 1;
+        BedrockDimension bedrockDimension = session.getChunkCache().getBedrockDimension();
+        int maxBedrockSectionY = (bedrockDimension.height() >> 4) - 1;
 
         int sectionCount;
         byte[] payload;
         ByteBuf byteBuf = null;
-        GeyserChunkSection[] sections = new GeyserChunkSection[javaChunks.length - (yOffset + ((overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4))];
+        GeyserChunkSection[] sections = new GeyserChunkSection[javaChunks.length - (yOffset + (bedrockDimension.minY() >> 4))];
 
         try {
             NetInput in = new StreamNetInput(new ByteArrayInputStream(packet.getChunkData()));
@@ -113,7 +116,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 javaChunks[sectionY] = javaSection.getChunkData();
                 javaBiomes[sectionY] = javaSection.getBiomeData();
 
-                int bedrockSectionY = sectionY + (yOffset - ((overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4));
+                int bedrockSectionY = sectionY + (yOffset - (bedrockDimension.minY() >> 4));
                 if (bedrockSectionY < 0 || maxBedrockSectionY < bedrockSectionY) {
                     // Ignore this chunk section since it goes outside the bounds accepted by the Bedrock client
                     continue;
@@ -309,11 +312,11 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 }
             }
 
-            // As of 1.17.10, Bedrock hardcodes to always read 32 biome sections
-            // As of 1.18, this hardcode was lowered to 25
-            boolean isNewVersion = session.getUpstream().getProtocolVersion() >= Bedrock_v475.V475_CODEC.getProtocolVersion();
-            int biomeCount = isNewVersion ? 25 : 32;
-            int dimensionOffset = (overworld ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT) >> 4;
+            // As of 1.18.0, Bedrock hardcodes to always read 25 biome sections
+            // As of 1.18.30, the hardcode may now be tied to the dimension definition
+            boolean isNewVersion = session.getUpstream().getProtocolVersion() >= Bedrock_v503.V503_CODEC.getProtocolVersion();
+            int biomeCount = isNewVersion ? bedrockDimension.height() >> 4 : 25;
+            int dimensionOffset = bedrockDimension.minY() >> 4;
             for (int i = 0; i < biomeCount; i++) {
                 int biomeYOffset = dimensionOffset + i;
                 if (biomeYOffset < yOffset) {

@@ -26,8 +26,6 @@
 package org.geysermc.geyser.level.block;
 
 import com.nukkitx.network.util.Preconditions;
-import lombok.Getter;
-
 
 public class BlockPositionIterator {
     private final int minX;

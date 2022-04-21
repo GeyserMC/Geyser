@@ -35,10 +35,12 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
 import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
-import it.unimi.dsi.fastutil.ints.*;
+import com.nukkitx.protocol.bedrock.v503.Bedrock_v503;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.*;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
@@ -58,19 +60,16 @@ import java.util.*;
  * Populates the item registries.
  */
 public class ItemRegistryPopulator {
-    private static final Map<String, PaletteVersion> PALETTE_VERSIONS;
-
-    static {
-        PALETTE_VERSIONS = new Object2ObjectOpenHashMap<>();
-        PALETTE_VERSIONS.put("1_17_40", new PaletteVersion(Bedrock_v471.V471_CODEC.getProtocolVersion(), Collections.emptyMap()));
-        PALETTE_VERSIONS.put("1_18_0", new PaletteVersion(Bedrock_v475.V475_CODEC.getProtocolVersion(), Collections.emptyMap()));
-        PALETTE_VERSIONS.put("1_18_10", new PaletteVersion(Bedrock_v486.V486_CODEC.getProtocolVersion(), Collections.emptyMap()));
-    }
 
     private record PaletteVersion(int protocolVersion, Map<String, String> additionalTranslatedItems) {
     }
 
     public static void populate() {
+        Map<String, PaletteVersion> paletteVersions = new Object2ObjectOpenHashMap<>();
+        paletteVersions.put("1_18_0", new PaletteVersion(Bedrock_v475.V475_CODEC.getProtocolVersion(), Collections.emptyMap()));
+        paletteVersions.put("1_18_10", new PaletteVersion(Bedrock_v486.V486_CODEC.getProtocolVersion(), Collections.emptyMap()));
+        paletteVersions.put("1_18_30", new PaletteVersion(Bedrock_v503.V503_CODEC.getProtocolVersion(), Collections.emptyMap()));
+
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
         TypeReference<Map<String, GeyserMappingItem>> mappingItemsType = new TypeReference<>() { };
@@ -88,7 +87,7 @@ public class ItemRegistryPopulator {
         Int2IntMap dyeColors = new FixedInt2IntMap();
 
         /* Load item palette */
-        for (Map.Entry<String, PaletteVersion> palette : PALETTE_VERSIONS.entrySet()) {
+        for (Map.Entry<String, PaletteVersion> palette : paletteVersions.entrySet()) {
             TypeReference<List<PaletteItem>> paletteEntriesType = new TypeReference<>() {};
 
             // Used to get the Bedrock namespaced ID (in instances where there are small differences)
@@ -232,12 +231,15 @@ public class ItemRegistryPopulator {
                 }
 
                 String bedrockIdentifier;
-                if (javaIdentifier.equals("minecraft:music_disc_otherside") && palette.getValue().protocolVersion() <= Bedrock_v471.V471_CODEC.getProtocolVersion()) {
-                    bedrockIdentifier = "minecraft:music_disc_pigstep";
-                } else if (javaIdentifier.equals("minecraft:globe_banner_pattern") && palette.getValue().protocolVersion() < Bedrock_v486.V486_CODEC.getProtocolVersion()) {
+                if (javaIdentifier.equals("minecraft:globe_banner_pattern") && palette.getValue().protocolVersion() < Bedrock_v486.V486_CODEC.getProtocolVersion()) {
                     bedrockIdentifier = "minecraft:banner_pattern";
                 } else {
                     bedrockIdentifier = mappingItem.getBedrockIdentifier();
+                    if (palette.getValue().protocolVersion() >= Bedrock_v503.V503_CODEC.getProtocolVersion()) {
+                        if (bedrockIdentifier.equals("minecraft:sealantern")) {
+                            bedrockIdentifier = "minecraft:sea_lantern";
+                        }
+                    }
                 }
 
                 if (usingFurnaceMinecart && javaIdentifier.equals("minecraft:furnace_minecart")) {
