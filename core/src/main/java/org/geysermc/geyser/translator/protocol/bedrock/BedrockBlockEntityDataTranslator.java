@@ -41,7 +41,6 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
 
     @Override
     public void translate(GeyserSession session, BlockEntityDataPacket packet) {
-        System.out.println(packet);
         NbtMap tag = packet.getData();
         String id = tag.getString("id");
         if (id.equals("Sign")) {
