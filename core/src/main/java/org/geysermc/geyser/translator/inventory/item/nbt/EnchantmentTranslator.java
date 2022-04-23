@@ -127,7 +127,7 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
 
         Enchantment enchantment = Enchantment.getByJavaIdentifier(((StringTag) javaEnchId).getValue());
         if (enchantment == null) {
-            GeyserImpl.getInstance().getLogger().debug("Unknown java enchantment: " + javaEnchId.getValue());
+            GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment while NBT item translating: " + javaEnchId.getValue());
             return null;
         }
 
