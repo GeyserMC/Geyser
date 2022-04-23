@@ -40,20 +40,7 @@
         <module>core</module>
     </modules>
 
-    <pluginRepositories>
-        <!-- Remove once maven-shade-plugin gets a stable release that supports Java 16 -->
-        <pluginRepository>
-            <id>apache.snapshots</id>
-            <url>https://repository.apache.org/snapshots/</url>
-        </pluginRepository>
-    </pluginRepositories>
-
     <repositories>
-        <!-- Remove once maven-shade-plugin gets a stable release that supports Java 16 -->
-        <repository>
-            <id>apache.snapshots</id>
-            <url>https://repository.apache.org/snapshots/</url>
-        </repository>
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
