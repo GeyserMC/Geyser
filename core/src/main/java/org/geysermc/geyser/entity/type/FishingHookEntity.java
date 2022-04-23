@@ -152,7 +152,7 @@ public class FishingHookEntity extends ThrowableEntity {
         float gravity = getGravity();
         motion = motion.down(gravity);
 
-        moveAbsoluteImmediate(position.add(motion), yaw, pitch, headYaw, onGround, false);
+        moveAbsoluteImmediate(position.add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
 
         float drag = getDrag();
         motion = motion.mul(drag);
@@ -160,7 +160,7 @@ public class FishingHookEntity extends ThrowableEntity {
 
     @Override
     protected float getGravity() {
-        if (!isInWater() && !onGround) {
+        if (!isInWater() && !isOnGround()) {
             return 0.03f;
         }
         return 0;

@@ -204,7 +204,7 @@ public class Entity {
     }
 
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(relX, relY, relZ, yaw, pitch, this.headYaw, isOnGround);
+        moveRelative(relX, relY, relZ, yaw, pitch, getHeadYaw(), isOnGround);
     }
 
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
@@ -225,7 +225,7 @@ public class Entity {
     }
 
     public void moveAbsolute(Vector3f position, float yaw, float pitch, boolean isOnGround, boolean teleported) {
-        moveAbsolute(position, yaw, pitch, this.headYaw, isOnGround, teleported);
+        moveAbsolute(position, yaw, pitch, getHeadYaw(), isOnGround, teleported);
     }
 
     public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
@@ -254,7 +254,8 @@ public class Entity {
      * @param isOnGround Whether the entity is currently on the ground.
      */
     public void teleport(Vector3f position, float yaw, float pitch, boolean isOnGround) {
-        moveAbsolute(position, yaw, pitch, isOnGround, false);
+        // teleport will always set the headYaw to yaw
+        moveAbsolute(position, yaw, pitch, yaw, isOnGround, false);
     }
 
     /**
@@ -262,7 +263,7 @@ public class Entity {
      * @param headYaw The new head rotation of the entity.
      */
     public void updateHeadLookRotation(float headYaw) {
-        moveRelative(0, 0, 0, headYaw, pitch, this.headYaw, onGround);
+        moveRelative(0, 0, 0, getYaw(), getPitch(), headYaw, isOnGround());
     }
 
     /**
@@ -275,7 +276,7 @@ public class Entity {
      * @param isOnGround Whether the entity is currently on the ground.
      */
     public void updatePositionAndRotation(double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(moveX, moveY, moveZ, this.yaw, pitch, yaw, isOnGround);
+        moveRelative(moveX, moveY, moveZ, yaw, pitch, getHeadYaw(), isOnGround);
     }
 
     /**
@@ -436,12 +437,12 @@ public class Entity {
     }
 
     /**
-     * x = Pitch, y = HeadYaw, z = Yaw
+     * x = Pitch, y = Yaw, z = HeadYaw
      *
      * @return the bedrock rotation
      */
     public Vector3f getBedrockRotation() {
-        return Vector3f.from(pitch, headYaw, yaw);
+        return Vector3f.from(getPitch(), getYaw(), getHeadYaw());
     }
 
     /**

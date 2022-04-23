@@ -26,8 +26,25 @@
 package org.geysermc.geyser.util;
 
 public class MathUtils {
-
     public static final double SQRT_OF_TWO = Math.sqrt(2);
+
+    public static float wrapDegrees(float degrees) {
+        degrees = degrees % 360.0f;
+        if (degrees < -180.0f) {
+            degrees += 360.0f;
+        } else if (degrees >= 180.0f) {
+            degrees -= 360.0f;
+        }
+        return degrees;
+    }
+
+    public static float wrapDegrees(double degrees) {
+        return wrapDegrees((float) degrees);
+    }
+
+    public static int wrapDegreesToInt(float degrees) {
+        return (int) wrapDegrees(degrees);
+    }
 
     /**
      * Round the given float to the next whole number
