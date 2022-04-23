@@ -26,6 +26,7 @@
 package org.geysermc.geyser.platform.spigot.command;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.geysermc.geyser.GeyserImpl;
@@ -35,16 +36,24 @@ import java.lang.reflect.Field;
 
 public class GeyserSpigotCommandManager extends CommandManager {
 
-    private static CommandMap COMMAND_MAP;
+    private static final CommandMap COMMAND_MAP;
 
     static {
+        CommandMap commandMap = null;
         try {
-            Field cmdMapField = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-            cmdMapField.setAccessible(true);
-            COMMAND_MAP = (CommandMap) cmdMapField.get(Bukkit.getServer());
-        } catch (NoSuchFieldException | IllegalAccessException ex) {
-            ex.printStackTrace();
+            // Paper-only
+            Server.class.getMethod("getCommandMap");
+            commandMap = Bukkit.getServer().getCommandMap();
+        } catch (NoSuchMethodException e) {
+            try {
+                Field cmdMapField = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+                cmdMapField.setAccessible(true);
+                commandMap = (CommandMap) cmdMapField.get(Bukkit.getServer());
+            } catch (NoSuchFieldException | IllegalAccessException ex) {
+                ex.printStackTrace();
+            }
         }
+        COMMAND_MAP = commandMap;
     }
 
     public GeyserSpigotCommandManager(GeyserImpl geyser) {

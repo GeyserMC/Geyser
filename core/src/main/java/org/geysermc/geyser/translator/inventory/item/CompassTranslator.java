@@ -35,28 +35,18 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @ItemRemapper
 public class CompassTranslator extends ItemTranslator {
 
-    private final List<ItemMapping> appliedItems;
-
-    public CompassTranslator() {
-        appliedItems = Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
-                .getItems()
-                .values()
-                .stream()
-                .filter(entry -> entry.getJavaIdentifier().endsWith("compass"))
-                .collect(Collectors.toList());
-    }
-
     @Override
     protected ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
         if (isLodestoneCompass(itemStack.getNbt())) {
             // NBT will be translated in nbt/LodestoneCompassTranslator if applicable
-            return super.translateToBedrock(itemStack, mappings.getStoredItems().lodestoneCompass(), mappings);
+            return super.translateToBedrock(itemStack, mappings.getLodestoneCompass(), mappings);
         }
         return super.translateToBedrock(itemStack, mapping, mappings);
     }
@@ -64,7 +54,7 @@ public class CompassTranslator extends ItemTranslator {
     @Override
     protected ItemMapping getItemMapping(int javaId, CompoundTag nbt, ItemMappings mappings) {
         if (isLodestoneCompass(nbt)) {
-            return mappings.getStoredItems().lodestoneCompass();
+            return mappings.getLodestoneCompass();
         }
         return super.getItemMapping(javaId, nbt, mappings);
     }
@@ -89,6 +79,9 @@ public class CompassTranslator extends ItemTranslator {
 
     @Override
     public List<ItemMapping> getAppliedItems() {
-        return appliedItems;
+        return Arrays.stream(Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
+                        .getItems())
+                .filter(entry -> entry.getJavaIdentifier().endsWith("compass"))
+                .collect(Collectors.toList());
     }
 }

@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity.player;
 
+import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.PlayerListEntry;
 import com.github.steveice10.mc.protocol.data.game.PlayerListEntryAction;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundPlayerInfoPacket;
@@ -50,15 +51,19 @@ public class JavaPlayerInfoTranslator extends PacketTranslator<ClientboundPlayer
         for (PlayerListEntry entry : packet.getEntries()) {
             switch (packet.getAction()) {
                 case ADD_PLAYER -> {
+                    GameProfile profile = entry.getProfile();
                     PlayerEntity playerEntity;
-                    boolean self = entry.getProfile().getId().equals(session.getPlayerEntity().getUuid());
+                    boolean self = profile.getId().equals(session.getPlayerEntity().getUuid());
 
                     if (self) {
                         // Entity is ourself
                         playerEntity = session.getPlayerEntity();
                     } else {
-                        playerEntity = session.getEntityCache().getPlayerEntity(entry.getProfile().getId());
+                        playerEntity = session.getEntityCache().getPlayerEntity(profile.getId());
                     }
+
+                    GameProfile.Property textures = profile.getProperty("textures");
+                    String texturesProperty = textures == null ? null : textures.getValue();
 
                     if (playerEntity == null) {
                         // It's a new player
@@ -66,15 +71,18 @@ public class JavaPlayerInfoTranslator extends PacketTranslator<ClientboundPlayer
                                 session,
                                 -1,
                                 session.getEntityCache().getNextEntityId().incrementAndGet(),
-                                entry.getProfile(),
+                                profile.getId(),
                                 Vector3f.ZERO,
                                 Vector3f.ZERO,
-                                0, 0, 0
+                                0, 0, 0,
+                                profile.getName(),
+                                texturesProperty
                         );
 
                         session.getEntityCache().addPlayerEntity(playerEntity);
                     } else {
-                        playerEntity.setProfile(entry.getProfile());
+                        playerEntity.setUsername(profile.getName());
+                        playerEntity.setTexturesProperty(texturesProperty);
                     }
 
                     playerEntity.setPlayerList(true);

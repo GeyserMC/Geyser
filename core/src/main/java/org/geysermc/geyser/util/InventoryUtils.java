@@ -28,10 +28,6 @@ package org.geysermc.geyser.util;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
-import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
-import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundPickItemPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetCreativeModeSlotPacket;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
@@ -47,14 +43,17 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.click.Click;
+import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
+import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
 import org.geysermc.geyser.translator.inventory.chest.DoubleChestInventoryTranslator;
-import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.type.ItemMapping;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -161,6 +160,13 @@ public class InventoryUtils {
         if (item1 == null || item2 == null)
             return false;
         return item1.equals(item2, false, true, true);
+    }
+
+    /**
+     * Checks to see if an item stack represents air or has no count.
+     */
+    public static boolean isEmpty(@Nullable ItemStack itemStack) {
+        return itemStack == null || itemStack.getId() == ItemMapping.AIR.getJavaId() || itemStack.getAmount() <= 0;
     }
 
     /**
@@ -361,7 +367,7 @@ public class InventoryUtils {
      * @param output if not null, the recipe has to output this item
      */
     @Nullable
-    public static Recipe getValidRecipe(final GeyserSession session, final @Nullable ItemStack output, final IntFunction<GeyserItemStack> inventoryGetter,
+    public static GeyserRecipe getValidRecipe(final GeyserSession session, final @Nullable ItemStack output, final IntFunction<GeyserItemStack> inventoryGetter,
                                         final int gridDimensions, final int firstRow, final int height, final int firstCol, final int width) {
         int nonAirCount = 0; // Used for shapeless recipes for amount of items needed in recipe
         for (int row = firstRow; row < height + firstRow; row++) {
@@ -373,14 +379,14 @@ public class InventoryUtils {
         }
 
         recipes:
-        for (Recipe recipe : session.getCraftingRecipes().values()) {
-            if (recipe.getType() == RecipeType.CRAFTING_SHAPED) {
-                ShapedRecipeData data = (ShapedRecipeData) recipe.getData();
-                if (output != null && !data.getResult().equals(output)) {
+        for (GeyserRecipe recipe : session.getCraftingRecipes().values()) {
+            if (recipe.isShaped()) {
+                GeyserShapedRecipe shapedRecipe = (GeyserShapedRecipe) recipe;
+                if (output != null && !shapedRecipe.result().equals(output)) {
                     continue;
                 }
-                Ingredient[] ingredients = data.getIngredients();
-                if (data.getWidth() != width || data.getHeight() != height || width * height != ingredients.length) {
+                Ingredient[] ingredients = shapedRecipe.ingredients();
+                if (shapedRecipe.width() != width || shapedRecipe.height() != height || width * height != ingredients.length) {
                     continue;
                 }
 
@@ -397,18 +403,17 @@ public class InventoryUtils {
                         continue;
                     }
                 }
-                return recipe;
-            } else if (recipe.getType() == RecipeType.CRAFTING_SHAPELESS) {
-                ShapelessRecipeData data = (ShapelessRecipeData) recipe.getData();
-                if (output != null && !data.getResult().equals(output)) {
+            } else {
+                GeyserShapelessRecipe data = (GeyserShapelessRecipe) recipe;
+                if (output != null && !data.result().equals(output)) {
                     continue;
                 }
-                if (nonAirCount != data.getIngredients().length) {
+                if (nonAirCount != data.ingredients().length) {
                     // There is an amount of items on the crafting table that is not the same as the ingredient count so this is invalid
                     continue;
                 }
-                for (int i = 0; i < data.getIngredients().length; i++) {
-                    Ingredient ingredient = data.getIngredients()[i];
+                for (int i = 0; i < data.ingredients().length; i++) {
+                    Ingredient ingredient = data.ingredients()[i];
                     for (ItemStack itemStack : ingredient.getOptions()) {
                         boolean inventoryHasItem = false;
                         // Iterate only over the crafting table to find this item
@@ -432,8 +437,8 @@ public class InventoryUtils {
                         }
                     }
                 }
-                return recipe;
             }
+            return recipe;
         }
         return null;
     }

@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.mc.protocol.data.game.level.event.SoundEvent;
 import com.github.steveice10.mc.protocol.data.game.level.particle.ParticleType;
-import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
 import com.github.steveice10.packetlib.packet.Packet;
 import com.nukkitx.nbt.NbtMap;
@@ -43,6 +42,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
+import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.registry.loader.*;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
@@ -139,9 +139,9 @@ public final class Registries {
     public static final SimpleRegistry<Set<PotionMixData>> POTION_MIXES;
 
     /**
-     * A versioned registry holding all the recipes, with the net ID being the key, and {@link Recipe} as the value.
+     * A versioned registry holding all the recipes, with the net ID being the key, and {@link GeyserRecipe} as the value.
      */
-    public static final VersionedRegistry<Int2ObjectMap<Recipe>> RECIPES = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
+    public static final VersionedRegistry<Int2ObjectMap<GeyserRecipe>> RECIPES = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
     /**
      * A mapped registry holding the available records, with the ID of the record being the key, and the {@link com.nukkitx.protocol.bedrock.data.SoundEvent}

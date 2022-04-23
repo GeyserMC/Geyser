@@ -36,27 +36,15 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @ItemRemapper
 public class TippedArrowTranslator extends ItemTranslator {
-
-    private final List<ItemMapping> appliedItems;
-
     private static final int TIPPED_ARROW_JAVA_ID = Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
             .getMapping("minecraft:tipped_arrow")
             .getJavaId();
-
-    public TippedArrowTranslator() {
-        appliedItems = Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
-                .getItems()
-                .values()
-                .stream()
-                .filter(entry -> entry.getJavaIdentifier().contains("arrow")
-                        && !entry.getJavaIdentifier().contains("spectral"))
-                .collect(Collectors.toList());
-    }
 
     @Override
     protected ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
@@ -93,6 +81,10 @@ public class TippedArrowTranslator extends ItemTranslator {
 
     @Override
     public List<ItemMapping> getAppliedItems() {
-        return appliedItems;
+        return Arrays.stream(Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
+                        .getItems())
+                .filter(entry -> entry.getJavaIdentifier().contains("arrow")
+                        && !entry.getJavaIdentifier().contains("spectral"))
+                .collect(Collectors.toList());
     }
 }

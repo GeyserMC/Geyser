@@ -57,8 +57,19 @@ public class CooldownUtils {
         if (sessionPreference == CooldownType.DISABLED) return;
 
         if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20) return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
-        // Needs to be sent or no subtitle packet is recognized by the client
+        // Set the times to stay a bit with no fade in nor out
         SetTitlePacket titlePacket = new SetTitlePacket();
+        titlePacket.setType(SetTitlePacket.Type.TIMES);
+        titlePacket.setStayTime(1000);
+        titlePacket.setText("");
+        titlePacket.setXuid("");
+        titlePacket.setPlatformOnlineId("");
+        session.sendUpstreamPacket(titlePacket);
+
+        session.getWorldCache().markTitleTimesAsIncorrect();
+
+        // Needs to be sent or no subtitle packet is recognized by the client
+        titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.TITLE);
         titlePacket.setText(" ");
         titlePacket.setXuid("");
@@ -85,9 +96,6 @@ public class CooldownUtils {
             titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
         }
         titlePacket.setText(getTitle(session));
-        titlePacket.setFadeInTime(0);
-        titlePacket.setFadeOutTime(5);
-        titlePacket.setStayTime(2);
         titlePacket.setXuid("");
         titlePacket.setPlatformOnlineId("");
         session.sendUpstreamPacket(titlePacket);
@@ -96,11 +104,7 @@ public class CooldownUtils {
                     computeCooldown(session, sessionPreference, lastHitTime), 50, TimeUnit.MILLISECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
         } else {
             SetTitlePacket removeTitlePacket = new SetTitlePacket();
-            if (sessionPreference == CooldownType.ACTIONBAR) {
-                removeTitlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
-            } else {
-                removeTitlePacket.setType(SetTitlePacket.Type.SUBTITLE);
-            }
+            removeTitlePacket.setType(SetTitlePacket.Type.CLEAR);
             removeTitlePacket.setText(" ");
             removeTitlePacket.setXuid("");
             removeTitlePacket.setPlatformOnlineId("");

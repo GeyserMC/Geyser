@@ -50,6 +50,9 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
         switch (packet.getAnimation()) {
             case SWING_ARM:
                 animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
+                if (entity.getEntityId() == session.getPlayerEntity().getEntityId()) {
+                    session.activateArmAnimationTicking();
+                }
                 break;
             case SWING_OFFHAND:
                 // Use the OptionalPack to trigger the animation

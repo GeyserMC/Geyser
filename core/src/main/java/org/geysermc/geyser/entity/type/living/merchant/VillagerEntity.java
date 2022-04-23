@@ -33,52 +33,49 @@ import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Optional;
 import java.util.UUID;
 
 public class VillagerEntity extends AbstractMerchantEntity {
-
     /**
      * A map of Java profession IDs to Bedrock IDs
      */
-    public static final Int2IntMap VILLAGER_PROFESSIONS = new Int2IntOpenHashMap();
+    private static final int[] VILLAGER_PROFESSIONS = new int[15];
     /**
      * A map of all Java region IDs (plains, savanna...) to Bedrock
      */
-    public static final Int2IntMap VILLAGER_REGIONS = new Int2IntOpenHashMap();
+    private static final int[] VILLAGER_REGIONS = new int[7];
 
     static {
         // Java villager profession IDs -> Bedrock
-        VILLAGER_PROFESSIONS.put(0, 0);
-        VILLAGER_PROFESSIONS.put(1, 8);
-        VILLAGER_PROFESSIONS.put(2, 11);
-        VILLAGER_PROFESSIONS.put(3, 6);
-        VILLAGER_PROFESSIONS.put(4, 7);
-        VILLAGER_PROFESSIONS.put(5, 1);
-        VILLAGER_PROFESSIONS.put(6, 2);
-        VILLAGER_PROFESSIONS.put(7, 4);
-        VILLAGER_PROFESSIONS.put(8, 12);
-        VILLAGER_PROFESSIONS.put(9, 5);
-        VILLAGER_PROFESSIONS.put(10, 13);
-        VILLAGER_PROFESSIONS.put(11, 14);
-        VILLAGER_PROFESSIONS.put(12, 3);
-        VILLAGER_PROFESSIONS.put(13, 10);
-        VILLAGER_PROFESSIONS.put(14, 9);
+        VILLAGER_PROFESSIONS[0] = 0;
+        VILLAGER_PROFESSIONS[1] = 8;
+        VILLAGER_PROFESSIONS[2] = 11;
+        VILLAGER_PROFESSIONS[3] = 6;
+        VILLAGER_PROFESSIONS[4] = 7;
+        VILLAGER_PROFESSIONS[5] = 1;
+        VILLAGER_PROFESSIONS[6] = 2;
+        VILLAGER_PROFESSIONS[7] = 4;
+        VILLAGER_PROFESSIONS[8] = 12;
+        VILLAGER_PROFESSIONS[9] = 5;
+        VILLAGER_PROFESSIONS[10] = 13;
+        VILLAGER_PROFESSIONS[11] = 14;
+        VILLAGER_PROFESSIONS[12] = 3;
+        VILLAGER_PROFESSIONS[13] = 10;
+        VILLAGER_PROFESSIONS[14] = 9;
 
-        VILLAGER_REGIONS.put(0, 1);
-        VILLAGER_REGIONS.put(1, 2);
-        VILLAGER_REGIONS.put(2, 0);
-        VILLAGER_REGIONS.put(3, 3);
-        VILLAGER_REGIONS.put(4, 4);
-        VILLAGER_REGIONS.put(5, 5);
-        VILLAGER_REGIONS.put(6, 6);
+        VILLAGER_REGIONS[0] = 1;
+        VILLAGER_REGIONS[1] = 2;
+        VILLAGER_REGIONS[2] = 0;
+        VILLAGER_REGIONS[3] = 3;
+        VILLAGER_REGIONS[4] = 4;
+        VILLAGER_REGIONS[5] = 5;
+        VILLAGER_REGIONS[6] = 6;
     }
 
     private Vector3i bedPosition;
@@ -95,12 +92,12 @@ public class VillagerEntity extends AbstractMerchantEntity {
     public void setVillagerData(EntityMetadata<VillagerData, ?> entityMetadata) {
         VillagerData villagerData = entityMetadata.getValue();
         // Profession
-        int profession = VILLAGER_PROFESSIONS.get(villagerData.getProfession());
+        int profession = getBedrockProfession(villagerData.getProfession());
         canTradeWith = profession != 14 && profession != 0; // Not a notwit and not professionless
         dirtyMetadata.put(EntityData.VARIANT, profession);
         //metadata.put(EntityData.SKIN_ID, villagerData.getType()); Looks like this is modified but for any reason?
         // Region
-        dirtyMetadata.put(EntityData.MARK_VARIANT, VILLAGER_REGIONS.get(villagerData.getType()));
+        dirtyMetadata.put(EntityData.MARK_VARIANT, getBedrockRegion(villagerData.getType()));
         // Trade tier - different indexing in Bedrock
         dirtyMetadata.put(EntityData.TRADE_TIER, villagerData.getLevel() - 1);
     }
@@ -157,5 +154,13 @@ public class VillagerEntity extends AbstractMerchantEntity {
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(false);
         session.sendUpstreamPacket(moveEntityPacket);
+    }
+
+    public static int getBedrockProfession(int javaProfession) {
+        return javaProfession >= 0 && javaProfession < VILLAGER_PROFESSIONS.length ? VILLAGER_PROFESSIONS[javaProfession] : 0;
+    }
+
+    public static int getBedrockRegion(int javaRegion) {
+        return javaRegion >= 0 && javaRegion < VILLAGER_REGIONS.length ? VILLAGER_REGIONS[javaRegion] : 0;
     }
 }
