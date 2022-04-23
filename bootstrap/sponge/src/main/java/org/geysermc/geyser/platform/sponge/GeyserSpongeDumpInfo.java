@@ -50,7 +50,6 @@ public class GeyserSpongeDumpInfo extends BootstrapDumpInfo {
     private final List<PluginInfo> plugins;
 
     GeyserSpongeDumpInfo() {
-        super();
         PluginContainer container = Sponge.platform().container(Platform.Component.IMPLEMENTATION);
         PluginMetadata platformMeta = container.metadata();
         this.platformName = platformMeta.name().orElse("unknown");
