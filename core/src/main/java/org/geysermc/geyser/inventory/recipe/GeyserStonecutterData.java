@@ -23,22 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-object Versions {
-    const val jacksonVersion = "2.13.2"
-    const val fastutilVersion = "8.5.2"
-    const val nettyVersion = "4.1.66.Final"
-    const val guavaVersion = "29.0-jre"
-    const val nbtVersion = "2.1.0"
-    const val websocketVersion = "1.5.1"
-    const val protocolVersion = "f32c76d"
-    const val raknetVersion = "1.6.28-SNAPSHOT"
-    const val mcauthlibVersion = "d9d773e"
-    const val mcprotocollibversion = "0771504"
-    const val packetlibVersion = "2.1-SNAPSHOT"
-    const val adventureVersion = "4.9.3"
-    const val eventVersion = "3.0.0"
-    const val junitVersion = "4.13.1"
-    const val checkerQualVersion = "3.19.0"
-    const val cumulusVersion  = "1.0-SNAPSHOT"
-    const val log4jVersion  = "2.17.1"
+package org.geysermc.geyser.inventory.recipe;
+
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
+
+/**
+ * @param buttonId the button that needs to be pressed for Java Edition to accept this item.
+ * @param output the expected output of this item when cut.
+ */
+public record GeyserStonecutterData(int buttonId, ItemStack output) {
 }

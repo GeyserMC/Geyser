@@ -27,7 +27,12 @@ package org.geysermc.geyser.translator.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
+import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
+import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.CraftRecipeOptionalStackRequestActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
+import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import org.geysermc.geyser.inventory.AnvilContainer;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
@@ -35,10 +40,32 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.updater.AnvilInventoryUpdater;
 
+import java.util.Objects;
+
 public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator {
     public AnvilInventoryTranslator() {
         super(3, "minecraft:anvil[facing=north]", com.nukkitx.protocol.bedrock.data.inventory.ContainerType.ANVIL, AnvilInventoryUpdater.INSTANCE,
                 "minecraft:chipped_anvil", "minecraft:damaged_anvil");
+    }
+
+    @Override
+    protected boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
+        return action.getType() == StackRequestActionType.CRAFT_RECIPE_OPTIONAL;
+    }
+
+    @Override
+    protected ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+        // Guarded by shouldHandleRequestFirst check
+        CraftRecipeOptionalStackRequestActionData data = (CraftRecipeOptionalStackRequestActionData) request.getActions()[0];
+        AnvilContainer container = (AnvilContainer) inventory;
+
+        // Required as of 1.18.30 - FilterTextPackets no longer appear to be sent
+        String name = request.getFilterStrings()[data.getFilteredStringIndex()];
+        if (!Objects.equals(name, container.getNewName())) {
+            container.checkForRename(session, name);
+        }
+
+        return super.translateRequest(session, inventory, request);
     }
 
     @Override

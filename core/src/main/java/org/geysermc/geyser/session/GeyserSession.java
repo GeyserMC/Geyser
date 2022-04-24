@@ -100,6 +100,7 @@ import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.netty.LocalSession;
@@ -362,7 +363,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * The key is the Java ID of the item; the values are all the possible outputs' Java IDs sorted by their string identifier
      */
     @Setter
-    private Int2ObjectMap<IntList> stonecutterRecipes;
+    private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes;
 
     /**
      * Whether to work around 1.13's different behavior in villager trading menus.

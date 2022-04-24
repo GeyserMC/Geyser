@@ -55,9 +55,9 @@ body:
     required: true
 - type: input
   attributes:
-    label: "Minecraft: Bedrock Edition Version"
-    description: "What version of Minecraft: Bedrock Edition are you using? Leave empty if the bug happens before you can connect with Minecraft: Bedrock Edition."
-    placeholder: "For example: 1.16.201"
+    label: "Minecraft: Bedrock Edition Device/Version"
+    description: "What version of Minecraft: Bedrock Edition are you using, and what device(s) does the bug occur on? Leave empty if the bug happens before you can connect with Minecraft: Bedrock Edition."
+    placeholder: "For example: 1.16.201, Nintendo Switch"
 - type: textarea
   attributes:
     label: Additional Context
