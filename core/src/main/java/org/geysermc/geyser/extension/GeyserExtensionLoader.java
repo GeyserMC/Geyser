@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.extension;
 
+import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
+import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
@@ -51,13 +53,15 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 public class GeyserExtensionLoader extends ExtensionLoader {
     private static final Path EXTENSION_DIRECTORY = Paths.get("extensions");
-    private static final Pattern API_VERSION_PATTERN = Pattern.compile("^[0-9]+\\.[0-9]+\\.[0-9]+$");
+    private static final Pattern API_VERSION_PATTERN = Pattern.compile("^\\d+\\.\\d+\\.\\d+$");
+    private static final Pattern[] EXTENSION_FILTERS = new Pattern[] { Pattern.compile("^.+\\.jar$") };
 
-    private final Map<String, Class<?>> classes = new HashMap<>();
+    private final Object2ReferenceMap<String, Class<?>> classes = new Object2ReferenceOpenHashMap<>();
     private final Map<String, GeyserExtensionClassLoader> classLoaders = new HashMap<>();
     private final Map<Extension, GeyserExtensionContainer> extensionContainers = new HashMap<>();
 
@@ -105,29 +109,27 @@ public class GeyserExtensionLoader extends ExtensionLoader {
     }
 
     public Pattern[] extensionFilters() {
-        return new Pattern[] { Pattern.compile("^.+\\.jar$") };
+        return EXTENSION_FILTERS;
     }
 
     public Class<?> classByName(final String name) throws ClassNotFoundException{
         Class<?> clazz = this.classes.get(name);
-        try {
-            for (GeyserExtensionClassLoader loader : this.classLoaders.values()) {
-                if (clazz != null) {
-                    continue;
-                }
-
-                clazz = loader.findClass(name, false);
-            }
+        if (clazz != null) {
             return clazz;
-        } catch (NullPointerException s) {
-            return null;
         }
+
+        for (GeyserExtensionClassLoader loader : this.classLoaders.values()) {
+            clazz = loader.findClass(name, false);
+            if (clazz != null) {
+                break;
+            }
+        }
+
+        return clazz;
     }
 
     void setClass(String name, final Class<?> clazz) {
-        if (!this.classes.containsKey(name)) {
-            this.classes.put(name,clazz);
-        }
+        this.classes.putIfAbsent(name, clazz);
     }
 
     @Override
@@ -149,60 +151,61 @@ public class GeyserExtensionLoader extends ExtensionLoader {
             Map<String, GeyserExtensionContainer> loadedExtensions = new LinkedHashMap<>();
 
             Pattern[] extensionFilters = this.extensionFilters();
-
-            Files.walk(EXTENSION_DIRECTORY).forEach(path -> {
-                if (Files.isDirectory(path)) {
-                    return;
-                }
-
-                for (Pattern filter : extensionFilters) {
-                    if (!filter.matcher(path.getFileName().toString()).matches()) {
-                        return;
-                    }
-                }
-
-                try {
-                    GeyserExtensionDescription description = this.extensionDescription(path);
-                    if (description == null) {
+            try (Stream<Path> entries = Files.walk(EXTENSION_DIRECTORY)) {
+                entries.forEach(path -> {
+                    if (Files.isDirectory(path)) {
                         return;
                     }
 
-                    String name = description.name();
-                    if (extensions.containsKey(name) || extensionManager.extension(name) != null) {
-                        GeyserImpl.getInstance().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.extensions.load.duplicate", name, path.toString()));
-                        return;
+                    for (Pattern filter : extensionFilters) {
+                        if (!filter.matcher(path.getFileName().toString()).matches()) {
+                            return;
+                        }
                     }
 
                     try {
-                        // Check the format: majorVersion.minorVersion.patch
-                        if (!API_VERSION_PATTERN.matcher(description.apiVersion()).matches()) {
-                            throw new IllegalArgumentException();
+                        GeyserExtensionDescription description = this.extensionDescription(path);
+                        if (description == null) {
+                            return;
                         }
-                    } catch (NullPointerException | IllegalArgumentException e) {
-                        GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_format", name, apiVersion[0] + "." + apiVersion[1]));
-                        return;
+
+                        String name = description.name();
+                        if (extensions.containsKey(name) || extensionManager.extension(name) != null) {
+                            GeyserImpl.getInstance().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.extensions.load.duplicate", name, path.toString()));
+                            return;
+                        }
+
+                        try {
+                            // Check the format: majorVersion.minorVersion.patch
+                            if (!API_VERSION_PATTERN.matcher(description.apiVersion()).matches()) {
+                                throw new IllegalArgumentException();
+                            }
+                        } catch (NullPointerException | IllegalArgumentException e) {
+                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_format", name, apiVersion[0] + "." + apiVersion[1]));
+                            return;
+                        }
+
+                        String[] versionArray = description.apiVersion().split("\\.");
+
+                        // Completely different API version
+                        if (!Objects.equals(Integer.valueOf(versionArray[0]), Integer.valueOf(apiVersion[0]))) {
+                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, apiVersion[0] + "." + apiVersion[1]));
+                            return;
+                        }
+
+                        // If the extension requires new API features, being backwards compatible
+                        if (Integer.parseInt(versionArray[1]) > Integer.parseInt(apiVersion[1])) {
+                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, apiVersion[0] + "." + apiVersion[1]));
+                            return;
+                        }
+
+                        extensions.put(name, path);
+                        loadedExtensions.put(name, this.loadExtension(path, description));
+                    } catch (Exception e) {
+                        GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_with_name", path.getFileName(), path.toAbsolutePath()), e);
                     }
-
-                    String[] versionArray = description.apiVersion().split("\\.");
-
-                    // Completely different API version
-                    if (!Objects.equals(Integer.valueOf(versionArray[0]), Integer.valueOf(apiVersion[0]))) {
-                        GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, apiVersion[0] + "." + apiVersion[1]));
-                        return;
-                    }
-
-                    // If the extension requires new API features, being backwards compatible
-                    if (Integer.parseInt(versionArray[1]) > Integer.parseInt(apiVersion[1])) {
-                        GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, apiVersion[0] + "." + apiVersion[1]));
-                        return;
-                    }
-
-                    extensions.put(name, path);
-                    loadedExtensions.put(name, this.loadExtension(path, description));
-                } catch (Exception e) {
-                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_with_name", path.getFileName(), path.toAbsolutePath()), e);
-                }
-            });
+                });
+            }
 
             for (GeyserExtensionContainer container : loadedExtensions.values()) {
                 this.extensionContainers.put(container.extension(), container);
