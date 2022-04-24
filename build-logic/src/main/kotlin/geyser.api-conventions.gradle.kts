@@ -1,5 +1,5 @@
 plugins {
-    id("geyser.api-conventions")
+    id("geyser.publish-conventions")
 }
 
 tasks {
