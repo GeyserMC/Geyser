@@ -1,3 +1,7 @@
+plugins {
+    id("geyser.api-conventions")
+}
+
 dependencies {
     api(projects.api)
 }

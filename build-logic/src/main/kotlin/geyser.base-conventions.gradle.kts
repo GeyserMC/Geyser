@@ -31,11 +31,3 @@ java {
 
     withSourcesJar()
 }
-
-publishing {
-    publications.create<MavenPublication>("mavenJava") {
-        groupId = project.group as String
-        artifactId = project.name
-        version = project.version as String
-    }
-}
