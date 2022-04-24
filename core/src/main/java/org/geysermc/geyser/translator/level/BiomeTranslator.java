@@ -126,11 +126,10 @@ public class BiomeTranslator {
                 storage = new BlockStorage(bitArray, bedrockPalette);
             } else {
                 storage = new BlockStorage(0);
-                BitArray bitArray = storage.getBitArray();
 
                 // Each section of biome corresponding to a chunk section contains 4 * 4 * 4 entries
                 for (int i = 0; i < 64; i++) {
-                    int javaId = biomeData.getPalette().idToState(biomeData.getStorage().get(i));
+                    int javaId = palette.idToState(biomeData.getStorage().get(i));
                     int x = i & 3;
                     int y = (i >> 4) & 3;
                     int z = (i >> 2) & 3;
@@ -139,7 +138,9 @@ public class BiomeTranslator {
                     int idx = storage.idFor(biomeId);
                     // Convert biome coordinates into block coordinates
                     // Bedrock expects a full 4096 blocks
-                    multiplyIdToStorage(bitArray, idx, x, y, z);
+                    // Implementation note: storage.getBitArray() must be called and not stored - if the palette
+                    // grows, then the instance can change
+                    multiplyIdToStorage(storage.getBitArray(), idx, x, y, z);
                 }
             }
             return storage;
