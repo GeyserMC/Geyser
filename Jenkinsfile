@@ -23,6 +23,7 @@ pipeline {
         stage ('Deploy') {
             when {
                 branch "master"
+                branch "feature/extensions"
             }
 
             steps {

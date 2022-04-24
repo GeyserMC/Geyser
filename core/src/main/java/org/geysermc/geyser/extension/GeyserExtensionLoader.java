@@ -61,7 +61,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
     private final Map<String, GeyserExtensionClassLoader> classLoaders = new HashMap<>();
     private final Map<Extension, GeyserExtensionContainer> extensionContainers = new HashMap<>();
 
-    public GeyserExtensionContainer loadExtension(Path path) throws InvalidExtensionException, InvalidDescriptionException {
+    public GeyserExtensionContainer loadExtension(Path path, GeyserExtensionDescription description) throws InvalidExtensionException, InvalidDescriptionException {
         if (path == null) {
             throw new InvalidExtensionException("Path is null");
         }
@@ -70,7 +70,6 @@ public class GeyserExtensionLoader extends ExtensionLoader {
             throw new InvalidExtensionException(new NoSuchFileException(path.toString()) + " does not exist");
         }
 
-        GeyserExtensionDescription description = this.extensionDescription(path);
         Path parentFile = path.getParent();
         Path dataFolder = parentFile.resolve(description.name());
         if (Files.exists(dataFolder) && !Files.isDirectory(dataFolder)) {
@@ -136,6 +135,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
             return;
         }
 
+        // noinspection ConstantConditions
         if (!GeyserImpl.VERSION.contains(".")) {
             GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_version_number"));
             return;
@@ -165,7 +165,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                 }
 
                 try {
-                    ExtensionDescription description = this.extensionDescription(path);
+                    GeyserExtensionDescription description = this.extensionDescription(path);
                     if (description == null) {
                         return;
                     }
@@ -201,7 +201,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                     }
 
                     extensions.put(name, path);
-                    loadedExtensions.put(name, this.loadExtension(path));
+                    loadedExtensions.put(name, this.loadExtension(path, description));
                 } catch (Exception e) {
                     GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_with_name", path.getFileName(), path.toAbsolutePath()), e);
                 }
