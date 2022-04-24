@@ -39,12 +39,13 @@ import java.util.Map;
 public class GeyserExtensionClassLoader extends URLClassLoader {
     private final GeyserExtensionLoader loader;
     private final Map<String, Class<?>> classes = new HashMap<>();
-    private final Extension extension;
 
-    public GeyserExtensionClassLoader(GeyserExtensionLoader loader, ClassLoader parent, ExtensionDescription description, Path path) throws InvalidExtensionException, MalformedURLException {
+    public GeyserExtensionClassLoader(GeyserExtensionLoader loader, ClassLoader parent, Path path) throws MalformedURLException {
         super(new URL[] { path.toUri().toURL() }, parent);
         this.loader = loader;
+    }
 
+    public Extension load(ExtensionDescription description) throws InvalidExtensionException {
         try {
             Class<?> jarClass;
             try {
@@ -57,10 +58,10 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
             try {
                 extensionClass = jarClass.asSubclass(Extension.class);
             } catch (ClassCastException ex) {
-                throw new InvalidExtensionException("Main class " + description.main() + " should extends GeyserExtension, but extends " + jarClass.getSuperclass().getSimpleName(), ex);
+                throw new InvalidExtensionException("Main class " + description.main() + " should implement Extension, but extends " + jarClass.getSuperclass().getSimpleName(), ex);
             }
 
-            this.extension = extensionClass.getConstructor().newInstance();
+            return extensionClass.getConstructor().newInstance();
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
             throw new InvalidExtensionException("No public constructor", ex);
         } catch (InstantiationException ex) {
@@ -77,6 +78,7 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
         if (name.startsWith("org.geysermc.geyser.") || name.startsWith("net.minecraft.")) {
             throw new ClassNotFoundException(name);
         }
+
         Class<?> result = this.classes.get(name);
         if (result == null) {
             if (checkGlobal) {
@@ -93,9 +95,5 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
             this.classes.put(name, result);
         }
         return result;
-    }
-
-    public Extension extension() {
-        return this.extension;
     }
 }

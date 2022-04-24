@@ -78,13 +78,15 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
         final GeyserExtensionClassLoader loader;
         try {
-            loader = new GeyserExtensionClassLoader(this, getClass().getClassLoader(), description, path);
+            loader = new GeyserExtensionClassLoader(this, getClass().getClassLoader(), path);
         } catch (Throwable e) {
             throw new InvalidExtensionException(e);
         }
 
         this.classLoaders.put(description.name(), loader);
-        return this.setup(loader.extension(), description, dataFolder, new GeyserExtensionEventBus(GeyserImpl.getInstance().eventBus(), loader.extension()));
+
+        final Extension extension = loader.load(description);
+        return this.setup(extension, description, dataFolder, new GeyserExtensionEventBus(GeyserImpl.getInstance().eventBus(), extension));
     }
 
     private GeyserExtensionContainer setup(Extension extension, GeyserExtensionDescription description, Path dataFolder, ExtensionEventBus eventBus) {
@@ -110,10 +112,11 @@ public class GeyserExtensionLoader extends ExtensionLoader {
         Class<?> clazz = this.classes.get(name);
         try {
             for (GeyserExtensionClassLoader loader : this.classLoaders.values()) {
-                try {
-                    clazz = loader.findClass(name,false);
-                } catch(NullPointerException ignored) {
+                if (clazz != null) {
+                    continue;
                 }
+
+                clazz = loader.findClass(name, false);
             }
             return clazz;
         } catch (NullPointerException s) {
