@@ -30,7 +30,7 @@ pipeline {
 
             steps {
                 rtGradleDeployer(
-                        id: "maven-deployer",
+                        id: "GRADLE_DEPLOYER",
                         serverId: "opencollab-artifactory",
                         releaseRepo: "maven-releases",
                         snapshotRepo: "maven-snapshots"
