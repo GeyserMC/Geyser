@@ -36,7 +36,6 @@ subprojects {
     val relativePath = projectDir.relativeTo(rootProject.projectDir).path
 
     if (relativePath.contains("api")) {
-        group = rootProject.group as String + ".api"
         plugins.apply("geyser.api-conventions")
     } else {
         group = rootProject.group as String + ".geyser"
