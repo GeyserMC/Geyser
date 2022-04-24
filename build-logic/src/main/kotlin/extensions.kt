@@ -28,6 +28,9 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.kotlin.dsl.named
 
+fun Project.isSnapshot(): Boolean =
+    version.toString().endsWith("-SNAPSHOT")
+
 fun Project.relocate(pattern: String) {
     tasks.named<ShadowJar>("shadowJar") {
         relocate(pattern, "org.geysermc.geyser.shaded.$pattern")
