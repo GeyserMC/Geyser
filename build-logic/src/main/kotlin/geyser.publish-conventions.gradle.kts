@@ -7,7 +7,7 @@ plugins {
 publishing {
     publications.create<MavenPublication>("mavenJava") {
         groupId = project.group as String
-        artifactId = "Geyser-" + project.name
+        artifactId = project.name
         version = project.version as String
 
         artifact(tasks["shadowJar"])
