@@ -54,7 +54,7 @@ public class JavaGameProfileTranslator extends PacketTranslator<ClientboundGameP
             SkinManager.handleBedrockSkin(playerEntity, session.getClientData());
         }
 
-        if (remoteAuthType == AuthType.HYBRID) {
+        if (remoteAuthType == AuthType.FLOODGATE) {
             // We'll send the skin upload a bit after the handshake packet (aka this packet),
             // because otherwise the global server returns the data too fast.
             // We upload it after we know for sure that the target server

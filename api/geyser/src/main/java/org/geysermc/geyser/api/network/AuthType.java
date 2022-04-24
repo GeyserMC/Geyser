@@ -28,7 +28,7 @@ package org.geysermc.geyser.api.network;
 public enum AuthType {
     OFFLINE,
     ONLINE,
-    HYBRID;
+    FLOODGATE;
 
     public static final AuthType[] VALUES = values();
 
