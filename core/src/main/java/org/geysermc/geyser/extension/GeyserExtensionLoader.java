@@ -130,12 +130,6 @@ public class GeyserExtensionLoader extends ExtensionLoader {
     @Override
     protected void loadAllExtensions(@NonNull ExtensionManager extensionManager) {
         // noinspection ConstantConditions
-        if (GeyserImpl.VERSION.equalsIgnoreCase("dev")) {
-            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_dev_environment"));
-            return;
-        }
-
-        // noinspection ConstantConditions
         if (!GeyserImpl.VERSION.contains(".")) {
             GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_version_number"));
             return;

@@ -240,6 +240,7 @@ nbdist/
 
 ### Geyser ###
 run/
+extensions/
 config.yml
 logs/
 key.pem
