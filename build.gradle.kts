@@ -41,7 +41,7 @@ subprojects {
         group = rootProject.group as String + ".geyser"
         when (this) {
             in platforms -> plugins.apply("geyser.platform-conventions")
-            api -> plugins.apply("geyser.shadow-conventions")
+            api -> plugins.apply("geyser.publish-conventions")
             else -> plugins.apply("geyser.base-conventions")
         }
     }

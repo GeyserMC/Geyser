@@ -11,7 +11,12 @@ pipeline {
         stage ('Build') {
             steps {
                 sh 'git submodule update --init --recursive'
-                sh './gradlew clean build'
+                rtGradleRun(
+                    usesPlugin: true,
+                    tool: 'Gradle 7',
+                    buildFile: 'build.gradle.kts',
+                    tasks: 'clean build',
+                )
             }
             post {
                 success {
@@ -40,9 +45,10 @@ pipeline {
                         serverId: "opencollab-artifactory"
                 )
                 rtGradleRun(
-                        usesPlugin: false,
+                        usesPlugin: true,
                         tool: 'Gradle 7',
                         rootDir: "",
+                        useWrapper: true,
                         buildFile: 'build.gradle.kts',
                         tasks: 'build artifactoryPublish',
                         deployerId: "GRADLE_DEPLOYER",

@@ -4,6 +4,7 @@ import net.kyori.blossom.BlossomExtension
 plugins {
     id("net.kyori.blossom")
     id("net.kyori.indra.git")
+    id("geyser.shadow-conventions")
 }
 
 dependencies {
