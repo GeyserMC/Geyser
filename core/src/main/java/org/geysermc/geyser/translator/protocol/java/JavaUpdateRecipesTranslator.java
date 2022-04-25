@@ -45,6 +45,7 @@ import lombok.EqualsAndHashCode;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -167,21 +168,22 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
         craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.get());
 
-        Int2ObjectMap<IntList> stonecutterRecipeMap = new Int2ObjectOpenHashMap<>();
+        Int2ObjectMap<GeyserStonecutterData> stonecutterRecipeMap = new Int2ObjectOpenHashMap<>();
         for (Int2ObjectMap.Entry<List<StoneCuttingRecipeData>> data : unsortedStonecutterData.int2ObjectEntrySet()) {
             // Sort the list by each output item's Java identifier - this is how it's sorted on Java, and therefore
             // We can get the correct order for button pressing
             data.getValue().sort(Comparator.comparing((stoneCuttingRecipeData ->
-                    session.getItemMappings().getItems()
-                            .getOrDefault(stoneCuttingRecipeData.getResult().getId(), ItemMapping.AIR)
+                    session.getItemMappings().getMapping(stoneCuttingRecipeData.getResult())
                             .getJavaIdentifier())));
 
             // Now that it's sorted, let's translate these recipes
+            int buttonId = 0;
             for (StoneCuttingRecipeData stoneCuttingData : data.getValue()) {
                 // As of 1.16.4, all stonecutter recipes have one ingredient option
                 ItemStack ingredient = stoneCuttingData.getIngredient().getOptions()[0];
                 ItemData input = ItemTranslator.translateToBedrock(session, ingredient);
-                ItemData output = ItemTranslator.translateToBedrock(session, stoneCuttingData.getResult());
+                ItemStack javaOutput = stoneCuttingData.getResult();
+                ItemData output = ItemTranslator.translateToBedrock(session, javaOutput);
                 if (input.equals(ItemData.AIR) || output.equals(ItemData.AIR)) {
                     // Probably modded items
                     continue;
@@ -190,12 +192,11 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
 
                 // We need to register stonecutting recipes so they show up on Bedrock
                 craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
-                        Collections.singletonList(input), Collections.singletonList(output), uuid, "stonecutter", 0, netId++));
+                        Collections.singletonList(input), Collections.singletonList(output), uuid, "stonecutter", 0, netId));
 
                 // Save the recipe list for reference when crafting
-                // Add the ingredient as the key and all possible values as the value
-                IntList outputs = stonecutterRecipeMap.computeIfAbsent(ingredient.getId(), ($) -> new IntArrayList());
-                outputs.add(stoneCuttingData.getResult().getId());
+                // Add the net ID as the key and the button required + output for the value
+                stonecutterRecipeMap.put(netId++, new GeyserStonecutterData(buttonId++, javaOutput));
             }
         }
 
@@ -229,7 +230,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     GroupedItem groupedItem = entry.getKey();
                     int idCount = 0;
                     //not optimal
-                    for (ItemMapping mapping : session.getItemMappings().getItems().values()) {
+                    for (ItemMapping mapping : session.getItemMappings().getItems()) {
                         if (mapping.getBedrockId() == groupedItem.id) {
                             idCount++;
                         }

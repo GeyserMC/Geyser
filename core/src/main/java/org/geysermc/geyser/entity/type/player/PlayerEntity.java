@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.entity.type.player;
 
-import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
@@ -38,6 +37,7 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
+import com.nukkitx.protocol.bedrock.data.GameType;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -61,15 +61,21 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Getter @Setter
 public class PlayerEntity extends LivingEntity {
     public static final float SNEAKING_POSE_HEIGHT = 1.5f;
 
-    private GameProfile profile;
     private String username;
-    private boolean playerList = true;  // Player is in the player list
+    private boolean playerList = true; // Player is in the player list
+
+    /**
+     * The textures property from the GameProfile.
+     */
+    @Nullable
+    private String texturesProperty;
 
     private Vector3i bedPosition;
 
@@ -82,11 +88,12 @@ public class PlayerEntity extends LivingEntity {
      */
     private ParrotEntity rightParrot;
 
-    public PlayerEntity(GeyserSession session, int entityId, long geyserId, GameProfile gameProfile, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, gameProfile.getId(), EntityDefinitions.PLAYER, position, motion, yaw, pitch, headYaw);
+    public PlayerEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, Vector3f position,
+                        Vector3f motion, float yaw, float pitch, float headYaw, String username, @Nullable String texturesProperty) {
+        super(session, entityId, geyserId, uuid, EntityDefinitions.PLAYER, position, motion, yaw, pitch, headYaw);
 
-        profile = gameProfile;
-        username = gameProfile.getName();
+        this.username = username;
+        this.texturesProperty = texturesProperty;
     }
 
     @Override
@@ -120,6 +127,7 @@ public class PlayerEntity extends LivingEntity {
         addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
+        addPlayerPacket.setGameType(GameType.SURVIVAL); //TODO
         addPlayerPacket.getMetadata().putFlags(flags);
         dirtyMetadata.apply(addPlayerPacket.getMetadata());
 
@@ -205,7 +213,7 @@ public class PlayerEntity extends LivingEntity {
 
     @Override
     public void updateHeadLookRotation(float headYaw) {
-        moveRelative(0, 0, 0, yaw, pitch, headYaw, onGround);
+        moveRelative(0, 0, 0, getYaw(), getPitch(), headYaw, isOnGround());
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
         movePlayerPacket.setPosition(position);
@@ -225,9 +233,11 @@ public class PlayerEntity extends LivingEntity {
         }
     }
 
-    @Override
-    public void updateRotation(float yaw, float pitch, boolean isOnGround) {
-        super.updateRotation(yaw, pitch, isOnGround);
+    public void updateRotation(float yaw, float pitch, float headYaw, boolean isOnGround) {
+        // the method below is called by super.updateRotation(yaw, pitch, isOnGround).
+        // but we have to be able to set the headYaw, so we call the method below directly.
+        super.moveRelative(0, 0, 0, yaw, pitch, headYaw, isOnGround);
+
         // Both packets need to be sent or else player head rotation isn't correctly updated
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
@@ -242,6 +252,11 @@ public class PlayerEntity extends LivingEntity {
         if (rightParrot != null) {
             rightParrot.updateRotation(yaw, pitch, isOnGround);
         }
+    }
+
+    @Override
+    public void updateRotation(float yaw, float pitch, boolean isOnGround) {
+        updateRotation(yaw, pitch, getHeadYaw(), isOnGround);
     }
 
     @Override
@@ -292,7 +307,7 @@ public class PlayerEntity extends LivingEntity {
             }
             // The parrot is a separate entity in Bedrock, but part of the player entity in Java //TODO is a UUID provided in NBT?
             ParrotEntity parrot = new ParrotEntity(session, 0, session.getEntityCache().getNextEntityId().incrementAndGet(),
-                    null, EntityDefinitions.PARROT, position, motion, yaw, pitch, headYaw);
+                    null, EntityDefinitions.PARROT, position, motion, getYaw(), getPitch(), getHeadYaw());
             parrot.spawnEntity();
             parrot.getDirtyMetadata().put(EntityData.VARIANT, tag.get("Variant").getValue());
             // Different position whether the parrot is left or right

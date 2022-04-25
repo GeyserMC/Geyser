@@ -25,9 +25,11 @@
 
 package org.geysermc.geyser.session.auth;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import lombok.Setter;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.InputMode;
 import org.geysermc.floodgate.util.UiProfile;
@@ -106,6 +108,10 @@ public final class BedrockClientData {
     private boolean thirdPartyNameOnly;
     @JsonProperty(value = "PlayFabId")
     private String playFabId;
+
+    @JsonIgnore
+    @Setter
+    private String originalString = null;
 
     public DeviceOs getDeviceOs() {
         return deviceOs != null ? deviceOs : DeviceOs.UNKNOWN;

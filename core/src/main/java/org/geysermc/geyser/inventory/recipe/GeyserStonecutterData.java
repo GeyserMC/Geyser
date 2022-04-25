@@ -23,28 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java.title;
+package org.geysermc.geyser.inventory.recipe;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.title.ClientboundClearTitlesPacket;
-import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 
-@Translator(packet = ClientboundClearTitlesPacket.class)
-public class JavaClearTitlesTranslator extends PacketTranslator<ClientboundClearTitlesPacket> {
-
-    @Override
-    public void translate(GeyserSession session, ClientboundClearTitlesPacket packet) {
-        SetTitlePacket titlePacket = new SetTitlePacket();
-        titlePacket.setType(SetTitlePacket.Type.CLEAR);
-        titlePacket.setText("");
-        titlePacket.setXuid("");
-        titlePacket.setPlatformOnlineId("");
-        session.sendUpstreamPacket(titlePacket);
-
-        if (packet.isResetTimes()) {
-            session.getWorldCache().resetTitleTimes(true);
-        }
-    }
+/**
+ * @param buttonId the button that needs to be pressed for Java Edition to accept this item.
+ * @param output the expected output of this item when cut.
+ */
+public record GeyserStonecutterData(int buttonId, ItemStack output) {
 }

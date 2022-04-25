@@ -109,7 +109,7 @@ public class DimensionUtils {
         // we check if the player is entering the nether and apply the nether fog to fake the fact that the client
         // thinks they are in the end dimension.
         if (BEDROCK_NETHER_ID == 2) {
-            if (bedrockDimension == BEDROCK_NETHER_ID) {
+            if (NETHER.equals(javaDimension)) {
                 session.sendFog("minecraft:fog_hell");
             } else if (previousDimension == BEDROCK_NETHER_ID) {
                 session.removeFog("minecraft:fog_hell");

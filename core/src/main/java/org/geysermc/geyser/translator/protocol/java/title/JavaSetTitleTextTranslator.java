@@ -38,6 +38,8 @@ public class JavaSetTitleTextTranslator extends PacketTranslator<ClientboundSetT
 
     @Override
     public void translate(GeyserSession session, ClientboundSetTitleTextPacket packet) {
+        session.getWorldCache().synchronizeCorrectTitleTimes();
+
         String text;
         if (packet.getText() == null || Component.empty().equals(packet.getText())) { // This can happen, see https://github.com/KyoriPowered/adventure/issues/447
             text = " ";

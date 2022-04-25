@@ -25,15 +25,12 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundRenameItemPacket;
 import com.nukkitx.protocol.bedrock.packet.FilterTextPacket;
 import org.geysermc.geyser.inventory.AnvilContainer;
 import org.geysermc.geyser.inventory.CartographyContainer;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.util.ItemUtils;
 
 /**
  * Used to send strings to the server and filter out unwanted words.
@@ -50,28 +47,7 @@ public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPack
         }
         packet.setFromServer(true);
         if (session.getOpenInventory() instanceof AnvilContainer anvilContainer) {
-            anvilContainer.setNewName(packet.getText());
-
-            String originalName = ItemUtils.getCustomName(anvilContainer.getInput().getNbt());
-
-            String plainOriginalName = MessageTranslator.convertToPlainText(originalName, session.getLocale());
-            String plainNewName = MessageTranslator.convertToPlainText(packet.getText(), session.getLocale());
-            if (!plainOriginalName.equals(plainNewName)) {
-                // Strip out formatting since Java Edition does not allow it
-                packet.setText(plainNewName);
-                // Java Edition sends a packet every time an item is renamed even slightly in GUI. Fortunately, this works out for us now
-                ServerboundRenameItemPacket renameItemPacket = new ServerboundRenameItemPacket(plainNewName);
-                session.sendDownstreamPacket(renameItemPacket);
-            } else {
-                // Restore formatting for item since we're not renaming
-                packet.setText(MessageTranslator.convertMessageLenient(originalName));
-                // Java Edition sends the original custom name when not renaming,
-                // if there isn't a custom name an empty string is sent
-                ServerboundRenameItemPacket renameItemPacket = new ServerboundRenameItemPacket(plainOriginalName);
-                session.sendDownstreamPacket(renameItemPacket);
-            }
-
-            anvilContainer.setUseJavaLevelCost(false);
+            packet.setText(anvilContainer.checkForRename(session, packet.getText()));
             session.getInventoryTranslator().updateSlot(session, anvilContainer, 1);
         }
         session.sendUpstreamPacket(packet);

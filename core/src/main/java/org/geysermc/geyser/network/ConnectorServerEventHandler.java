@@ -47,6 +47,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class ConnectorServerEventHandler implements BedrockServerEventHandler {
+    private static final boolean PRINT_DEBUG_PINGS = Boolean.parseBoolean(System.getProperty("Geyser.PrintPingsInDebugMode", "true"));
+
     /*
     The following constants are all used to ensure the ping does not reach a length where it is unparsable by the Bedrock client
      */
@@ -88,7 +90,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
 
     @Override
     public BedrockPong onQuery(InetSocketAddress inetSocketAddress) {
-        if (geyser.getConfig().isDebugMode()) {
+        if (geyser.getConfig().isDebugMode() && PRINT_DEBUG_PINGS) {
             geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.pinged", inetSocketAddress));
         }
 

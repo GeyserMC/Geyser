@@ -26,7 +26,6 @@
 package org.geysermc.geyser.translator.inventory.item;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.opennbt.tag.builtin.ByteTag;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
@@ -35,53 +34,35 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @ItemRemapper
-public class CompassTranslator extends ItemTranslator {
+public class FilledMapTranslator extends ItemTranslator {
 
     @Override
     protected ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
-        if (isLodestoneCompass(itemStack.getNbt())) {
-            // NBT will be translated in nbt/LodestoneCompassTranslator if applicable
-            return super.translateToBedrock(itemStack, mappings.getLodestoneCompass(), mappings);
+        ItemData.Builder builder = super.translateToBedrock(itemStack, mapping, mappings);
+        CompoundTag nbt = itemStack.getNbt();
+        if (nbt != null && nbt.get("display") instanceof CompoundTag display) {
+            // Note: damage 5 treasure map, 6 ???
+            Tag mapColor = display.get("MapColor");
+            if (mapColor != null && mapColor.getValue() instanceof Number color) {
+                // Java Edition allows any color; Bedrock only allows some. So let's take what colors we can get
+                switch (color.intValue()) {
+                    case 3830373 -> builder.damage(3); // Ocean Monument
+                    case 5393476 -> builder.damage(4); // Woodland explorer
+                }
+            }
         }
-        return super.translateToBedrock(itemStack, mapping, mappings);
-    }
-
-    @Override
-    protected ItemMapping getItemMapping(int javaId, CompoundTag nbt, ItemMappings mappings) {
-        if (isLodestoneCompass(nbt)) {
-            return mappings.getLodestoneCompass();
-        }
-        return super.getItemMapping(javaId, nbt, mappings);
-    }
-
-    private boolean isLodestoneCompass(CompoundTag nbt) {
-        if (nbt != null) {
-            Tag lodestoneTag = nbt.get("LodestoneTracked");
-            return lodestoneTag instanceof ByteTag;
-        }
-        return false;
-    }
-
-    @Override
-    public ItemStack translateToJava(ItemData itemData, ItemMapping mapping, ItemMappings mappings) {
-        if (mapping.getBedrockIdentifier().equals("minecraft:lodestone_compass")) {
-            // Revert the entry back to the compass
-            mapping = mappings.getStoredItems().compass();
-        }
-
-        return super.translateToJava(itemData, mapping, mappings);
+        return builder;
     }
 
     @Override
     public List<ItemMapping> getAppliedItems() {
-        return Arrays.stream(Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
-                        .getItems())
-                .filter(entry -> entry.getJavaIdentifier().endsWith("compass"))
-                .collect(Collectors.toList());
+        return Collections.singletonList(
+                Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
+                        .getMapping("minecraft:filled_map")
+        );
     }
 }

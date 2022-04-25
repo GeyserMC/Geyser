@@ -36,22 +36,12 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @ItemRemapper
 public class PotionTranslator extends ItemTranslator {
-
-    private final List<ItemMapping> appliedItems;
-
-    public PotionTranslator() {
-        appliedItems = Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
-                .getItems()
-                .values()
-                .stream()
-                .filter(entry -> entry.getJavaIdentifier().endsWith("potion"))
-                .collect(Collectors.toList());
-    }
 
     @Override
     protected ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
@@ -84,6 +74,9 @@ public class PotionTranslator extends ItemTranslator {
 
     @Override
     public List<ItemMapping> getAppliedItems() {
-        return appliedItems;
+        return Arrays.stream(Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
+                        .getItems())
+                .filter(entry -> entry.getJavaIdentifier().endsWith("potion"))
+                .collect(Collectors.toList());
     }
 }

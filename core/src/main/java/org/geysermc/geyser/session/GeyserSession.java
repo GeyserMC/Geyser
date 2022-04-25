@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.session;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.auth.exception.request.InvalidCredentialsException;
 import com.github.steveice10.mc.auth.exception.request.RequestException;
@@ -66,7 +67,6 @@ import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
-import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import it.unimi.dsi.fastutil.ints.*;
@@ -98,6 +98,7 @@ import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.netty.LocalSession;
@@ -142,6 +143,11 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     private AuthData authData;
     @Setter
     private BedrockClientData clientData;
+    /**
+     * Used for Floodgate skin uploading
+     */
+    @Setter
+    private JsonNode certChainData;
 
     /* Setter for GeyserConnect */
     @Setter
@@ -360,7 +366,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      * The key is the Java ID of the item; the values are all the possible outputs' Java IDs sorted by their string identifier
      */
     @Setter
-    private Int2ObjectMap<IntList> stonecutterRecipes;
+    private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes;
 
     /**
      * Whether to work around 1.13's different behavior in villager trading menus.
@@ -1382,7 +1388,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
-        startGamePacket.setSeed(-1);
+        startGamePacket.setSeed(-1L);
         startGamePacket.setDimensionId(DimensionUtils.javaToBedrock(dimension));
         startGamePacket.setGeneratorId(1);
         startGamePacket.setLevelGameType(GameType.SURVIVAL);
@@ -1430,10 +1436,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         settings.setRewindHistorySize(0);
         settings.setServerAuthoritativeBlockBreaking(false);
         startGamePacket.setPlayerMovementSettings(settings);
-
-        if (upstream.getProtocolVersion() <= Bedrock_v471.V471_CODEC.getProtocolVersion()) {
-            startGamePacket.getExperiments().add(new ExperimentData("caves_and_cliffs", true));
-        }
 
         upstream.sendPacket(startGamePacket);
     }
