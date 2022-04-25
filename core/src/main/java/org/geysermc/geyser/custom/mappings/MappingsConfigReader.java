@@ -31,8 +31,8 @@ import org.geysermc.geyser.custom.GeyserCustomManager;
 import org.geysermc.geyser.custom.mappings.versions.MappingsReader;
 import org.geysermc.geyser.custom.mappings.versions.MappingsReader_v1_0_0;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,31 +48,33 @@ public class MappingsConfigReader {
         return GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("custom_mappings");
     }
 
-    public static File[] getCustomMappingsFiles() {
-        File[] files = getCustomMappingsDirectory().toFile().listFiles((dir, name) -> name.endsWith(".json"));
-        if (files == null) {
-            return new File[0];
+    public static Path[] getCustomMappingsFiles() {
+        try {
+            return Files.walk(getCustomMappingsDirectory())
+                    .filter(child -> child.toString().endsWith(".json"))
+                    .toArray(Path[]::new);
+        } catch (IOException e) {
+            return new Path[0];
         }
-        return files;
     }
 
-    public static void readMappingsFromJson(File file) {
+    public static void readMappingsFromJson(Path file) {
         JsonNode mappingsRoot;
         try {
-            mappingsRoot = GeyserImpl.JSON_MAPPER.readTree(file);
+            mappingsRoot = GeyserImpl.JSON_MAPPER.readTree(file.toFile());
         } catch (IOException e) {
-            GeyserImpl.getInstance().getLogger().error("Failed to read custom mapping file: " + file.getName(), e);
+            GeyserImpl.getInstance().getLogger().error("Failed to read custom mapping file: " + file.toString(), e);
             return;
         }
 
         if (!mappingsRoot.has("format_version")) {
-            GeyserImpl.getInstance().getLogger().error("Mappings file " + file.getName() + " is missing the format version field!");
+            GeyserImpl.getInstance().getLogger().error("Mappings file " + file.toString() + " is missing the format version field!");
             return;
         }
 
         String formatVersion = mappingsRoot.get("format_version").asText();
         if (!MAPPING_READERS.containsKey(formatVersion)) {
-            GeyserImpl.getInstance().getLogger().error("Mappings file " + file.getName() + " has an unknown format version: " + formatVersion);
+            GeyserImpl.getInstance().getLogger().error("Mappings file " + file.toString() + " has an unknown format version: " + formatVersion);
             return;
         }
 

@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.api.extension;
 
-public enum ExtensionLoadTime {
+public enum StartupPhase {
     PRE_INITIALIZE,
     POST_INITIALIZE
 }

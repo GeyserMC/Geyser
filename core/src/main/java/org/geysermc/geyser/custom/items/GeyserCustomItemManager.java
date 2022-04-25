@@ -39,6 +39,7 @@ import org.geysermc.geyser.api.custom.items.CustomItemManager;
 import org.geysermc.geyser.api.custom.items.CustomItemRegistrationTypes;
 import org.geysermc.geyser.api.custom.items.FullyCustomItemData;
 import org.geysermc.geyser.custom.GeyserCustomManager;
+import org.geysermc.geyser.registry.populator.CustomItemsRegistryPopulator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -74,19 +75,20 @@ public class GeyserCustomItemManager extends CustomItemManager {
     }
 
     @Override
-    public boolean registerCustomItem(@NotNull String baseItem, @NotNull CustomItemData customItemData) {
+    public boolean registerCustomItem(@NotNull String identifier, @NotNull CustomItemData customItemData) {
         if (this.cantRegisterNewItem()) {
             return false;
         }
 
-        GeyserCustomItemData registeredItem = CustomItemsRegistryPopulator.addToRegistry(baseItem, customItemData, this.nameExists(customItemData.name()), this.registeredItemCount());
+        GeyserCustomItemData registeredItem = CustomItemsRegistryPopulator.populateRegistry(identifier, customItemData, this.nameExists(customItemData.name()), this.registeredItemCount());
 
         if (registeredItem.mappingNumber() > 0) {
-            this.customMappings.computeIfAbsent(baseItem, list -> new ArrayList<>()).add(customItemData);
+            this.customMappings.computeIfAbsent(identifier, list -> new ArrayList<>()).add(customItemData);
             this.registeredCustomItems.add(registeredItem);
 
             for (GeyserCustomItemData.Mapping mapping : registeredItem.getMappings()) {
                 this.customIdMappings.put(mapping.integerId(), mapping.stringId());
+                GeyserImpl.getInstance().getLogger().info("Registered custom item '" + mapping.stringId() + "' with id " + mapping.integerId());
             }
 
             return true;
@@ -101,7 +103,7 @@ public class GeyserCustomItemManager extends CustomItemManager {
             return false;
         }
 
-        Int2ObjectMap<ComponentItemData> componentItemData = CustomItemsRegistryPopulator.addToRegistry(customItemData, this.registeredItemCount());
+        Int2ObjectMap<ComponentItemData> componentItemData = CustomItemsRegistryPopulator.populateRegistry(customItemData, this.registeredItemCount());
         if (componentItemData.size() > 0) {
             for (Int2ObjectMap.Entry<ComponentItemData> entry : componentItemData.int2ObjectEntrySet()) {
                 this.registeredComponentItems.computeIfAbsent(entry.getIntKey(), list -> new ArrayList<>()).add(entry.getValue());
@@ -114,22 +116,18 @@ public class GeyserCustomItemManager extends CustomItemManager {
     }
 
     @Override
-    public @NotNull List<CustomItemData> customItemData(@NotNull String baseItem) {
-        return this.customMappings.getOrDefault(baseItem, new ArrayList<>());
+    public @NotNull List<CustomItemData> customItemData(@NotNull String identifier) {
+        return this.customMappings.getOrDefault(identifier, new ArrayList<>());
     }
 
     @Override
-    public @NotNull Map<String, List<CustomItemData>> customMappings() {
+    public @NotNull Map<String, List<CustomItemData>> itemMappings() {
         return this.customMappings;
     }
 
-    @Override
     public String itemStringFromId(int id) {
-        if (this.customIdMappings.containsKey(id)) {
-            return this.customIdMappings.get(id);
-        } else {
-            return null;
-        }
+        GeyserImpl.getInstance().getLogger().info("Item string from id: " + id + "; " + this.customIdMappings.get(id));
+        return this.customIdMappings.get(id);
     }
 
     public int registeredItemCount() {

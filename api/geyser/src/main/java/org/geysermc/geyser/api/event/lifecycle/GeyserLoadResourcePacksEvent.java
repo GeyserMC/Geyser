@@ -23,39 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.custom;
+package org.geysermc.geyser.api.event.lifecycle;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.custom.items.CustomItemManager;
+import org.geysermc.geyser.api.event.Event;
 
-import java.io.File;
+import java.nio.file.Path;
+import java.util.List;
 
-public abstract class CustomManager {
-    /**
-     * Loads the custom items from the custom mappings folder.
-     */
-    public abstract void loadMappingsFromJson();
-
-    /**
-     * Loads mappings from a json file.
-     *
-     * @param file the file to load from
-     */
-    public abstract void loadMappingsFromJson(@NonNull File file);
-
-    /**
-     * Loads mappings from a json file.
-     *
-     * @param file the file path for the file to load from
-     */
-    public final void loadMappingsFromJson(@NonNull String file) {
-        this.loadMappingsFromJson(new File(file));
-    }
-
-    /**
-     * Gets the {@link CustomItemManager}.
-     *
-     * @return the {@link CustomItemManager}
-     */
-    public abstract @NonNull CustomItemManager getItemManager();
+/**
+ * Called when resource packs are loaded within Geyser.
+ *
+ * @param resourcePacks a mutable list of the currently listed resource packs
+ */
+public record GeyserLoadResourcePacksEvent(@NonNull List<Path> resourcePacks) implements Event {
 }

@@ -40,11 +40,11 @@ public abstract class CustomItemManager {
      * Registers a custom item with a base java item. This is used for custom model data etc. Note that you can only register custom items in the {@link GeyserPreInitializeEvent},
      * and if add non-bedrock items is enabled in the config.
      *
-     * @param baseItem the base (java) item
+     * @param identifier the base (java) item
      * @param customItemData the custom item data to register
      * @return if the item was registered
      */
-    public abstract boolean registerCustomItem(@NonNull String baseItem, @NonNull CustomItemData customItemData);
+    public abstract boolean registerCustomItem(@NonNull String identifier, @NonNull CustomItemData customItemData);
 
     /**
      * Registers a custom item with no base item. This is used for mods. Note that you can only register custom items in the {@link GeyserPreInitializeEvent},
@@ -58,23 +58,15 @@ public abstract class CustomItemManager {
     /**
      * Gets the custom item data for the given base item.
      *
-     * @param baseItem the base item
+     * @param identifier the base item
      * @return the custom item data
      */
-    public abstract @NonNull List<CustomItemData> customItemData(@NonNull String baseItem);
+    public abstract @NonNull List<CustomItemData> customItemData(@NonNull String identifier);
 
     /**
-     * Gets all the custom item data.
+     * Gets all the custom item mappings.
      *
-     * @return all the custom item data
+     * @return all the custom item mappings
      */
-    public abstract @NonNull Map<String, List<CustomItemData>> customMappings();
-
-    /**
-     * Gets an item string identifier for the given id
-     *
-     * @param id the id
-     * @return the item string identifier
-     */
-    public abstract @Nullable String itemStringFromId(int id);
+    public abstract @NonNull Map<String, List<CustomItemData>> itemMappings();
 }

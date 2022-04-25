@@ -75,10 +75,10 @@ public interface ExtensionDescription {
     List<String> authors();
 
     /**
-     * Gets the extensison's load time. Shouldn't really be chnaged by default.
+     * Gets the extensison's load time.
      *
      * @return the extension's load time
      */
     @NonNull
-    ExtensionLoadTime loadTime();
+    StartupPhase loadTime();
 }

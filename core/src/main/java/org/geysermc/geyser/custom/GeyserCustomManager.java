@@ -26,17 +26,15 @@
 package org.geysermc.geyser.custom;
 
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.custom.CustomManager;
 import org.geysermc.geyser.custom.items.GeyserCustomItemManager;
 import org.geysermc.geyser.custom.mappings.MappingsConfigReader;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class GeyserCustomManager extends CustomManager {
+public class GeyserCustomManager {
     private final GeyserCustomItemManager customItemManager;
 
     public static final String CUSTOM_PREFIX = "geysercmd:";
@@ -46,7 +44,6 @@ public class GeyserCustomManager extends CustomManager {
         MappingsConfigReader.init(this);
     }
 
-    @Override
     public void loadMappingsFromJson() {
         Path customMappingsDirectory = MappingsConfigReader.getCustomMappingsDirectory();
         if (!Files.exists(customMappingsDirectory)) {
@@ -58,20 +55,18 @@ public class GeyserCustomManager extends CustomManager {
             }
         }
 
-        File[] mappingsFiles = MappingsConfigReader.getCustomMappingsFiles();
-        for (File mappingsFile : mappingsFiles) {
+        Path[] mappingsFiles = MappingsConfigReader.getCustomMappingsFiles();
+        for (Path mappingsFile : mappingsFiles) {
             this.loadMappingsFromJson(mappingsFile);
         }
 
         GeyserImpl.getInstance().getLogger().info("Registered " + this.customItemManager.registeredItemCount() + " custom items.");
     }
 
-    @Override
-    public void loadMappingsFromJson(@NotNull File file) {
+    public void loadMappingsFromJson(@NotNull Path file) {
         MappingsConfigReader.readMappingsFromJson(file);
     }
 
-    @Override
     public @NotNull GeyserCustomItemManager getItemManager() {
         return this.customItemManager;
     }

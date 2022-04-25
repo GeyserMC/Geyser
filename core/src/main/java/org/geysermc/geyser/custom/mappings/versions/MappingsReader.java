@@ -30,7 +30,7 @@ import org.geysermc.geyser.api.custom.items.CustomItemData;
 import org.geysermc.geyser.custom.GeyserCustomManager;
 import org.geysermc.geyser.custom.exception.InvalidCustomMappingsFileException;
 
-import java.io.File;
+import java.nio.file.Path;
 
 public abstract class MappingsReader {
     protected GeyserCustomManager customManager;
@@ -39,7 +39,7 @@ public abstract class MappingsReader {
         this.customManager = customManager;
     }
 
-    public abstract void readMappings(File file, JsonNode mappingsRoot);
+    public abstract void readMappings(Path file, JsonNode mappingsRoot);
 
     public abstract CustomItemData readItemMappingEntry(JsonNode node) throws InvalidCustomMappingsFileException;
 }

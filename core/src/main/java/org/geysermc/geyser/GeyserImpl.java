@@ -602,9 +602,13 @@ public class GeyserImpl implements GeyserApi {
         return this.eventBus;
     }
 
-    @Override
     public GeyserCustomManager customManager() {
         return this.customManager;
+    }
+
+    @Override
+    public GeyserCustomItemManager customItemManager() {
+        return this.customManager.getItemManager();
     }
 
     public RemoteServer defaultRemoteServer() {

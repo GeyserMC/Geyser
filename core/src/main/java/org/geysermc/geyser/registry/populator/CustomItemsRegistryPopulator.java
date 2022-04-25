@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.custom.items;
+package org.geysermc.geyser.registry.populator;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
@@ -36,11 +36,13 @@ import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
 import com.nukkitx.protocol.bedrock.v503.Bedrock_v503;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.custom.items.CustomItemData;
 import org.geysermc.geyser.api.custom.items.FullyCustomItemData;
 import org.geysermc.geyser.custom.GeyserCustomManager;
 import org.geysermc.geyser.custom.GeyserCustomRenderOffsets;
+import org.geysermc.geyser.custom.items.GeyserCustomItemData;
 import org.geysermc.geyser.custom.items.tools.ToolBreakSpeeds;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -48,17 +50,10 @@ import org.geysermc.geyser.registry.type.ItemMappings;
 
 import java.util.*;
 
-class CustomItemsRegistryPopulator {
-    private static List<Integer> protocolVersions;
+public class CustomItemsRegistryPopulator {
+    private static IntList protocolVersions = IntList.of(Bedrock_v475.V475_CODEC.getProtocolVersion(), Bedrock_v486.V486_CODEC.getProtocolVersion(), Bedrock_v503.V503_CODEC.getProtocolVersion());
 
-    static {
-        protocolVersions = new ArrayList<>();
-        protocolVersions.add(Bedrock_v475.V475_CODEC.getProtocolVersion());
-        protocolVersions.add(Bedrock_v486.V486_CODEC.getProtocolVersion());
-        protocolVersions.add(Bedrock_v503.V503_CODEC.getProtocolVersion());
-    }
-
-    public static GeyserCustomItemData addToRegistry(String baseItem, CustomItemData customItemData, int nameExists, int customItems) {
+    public static GeyserCustomItemData populateRegistry(String baseItem, CustomItemData customItemData, int nameExists, int customItems) {
         String customItemName = GeyserCustomManager.CUSTOM_PREFIX + customItemData.name();
         if (nameExists != 0) {
             customItemName += "_" + nameExists;
@@ -80,7 +75,7 @@ class CustomItemsRegistryPopulator {
             }
 
             int javaCustomItemId = javaItem.getJavaId();
-            int customItemId = itemMappings.getItems().size() + customItems + addNum;
+            int customItemId = itemMappings.getItems().size() + (customItems * protocolVersions.size()) + addNum;
 
             ItemMapping customItemMapping = ItemMapping.builder()
                     .javaIdentifier(baseItem)
@@ -109,7 +104,7 @@ class CustomItemsRegistryPopulator {
         return returnData;
     }
 
-    public static Int2ObjectMap<ComponentItemData> addToRegistry(FullyCustomItemData customItemData, int customItems) {
+    public static Int2ObjectMap<ComponentItemData> populateRegistry(FullyCustomItemData customItemData, int customItems) {
         Int2ObjectMap<ComponentItemData> componentItemDataMap = new Int2ObjectOpenHashMap<>();
         int addNum = 0;
 
@@ -311,11 +306,11 @@ class CustomItemsRegistryPopulator {
 
             componentBuilder.putCompound("minecraft:render_offsets",
                     NbtMap.builder().putCompound("main_hand", NbtMap.builder()
-                                    .putCompound("first_person", XYZToNbtMap(scale3, scale3, scale3))
-                                    .putCompound("third_person", XYZToNbtMap(scale1, scale2, scale1)).build())
+                                    .putCompound("first_person", xyzToNbtMap(scale3, scale3, scale3))
+                                    .putCompound("third_person", xyzToNbtMap(scale1, scale2, scale1)).build())
                             .putCompound("off_hand", NbtMap.builder()
-                                    .putCompound("first_person", XYZToNbtMap(scale1, scale2, scale1))
-                                    .putCompound("third_person", XYZToNbtMap(scale1, scale2, scale1)).build()).build());
+                                    .putCompound("first_person", xyzToNbtMap(scale1, scale2, scale1))
+                                    .putCompound("third_person", xyzToNbtMap(scale1, scale2, scale1)).build()).build());
         }
     }
 
@@ -323,7 +318,7 @@ class CustomItemsRegistryPopulator {
         builder.putList("item_tags", NbtType.STRING, List.of("minecraft:is_" + tag));
     }
 
-    private static NbtMap XYZToNbtMap(float x, float y, float z) {
+    private static NbtMap xyzToNbtMap(float x, float y, float z) {
         return NbtMap.builder().putCompound("scale", NbtMap.builder().putFloat("x", x).putFloat("y", y).putFloat("z", z).build()).build();
     }
 }

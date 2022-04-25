@@ -33,7 +33,7 @@ import org.geysermc.geyser.custom.GeyserCustomManager;
 import org.geysermc.geyser.custom.GeyserCustomRenderOffsets;
 import org.geysermc.geyser.custom.exception.InvalidCustomMappingsFileException;
 
-import java.io.File;
+import java.nio.file.Path;
 
 public class MappingsReader_v1_0_0 extends MappingsReader {
     public MappingsReader_v1_0_0(GeyserCustomManager customManager) {
@@ -41,11 +41,11 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
     }
 
     @Override
-    public void readMappings(File file, JsonNode mappingsRoot) {
+    public void readMappings(Path file, JsonNode mappingsRoot) {
         this.readItemMappings(file, mappingsRoot);
     }
 
-    public void readItemMappings(File file, JsonNode mappingsRoot) {
+    public void readItemMappings(Path file, JsonNode mappingsRoot) {
         JsonNode itemsNode = mappingsRoot.get("items");
 
         if (itemsNode != null && itemsNode.isObject()) {
@@ -56,7 +56,7 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
                             CustomItemData customItemData = this.readItemMappingEntry(data);
                             this.customManager.getItemManager().registerCustomItem(entry.getKey(), customItemData);
                         } catch (InvalidCustomMappingsFileException e) {
-                            GeyserImpl.getInstance().getLogger().error("Error in custom mapping file: " + file.getName(), e);
+                            GeyserImpl.getInstance().getLogger().error("Error in custom mapping file: " + file.toString(), e);
                         }
                     });
                 }

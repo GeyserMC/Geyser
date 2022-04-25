@@ -27,28 +27,22 @@ package org.geysermc.geyser.custom.items;
 
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import org.geysermc.geyser.api.custom.items.CustomItemData;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.geyser.registry.type.ItemMapping;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class GeyserCustomItemData {
-    private Map<Integer, Mapping> mappings = new HashMap<>();
+    private Int2ObjectMap<Mapping> mappings = new Int2ObjectOpenHashMap<>();
 
-    public void addMapping(Integer protocolVersion, Mapping mapping) {
-        if (protocolVersion == null || mapping == null) {
-            throw new IllegalArgumentException("Protocol version and mapping cannot be null");
+    public void addMapping(int protocolVersion, Mapping mapping) {
+        if (mapping == null) {
+            throw new IllegalArgumentException("Mapping cannot be null");
         }
 
         mappings.put(protocolVersion, mapping);
     }
 
-    public Mapping getMapping(Integer protocolVersion) {
-        if (protocolVersion == null) {
-            throw new IllegalArgumentException("Protocol version cannot be null");
-        }
-
+    public Mapping getMapping(int protocolVersion) {
         return mappings.get(protocolVersion);
     }
 

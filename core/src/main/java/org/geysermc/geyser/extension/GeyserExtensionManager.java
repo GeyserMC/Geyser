@@ -30,7 +30,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.api.extension.ExtensionLoadTime;
+import org.geysermc.geyser.api.extension.StartupPhase;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.extension.ExtensionLoader;
 import org.geysermc.geyser.registry.Registries;
@@ -98,7 +98,7 @@ public class GeyserExtensionManager extends ExtensionManager {
 
     public void enablePreInitializeExtensions() {
         for (Extension extension : this.extensions()) {
-            if (extension.description().loadTime() == ExtensionLoadTime.PRE_INITIALIZE) {
+            if (extension.description().loadTime() == StartupPhase.PRE_INITIALIZE) {
                 this.enable(extension);
             }
         }
