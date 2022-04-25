@@ -35,6 +35,10 @@ exclude("net.kyori:adventure-nbt:*")
 // These dependencies are already present on the platform
 provided("com.velocitypowered", "velocity-api", velocityVersion)
 
+dependencies {
+    annotationProcessor("com.velocitypowered:velocity-api:$velocityVersion")
+}
+
 application {
     mainClass.set("org.geysermc.geyser.platform.velocity.GeyserVelocityMain")
 }

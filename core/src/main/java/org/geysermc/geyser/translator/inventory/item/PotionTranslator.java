@@ -74,8 +74,7 @@ public class PotionTranslator extends ItemTranslator {
 
     @Override
     public List<ItemMapping> getAppliedItems() {
-        return Arrays.stream(Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
-                        .getItems())
+        return Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getItems().values().stream()
                 .filter(entry -> entry.getJavaIdentifier().endsWith("potion"))
                 .collect(Collectors.toList());
     }

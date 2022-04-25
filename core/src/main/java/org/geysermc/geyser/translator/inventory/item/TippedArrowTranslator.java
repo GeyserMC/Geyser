@@ -81,8 +81,7 @@ public class TippedArrowTranslator extends ItemTranslator {
 
     @Override
     public List<ItemMapping> getAppliedItems() {
-        return Arrays.stream(Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
-                        .getItems())
+        return Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getItems().values().stream()
                 .filter(entry -> entry.getJavaIdentifier().contains("arrow")
                         && !entry.getJavaIdentifier().contains("spectral"))
                 .collect(Collectors.toList());

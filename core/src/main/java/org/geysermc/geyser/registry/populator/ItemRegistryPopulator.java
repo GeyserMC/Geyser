@@ -38,9 +38,7 @@ import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
 import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
 import com.nukkitx.protocol.bedrock.v503.Bedrock_v503;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.*;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
@@ -523,10 +521,15 @@ public class ItemRegistryPopulator {
                 furnaceMinecartData = new ComponentItemData("geysermc:furnace_minecart", builder.build());
             }
 
+            Int2ObjectMap<ItemMapping> newMappings = new Int2ObjectOpenHashMap<>();
+            for (int i = 0; i < mappings.size(); i++) {
+                newMappings.put(i, mappings.get(i));
+            }
+
             ItemMappings itemMappings = ItemMappings.builder()
-                    .items(mappings.toArray(new ItemMapping[0]))
-                    .creativeItems(creativeItems.toArray(new ItemData[0]))
-                    .itemEntries(List.copyOf(entries.values()))
+                    .items(newMappings)
+                    .creativeItems(creativeItems)
+                    .itemEntries(new ArrayList<>(entries.values()))
                     .itemNames(itemNames.toArray(new String[0]))
                     .storedItems(new StoredItemMappings(identifierToMapping))
                     .javaOnlyItems(javaOnlyItems)

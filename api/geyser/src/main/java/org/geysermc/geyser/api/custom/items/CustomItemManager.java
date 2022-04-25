@@ -47,6 +47,15 @@ public abstract class CustomItemManager {
     public abstract boolean registerCustomItem(@NonNull String baseItem, @NonNull CustomItemData customItemData);
 
     /**
+     * Registers a custom item with no base item. This is used for mods. Note that you can only register custom items in the {@link GeyserPreInitializeEvent},
+     * and if add non-bedrock items is enabled in the config.
+     *
+     * @param customItemData the custom item data to register
+     * @return if the item was registered
+     */
+    public abstract boolean registerCustomItem(@NonNull FullyCustomItemData customItemData);
+
+    /**
      * Gets the custom item data for the given base item.
      *
      * @param baseItem the base item

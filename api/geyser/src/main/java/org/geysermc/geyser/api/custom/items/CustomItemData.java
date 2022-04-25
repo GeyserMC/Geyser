@@ -37,9 +37,7 @@ public class CustomItemData {
     private final String name;
 
     private String displayName;
-    private boolean isTool;
     private boolean allowOffhand;
-    private boolean isHat;
     private int textureSize;
 
     private CustomRenderOffsets renderOffsets;
@@ -49,9 +47,7 @@ public class CustomItemData {
         this.name = name;
 
         this.displayName = name;
-        this.isTool = false;
         this.allowOffhand = false;
-        this.isHat = false;
         this.textureSize = 16;
 
         this.renderOffsets = null;
@@ -76,7 +72,7 @@ public class CustomItemData {
     }
 
     /**
-     * Gets the item's display name.
+     * Gets the item's display name. By default, this is the item's name.
      *
      * @return the item's display name
      */
@@ -85,7 +81,7 @@ public class CustomItemData {
     }
 
     /**
-     * Sets the item's display name.
+     * Sets the item's display name. By default, this is the item's name.
      *
      * @param displayName the item's display name
      */
@@ -94,25 +90,7 @@ public class CustomItemData {
     }
 
     /**
-     * Gets if the item is a tool.
-     *
-     * @return true if the item is a tool, false otherwise
-     */
-    public boolean isTool() {
-        return this.isTool;
-    }
-
-    /**
-     * Sets if the item is a tool.
-     *
-     * @param isTool true if the item is a tool, false otherwise
-     */
-    public void isTool(boolean isTool) {
-        this.isTool = isTool;
-    }
-
-    /**
-     * Gets if the item is allowed to be used in the offhand.
+     * Gets if the item is allowed to be put into the offhand.
      *
      * @return true if the item is allowed to be used in the offhand, false otherwise
      */
@@ -121,7 +99,7 @@ public class CustomItemData {
     }
 
     /**
-     * Sets if the item is allowed to be used in the offhand.
+     * Sets if the item is allowed to be put into the offhand.
      *
      * @param allowOffhand true if the item is allowed to be used in the offhand, false otherwise
      */
@@ -130,25 +108,7 @@ public class CustomItemData {
     }
 
     /**
-     * Gets if the item is a hat.
-     *
-     * @return true if the item is a hat, false otherwise
-     */
-    public boolean isHat() {
-        return this.isHat;
-    }
-
-    /**
-     * Sets if the item is a hat.
-     *
-     * @param isHat true if the item is a hat, false otherwise
-     */
-    public void isHat(boolean isHat) {
-        this.isHat = isHat;
-    }
-
-    /**
-     * Gets the item's texture size.
+     * Gets the item's texture size. This is to resize the item if the texture is not 16x16.
      *
      * @return the item's texture size
      */
@@ -157,7 +117,7 @@ public class CustomItemData {
     }
 
     /**
-     * Sets the item's texture size.
+     * Sets the item's texture size. This is to resize the item if the texture is not 16x16.
      *
      * @param textureSize the item's texture size
      */
@@ -166,7 +126,7 @@ public class CustomItemData {
     }
 
     /**
-     * Gets the item's render offsets.
+     * Gets the item's render offsets. If it is null, the item will be rendered normally, with no offsets.
      *
      * @return the item's render offsets
      */
@@ -175,7 +135,7 @@ public class CustomItemData {
     }
 
     /**
-     * Sets the item's render offsets.
+     * Sets the item's render offsets. Set to null to render normally, with no offsets.
      *
      * @param renderOffsets the item's render offsets
      */

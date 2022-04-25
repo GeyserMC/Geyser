@@ -98,16 +98,8 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
             customItemData.displayName(node.get("display_name").asText());
         }
 
-        if (node.has("is_tool")) {
-            customItemData.isTool(node.get("is_tool").asBoolean());
-        }
-
         if (node.has("allow_offhand")) {
             customItemData.allowOffhand(node.get("allow_offhand").asBoolean());
-        }
-
-        if (node.has("is_hat")) {
-            customItemData.isHat(node.get("is_hat").asBoolean());
         }
 
         if (node.has("texture_size")) {

@@ -32,10 +32,12 @@ import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.custom.items.CustomItemData;
 import org.geysermc.geyser.api.custom.items.CustomItemManager;
 import org.geysermc.geyser.api.custom.items.CustomItemRegistrationTypes;
+import org.geysermc.geyser.api.custom.items.FullyCustomItemData;
 import org.geysermc.geyser.custom.GeyserCustomManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,10 +51,12 @@ public class GeyserCustomItemManager extends CustomItemManager {
     private Map<String, List<CustomItemData>> customMappings = new HashMap<>();
 
     private List<GeyserCustomItemData> registeredCustomItems = new ArrayList<>();
+    private Int2ObjectMap<List<ComponentItemData>> registeredComponentItems = new Int2ObjectOpenHashMap<>();
+
     private Int2ObjectMap<String> customIdMappings = new Int2ObjectOpenHashMap<>();
 
-    private boolean canRegister() {
-        return !GeyserImpl.getInstance().isInitialized() && GeyserImpl.getInstance().getConfig().isAddNonBedrockItems();
+    private boolean cantRegisterNewItem() {
+        return GeyserImpl.getInstance().isInitialized() || !GeyserImpl.getInstance().getConfig().isAddNonBedrockItems();
     }
 
     private int nameExists(String name) {
@@ -71,7 +75,7 @@ public class GeyserCustomItemManager extends CustomItemManager {
 
     @Override
     public boolean registerCustomItem(@NotNull String baseItem, @NotNull CustomItemData customItemData) {
-        if (!this.canRegister()) {
+        if (this.cantRegisterNewItem()) {
             return false;
         }
 
@@ -83,6 +87,24 @@ public class GeyserCustomItemManager extends CustomItemManager {
 
             for (GeyserCustomItemData.Mapping mapping : registeredItem.getMappings()) {
                 this.customIdMappings.put(mapping.integerId(), mapping.stringId());
+            }
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean registerCustomItem(@NonNull FullyCustomItemData customItemData) {
+        if (this.cantRegisterNewItem()) {
+            return false;
+        }
+
+        Int2ObjectMap<ComponentItemData> componentItemData = CustomItemsRegistryPopulator.addToRegistry(customItemData, this.registeredItemCount());
+        if (componentItemData.size() > 0) {
+            for (Int2ObjectMap.Entry<ComponentItemData> entry : componentItemData.int2ObjectEntrySet()) {
+                this.registeredComponentItems.computeIfAbsent(entry.getIntKey(), list -> new ArrayList<>()).add(entry.getValue());
             }
 
             return true;
@@ -116,9 +138,13 @@ public class GeyserCustomItemManager extends CustomItemManager {
 
     public List<ComponentItemData> componentItemDataListFromVersion(int protocolVersion) {
         List<ComponentItemData> componentItemDataList = new ArrayList<>();
+
         for (GeyserCustomItemData registeredItem : this.registeredCustomItems) {
             componentItemDataList.add(registeredItem.getMapping(protocolVersion).componentItemData());
         }
+
+        componentItemDataList.addAll(this.registeredComponentItems.getOrDefault(protocolVersion, new ArrayList<>()));
+
         return componentItemDataList;
     }
 

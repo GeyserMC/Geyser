@@ -228,7 +228,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     GroupedItem groupedItem = entry.getKey();
                     int idCount = 0;
                     //not optimal
-                    for (ItemMapping mapping : session.getItemMappings().getItems()) {
+                    for (ItemMapping mapping : session.getItemMappings().getItems().values()) {
                         if (mapping.getBedrockId() == groupedItem.id) {
                             idCount++;
                         }

@@ -46,14 +46,14 @@ public class ItemMappings {
 
     Map<String, ItemMapping> cachedJavaMappings = new WeakHashMap<>();
 
-    ItemMapping[] items;
+    Int2ObjectMap<ItemMapping> items;
 
     /**
      * A unique exception as this is an item in Bedrock, but not in Java.
      */
     ItemMapping lodestoneCompass;
 
-    ItemData[] creativeItems;
+    List<ItemData> creativeItems;
     List<StartGamePacket.ItemEntry> itemEntries;
 
     StoredItemMappings storedItems;
@@ -87,7 +87,7 @@ public class ItemMappings {
      */
     @Nonnull
     public ItemMapping getMapping(int javaId) {
-        return javaId >= 0 && javaId < this.items.length ? this.items[javaId] : ItemMapping.AIR;
+        return this.items.getOrDefault(javaId, ItemMapping.AIR);
     }
 
     /**
@@ -99,7 +99,7 @@ public class ItemMappings {
      */
     public ItemMapping getMapping(String javaIdentifier) {
         return this.cachedJavaMappings.computeIfAbsent(javaIdentifier, key -> {
-            for (ItemMapping mapping : this.items) {
+            for (ItemMapping mapping : this.items.values()) {
                 if (mapping.getJavaIdentifier().equals(key)) {
                     return mapping;
                 }
@@ -125,7 +125,7 @@ public class ItemMappings {
         boolean isBlock = data.getBlockRuntimeId() != 0;
         boolean hasDamage = data.getDamage() != 0;
 
-        for (ItemMapping mapping : this.items) {
+        for (ItemMapping mapping : this.items.values()) {
             if (mapping.getBedrockId() == id) {
                 if (isBlock && !hasDamage) { // Pre-1.16.220 will not use block runtime IDs at all, so we shouldn't check either
                     if (data.getBlockRuntimeId() != mapping.getBedrockBlockId()) {
