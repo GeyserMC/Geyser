@@ -42,6 +42,7 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.MathUtils;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -87,8 +88,6 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public void spawnEntity() {
-        this.pitch = yaw;
-        this.headYaw = yaw;
         super.spawnEntity();
     }
 
@@ -205,9 +204,9 @@ public class ArmorStandEntity extends LivingEntity {
         // Indicate that rotation should be checked
         setFlag(EntityFlag.BRIBED, true);
 
-        int rotationX = getRotation(rotation.getPitch());
-        int rotationY = getRotation(rotation.getYaw());
-        int rotationZ = getRotation(rotation.getRoll());
+        int rotationX = MathUtils.wrapDegreesToInt(rotation.getPitch());
+        int rotationY = MathUtils.wrapDegreesToInt(rotation.getYaw());
+        int rotationZ = MathUtils.wrapDegreesToInt(rotation.getRoll());
         // The top bit acts like binary and determines if each rotation goes above 100
         // We don't do this for the negative values out of concerns of the number being too big
         int topBit = (Math.abs(rotationX) >= 100 ? 4 : 0) + (Math.abs(rotationY) >= 100 ? 2 : 0) + (Math.abs(rotationZ) >= 100 ? 1 : 0);
@@ -319,7 +318,7 @@ public class ArmorStandEntity extends LivingEntity {
             // Create the second entity. It doesn't need to worry about the items, but it does need to worry about
             // the metadata as it will hold the name tag.
             secondEntity = new ArmorStandEntity(session, 0, session.getEntityCache().getNextEntityId().incrementAndGet(), null,
-                    EntityDefinitions.ARMOR_STAND, position, motion, yaw, pitch, headYaw);
+                    EntityDefinitions.ARMOR_STAND, position, motion, getYaw(), getPitch(), getHeadYaw());
             secondEntity.primaryEntity = false;
             if (!this.positionRequiresOffset) {
                 // Ensure the offset is applied for the 0 scale
@@ -375,17 +374,6 @@ public class ArmorStandEntity extends LivingEntity {
         }
     }
 
-    private int getRotation(float rotation) {
-        rotation = rotation % 360f;
-        if (rotation < -180f) {
-            rotation += 360f;
-        } else if (rotation >= 180f) {
-            // 181 -> -179
-            rotation = -(180 - (rotation - 180));
-        }
-        return (int) rotation;
-    }
-
     /**
      * If this armor stand is not a marker, set its bounding box size and scale.
      */
@@ -439,9 +427,14 @@ public class ArmorStandEntity extends LivingEntity {
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
         moveEntityPacket.setPosition(position);
-        moveEntityPacket.setRotation(Vector3f.from(yaw, yaw, yaw));
-        moveEntityPacket.setOnGround(onGround);
+        moveEntityPacket.setRotation(getBedrockRotation());
+        moveEntityPacket.setOnGround(isOnGround());
         moveEntityPacket.setTeleported(false);
         session.sendUpstreamPacket(moveEntityPacket);
+    }
+
+    @Override
+    public Vector3f getBedrockRotation() {
+        return Vector3f.from(getYaw(), getYaw(), getYaw());
     }
 }

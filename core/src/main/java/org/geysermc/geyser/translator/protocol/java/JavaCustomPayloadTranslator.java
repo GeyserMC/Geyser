@@ -49,7 +49,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
     @Override
     public void translate(GeyserSession session, ClientboundCustomPayloadPacket packet) {
         // The only plugin messages it has to listen for are Floodgate plugin messages
-        if (session.remoteServer().authType() != AuthType.HYBRID) {
+        if (session.remoteServer().authType() != AuthType.FLOODGATE) {
             return;
         }
 

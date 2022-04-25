@@ -23,33 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.network;
+package org.geysermc.geyser.inventory.recipe;
 
-public enum AuthType {
-    OFFLINE,
-    ONLINE,
-    FLOODGATE;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 
-    public static final AuthType[] VALUES = values();
-
-    public static AuthType getById(int id) {
-        return id < VALUES.length ? VALUES[id] : OFFLINE;
-    }
-
-    /**
-     * Convert the AuthType string (from config) to the enum, ONLINE on fail
-     *
-     * @param name AuthType string
-     *
-     * @return The converted AuthType
-     */
-    public static AuthType getByName(String name) {
-        String upperCase = name.toUpperCase();
-        for (AuthType type : VALUES) {
-            if (type.name().equals(upperCase)) {
-                return type;
-            }
-        }
-        return ONLINE;
-    }
+/**
+ * @param buttonId the button that needs to be pressed for Java Edition to accept this item.
+ * @param output the expected output of this item when cut.
+ */
+public record GeyserStonecutterData(int buttonId, ItemStack output) {
 }

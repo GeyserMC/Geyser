@@ -4,6 +4,7 @@ import net.kyori.blossom.BlossomExtension
 plugins {
     id("net.kyori.blossom")
     id("net.kyori.indra.git")
+    id("geyser.publish-conventions")
 }
 
 dependencies {
@@ -25,6 +26,7 @@ dependencies {
     implementation("com.nukkitx.fastutil", "fastutil-int-boolean-maps", Versions.fastutilVersion)
     implementation("com.nukkitx.fastutil", "fastutil-object-int-maps", Versions.fastutilVersion)
     implementation("com.nukkitx.fastutil", "fastutil-object-object-maps", Versions.fastutilVersion)
+    implementation("com.nukkitx.fastutil", "fastutil-object-reference-maps", Versions.fastutilVersion)
 
     // Network libraries
     implementation("org.java-websocket", "Java-WebSocket", Versions.websocketVersion)

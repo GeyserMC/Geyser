@@ -11,7 +11,12 @@ pipeline {
         stage ('Build') {
             steps {
                 sh 'git submodule update --init --recursive'
-                sh './gradlew clean build'
+                rtGradleRun(
+                    usesPlugin: true,
+                    tool: 'Gradle 7',
+                    buildFile: 'build.gradle.kts',
+                    tasks: 'clean build',
+                )
             }
             post {
                 success {
@@ -22,12 +27,15 @@ pipeline {
 
         stage ('Deploy') {
             when {
-                branch "master"
+                anyOf {
+                    branch "master"
+                    branch "feature/extensions"
+                }
             }
 
             steps {
                 rtGradleDeployer(
-                        id: "maven-deployer",
+                        id: "GRADLE_DEPLOYER",
                         serverId: "opencollab-artifactory",
                         releaseRepo: "maven-releases",
                         snapshotRepo: "maven-snapshots"

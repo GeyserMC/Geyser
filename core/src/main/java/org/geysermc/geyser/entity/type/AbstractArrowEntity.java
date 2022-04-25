@@ -70,8 +70,8 @@ public class AbstractArrowEntity extends Entity {
         super.setMotion(motion);
 
         double horizontalSpeed = Math.sqrt(motion.getX() * motion.getX() + motion.getZ() * motion.getZ());
-        this.yaw = (float) Math.toDegrees(Math.atan2(motion.getX(), motion.getZ()));
-        this.pitch = (float) Math.toDegrees(Math.atan2(motion.getY(), horizontalSpeed));
-        this.headYaw = yaw;
+        setYaw((float) Math.toDegrees(Math.atan2(motion.getX(), motion.getZ())));
+        setPitch((float) Math.toDegrees(Math.atan2(motion.getY(), horizontalSpeed)));
+        setHeadYaw(getYaw());
     }
 }

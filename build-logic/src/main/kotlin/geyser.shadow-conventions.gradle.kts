@@ -3,7 +3,6 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("geyser.base-conventions")
     id("com.github.johnrengelman.shadow")
-    id("com.jfrog.artifactory")
 }
 
 tasks {
@@ -29,27 +28,5 @@ tasks {
     }
     named("build") {
         dependsOn(shadowJar)
-    }
-}
-
-publishing {
-    publications.named<MavenPublication>("mavenJava") {
-        artifact(tasks["shadowJar"])
-        artifact(tasks["sourcesJar"])
-    }
-}
-
-artifactory {
-    publish {
-        repository {
-            setRepoKey("maven-snapshots")
-            setMavenCompatible(true)
-        }
-        defaults {
-            publishConfigs("archives")
-            setPublishArtifacts(true)
-            setPublishPom(true)
-            setPublishIvy(false)
-        }
     }
 }

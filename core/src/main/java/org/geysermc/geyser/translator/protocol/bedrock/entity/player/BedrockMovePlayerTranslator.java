@@ -81,8 +81,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         // This isn't needed, but it makes the packets closer to vanilla
         // It also means you can't "lag back" while only looking, in theory
         if (!positionChanged && rotationChanged) {
-            ServerboundMovePlayerRotPacket playerRotationPacket = new ServerboundMovePlayerRotPacket(
-                    packet.isOnGround(), packet.getRotation().getY(), packet.getRotation().getX());
+            ServerboundMovePlayerRotPacket playerRotationPacket = new ServerboundMovePlayerRotPacket(packet.isOnGround(), yaw, pitch);
 
             entity.setYaw(yaw);
             entity.setPitch(pitch);
@@ -101,8 +100,11 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                     Packet movePacket;
                     if (rotationChanged) {
                         // Send rotation updates as well
-                        movePacket = new ServerboundMovePlayerPosRotPacket(packet.isOnGround(), position.getX(), position.getY(), position.getZ(),
-                                packet.getRotation().getY(), packet.getRotation().getX());
+                        movePacket = new ServerboundMovePlayerPosRotPacket(
+                                packet.isOnGround(),
+                                position.getX(), position.getY(), position.getZ(),
+                                yaw, pitch
+                        );
                         entity.setYaw(yaw);
                         entity.setPitch(pitch);
                         entity.setHeadYaw(headYaw);

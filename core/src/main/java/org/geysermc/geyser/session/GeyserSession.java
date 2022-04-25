@@ -102,6 +102,7 @@ import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.netty.LocalSession;
@@ -364,7 +365,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * The key is the Java ID of the item; the values are all the possible outputs' Java IDs sorted by their string identifier
      */
     @Setter
-    private Int2ObjectMap<IntList> stonecutterRecipes;
+    private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes;
 
     /**
      * Whether to work around 1.13's different behavior in villager trading menus.
@@ -677,7 +678,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                     // However, this doesn't affect the final username as Floodgate is still in charge of that.
                     // So if you have (for example) replace spaces enabled on Floodgate the spaces will re-appear.
                     String validUsername = username;
-                    if (this.remoteServer.authType() == AuthType.HYBRID) {
+                    if (this.remoteServer.authType() == AuthType.FLOODGATE) {
                         validUsername = username.replace(' ', '_');
                     }
 
@@ -834,7 +835,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * After getting whatever credentials needed, we attempt to join the Java server.
      */
     private void connectDownstream() {
-        boolean floodgate = this.remoteServer.authType() == AuthType.HYBRID;
+        boolean floodgate = this.remoteServer.authType() == AuthType.FLOODGATE;
 
         // Start ticking
         tickThread = eventLoop.scheduleAtFixedRate(this::tick, 50, 50, TimeUnit.MILLISECONDS);
@@ -930,7 +931,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 UUID uuid = protocol.getProfile().getId();
                 if (uuid == null) {
                     // Set what our UUID *probably* is going to be
-                    if (remoteServer.authType() == AuthType.HYBRID) {
+                    if (remoteServer.authType() == AuthType.FLOODGATE) {
                         uuid = new UUID(0, Long.parseLong(authData.xuid()));
                     } else {
                         uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + protocol.getProfile().getName()).getBytes(StandardCharsets.UTF_8));
@@ -960,7 +961,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 String disconnectMessage;
                 Throwable cause = event.getCause();
                 if (cause instanceof UnexpectedEncryptionException) {
-                    if (remoteServer.authType() != AuthType.HYBRID) {
+                    if (remoteServer.authType() != AuthType.FLOODGATE) {
                         // Server expects online mode
                         disconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.authentication_type_mismatch", locale());
                         // Explain that they may be looking for Floodgate.

@@ -384,19 +384,19 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                     if (enchantTag.get("id") instanceof StringTag javaEnchId) {
                         JavaEnchantment enchantment = JavaEnchantment.getByJavaIdentifier(javaEnchId.getValue());
                         if (enchantment == null) {
-                            GeyserImpl.getInstance().getLogger().debug("Unknown java enchantment: " + javaEnchId.getValue());
+                            GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment in anvil: " + javaEnchId.getValue());
                             continue;
                         }
 
                         Tag javaEnchLvl = enchantTag.get("lvl");
-                        if (!(javaEnchLvl instanceof ShortTag || javaEnchLvl instanceof IntTag))
+                        if (javaEnchLvl == null || !(javaEnchLvl.getValue() instanceof Number number))
                             continue;
 
                         // Handle duplicate enchantments
                         if (bedrock) {
-                            enchantments.putIfAbsent(enchantment, ((Number) javaEnchLvl.getValue()).intValue());
+                            enchantments.putIfAbsent(enchantment, number.intValue());
                         } else {
-                            enchantments.mergeInt(enchantment, ((Number) javaEnchLvl.getValue()).intValue(), Math::max);
+                            enchantments.mergeInt(enchantment, number.intValue(), Math::max);
                         }
                     }
                 }

@@ -1,5 +1,3 @@
-import org.gradle.accessors.dm.ApProjectDependency
-
 plugins {
     `java-library`
     id("geyser.build-logic")
@@ -10,6 +8,10 @@ allprojects {
     group = "org.geysermc"
     version = "2.1.0-SNAPSHOT"
     description = "Allows for players from Minecraft: Bedrock Edition to join Minecraft: Java Edition servers."
+
+    tasks.withType<JavaCompile> {
+        options.encoding = "UTF-8"
+    }
 }
 
 val platforms = setOf(
@@ -32,13 +34,12 @@ subprojects {
     val relativePath = projectDir.relativeTo(rootProject.projectDir).path
 
     if (relativePath.contains("api")) {
-        group = rootProject.group as String + ".api"
         plugins.apply("geyser.api-conventions")
     } else {
         group = rootProject.group as String + ".geyser"
         when (this) {
             in platforms -> plugins.apply("geyser.platform-conventions")
-            api -> plugins.apply("geyser.shadow-conventions")
+            api -> plugins.apply("geyser.publish-conventions")
             else -> plugins.apply("geyser.base-conventions")
         }
     }

@@ -102,7 +102,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:brand", PluginMessageUtils.getGeyserBrandData()));
 
         // register the plugin messaging channels used in Floodgate
-        if (session.remoteServer().authType() == AuthType.HYBRID) {
+        if (session.remoteServer().authType() == AuthType.FLOODGATE) {
             session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:register", PluginMessageChannels.getFloodgateRegisterData()));
         }
 

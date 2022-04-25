@@ -1,6 +1,7 @@
 val velocityVersion = "3.0.0"
 
 dependencies {
+    annotationProcessor("com.velocitypowered", "velocity-api", velocityVersion)
     api(projects.core)
 }
 

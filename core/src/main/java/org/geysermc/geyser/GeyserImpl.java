@@ -252,7 +252,7 @@ public class GeyserImpl implements GeyserApi {
 
         if (platformType == PlatformType.STANDALONE) {
             logger.warning(GeyserLocale.getLocaleStringLog("geyser.core.movement_warn"));
-        } else if (config.getRemote().getAuthType() == AuthType.HYBRID) {
+        } else if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
             VersionCheckUtils.checkForOutdatedFloodgate(logger);
         }
     }
@@ -310,7 +310,7 @@ public class GeyserImpl implements GeyserApi {
         // Ensure that PacketLib does not create an event loop for handling packets; we'll do that ourselves
         TcpSession.USE_EVENT_LOOP_FOR_PACKETS = false;
 
-        if (config.getRemote().getAuthType() == AuthType.HYBRID) {
+        if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
             try {
                 Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
                 cipher = new AesCipher(new Base64Topping());
