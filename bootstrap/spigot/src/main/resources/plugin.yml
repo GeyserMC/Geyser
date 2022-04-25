@@ -14,7 +14,7 @@ permissions:
     description: Shows help for all registered commands.
     default: true
   geyser.command.offhand:
-    description: Puts an items in your offhand.
+    description: Swaps the current item in your mainhand to offhand.
     default: true
   geyser.command.advancements:
     description: Shows the advancements of the player on the server.
