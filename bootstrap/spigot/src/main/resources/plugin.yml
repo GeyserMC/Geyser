@@ -26,10 +26,10 @@ permissions:
     description: Shows the statistics of the player on the server.
     default: true
   geyser.command.settings:
-    description: Modify user settings
+    description: Modifies user settings
     default: true
   geyser.command.list:
-    description: List all players connected through Geyser.
+    description: Lists all players connected through Geyser.
     default: op
   geyser.command.dump:
     description: Dumps Geyser debug information for bug reports.
