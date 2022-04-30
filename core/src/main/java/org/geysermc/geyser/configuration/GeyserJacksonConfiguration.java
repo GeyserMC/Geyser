@@ -35,9 +35,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.network.CIDRMatcher;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.text.AsteriskSerializer;
-import org.geysermc.geyser.network.CIDRMatcher;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.io.IOException;
@@ -61,6 +61,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     private BedrockConfiguration bedrock = new BedrockConfiguration();
     private RemoteConfiguration remote = new RemoteConfiguration();
+
+    @JsonProperty("saved-user-logins")
+    private List<String> savedUserLogins = Collections.emptyList();
 
     @JsonProperty("floodgate-key-file")
     private String floodgateKeyFile = "key.pem";
@@ -105,6 +108,12 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("show-coordinates")
     private boolean showCoordinates = true;
 
+    @JsonProperty("disable-bedrock-scaffolding")
+    private boolean disableBedrockScaffolding = false;
+
+    @JsonProperty("always-quick-change-armor")
+    private boolean alwaysQuickChangeArmor = false;
+
     @JsonDeserialize(using = EmoteOffhandWorkaroundOption.Deserializer.class)
     @JsonProperty("emote-offhand-workaround")
     private EmoteOffhandWorkaroundOption emoteOffhandWorkaround = EmoteOffhandWorkaroundOption.DISABLED;
@@ -140,6 +149,9 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     private boolean xboxAchievementsEnabled = false;
 
     private MetricsInfo metrics = new MetricsInfo();
+
+    @JsonProperty("pending-authentication-timeout")
+    private int pendingAuthenticationTimeout = 120;
 
     @Getter
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -234,8 +246,21 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     public static class MetricsInfo implements IMetricsInfo {
         private boolean enabled = true;
 
+        @JsonDeserialize(using = MetricsIdDeserializer.class)
         @JsonProperty("uuid")
         private String uniqueId = UUID.randomUUID().toString();
+
+        private static class MetricsIdDeserializer extends JsonDeserializer<String> {
+            @Override
+            public String deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+                String uuid = p.getValueAsString();
+                if ("generateduuid".equals(uuid)) {
+                    // Compensate for configs not copied from the jar
+                    return UUID.randomUUID().toString();
+                }
+                return uuid;
+            }
+        }
     }
 
     @JsonProperty("scoreboard-packet-threshold")

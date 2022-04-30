@@ -26,6 +26,7 @@
 package org.geysermc.geyser;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.steveice10.packetlib.tcp.TcpSession;
@@ -37,6 +38,7 @@ import io.netty.channel.kqueue.KQueue;
 import io.netty.util.NettyRuntime;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.internal.SystemPropertyUtil;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -59,9 +61,11 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.session.SessionManager;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
+import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
@@ -70,6 +74,9 @@ import org.geysermc.geyser.util.*;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -77,6 +84,7 @@ import java.net.UnknownHostException;
 import java.security.Key;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.regex.Matcher;
@@ -123,6 +131,10 @@ public class GeyserImpl implements GeyserApi {
     private final GeyserBootstrap bootstrap;
 
     private Metrics metrics;
+
+    private PendingMicrosoftAuthentication pendingMicrosoftAuthentication;
+    @Getter(AccessLevel.NONE)
+    private Map<String, String> savedRefreshTokens;
 
     private static GeyserImpl instance;
 
@@ -195,6 +207,8 @@ public class GeyserImpl implements GeyserApi {
 
         ScoreboardUpdater.init();
 
+        SkinProvider.registerCacheImageTask(this);
+
         ResourcePack.loadPacks();
 
         if (platformType != PlatformType.STANDALONE && config.getRemote().getAddress().equals("auto")) {
@@ -265,6 +279,8 @@ public class GeyserImpl implements GeyserApi {
             logger.debug("Not getting git properties for the news handler as we are in a development environment.");
         }
 
+        pendingMicrosoftAuthentication = new PendingMicrosoftAuthentication(config.getPendingAuthenticationTimeout());
+
         this.newsHandler = new NewsHandler(branch, buildNumber);
 
         CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
@@ -317,7 +333,7 @@ public class GeyserImpl implements GeyserApi {
             metrics = new Metrics(this, "GeyserMC", config.getMetrics().getUniqueId(), false, java.util.logging.Logger.getLogger(""));
             metrics.addCustomChart(new Metrics.SingleLineChart("players", sessionManager::size));
             // Prevent unwanted words best we can
-            metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> config.getRemote().getAuthType().toString().toLowerCase()));
+            metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> config.getRemote().getAuthType().toString().toLowerCase(Locale.ROOT)));
             metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::getPlatformName));
             metrics.addCustomChart(new Metrics.SimplePie("defaultLocale", GeyserLocale::getDefaultLocale));
             metrics.addCustomChart(new Metrics.SimplePie("version", () -> GeyserImpl.VERSION));
@@ -399,6 +415,47 @@ public class GeyserImpl implements GeyserApi {
             }));
         } else {
             metrics = null;
+        }
+
+        if (config.getRemote().getAuthType() == AuthType.ONLINE) {
+            if (config.getUserAuths() != null && !config.getUserAuths().isEmpty()) {
+                getLogger().warning("The 'userAuths' config section is now deprecated, and will be removed in the near future! " +
+                        "Please migrate to the new 'saved-user-logins' config option: " +
+                        "https://wiki.geysermc.org/geyser/understanding-the-config/");
+            }
+
+            // May be written/read to on multiple threads from each GeyserSession as well as writing the config
+            savedRefreshTokens = new ConcurrentHashMap<>();
+
+            File tokensFile = bootstrap.getSavedUserLoginsFolder().resolve(Constants.SAVED_REFRESH_TOKEN_FILE).toFile();
+            if (tokensFile.exists()) {
+                TypeReference<Map<String, String>> type = new TypeReference<>() { };
+
+                Map<String, String> refreshTokenFile = null;
+                try {
+                    refreshTokenFile = JSON_MAPPER.readValue(tokensFile, type);
+                } catch (IOException e) {
+                    logger.error("Cannot load saved user tokens!", e);
+                }
+                if (refreshTokenFile != null) {
+                    List<String> validUsers = config.getSavedUserLogins();
+                    boolean doWrite = false;
+                    for (Map.Entry<String, String> entry : refreshTokenFile.entrySet()) {
+                        String user = entry.getKey();
+                        if (!validUsers.contains(user)) {
+                            // Perform a write to this file to purge the now-unused name
+                            doWrite = true;
+                            continue;
+                        }
+                        savedRefreshTokens.put(user, entry.getValue());
+                    }
+                    if (doWrite) {
+                        scheduleRefreshTokensWrite();
+                    }
+                }
+            }
+        } else {
+            savedRefreshTokens = null;
         }
 
         newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
@@ -506,6 +563,39 @@ public class GeyserImpl implements GeyserApi {
 
     public WorldManager getWorldManager() {
         return bootstrap.getWorldManager();
+    }
+
+    @Nullable
+    public String refreshTokenFor(@NonNull String bedrockName) {
+        return savedRefreshTokens.get(bedrockName);
+    }
+
+    public void saveRefreshToken(@NonNull String bedrockName, @NonNull String refreshToken) {
+        if (!getConfig().getSavedUserLogins().contains(bedrockName)) {
+            // Do not save this login
+            return;
+        }
+
+        // We can safely overwrite old instances because MsaAuthenticationService#getLoginResponseFromRefreshToken
+        // refreshes the token for us
+        if (!Objects.equals(refreshToken, savedRefreshTokens.put(bedrockName, refreshToken))) {
+            scheduleRefreshTokensWrite();
+        }
+    }
+
+    private void scheduleRefreshTokensWrite() {
+        scheduledThread.execute(() -> {
+            // Ensure all writes are handled on the same thread
+            File savedTokens = getBootstrap().getSavedUserLoginsFolder().resolve(Constants.SAVED_REFRESH_TOKEN_FILE).toFile();
+            TypeReference<Map<String, String>> type = new TypeReference<>() { };
+            try (FileWriter writer = new FileWriter(savedTokens)) {
+                JSON_MAPPER.writerFor(type)
+                        .withDefaultPrettyPrinter()
+                        .writeValue(writer, savedRefreshTokens);
+            } catch (IOException e) {
+                getLogger().error("Unable to write saved refresh tokens!", e);
+            }
+        });
     }
 
     public static GeyserImpl getInstance() {

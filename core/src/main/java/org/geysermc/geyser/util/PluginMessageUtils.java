@@ -33,9 +33,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import java.nio.ByteBuffer;
 
 public class PluginMessageUtils {
-    private static final String SKIN_CHANNEL = "floodgate:skin";
     private static final byte[] GEYSER_BRAND_DATA;
-    private static final byte[] FLOODGATE_REGISTER_DATA;
 
     static {
         byte[] data = GeyserImpl.NAME.getBytes(Charsets.UTF_8);
@@ -44,8 +42,6 @@ public class PluginMessageUtils {
                         .put(writeVarInt(data.length))
                         .put(data)
                         .array();
-
-        FLOODGATE_REGISTER_DATA = (SKIN_CHANNEL + "\0floodgate:form").getBytes(Charsets.UTF_8);
     }
 
     /**
@@ -55,22 +51,6 @@ public class PluginMessageUtils {
      */
     public static byte[] getGeyserBrandData() {
         return GEYSER_BRAND_DATA;
-    }
-
-    /**
-     * Get the prebuilt register data as a byte array
-     *
-     * @return the register data of the Floodgate channels
-     */
-    public static byte[] getFloodgateRegisterData() {
-        return FLOODGATE_REGISTER_DATA;
-    }
-
-    /**
-     * Returns the skin channel used in Floodgate
-     */
-    public static String getSkinChannel() {
-        return SKIN_CHANNEL;
     }
 
     public static void sendMessage(GeyserSession session, String channel, byte[] data) {

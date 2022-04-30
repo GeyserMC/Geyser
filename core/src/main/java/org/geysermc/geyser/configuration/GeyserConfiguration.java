@@ -44,6 +44,9 @@ public interface GeyserConfiguration {
 
     IRemoteConfiguration getRemote();
 
+    List<String> getSavedUserLogins();
+
+    @Deprecated
     Map<String, ? extends IUserAuthenticationInfo> getUserAuths();
 
     boolean isCommandSuggestions();
@@ -76,6 +79,10 @@ public interface GeyserConfiguration {
 
     boolean isShowCoordinates();
 
+    boolean isDisableBedrockScaffolding();
+
+    boolean isAlwaysQuickChangeArmor();
+
     EmoteOffhandWorkaroundOption getEmoteOffhandWorkaround();
 
     String getDefaultLocale();
@@ -99,6 +106,8 @@ public interface GeyserConfiguration {
     int getCustomSkullRenderDistance();
 
     IMetricsInfo getMetrics();
+
+    int getPendingAuthenticationTimeout();
 
     interface IBedrockConfiguration {
 

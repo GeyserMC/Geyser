@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.entity.type.player;
 
-import com.github.steveice10.mc.auth.data.GameProfile;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.GameType;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit;
 public class SkullPlayerEntity extends PlayerEntity {
 
     public SkullPlayerEntity(GeyserSession session, long geyserId) {
-        super(session, 0, geyserId, new GameProfile(UUID.randomUUID(), ""), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
+        super(session, 0, geyserId, UUID.randomUUID(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, "", null);
         setPlayerList(false);
     }
 
@@ -80,6 +80,7 @@ public class SkullPlayerEntity extends PlayerEntity {
         addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
+        addPlayerPacket.setGameType(GameType.SURVIVAL);
         addPlayerPacket.getMetadata().putFlags(flags);
         dirtyMetadata.apply(addPlayerPacket.getMetadata());
 
@@ -101,13 +102,12 @@ public class SkullPlayerEntity extends PlayerEntity {
     }
 
     public void updateSkull(SkullCache.Skull skull) {
-        if (!getTexture(getProfile()).equals(getTexture(skull.getProfile()))) {
+        if (!skull.getTexturesProperty().equals(getTexturesProperty())) {
             // Make skull invisible as we change skins
             setFlag(EntityFlag.INVISIBLE, true);
             updateBedrockMetadata();
 
-            setProfile(skull.getProfile());
-            setUsername(skull.getProfile().getName());
+            setTexturesProperty(skull.getTexturesProperty());
 
             SkullSkinManager.requestAndHandleSkin(this, session, (skin -> session.scheduleInEventLoop(() -> {
                 // Delay to minimize split-second "player" pop-in
@@ -142,13 +142,5 @@ public class SkullPlayerEntity extends PlayerEntity {
         }
 
         moveAbsolute(Vector3f.from(x, y, z), rotation, 0, rotation, true, true);
-    }
-
-    private String getTexture(GameProfile gameProfile) {
-        GameProfile.Property texturesProperty = gameProfile.getProperty("textures");
-        if (texturesProperty != null) {
-            return texturesProperty.getValue();
-        }
-        return "";
     }
 }

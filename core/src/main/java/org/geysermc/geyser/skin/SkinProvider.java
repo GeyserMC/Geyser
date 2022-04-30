@@ -27,7 +27,6 @@ package org.geysermc.geyser.skin;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntArrayTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
@@ -53,7 +52,6 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Predicate;
@@ -115,10 +113,12 @@ public class SkinProvider {
         WEARING_CUSTOM_SKULL = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkull\"}}", wearingCustomSkull, false);
         String wearingCustomSkullSlim = new String(FileUtils.readAllBytes("bedrock/skin/geometry.humanoid.wearingCustomSkullSlim.json"), StandardCharsets.UTF_8);
         WEARING_CUSTOM_SKULL_SLIM = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkullSlim\"}}", wearingCustomSkullSlim, false);
+    }
 
+    public static void registerCacheImageTask(GeyserImpl geyser) {
         // Schedule Daily Image Expiry if we are caching them
-        if (GeyserImpl.getInstance().getConfig().getCacheImages() > 0) {
-            GeyserImpl.getInstance().getScheduledThread().scheduleAtFixedRate(() -> {
+        if (geyser.getConfig().getCacheImages() > 0) {
+            geyser.getScheduledThread().scheduleAtFixedRate(() -> {
                 File cacheFolder = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("images").toFile();
                 if (!cacheFolder.exists()) {
                     return;
@@ -155,7 +155,7 @@ public class SkinProvider {
     }
 
     public static CompletableFuture<SkinProvider.SkinData> requestSkinData(PlayerEntity entity) {
-        SkinManager.GameProfileData data = SkinManager.GameProfileData.from(entity.getProfile());
+        SkinManager.GameProfileData data = SkinManager.GameProfileData.from(entity);
 
         return requestSkinAndCape(entity.getUuid(), data.skinUrl(), data.capeUrl())
                 .thenApplyAsync(skinAndCape -> {
@@ -544,12 +544,11 @@ public class SkinProvider {
      * @param skullOwner the CompoundTag of the skull with no textures
      * @return a completable GameProfile with textures included
      */
-    public static CompletableFuture<GameProfile> requestTexturesFromUsername(CompoundTag skullOwner) {
+    public static CompletableFuture<String> requestTexturesFromUsername(CompoundTag skullOwner) {
         return CompletableFuture.supplyAsync(() -> {
             Tag uuidTag = skullOwner.get("Id");
             String uuidToString = "";
             JsonNode node;
-            GameProfile gameProfile = new GameProfile(UUID.randomUUID(), "");
             boolean retrieveUuidFromInternet = !(uuidTag instanceof IntArrayTag); // also covers null check
 
             if (!retrieveUuidFromInternet) {
@@ -575,15 +574,12 @@ public class SkinProvider {
 
                 // Get textures from UUID
                 node = WebUtils.getJson("https://sessionserver.mojang.com/session/minecraft/profile/" + uuidToString);
-                List<GameProfile.Property> profileProperties = new ArrayList<>();
                 JsonNode properties = node.get("properties");
                 if (properties == null) {
                     GeyserImpl.getInstance().getLogger().debug("No properties found in Mojang response for " + uuidToString);
                     return null;
                 }
-                profileProperties.add(new GameProfile.Property("textures", node.get("properties").get(0).get("value").asText()));
-                gameProfile.setProperties(profileProperties);
-                return gameProfile;
+                return node.get("properties").get(0).get("value").asText();
             } catch (Exception e) {
                 if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                     e.printStackTrace();
@@ -599,6 +595,8 @@ public class SkinProvider {
 
         HttpURLConnection con = (HttpURLConnection) new URL(imageUrl).openConnection();
         con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+        con.setConnectTimeout(10000);
+        con.setReadTimeout(10000);
 
         BufferedImage image = ImageIO.read(con.getInputStream());
         if (image == null) throw new NullPointerException();

@@ -26,10 +26,16 @@
 package org.geysermc.geyser.entity.type.living.animal;
 
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class PigEntity extends AnimalEntity {
@@ -41,5 +47,38 @@ public class PigEntity extends AnimalEntity {
     @Override
     public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
         return javaIdentifierStripped.equals("carrot") || javaIdentifierStripped.equals("potato") || javaIdentifierStripped.equals("beetroot");
+    }
+
+    @Nonnull
+    @Override
+    protected InteractiveTag testMobInteraction(@Nonnull GeyserItemStack itemInHand) {
+        if (!canEat(itemInHand) && getFlag(EntityFlag.SADDLED) && passengers.isEmpty() && !session.isSneaking()) {
+            // Mount
+            return InteractiveTag.MOUNT;
+        } else {
+            InteractiveTag superTag = super.testMobInteraction(itemInHand);
+            if (superTag != InteractiveTag.NONE) {
+                return superTag;
+            } else {
+                return EntityUtils.attemptToSaddle(session, this, itemInHand).consumesAction()
+                        ? InteractiveTag.SADDLE : InteractiveTag.NONE;
+            }
+        }
+    }
+
+    @Nonnull
+    @Override
+    protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
+        if (!canEat(itemInHand) && getFlag(EntityFlag.SADDLED) && passengers.isEmpty() && !session.isSneaking()) {
+            // Mount
+            return InteractionResult.SUCCESS;
+        } else {
+            InteractionResult superResult = super.mobInteract(itemInHand);
+            if (superResult.consumesAction()) {
+                return superResult;
+            } else {
+                return EntityUtils.attemptToSaddle(session, this, itemInHand);
+            }
+        }
     }
 }

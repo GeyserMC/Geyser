@@ -23,26 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.level.block.entity;
+package org.geysermc.geyser.inventory.recipe;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
-import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.level.block.BlockStateValues;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 
 /**
- * Does not implement BlockEntityTranslator because it's only a block entity in Bedrock
+ * @param buttonId the button that needs to be pressed for Java Edition to accept this item.
+ * @param output the expected output of this item when cut.
  */
-public class NoteblockBlockEntityTranslator {
-
-    public static void translate(GeyserSession session, Position position) {
-        int blockState = session.getGeyser().getWorldManager().getBlockAt(session, position);
-        BlockEventPacket blockEventPacket = new BlockEventPacket();
-        blockEventPacket.setBlockPosition(Vector3i.from(position.getX(), position.getY(), position.getZ()));
-        blockEventPacket.setEventType(0);
-        blockEventPacket.setEventData(BlockStateValues.getNoteblockPitch(blockState));
-        session.sendUpstreamPacket(blockEventPacket);
-    }
-
+public record GeyserStonecutterData(int buttonId, ItemStack output) {
 }

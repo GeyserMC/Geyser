@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.session.cache;
 
-import com.github.steveice10.mc.auth.data.GameProfile;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -72,9 +71,9 @@ public class SkullCache {
         this.skullRenderDistanceSquared = distance * distance;
     }
 
-    public void putSkull(Vector3i position, GameProfile profile, int blockState) {
+    public void putSkull(Vector3i position, String texturesProperty, int blockState) {
         Skull skull = skulls.computeIfAbsent(position, Skull::new);
-        skull.profile = profile;
+        skull.texturesProperty = texturesProperty;
         skull.blockState = blockState;
 
         if (skull.entity != null) {
@@ -201,7 +200,7 @@ public class SkullCache {
     @RequiredArgsConstructor
     @Data
     public static class Skull {
-        private GameProfile profile;
+        private String texturesProperty;
         private int blockState;
         private SkullPlayerEntity entity;
 

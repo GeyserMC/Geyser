@@ -55,4 +55,14 @@ public class ZoglinEntity extends MonsterEntity {
         float scale = getFlag(EntityFlag.BABY) ? 0.55f : 1f;
         return scale * definition.height();
     }
+
+    @Override
+    protected boolean canBeLeashed() {
+        return isNotLeashed();
+    }
+
+    @Override
+    protected boolean isEnemy() {
+        return true;
+    }
 }

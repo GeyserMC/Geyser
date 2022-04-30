@@ -25,21 +25,17 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinProvider;
 
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @BlockEntity(type = BlockEntityType.SKULL)
@@ -57,7 +53,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         builder.put("SkullType", skullVariant);
     }
 
-    private static CompletableFuture<GameProfile> getProfile(CompoundTag tag) {
+    private static CompletableFuture<String> getTextures(CompoundTag tag) {
         CompoundTag owner = tag.get("SkullOwner");
         if (owner != null) {
             CompoundTag properties = owner.get("Properties");
@@ -68,28 +64,22 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
             ListTag textures = properties.get("textures");
             LinkedHashMap<?,?> tag1 = (LinkedHashMap<?,?>) textures.get(0).getValue();
             StringTag texture = (StringTag) tag1.get("Value");
-
-            List<GameProfile.Property> profileProperties = new ArrayList<>();
-
-            GameProfile gameProfile = new GameProfile(UUID.randomUUID(), "");
-            profileProperties.add(new GameProfile.Property("textures", texture.getValue()));
-            gameProfile.setProperties(profileProperties);
-            return CompletableFuture.completedFuture(gameProfile);
+            return CompletableFuture.completedFuture(texture.getValue());
         }
         return CompletableFuture.completedFuture(null);
     }
 
     public static void translateSkull(GeyserSession session, CompoundTag tag, int posX, int posY, int posZ, int blockState) {
         Vector3i blockPosition = Vector3i.from(posX, posY, posZ);
-        getProfile(tag).whenComplete((profile, throwable) -> {
-            if (profile == null) {
+        getTextures(tag).whenComplete((texturesProperty, throwable) -> {
+            if (texturesProperty == null) {
                 session.getGeyser().getLogger().debug("Custom skull with invalid SkullOwner tag: " + blockPosition + " " + tag);
                 return;
             }
             if (session.getEventLoop().inEventLoop()) {
-                session.getSkullCache().putSkull(blockPosition, profile, blockState);
+                session.getSkullCache().putSkull(blockPosition, texturesProperty, blockState);
             } else {
-                session.executeInEventLoop(() -> session.getSkullCache().putSkull(blockPosition, profile, blockState));
+                session.executeInEventLoop(() -> session.getSkullCache().putSkull(blockPosition, texturesProperty, blockState));
             }
         });
     }

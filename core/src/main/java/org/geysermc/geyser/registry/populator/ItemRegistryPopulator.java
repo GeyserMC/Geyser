@@ -35,11 +35,10 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
-import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
+import com.nukkitx.protocol.bedrock.v503.Bedrock_v503;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.*;
@@ -49,6 +48,8 @@ import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.*;
+import org.geysermc.geyser.util.ItemUtils;
+import org.geysermc.geyser.util.collection.FixedInt2IntMap;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -59,19 +60,16 @@ import java.util.*;
  * Populates the item registries.
  */
 public class ItemRegistryPopulator {
-    private static final Map<String, PaletteVersion> PALETTE_VERSIONS;
-
-    static {
-        PALETTE_VERSIONS = new Object2ObjectOpenHashMap<>();
-        PALETTE_VERSIONS.put("1_17_30", new PaletteVersion(Bedrock_v465.V465_CODEC.getProtocolVersion(), Collections.emptyMap()));
-        PALETTE_VERSIONS.put("1_17_40", new PaletteVersion(Bedrock_v471.V471_CODEC.getProtocolVersion(), Collections.emptyMap()));
-        PALETTE_VERSIONS.put("1_18_0", new PaletteVersion(Bedrock_v475.V475_CODEC.getProtocolVersion(), Collections.emptyMap()));
-    }
 
     private record PaletteVersion(int protocolVersion, Map<String, String> additionalTranslatedItems) {
     }
 
     public static void populate() {
+        Map<String, PaletteVersion> paletteVersions = new Object2ObjectOpenHashMap<>();
+        paletteVersions.put("1_18_0", new PaletteVersion(Bedrock_v475.V475_CODEC.getProtocolVersion(), Collections.emptyMap()));
+        paletteVersions.put("1_18_10", new PaletteVersion(Bedrock_v486.V486_CODEC.getProtocolVersion(), Collections.emptyMap()));
+        paletteVersions.put("1_18_30", new PaletteVersion(Bedrock_v503.V503_CODEC.getProtocolVersion(), Collections.emptyMap()));
+
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
         TypeReference<Map<String, GeyserMappingItem>> mappingItemsType = new TypeReference<>() { };
@@ -84,8 +82,12 @@ public class ItemRegistryPopulator {
             throw new AssertionError("Unable to load Java runtime item IDs", e);
         }
 
+        // We can reduce some operations as Java information is the same across all palette versions
+        boolean firstMappingsPass = true;
+        Int2IntMap dyeColors = new FixedInt2IntMap();
+
         /* Load item palette */
-        for (Map.Entry<String, PaletteVersion> palette : PALETTE_VERSIONS.entrySet()) {
+        for (Map.Entry<String, PaletteVersion> palette : paletteVersions.entrySet()) {
             TypeReference<List<PaletteItem>> paletteEntriesType = new TypeReference<>() {};
 
             // Used to get the Bedrock namespaced ID (in instances where there are small differences)
@@ -125,7 +127,7 @@ public class ItemRegistryPopulator {
             IntList spawnEggs = new IntArrayList();
             List<ItemData> carpets = new ObjectArrayList<>();
 
-            Int2ObjectMap<ItemMapping> mappings = new Int2ObjectOpenHashMap<>();
+            List<ItemMapping> mappings = new ObjectArrayList<>();
             // Temporary mapping to create stored items
             Map<String, ItemMapping> identifierToMapping = new Object2ObjectOpenHashMap<>();
 
@@ -162,6 +164,9 @@ public class ItemRegistryPopulator {
                 String identifier = itemNode.get("id").textValue();
                 if (identifier.equals("minecraft:debug_stick")) {
                     // Just shows an empty texture; either way it doesn't exist in the creative menu on Java
+                    continue;
+                } else if (identifier.equals("minecraft:empty_map") && damage == 2) {
+                    // Bedrock-only as its own item
                     continue;
                 }
                 StartGamePacket.ItemEntry entry = entries.get(identifier);
@@ -224,16 +229,27 @@ public class ItemRegistryPopulator {
                     // This items has a mapping specifically for this version of the game
                     mappingItem = entry.getValue();
                 }
-                if (javaIdentifier.equals("minecraft:music_disc_otherside") && palette.getValue().protocolVersion() <= Bedrock_v471.V471_CODEC.getProtocolVersion()) {
-                    mappingItem.setBedrockIdentifier("minecraft:music_disc_pigstep");
+
+                String bedrockIdentifier;
+                if (javaIdentifier.equals("minecraft:globe_banner_pattern") && palette.getValue().protocolVersion() < Bedrock_v486.V486_CODEC.getProtocolVersion()) {
+                    bedrockIdentifier = "minecraft:banner_pattern";
+                } else {
+                    bedrockIdentifier = mappingItem.getBedrockIdentifier();
+                    if (palette.getValue().protocolVersion() >= Bedrock_v503.V503_CODEC.getProtocolVersion()) {
+                        if (bedrockIdentifier.equals("minecraft:sealantern")) {
+                            bedrockIdentifier = "minecraft:sea_lantern";
+                        }
+                    }
                 }
 
                 if (usingFurnaceMinecart && javaIdentifier.equals("minecraft:furnace_minecart")) {
                     javaFurnaceMinecartId = itemIndex;
                     itemIndex++;
+                    // Will be added later
+                    mappings.add(null);
                     continue;
                 }
-                String bedrockIdentifier = mappingItem.getBedrockIdentifier().intern();
+
                 int bedrockId = bedrockIdentifierToId.getInt(bedrockIdentifier);
                 if (bedrockId == Short.MIN_VALUE) {
                     throw new RuntimeException("Missing Bedrock ID in mappings: " + bedrockIdentifier);
@@ -358,12 +374,13 @@ public class ItemRegistryPopulator {
                 ItemMapping.ItemMappingBuilder mappingBuilder = ItemMapping.builder()
                         .javaIdentifier(javaIdentifier)
                         .javaId(itemIndex)
-                        .bedrockIdentifier(bedrockIdentifier)
+                        .bedrockIdentifier(bedrockIdentifier.intern())
                         .bedrockId(bedrockId)
                         .bedrockData(mappingItem.getBedrockData())
                         .bedrockBlockId(bedrockBlockId)
                         .stackSize(stackSize)
-                        .maxDamage(mappingItem.getMaxDamage());
+                        .maxDamage(mappingItem.getMaxDamage())
+                        .hasSuspiciousStewEffect(mappingItem.isHasSuspiciousStewEffect());
 
                 if (mappingItem.getRepairMaterials() != null) {
                     mappingBuilder = mappingBuilder.repairMaterials(new ObjectOpenHashSet<>(mappingItem.getRepairMaterials()));
@@ -406,10 +423,14 @@ public class ItemRegistryPopulator {
                     spawnEggs.add(mapping.getBedrockId());
                 }
 
-                mappings.put(itemIndex, mapping);
+                mappings.add(mapping);
                 identifierToMapping.put(javaIdentifier, mapping);
 
                 itemNames.add(javaIdentifier);
+
+                if (firstMappingsPass && mappingItem.getDyeColor() != -1) {
+                    dyeColors.put(itemIndex, mappingItem.getDyeColor());
+                }
 
                 itemIndex++;
             }
@@ -423,16 +444,14 @@ public class ItemRegistryPopulator {
 
             // Add the lodestone compass since it doesn't exist on java but we need it for item conversion
             ItemMapping lodestoneEntry = ItemMapping.builder()
-                    .javaIdentifier("minecraft:lodestone_compass")
+                    .javaIdentifier("")
                     .bedrockIdentifier("minecraft:lodestone_compass")
-                    .javaId(itemIndex)
+                    .javaId(-1)
                     .bedrockId(lodestoneCompassId)
                     .bedrockData(0)
                     .bedrockBlockId(-1)
                     .stackSize(1)
                     .build();
-            mappings.put(itemIndex, lodestoneEntry);
-            identifierToMapping.put(lodestoneEntry.getJavaIdentifier(), lodestoneEntry);
 
             ComponentItemData furnaceMinecartData = null;
             if (usingFurnaceMinecart) {
@@ -441,7 +460,7 @@ public class ItemRegistryPopulator {
 
                 entries.put("geysermc:furnace_minecart", new StartGamePacket.ItemEntry("geysermc:furnace_minecart", (short) furnaceMinecartId, true));
 
-                mappings.put(javaFurnaceMinecartId, ItemMapping.builder()
+                mappings.set(javaFurnaceMinecartId, ItemMapping.builder()
                         .javaIdentifier("minecraft:furnace_minecart")
                         .bedrockIdentifier("geysermc:furnace_minecart")
                         .javaId(javaFurnaceMinecartId)
@@ -492,9 +511,9 @@ public class ItemRegistryPopulator {
             }
 
             ItemMappings itemMappings = ItemMappings.builder()
-                    .items(mappings)
+                    .items(mappings.toArray(new ItemMapping[0]))
                     .creativeItems(creativeItems.toArray(new ItemData[0]))
-                    .itemEntries(new ArrayList<>(entries.values()))
+                    .itemEntries(List.copyOf(entries.values()))
                     .itemNames(itemNames.toArray(new String[0]))
                     .storedItems(new StoredItemMappings(identifierToMapping))
                     .javaOnlyItems(javaOnlyItems)
@@ -503,9 +522,14 @@ public class ItemRegistryPopulator {
                     .spawnEggIds(spawnEggs)
                     .carpets(carpets)
                     .furnaceMinecartData(furnaceMinecartData)
+                    .lodestoneCompass(lodestoneEntry)
                     .build();
 
             Registries.ITEMS.register(palette.getValue().protocolVersion(), itemMappings);
+
+            firstMappingsPass = false;
         }
+
+        ItemUtils.setDyeColors(dyeColors);
     }
 }

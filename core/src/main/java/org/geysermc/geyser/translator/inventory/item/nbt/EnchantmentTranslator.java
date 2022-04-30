@@ -121,23 +121,22 @@ public class EnchantmentTranslator extends NbtItemStackTranslator {
 
 
     private CompoundTag remapEnchantment(CompoundTag tag) {
-        Tag javaEnchLvl = tag.get("lvl");
-        if (!(javaEnchLvl instanceof ShortTag || javaEnchLvl instanceof IntTag))
-            return null;
-
         Tag javaEnchId = tag.get("id");
         if (!(javaEnchId instanceof StringTag))
             return null;
 
         Enchantment enchantment = Enchantment.getByJavaIdentifier(((StringTag) javaEnchId).getValue());
         if (enchantment == null) {
-            GeyserImpl.getInstance().getLogger().debug("Unknown java enchantment: " + javaEnchId.getValue());
+            GeyserImpl.getInstance().getLogger().debug("Unknown Java enchantment while NBT item translating: " + javaEnchId.getValue());
             return null;
         }
 
+        Tag javaEnchLvl = tag.get("lvl");
+
         CompoundTag bedrockTag = new CompoundTag("");
         bedrockTag.put(new ShortTag("id", (short) enchantment.ordinal()));
-        bedrockTag.put(new ShortTag("lvl", ((Number) javaEnchLvl.getValue()).shortValue()));
+        // If the tag cannot parse, Java Edition 1.18.2 sets to 0
+        bedrockTag.put(new ShortTag("lvl", javaEnchLvl != null && javaEnchLvl.getValue() instanceof Number lvl ? lvl.shortValue() : (short) 0));
         return bedrockTag;
     }
 

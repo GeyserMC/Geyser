@@ -29,8 +29,11 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.InteractionResult;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class IronGolemEntity extends GolemEntity {
@@ -41,5 +44,19 @@ public class IronGolemEntity extends GolemEntity {
         setFlag(EntityFlag.BRIBED, true);
         // Required, or else the overlay is black
         dirtyMetadata.put(EntityData.COLOR_2, (byte) 0);
+    }
+
+    @Nonnull
+    @Override
+    protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
+        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().ironIngot()) {
+            if (health < maxHealth) {
+                // Healing the iron golem
+                return InteractionResult.SUCCESS;
+            } else {
+                return InteractionResult.PASS;
+            }
+        }
+        return super.mobInteract(itemInHand);
     }
 }

@@ -37,4 +37,9 @@ public class MonsterEntity extends CreatureEntity {
     public MonsterEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
+
+    @Override
+    protected boolean isEnemy() {
+        return true;
+    }
 }

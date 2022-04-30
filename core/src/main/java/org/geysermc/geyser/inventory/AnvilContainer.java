@@ -26,8 +26,14 @@
 package org.geysermc.geyser.inventory;
 
 import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundRenameItemPacket;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.ItemUtils;
+
+import javax.annotation.Nullable;
 
 /**
  * Used to determine if rename packets should be sent and stores
@@ -48,6 +54,7 @@ public class AnvilContainer extends Container {
     /**
      * The new name of the item as received from Bedrock
      */
+    @Nullable
     private String newName = null;
 
     private GeyserItemStack lastInput = GeyserItemStack.EMPTY;
@@ -57,6 +64,36 @@ public class AnvilContainer extends Container {
 
     public AnvilContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
         super(title, id, size, containerType, playerInventory);
+    }
+
+    /**
+     * @return the name to use instead for renaming.
+     */
+    public String checkForRename(GeyserSession session, String rename) {
+        String correctRename;
+        newName = rename;
+
+        String originalName = ItemUtils.getCustomName(getInput().getNbt());
+
+        String plainOriginalName = MessageTranslator.convertToPlainText(originalName, session.getLocale());
+        String plainNewName = MessageTranslator.convertToPlainText(rename, session.getLocale());
+        if (!plainOriginalName.equals(plainNewName)) {
+            // Strip out formatting since Java Edition does not allow it
+            correctRename = plainNewName;
+            // Java Edition sends a packet every time an item is renamed even slightly in GUI. Fortunately, this works out for us now
+            ServerboundRenameItemPacket renameItemPacket = new ServerboundRenameItemPacket(plainNewName);
+            session.sendDownstreamPacket(renameItemPacket);
+        } else {
+            // Restore formatting for item since we're not renaming
+            correctRename = MessageTranslator.convertMessageLenient(originalName);
+            // Java Edition sends the original custom name when not renaming,
+            // if there isn't a custom name an empty string is sent
+            ServerboundRenameItemPacket renameItemPacket = new ServerboundRenameItemPacket(plainOriginalName);
+            session.sendDownstreamPacket(renameItemPacket);
+        }
+
+        useJavaLevelCost = false;
+        return correctRename;
     }
 
     public GeyserItemStack getInput() {

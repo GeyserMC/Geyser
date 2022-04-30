@@ -28,8 +28,9 @@ package org.geysermc.geyser.registry.populator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import com.nukkitx.nbt.*;
-import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
-import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
+import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
+import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
+import com.nukkitx.protocol.bedrock.v503.Bedrock_v503;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -46,7 +47,10 @@ import org.geysermc.geyser.util.BlockUtils;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.zip.GZIPInputStream;
 
@@ -57,10 +61,51 @@ public class BlockRegistryPopulator {
     private static final ImmutableMap<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> BLOCK_MAPPERS;
     private static final BiFunction<String, NbtMapBuilder, String> EMPTY_MAPPER = (bedrockIdentifier, statesBuilder) -> null;
 
+    private static final BiFunction<String, NbtMapBuilder, String> V486_MAPPER = (bedrockIdentifier, statesBuilder) -> {
+        statesBuilder.remove("no_drop_bit"); // Used in skulls
+        if (bedrockIdentifier.equals("minecraft:glow_lichen")) {
+            // Moved around north, south, west
+            int bits = (int) statesBuilder.get("multi_face_direction_bits");
+            boolean north = (bits & (1 << 2)) != 0;
+            boolean south = (bits & (1 << 3)) != 0;
+            boolean west = (bits & (1 << 4)) != 0;
+            if (north) {
+                bits |= 1 << 4;
+            } else {
+                bits &= ~(1 << 4);
+            }
+            if (south) {
+                bits |= 1 << 2;
+            } else {
+                bits &= ~(1 << 2);
+            }
+            if (west) {
+                bits |= 1 << 3;
+            } else {
+                bits &= ~(1 << 3);
+            }
+            statesBuilder.put("multi_face_direction_bits", bits);
+        }
+        return null;
+    };
+
     static {
         ImmutableMap.Builder<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> stateMapperBuilder = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
-                .put(ObjectIntPair.of("1_17_30", Bedrock_v465.V465_CODEC.getProtocolVersion()), EMPTY_MAPPER)
-                .put(ObjectIntPair.of("1_17_40", Bedrock_v471.V471_CODEC.getProtocolVersion()), EMPTY_MAPPER);
+                .put(ObjectIntPair.of("1_18_0", Bedrock_v475.V475_CODEC.getProtocolVersion()), EMPTY_MAPPER)
+                .put(ObjectIntPair.of("1_18_10", Bedrock_v486.V486_CODEC.getProtocolVersion()), V486_MAPPER)
+                .put(ObjectIntPair.of("1_18_30", Bedrock_v503.V503_CODEC.getProtocolVersion()), (bedrockIdentifier, statesBuilder) -> {
+                    // Apply these fixes too
+                    V486_MAPPER.apply(bedrockIdentifier, statesBuilder);
+                    return switch (bedrockIdentifier) {
+                        case "minecraft:pistonArmCollision" -> "minecraft:piston_arm_collision";
+                        case "minecraft:stickyPistonArmCollision" -> "minecraft:sticky_piston_arm_collision";
+                        case "minecraft:movingBlock" -> "minecraft:moving_block";
+                        case "minecraft:tripWire" -> "minecraft:trip_wire";
+                        case "minecraft:seaLantern" -> "minecraft:sea_lantern";
+                        case "minecraft:concretePowder" -> "minecraft:concrete_powder";
+                        default -> null;
+                    };
+                });
 
         BLOCK_MAPPERS = stateMapperBuilder.build();
     }
@@ -87,7 +132,6 @@ public class BlockRegistryPopulator {
             } catch (Exception e) {
                 throw new AssertionError("Unable to get blocks from runtime block states", e);
             }
-            Map<String, NbtMap> javaIdentifierToBedrockTag = new Object2ObjectOpenHashMap<>(blocksTag.size());
             // New since 1.16.100 - find the block runtime ID by the order given to us in the block palette,
             // as we no longer send a block palette
             Object2IntMap<NbtMap> blockStateOrderedMap = new Object2IntOpenHashMap<>(blocksTag.size());
@@ -157,10 +201,6 @@ public class BlockRegistryPopulator {
                     flowerPotBlocks.put(cleanJavaIdentifier.intern(), blocksTag.get(bedrockRuntimeId));
                 }
 
-                if (!cleanJavaIdentifier.equals(entry.getValue().get("bedrock_identifier").asText())) {
-                    javaIdentifierToBedrockTag.put(cleanJavaIdentifier.intern(), blocksTag.get(bedrockRuntimeId));
-                }
-
                 javaToBedrockBlocks[javaRuntimeId] = bedrockRuntimeId;
             }
 
@@ -195,7 +235,6 @@ public class BlockRegistryPopulator {
 
             BlockRegistries.BLOCKS.register(palette.getKey().valueInt(), builder.blockStateVersion(stateVersion)
                     .javaToBedrockBlocks(javaToBedrockBlocks)
-                    .javaIdentifierToBedrockTag(javaIdentifierToBedrockTag)
                     .itemFrames(itemFrames)
                     .flowerPotBlocks(flowerPotBlocks)
                     .jigsawStateIds(jigsawStateIds)
