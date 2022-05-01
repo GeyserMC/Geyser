@@ -46,6 +46,7 @@ import java.util.Locale;
 public final class BlockStateValues {
     private static final Int2IntMap BANNER_COLORS = new FixedInt2IntMap();
     private static final Int2ByteMap BED_COLORS = new FixedInt2ByteMap();
+    private static final IntSet NON_WATER_CAULDRONS = new IntOpenHashSet();
     private static final Int2ByteMap COMMAND_BLOCK_VALUES = new Int2ByteOpenHashMap();
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
@@ -62,6 +63,7 @@ public final class BlockStateValues {
     private static final Int2ByteMap SKULL_ROTATIONS = new Int2ByteOpenHashMap();
     private static final Int2IntMap SKULL_WALL_DIRECTIONS = new Int2IntOpenHashMap();
     private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new FixedInt2ByteMap();
+    private static final IntSet WATER_CAULDRONS = new IntOpenHashSet();
     private static final Int2IntMap WATER_LEVEL = new Int2IntOpenHashMap();
 
     public static final int JAVA_AIR_ID = 0;
@@ -176,7 +178,7 @@ public final class BlockStateValues {
             return;
         }
 
-        if (javaId.startsWith("minecraft:water")) {
+        if (javaId.startsWith("minecraft:water") && !javaId.contains("cauldron")) {
             String strLevel = javaId.substring(javaId.lastIndexOf("level=") + 6, javaId.length() - 1);
             int level = Integer.parseInt(strLevel);
             WATER_LEVEL.put(javaBlockState, level);
@@ -189,6 +191,11 @@ public final class BlockStateValues {
             if (direction.isHorizontal()) {
                 HORIZONTAL_FACING_JIGSAWS.add(javaBlockState);
             }
+            return;
+        }
+
+        if (javaId.contains("_cauldron") && !javaId.contains("water_")) {
+             NON_WATER_CAULDRONS.add(javaBlockState);
         }
     }
 
@@ -212,6 +219,15 @@ public final class BlockStateValues {
      */
     public static byte getBedColor(int state) {
         return BED_COLORS.getOrDefault(state, (byte) -1);
+    }
+
+    /**
+     * Non-water cauldrons (since Bedrock 1.18.30) must have a block entity packet sent on chunk load to fix rendering issues.
+     *
+     * @return if this Java block state is a non-empty non-water cauldron
+     */
+    public static boolean isCauldron(int state) {
+        return NON_WATER_CAULDRONS.contains(state);
     }
 
     /**
