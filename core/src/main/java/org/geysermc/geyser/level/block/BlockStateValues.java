@@ -46,12 +46,12 @@ import java.util.Locale;
 public final class BlockStateValues {
     private static final Int2IntMap BANNER_COLORS = new FixedInt2IntMap();
     private static final Int2ByteMap BED_COLORS = new FixedInt2ByteMap();
-    private static final IntSet NON_WATER_CAULDRONS = new IntOpenHashSet();
     private static final Int2ByteMap COMMAND_BLOCK_VALUES = new Int2ByteOpenHashMap();
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
     private static final IntSet HORIZONTAL_FACING_JIGSAWS = new IntOpenHashSet();
     private static final LecternHasBookMap LECTERN_BOOK_STATES = new LecternHasBookMap();
+    private static final IntSet NON_WATER_CAULDRONS = new IntOpenHashSet();
     private static final Int2IntMap NOTEBLOCK_PITCHES = new FixedInt2IntMap();
     private static final Int2BooleanMap PISTON_VALUES = new Int2BooleanOpenHashMap();
     private static final IntSet STICKY_PISTONS = new IntOpenHashSet();
@@ -63,7 +63,6 @@ public final class BlockStateValues {
     private static final Int2ByteMap SKULL_ROTATIONS = new Int2ByteOpenHashMap();
     private static final Int2IntMap SKULL_WALL_DIRECTIONS = new Int2IntOpenHashMap();
     private static final Int2ByteMap SHULKERBOX_DIRECTIONS = new FixedInt2ByteMap();
-    private static final IntSet WATER_CAULDRONS = new IntOpenHashSet();
     private static final Int2IntMap WATER_LEVEL = new Int2IntOpenHashMap();
 
     public static final int JAVA_AIR_ID = 0;
