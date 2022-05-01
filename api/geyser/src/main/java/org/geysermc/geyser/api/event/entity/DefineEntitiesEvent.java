@@ -23,36 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.command;
+package org.geysermc.geyser.api.event.entity;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.entity.EntityIdentifier;
+import org.geysermc.geyser.api.event.Event;
 
-import java.util.Map;
+import java.util.List;
 
 /**
- * Manages Bedrock commands within Geyser.
+ * Called when Geyser sends a list of available entities to the
+ * Bedrock client. This will typically contain all the available
+ * entities within vanilla, but can be modified to include any custom
+ * entity defined through a resource pack.
+ *
+ * @param connection the {@link GeyserConnection} that is receiving the entities
+ * @param identifiers a mutable list of all the {@link EntityIdentifier}s
+ *                    sent to the client
  */
-public abstract class CommandManager {
-
-    /**
-     * Registers the given {@link Command}.
-     *
-     * @param command the command to register
-     */
-    public abstract void register(@NonNull Command command);
-
-    /**
-     * Unregisters the given {@link Command}.
-     *
-     * @param command the command to unregister
-     */
-    public abstract void unregister(@NonNull Command command);
-
-    /**
-     * Gets all the registered {@link Command}s.
-     *
-     * @return all the registered commands
-     */
-    @NonNull
-    public abstract Map<String, Command> commands();
+public record DefineEntitiesEvent(@NonNull GeyserConnection connection, @NonNull List<EntityIdentifier> identifiers) implements Event {
 }

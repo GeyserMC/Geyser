@@ -35,6 +35,7 @@ import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
+import org.geysermc.geyser.api.provider.ProviderManager;
 
 import java.util.List;
 import java.util.UUID;
@@ -98,6 +99,13 @@ public interface GeyserApi extends GeyserApiBase {
      * @return the command manager
      */
     CommandManager commandManager();
+
+    /**
+     * Gets the {@link ProviderManager}.
+     *
+     * @return the provider manager
+     */
+    ProviderManager providerManager();
 
     /**
      * Gets the {@link EventBus} for handling

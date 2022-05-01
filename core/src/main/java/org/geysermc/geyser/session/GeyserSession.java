@@ -61,6 +61,9 @@ import com.github.steveice10.packetlib.tcp.TcpClientSession;
 import com.github.steveice10.packetlib.tcp.TcpSession;
 import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.*;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.*;
@@ -88,9 +91,12 @@ import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.entity.EntityIdentifier;
+import org.geysermc.geyser.api.event.entity.DefineEntitiesEvent;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
+import org.geysermc.geyser.entity.GeyserEntityIdentifier;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -129,6 +135,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Getter
 public class GeyserSession implements GeyserConnection, GeyserCommandSource {
@@ -595,9 +602,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         biomeDefinitionListPacket.setDefinitions(Registries.BIOMES_NBT.get());
         upstream.sendPacket(biomeDefinitionListPacket);
 
-        AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
-        entityPacket.setIdentifiers(Registries.BEDROCK_ENTITY_IDENTIFIERS.get());
-        upstream.sendPacket(entityPacket);
+        this.sendAvailableEntityIdentifiers();
 
         CreativeContentPacket creativePacket = new CreativeContentPacket();
         creativePacket.setContents(this.itemMappings.getCreativeItems());
@@ -625,6 +630,29 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Ensure client doesn't try and do anything funky; the server handles this for us
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
         upstream.sendPacket(gamerulePacket);
+    }
+
+    public void sendAvailableEntityIdentifiers() {
+        NbtMap nbt = Registries.BEDROCK_ENTITY_IDENTIFIERS.get();
+        List<NbtMap> idlist = nbt.getList("idlist", NbtType.COMPOUND);
+        List<EntityIdentifier> identifiers = new ArrayList<>(idlist.size());
+        for (NbtMap identifier : idlist) {
+            identifiers.add(new GeyserEntityIdentifier(identifier));
+        }
+
+        DefineEntitiesEvent event = new DefineEntitiesEvent(this, identifiers);
+        this.geyser.eventBus().fire(event);
+
+        NbtMapBuilder builder = nbt.toBuilder();
+        builder.putList("idlist", NbtType.COMPOUND, event.identifiers()
+                .stream()
+                .map(identifer -> ((GeyserEntityIdentifier) identifer).nbt())
+                .collect(Collectors.toList())
+        );
+
+        AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
+        entityPacket.setIdentifiers(builder.build());
+        upstream.sendPacket(entityPacket);
     }
 
     public void authenticate(String username) {

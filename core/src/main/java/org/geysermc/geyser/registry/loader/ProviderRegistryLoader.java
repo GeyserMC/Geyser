@@ -23,36 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.command;
+package org.geysermc.geyser.registry.loader;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.registry.provider.AbstractProvider;
+import org.geysermc.geyser.registry.provider.ProviderSupplier;
 
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 /**
- * Manages Bedrock commands within Geyser.
+ * Registers the provider data from the provider.
  */
-public abstract class CommandManager {
+public class ProviderRegistryLoader implements RegistryLoader<AbstractProvider, Map<Class<?>, ProviderSupplier>> {
 
-    /**
-     * Registers the given {@link Command}.
-     *
-     * @param command the command to register
-     */
-    public abstract void register(@NonNull Command command);
-
-    /**
-     * Unregisters the given {@link Command}.
-     *
-     * @param command the command to unregister
-     */
-    public abstract void unregister(@NonNull Command command);
-
-    /**
-     * Gets all the registered {@link Command}s.
-     *
-     * @return all the registered commands
-     */
-    @NonNull
-    public abstract Map<String, Command> commands();
+    @Override
+    public Map<Class<?>, ProviderSupplier> load(AbstractProvider input) {
+        Map<Class<?>, ProviderSupplier> providers = new IdentityHashMap<>();
+        input.registerProviders(providers);
+        return providers;
+    }
 }

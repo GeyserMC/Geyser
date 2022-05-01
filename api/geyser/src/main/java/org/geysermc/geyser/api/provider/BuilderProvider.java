@@ -23,36 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.command;
+package org.geysermc.geyser.api.provider;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-
-import java.util.Map;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
- * Manages Bedrock commands within Geyser.
+ * Allows for obtaining instances of a builder that are
+ * used for constructing various data.
  */
-public abstract class CommandManager {
+public interface BuilderProvider extends Provider {
 
     /**
-     * Registers the given {@link Command}.
+     * Provides a builder for the specified builder type.
      *
-     * @param command the command to register
-     */
-    public abstract void register(@NonNull Command command);
-
-    /**
-     * Unregisters the given {@link Command}.
-     *
-     * @param command the command to unregister
-     */
-    public abstract void unregister(@NonNull Command command);
-
-    /**
-     * Gets all the registered {@link Command}s.
-     *
-     * @return all the registered commands
+     * @param builderClass the builder class
+     * @param <B> the resulting type
+     * @param <T> the builder type
+     * @return the builder instance
      */
     @NonNull
-    public abstract Map<String, Command> commands();
+    <B extends T, T> B provideBuilder(@NonNull Class<T> builderClass, @Nullable Object... args);
 }

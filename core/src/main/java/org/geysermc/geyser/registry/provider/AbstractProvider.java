@@ -23,36 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.command;
+package org.geysermc.geyser.registry.provider;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import lombok.RequiredArgsConstructor;
+import org.geysermc.geyser.api.provider.Provider;
+import org.geysermc.geyser.registry.SimpleMappedRegistry;
 
 import java.util.Map;
 
-/**
- * Manages Bedrock commands within Geyser.
- */
-public abstract class CommandManager {
+@RequiredArgsConstructor
+public abstract class AbstractProvider implements Provider {
+    public abstract void registerProviders(Map<Class<?>, ProviderSupplier> providers);
 
-    /**
-     * Registers the given {@link Command}.
-     *
-     * @param command the command to register
-     */
-    public abstract void register(@NonNull Command command);
-
-    /**
-     * Unregisters the given {@link Command}.
-     *
-     * @param command the command to unregister
-     */
-    public abstract void unregister(@NonNull Command command);
-
-    /**
-     * Gets all the registered {@link Command}s.
-     *
-     * @return all the registered commands
-     */
-    @NonNull
-    public abstract Map<String, Command> commands();
+    public abstract SimpleMappedRegistry<Class<?>, ProviderSupplier> providerRegistry();
 }

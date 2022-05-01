@@ -70,6 +70,7 @@ import org.geysermc.geyser.network.RemoteServerImpl;
 import org.geysermc.geyser.pack.ResourcePack;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.provider.GeyserProviderManager;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
@@ -145,6 +146,7 @@ public class GeyserImpl implements GeyserApi {
 
     private final EventBus eventBus;
     private final GeyserExtensionManager extensionManager;
+    private final GeyserProviderManager providerManager = new GeyserProviderManager();
 
     private final RemoteServer remoteServer;
     private final BedrockListener bedrockListener;
@@ -574,6 +576,11 @@ public class GeyserImpl implements GeyserApi {
     @Override
     public GeyserCommandManager commandManager() {
         return this.bootstrap.getGeyserCommandManager();
+    }
+
+    @Override
+    public GeyserProviderManager providerManager() {
+        return this.providerManager;
     }
 
     @Override
