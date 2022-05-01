@@ -178,12 +178,8 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
             builder.put("tag", tag);
         }
 
-        NbtMap blockTag = session.getBlockMappings().getBedrockBlockNbt(mapping.getJavaIdentifier());
-        if (blockTag != null) {
-            // This fixes certain blocks being unable to stack after grabbing one
-            builder.putCompound("Block", blockTag);
-            builder.putShort("Damage", (short) 0);
-        }
+        // Implementation note: previously we added a block tag to fix some blocks (black concrete?) that wouldn't stack
+        // after buying. This no longer seems to be an issue as of Bedrock 1.18.30, and including it breaks sugar canes.
 
         return builder.build();
     }
