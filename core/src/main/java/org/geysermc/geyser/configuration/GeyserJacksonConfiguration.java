@@ -165,7 +165,7 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         @JsonProperty("server-name")
         private String serverName = GeyserImpl.NAME;
 		
-		 @JsonProperty("shutdown-message")
+        @JsonProperty("shutdown-message")
         private String shutdownMessage = "Geyser Proxy shutting down";
 
         @JsonProperty("compression-level")

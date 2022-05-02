@@ -119,7 +119,7 @@ public interface GeyserConfiguration {
 
         String getServerName();
 		
-		 String getShutdownMessage();
+        String getShutdownMessage();
 
         int getCompressionLevel();
 

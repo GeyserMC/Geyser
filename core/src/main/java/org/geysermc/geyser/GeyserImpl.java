@@ -495,7 +495,7 @@ public class GeyserImpl implements GeyserApi {
 
     @Override
     public void shutdown() {
-		 GeyserConfiguration config = bootstrap.getGeyserConfig();
+		GeyserConfiguration config = bootstrap.getGeyserConfig();
         bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown"));
         shuttingDown = true;
 
