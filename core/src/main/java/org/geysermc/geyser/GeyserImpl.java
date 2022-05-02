@@ -495,12 +495,13 @@ public class GeyserImpl implements GeyserApi {
 
     @Override
     public void shutdown() {
+		 GeyserConfiguration config = bootstrap.getGeyserConfig();
         bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown"));
         shuttingDown = true;
 
         if (sessionManager.size() >= 1) {
             bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.log", sessionManager.size()));
-            sessionManager.disconnectAll("geyser.core.shutdown.kick.message");
+            sessionManager.disconnectAll(config.getBedrock().getShutdownMessage());
             bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.done"));
         }
 

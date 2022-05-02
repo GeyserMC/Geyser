@@ -118,6 +118,8 @@ public interface GeyserConfiguration {
         String getMotd2();
 
         String getServerName();
+		
+		 String getShutdownMessage();
 
         int getCompressionLevel();
 

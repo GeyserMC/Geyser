@@ -23,6 +23,8 @@ bedrock:
   motd2: "Another Geyser server."
   # The Server Name that will be sent to Minecraft: Bedrock Edition clients. This is visible in both the pause menu and the settings menu.
   server-name: "Geyser"
+  # The message that will be displayed to Minecraft: Bedrock Edition clients when Geyser shuts down.
+  shutdown-message: "Geyser Proxy shutting down"
   # How much to compress network traffic to the Bedrock client. The higher the number, the more CPU usage used, but
   # the smaller the bandwidth used. Does not have any effect below -1 or above 9. Set to -1 to disable.
   compression-level: 6
