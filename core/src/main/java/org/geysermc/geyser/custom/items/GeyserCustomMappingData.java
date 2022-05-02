@@ -23,49 +23,37 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.custom.items;
 
-import com.nukkitx.nbt.NbtList;
-import com.nukkitx.nbt.NbtMap;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import lombok.Builder;
-import lombok.Value;
+import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
+import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import org.geysermc.geyser.registry.type.ItemMapping;
 
-import java.util.Map;
+public class GeyserCustomMappingData {
+    private Int2ObjectMap<Mapping> mappings = new Int2ObjectOpenHashMap<>();
 
-@Builder
-@Value
-public class BlockMappings {
-    int bedrockAirId;
-    int bedrockWaterId;
-    int bedrockMovingBlockId;
-
-    int blockStateVersion;
-
-    int[] javaToBedrockBlocks;
-
-    NbtList<NbtMap> bedrockBlockStates;
-
-    int commandBlockRuntimeId;
-
-    Object2IntMap<NbtMap> itemFrames;
-    Map<String, NbtMap> flowerPotBlocks;
-
-    IntSet jigsawStateIds;
-
-    public int getBedrockBlockId(int state) {
-        if (state >= this.javaToBedrockBlocks.length) {
-            return bedrockAirId;
+    public void addMapping(int protocolVersion, Mapping mapping) {
+        if (mapping == null) {
+            throw new IllegalArgumentException("Mapping cannot be null");
         }
-        return this.javaToBedrockBlocks[state];
+
+        mappings.put(protocolVersion, mapping);
     }
 
-    public int getItemFrame(NbtMap tag) {
-        return this.itemFrames.getOrDefault(tag, -1);
+    public Mapping getMapping(int protocolVersion) {
+        return mappings.get(protocolVersion);
     }
 
-    public boolean isItemFrame(int bedrockBlockRuntimeId) {
-        return this.itemFrames.values().contains(bedrockBlockRuntimeId);
+    public Mapping[] getMappings() {
+        return mappings.values().toArray(new Mapping[0]);
+    }
+
+    public int mappingNumber() {
+        return mappings.size();
+    }
+
+    public record Mapping(ComponentItemData componentItemData, ItemMapping itemMapping, StartGamePacket.ItemEntry startGamePacketItemEntry, String stringId, int integerId) {
     }
 }

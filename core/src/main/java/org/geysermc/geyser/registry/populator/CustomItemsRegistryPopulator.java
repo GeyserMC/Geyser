@@ -42,7 +42,7 @@ import org.geysermc.geyser.api.custom.items.CustomItemData;
 import org.geysermc.geyser.api.custom.items.FullyCustomItemData;
 import org.geysermc.geyser.custom.GeyserCustomManager;
 import org.geysermc.geyser.custom.GeyserCustomRenderOffsets;
-import org.geysermc.geyser.custom.items.GeyserCustomItemData;
+import org.geysermc.geyser.custom.items.GeyserCustomMappingData;
 import org.geysermc.geyser.custom.items.tools.ToolBreakSpeeds;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -53,13 +53,13 @@ import java.util.*;
 public class CustomItemsRegistryPopulator {
     private static IntList protocolVersions = IntList.of(Bedrock_v475.V475_CODEC.getProtocolVersion(), Bedrock_v486.V486_CODEC.getProtocolVersion(), Bedrock_v503.V503_CODEC.getProtocolVersion());
 
-    public static GeyserCustomItemData populateRegistry(String baseItem, CustomItemData customItemData, int nameExists, int customItems) {
+    public static GeyserCustomMappingData populateRegistry(String baseItem, CustomItemData customItemData, int nameExists, int customItems) {
         String customItemName = GeyserCustomManager.CUSTOM_PREFIX + customItemData.name();
         if (nameExists != 0) {
             customItemName += "_" + nameExists;
         }
 
-        GeyserCustomItemData returnData = new GeyserCustomItemData();
+        GeyserCustomMappingData returnData = new GeyserCustomMappingData();
         int addNum = 0;
 
         for (int protocolVersion : protocolVersions) {
@@ -67,10 +67,12 @@ public class CustomItemsRegistryPopulator {
 
             ItemMappings itemMappings = Registries.ITEMS.get(protocolVersion);
             if (itemMappings == null) {
+                GeyserImpl.getInstance().getLogger().error("Could not find item mappings for protocol version " + protocolVersion);
                 continue;
             }
             ItemMapping javaItem = itemMappings.getMapping(baseItem);
             if (javaItem == null) {
+                GeyserImpl.getInstance().getLogger().error("Could not find the java item to add custom model data to for " + baseItem + " in protocol version " + protocolVersion);
                 continue;
             }
 
@@ -98,7 +100,7 @@ public class CustomItemsRegistryPopulator {
             }
 
             ComponentItemData componentItemData = new ComponentItemData(customItemName, builder.build());
-            returnData.addMapping(protocolVersion, new GeyserCustomItemData.Mapping(componentItemData, customItemMapping, startGamePacketItemEntry, customItemName, customItemId));
+            returnData.addMapping(protocolVersion, new GeyserCustomMappingData.Mapping(componentItemData, customItemMapping, startGamePacketItemEntry, customItemName, customItemId));
         }
 
         return returnData;
@@ -130,7 +132,7 @@ public class CustomItemsRegistryPopulator {
             }
 
             String customIdentifier = customItemData.identifier();
-            int customItemId = itemMappings.getItems().size() + customItems + addNum;
+            int customItemId = itemMappings.getItems().size() + (customItems * protocolVersions.size()) + addNum;
 
             ItemMapping customItemMapping = ItemMapping.builder()
                     .javaIdentifier(customIdentifier)

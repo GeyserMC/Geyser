@@ -26,47 +26,40 @@
 package org.geysermc.geyser.api.custom.items;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.GeyserApi;
 
 /**
  * This class represents the different types of custom item registration
  */
-public class CustomItemRegistrationTypes {
-    private Boolean unbreaking = null;
-    private Integer customModelData = null;
-    private Integer damagePredicate = null;
+public interface CustomItemRegistrationTypes {
+    @Nullable Boolean unbreaking();
 
-    public @Nullable Boolean unbreaking() {
-        return unbreaking;
-    }
+    @Nullable Integer customModelData();
 
-    public void unbreaking(@Nullable Boolean unbreaking) {
-        this.unbreaking = unbreaking;
-    }
-
-    public @Nullable Integer customModelData() {
-        return customModelData;
-    }
-
-    public void customModelData(@Nullable Integer customModelData) {
-        this.customModelData = customModelData;
-    }
-
-    public @Nullable Integer damagePredicate() {
-        return damagePredicate;
-    }
-
-    public void damagePredicate(@Nullable Integer damagePredicate) {
-        this.damagePredicate = damagePredicate;
-    }
+    @Nullable Integer damagePredicate();
 
     /**
      * Checks if the item has at least one registration type set
      *
      * @return true if the item has any registrations set
      */
-    public boolean hasRegistrationTypes() {
-        return this.unbreaking != null ||
-                this.customModelData != null ||
-                this.damagePredicate != null;
+    default boolean hasRegistrationTypes() {
+        return this.unbreaking() != null ||
+                this.customModelData() != null ||
+                this.damagePredicate() != null;
+    }
+
+    static CustomItemRegistrationTypes.Builder builder() {
+        return GeyserApi.api().providerManager().builderProvider().provideBuilder(CustomItemRegistrationTypes.Builder.class);
+    }
+
+    interface Builder {
+        Builder unbreaking(@Nullable Boolean unbreaking);
+
+        Builder customModelData(@Nullable Integer customModelData);
+
+        Builder damagePredicate(@Nullable Integer damagePredicate);
+
+        CustomItemRegistrationTypes build();
     }
 }

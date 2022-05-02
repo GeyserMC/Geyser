@@ -35,15 +35,6 @@ import java.util.Map;
 public abstract class CommandManager {
 
     /**
-     * Provides a {@link Command.Builder}.
-     *
-     * @param sourceType the command source type
-     * @param <T> the type
-     * @return a command builder
-     */
-    protected abstract <T extends CommandSource> Command.Builder<T> provideBuilder(Class<T> sourceType);
-
-    /**
      * Registers the given {@link Command}.
      *
      * @param command the command to register

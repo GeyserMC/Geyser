@@ -23,49 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.api.provider;
 
-import com.nukkitx.nbt.NbtList;
-import com.nukkitx.nbt.NbtMap;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import lombok.Builder;
-import lombok.Value;
+/**
+ * Holds a record of every {@link Provider} available
+ * that allows for accessing various information throughout
+ * the API.
+ */
+public interface ProviderManager {
 
-import java.util.Map;
-
-@Builder
-@Value
-public class BlockMappings {
-    int bedrockAirId;
-    int bedrockWaterId;
-    int bedrockMovingBlockId;
-
-    int blockStateVersion;
-
-    int[] javaToBedrockBlocks;
-
-    NbtList<NbtMap> bedrockBlockStates;
-
-    int commandBlockRuntimeId;
-
-    Object2IntMap<NbtMap> itemFrames;
-    Map<String, NbtMap> flowerPotBlocks;
-
-    IntSet jigsawStateIds;
-
-    public int getBedrockBlockId(int state) {
-        if (state >= this.javaToBedrockBlocks.length) {
-            return bedrockAirId;
-        }
-        return this.javaToBedrockBlocks[state];
-    }
-
-    public int getItemFrame(NbtMap tag) {
-        return this.itemFrames.getOrDefault(tag, -1);
-    }
-
-    public boolean isItemFrame(int bedrockBlockRuntimeId) {
-        return this.itemFrames.values().contains(bedrockBlockRuntimeId);
-    }
+    /**
+     * Returns the {@link BuilderProvider}.
+     *
+     * @return the builder provider
+     */
+    BuilderProvider builderProvider();
 }

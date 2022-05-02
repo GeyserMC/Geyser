@@ -132,7 +132,6 @@ public class BlockRegistryPopulator {
             } catch (Exception e) {
                 throw new AssertionError("Unable to get blocks from runtime block states", e);
             }
-            Map<String, NbtMap> javaIdentifierToBedrockTag = new Object2ObjectOpenHashMap<>(blocksTag.size());
             // New since 1.16.100 - find the block runtime ID by the order given to us in the block palette,
             // as we no longer send a block palette
             Object2IntMap<NbtMap> blockStateOrderedMap = new Object2IntOpenHashMap<>(blocksTag.size());
@@ -202,10 +201,6 @@ public class BlockRegistryPopulator {
                     flowerPotBlocks.put(cleanJavaIdentifier.intern(), blocksTag.get(bedrockRuntimeId));
                 }
 
-                if (!cleanJavaIdentifier.equals(entry.getValue().get("bedrock_identifier").asText())) {
-                    javaIdentifierToBedrockTag.put(cleanJavaIdentifier.intern(), blocksTag.get(bedrockRuntimeId));
-                }
-
                 javaToBedrockBlocks[javaRuntimeId] = bedrockRuntimeId;
             }
 
@@ -240,7 +235,6 @@ public class BlockRegistryPopulator {
 
             BlockRegistries.BLOCKS.register(palette.getKey().valueInt(), builder.blockStateVersion(stateVersion)
                     .javaToBedrockBlocks(javaToBedrockBlocks)
-                    .javaIdentifierToBedrockTag(javaIdentifierToBedrockTag)
                     .itemFrames(itemFrames)
                     .flowerPotBlocks(flowerPotBlocks)
                     .jigsawStateIds(jigsawStateIds)

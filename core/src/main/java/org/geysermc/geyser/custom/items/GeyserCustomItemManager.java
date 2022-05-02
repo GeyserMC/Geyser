@@ -39,6 +39,7 @@ import org.geysermc.geyser.api.custom.items.CustomItemManager;
 import org.geysermc.geyser.api.custom.items.CustomItemRegistrationTypes;
 import org.geysermc.geyser.api.custom.items.FullyCustomItemData;
 import org.geysermc.geyser.custom.GeyserCustomManager;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.populator.CustomItemsRegistryPopulator;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,7 +52,7 @@ import java.util.regex.Pattern;
 public class GeyserCustomItemManager extends CustomItemManager {
     private Map<String, List<CustomItemData>> customMappings = new HashMap<>();
 
-    private List<GeyserCustomItemData> registeredCustomItems = new ArrayList<>();
+    private List<GeyserCustomMappingData> registeredCustomItems = new ArrayList<>();
     private Int2ObjectMap<List<ComponentItemData>> registeredComponentItems = new Int2ObjectOpenHashMap<>();
 
     private Int2ObjectMap<String> customIdMappings = new Int2ObjectOpenHashMap<>();
@@ -80,15 +81,14 @@ public class GeyserCustomItemManager extends CustomItemManager {
             return false;
         }
 
-        GeyserCustomItemData registeredItem = CustomItemsRegistryPopulator.populateRegistry(identifier, customItemData, this.nameExists(customItemData.name()), this.registeredItemCount());
+        GeyserCustomMappingData registeredItem = CustomItemsRegistryPopulator.populateRegistry(identifier, customItemData, this.nameExists(customItemData.name()), this.registeredItemCount());
 
         if (registeredItem.mappingNumber() > 0) {
             this.customMappings.computeIfAbsent(identifier, list -> new ArrayList<>()).add(customItemData);
             this.registeredCustomItems.add(registeredItem);
 
-            for (GeyserCustomItemData.Mapping mapping : registeredItem.getMappings()) {
+            for (GeyserCustomMappingData.Mapping mapping : registeredItem.getMappings()) {
                 this.customIdMappings.put(mapping.integerId(), mapping.stringId());
-                GeyserImpl.getInstance().getLogger().info("Registered custom item '" + mapping.stringId() + "' with id " + mapping.integerId());
             }
 
             return true;
@@ -126,7 +126,6 @@ public class GeyserCustomItemManager extends CustomItemManager {
     }
 
     public String itemStringFromId(int id) {
-        GeyserImpl.getInstance().getLogger().info("Item string from id: " + id + "; " + this.customIdMappings.get(id));
         return this.customIdMappings.get(id);
     }
 
@@ -137,7 +136,7 @@ public class GeyserCustomItemManager extends CustomItemManager {
     public List<ComponentItemData> componentItemDataListFromVersion(int protocolVersion) {
         List<ComponentItemData> componentItemDataList = new ArrayList<>();
 
-        for (GeyserCustomItemData registeredItem : this.registeredCustomItems) {
+        for (GeyserCustomMappingData registeredItem : this.registeredCustomItems) {
             componentItemDataList.add(registeredItem.getMapping(protocolVersion).componentItemData());
         }
 
@@ -148,14 +147,14 @@ public class GeyserCustomItemManager extends CustomItemManager {
 
     public List<StartGamePacket.ItemEntry> startGameItemEntryListFromVersion(int protocolVersion) {
         List<StartGamePacket.ItemEntry> itemEntryList = new ArrayList<>();
-        for (GeyserCustomItemData registeredItem : this.registeredCustomItems) {
+        for (GeyserCustomMappingData registeredItem : this.registeredCustomItems) {
             itemEntryList.add(registeredItem.getMapping(protocolVersion).startGamePacketItemEntry());
         }
         return itemEntryList;
     }
 
     public static CustomItemRegistrationTypes nbtToRegistrationTypes(CompoundTag nbt) {
-        CustomItemRegistrationTypes registrationTypes = new CustomItemRegistrationTypes();
+        CustomItemRegistrationTypes.Builder registrationTypes = CustomItemRegistrationTypes.builder();
 
         if (nbt.get("CustomModelData") instanceof IntTag customModelDataTag) {
             registrationTypes.customModelData(customModelDataTag.getValue());
@@ -169,6 +168,6 @@ public class GeyserCustomItemManager extends CustomItemManager {
             registrationTypes.unbreaking(unbreakableTag.getValue() == 1);
         }
 
-        return registrationTypes;
+        return registrationTypes.build();
     }
 }

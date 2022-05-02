@@ -65,7 +65,7 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
     }
 
     private CustomItemRegistrationTypes readItemRegistrationTypes(JsonNode node) {
-        CustomItemRegistrationTypes registrationTypes = new CustomItemRegistrationTypes();
+        CustomItemRegistrationTypes.Builder registrationTypes = CustomItemRegistrationTypes.builder();
 
         if (node.has("custom_model_data")) {
             registrationTypes.customModelData(node.get("custom_model_data").asInt());
@@ -77,7 +77,7 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
             registrationTypes.unbreaking(node.get("unbreaking").asBoolean());
         }
 
-        return registrationTypes;
+        return registrationTypes.build();
     }
 
     @Override
@@ -91,7 +91,7 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
         }
 
         String name = node.get("name").asText();
-        CustomItemData customItemData = new CustomItemData(name, this.readItemRegistrationTypes(node));
+        CustomItemData.Builder customItemData = CustomItemData.builder(name, this.readItemRegistrationTypes(node));
 
         //The next entries are optional
         if (node.has("display_name")) {
@@ -112,6 +112,6 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
             customItemData.renderOffsets(GeyserCustomRenderOffsets.fromJsonNode(tmpNode));
         }
 
-        return customItemData;
+        return customItemData.build();
     }
 }

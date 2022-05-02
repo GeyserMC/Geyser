@@ -98,27 +98,80 @@ public interface Command {
     }
 
     static <T extends CommandSource> Command.Builder<T> builder(Class<T> sourceType) {
-        return GeyserApi.api().commandManager().provideBuilder(sourceType);
+        return GeyserApi.api().providerManager().builderProvider().provideBuilder(Builder.class, sourceType);
     }
 
     interface Builder<T extends CommandSource> {
 
+        /**
+         * Sets the command name.
+         *
+         * @param name the command name
+         * @return the builder
+         */
         Builder<T> name(String name);
 
+        /**
+         * Sets the command description.
+         *
+         * @param description the command description
+         * @return the builder
+         */
         Builder<T> description(String description);
 
+        /**
+         * Sets the permission node.
+         *
+         * @param permission the permission node
+         * @return the builder
+         */
         Builder<T> permission(String permission);
 
+        /**
+         * Sets the aliases.
+         *
+         * @param aliases the aliases
+         * @return the builder
+         */
         Builder<T> aliases(List<String> aliases);
 
+        /**
+         * Sets if this command is executable on console.
+         *
+         * @param executableOnConsole if this command is executable on console
+         * @return the builder
+         */
         Builder<T> executableOnConsole(boolean executableOnConsole);
 
+        /**
+         * Sets the subcommands.
+         *
+         * @param subCommands the subcommands
+         * @return the builder
+         */
         Builder<T> subCommands(List<String> subCommands);
 
+        /**
+         * Sets if this command is bedrock only.
+         *
+         * @param bedrockOnly if this command is bedrock only
+         * @return the builder
+         */
         Builder<T> bedrockOnly(boolean bedrockOnly);
 
+        /**
+         * Sets the {@link CommandExecutor} for this command.
+         *
+         * @param executor the command executor
+         * @return the builder
+         */
         Builder<T> executor(CommandExecutor<T> executor);
 
+        /**
+         * Builds the command.
+         *
+         * @return the command
+         */
         Command build();
     }
 }

@@ -66,6 +66,8 @@ public class DumpInfo {
 
     private final DumpInfo.VersionInfo versionInfo;
     private final int cpuCount;
+    private final Locale systemLocale;
+    private final String systemEncoding;
     private Properties gitInfo;
     private final GeyserConfiguration config;
     private final Floodgate floodgate;
@@ -81,6 +83,8 @@ public class DumpInfo {
         this.versionInfo = new VersionInfo();
 
         this.cpuCount = Runtime.getRuntime().availableProcessors();
+        this.systemLocale = Locale.getDefault();
+        this.systemEncoding = System.getProperty("file.encoding");
 
         try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource("git.properties")) {
             this.gitInfo = new Properties();

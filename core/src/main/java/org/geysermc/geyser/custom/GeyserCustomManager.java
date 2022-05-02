@@ -60,7 +60,7 @@ public class GeyserCustomManager {
             this.loadMappingsFromJson(mappingsFile);
         }
 
-        GeyserImpl.getInstance().getLogger().info("Registered " + this.customItemManager.registeredItemCount() + " custom items.");
+        GeyserImpl.getInstance().getLogger().info("Registered " + this.customItemManager.registeredItemCount() + " custom items from mappings");
     }
 
     public void loadMappingsFromJson(@NotNull Path file) {

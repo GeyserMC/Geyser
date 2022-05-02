@@ -23,49 +23,24 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.api.event.entity;
 
-import com.nukkitx.nbt.NbtList;
-import com.nukkitx.nbt.NbtMap;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import lombok.Builder;
-import lombok.Value;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.entity.EntityIdentifier;
+import org.geysermc.geyser.api.event.Event;
 
-import java.util.Map;
+import java.util.List;
 
-@Builder
-@Value
-public class BlockMappings {
-    int bedrockAirId;
-    int bedrockWaterId;
-    int bedrockMovingBlockId;
-
-    int blockStateVersion;
-
-    int[] javaToBedrockBlocks;
-
-    NbtList<NbtMap> bedrockBlockStates;
-
-    int commandBlockRuntimeId;
-
-    Object2IntMap<NbtMap> itemFrames;
-    Map<String, NbtMap> flowerPotBlocks;
-
-    IntSet jigsawStateIds;
-
-    public int getBedrockBlockId(int state) {
-        if (state >= this.javaToBedrockBlocks.length) {
-            return bedrockAirId;
-        }
-        return this.javaToBedrockBlocks[state];
-    }
-
-    public int getItemFrame(NbtMap tag) {
-        return this.itemFrames.getOrDefault(tag, -1);
-    }
-
-    public boolean isItemFrame(int bedrockBlockRuntimeId) {
-        return this.itemFrames.values().contains(bedrockBlockRuntimeId);
-    }
+/**
+ * Called when Geyser sends a list of available entities to the
+ * Bedrock client. This will typically contain all the available
+ * entities within vanilla, but can be modified to include any custom
+ * entity defined through a resource pack.
+ *
+ * @param connection the {@link GeyserConnection} that is receiving the entities
+ * @param identifiers a mutable list of all the {@link EntityIdentifier}s
+ *                    sent to the client
+ */
+public record DefineEntitiesEvent(@NonNull GeyserConnection connection, @NonNull List<EntityIdentifier> identifiers) implements Event {
 }

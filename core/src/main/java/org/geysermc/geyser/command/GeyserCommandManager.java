@@ -148,11 +148,6 @@ public abstract class GeyserCommandManager extends CommandManager {
      */
     public abstract String description(String command);
 
-    @Override
-    protected <T extends CommandSource> Command.Builder<T> provideBuilder(Class<T> sourceType) {
-        return new CommandBuilder<>(sourceType);
-    }
-
     @RequiredArgsConstructor
     public static class CommandBuilder<T extends CommandSource> implements Command.Builder<T> {
         private final Class<T> sourceType;

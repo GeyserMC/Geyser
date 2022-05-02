@@ -23,49 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.api.provider;
 
-import com.nukkitx.nbt.NbtList;
-import com.nukkitx.nbt.NbtMap;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import lombok.Builder;
-import lombok.Value;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.util.Map;
+/**
+ * Allows for obtaining instances of a builder that are
+ * used for constructing various data.
+ */
+public interface BuilderProvider extends Provider {
 
-@Builder
-@Value
-public class BlockMappings {
-    int bedrockAirId;
-    int bedrockWaterId;
-    int bedrockMovingBlockId;
-
-    int blockStateVersion;
-
-    int[] javaToBedrockBlocks;
-
-    NbtList<NbtMap> bedrockBlockStates;
-
-    int commandBlockRuntimeId;
-
-    Object2IntMap<NbtMap> itemFrames;
-    Map<String, NbtMap> flowerPotBlocks;
-
-    IntSet jigsawStateIds;
-
-    public int getBedrockBlockId(int state) {
-        if (state >= this.javaToBedrockBlocks.length) {
-            return bedrockAirId;
-        }
-        return this.javaToBedrockBlocks[state];
-    }
-
-    public int getItemFrame(NbtMap tag) {
-        return this.itemFrames.getOrDefault(tag, -1);
-    }
-
-    public boolean isItemFrame(int bedrockBlockRuntimeId) {
-        return this.itemFrames.values().contains(bedrockBlockRuntimeId);
-    }
+    /**
+     * Provides a builder for the specified builder type.
+     *
+     * @param builderClass the builder class
+     * @param <B> the resulting type
+     * @param <T> the builder type
+     * @return the builder instance
+     */
+    @NonNull
+    <B extends T, T> B provideBuilder(@NonNull Class<T> builderClass, @Nullable Object... args);
 }

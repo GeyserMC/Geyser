@@ -23,49 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.registry;
 
-import com.nukkitx.nbt.NbtList;
-import com.nukkitx.nbt.NbtMap;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import lombok.Builder;
-import lombok.Value;
+import org.geysermc.geyser.api.provider.Provider;
+import org.geysermc.geyser.registry.loader.ProviderRegistryLoader;
+import org.geysermc.geyser.registry.provider.GeyserBuilderProvider;
+import org.geysermc.geyser.registry.provider.ProviderSupplier;
 
-import java.util.Map;
+/**
+ * Holds registries for the available {@link Provider}s
+ */
+public class ProviderRegistries {
 
-@Builder
-@Value
-public class BlockMappings {
-    int bedrockAirId;
-    int bedrockWaterId;
-    int bedrockMovingBlockId;
-
-    int blockStateVersion;
-
-    int[] javaToBedrockBlocks;
-
-    NbtList<NbtMap> bedrockBlockStates;
-
-    int commandBlockRuntimeId;
-
-    Object2IntMap<NbtMap> itemFrames;
-    Map<String, NbtMap> flowerPotBlocks;
-
-    IntSet jigsawStateIds;
-
-    public int getBedrockBlockId(int state) {
-        if (state >= this.javaToBedrockBlocks.length) {
-            return bedrockAirId;
-        }
-        return this.javaToBedrockBlocks[state];
-    }
-
-    public int getItemFrame(NbtMap tag) {
-        return this.itemFrames.getOrDefault(tag, -1);
-    }
-
-    public boolean isItemFrame(int bedrockBlockRuntimeId) {
-        return this.itemFrames.values().contains(bedrockBlockRuntimeId);
-    }
+    /**
+     * A registry containing all the providers for builders.
+     */
+    public static final SimpleMappedRegistry<Class<?>, ProviderSupplier> BUILDERS = SimpleMappedRegistry.create(GeyserBuilderProvider.INSTANCE, ProviderRegistryLoader::new);
 }

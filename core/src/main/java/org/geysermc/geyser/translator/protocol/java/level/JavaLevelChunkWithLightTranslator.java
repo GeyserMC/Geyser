@@ -99,7 +99,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         final List<NbtMap> bedrockBlockEntities = new ObjectArrayList<>(blockEntities.length);
 
         BitSet waterloggedPaletteIds = new BitSet();
-        BitSet pistonOrFlowerPaletteIds = new BitSet();
+        BitSet bedrockOnlyBlockEntityIds = new BitSet();
 
         BedrockDimension bedrockDimension = session.getChunkCache().getBedrockDimension();
         int maxBedrockSectionY = (bedrockDimension.height() >> 4) - 1;
@@ -144,7 +144,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         }
 
                         // Check if block is piston or flower to see if we'll need to create additional block entities, as they're only block entities in Bedrock
-                        if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId)) {
+                        if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId) || BlockStateValues.isCauldron(javaId)) {
                             bedrockBlockEntities.add(BedrockOnlyBlockEntity.getTag(session,
                                     Vector3i.from((packet.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (packet.getZ() << 4) + ((yzx >> 4) & 0xF)),
                                     javaId
@@ -173,7 +173,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                 IntList bedrockPalette = new IntArrayList(javaPalette.size());
                 waterloggedPaletteIds.clear();
-                pistonOrFlowerPaletteIds.clear();
+                bedrockOnlyBlockEntityIds.clear();
 
                 // Iterate through palette and convert state IDs to Bedrock, doing some additional checks as we go
                 for (int i = 0; i < javaPalette.size(); i++) {
@@ -184,19 +184,19 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         waterloggedPaletteIds.set(i);
                     }
 
-                    // Check if block is piston or flower to see if we'll need to create additional block entities, as they're only block entities in Bedrock
-                    if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId)) {
-                        pistonOrFlowerPaletteIds.set(i);
+                    // Check if block is piston, flower or cauldron to see if we'll need to create additional block entities, as they're only block entities in Bedrock
+                    if (BlockStateValues.getFlowerPotValues().containsKey(javaId) || BlockStateValues.getPistonValues().containsKey(javaId) || BlockStateValues.isCauldron(javaId)) {
+                        bedrockOnlyBlockEntityIds.set(i);
                     }
                 }
 
                 // Add Bedrock-exclusive block entities
                 // We only if the palette contained any blocks that are Bedrock-exclusive block entities to avoid iterating through the whole block data
                 // for no reason, as most sections will not contain any pistons or flower pots
-                if (!pistonOrFlowerPaletteIds.isEmpty()) {
+                if (!bedrockOnlyBlockEntityIds.isEmpty()) {
                     for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
                         int paletteId = javaData.get(yzx);
-                        if (pistonOrFlowerPaletteIds.get(paletteId)) {
+                        if (bedrockOnlyBlockEntityIds.get(paletteId)) {
                             bedrockBlockEntities.add(BedrockOnlyBlockEntity.getTag(session,
                                     Vector3i.from((packet.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (packet.getZ() << 4) + ((yzx >> 4) & 0xF)),
                                     javaPalette.idToState(paletteId)
@@ -233,9 +233,9 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     }
 
                     // V1 palette
-                    IntList layer1Palette = new IntArrayList(2);
-                    layer1Palette.add(session.getBlockMappings().getBedrockAirId()); // Air - see BlockStorage's constructor for more information
-                    layer1Palette.add(session.getBlockMappings().getBedrockWaterId());
+                    IntList layer1Palette = IntList.of(
+                            session.getBlockMappings().getBedrockAirId(), // Air - see BlockStorage's constructor for more information
+                            session.getBlockMappings().getBedrockWaterId());
 
                     layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
                 }
