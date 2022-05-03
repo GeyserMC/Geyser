@@ -59,9 +59,7 @@ import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
-import org.geysermc.geyser.custom.GeyserCustomManager;
-import org.geysermc.geyser.custom.items.GeyserCustomItemManager;
-import org.geysermc.geyser.custom.mappings.MappingsConfigReader;
+import org.geysermc.geyser.item.GeyserCustomItemManager;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.extension.GeyserExtensionManager;
@@ -151,7 +149,7 @@ public class GeyserImpl implements GeyserApi {
 
     private final EventBus eventBus;
     private final GeyserExtensionManager extensionManager;
-    private final GeyserCustomManager customManager;
+    private final GeyserCustomItemManager customItemManager;
     private final GeyserProviderManager providerManager = new GeyserProviderManager();
 
     private final RemoteServer remoteServer;
@@ -190,8 +188,8 @@ public class GeyserImpl implements GeyserApi {
         BlockRegistries.init();
 
         /* Initialize custom model data manager */
-        this.customManager = new GeyserCustomManager();
-        this.customManager.loadMappingsFromJson();
+        this.customItemManager = new GeyserCustomItemManager();
+        this.customItemManager.loadMappingsFromJson();
 
         /* Initialize event bus */
         this.eventBus = new GeyserEventBus();
@@ -609,13 +607,9 @@ public class GeyserImpl implements GeyserApi {
         return this.eventBus;
     }
 
-    public GeyserCustomManager customManager() {
-        return this.customManager;
-    }
-
     @Override
     public GeyserCustomItemManager customItemManager() {
-        return this.customManager.getItemManager();
+        return this.customItemManager;
     }
 
     public RemoteServer defaultRemoteServer() {

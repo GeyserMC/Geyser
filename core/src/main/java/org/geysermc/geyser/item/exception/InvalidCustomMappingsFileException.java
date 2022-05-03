@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.custom.exception;
+package org.geysermc.geyser.item.exception;
 
 public class InvalidCustomMappingsFileException extends Exception {
     public InvalidCustomMappingsFileException(Throwable cause) {

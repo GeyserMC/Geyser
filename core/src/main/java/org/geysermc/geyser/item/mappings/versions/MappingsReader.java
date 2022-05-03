@@ -23,29 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.custom;
+package org.geysermc.geyser.item.mappings.versions;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.geysermc.geyser.api.item.custom.CustomItemData;
+import org.geysermc.geyser.item.GeyserCustomItemManager;
+import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 
-/**
- * This class is used to store the render offsets of custom items.
- */
-public record CustomRenderOffsets(@Nullable Hand mainHand, @Nullable Hand offhand) {
-    /**
-     * The hand that is used for the offset.
-     */
-    public record Hand(@Nullable Offset firstPerson, @Nullable Offset thirdPerson) {
+import java.nio.file.Path;
+
+public abstract class MappingsReader {
+    protected GeyserCustomItemManager customItemManager;
+
+    public MappingsReader(GeyserCustomItemManager customItemManager) {
+        this.customItemManager = customItemManager;
     }
 
-    /**
-     * The offset of the item.
-     */
-    public record Offset(@Nullable OffsetXYZ position, @Nullable OffsetXYZ rotation, @Nullable OffsetXYZ scale) {
-    }
+    public abstract void readMappings(Path file, JsonNode mappingsRoot);
 
-    /**
-     * X, Y and Z positions for the offset.
-     */
-    public record OffsetXYZ(float x, float y, float z) {
-    }
+    public abstract CustomItemData readItemMappingEntry(JsonNode node) throws InvalidCustomMappingsFileException;
 }

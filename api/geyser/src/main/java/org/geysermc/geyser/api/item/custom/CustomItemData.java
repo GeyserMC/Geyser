@@ -23,14 +23,11 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.custom.items;
+package org.geysermc.geyser.api.item.custom;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.api.command.CommandSource;
-import org.geysermc.geyser.api.custom.CustomRenderOffsets;
 
 /**
  * This is used to store data for a custom item.

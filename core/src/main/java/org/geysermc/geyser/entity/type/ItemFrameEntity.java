@@ -117,7 +117,7 @@ public class ItemFrameEntity extends Entity {
             ItemData itemData = ItemTranslator.translateToBedrock(session, heldItem);
 
             ItemMapping mapping = session.getItemMappings().getMapping(entityMetadata.getValue());
-            String identifier = session.getGeyser().customManager().getItemManager().itemStringFromId(itemData.getId());
+            String identifier = session.getGeyser().getCustomItemManager().itemStringFromId(itemData.getId());
             if (identifier == null) {
                 identifier = mapping.getBedrockIdentifier();
             }

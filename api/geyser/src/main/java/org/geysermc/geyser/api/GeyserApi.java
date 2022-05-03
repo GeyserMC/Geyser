@@ -31,7 +31,7 @@ import org.geysermc.api.Geyser;
 import org.geysermc.api.GeyserApiBase;
 import org.geysermc.geyser.api.command.CommandManager;
 import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.custom.items.CustomItemManager;
+import org.geysermc.geyser.api.item.custom.CustomItemManager;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.network.BedrockListener;

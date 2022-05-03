@@ -23,23 +23,43 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.custom.mappings.versions;
+package org.geysermc.geyser.item.tools;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.geysermc.geyser.api.custom.items.CustomItemData;
-import org.geysermc.geyser.custom.GeyserCustomManager;
-import org.geysermc.geyser.custom.exception.InvalidCustomMappingsFileException;
+public enum ToolTier {
+    WOODEN("wooden", 2),
+    STONE("stone", 4),
+    IRON("iron", 6),
+    GOLDEN("golden", 12),
+    DIAMOND("diamond", 8),
+    NETHERITE("netherite", 9);
 
-import java.nio.file.Path;
+    private final String name;
+    private final int speed;
 
-public abstract class MappingsReader {
-    protected GeyserCustomManager customManager;
-
-    public MappingsReader(GeyserCustomManager customManager) {
-        this.customManager = customManager;
+    ToolTier(String name, int speed) {
+        this.name = name;
+        this.speed = speed;
     }
 
-    public abstract void readMappings(Path file, JsonNode mappingsRoot);
+    public String getName() {
+        return name;
+    }
 
-    public abstract CustomItemData readItemMappingEntry(JsonNode node) throws InvalidCustomMappingsFileException;
+    public int getSpeed() {
+        return speed;
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    public static ToolTier getByName(String name) {
+        for (ToolTier tier : values()) {
+            if (tier.getName().equals(name)) {
+                return tier;
+            }
+        }
+        return null;
+    }
 }

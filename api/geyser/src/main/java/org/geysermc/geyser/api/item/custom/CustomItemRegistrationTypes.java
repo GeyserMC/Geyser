@@ -23,20 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.custom.items;
+package org.geysermc.geyser.api.item.custom;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
+
+import java.util.Optional;
+import java.util.OptionalInt;
 
 /**
  * This class represents the different types of custom item registration
  */
 public interface CustomItemRegistrationTypes {
-    @Nullable Boolean unbreaking();
+    @NonNull Optional<Boolean> unbreaking();
 
-    @Nullable Integer customModelData();
+    @NonNull OptionalInt customModelData();
 
-    @Nullable Integer damagePredicate();
+    @NonNull OptionalInt damagePredicate();
 
     /**
      * Checks if the item has at least one registration type set
@@ -44,9 +47,9 @@ public interface CustomItemRegistrationTypes {
      * @return true if the item has any registrations set
      */
     default boolean hasRegistrationTypes() {
-        return this.unbreaking() != null ||
-                this.customModelData() != null ||
-                this.damagePredicate() != null;
+        return this.unbreaking().isEmpty() ||
+                this.customModelData().isEmpty() ||
+                this.damagePredicate().isEmpty();
     }
 
     static CustomItemRegistrationTypes.Builder builder() {
@@ -54,11 +57,14 @@ public interface CustomItemRegistrationTypes {
     }
 
     interface Builder {
-        Builder unbreaking(@Nullable Boolean unbreaking);
+        Builder unbreaking(@NonNull Optional<Boolean> unbreaking);
+        Builder unbreaking(boolean unbreaking);
 
-        Builder customModelData(@Nullable Integer customModelData);
+        Builder customModelData(@NonNull OptionalInt customModelData);
+        Builder customModelData(int customModelData);
 
-        Builder damagePredicate(@Nullable Integer damagePredicate);
+        Builder damagePredicate(@NonNull OptionalInt damagePredicate);
+        Builder damagePredicate(int damagePredicate);
 
         CustomItemRegistrationTypes build();
     }

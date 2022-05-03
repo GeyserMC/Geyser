@@ -23,15 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.custom.items.builders;
+package org.geysermc.geyser.item;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.custom.CustomRenderOffsets;
-import org.geysermc.geyser.api.custom.items.CustomItemData;
-import org.geysermc.geyser.api.custom.items.CustomItemRegistrationTypes;
-import org.geysermc.geyser.api.custom.items.FullyCustomItemData;
+import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
+import org.geysermc.geyser.api.item.custom.CustomItemData;
+import org.geysermc.geyser.api.item.custom.CustomItemRegistrationTypes;
+import org.geysermc.geyser.api.item.custom.FullyCustomItemData;
 
+import java.util.OptionalInt;
 import java.util.Set;
 
 public record GeyserFullyCustomItemData(CustomItemData customItemData,
@@ -46,8 +47,7 @@ public record GeyserFullyCustomItemData(CustomItemData customItemData,
                                         int protectionValue,
                                         String translationString,
                                         Set<String> repairMaterials,
-                                        boolean hasSuspiciousStewEffect,
-                                        Integer creativeCategory,
+                                        OptionalInt creativeCategory,
                                         String creativeGroup,
                                         boolean isHat,
                                         boolean isTool) implements FullyCustomItemData {
@@ -102,9 +102,7 @@ public record GeyserFullyCustomItemData(CustomItemData customItemData,
 
         private Set<String> repairMaterials;
 
-        private boolean hasSuspiciousStewEffect = false;
-
-        private Integer creativeCategory = null;
+        private OptionalInt creativeCategory = OptionalInt.empty();
         private String creativeGroup = null;
 
         private boolean isHat = false;
@@ -172,14 +170,14 @@ public record GeyserFullyCustomItemData(CustomItemData customItemData,
         }
 
         @Override
-        public FullyCustomItemData.Builder hasSuspiciousStewEffect(boolean hasSuspiciousStewEffect) {
-            this.hasSuspiciousStewEffect = hasSuspiciousStewEffect;
+        public FullyCustomItemData.Builder creativeCategory(@NonNull OptionalInt creativeCategory) {
+            this.creativeCategory = creativeCategory;
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder creativeCategory(@Nullable Integer creativeCategory) {
-            this.creativeCategory = creativeCategory;
+        public FullyCustomItemData.Builder creativeCategory(int creativeCategory) {
+            this.creativeCategory = OptionalInt.of(creativeCategory);
             return this;
         }
 
@@ -227,7 +225,7 @@ public record GeyserFullyCustomItemData(CustomItemData customItemData,
 
         @Override
         public FullyCustomItemData build() {
-            return new GeyserFullyCustomItemData(customItemData.build(), identifier, javaId, stackSize, maxDamage, toolType, toolTier, armorType, armorTier, protectionValue, translationString, repairMaterials, hasSuspiciousStewEffect, creativeCategory, creativeGroup, isHat, isTool);
+            return new GeyserFullyCustomItemData(customItemData.build(), identifier, javaId, stackSize, maxDamage, toolType, toolTier, armorType, armorTier, protectionValue, translationString, repairMaterials, creativeCategory, creativeGroup, isHat, isTool);
         }
     }
 }

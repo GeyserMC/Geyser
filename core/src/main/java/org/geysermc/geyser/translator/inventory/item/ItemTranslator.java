@@ -38,8 +38,8 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.custom.items.CustomItemRegistrationTypes;
-import org.geysermc.geyser.custom.items.GeyserCustomItemManager;
+import org.geysermc.geyser.api.item.custom.CustomItemRegistrationTypes;
+import org.geysermc.geyser.item.GeyserCustomItemManager;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -542,32 +542,33 @@ public abstract class ItemTranslator {
             for (Object2IntMap.Entry<CustomItemRegistrationTypes> mappingTypes : mapping.getCustomRegistrations().object2IntEntrySet()) {
                 boolean matches = true;
 
-                if (mappingTypes.getKey().unbreaking() != null) {
-                    if (nbtData.unbreaking() == null) {
+                if (mappingTypes.getKey().unbreaking().isPresent()) {
+                    if (nbtData.unbreaking().isEmpty()) {
                         matches = false;
-                    } else if (mappingTypes.getKey().unbreaking().booleanValue() != nbtData.unbreaking().booleanValue()) {
-                        matches = false;
-                    }
-                }
-
-                if (mappingTypes.getKey().customModelData() != null) {
-                    if (nbtData.customModelData() == null) {
-                        matches = false;
-                    } else if (mappingTypes.getKey().customModelData().intValue() != nbtData.customModelData().intValue()) {
+                    } else if (mappingTypes.getKey().unbreaking().get().booleanValue() != nbtData.unbreaking().get().booleanValue()) {
                         matches = false;
                     }
                 }
 
-                if (mappingTypes.getKey().damagePredicate() != null) {
-                    if (nbtData.damagePredicate() == null) {
+                if (mappingTypes.getKey().customModelData().isPresent()) {
+                    if (nbtData.customModelData().isEmpty()) {
                         matches = false;
-                    } else if (mappingTypes.getKey().damagePredicate().intValue() != nbtData.damagePredicate().intValue()) {
+                    } else if (mappingTypes.getKey().customModelData().getAsInt() != nbtData.customModelData().getAsInt()) {
+                        matches = false;
+                    }
+                }
+
+                if (mappingTypes.getKey().damagePredicate().isPresent()) {
+                    if (nbtData.damagePredicate().isEmpty()) {
+                        matches = false;
+                    } else if (mappingTypes.getKey().damagePredicate().getAsInt() != nbtData.damagePredicate().getAsInt()) {
                         matches = false;
                     }
                 }
 
                 if (matches) {
                     builder.id(mappingTypes.getIntValue());
+                    break;
                 }
             }
         }

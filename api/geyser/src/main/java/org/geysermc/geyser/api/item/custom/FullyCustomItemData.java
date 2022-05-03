@@ -23,13 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.custom.items;
+package org.geysermc.geyser.api.item.custom;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.custom.CustomRenderOffsets;
 
+import java.util.OptionalInt;
 import java.util.Set;
 
 /**
@@ -114,18 +114,11 @@ public interface FullyCustomItemData extends CustomItemData {
     @Nullable Set<String> repairMaterials();
 
     /**
-     * Gets if the item has the suspicious stew effect.
-     *
-     * @return if the item has the suspicious stew effect
-     */
-    boolean hasSuspiciousStewEffect();
-
-    /**
      * Gets the item's creative category, or tab id.
      *
      * @return the item's creative category
      */
-    @Nullable Integer creativeCategory();
+    @NonNull OptionalInt creativeCategory();
 
     /**
      * Gets the item's creative group.
@@ -172,9 +165,9 @@ public interface FullyCustomItemData extends CustomItemData {
 
         Builder repairMaterials(@Nullable Set<String> repairMaterials);
 
-        Builder hasSuspiciousStewEffect(boolean hasSuspiciousStewEffect);
+        Builder creativeCategory(@NonNull OptionalInt creativeCategory);
 
-        Builder creativeCategory(@Nullable Integer creativeCategory);
+        Builder creativeCategory(int creativeCategory);
 
         Builder creativeGroup(@Nullable String creativeGroup);
 

@@ -23,14 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.custom.items.builders;
+package org.geysermc.geyser.item;
 
-import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.custom.CustomRenderOffsets;
-import org.geysermc.geyser.api.custom.items.CustomItemData;
-import org.geysermc.geyser.api.custom.items.CustomItemRegistrationTypes;
+import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
+import org.geysermc.geyser.api.item.custom.CustomItemData;
+import org.geysermc.geyser.api.item.custom.CustomItemRegistrationTypes;
 
 public record GeyserCustomItemData(String name,
                                    CustomItemRegistrationTypes registrationTypes,

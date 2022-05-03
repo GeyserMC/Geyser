@@ -23,43 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.custom.items.tools;
+package org.geysermc.geyser.api.item.custom;
 
-public enum ToolTier {
-    WOODEN("wooden", 2),
-    STONE("stone", 4),
-    IRON("iron", 6),
-    GOLDEN("golden", 12),
-    DIAMOND("diamond", 8),
-    NETHERITE("netherite", 9);
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-    private final String name;
-    private final int speed;
-
-    ToolTier(String name, int speed) {
-        this.name = name;
-        this.speed = speed;
+/**
+ * This class is used to store the render offsets of custom items.
+ */
+public record CustomRenderOffsets(@Nullable Hand mainHand, @Nullable Hand offhand) {
+    /**
+     * The hand that is used for the offset.
+     */
+    public record Hand(@Nullable Offset firstPerson, @Nullable Offset thirdPerson) {
     }
 
-    public String getName() {
-        return name;
+    /**
+     * The offset of the item.
+     */
+    public record Offset(@Nullable OffsetXYZ position, @Nullable OffsetXYZ rotation, @Nullable OffsetXYZ scale) {
     }
 
-    public int getSpeed() {
-        return speed;
-    }
-
-    @Override
-    public String toString() {
-        return name;
-    }
-
-    public static ToolTier getByName(String name) {
-        for (ToolTier tier : values()) {
-            if (tier.getName().equals(name)) {
-                return tier;
-            }
-        }
-        return null;
+    /**
+     * X, Y and Z positions for the offset.
+     */
+    public record OffsetXYZ(float x, float y, float z) {
     }
 }

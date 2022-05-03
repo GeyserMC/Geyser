@@ -592,14 +592,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Set the hardcoded shield ID to the ID we just defined in StartGamePacket
         upstream.getSession().getHardcodedBlockingId().set(this.itemMappings.getStoredItems().shield().getBedrockId());
 
-        if (GeyserImpl.getInstance().getConfig().isAddNonBedrockItems() || this.itemMappings.getFurnaceMinecartData() != null) {
+        if (GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
             ItemComponentPacket componentPacket = new ItemComponentPacket();
 
             if (this.itemMappings.getFurnaceMinecartData() != null) {
                 componentPacket.getItems().add(this.itemMappings.getFurnaceMinecartData());
             }
 
-            List<ComponentItemData> customItems = this.geyser.getCustomManager().getItemManager().componentItemDataListFromVersion(upstream.getProtocolVersion());
+            List<ComponentItemData> customItems = this.geyser.getCustomItemManager().componentItemDataListFromVersion(upstream.getProtocolVersion());
             if (customItems.size() != 0) {
                 componentPacket.getItems().addAll(customItems);
             }
@@ -1462,7 +1462,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setMultiplayerCorrelationId("");
 
         List<StartGamePacket.ItemEntry> items = new ArrayList<>(this.itemMappings.getItemEntries());
-        items.addAll(this.geyser.customManager().getItemManager().startGameItemEntryListFromVersion(upstream.getProtocolVersion()));
+        items.addAll(this.geyser.getCustomItemManager().startGameItemEntryListFromVersion(upstream.getProtocolVersion()));
         startGamePacket.setItemEntries(items);
 
         startGamePacket.setVanillaVersion("*");

@@ -23,21 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.custom.mappings.versions;
+package org.geysermc.geyser.item.mappings.versions;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.custom.items.CustomItemData;
-import org.geysermc.geyser.api.custom.items.CustomItemRegistrationTypes;
-import org.geysermc.geyser.custom.GeyserCustomManager;
-import org.geysermc.geyser.custom.GeyserCustomRenderOffsets;
-import org.geysermc.geyser.custom.exception.InvalidCustomMappingsFileException;
+import org.geysermc.geyser.api.item.custom.CustomItemData;
+import org.geysermc.geyser.api.item.custom.CustomItemRegistrationTypes;
+import org.geysermc.geyser.item.GeyserCustomItemManager;
+import org.geysermc.geyser.item.GeyserCustomRenderOffsets;
+import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 
 import java.nio.file.Path;
 
 public class MappingsReader_v1_0_0 extends MappingsReader {
-    public MappingsReader_v1_0_0(GeyserCustomManager customManager) {
-        super(customManager);
+    public MappingsReader_v1_0_0(GeyserCustomItemManager customItemManager) {
+        super(customItemManager);
     }
 
     @Override
@@ -54,7 +54,7 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
                     entry.getValue().forEach(data -> {
                         try {
                             CustomItemData customItemData = this.readItemMappingEntry(data);
-                            this.customManager.getItemManager().registerCustomItem(entry.getKey(), customItemData);
+                            this.customItemManager.registerCustomItem(entry.getKey(), customItemData);
                         } catch (InvalidCustomMappingsFileException e) {
                             GeyserImpl.getInstance().getLogger().error("Error in custom mapping file: " + file.toString(), e);
                         }
@@ -67,14 +67,19 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
     private CustomItemRegistrationTypes readItemRegistrationTypes(JsonNode node) {
         CustomItemRegistrationTypes.Builder registrationTypes = CustomItemRegistrationTypes.builder();
 
-        if (node.has("custom_model_data")) {
-            registrationTypes.customModelData(node.get("custom_model_data").asInt());
+        JsonNode customModelData = node.get("custom_model_data");
+        if (customModelData != null && customModelData.isInt()) {
+            registrationTypes.customModelData(customModelData.asInt());
         }
-        if (node.has("damage_predicate")) {
-            registrationTypes.damagePredicate(node.get("damage_predicate").asInt());
+
+        JsonNode damagePredicate = node.get("damage_predicate");
+        if (damagePredicate != null && damagePredicate.isInt()) {
+            registrationTypes.damagePredicate(damagePredicate.asInt());
         }
-        if (node.has("unbreaking")) {
-            registrationTypes.unbreaking(node.get("unbreaking").asBoolean());
+
+        JsonNode unbreaking = node.get("unbreaking");
+        if (unbreaking != null && unbreaking.isBoolean()) {
+            registrationTypes.unbreaking(unbreaking.asBoolean());
         }
 
         return registrationTypes.build();

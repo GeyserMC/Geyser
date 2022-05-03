@@ -31,30 +31,27 @@ import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
-import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
-import com.nukkitx.protocol.bedrock.v503.Bedrock_v503;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.custom.items.CustomItemData;
-import org.geysermc.geyser.api.custom.items.FullyCustomItemData;
-import org.geysermc.geyser.custom.GeyserCustomManager;
-import org.geysermc.geyser.custom.GeyserCustomRenderOffsets;
-import org.geysermc.geyser.custom.items.GeyserCustomMappingData;
-import org.geysermc.geyser.custom.items.tools.ToolBreakSpeeds;
+import org.geysermc.geyser.api.item.custom.CustomItemData;
+import org.geysermc.geyser.api.item.custom.FullyCustomItemData;
+import org.geysermc.geyser.item.GeyserCustomItemManager;
+import org.geysermc.geyser.item.GeyserCustomRenderOffsets;
+import org.geysermc.geyser.item.GeyserCustomMappingData;
+import org.geysermc.geyser.item.tools.ToolBreakSpeeds;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 
 import java.util.*;
 
-public class CustomItemsRegistryPopulator {
-    private static IntList protocolVersions = IntList.of(Bedrock_v475.V475_CODEC.getProtocolVersion(), Bedrock_v486.V486_CODEC.getProtocolVersion(), Bedrock_v503.V503_CODEC.getProtocolVersion());
+public class CustomItemRegistryPopulator {
+    private static IntSet protocolVersions = Registries.ITEMS.get().keySet();
 
     public static GeyserCustomMappingData populateRegistry(String baseItem, CustomItemData customItemData, int nameExists, int customItems) {
-        String customItemName = GeyserCustomManager.CUSTOM_PREFIX + customItemData.name();
+        String customItemName = GeyserCustomItemManager.CUSTOM_PREFIX + customItemData.name();
         if (nameExists != 0) {
             customItemName += "_" + nameExists;
         }
@@ -62,14 +59,12 @@ public class CustomItemsRegistryPopulator {
         GeyserCustomMappingData returnData = new GeyserCustomMappingData();
         int addNum = 0;
 
-        for (int protocolVersion : protocolVersions) {
+        for (Int2ObjectMap.Entry<ItemMappings> entry : Registries.ITEMS.get().int2ObjectEntrySet()) {
             addNum++;
 
-            ItemMappings itemMappings = Registries.ITEMS.get(protocolVersion);
-            if (itemMappings == null) {
-                GeyserImpl.getInstance().getLogger().error("Could not find item mappings for protocol version " + protocolVersion);
-                continue;
-            }
+            int protocolVersion = entry.getIntKey();
+            ItemMappings itemMappings = entry.getValue();
+
             ItemMapping javaItem = itemMappings.getMapping(baseItem);
             if (javaItem == null) {
                 GeyserImpl.getInstance().getLogger().error("Could not find the java item to add custom model data to for " + baseItem + " in protocol version " + protocolVersion);
@@ -91,7 +86,7 @@ public class CustomItemsRegistryPopulator {
 
             StartGamePacket.ItemEntry startGamePacketItemEntry = new StartGamePacket.ItemEntry(customItemName, (short) customItemId, true);
 
-            NbtMapBuilder builder = createItemData(customItemData, javaItem, customItemName, customItemId, null, null, false, javaItem.isTool());
+            NbtMapBuilder builder = createItemData(customItemData, javaItem, customItemName, customItemId, OptionalInt.empty(), null, false, javaItem.isTool());
 
             if (customItemData.registrationTypes().hasRegistrationTypes()) {
                 javaItem.getCustomRegistrations().put(customItemData.registrationTypes(), customItemId);
@@ -110,14 +105,11 @@ public class CustomItemsRegistryPopulator {
         Int2ObjectMap<ComponentItemData> componentItemDataMap = new Int2ObjectOpenHashMap<>();
         int addNum = 0;
 
-        for (int protocolVersion : protocolVersions) {
+        for (Int2ObjectMap.Entry<ItemMappings> entry : Registries.ITEMS.get().int2ObjectEntrySet()) {
             addNum++;
 
-            ItemMappings itemMappings = Registries.ITEMS.get(protocolVersion);
-            if (itemMappings == null) {
-                GeyserImpl.getInstance().getLogger().error("Could not find item mappings for protocol version " + protocolVersion);
-                continue;
-            }
+            int protocolVersion = entry.getIntKey();
+            ItemMappings itemMappings = entry.getValue();
 
             boolean exists = false;
             for (ItemMapping mapping : itemMappings.getItems().values()) {
@@ -150,7 +142,7 @@ public class CustomItemsRegistryPopulator {
                     .translationString(customItemData.translationString())
                     .maxDamage(customItemData.maxDamage())
                     .repairMaterials(customItemData.repairMaterials())
-                    .hasSuspiciousStewEffect(customItemData.hasSuspiciousStewEffect())
+                    .hasSuspiciousStewEffect(false)
                     .build();
 
 
@@ -173,7 +165,7 @@ public class CustomItemsRegistryPopulator {
         return componentItemDataMap;
     }
 
-    private static NbtMapBuilder createItemData(CustomItemData customItemData, ItemMapping mapping, String customItemName, int customItemId, Integer creativeCategory, String creativeGroup, boolean isHat, boolean isTool) {
+    private static NbtMapBuilder createItemData(CustomItemData customItemData, ItemMapping mapping, String customItemName, int customItemId, OptionalInt creativeCategory, String creativeGroup, boolean isHat, boolean isTool) {
         NbtMapBuilder builder = NbtMap.builder();
         builder.putString("name", customItemName)
                 .putInt("id", customItemId);
@@ -198,8 +190,8 @@ public class CustomItemsRegistryPopulator {
         if (creativeGroup != null) {
             itemProperties.putString("creative_group", creativeGroup);
         }
-        if (creativeCategory != null) {
-            itemProperties.putInt("creative_category", creativeCategory);
+        if (creativeCategory.isPresent()) {
+            itemProperties.putInt("creative_category", creativeCategory.getAsInt());
         }
 
         componentBuilder.putCompound("item_properties", itemProperties.build());

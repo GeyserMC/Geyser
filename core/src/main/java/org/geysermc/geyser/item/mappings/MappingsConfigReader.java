@@ -23,13 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.custom.mappings;
+package org.geysermc.geyser.item.mappings;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.custom.GeyserCustomManager;
-import org.geysermc.geyser.custom.mappings.versions.MappingsReader;
-import org.geysermc.geyser.custom.mappings.versions.MappingsReader_v1_0_0;
+import org.geysermc.geyser.item.GeyserCustomItemManager;
+import org.geysermc.geyser.item.mappings.versions.MappingsReader;
+import org.geysermc.geyser.item.mappings.versions.MappingsReader_v1_0_0;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -40,8 +40,8 @@ import java.util.Map;
 public class MappingsConfigReader {
     private static final Map<String, MappingsReader> MAPPING_READERS = new HashMap<>();
 
-    public static void init(GeyserCustomManager customManager) {
-        MAPPING_READERS.put("1.0.0", new MappingsReader_v1_0_0(customManager));
+    public static void init(GeyserCustomItemManager customItemManager) {
+        MAPPING_READERS.put("1.0.0", new MappingsReader_v1_0_0(customItemManager));
     }
 
     public static Path getCustomMappingsDirectory() {

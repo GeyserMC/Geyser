@@ -30,7 +30,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.geysermc.geyser.api.custom.items.CustomItemRegistrationTypes;
+import org.geysermc.geyser.api.item.custom.CustomItemRegistrationTypes;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 
