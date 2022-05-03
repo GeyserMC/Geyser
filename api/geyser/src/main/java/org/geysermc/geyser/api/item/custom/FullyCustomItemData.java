@@ -41,7 +41,7 @@ public interface FullyCustomItemData extends CustomItemData {
      *
      * @return The java identifier for this item.
      */
-    String identifier();
+    @NonNull String identifier();
 
     /**
      * Gets the java item id of the item.
@@ -142,11 +142,17 @@ public interface FullyCustomItemData extends CustomItemData {
      */
     boolean isTool();
 
-    static FullyCustomItemData.Builder builder(String name, String identifier, int javaId) {
-        return GeyserApi.api().providerManager().builderProvider().provideBuilder(FullyCustomItemData.Builder.class, name, identifier, javaId);
+    static FullyCustomItemData.Builder builder() {
+        return GeyserApi.api().providerManager().builderProvider().provideBuilder(FullyCustomItemData.Builder.class);
     }
 
     interface Builder extends CustomItemData.Builder {
+        Builder name(@NonNull String name);
+
+        Builder identifier(@NonNull String identifier);
+
+        Builder javaId(int javaId);
+
         Builder stackSize(int stackSize);
 
         Builder maxDamage(int maxDamage);

@@ -91,12 +91,14 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
             throw new InvalidCustomMappingsFileException("Invalid item mappings entry");
         }
 
-        if (!node.has("name")) {
+        String name = node.get("name").asText();
+        if (name == null || name.isEmpty()) {
             throw new InvalidCustomMappingsFileException("An item entry has no name");
         }
 
-        String name = node.get("name").asText();
-        CustomItemData.Builder customItemData = CustomItemData.builder(name, this.readItemRegistrationTypes(node));
+        CustomItemData.Builder customItemData = CustomItemData.builder()
+                .name(name)
+                .registrationTypes(this.readItemRegistrationTypes(node));
 
         //The next entries are optional
         if (node.has("display_name")) {

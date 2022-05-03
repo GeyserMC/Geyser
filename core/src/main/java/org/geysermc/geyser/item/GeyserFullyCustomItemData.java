@@ -82,10 +82,10 @@ public record GeyserFullyCustomItemData(CustomItemData customItemData,
     }
 
     public static class Builder implements FullyCustomItemData.Builder {
-        private final CustomItemData.Builder customItemData;
+        private CustomItemData.Builder customItemData = CustomItemData.builder();
 
-        private final String identifier;
-        private final int javaId;
+        private String identifier = null;
+        private int javaId = -1;
 
         private int stackSize = 64;
 
@@ -108,11 +108,22 @@ public record GeyserFullyCustomItemData(CustomItemData customItemData,
         private boolean isHat = false;
         private boolean isTool = false;
 
-        public Builder(@NonNull String name, @NonNull String identifier, int javaId) {
-            this.customItemData = CustomItemData.builder(name, CustomItemRegistrationTypes.builder().build());
+        @Override
+        public FullyCustomItemData.Builder name(@NonNull String name) {
+            this.customItemData.name(name);
+            return this;
+        }
 
+        @Override
+        public FullyCustomItemData.Builder identifier(@NonNull String identifier) {
             this.identifier = identifier;
+            return this;
+        }
+
+        @Override
+        public FullyCustomItemData.Builder javaId(int javaId) {
             this.javaId = javaId;
+            return this;
         }
 
         @Override
@@ -200,6 +211,12 @@ public record GeyserFullyCustomItemData(CustomItemData customItemData,
         }
 
         @Override
+        public FullyCustomItemData.Builder registrationTypes(@NonNull CustomItemRegistrationTypes registrationTypes) {
+            this.customItemData.registrationTypes(registrationTypes);
+            return this;
+        }
+
+        @Override
         public FullyCustomItemData.Builder displayName(@NonNull String displayName) {
             this.customItemData.displayName(displayName);
             return this;
@@ -225,6 +242,9 @@ public record GeyserFullyCustomItemData(CustomItemData customItemData,
 
         @Override
         public FullyCustomItemData build() {
+            if (identifier == null || javaId == -1) {
+                throw new IllegalArgumentException("Identifier and javaId must be set");
+            }
             return new GeyserFullyCustomItemData(customItemData.build(), identifier, javaId, stackSize, maxDamage, toolType, toolTier, armorType, armorTier, protectionValue, translationString, repairMaterials, creativeCategory, creativeGroup, isHat, isTool);
         }
     }

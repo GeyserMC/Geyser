@@ -36,27 +36,31 @@ public record GeyserCustomItemData(String name,
                                    CustomRenderOffsets renderOffsets) implements CustomItemData {
 
     public static class Builder implements CustomItemData.Builder {
-        private final String name;
-        private final CustomItemRegistrationTypes registrationType;
+        private String name = null;
+        private CustomItemRegistrationTypes registrationTypes = null;
 
-        private String displayName;
-        private boolean allowOffhand;
-        private int textureSize;
-        private CustomRenderOffsets renderOffsets;
+        private String displayName = null;
+        private boolean allowOffhand = false;
+        private int textureSize = 16;
+        private CustomRenderOffsets renderOffsets = null;
 
-        public Builder(@NonNull String name, @NonNull CustomItemRegistrationTypes registrationType) {
-            this.registrationType = registrationType;
+        @Override
+        public CustomItemData.Builder name(@NonNull String name) {
             this.name = name;
-
-            this.displayName = name;
-            this.allowOffhand = false;
-            this.textureSize = 16;
-
-            this.renderOffsets = null;
+            if (this.displayName == null) {
+                this.displayName = name;
+            }
+            return this;
         }
 
         @Override
-        public CustomItemData.Builder displayName(String displayName) {
+        public CustomItemData.Builder registrationTypes(@NonNull CustomItemRegistrationTypes registrationTypes) {
+            this.registrationTypes = registrationTypes;
+            return this;
+        }
+
+        @Override
+        public CustomItemData.Builder displayName(@NonNull String displayName) {
             this.displayName = displayName;
             return this;
         }
@@ -81,7 +85,10 @@ public record GeyserCustomItemData(String name,
 
         @Override
         public CustomItemData build() {
-            return new GeyserCustomItemData(this.name, this.registrationType, this.displayName, this.allowOffhand, this.textureSize, this.renderOffsets);
+            if (this.name == null || this.registrationTypes == null) {
+                throw new IllegalArgumentException("Name and registration types must be set");
+            }
+            return new GeyserCustomItemData(this.name, this.registrationTypes, this.displayName, this.allowOffhand, this.textureSize, this.renderOffsets);
         }
     }
 }

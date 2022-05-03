@@ -30,6 +30,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.Builder;
 import lombok.Value;
@@ -66,6 +67,7 @@ public class ItemMappings {
     List<ItemData> carpets;
 
     @Nullable ComponentItemData furnaceMinecartData;
+    Int2ObjectMap<String> customIdMappings;
 
     /**
      * Gets an {@link ItemMapping} from the given {@link ItemStack}.

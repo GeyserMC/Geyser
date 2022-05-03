@@ -46,15 +46,13 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class CustomItemRegistryPopulator {
     private static IntSet protocolVersions = Registries.ITEMS.get().keySet();
 
-    public static GeyserCustomMappingData populateRegistry(String baseItem, CustomItemData customItemData, int nameExists, int customItems) {
+    public static GeyserCustomMappingData populateRegistry(String baseItem, CustomItemData customItemData, int customItems) {
         String customItemName = GeyserCustomItemManager.CUSTOM_PREFIX + customItemData.name();
-        if (nameExists != 0) {
-            customItemName += "_" + nameExists;
-        }
 
         GeyserCustomMappingData returnData = new GeyserCustomMappingData();
         int addNum = 0;
@@ -69,6 +67,17 @@ public class CustomItemRegistryPopulator {
             if (javaItem == null) {
                 GeyserImpl.getInstance().getLogger().error("Could not find the java item to add custom model data to for " + baseItem + " in protocol version " + protocolVersion);
                 continue;
+            }
+
+            int nameExists = 0;
+            for (String mappingName : itemMappings.getCustomIdMappings().values()) {
+                if (Pattern.matches("^" + customItemName + "(_([0-9])+)?$", mappingName)) {
+                    nameExists++;
+                }
+            }
+            if (nameExists != 0) {
+                customItemName = customItemName + "_" + nameExists; //Since we update the name outside the for loop, this won't be run on each protocol version
+                GeyserImpl.getInstance().getLogger().warning("Custom item name '" + customItemData.name() + "' already exists, new item was registered as " + customItemName.substring(GeyserCustomItemManager.CUSTOM_PREFIX.length()) + "!");
             }
 
             int javaCustomItemId = javaItem.getJavaId();
@@ -96,6 +105,7 @@ public class CustomItemRegistryPopulator {
 
             ComponentItemData componentItemData = new ComponentItemData(customItemName, builder.build());
             returnData.addMapping(protocolVersion, new GeyserCustomMappingData.Mapping(componentItemData, customItemMapping, startGamePacketItemEntry, customItemName, customItemId));
+            itemMappings.getCustomIdMappings().put(customItemId, customItemName);
         }
 
         return returnData;

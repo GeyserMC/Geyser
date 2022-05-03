@@ -52,14 +52,12 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public class GeyserCustomItemManager extends CustomItemManager {
-    public static final String CUSTOM_PREFIX = "geysermc:";
+    public static final String CUSTOM_PREFIX = "geyser_custom:";
 
     private Map<String, List<CustomItemData>> customMappings = new HashMap<>();
 
     private List<GeyserCustomMappingData> registeredCustomItems = new ArrayList<>();
     private Int2ObjectMap<List<ComponentItemData>> registeredComponentItems = new Int2ObjectOpenHashMap<>();
-
-    private Int2ObjectMap<String> customIdMappings = new Int2ObjectOpenHashMap<>();
 
     public GeyserCustomItemManager() {
         MappingsConfigReader.init(this);
@@ -92,35 +90,17 @@ public class GeyserCustomItemManager extends CustomItemManager {
         return GeyserImpl.getInstance().isInitialized() || !GeyserImpl.getInstance().getConfig().isAddNonBedrockItems();
     }
 
-    private int nameExists(String name) {
-        int nameExists = 0;
-        for (String mappingName : this.customIdMappings.values()) {
-            String addName = CUSTOM_PREFIX + name;
-            if (Pattern.matches("^" + addName +"(_([0-9])+)?$", mappingName)) {
-                nameExists++;
-            }
-        }
-        if (nameExists != 0) {
-            GeyserImpl.getInstance().getLogger().warning("Custom item name '" + name + "' already exists and was registered again!");
-        }
-        return nameExists;
-    }
-
     @Override
     public boolean registerCustomItem(@NotNull String identifier, @NotNull CustomItemData customItemData) {
         if (this.cantRegisterNewItem()) {
             return false;
         }
 
-        GeyserCustomMappingData registeredItem = CustomItemRegistryPopulator.populateRegistry(identifier, customItemData, this.nameExists(customItemData.name()), this.registeredItemCount());
+        GeyserCustomMappingData registeredItem = CustomItemRegistryPopulator.populateRegistry(identifier, customItemData, this.registeredItemCount());
 
         if (registeredItem.mappingNumber() > 0) {
             this.customMappings.computeIfAbsent(identifier, list -> new ArrayList<>()).add(customItemData);
             this.registeredCustomItems.add(registeredItem);
-
-            for (GeyserCustomMappingData.Mapping mapping : registeredItem.getMappings()) {
-                this.customIdMappings.put(mapping.integerId(), mapping.stringId());
-            }
 
             return true;
         } else {
@@ -154,10 +134,6 @@ public class GeyserCustomItemManager extends CustomItemManager {
     @Override
     public @NotNull Map<String, List<CustomItemData>> itemMappings() {
         return this.customMappings;
-    }
-
-    public String itemStringFromId(int id) {
-        return this.customIdMappings.get(id);
     }
 
     public int registeredItemCount() {

@@ -75,11 +75,15 @@ public interface CustomItemData {
      */
     @Nullable CustomRenderOffsets renderOffsets();
 
-    static CustomItemData.Builder builder(@NonNull String name, @NonNull CustomItemRegistrationTypes registrationTypes) {
-        return GeyserApi.api().providerManager().builderProvider().provideBuilder(CustomItemData.Builder.class, name, registrationTypes);
+    static CustomItemData.Builder builder() {
+        return GeyserApi.api().providerManager().builderProvider().provideBuilder(CustomItemData.Builder.class);
     }
 
     interface Builder {
+        Builder name(@NonNull String name);
+
+        Builder registrationTypes(@NonNull CustomItemRegistrationTypes registrationTypes);
+
         Builder displayName(@NonNull String displayName);
 
         Builder allowOffhand(boolean allowOffhand);

@@ -56,9 +56,9 @@ public class GeyserBuilderProvider extends AbstractProvider implements BuilderPr
         providers.put(Command.Builder.class, args -> new GeyserCommandManager.CommandBuilder<>((Class<? extends CommandSource>) args[0]));
         providers.put(EntityIdentifier.Builder.class, args -> new GeyserEntityIdentifier.EntityIdentifierBuilder());
 
-        providers.put(CustomItemData.Builder.class, args -> new GeyserCustomItemData.Builder((String) args[0], (CustomItemRegistrationTypes) args[1]));
+        providers.put(CustomItemData.Builder.class, args -> new GeyserCustomItemData.Builder());
         providers.put(CustomItemRegistrationTypes.Builder.class, args -> new GeyserCustomItemRegistrationTypes.Builder());
-        providers.put(FullyCustomItemData.Builder.class, args -> new GeyserFullyCustomItemData.Builder((String) args[0], (String) args[1], (int) args[2]));
+        providers.put(FullyCustomItemData.Builder.class, args -> new GeyserFullyCustomItemData.Builder());
     }
 
     @Override

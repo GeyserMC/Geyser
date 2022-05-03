@@ -539,6 +539,7 @@ public class ItemRegistryPopulator {
                     .carpets(carpets)
                     .furnaceMinecartData(furnaceMinecartData)
                     .lodestoneCompass(lodestoneEntry)
+                    .customIdMappings(new Int2ObjectOpenHashMap<>())
                     .build();
 
             Registries.ITEMS.register(palette.getValue().protocolVersion(), itemMappings);
