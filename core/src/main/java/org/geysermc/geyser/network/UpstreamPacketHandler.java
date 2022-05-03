@@ -69,7 +69,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         if (geyser.isShuttingDown()) {
             // Don't allow new players in if we're no longer operating
             GeyserConfiguration config = bootstrap.getGeyserConfig();
-            session.disconnect(config.getBedrock().getShutdownMessage());
+            if (config.getBedrock().getShutdownMessage().isBlank()) {
+                session.disconnect("geyser.core.shutdown.kick.message");
+            } else {
+                session.disconnect(config.getBedrock().getShutdownMessage());
+            }
             return true;
         }
 
