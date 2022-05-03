@@ -501,7 +501,11 @@ public class GeyserImpl implements GeyserApi {
 
         if (sessionManager.size() >= 1) {
             bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.log", sessionManager.size()));
-            sessionManager.disconnectAll(config.getBedrock().getShutdownMessage());
+            if (config.getBedrock().getShutdownMessage().isBlank()) {
+                sessionManager.disconnectAll("geyser.core.shutdown.kick.message");
+            } else {
+                sessionManager.disconnectAll(config.getBedrock().getShutdownMessage());
+            }
             bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.done"));
         }
 

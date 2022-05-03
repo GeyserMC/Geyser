@@ -30,6 +30,7 @@ import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.data.ExperimentData;
 import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
+import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.pack.ResourcePack;
@@ -56,6 +57,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         return Registries.BEDROCK_PACKET_TRANSLATORS.translate(packet.getClass(), packet, session);
     }
 
+    private GeyserBootstrap bootstrap;
+
     @Override
     boolean defaultHandler(BedrockPacket packet) {
         return translateAndDefault(packet);
@@ -65,7 +68,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     public boolean handle(LoginPacket loginPacket) {
         if (geyser.isShuttingDown()) {
             // Don't allow new players in if we're no longer operating
-            session.disconnect(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.message"));
+            GeyserConfiguration config = bootstrap.getGeyserConfig();
+            session.disconnect(config.getBedrock().getShutdownMessage());
             return true;
         }
 
