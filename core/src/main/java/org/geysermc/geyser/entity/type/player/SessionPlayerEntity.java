@@ -134,6 +134,10 @@ public class SessionPlayerEntity extends PlayerEntity {
         return maxHealth;
     }
 
+    public float getHealth() {
+        return this.health;
+    }
+
     public void setHealth(float health) {
         this.health = health;
     }
