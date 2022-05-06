@@ -86,4 +86,13 @@ public abstract class GeyserCommand {
     public boolean isBedrockOnly() {
         return false;
     }
+
+    /**
+     * Used for permission defaults on server implementations.
+     *
+     * @return if this command is designated to be used only by server operators.
+     */
+    public boolean isSuggestedOpOnly() {
+        return false;
+    }
 }

@@ -145,4 +145,9 @@ public class DumpCommand extends GeyserCommand {
     public List<String> getSubCommands() {
         return Arrays.asList("offline", "full", "logs");
     }
+
+    @Override
+    public boolean isSuggestedOpOnly() {
+        return true;
+    }
 }

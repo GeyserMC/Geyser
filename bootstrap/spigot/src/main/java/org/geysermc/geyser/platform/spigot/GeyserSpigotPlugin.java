@@ -32,6 +32,8 @@ import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import me.lucko.commodore.CommodoreProvider;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.permissions.Permission;
+import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.Constants;
@@ -39,6 +41,7 @@ import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
 import org.geysermc.geyser.command.CommandManager;
+import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.WorldManager;
@@ -61,10 +64,16 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 
 public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
+    /**
+     * Determines if the plugin has been ran once before, including before /geyser reload.
+     */
+    private static boolean INITIALIZED = false;
+
     private GeyserSpigotCommandManager geyserCommandManager;
     private GeyserSpigotConfiguration geyserConfig;
     private GeyserSpigotInjector geyserInjector;
@@ -232,13 +241,31 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             }
             geyserLogger.debug("Using default world manager: " + this.geyserWorldManager.getClass());
         }
-        GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(geyser, this.geyserWorldManager);
-        Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
-
-        Bukkit.getServer().getPluginManager().registerEvents(new GeyserPistonListener(geyser, this.geyserWorldManager), this);
 
         PluginCommand pluginCommand = this.getCommand("geyser");
         pluginCommand.setExecutor(new GeyserSpigotCommandExecutor(geyser));
+
+        if (!INITIALIZED) {
+            // Register permissions so they appear in, for example, LuckPerms' UI
+            // Re-registering permissions throws an error
+            for (Map.Entry<String, GeyserCommand> entry : geyserCommandManager.getCommands().entrySet()) {
+                GeyserCommand command = entry.getValue();
+                if (command.getAliases().contains(entry.getKey())) {
+                    // Don't register aliases
+                    continue;
+                }
+
+                Bukkit.getPluginManager().addPermission(new Permission(command.getPermission(),
+                        GeyserLocale.getLocaleStringLog(command.getDescription()),
+                        command.isSuggestedOpOnly() ? PermissionDefault.OP : PermissionDefault.TRUE));
+            }
+
+            // Events cannot be unregistered - re-registering results in duplicate firings
+            GeyserSpigotBlockPlaceListener blockPlaceListener = new GeyserSpigotBlockPlaceListener(geyser, this.geyserWorldManager);
+            Bukkit.getServer().getPluginManager().registerEvents(blockPlaceListener, this);
+
+            Bukkit.getServer().getPluginManager().registerEvents(new GeyserPistonListener(geyser, this.geyserWorldManager), this);
+        }
 
         boolean brigadierSupported = CommodoreProvider.isSupported();
         geyserLogger.debug("Brigadier supported? " + brigadierSupported);
@@ -248,6 +275,8 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
         // Check to ensure the current setup can support the protocol version Geyser uses
         GeyserSpigotVersionChecker.checkForSupportedProtocol(geyserLogger, isViaVersion);
+
+        INITIALIZED = true;
     }
 
     @Override

@@ -54,4 +54,9 @@ public class ReloadCommand extends GeyserCommand {
         geyser.getSessionManager().disconnectAll("geyser.commands.reload.kick");
         geyser.reload();
     }
+
+    @Override
+    public boolean isSuggestedOpOnly() {
+        return true;
+    }
 }
