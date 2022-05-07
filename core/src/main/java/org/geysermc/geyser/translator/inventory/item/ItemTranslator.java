@@ -539,8 +539,8 @@ public abstract class ItemTranslator {
      */
     public static ItemData.Builder translateCustomItem(CompoundTag nbt, ItemData.Builder builder, ItemMapping mapping) {
         if (nbt != null) {
-            CustomItemOptions nbtData = GeyserCustomItemManager.nbtToRegistrationTypes(nbt);
-            for (Object2IntMap.Entry<CustomItemOptions> mappingTypes : mapping.getCustomRegistrations().object2IntEntrySet()) {
+            CustomItemOptions nbtData = GeyserCustomItemManager.nbtToCustomItemOptions(nbt);
+            for (Object2IntMap.Entry<CustomItemOptions> mappingTypes : mapping.getCustomItemOptions().object2IntEntrySet()) {
                 boolean matches = true;
 
                 if (mappingTypes.getKey().unbreaking() != TriState.NOT_SET) {

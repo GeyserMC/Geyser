@@ -41,11 +41,11 @@ public interface CustomItemData {
     @NonNull String name();
 
     /**
-     * Gets the registration types of the item.
+     * Gets the custom item options of the item.
      *
-     * @return the registration types of the item.
+     * @return the custom item options of the item.
      */
-    CustomItemOptions registrationTypes();
+    CustomItemOptions customItemOptions();
 
     /**
      * Gets the item's display name. By default, this is the item's name.
@@ -82,7 +82,7 @@ public interface CustomItemData {
     interface Builder {
         Builder name(@NonNull String name);
 
-        Builder registrationTypes(@NonNull CustomItemOptions registrationTypes);
+        Builder customItemOptions(@NonNull CustomItemOptions customItemOptions);
 
         Builder displayName(@NonNull String displayName);
 

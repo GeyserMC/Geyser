@@ -97,8 +97,8 @@ public class CustomItemRegistryPopulator {
 
             NbtMapBuilder builder = createItemData(customItemData, javaItem, customItemName, customItemId, OptionalInt.empty(), null, false, javaItem.isTool());
 
-            if (customItemData.registrationTypes().hasRegistrationTypes()) {
-                javaItem.getCustomRegistrations().put(customItemData.registrationTypes(), customItemId);
+            if (customItemData.customItemOptions().hasCustomItemOptions()) {
+                javaItem.getCustomItemOptions().put(customItemData.customItemOptions(), customItemId);
             } else {
                 GeyserImpl.getInstance().getLogger().warning("The custom item " + customItemData.name() + " has no registration types");
             }

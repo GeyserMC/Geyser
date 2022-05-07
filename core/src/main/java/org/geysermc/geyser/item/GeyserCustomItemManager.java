@@ -161,21 +161,21 @@ public class GeyserCustomItemManager extends CustomItemManager {
         return itemEntryList;
     }
 
-    public static CustomItemOptions nbtToRegistrationTypes(CompoundTag nbt) {
-        CustomItemOptions.Builder registrationTypes = CustomItemOptions.builder();
+    public static CustomItemOptions nbtToCustomItemOptions(CompoundTag nbt) {
+        CustomItemOptions.Builder customItemOptions = CustomItemOptions.builder();
 
         if (nbt.get("CustomModelData") instanceof IntTag customModelDataTag) {
-            registrationTypes.customModelData(customModelDataTag.getValue());
+            customItemOptions.customModelData(customModelDataTag.getValue());
         }
 
         if (nbt.get("Damage") instanceof IntTag damageTag) {
-            registrationTypes.damagePredicate(damageTag.getValue());
+            customItemOptions.damagePredicate(damageTag.getValue());
         }
 
         if (nbt.get("Unbreakable") instanceof ByteTag unbreakableTag) {
-            registrationTypes.unbreaking(unbreakableTag.getValue() == 1);
+            customItemOptions.unbreaking(unbreakableTag.getValue() == 1);
         }
 
-        return registrationTypes.build();
+        return customItemOptions.build();
     }
 }

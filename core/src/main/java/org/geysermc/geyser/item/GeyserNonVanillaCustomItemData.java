@@ -57,8 +57,8 @@ public record GeyserNonVanillaCustomItemData(CustomItemData customItemData,
     }
 
     @Override
-    public CustomItemOptions registrationTypes() {
-        return this.customItemData.registrationTypes();
+    public CustomItemOptions customItemOptions() {
+        return this.customItemData.customItemOptions();
     }
 
     @Override
@@ -180,13 +180,6 @@ public record GeyserNonVanillaCustomItemData(CustomItemData customItemData,
             return this;
         }
 
-
-        @Override
-        public NonVanillaCustomItemData.Builder creativeCategory(@NonNull OptionalInt creativeCategory) {
-            this.creativeCategory = creativeCategory;
-            return this;
-        }
-
         @Override
         public Builder creativeCategory(int creativeCategory) {
             this.creativeCategory = OptionalInt.of(creativeCategory);
@@ -212,8 +205,8 @@ public record GeyserNonVanillaCustomItemData(CustomItemData customItemData,
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder registrationTypes(@NonNull CustomItemOptions registrationTypes) {
-            this.customItemData.registrationTypes(registrationTypes);
+        public NonVanillaCustomItemData.Builder customItemOptions(@NonNull CustomItemOptions customItemOptions) {
+            this.customItemData.customItemOptions(customItemOptions);
             return this;
         }
 

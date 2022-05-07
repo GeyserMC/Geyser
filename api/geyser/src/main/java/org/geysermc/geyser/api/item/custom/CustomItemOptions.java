@@ -32,7 +32,7 @@ import org.geysermc.geyser.api.util.TriState;
 import java.util.OptionalInt;
 
 /**
- * This class represents the different types of custom item registration
+ * This class represents the different ways you can register custom items
  */
 public interface CustomItemOptions {
     /**
@@ -57,11 +57,11 @@ public interface CustomItemOptions {
     @NonNull OptionalInt damagePredicate();
 
     /**
-     * Checks if the item has at least one registration type set
+     * Checks if the item has at least one option set
      *
-     * @return true if the item has any registrations set
+     * @return true if the item at least one options set
      */
-    default boolean hasRegistrationTypes() {
+    default boolean hasCustomItemOptions() {
         return this.unbreaking() == TriState.NOT_SET ||
                 this.customModelData().isEmpty() ||
                 this.damagePredicate().isEmpty();
@@ -72,13 +72,10 @@ public interface CustomItemOptions {
     }
 
     interface Builder {
-        Builder unbreaking(@NonNull TriState unbreaking);
         Builder unbreaking(boolean unbreaking);
 
-        Builder customModelData(@NonNull OptionalInt customModelData);
         Builder customModelData(int customModelData);
 
-        Builder damagePredicate(@NonNull OptionalInt damagePredicate);
         Builder damagePredicate(int damagePredicate);
 
         CustomItemOptions build();

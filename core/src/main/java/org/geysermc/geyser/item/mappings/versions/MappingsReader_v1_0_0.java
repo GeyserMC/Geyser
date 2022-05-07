@@ -64,25 +64,25 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
         }
     }
 
-    private CustomItemOptions readItemRegistrationTypes(JsonNode node) {
-        CustomItemOptions.Builder registrationTypes = CustomItemOptions.builder();
+    private CustomItemOptions readItemCustomItemOptions(JsonNode node) {
+        CustomItemOptions.Builder customItemOptions = CustomItemOptions.builder();
 
         JsonNode customModelData = node.get("custom_model_data");
         if (customModelData != null && customModelData.isInt()) {
-            registrationTypes.customModelData(customModelData.asInt());
+            customItemOptions.customModelData(customModelData.asInt());
         }
 
         JsonNode damagePredicate = node.get("damage_predicate");
         if (damagePredicate != null && damagePredicate.isInt()) {
-            registrationTypes.damagePredicate(damagePredicate.asInt());
+            customItemOptions.damagePredicate(damagePredicate.asInt());
         }
 
         JsonNode unbreaking = node.get("unbreaking");
         if (unbreaking != null && unbreaking.isBoolean()) {
-            registrationTypes.unbreaking(unbreaking.asBoolean());
+            customItemOptions.unbreaking(unbreaking.asBoolean());
         }
 
-        return registrationTypes.build();
+        return customItemOptions.build();
     }
 
     @Override
@@ -98,7 +98,7 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
 
         CustomItemData.Builder customItemData = CustomItemData.builder()
                 .name(name)
-                .registrationTypes(this.readItemRegistrationTypes(node));
+                .customItemOptions(this.readItemCustomItemOptions(node));
 
         //The next entries are optional
         if (node.has("display_name")) {

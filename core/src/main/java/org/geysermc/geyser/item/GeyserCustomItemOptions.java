@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.item;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.util.TriState;
 
@@ -41,12 +40,6 @@ public record GeyserCustomItemOptions(TriState unbreaking,
         private OptionalInt damagePredicate = OptionalInt.empty();
 
         @Override
-        public CustomItemOptions.Builder unbreaking(@NonNull TriState unbreaking) {
-            this.unbreaking = unbreaking;
-            return this;
-        }
-
-        @Override
         public Builder unbreaking(boolean unbreaking) {
             if (unbreaking) {
                 this.unbreaking = TriState.TRUE;
@@ -57,20 +50,8 @@ public record GeyserCustomItemOptions(TriState unbreaking,
         }
 
         @Override
-        public CustomItemOptions.Builder customModelData(@NonNull OptionalInt customModelData) {
-            this.customModelData = customModelData;
-            return this;
-        }
-
-        @Override
         public Builder customModelData(int customModelData) {
             this.customModelData = OptionalInt.of(customModelData);
-            return this;
-        }
-
-        @Override
-        public CustomItemOptions.Builder damagePredicate(@NonNull OptionalInt damagePredicate) {
-            this.damagePredicate = damagePredicate;
             return this;
         }
 

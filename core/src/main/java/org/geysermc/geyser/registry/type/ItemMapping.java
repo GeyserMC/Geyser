@@ -66,7 +66,7 @@ public class ItemMapping {
 
     String translationString;
 
-    Object2IntMap<CustomItemOptions> customRegistrations = new Object2IntOpenHashMap<>();
+    Object2IntMap<CustomItemOptions> customItemOptions = new Object2IntOpenHashMap<>();
 
     int maxDamage;
 

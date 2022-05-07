@@ -31,13 +31,13 @@ import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 
 public record GeyserCustomItemData(String name,
-                                   CustomItemOptions registrationTypes,
+                                   CustomItemOptions customItemOptions,
                                    String displayName, boolean allowOffhand, int textureSize,
                                    CustomRenderOffsets renderOffsets) implements CustomItemData {
 
     public static class CustomItemDataBuilder implements CustomItemData.Builder {
         private String name = null;
-        private CustomItemOptions registrationTypes = null;
+        private CustomItemOptions customItemOptions = null;
 
         private String displayName = null;
         private boolean allowOffhand = false;
@@ -54,8 +54,8 @@ public record GeyserCustomItemData(String name,
         }
 
         @Override
-        public CustomItemData.Builder registrationTypes(@NonNull CustomItemOptions registrationTypes) {
-            this.registrationTypes = registrationTypes;
+        public CustomItemData.Builder customItemOptions(@NonNull CustomItemOptions customItemOptions) {
+            this.customItemOptions = customItemOptions;
             return this;
         }
 
@@ -85,10 +85,10 @@ public record GeyserCustomItemData(String name,
 
         @Override
         public CustomItemData build() {
-            if (this.name == null || this.registrationTypes == null) {
-                throw new IllegalArgumentException("Name and registration types must be set");
+            if (this.name == null || this.customItemOptions == null) {
+                throw new IllegalArgumentException("Name and custom item data must be set");
             }
-            return new GeyserCustomItemData(this.name, this.registrationTypes, this.displayName, this.allowOffhand, this.textureSize, this.renderOffsets);
+            return new GeyserCustomItemData(this.name, this.customItemOptions, this.displayName, this.allowOffhand, this.textureSize, this.renderOffsets);
         }
     }
 }

@@ -171,7 +171,6 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
         Builder repairMaterials(@Nullable Set<String> repairMaterials);
 
-        Builder creativeCategory(@NonNull OptionalInt creativeCategory);
         Builder creativeCategory(int creativeCategory);
 
         Builder creativeGroup(@Nullable String creativeGroup);
