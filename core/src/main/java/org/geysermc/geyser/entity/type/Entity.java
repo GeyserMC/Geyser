@@ -42,7 +42,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.downstream.entity.ServerSpawnEntityEvent;
+import org.geysermc.geyser.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -80,7 +82,7 @@ public class Entity {
      */
     protected boolean onGround;
 
-    protected EntityDefinition<?> definition;
+    protected GeyserEntityDefinition<?> definition;
 
     /**
      * Indicates if the entity has been initialized and spawned
@@ -116,7 +118,7 @@ public class Entity {
     @Setter(AccessLevel.PROTECTED) // For players
     private boolean flagsDirty = false;
 
-    public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, GeyserEntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         this.session = session;
 
         this.entityId = entityId;

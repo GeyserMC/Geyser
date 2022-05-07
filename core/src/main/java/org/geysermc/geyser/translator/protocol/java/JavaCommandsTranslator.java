@@ -45,7 +45,7 @@ import lombok.Getter;
 import lombok.ToString;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent;
+import org.geysermc.geyser.api.event.downstream.command.ServerDefineCommandsEvent;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -235,7 +235,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case BLOCK_STATE -> BlockRegistries.JAVA_TO_BEDROCK_IDENTIFIERS.get().keySet().toArray(new String[0]);
             case ITEM_STACK -> session.getItemMappings().getItemNames();
             case ITEM_ENCHANTMENT -> Enchantment.JavaEnchantment.ALL_JAVA_IDENTIFIERS;
-            case ENTITY_SUMMON -> Registries.JAVA_ENTITY_IDENTIFIERS.get().keySet().toArray(new String[0]);
+            case ENTITY_SUMMON -> Registries.ENTITY_IDENTIFIERS.get().keySet().toArray(new String[0]);
             case COLOR -> VALID_COLORS;
             case SCOREBOARD_SLOT -> VALID_SCOREBOARD_SLOTS;
             case MOB_EFFECT -> ALL_EFFECT_IDENTIFIERS;

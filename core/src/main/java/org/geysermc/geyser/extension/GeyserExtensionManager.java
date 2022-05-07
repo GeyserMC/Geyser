@@ -90,7 +90,6 @@ public class GeyserExtensionManager extends ExtensionManager {
     public void enableExtension(Extension extension) {
         if (!extension.isEnabled()) {
             extension.setEnabled(true);
-            GeyserImpl.getInstance().eventBus().register(extension, extension);
             GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.extensions.enable.success", extension.description().name()));
         }
     }

@@ -33,7 +33,7 @@ import org.geysermc.geyser.api.entity.EntityIdentifier;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public record GeyserEntityIdentifier(NbtMap nbt) implements EntityIdentifier {
-    private static final AtomicInteger RUNTIME_ID_ALLOCATORS = new AtomicInteger(100000);
+    private static final AtomicInteger RUNTIME_ID_ALLOCATOR = new AtomicInteger(100000);
 
     @Override
     public boolean hasSpawnEgg() {
@@ -76,7 +76,7 @@ public record GeyserEntityIdentifier(NbtMap nbt) implements EntityIdentifier {
         public EntityIdentifier build() {
             // Vanilla registry information
             this.nbt.putString("bid", "");
-            this.nbt.putInt("rid", RUNTIME_ID_ALLOCATORS.getAndIncrement());
+            this.nbt.putInt("rid", RUNTIME_ID_ALLOCATOR.getAndIncrement());
             this.nbt.putBoolean("experimental", false);
 
             return new GeyserEntityIdentifier(this.nbt.build());

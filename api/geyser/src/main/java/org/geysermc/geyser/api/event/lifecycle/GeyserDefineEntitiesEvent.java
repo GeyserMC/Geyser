@@ -23,24 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.entity;
+package org.geysermc.geyser.api.event.lifecycle;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.entity.EntityIdentifier;
+import org.geysermc.geyser.api.entity.EntityDefinition;
 import org.geysermc.geyser.api.event.Event;
 
 import java.util.List;
 
 /**
- * Called when Geyser sends a list of available entities to the
- * Bedrock client. This will typically contain all the available
- * entities within vanilla, but can be modified to include any custom
- * entity defined through a resource pack.
+ * Called when entities are defined within Geyser.
  *
- * @param connection the {@link GeyserConnection} that is receiving the entities
- * @param identifiers a mutable list of all the {@link EntityIdentifier}s
- *                    sent to the client
+ * @param definitions a mutable list of the currently
+ *                    registered entity definitions
  */
-public record DefineEntitiesEvent(@NonNull GeyserConnection connection, @NonNull List<EntityIdentifier> identifiers) implements Event {
+public record GeyserDefineEntitiesEvent(@NonNull List<EntityDefinition> definitions) implements Event {
 }

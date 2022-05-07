@@ -29,15 +29,23 @@ import com.github.steveice10.mc.protocol.data.game.entity.Effect;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.nbt.NbtMap;
+import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.GeyserEntityDefinition;
+import org.geysermc.geyser.entity.GeyserEntityIdentifier;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public final class EntityUtils {
@@ -222,6 +230,28 @@ public final class EntityUtils {
             }
         }
         return InteractionResult.PASS;
+    }
+
+    public static void registerEntity(String identifier, GeyserEntityDefinition<?> definition) {
+        if (definition.entityType() != null) {
+            Registries.ENTITY_DEFINITIONS.get().putIfAbsent(definition.entityType(), definition);
+            Registries.ENTITY_IDENTIFIERS.get().putIfAbsent(identifier, definition);
+        } else {
+            // We're dealing with a custom entity here
+            Registries.ENTITY_IDENTIFIERS.get().putIfAbsent(identifier, definition);
+
+            // Now let's add it to the entity identifiers
+            NbtMap nbt = Registries.BEDROCK_ENTITY_IDENTIFIERS.get();
+            List<NbtMap> idlist = new ArrayList<>(nbt.getList("idlist", NbtType.COMPOUND));
+            idlist.add(((GeyserEntityIdentifier) definition.entityIdentifier()).nbt());
+
+            NbtMap newIdentifiers = nbt.toBuilder()
+                    .putList("idlist", NbtType.COMPOUND, idlist)
+                    .build();
+
+            Registries.BEDROCK_ENTITY_IDENTIFIERS.set(newIdentifiers);
+            GeyserImpl.getInstance().getLogger().info("Registered custom entity " + identifier);
+        }
     }
 
     private EntityUtils() {

@@ -194,6 +194,9 @@ public class GeyserImpl implements GeyserApi {
 
         this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
 
+        /* Call Registry events */
+        Registries.callRegistryEvents();
+
         start();
 
         GeyserConfiguration config = bootstrap.getGeyserConfig();

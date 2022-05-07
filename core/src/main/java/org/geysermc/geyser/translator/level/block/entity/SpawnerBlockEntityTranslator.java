@@ -29,7 +29,7 @@ import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.nbt.NbtMapBuilder;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.registry.Registries;
 
 @BlockEntity(type = BlockEntityType.MOB_SPAWNER)
@@ -73,7 +73,7 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
                     .getValue();
             builder.put("EntityIdentifier", entityID);
 
-            EntityDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityID);
+            GeyserEntityDefinition<?> definition = Registries.ENTITY_IDENTIFIERS.get(entityID);
             if (definition != null) {
                 builder.put("DisplayEntityWidth", definition.width());
                 builder.put("DisplayEntityHeight", definition.height());

@@ -31,7 +31,10 @@ import com.github.steveice10.mc.protocol.data.game.entity.object.ProjectileData;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddEntityPacket;
 import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.entity.EntityDefinition;
+import org.geysermc.geyser.api.event.downstream.entity.ServerSpawnEntityEvent;
+import org.geysermc.geyser.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.FallingBlockEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
@@ -53,11 +56,29 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         float yaw = packet.getYaw();
         float pitch = packet.getPitch();
 
-        EntityDefinition<?> definition = Registries.ENTITY_DEFINITIONS.get(packet.getType());
+        GeyserEntityDefinition<?> definition = Registries.ENTITY_DEFINITIONS.get(packet.getType());
         if (definition == null) {
             session.getGeyser().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.entity.type_null", packet.getType()));
             return;
         }
+
+        ServerSpawnEntityEvent event = new ServerSpawnEntityEvent(session, packet.getEntityId(), packet.getUuid(), definition);
+        GeyserImpl.getInstance().eventBus().fire(event);
+
+        GeyserEntityDefinition<?> eventDefinition = (GeyserEntityDefinition<?>) event.entityDefinition();
+
+        // If the definition is changed, we need to update our current
+        // definition to reflect that.
+        if (!eventDefinition.equals(definition)) {
+            definition = definition.toBuilder()
+                    .identifier(eventDefinition.entityIdentifier())
+                    .width(eventDefinition.width())
+                    .height(eventDefinition.height())
+                    .offset(eventDefinition.offset())
+                    .build();
+        }
+
+        System.out.println("def used " + definition);
 
         Entity entity;
         if (packet.getType() == EntityType.FALLING_BLOCK) {

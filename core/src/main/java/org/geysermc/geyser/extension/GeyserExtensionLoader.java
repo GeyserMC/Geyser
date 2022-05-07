@@ -90,7 +90,12 @@ public class GeyserExtensionLoader extends ExtensionLoader {
         this.classLoaders.put(description.name(), loader);
 
         final Extension extension = loader.load(description);
-        return this.setup(extension, description, dataFolder, new GeyserExtensionEventBus(GeyserImpl.getInstance().eventBus(), extension));
+        try {
+            return this.setup(extension, description, dataFolder, new GeyserExtensionEventBus(GeyserImpl.getInstance().eventBus(), extension));
+        } finally {
+            // Register events
+            GeyserImpl.getInstance().eventBus().register(extension, extension);
+        }
     }
 
     private GeyserExtensionContainer setup(Extension extension, GeyserExtensionDescription description, Path dataFolder, ExtensionEventBus eventBus) {
