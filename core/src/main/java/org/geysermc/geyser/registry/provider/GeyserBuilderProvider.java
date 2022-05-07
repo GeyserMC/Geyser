@@ -29,8 +29,10 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.command.CommandSource;
+import org.geysermc.geyser.api.entity.EntityIdentifier;
 import org.geysermc.geyser.api.provider.BuilderProvider;
 import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.entity.GeyserEntityIdentifier;
 import org.geysermc.geyser.registry.ProviderRegistries;
 import org.geysermc.geyser.registry.SimpleMappedRegistry;
 
@@ -46,6 +48,7 @@ public class GeyserBuilderProvider extends AbstractProvider implements BuilderPr
     @Override
     public void registerProviders(Map<Class<?>, ProviderSupplier> providers) {
         providers.put(Command.Builder.class, args -> new GeyserCommandManager.CommandBuilder<>((Class<? extends CommandSource>) args[0]));
+        providers.put(EntityIdentifier.Builder.class, args -> new GeyserEntityIdentifier.EntityIdentifierBuilder());
     }
 
     @Override
