@@ -38,7 +38,8 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.item.custom.CustomItemRegistrationTypes;
+import org.geysermc.geyser.api.item.custom.CustomItemOptions;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.item.GeyserCustomItemManager;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -538,14 +539,12 @@ public abstract class ItemTranslator {
      */
     public static ItemData.Builder translateCustomItem(CompoundTag nbt, ItemData.Builder builder, ItemMapping mapping) {
         if (nbt != null) {
-            CustomItemRegistrationTypes nbtData = GeyserCustomItemManager.nbtToRegistrationTypes(nbt);
-            for (Object2IntMap.Entry<CustomItemRegistrationTypes> mappingTypes : mapping.getCustomRegistrations().object2IntEntrySet()) {
+            CustomItemOptions nbtData = GeyserCustomItemManager.nbtToRegistrationTypes(nbt);
+            for (Object2IntMap.Entry<CustomItemOptions> mappingTypes : mapping.getCustomRegistrations().object2IntEntrySet()) {
                 boolean matches = true;
 
-                if (mappingTypes.getKey().unbreaking().isPresent()) {
-                    if (nbtData.unbreaking().isEmpty()) {
-                        matches = false;
-                    } else if (mappingTypes.getKey().unbreaking().get().booleanValue() != nbtData.unbreaking().get().booleanValue()) {
+                if (mappingTypes.getKey().unbreaking() != TriState.NOT_SET) {
+                    if (mappingTypes.getKey().unbreaking() != nbtData.unbreaking()) {
                         matches = false;
                     }
                 }

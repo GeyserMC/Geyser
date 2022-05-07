@@ -35,7 +35,7 @@ import java.util.Set;
 /**
  * This is used to store data for a custom item.
  */
-public interface FullyCustomItemData extends CustomItemData {
+public interface NonVanillaCustomItemData extends CustomItemData {
     /**
      * Gets the java identifier for this item.
      *
@@ -142,8 +142,8 @@ public interface FullyCustomItemData extends CustomItemData {
      */
     boolean isTool();
 
-    static FullyCustomItemData.Builder builder() {
-        return GeyserApi.api().providerManager().builderProvider().provideBuilder(FullyCustomItemData.Builder.class);
+    static NonVanillaCustomItemData.Builder builder() {
+        return GeyserApi.api().providerManager().builderProvider().provideBuilder(NonVanillaCustomItemData.Builder.class);
     }
 
     interface Builder extends CustomItemData.Builder {
@@ -172,7 +172,6 @@ public interface FullyCustomItemData extends CustomItemData {
         Builder repairMaterials(@Nullable Set<String> repairMaterials);
 
         Builder creativeCategory(@NonNull OptionalInt creativeCategory);
-
         Builder creativeCategory(int creativeCategory);
 
         Builder creativeGroup(@Nullable String creativeGroup);
@@ -193,6 +192,6 @@ public interface FullyCustomItemData extends CustomItemData {
         @Override
         Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
 
-        FullyCustomItemData build();
+        NonVanillaCustomItemData build();
     }
 }

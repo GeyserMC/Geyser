@@ -27,18 +27,33 @@ package org.geysermc.geyser.api.item.custom;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.util.TriState;
 
-import java.util.Optional;
 import java.util.OptionalInt;
 
 /**
  * This class represents the different types of custom item registration
  */
-public interface CustomItemRegistrationTypes {
-    @NonNull Optional<Boolean> unbreaking();
+public interface CustomItemOptions {
+    /**
+     * Gets if the item should be unbreakable.
+     *
+     * @return if the item should be unbreakable
+     */
+    @NonNull TriState unbreaking();
 
+    /**
+     * Gets the item's custom model data.
+     *
+     * @return the item's custom model data
+     */
     @NonNull OptionalInt customModelData();
 
+    /**
+     * Gets the item's damage predicate.
+     *
+     * @return the item's damage predicate
+     */
     @NonNull OptionalInt damagePredicate();
 
     /**
@@ -47,17 +62,17 @@ public interface CustomItemRegistrationTypes {
      * @return true if the item has any registrations set
      */
     default boolean hasRegistrationTypes() {
-        return this.unbreaking().isEmpty() ||
+        return this.unbreaking() == TriState.NOT_SET ||
                 this.customModelData().isEmpty() ||
                 this.damagePredicate().isEmpty();
     }
 
-    static CustomItemRegistrationTypes.Builder builder() {
-        return GeyserApi.api().providerManager().builderProvider().provideBuilder(CustomItemRegistrationTypes.Builder.class);
+    static CustomItemOptions.Builder builder() {
+        return GeyserApi.api().providerManager().builderProvider().provideBuilder(CustomItemOptions.Builder.class);
     }
 
     interface Builder {
-        Builder unbreaking(@NonNull Optional<Boolean> unbreaking);
+        Builder unbreaking(@NonNull TriState unbreaking);
         Builder unbreaking(boolean unbreaking);
 
         Builder customModelData(@NonNull OptionalInt customModelData);
@@ -66,6 +81,6 @@ public interface CustomItemRegistrationTypes {
         Builder damagePredicate(@NonNull OptionalInt damagePredicate);
         Builder damagePredicate(int damagePredicate);
 
-        CustomItemRegistrationTypes build();
+        CustomItemOptions build();
     }
 }

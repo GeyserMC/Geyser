@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.api.extension;
 
+/**
+ * This enum is used to define the startup phase of the extension.
+ */
 public enum StartupPhase {
     PRE_INITIALIZE,
     POST_INITIALIZE

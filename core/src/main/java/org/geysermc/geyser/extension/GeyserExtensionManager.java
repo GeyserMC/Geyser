@@ -98,7 +98,7 @@ public class GeyserExtensionManager extends ExtensionManager {
 
     public void enablePreInitializeExtensions() {
         for (Extension extension : this.extensions()) {
-            if (extension.description().loadTime() == StartupPhase.PRE_INITIALIZE) {
+            if (extension.description().startupPhase() == StartupPhase.PRE_INITIALIZE) {
                 this.enable(extension);
             }
         }

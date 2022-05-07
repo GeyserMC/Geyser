@@ -28,7 +28,7 @@ package org.geysermc.geyser.item.mappings.versions;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
-import org.geysermc.geyser.api.item.custom.CustomItemRegistrationTypes;
+import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.item.GeyserCustomItemManager;
 import org.geysermc.geyser.item.GeyserCustomRenderOffsets;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
@@ -64,8 +64,8 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
         }
     }
 
-    private CustomItemRegistrationTypes readItemRegistrationTypes(JsonNode node) {
-        CustomItemRegistrationTypes.Builder registrationTypes = CustomItemRegistrationTypes.builder();
+    private CustomItemOptions readItemRegistrationTypes(JsonNode node) {
+        CustomItemOptions.Builder registrationTypes = CustomItemOptions.builder();
 
         JsonNode customModelData = node.get("custom_model_data");
         if (customModelData != null && customModelData.isInt()) {

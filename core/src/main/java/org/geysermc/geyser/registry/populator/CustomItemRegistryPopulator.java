@@ -36,7 +36,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
-import org.geysermc.geyser.api.item.custom.FullyCustomItemData;
+import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.item.GeyserCustomItemManager;
 import org.geysermc.geyser.item.GeyserCustomRenderOffsets;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
@@ -111,7 +111,7 @@ public class CustomItemRegistryPopulator {
         return returnData;
     }
 
-    public static Int2ObjectMap<ComponentItemData> populateRegistry(FullyCustomItemData customItemData, int customItems) {
+    public static Int2ObjectMap<ComponentItemData> populateRegistry(NonVanillaCustomItemData customItemData, int customItems) {
         Int2ObjectMap<ComponentItemData> componentItemDataMap = new Int2ObjectOpenHashMap<>();
         int addNum = 0;
 
@@ -162,7 +162,7 @@ public class CustomItemRegistryPopulator {
             componentItemDataMap.put(protocolVersion, new ComponentItemData(customIdentifier, builder.build()));
             itemMappings.getItemEntries().add(new StartGamePacket.ItemEntry(customIdentifier, (short) customItemId, true));
 
-            if (customItemData.creativeGroup() != null || customItemData.creativeCategory() != null) {
+            if (customItemData.creativeGroup() != null || customItemData.creativeCategory().isPresent()) {
                 int netId = itemMappings.getCreativeItems().get(itemMappings.getCreativeItems().size() - 1).getNetId() + 1;
 
                 itemMappings.getCreativeItems().add(ItemData.builder()

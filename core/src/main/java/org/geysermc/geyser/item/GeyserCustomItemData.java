@@ -28,16 +28,16 @@ package org.geysermc.geyser.item;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
-import org.geysermc.geyser.api.item.custom.CustomItemRegistrationTypes;
+import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 
 public record GeyserCustomItemData(String name,
-                                   CustomItemRegistrationTypes registrationTypes,
+                                   CustomItemOptions registrationTypes,
                                    String displayName, boolean allowOffhand, int textureSize,
                                    CustomRenderOffsets renderOffsets) implements CustomItemData {
 
-    public static class Builder implements CustomItemData.Builder {
+    public static class CustomItemDataBuilder implements CustomItemData.Builder {
         private String name = null;
-        private CustomItemRegistrationTypes registrationTypes = null;
+        private CustomItemOptions registrationTypes = null;
 
         private String displayName = null;
         private boolean allowOffhand = false;
@@ -54,7 +54,7 @@ public record GeyserCustomItemData(String name,
         }
 
         @Override
-        public CustomItemData.Builder registrationTypes(@NonNull CustomItemRegistrationTypes registrationTypes) {
+        public CustomItemData.Builder registrationTypes(@NonNull CustomItemOptions registrationTypes) {
             this.registrationTypes = registrationTypes;
             return this;
         }

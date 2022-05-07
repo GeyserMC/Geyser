@@ -33,7 +33,7 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.Reader;
 import java.util.*;
 
-public record GeyserExtensionDescription(String name, String main, String apiVersion, String version, List<String> authors, StartupPhase loadTime) implements ExtensionDescription {
+public record GeyserExtensionDescription(String name, String main, String apiVersion, String version, List<String> authors, StartupPhase startupPhase) implements ExtensionDescription {
     @SuppressWarnings("unchecked")
     public static GeyserExtensionDescription fromYaml(Reader reader) throws InvalidDescriptionException {
         DumperOptions dumperOptions = new DumperOptions();

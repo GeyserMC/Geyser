@@ -26,60 +26,63 @@
 package org.geysermc.geyser.item;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.item.custom.CustomItemRegistrationTypes;
+import org.geysermc.geyser.api.item.custom.CustomItemOptions;
+import org.geysermc.geyser.api.util.TriState;
 
-import java.util.Optional;
 import java.util.OptionalInt;
 
-public record GeyserCustomItemRegistrationTypes(Optional<Boolean> unbreaking,
-                                                OptionalInt customModelData,
-                                                OptionalInt damagePredicate) implements CustomItemRegistrationTypes {
+public record GeyserCustomItemOptions(TriState unbreaking,
+                                      OptionalInt customModelData,
+                                      OptionalInt damagePredicate) implements CustomItemOptions {
 
-    public static class Builder implements CustomItemRegistrationTypes.Builder {
-        private Optional<Boolean> unbreaking = Optional.empty();
+    public static class CustomItemOptionsBuilder implements CustomItemOptions.Builder {
+        private TriState unbreaking = TriState.NOT_SET;
         private OptionalInt customModelData = OptionalInt.empty();
         private OptionalInt damagePredicate = OptionalInt.empty();
 
         @Override
-        public CustomItemRegistrationTypes.Builder unbreaking(@NonNull Optional<Boolean> unbreaking) {
+        public CustomItemOptions.Builder unbreaking(@NonNull TriState unbreaking) {
             this.unbreaking = unbreaking;
             return this;
         }
 
         @Override
-        public CustomItemRegistrationTypes.Builder unbreaking(boolean unbreaking) {
-            this.unbreaking = Optional.of(unbreaking);
+        public Builder unbreaking(boolean unbreaking) {
+            if (unbreaking) {
+                this.unbreaking = TriState.TRUE;
+            } else {
+                this.unbreaking = TriState.FALSE;
+            }
             return this;
         }
 
         @Override
-        public CustomItemRegistrationTypes.Builder customModelData(@NonNull OptionalInt customModelData) {
+        public CustomItemOptions.Builder customModelData(@NonNull OptionalInt customModelData) {
             this.customModelData = customModelData;
             return this;
         }
 
         @Override
-        public CustomItemRegistrationTypes.Builder customModelData(int customModelData) {
+        public Builder customModelData(int customModelData) {
             this.customModelData = OptionalInt.of(customModelData);
             return this;
         }
 
         @Override
-        public CustomItemRegistrationTypes.Builder damagePredicate(@NonNull OptionalInt damagePredicate) {
+        public CustomItemOptions.Builder damagePredicate(@NonNull OptionalInt damagePredicate) {
             this.damagePredicate = damagePredicate;
             return this;
         }
 
         @Override
-        public CustomItemRegistrationTypes.Builder damagePredicate(int damagePredicate) {
+        public Builder damagePredicate(int damagePredicate) {
             this.damagePredicate = OptionalInt.of(damagePredicate);
             return this;
         }
 
         @Override
-        public CustomItemRegistrationTypes build() {
-            return new GeyserCustomItemRegistrationTypes(unbreaking, customModelData, damagePredicate);
+        public CustomItemOptions build() {
+            return new GeyserCustomItemOptions(unbreaking, customModelData, damagePredicate);
         }
     }
 }

@@ -23,62 +23,55 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.extension;
+package org.geysermc.geyser.api.util;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-
-import java.util.List;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
- * This is the Geyser extension description
+ * This is a way to represent a boolean, but with a non set value added.
  */
-public interface ExtensionDescription {
+public enum TriState {
+    /**
+     * This is a way to represent a boolean, but with a non set value added. This class was inspired by adventure's version https://github.com/KyoriPowered/adventure/blob/main/4/api/src/main/java/net/kyori/adventure/util/TriState.java
+     */
+    NOT_SET,
 
     /**
-     * Gets the extension's name
-     *
-     * @return the extension's name
+     * Describes a true value.
      */
-    @NonNull
-    String name();
+    TRUE,
 
     /**
-     * Gets the extension's main class
-     *
-     * @return the extension's main class
+     * Describes a false value.
      */
-    @NonNull
-    String main();
+    FALSE;
 
     /**
-     * Gets the extension's api version
+     * Converts the TriState to a boolean.
      *
-     * @return the extension's api version
+     * @return the boolean value of the TriState
      */
-    @NonNull
-    String apiVersion();
+    public @Nullable Boolean toBoolean() {
+        return switch (this) {
+            case TRUE -> true;
+            case FALSE -> false;
+            default -> null;
+        };
+    }
 
     /**
-     * Gets the extension's description
+     * Creates a TriState from a boolean.
      *
-     * @return the extension's description
+     * @param value the boolean value
+     * @return the created TriState
      */
-    @NonNull
-    String version();
-
-    /**
-     * Gets the extension's authors
-     *
-     * @return the extension's authors
-     */
-    @NonNull
-    List<String> authors();
-
-    /**
-     * Gets the extensison's startup phase.
-     *
-     * @return the extension's startup phase
-     */
-    @NonNull
-    StartupPhase startupPhase();
+    public static TriState fromBoolean(Boolean value) {
+        if (value == null) {
+            return NOT_SET;
+        } else if (value) {
+            return TRUE;
+        } else {
+            return FALSE;
+        }
+    }
 }

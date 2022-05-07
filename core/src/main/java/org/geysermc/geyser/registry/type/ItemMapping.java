@@ -30,7 +30,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
-import org.geysermc.geyser.api.item.custom.CustomItemRegistrationTypes;
+import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 
@@ -66,7 +66,7 @@ public class ItemMapping {
 
     String translationString;
 
-    Object2IntMap<CustomItemRegistrationTypes> customRegistrations = new Object2IntOpenHashMap<>();
+    Object2IntMap<CustomItemOptions> customRegistrations = new Object2IntOpenHashMap<>();
 
     int maxDamage;
 

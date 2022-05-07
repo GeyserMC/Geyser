@@ -52,7 +52,7 @@ public abstract class CustomItemManager {
      * @param customItemData the custom item data to register
      * @return if the item was registered
      */
-    public abstract boolean registerCustomItem(@NonNull FullyCustomItemData customItemData);
+    public abstract boolean registerCustomItem(@NonNull NonVanillaCustomItemData customItemData);
 
     /**
      * Gets the custom item data for the given base item.

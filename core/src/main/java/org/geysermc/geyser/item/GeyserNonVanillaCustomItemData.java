@@ -29,35 +29,35 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
-import org.geysermc.geyser.api.item.custom.CustomItemRegistrationTypes;
-import org.geysermc.geyser.api.item.custom.FullyCustomItemData;
+import org.geysermc.geyser.api.item.custom.CustomItemOptions;
+import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 
 import java.util.OptionalInt;
 import java.util.Set;
 
-public record GeyserFullyCustomItemData(CustomItemData customItemData,
-                                        String identifier,
-                                        int javaId,
-                                        int stackSize,
-                                        int maxDamage,
-                                        String toolType,
-                                        String toolTier,
-                                        String armorType,
-                                        String armorTier,
-                                        int protectionValue,
-                                        String translationString,
-                                        Set<String> repairMaterials,
-                                        OptionalInt creativeCategory,
-                                        String creativeGroup,
-                                        boolean isHat,
-                                        boolean isTool) implements FullyCustomItemData {
+public record GeyserNonVanillaCustomItemData(CustomItemData customItemData,
+                                             String identifier,
+                                             int javaId,
+                                             int stackSize,
+                                             int maxDamage,
+                                             String toolType,
+                                             String toolTier,
+                                             String armorType,
+                                             String armorTier,
+                                             int protectionValue,
+                                             String translationString,
+                                             Set<String> repairMaterials,
+                                             OptionalInt creativeCategory,
+                                             String creativeGroup,
+                                             boolean isHat,
+                                             boolean isTool) implements NonVanillaCustomItemData {
     @Override
     public @NonNull String name() {
         return this.customItemData.name();
     }
 
     @Override
-    public CustomItemRegistrationTypes registrationTypes() {
+    public CustomItemOptions registrationTypes() {
         return this.customItemData.registrationTypes();
     }
 
@@ -81,7 +81,7 @@ public record GeyserFullyCustomItemData(CustomItemData customItemData,
         return this.customItemData.renderOffsets();
     }
 
-    public static class Builder implements FullyCustomItemData.Builder {
+    public static class NonVanillaCustomItemDataBuilder implements NonVanillaCustomItemData.Builder {
         private CustomItemData.Builder customItemData = CustomItemData.builder();
 
         private String identifier = null;
@@ -109,143 +109,144 @@ public record GeyserFullyCustomItemData(CustomItemData customItemData,
         private boolean isTool = false;
 
         @Override
-        public FullyCustomItemData.Builder name(@NonNull String name) {
+        public NonVanillaCustomItemData.Builder name(@NonNull String name) {
             this.customItemData.name(name);
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder identifier(@NonNull String identifier) {
+        public NonVanillaCustomItemData.Builder identifier(@NonNull String identifier) {
             this.identifier = identifier;
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder javaId(int javaId) {
+        public NonVanillaCustomItemData.Builder javaId(int javaId) {
             this.javaId = javaId;
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder stackSize(int stackSize) {
+        public NonVanillaCustomItemData.Builder stackSize(int stackSize) {
             this.stackSize = stackSize;
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder maxDamage(int maxDamage) {
+        public NonVanillaCustomItemData.Builder maxDamage(int maxDamage) {
             this.maxDamage = maxDamage;
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder toolType(@Nullable String toolType) {
+        public NonVanillaCustomItemData.Builder toolType(@Nullable String toolType) {
             this.toolType = toolType;
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder toolTier(@Nullable String toolTier) {
+        public NonVanillaCustomItemData.Builder toolTier(@Nullable String toolTier) {
             this.toolTier = toolTier;
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder armorType(@Nullable String armorType) {
+        public NonVanillaCustomItemData.Builder armorType(@Nullable String armorType) {
             this.armorType = armorType;
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder armorTier(@Nullable String armorTier) {
+        public NonVanillaCustomItemData.Builder armorTier(@Nullable String armorTier) {
             this.armorTier = armorTier;
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder protectionValue(int protectionValue) {
+        public NonVanillaCustomItemData.Builder protectionValue(int protectionValue) {
             this.protectionValue = protectionValue;
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder translationString(@Nullable String translationString) {
+        public NonVanillaCustomItemData.Builder translationString(@Nullable String translationString) {
             this.translationString = translationString;
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder repairMaterials(@Nullable Set<String> repairMaterials) {
+        public NonVanillaCustomItemData.Builder repairMaterials(@Nullable Set<String> repairMaterials) {
             this.repairMaterials = repairMaterials;
             return this;
         }
 
+
         @Override
-        public FullyCustomItemData.Builder creativeCategory(@NonNull OptionalInt creativeCategory) {
+        public NonVanillaCustomItemData.Builder creativeCategory(@NonNull OptionalInt creativeCategory) {
             this.creativeCategory = creativeCategory;
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder creativeCategory(int creativeCategory) {
+        public Builder creativeCategory(int creativeCategory) {
             this.creativeCategory = OptionalInt.of(creativeCategory);
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder creativeGroup(@Nullable String creativeGroup) {
+        public NonVanillaCustomItemData.Builder creativeGroup(@Nullable String creativeGroup) {
             this.creativeGroup = creativeGroup;
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder isHat(boolean isHat) {
+        public NonVanillaCustomItemData.Builder isHat(boolean isHat) {
             this.isHat = isHat;
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder isTool(boolean isTool) {
+        public NonVanillaCustomItemData.Builder isTool(boolean isTool) {
             this.isTool = isTool;
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder registrationTypes(@NonNull CustomItemRegistrationTypes registrationTypes) {
+        public NonVanillaCustomItemData.Builder registrationTypes(@NonNull CustomItemOptions registrationTypes) {
             this.customItemData.registrationTypes(registrationTypes);
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder displayName(@NonNull String displayName) {
+        public NonVanillaCustomItemData.Builder displayName(@NonNull String displayName) {
             this.customItemData.displayName(displayName);
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder allowOffhand(boolean allowOffhand) {
+        public NonVanillaCustomItemData.Builder allowOffhand(boolean allowOffhand) {
             this.customItemData.allowOffhand(allowOffhand);
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder textureSize(int textureSize) {
+        public NonVanillaCustomItemData.Builder textureSize(int textureSize) {
             this.customItemData.textureSize(textureSize);
             return this;
         }
 
         @Override
-        public FullyCustomItemData.Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets) {
+        public NonVanillaCustomItemData.Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets) {
             this.customItemData.renderOffsets(renderOffsets);
             return this;
         }
 
         @Override
-        public FullyCustomItemData build() {
+        public NonVanillaCustomItemData build() {
             if (identifier == null || javaId == -1) {
                 throw new IllegalArgumentException("Identifier and javaId must be set");
             }
-            return new GeyserFullyCustomItemData(customItemData.build(), identifier, javaId, stackSize, maxDamage, toolType, toolTier, armorType, armorTier, protectionValue, translationString, repairMaterials, creativeCategory, creativeGroup, isHat, isTool);
+            return new GeyserNonVanillaCustomItemData(customItemData.build(), identifier, javaId, stackSize, maxDamage, toolType, toolTier, armorType, armorTier, protectionValue, translationString, repairMaterials, creativeCategory, creativeGroup, isHat, isTool);
         }
     }
 }

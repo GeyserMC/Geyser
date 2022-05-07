@@ -36,8 +36,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemManager;
-import org.geysermc.geyser.api.item.custom.CustomItemRegistrationTypes;
-import org.geysermc.geyser.api.item.custom.FullyCustomItemData;
+import org.geysermc.geyser.api.item.custom.CustomItemOptions;
+import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.item.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.populator.CustomItemRegistryPopulator;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +49,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 public class GeyserCustomItemManager extends CustomItemManager {
     public static final String CUSTOM_PREFIX = "geyser_custom:";
@@ -79,7 +78,9 @@ public class GeyserCustomItemManager extends CustomItemManager {
             this.loadMappingsFromJson(mappingsFile);
         }
 
-        GeyserImpl.getInstance().getLogger().info("Registered " + this.registeredItemCount() + " custom items from mappings");
+        if (this.registeredItemCount() != 0) {
+            GeyserImpl.getInstance().getLogger().info("Registered " + this.registeredItemCount() + " custom items from mappings");
+        }
     }
 
     public void loadMappingsFromJson(@NotNull Path file) {
@@ -109,7 +110,7 @@ public class GeyserCustomItemManager extends CustomItemManager {
     }
 
     @Override
-    public boolean registerCustomItem(@NonNull FullyCustomItemData customItemData) {
+    public boolean registerCustomItem(@NonNull NonVanillaCustomItemData customItemData) {
         if (this.cantRegisterNewItem()) {
             return false;
         }
@@ -160,8 +161,8 @@ public class GeyserCustomItemManager extends CustomItemManager {
         return itemEntryList;
     }
 
-    public static CustomItemRegistrationTypes nbtToRegistrationTypes(CompoundTag nbt) {
-        CustomItemRegistrationTypes.Builder registrationTypes = CustomItemRegistrationTypes.builder();
+    public static CustomItemOptions nbtToRegistrationTypes(CompoundTag nbt) {
+        CustomItemOptions.Builder registrationTypes = CustomItemOptions.builder();
 
         if (nbt.get("CustomModelData") instanceof IntTag customModelDataTag) {
             registrationTypes.customModelData(customModelDataTag.getValue());
