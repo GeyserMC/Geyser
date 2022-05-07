@@ -33,6 +33,10 @@ import java.util.List;
 
 /**
  * Called when entities are defined within Geyser.
+ * <p>
+ * This event can be used to add custom entities to Geyser.
+ * Entity definitions can be created using the builder provided
+ * inside of {@link EntityDefinition}.
  *
  * @param definitions a mutable list of the currently
  *                    registered entity definitions
