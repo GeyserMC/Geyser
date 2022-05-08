@@ -105,6 +105,10 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
             customItemData.displayName(node.get("display_name").asText());
         }
 
+        if (node.has("icon")) {
+            customItemData.icon(node.get("icon").asText());
+        }
+
         if (node.has("allow_offhand")) {
             customItemData.allowOffhand(node.get("allow_offhand").asBoolean());
         }

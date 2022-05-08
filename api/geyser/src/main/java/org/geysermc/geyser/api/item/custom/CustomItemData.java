@@ -55,6 +55,13 @@ public interface CustomItemData {
     @NonNull String displayName();
 
     /**
+     * Gets the item's icon. By default, this is the item's name.
+     *
+     * @return the item's icon
+     */
+    @NonNull String icon();
+
+    /**
      * Gets if the item is allowed to be put into the offhand.
      *
      * @return true if the item is allowed to be used in the offhand, false otherwise
@@ -85,6 +92,8 @@ public interface CustomItemData {
         Builder customItemOptions(@NonNull CustomItemOptions customItemOptions);
 
         Builder displayName(@NonNull String displayName);
+
+        Builder icon(@NonNull String icon);
 
         Builder allowOffhand(boolean allowOffhand);
 

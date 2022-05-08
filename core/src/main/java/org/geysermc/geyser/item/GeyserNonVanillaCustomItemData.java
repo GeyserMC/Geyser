@@ -67,6 +67,11 @@ public record GeyserNonVanillaCustomItemData(CustomItemData customItemData,
     }
 
     @Override
+    public @NonNull String icon() {
+        return this.customItemData.icon();
+    }
+
+    @Override
     public boolean allowOffhand() {
         return this.customItemData.allowOffhand();
     }
@@ -213,6 +218,12 @@ public record GeyserNonVanillaCustomItemData(CustomItemData customItemData,
         @Override
         public NonVanillaCustomItemData.Builder displayName(@NonNull String displayName) {
             this.customItemData.displayName(displayName);
+            return this;
+        }
+
+        @Override
+        public NonVanillaCustomItemData.Builder icon(@NonNull String icon) {
+            this.customItemData.icon(icon);
             return this;
         }
 

@@ -32,7 +32,10 @@ import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 
 public record GeyserCustomItemData(String name,
                                    CustomItemOptions customItemOptions,
-                                   String displayName, boolean allowOffhand, int textureSize,
+                                   String displayName,
+                                   String icon,
+                                   boolean allowOffhand,
+                                   int textureSize,
                                    CustomRenderOffsets renderOffsets) implements CustomItemData {
 
     public static class CustomItemDataBuilder implements CustomItemData.Builder {
@@ -40,6 +43,7 @@ public record GeyserCustomItemData(String name,
         private CustomItemOptions customItemOptions = null;
 
         private String displayName = null;
+        private String icon = null;
         private boolean allowOffhand = false;
         private int textureSize = 16;
         private CustomRenderOffsets renderOffsets = null;
@@ -59,6 +63,12 @@ public record GeyserCustomItemData(String name,
         @Override
         public CustomItemData.Builder displayName(@NonNull String displayName) {
             this.displayName = displayName;
+            return this;
+        }
+
+        @Override
+        public CustomItemData.Builder icon(@NonNull String icon) {
+            this.icon = icon;
             return this;
         }
 
@@ -89,7 +99,10 @@ public record GeyserCustomItemData(String name,
             if (this.displayName == null) {
                 this.displayName = this.name;
             }
-            return new GeyserCustomItemData(this.name, this.customItemOptions, this.displayName, this.allowOffhand, this.textureSize, this.renderOffsets);
+            if (this.icon == null) {
+                this.icon = this.name;
+            }
+            return new GeyserCustomItemData(this.name, this.customItemOptions, this.displayName, this.icon, this.allowOffhand, this.textureSize, this.renderOffsets);
         }
     }
 }
