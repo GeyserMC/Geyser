@@ -26,23 +26,19 @@
 package org.geysermc.geyser.item.tools;
 
 public enum ToolTier {
-    WOODEN("wooden", 2),
-    STONE("stone", 4),
-    IRON("iron", 6),
-    GOLDEN("golden", 12),
-    DIAMOND("diamond", 8),
-    NETHERITE("netherite", 9);
+    WOODEN(2),
+    STONE(4),
+    IRON(6),
+    GOLDEN(12),
+    DIAMOND(8),
+    NETHERITE(9);
 
-    private final String name;
+    public static final ToolTier[] VALUES = values();
+
     private final int speed;
 
-    ToolTier(String name, int speed) {
-        this.name = name;
+    ToolTier(int speed) {
         this.speed = speed;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public int getSpeed() {
@@ -51,12 +47,13 @@ public enum ToolTier {
 
     @Override
     public String toString() {
-        return name;
+        return this.name().toLowerCase();
     }
 
     public static ToolTier getByName(String name) {
-        for (ToolTier tier : values()) {
-            if (tier.getName().equals(name)) {
+        String upperCase = name.toUpperCase();
+        for (ToolTier tier : VALUES) {
+            if (tier.name().equals(name)) {
                 return tier;
             }
         }

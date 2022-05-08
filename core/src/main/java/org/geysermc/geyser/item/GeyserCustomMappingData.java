@@ -46,11 +46,7 @@ public class GeyserCustomMappingData {
         return mappings.get(protocolVersion);
     }
 
-    public Mapping[] getMappings() {
-        return mappings.values().toArray(new Mapping[0]);
-    }
-
-    public int mappingNumber() {
+    public int protocolsMappedCount() {
         return mappings.size();
     }
 

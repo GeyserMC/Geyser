@@ -30,11 +30,11 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * This is a way to represent a boolean, but with a non set value added.
  */
-public enum TriState {
+public enum OptionalBoolean {
     /**
      * This is a way to represent a boolean, but with a non set value added. This class was inspired by adventure's version https://github.com/KyoriPowered/adventure/blob/main/4/api/src/main/java/net/kyori/adventure/util/TriState.java
      */
-    NOT_SET,
+    NOT_PRESENT,
 
     /**
      * Describes a true value.
@@ -65,9 +65,9 @@ public enum TriState {
      * @param value the boolean value
      * @return the created TriState
      */
-    public static TriState fromBoolean(Boolean value) {
+    public static OptionalBoolean fromBoolean(Boolean value) {
         if (value == null) {
-            return NOT_SET;
+            return NOT_PRESENT;
         } else if (value) {
             return TRUE;
         } else {

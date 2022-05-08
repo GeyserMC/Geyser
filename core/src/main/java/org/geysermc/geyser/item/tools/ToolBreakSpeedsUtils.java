@@ -31,14 +31,14 @@ import com.nukkitx.nbt.NbtType;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ToolBreakSpeeds {
+public class ToolBreakSpeedsUtils {
     public static int toolTierToSpeed(String toolTier) {
         ToolTier tier = ToolTier.getByName(toolTier);
-        if (tier == null) {
-            return 0;
-        } else {
+        if (tier != null) {
             return tier.getSpeed();
         }
+
+        return 0;
     }
 
     private static NbtMap createTagBreakSpeed(int speed, String... tags) {

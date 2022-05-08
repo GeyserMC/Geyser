@@ -39,7 +39,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
-import org.geysermc.geyser.api.util.TriState;
+import org.geysermc.geyser.api.util.OptionalBoolean;
 import org.geysermc.geyser.item.GeyserCustomItemManager;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -541,34 +541,30 @@ public abstract class ItemTranslator {
         if (nbt != null) {
             CustomItemOptions nbtData = GeyserCustomItemManager.nbtToCustomItemOptions(nbt);
             for (Object2IntMap.Entry<CustomItemOptions> mappingTypes : mapping.getCustomItemOptions().object2IntEntrySet()) {
-                boolean matches = true;
-
-                if (mappingTypes.getKey().unbreaking() != TriState.NOT_SET) {
+                if (mappingTypes.getKey().unbreaking() != OptionalBoolean.NOT_PRESENT) {
                     if (mappingTypes.getKey().unbreaking() != nbtData.unbreaking()) {
-                        matches = false;
+                        continue;
                     }
                 }
 
                 if (mappingTypes.getKey().customModelData().isPresent()) {
                     if (nbtData.customModelData().isEmpty()) {
-                        matches = false;
+                        continue;
                     } else if (mappingTypes.getKey().customModelData().getAsInt() != nbtData.customModelData().getAsInt()) {
-                        matches = false;
+                        continue;
                     }
                 }
 
                 if (mappingTypes.getKey().damagePredicate().isPresent()) {
                     if (nbtData.damagePredicate().isEmpty()) {
-                        matches = false;
+                        continue;
                     } else if (mappingTypes.getKey().damagePredicate().getAsInt() != nbtData.damagePredicate().getAsInt()) {
-                        matches = false;
+                        continue;
                     }
                 }
 
-                if (matches) {
-                    builder.id(mappingTypes.getIntValue());
-                    break;
-                }
+                builder.id(mappingTypes.getIntValue());
+                break;
             }
         }
         return builder;

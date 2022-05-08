@@ -40,7 +40,7 @@ import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.item.GeyserCustomItemManager;
 import org.geysermc.geyser.item.GeyserCustomRenderOffsets;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
-import org.geysermc.geyser.item.tools.ToolBreakSpeeds;
+import org.geysermc.geyser.item.tools.ToolBreakSpeedsUtils;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
@@ -55,10 +55,10 @@ public class CustomItemRegistryPopulator {
         String customItemName = GeyserCustomItemManager.CUSTOM_PREFIX + customItemData.name();
 
         GeyserCustomMappingData returnData = new GeyserCustomMappingData();
-        int addNum = 0;
+        int protocolIndex = 0;
 
         for (Int2ObjectMap.Entry<ItemMappings> entry : Registries.ITEMS.get().int2ObjectEntrySet()) {
-            addNum++;
+            protocolIndex++;
 
             int protocolVersion = entry.getIntKey();
             ItemMappings itemMappings = entry.getValue();
@@ -69,19 +69,19 @@ public class CustomItemRegistryPopulator {
                 continue;
             }
 
-            int nameExists = 0;
+            boolean nameExists = false;
             for (String mappingName : itemMappings.getCustomIdMappings().values()) {
                 if (Pattern.matches("^" + customItemName + "(_([0-9])+)?$", mappingName)) {
-                    nameExists++;
+                    nameExists = true;
                 }
             }
-            if (nameExists != 0) {
-                customItemName = customItemName + "_" + nameExists; //Since we update the name outside the for loop, this won't be run on each protocol version
-                GeyserImpl.getInstance().getLogger().warning("Custom item name '" + customItemData.name() + "' already exists, new item was registered as " + customItemName.substring(GeyserCustomItemManager.CUSTOM_PREFIX.length()) + "!");
+            if (nameExists) {
+                GeyserImpl.getInstance().getLogger().error("Custom item name '" + customItemData.name() + "' already exists and was registered again! Skipping...");
+                continue;
             }
 
             int javaCustomItemId = javaItem.getJavaId();
-            int customItemId = itemMappings.getItems().size() + (customItems * protocolVersions.size()) + addNum;
+            int customItemId = itemMappings.getItems().size() + (customItems * protocolVersions.size()) + protocolIndex;
 
             ItemMapping customItemMapping = ItemMapping.builder()
                     .javaIdentifier(baseItem)
@@ -113,28 +113,24 @@ public class CustomItemRegistryPopulator {
 
     public static Int2ObjectMap<ComponentItemData> populateRegistry(NonVanillaCustomItemData customItemData, int customItems) {
         Int2ObjectMap<ComponentItemData> componentItemDataMap = new Int2ObjectOpenHashMap<>();
-        int addNum = 0;
+        int protocolIndex = 0;
 
+        protocolVersionsLoop:
         for (Int2ObjectMap.Entry<ItemMappings> entry : Registries.ITEMS.get().int2ObjectEntrySet()) {
-            addNum++;
+            protocolIndex++;
 
             int protocolVersion = entry.getIntKey();
             ItemMappings itemMappings = entry.getValue();
 
-            boolean exists = false;
             for (ItemMapping mapping : itemMappings.getItems().values()) {
                 if (mapping.getJavaIdentifier().equals(customItemData.identifier()) || mapping.getBedrockIdentifier().equals(customItemData.identifier()) || mapping.getJavaId() == customItemData.javaId()) {
-                    exists = true;
-                    break;
+                    GeyserImpl.getInstance().getLogger().error("The custom item " + customItemData.identifier() + " is overwriting an existing item in protocol version " + protocolVersion +"! Could not register it.");
+                    break protocolVersionsLoop;
                 }
-            }
-            if (exists) {
-                GeyserImpl.getInstance().getLogger().error("The custom item " + customItemData.identifier() + " is overwriting an existing item in protocol version " + protocolVersion +"! Could not register it.");
-                continue;
             }
 
             String customIdentifier = customItemData.identifier();
-            int customItemId = itemMappings.getItems().size() + (customItems * protocolVersions.size()) + addNum;
+            int customItemId = itemMappings.getItems().size() + (customItems * protocolVersions.size()) + protocolIndex;
 
             ItemMapping customItemMapping = ItemMapping.builder()
                     .javaIdentifier(customIdentifier)
@@ -233,25 +229,25 @@ public class CustomItemRegistryPopulator {
     private static boolean computeToolProperties(String toolTier, String toolType, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
         boolean canDestroyInCreative = true;
         float miningSpeed = 1.0f;
-        int toolSpeed = ToolBreakSpeeds.toolTierToSpeed(toolTier);
+        int toolSpeed = ToolBreakSpeedsUtils.toolTierToSpeed(toolTier);
 
         switch (toolType) {
             case "sword" -> {
                 miningSpeed = 1.5f;
                 canDestroyInCreative = false;
-                componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getSwordDigger(toolSpeed));
+                componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getSwordDigger(toolSpeed));
                 componentBuilder.putCompound("minecraft:weapon", NbtMap.EMPTY);
             }
             case "pickaxe" -> {
-                componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getPickaxeDigger(toolSpeed, toolTier));
+                componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getPickaxeDigger(toolSpeed, toolTier));
                 setItemTag(componentBuilder, "pickaxe");
             }
             case "axe" -> {
-                componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getAxeDigger(toolSpeed));
+                componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getAxeDigger(toolSpeed));
                 setItemTag(componentBuilder, "axe");
             }
             case "shovel" -> {
-                componentBuilder.putCompound("minecraft:digger", ToolBreakSpeeds.getShovelDigger(toolSpeed));
+                componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getShovelDigger(toolSpeed));
                 setItemTag(componentBuilder, "shovel");
             }
             case "hoe" -> setItemTag(componentBuilder, "hoe");

@@ -395,15 +395,13 @@ public class ItemRegistryPopulator {
                 }
 
                 if (mappingItem.getArmorType() != null) {
+                    String armorTier = "";
                     if (mappingItem.getArmorTier() != null) {
-                        mappingBuilder = mappingBuilder.armorType(mappingItem.getArmorType().intern())
-                                .armorTier(mappingItem.getArmorTier().intern())
-                                .protectionValue(mappingItem.getProtectionValue());
-                    } else {
-                        mappingBuilder = mappingBuilder.armorType(mappingItem.getArmorType().intern())
-                                .armorTier("")
-                                .protectionValue(mappingItem.getProtectionValue());
+                        armorTier = mappingItem.getArmorTier().intern();
                     }
+                    mappingBuilder = mappingBuilder.armorType(mappingItem.getArmorType().intern())
+                            .armorTier(armorTier)
+                            .protectionValue(mappingItem.getProtectionValue());
                 }
 
                 if (javaOnlyItems.contains(javaIdentifier)) {

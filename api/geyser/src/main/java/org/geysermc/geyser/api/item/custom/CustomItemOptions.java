@@ -27,7 +27,7 @@ package org.geysermc.geyser.api.item.custom;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.util.TriState;
+import org.geysermc.geyser.api.util.OptionalBoolean;
 
 import java.util.OptionalInt;
 
@@ -40,7 +40,7 @@ public interface CustomItemOptions {
      *
      * @return if the item should be unbreakable
      */
-    @NonNull TriState unbreaking();
+    @NonNull OptionalBoolean unbreaking();
 
     /**
      * Gets the item's custom model data.
@@ -62,7 +62,7 @@ public interface CustomItemOptions {
      * @return true if the item at least one options set
      */
     default boolean hasCustomItemOptions() {
-        return this.unbreaking() == TriState.NOT_SET ||
+        return this.unbreaking() == OptionalBoolean.NOT_PRESENT ||
                 this.customModelData().isEmpty() ||
                 this.damagePredicate().isEmpty();
     }

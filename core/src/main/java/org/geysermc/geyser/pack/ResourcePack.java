@@ -86,9 +86,6 @@ public class ResourcePack {
 
         GeyserLoadResourcePacksEvent event = new GeyserLoadResourcePacksEvent(resourcePacks);
         GeyserImpl.getInstance().eventBus().fire(event);
-        if (event.resourcePacks().isEmpty()) {
-            return;
-        }
 
         for (Path path : event.resourcePacks()) {
             File file = path.toFile();

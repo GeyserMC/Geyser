@@ -47,9 +47,6 @@ public record GeyserCustomItemData(String name,
         @Override
         public CustomItemData.Builder name(@NonNull String name) {
             this.name = name;
-            if (this.displayName == null) {
-                this.displayName = name;
-            }
             return this;
         }
 
@@ -87,6 +84,10 @@ public record GeyserCustomItemData(String name,
         public CustomItemData build() {
             if (this.name == null || this.customItemOptions == null) {
                 throw new IllegalArgumentException("Name and custom item data must be set");
+            }
+
+            if (this.displayName == null) {
+                this.displayName = this.name;
             }
             return new GeyserCustomItemData(this.name, this.customItemOptions, this.displayName, this.allowOffhand, this.textureSize, this.renderOffsets);
         }

@@ -77,7 +77,7 @@ public record GeyserExtensionDescription(String name, String main, String apiVer
             try {
                 startupPhase = StartupPhase.valueOf((String) yamlMap.get("startup-phase"));
             } catch (Exception e) {
-                throw new InvalidDescriptionException("Invalid startup time format, should be a string: PRE_INITIALIZE, POST_INITIALIZE", e);
+                throw new InvalidDescriptionException("Unknown startup phase format", e);
             }
         }
 

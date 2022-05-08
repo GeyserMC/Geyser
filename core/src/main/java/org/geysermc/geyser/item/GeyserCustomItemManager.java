@@ -45,10 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class GeyserCustomItemManager extends CustomItemManager {
     public static final String CUSTOM_PREFIX = "geyser_custom:";
@@ -99,14 +96,14 @@ public class GeyserCustomItemManager extends CustomItemManager {
 
         GeyserCustomMappingData registeredItem = CustomItemRegistryPopulator.populateRegistry(identifier, customItemData, this.registeredItemCount());
 
-        if (registeredItem.mappingNumber() > 0) {
+        if (registeredItem.protocolsMappedCount() > 0) {
             this.customMappings.computeIfAbsent(identifier, list -> new ArrayList<>()).add(customItemData);
             this.registeredCustomItems.add(registeredItem);
 
             return true;
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     @Override
@@ -122,14 +119,14 @@ public class GeyserCustomItemManager extends CustomItemManager {
             }
 
             return true;
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     @Override
     public @NotNull List<CustomItemData> customItemData(@NotNull String identifier) {
-        return this.customMappings.getOrDefault(identifier, new ArrayList<>());
+        return this.customMappings.getOrDefault(identifier, Collections.emptyList());
     }
 
     @Override
