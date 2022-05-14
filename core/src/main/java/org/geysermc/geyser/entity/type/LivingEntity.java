@@ -300,7 +300,8 @@ public class LivingEntity extends Entity {
         if (javaAttribute.getType() instanceof AttributeType.Builtin type) {
             switch (type) {
                 case GENERIC_MAX_HEALTH -> {
-                    this.maxHealth = (float) AttributeUtils.calculateValue(javaAttribute);
+                    // Setting max health to 0 or below causes the entity to die on Bedrock but not on Java
+                    this.maxHealth = Math.max((float) AttributeUtils.calculateValue(javaAttribute), 1f);
                     newAttributes.add(createHealthAttribute());
                 }
                 case GENERIC_ATTACK_DAMAGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.ATTACK_DAMAGE));
