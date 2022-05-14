@@ -108,12 +108,13 @@ public class SkullCache {
 
     public void removeSkull(Vector3i position) {
         Skull skull = skulls.remove(position);
-        if (skull != null && skull.entity != null) {
+        if (skull != null) {
+            boolean hadEntity = skull.entity != null;
             freeSkullEntity(skull);
 
             if (cullingEnabled) {
                 inRangeSkulls.remove(skull);
-                if (inRangeSkulls.size() >= maxVisibleSkulls) {
+                if (hadEntity && inRangeSkulls.size() >= maxVisibleSkulls) {
                     // Reassign entity to the closest skull without an entity
                     assignSkullEntity(inRangeSkulls.get(maxVisibleSkulls - 1));
                 }
