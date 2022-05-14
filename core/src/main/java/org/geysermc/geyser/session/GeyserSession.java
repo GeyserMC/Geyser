@@ -173,6 +173,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     private final LodestoneCache lodestoneCache;
     private final PistonCache pistonCache;
     private final PreferencesCache preferencesCache;
+    private final SkullCache skullCache;
     private final TagCache tagCache;
     private final WorldCache worldCache;
 
@@ -220,7 +221,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     @Setter
     private ItemMappings itemMappings;
 
-    private final Map<Vector3i, SkullPlayerEntity> skullCache = new Object2ObjectOpenHashMap<>();
     private final Long2ObjectMap<ClientboundMapItemDataPacket> storedMaps = new Long2ObjectOpenHashMap<>();
 
     /**
@@ -530,6 +530,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         this.lodestoneCache = new LodestoneCache();
         this.pistonCache = new PistonCache(this);
         this.preferencesCache = new PreferencesCache(this);
+        this.skullCache = new SkullCache(this);
         this.tagCache = new TagCache();
         this.worldCache = new WorldCache(this);
 

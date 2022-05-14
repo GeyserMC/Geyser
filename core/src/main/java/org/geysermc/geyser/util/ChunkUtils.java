@@ -45,6 +45,7 @@ import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
@@ -150,10 +151,9 @@ public class ChunkUtils {
             // Otherwise, let's still store our reference to the item frame, but let the new block take precedence for now
         }
 
-        SkullPlayerEntity skull = session.getSkullCache().get(position);
-        if (skull != null && blockState != skull.getBlockState()) {
+        if (BlockStateValues.getSkullVariant(blockState) == -1) {
             // Skull is gone
-            skull.despawnEntity(position);
+            session.getSkullCache().removeSkull(position);
         }
 
         // Prevent moving_piston from being placed
