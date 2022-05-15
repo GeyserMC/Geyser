@@ -69,7 +69,10 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
-import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -94,7 +97,6 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
-import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
@@ -1092,15 +1094,17 @@ public class GeyserSession implements GeyserConnection, CommandSender {
                 worldBorder.resize();
             }
 
-            if (!worldBorder.isWithinWarningBoundaries()) {
+            boolean shouldShowFog = !worldBorder.isWithinWarningBoundaries();
+            if (shouldShowFog || worldBorder.isCloseToBorderBoundaries()) {
                 // Show particles representing where the world border is
                 worldBorder.drawWall();
                 // Set the mood
-                if (!isInWorldBorderWarningArea) {
+                if (shouldShowFog && !isInWorldBorderWarningArea) {
                     isInWorldBorderWarningArea = true;
                     sendFog("minecraft:fog_crimson_forest");
                 }
-            } else if (isInWorldBorderWarningArea) {
+            }
+            if (!shouldShowFog && isInWorldBorderWarningArea) {
                 // Clear fog as we are outside the world border now
                 removeFog("minecraft:fog_crimson_forest");
                 isInWorldBorderWarningArea = false;
