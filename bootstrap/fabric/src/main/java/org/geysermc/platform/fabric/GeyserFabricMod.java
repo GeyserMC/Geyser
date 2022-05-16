@@ -97,13 +97,15 @@ public class GeyserFabricMod implements ModInitializer, GeyserBootstrap {
 
     @Override
     public void onEnable() {
-        GeyserLocale.init(this);
-
         dataFolder = FabricLoader.getInstance().getConfigDir().resolve("Geyser-Fabric");
         if (!dataFolder.toFile().exists()) {
             //noinspection ResultOfMethodCallIgnored
             dataFolder.toFile().mkdir();
         }
+
+        // Init dataFolder first as local language overrides call getConfigFolder()
+        GeyserLocale.init(this);
+
         try {
             File configFile = FileUtils.fileOrCopiedFromResource(dataFolder.resolve("config.yml").toFile(), "config.yml",
                     (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
