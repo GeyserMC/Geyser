@@ -162,7 +162,7 @@ public final class EntityUtils {
                 }
                 case CHICKEN -> zOffset = -0.1f;
                 case TRADER_LLAMA, LLAMA -> zOffset = -0.3f;
-                case ARMOR_STAND -> yOffset = mountedHeightOffset + heightOffset + 0.5f;
+                case ARMOR_STAND -> yOffset += 0.5f;
             }
             if (passenger.getDefinition().entityType() == EntityType.SHULKER) {
                 switch (mount.getDefinition().entityType()) {
