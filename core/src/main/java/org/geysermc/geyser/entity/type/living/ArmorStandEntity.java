@@ -362,7 +362,7 @@ public class ArmorStandEntity extends LivingEntity {
             setFlag(EntityFlag.INVISIBLE, false);
             dirtyMetadata.put(EntityData.SCALE, 0.0f);
             // As the above is applied, we need an offset
-            updateOffsetRequirement(true);
+            updateOffsetRequirement(false);
 
             if (secondEntity != null) {
                 secondEntity.despawnEntity();
