@@ -204,7 +204,6 @@ public class GeyserImpl implements GeyserApi {
 
         GeyserLogger logger = bootstrap.getGeyserLogger();
         GeyserConfiguration config = bootstrap.getGeyserConfig();
-        logger.setDebug(config.isDebugMode());
 
         ScoreboardUpdater.init();
 
