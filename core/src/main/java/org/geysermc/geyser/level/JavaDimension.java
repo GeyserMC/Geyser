@@ -23,29 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type;
+package org.geysermc.geyser.level;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.session.GeyserSession;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 
-import java.util.UUID;
+/**
+ * Represents the information we store from the current Java dimension
+ * @param piglinSafe Whether piglins and hoglins are safe from conversion in this dimension.
+ *      This controls if they have the shaking effect applied in the dimension.
+ */
+public record JavaDimension(int minY, int maxY, boolean piglinSafe) {
 
-public class FallingBlockEntity extends Entity {
-
-    public FallingBlockEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw, int javaId) {
-        super(session, entityId, geyserId, uuid, EntityDefinitions.FALLING_BLOCK, position, motion, yaw, pitch, headYaw);
-
-        this.dirtyMetadata.put(EntityData.VARIANT, session.getBlockMappings().getBedrockBlockId(javaId));
-    }
-
-    @Override
-    public void setGravity(BooleanEntityMetadata entityMetadata) {
-        super.setGravity(entityMetadata);
-        // Set the NO_AI flag based on the no gravity flag to prevent movement
-        setFlag(EntityFlag.NO_AI, entityMetadata.getPrimitiveValue());
+    public static JavaDimension load(CompoundTag tag) {
+//        int minY = ((IntTag) dimensionTag.get("min_y")).getValue();
+//        int maxY = ((IntTag) dimensionTag.get("height")).getValue();
+        return new JavaDimension(0, 0, false);
     }
 }

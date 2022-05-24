@@ -34,14 +34,15 @@ import com.nukkitx.protocol.bedrock.packet.GameRulesChangedPacket;
 import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.util.ChunkUtils;
-import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.PluginMessageUtils;
+
+import java.util.Map;
 
 @Translator(packet = ClientboundLoginPacket.class)
 public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket> {
@@ -51,12 +52,15 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         PlayerEntity entity = session.getPlayerEntity();
         entity.setEntityId(packet.getEntityId());
 
+        Map<String, JavaDimension> dimensions = session.getDimensions();
+        dimensions.clear();
+
         // If the player is already initialized and a join game packet is sent, they
         // are swapping servers
-        String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
+        //String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
         if (session.isSpawned()) {
-            String fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), newDimension);
-            DimensionUtils.switchDimension(session, fakeDim);
+            //String fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), newDimension);
+            //DimensionUtils.switchDimension(session, fakeDim);
 
             session.getWorldCache().removeScoreboard();
         }
@@ -70,7 +74,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         boolean needsSpawnPacket = !session.isSentSpawnPacket();
         if (needsSpawnPacket) {
             // The player has yet to spawn so let's do that using some of the information in this Java packet
-            session.setDimension(newDimension);
+            //session.setDimension(newDimension);
             session.connect();
         }
 
@@ -106,13 +110,13 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:register", PluginMessageChannels.getFloodgateRegisterData()));
         }
 
-        if (!newDimension.equals(session.getDimension())) {
-            DimensionUtils.switchDimension(session, newDimension);
-        } else if (DimensionUtils.isCustomBedrockNetherId() && newDimension.equalsIgnoreCase(DimensionUtils.NETHER)) {
-            // If the player is spawning into the "fake" nether, send them some fog
-            session.sendFog("minecraft:fog_hell");
-        }
+//        if (!newDimension.equals(session.getDimension())) {
+//            DimensionUtils.switchDimension(session, newDimension);
+//        } else if (DimensionUtils.isCustomBedrockNetherId() && newDimension.equalsIgnoreCase(DimensionUtils.NETHER)) {
+//            // If the player is spawning into the "fake" nether, send them some fog
+//            session.sendFog("minecraft:fog_hell");
+//        }
 
-        ChunkUtils.loadDimensionTag(session, packet.getDimension());
+        //ChunkUtils.loadDimensionTag(session, packet.getDimension());
     }
 }

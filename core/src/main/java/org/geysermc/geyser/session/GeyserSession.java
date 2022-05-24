@@ -101,6 +101,7 @@ import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
+import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.netty.LocalSession;
@@ -319,11 +320,9 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     @Setter
     private String dimension = DimensionUtils.OVERWORLD;
     /**
-     * Whether piglins and hoglins are safe from conversion in this dimension.
-     * This controls if they have the shaking effect applied in the dimension.
+     * All dimensions that the client could possibly connect to.
      */
-    @Setter
-    private boolean dimensionPiglinSafe;
+    private final Map<String, JavaDimension> dimensions = new Object2ObjectOpenHashMap<>(3);
 
     @Setter
     private int breakingBlock;
@@ -1261,9 +1260,9 @@ public class GeyserSession implements GeyserConnection, CommandSender {
 
         ServerboundUseItemPacket useItemPacket;
         if (playerInventory.getItemInHand().getJavaId() == shield.getJavaId()) {
-            useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND);
+            useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, 0); //TODO
         } else if (playerInventory.getOffhand().getJavaId() == shield.getJavaId()) {
-            useItemPacket = new ServerboundUseItemPacket(Hand.OFF_HAND);
+            useItemPacket = new ServerboundUseItemPacket(Hand.OFF_HAND, 0);
         } else {
             // No blocking
             return false;
@@ -1292,7 +1291,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     private boolean disableBlocking() {
         if (playerEntity.getFlag(EntityFlag.BLOCKING)) {
             ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM,
-                    BlockUtils.POSITION_ZERO, Direction.DOWN);
+                    BlockUtils.POSITION_ZERO, Direction.DOWN, 0); //TODO
             sendDownstreamPacket(releaseItemPacket);
             playerEntity.setFlag(EntityFlag.BLOCKING, false);
             return true;

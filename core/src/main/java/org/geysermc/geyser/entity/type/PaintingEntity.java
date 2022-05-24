@@ -33,6 +33,7 @@ import org.geysermc.geyser.level.PaintingType;
 
 import java.util.UUID;
 
+// TODO 1.19
 public class PaintingEntity extends Entity {
     private static final double OFFSET = -0.46875;
     private final PaintingType paintingName;

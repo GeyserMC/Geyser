@@ -25,31 +25,32 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundChatPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundSystemChatPacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
-@Translator(packet = ClientboundChatPacket.class)
-public class JavaChatTranslator extends PacketTranslator<ClientboundChatPacket> {
+@Translator(packet = ClientboundSystemChatPacket.class)
+public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystemChatPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundChatPacket packet) {
+    public void translate(GeyserSession session, ClientboundSystemChatPacket packet) {
         TextPacket textPacket = new TextPacket();
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");
         textPacket.setXuid(session.getAuthData().xuid());
+        // TODO new types
         textPacket.setType(switch (packet.getType()) {
             case CHAT -> TextPacket.Type.CHAT;
             case SYSTEM -> TextPacket.Type.SYSTEM;
-            case NOTIFICATION -> TextPacket.Type.TIP;
+            case GAME_INFO -> TextPacket.Type.TIP;
             default -> TextPacket.Type.RAW;
         });
 
         textPacket.setNeedsTranslation(false);
-        textPacket.setMessage(MessageTranslator.convertMessage(packet.getMessage(), session.getLocale()));
+        textPacket.setMessage(MessageTranslator.convertMessage(packet.getContent(), session.getLocale()));
 
         session.sendUpstreamPacket(textPacket);
     }
