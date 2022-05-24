@@ -162,13 +162,11 @@ public final class EntityUtils {
                 }
                 case CHICKEN -> zOffset = -0.1f;
                 case TRADER_LLAMA, LLAMA -> zOffset = -0.3f;
-                case ARMOR_STAND -> yOffset += 0.5f;
             }
             if (passenger.getDefinition().entityType() == EntityType.SHULKER) {
                 switch (mount.getDefinition().entityType()) {
                     case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
                             COMMAND_BLOCK_MINECART, BOAT -> yOffset = 0.1875f;
-                    case ARMOR_STAND -> yOffset -= 0.5f;
                 }
             }
             /*
@@ -185,6 +183,12 @@ public final class EntityUtils {
             switch (mount.getDefinition().entityType()) {
                 case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
                         COMMAND_BLOCK_MINECART, BOAT -> yOffset -= mount.getDefinition().height() * 0.5f;
+            }
+            if(mount.getDefinition().entityType() == EntityType.ARMOR_STAND){
+                if(passenger.getDefinition().entityType() == EntityType.FALLING_BLOCK) yOffset += 0.5f;
+                //this is as close as we got with the offset of falling_block, shulker is perfect
+                if(mount.getFlag(EntityFlag.INVISIBLE) && passenger.getDefinition().entityType() == EntityType.FALLING_BLOCK) yOffset = 0.0075f;
+                if(mount.getFlag(EntityFlag.INVISIBLE) && passenger.getDefinition().entityType() == EntityType.SHULKER) yOffset = -0.48125f;
             }
             Vector3f offset = Vector3f.from(xOffset, yOffset, zOffset);
             passenger.setRiderSeatPosition(offset);

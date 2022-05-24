@@ -299,6 +299,7 @@ public class ArmorStandEntity extends LivingEntity {
             updateOffsetRequirement(false);
             if (positionUpdateRequired) {
                 positionUpdateRequired = false;
+                super.updatePassengerOffsets();
                 updatePosition();
             }
 
@@ -359,10 +360,12 @@ public class ArmorStandEntity extends LivingEntity {
         } else {
             // Nametag is not empty and there is no armor
             // We don't need to make a new entity
-            setFlag(EntityFlag.INVISIBLE, false);
+            setFlag(EntityFlag.INVISIBLE, true);
             dirtyMetadata.put(EntityData.SCALE, 0.0f);
             // As the above is applied, we need an offset
-            updateOffsetRequirement(false);
+            updateOffsetRequirement(true);
+            //update the passenger offset as armorstand is moving up by roughly 2 blocks
+            super.updatePassengerOffsets();
 
             if (secondEntity != null) {
                 secondEntity.despawnEntity();
