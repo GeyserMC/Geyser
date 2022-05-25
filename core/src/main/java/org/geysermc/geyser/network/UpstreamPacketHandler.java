@@ -164,6 +164,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     // Allow custom items to work
                     stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
                 }
+                stackPacket.getExperiments().add(new ExperimentData("wild_update", true));
 
                 session.sendUpstreamPacket(stackPacket);
                 break;

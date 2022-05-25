@@ -31,6 +31,7 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.nbt.NbtUtils;
+import com.nukkitx.protocol.bedrock.beta.BedrockBeta;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
@@ -66,9 +67,8 @@ public class ItemRegistryPopulator {
 
     public static void populate() {
         Map<String, PaletteVersion> paletteVersions = new Object2ObjectOpenHashMap<>();
-        paletteVersions.put("1_18_0", new PaletteVersion(Bedrock_v475.V475_CODEC.getProtocolVersion(), Collections.emptyMap()));
-        paletteVersions.put("1_18_10", new PaletteVersion(Bedrock_v486.V486_CODEC.getProtocolVersion(), Collections.emptyMap()));
         paletteVersions.put("1_18_30", new PaletteVersion(Bedrock_v503.V503_CODEC.getProtocolVersion(), Collections.emptyMap()));
+        paletteVersions.put("1_19_0", new PaletteVersion(BedrockBeta.BETA_CODEC.getProtocolVersion(), Collections.emptyMap()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 

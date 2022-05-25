@@ -64,6 +64,7 @@ import com.github.steveice10.packetlib.tcp.TcpClientSession;
 import com.github.steveice10.packetlib.tcp.TcpSession;
 import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.*;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.*;
@@ -1460,6 +1461,11 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
         startGamePacket.setServerEngine(""); // Do we want to fill this in?
+
+        startGamePacket.setPlayerPropertyData(NbtMap.EMPTY);
+        startGamePacket.setWorldTemplateId(UUID.randomUUID());
+
+        startGamePacket.getExperiments().add(new ExperimentData("wild_update", true));
 
         SyncedPlayerMovementSettings settings = new SyncedPlayerMovementSettings();
         settings.setMovementMode(AuthoritativeMovementMode.CLIENT);
