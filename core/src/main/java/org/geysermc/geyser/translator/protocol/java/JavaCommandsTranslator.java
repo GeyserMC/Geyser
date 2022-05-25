@@ -222,7 +222,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case BLOCK_POS -> CommandParam.BLOCK_POSITION;
             case COLUMN_POS, VEC3 -> CommandParam.POSITION;
             case MESSAGE -> CommandParam.MESSAGE;
-            case NBT, NBT_COMPOUND_TAG, NBT_TAG, NBT_PATH -> CommandParam.JSON;
+            case NBT_COMPOUND_TAG, NBT_TAG, NBT_PATH -> CommandParam.JSON; //TODO NBT was removed
             case RESOURCE_LOCATION, FUNCTION -> CommandParam.FILE_PATH;
             case BOOL -> ENUM_BOOLEAN;
             case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc

@@ -25,8 +25,12 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
+import com.github.steveice10.mc.protocol.data.game.MessageType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCustomPayloadPacket;
+import com.github.steveice10.opennbt.SNBTIO;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.nukkitx.protocol.bedrock.data.GameRuleData;
 import com.nukkitx.protocol.bedrock.data.PlayerPermission;
 import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
@@ -40,8 +44,14 @@ import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.ChunkUtils;
+import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.geyser.util.JavaCodecEntry;
 import org.geysermc.geyser.util.PluginMessageUtils;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @Translator(packet = ClientboundLoginPacket.class)
@@ -55,12 +65,37 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         Map<String, JavaDimension> dimensions = session.getDimensions();
         dimensions.clear();
 
+        JavaDimension.load(packet.getDimensionCodec(), dimensions);
+
+        SNBTIO.StringifiedNBTWriter writer = new SNBTIO.StringifiedNBTWriter(System.out);
+        try {
+            writer.writeTag(packet.getDimensionCodec(), true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        for (CompoundTag tag : JavaCodecEntry.iterateOverTag(packet.getDimensionCodec().get("minecraft:chat_type"))) {
+            int id = ((IntTag) tag.get("id")).getValue();
+            MessageType type = MessageType.values()[id];
+            CompoundTag element = tag.get("element");
+            CompoundTag chat = element.get("chat");
+            if (chat == null) {
+                continue;
+            }
+
+            try (ByteArrayOutputStream out = new ByteArrayOutputStream(); SNBTIO.StringifiedNBTWriter nbtWriter = new SNBTIO.StringifiedNBTWriter(out)) {
+                nbtWriter.writeTag(chat, false);
+                System.out.println(out.toString(StandardCharsets.UTF_8));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         // If the player is already initialized and a join game packet is sent, they
         // are swapping servers
-        //String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
         if (session.isSpawned()) {
-            //String fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), newDimension);
-            //DimensionUtils.switchDimension(session, fakeDim);
+            String fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), packet.getDimension());
+            DimensionUtils.switchDimension(session, fakeDim);
 
             session.getWorldCache().removeScoreboard();
         }
@@ -110,13 +145,15 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:register", PluginMessageChannels.getFloodgateRegisterData()));
         }
 
-//        if (!newDimension.equals(session.getDimension())) {
-//            DimensionUtils.switchDimension(session, newDimension);
-//        } else if (DimensionUtils.isCustomBedrockNetherId() && newDimension.equalsIgnoreCase(DimensionUtils.NETHER)) {
-//            // If the player is spawning into the "fake" nether, send them some fog
-//            session.sendFog("minecraft:fog_hell");
-//        }
+        String newDimension = packet.getDimension();
+        if (!newDimension.equals(session.getDimension())) {
+            DimensionUtils.switchDimension(session, newDimension);
+        } else if (DimensionUtils.isCustomBedrockNetherId() && newDimension.equalsIgnoreCase(DimensionUtils.NETHER)) {
+            // If the player is spawning into the "fake" nether, send them some fog
+            session.sendFog("minecraft:fog_hell");
+        }
 
-        //ChunkUtils.loadDimensionTag(session, packet.getDimension());
+        session.setDimensionType(dimensions.get(newDimension));
+        ChunkUtils.loadDimension(session);
     }
 }

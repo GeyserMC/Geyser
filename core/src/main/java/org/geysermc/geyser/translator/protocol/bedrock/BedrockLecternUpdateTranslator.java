@@ -57,7 +57,8 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
                     Direction.DOWN,
                     Hand.MAIN_HAND,
                     0, 0, 0, // Java doesn't care about these when dealing with a lectern
-                    false);
+                    false,
+                    session.getNextSequence());
             session.sendDownstreamPacket(blockPacket);
         } else {
             // Bedrock wants to either move a page or exit

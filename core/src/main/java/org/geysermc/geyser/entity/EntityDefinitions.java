@@ -272,7 +272,7 @@ public final class EntityDefinitions {
                     .type(EntityType.LLAMA_SPIT)
                     .heightAndWidth(0.25f)
                     .build();
-            PAINTING = EntityDefinition.<PaintingEntity>inherited(null, entityBase)
+            PAINTING = EntityDefinition.inherited(PaintingEntity::new, entityBase)
                     .type(EntityType.PAINTING)
                     .build();
             SHULKER_BULLET = EntityDefinition.inherited(ThrowableEntity::new, entityBase)

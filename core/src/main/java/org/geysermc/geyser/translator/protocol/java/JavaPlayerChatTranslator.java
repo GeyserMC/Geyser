@@ -23,34 +23,38 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.bedrock;
+package org.geysermc.geyser.translator.protocol.java;
 
-import com.nukkitx.protocol.bedrock.packet.CommandRequestPacket;
-import org.geysermc.common.PlatformType;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandManager;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundPlayerChatPacket;
+import com.nukkitx.protocol.bedrock.packet.TextPacket;
+import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
-@Translator(packet = CommandRequestPacket.class)
-public class BedrockCommandRequestTranslator extends PacketTranslator<CommandRequestPacket> {
+@Translator(packet = ClientboundPlayerChatPacket.class)
+public class JavaPlayerChatTranslator extends PacketTranslator<ClientboundPlayerChatPacket> {
 
     @Override
-    public void translate(GeyserSession session, CommandRequestPacket packet) {
-        String command = packet.getCommand().replace("/", "");
-        CommandManager commandManager = GeyserImpl.getInstance().getCommandManager();
-        if (session.getGeyser().getPlatformType() == PlatformType.STANDALONE && command.trim().startsWith("geyser ") && commandManager.getCommands().containsKey(command.split(" ")[1])) {
-            commandManager.runCommand(session, command);
-        } else {
-            String message = packet.getCommand().trim();
+    public void translate(GeyserSession session, ClientboundPlayerChatPacket packet) {
+        System.out.println(packet);
+        TextPacket textPacket = new TextPacket();
+        textPacket.setPlatformChatId("");
+        textPacket.setSourceName("");
+        textPacket.setXuid(session.getAuthData().xuid());
+        // TODO new types
+        textPacket.setType(switch (packet.getType()) {
+            case CHAT -> TextPacket.Type.CHAT;
+            case SYSTEM -> TextPacket.Type.SYSTEM;
+            case GAME_INFO -> TextPacket.Type.TIP;
+            default -> TextPacket.Type.RAW;
+        });
 
-            if (MessageTranslator.isTooLong(message, session)) {
-                return;
-            }
+        textPacket.setNeedsTranslation(false);
+        Component message = packet.getUnsignedContent() == null ? packet.getSignedContent() : packet.getUnsignedContent();
+        textPacket.setMessage(MessageTranslator.convertMessage(message, session.getLocale()));
 
-            session.sendCommand(message.substring(1));
-        }
+        session.sendUpstreamPacket(textPacket);
     }
 }

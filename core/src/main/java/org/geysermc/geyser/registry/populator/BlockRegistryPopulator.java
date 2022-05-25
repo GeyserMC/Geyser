@@ -171,8 +171,10 @@ public class BlockRegistryPopulator {
 
                 int bedrockRuntimeId = blockStateOrderedMap.getOrDefault(buildBedrockState(entry.getValue(), stateVersion, stateMapper), -1);
                 if (bedrockRuntimeId == -1) {
-                    throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Built NBT tag: \n" +
-                            buildBedrockState(entry.getValue(), stateVersion, stateMapper));
+                    bedrockRuntimeId = 0;
+                    //TODO remove
+                    //throw new RuntimeException("Unable to find " + javaId + " Bedrock runtime ID! Built NBT tag: \n" +
+                    //        buildBedrockState(entry.getValue(), stateVersion, stateMapper));
                 }
 
                 switch (javaId) {

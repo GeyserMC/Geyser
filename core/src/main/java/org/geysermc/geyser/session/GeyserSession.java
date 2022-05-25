@@ -36,6 +36,7 @@ import com.github.steveice10.mc.protocol.MinecraftConstants;
 import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.data.ProtocolState;
 import com.github.steveice10.mc.protocol.data.UnexpectedEncryptionException;
+import com.github.steveice10.mc.protocol.data.game.MessageType;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
@@ -47,6 +48,8 @@ import com.github.steveice10.mc.protocol.data.game.setting.SkinPart;
 import com.github.steveice10.mc.protocol.data.game.statistic.CustomStatistic;
 import com.github.steveice10.mc.protocol.data.game.statistic.Statistic;
 import com.github.steveice10.mc.protocol.packet.handshake.serverbound.ClientIntentionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatCommandPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundClientInformationPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
@@ -69,6 +72,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
+import it.unimi.dsi.fastutil.bytes.ByteArrays;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -81,6 +85,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.common.PlatformType;
 import org.geysermc.cumulus.Form;
@@ -125,6 +130,7 @@ import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
@@ -319,10 +325,15 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      */
     @Setter
     private String dimension = DimensionUtils.OVERWORLD;
+    @MonotonicNonNull
+    @Setter
+    private JavaDimension dimensionType = null;
     /**
      * All dimensions that the client could possibly connect to.
      */
     private final Map<String, JavaDimension> dimensions = new Object2ObjectOpenHashMap<>(3);
+
+    private final Map<MessageType, Object> chatTypes = new EnumMap<>(MessageType.class);
 
     @Setter
     private int breakingBlock;
@@ -1260,9 +1271,9 @@ public class GeyserSession implements GeyserConnection, CommandSender {
 
         ServerboundUseItemPacket useItemPacket;
         if (playerInventory.getItemInHand().getJavaId() == shield.getJavaId()) {
-            useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, 0); //TODO
+            useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, getNextSequence());
         } else if (playerInventory.getOffhand().getJavaId() == shield.getJavaId()) {
-            useItemPacket = new ServerboundUseItemPacket(Hand.OFF_HAND, 0);
+            useItemPacket = new ServerboundUseItemPacket(Hand.OFF_HAND, getNextSequence());
         } else {
             // No blocking
             return false;
@@ -1291,7 +1302,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     private boolean disableBlocking() {
         if (playerEntity.getFlag(EntityFlag.BLOCKING)) {
             ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM,
-                    BlockUtils.POSITION_ZERO, Direction.DOWN, 0); //TODO
+                    BlockUtils.POSITION_ZERO, Direction.DOWN, getNextSequence());
             sendDownstreamPacket(releaseItemPacket);
             playerEntity.setFlag(EntityFlag.BLOCKING, false);
             return true;
@@ -1357,7 +1368,21 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     @Override
     public String getLocale() {
         return clientData.getLanguageCode();
-     }
+    }
+
+    /**
+     * Sends a chat message to the Java server.
+     */
+    public void sendChat(String message) {
+        sendDownstreamPacket(new ServerboundChatPacket(message, Instant.now().toEpochMilli(), 0L, ByteArrays.EMPTY_ARRAY, false));
+    }
+
+    /**
+     * Sends a command to the Java server.
+     */
+    public void sendCommand(String command) {
+        sendDownstreamPacket(new ServerboundChatCommandPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyMap(), false));
+    }
 
     public void setServerRenderDistance(int renderDistance) {
         renderDistance = GenericMath.ceil(++renderDistance * MathUtils.SQRT_OF_TWO); //square to circle
@@ -1634,6 +1659,10 @@ public class GeyserSession implements GeyserConnection, CommandSender {
                 getRenderDistance(), ChatVisibility.FULL, true, SKIN_PARTS,
                 HandPreference.RIGHT_HAND, false, true);
         sendDownstreamPacket(clientSettingsPacket);
+    }
+
+    public int getNextSequence() {
+        return 0;
     }
 
     /**

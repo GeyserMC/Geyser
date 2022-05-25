@@ -26,17 +26,31 @@
 package org.geysermc.geyser.level;
 
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.IntTag;
+import org.geysermc.geyser.util.JavaCodecEntry;
+
+import java.util.Map;
 
 /**
  * Represents the information we store from the current Java dimension
  * @param piglinSafe Whether piglins and hoglins are safe from conversion in this dimension.
  *      This controls if they have the shaking effect applied in the dimension.
  */
-public record JavaDimension(int minY, int maxY, boolean piglinSafe) {
+public record JavaDimension(int minY, int maxY, boolean piglinSafe, double worldCoordinateScale) {
 
-    public static JavaDimension load(CompoundTag tag) {
-//        int minY = ((IntTag) dimensionTag.get("min_y")).getValue();
-//        int maxY = ((IntTag) dimensionTag.get("height")).getValue();
-        return new JavaDimension(0, 0, false);
+    public static void load(CompoundTag tag, Map<String, JavaDimension> map) {
+        for (CompoundTag dimension : JavaCodecEntry.iterateOverTag(tag.get("minecraft:dimension_type"))) {
+            CompoundTag elements = dimension.get("element");
+            int minY = ((IntTag) elements.get("min_y")).getValue();
+            int maxY = ((IntTag) elements.get("height")).getValue();
+            // Logical height can be ignored probably - seems to be for artificial limits like the Nether.
+
+            // Set if piglins/hoglins should shake
+            boolean piglinSafe = ((Number) elements.get("piglin_safe").getValue()).byteValue() != (byte) 0;
+            // Load world coordinate scale for the world border
+            double coordinateScale = ((Number) elements.get("coordinate_scale").getValue()).doubleValue();
+
+            map.put((String) dimension.get("name").getValue(), new JavaDimension(minY, maxY, piglinSafe, coordinateScale));
+        }
     }
 }

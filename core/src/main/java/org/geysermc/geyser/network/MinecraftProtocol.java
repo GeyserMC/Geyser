@@ -28,8 +28,6 @@ package org.geysermc.geyser.network;
 import com.github.steveice10.mc.protocol.codec.MinecraftCodec;
 import com.github.steveice10.mc.protocol.codec.PacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
-import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
-import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
 import com.nukkitx.protocol.bedrock.v503.Bedrock_v503;
 
 import java.util.ArrayList;
@@ -58,10 +56,6 @@ public final class MinecraftProtocol {
     private static final PacketCodec DEFAULT_JAVA_CODEC = MinecraftCodec.CODEC;
 
     static {
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v475.V475_CODEC.toBuilder().minecraftVersion("1.18.0/1.18.1/1.18.2").build());
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v486.V486_CODEC.toBuilder()
-                .minecraftVersion("1.18.10/1.18.12") // 1.18.11 is also supported, but was only on Switch and since that auto-updates it's not needed
-                .build());
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
                 .minecraftVersion("1.18.30/1.18.31")
                 .build());

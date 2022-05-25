@@ -252,7 +252,9 @@ public class ItemRegistryPopulator {
 
                 int bedrockId = bedrockIdentifierToId.getInt(bedrockIdentifier);
                 if (bedrockId == Short.MIN_VALUE) {
-                    throw new RuntimeException("Missing Bedrock ID in mappings: " + bedrockIdentifier);
+                    bedrockId = 0;
+                    //TODO remove
+                    //throw new RuntimeException("Missing Bedrock ID in mappings: " + bedrockIdentifier);
                 }
                 int stackSize = mappingItem.getStackSize();
 

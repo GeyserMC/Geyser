@@ -27,26 +27,27 @@ package org.geysermc.geyser.entity.type;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.AddPaintingPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.level.PaintingType;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.UUID;
 
-// TODO 1.19
 public class PaintingEntity extends Entity {
     private static final double OFFSET = -0.46875;
-    private final PaintingType paintingName;
-    private final int direction;
+    private PaintingType paintingName;
+    private int direction;
 
-    public PaintingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, Vector3f position, PaintingType paintingName, int direction) {
-        super(session, entityId, geyserId, uuid, EntityDefinitions.PAINTING, position, Vector3f.ZERO, 0f, 0f, 0f);
-        this.paintingName = paintingName;
-        this.direction = direction;
+    public PaintingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
     public void spawnEntity() {
+        // Wait until we get the metadata needed
+    }
+
+    public void paintingtodo() {
         AddPaintingPacket addPaintingPacket = new AddPaintingPacket();
         addPaintingPacket.setUniqueEntityId(geyserId);
         addPaintingPacket.setRuntimeEntityId(geyserId);

@@ -122,7 +122,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         ServerboundPlayerActionPacket dropPacket = new ServerboundPlayerActionPacket(
                                 dropAll ? PlayerAction.DROP_ITEM_STACK : PlayerAction.DROP_ITEM,
                                 BlockUtils.POSITION_ZERO,
-                                Direction.DOWN
+                                Direction.DOWN,
+                                session.getNextSequence()
                         );
                         session.sendDownstreamPacket(dropPacket);
 
@@ -256,7 +257,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             if (blockState == BlockStateValues.JAVA_WATER_ID) {
                                 // Otherwise causes multiple mobs to spawn - just send a use item packet
                                 // TODO when we fix mobile bucket rotation, use it for this, too
-                                ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND);
+                                ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getNextSequence());
                                 session.sendDownstreamPacket(itemPacket);
                                 break;
                             }
@@ -267,13 +268,14 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 Direction.VALUES[packet.getBlockFace()],
                                 Hand.MAIN_HAND,
                                 packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
-                                false);
+                                false,
+                                session.getNextSequence());
                         session.sendDownstreamPacket(blockPacket);
 
                         if (packet.getItemInHand() != null) {
                             // Otherwise boats will not be able to be placed in survival and buckets won't work on mobile
                             if (session.getItemMappings().getBoatIds().contains(packet.getItemInHand().getId())) {
-                                ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND);
+                                ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getNextSequence());
                                 session.sendDownstreamPacket(itemPacket);
                             } else if (session.getItemMappings().getBucketIds().contains(packet.getItemInHand().getId())) {
                                 // Let the server decide if the bucket item should change, not the client, and revert the changes the client made
@@ -290,7 +292,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                         // Delay the interaction in case the client doesn't intend to actually use the bucket
                                         // See BedrockActionTranslator.java
                                         session.setBucketScheduledFuture(session.scheduleInEventLoop(() -> {
-                                            ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND);
+                                            ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getNextSequence());
                                             session.sendDownstreamPacket(itemPacket);
                                         }, 5, TimeUnit.MILLISECONDS));
                                     }
@@ -336,7 +338,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             }
                         }
 
-                        ServerboundUseItemPacket useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND);
+                        ServerboundUseItemPacket useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getNextSequence());
                         session.sendDownstreamPacket(useItemPacket);
 
                         List<LegacySetItemSlotData> legacySlots = packet.getLegacySlots();
@@ -418,7 +420,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         PlayerAction action = session.getGameMode() == GameMode.CREATIVE ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING;
                         Position pos = new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());
-                        ServerboundPlayerActionPacket breakPacket = new ServerboundPlayerActionPacket(action, pos, Direction.VALUES[packet.getBlockFace()]);
+                        ServerboundPlayerActionPacket breakPacket = new ServerboundPlayerActionPacket(action, pos, Direction.VALUES[packet.getBlockFace()], session.getNextSequence());
                         session.sendDownstreamPacket(breakPacket);
                     }
                 }
@@ -427,7 +429,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 if (packet.getActionType() == 0) {
                     // Followed to the Minecraft Protocol specification outlined at wiki.vg
                     ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, BlockUtils.POSITION_ZERO,
-                            Direction.DOWN);
+                            Direction.DOWN, session.getNextSequence());
                     session.sendDownstreamPacket(releaseItemPacket);
                 }
                 break;
