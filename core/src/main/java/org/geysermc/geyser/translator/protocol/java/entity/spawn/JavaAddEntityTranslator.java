@@ -32,10 +32,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddEntityPacket;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.entity.type.FallingBlockEntity;
-import org.geysermc.geyser.entity.type.FishingHookEntity;
-import org.geysermc.geyser.entity.type.ItemFrameEntity;
+import org.geysermc.geyser.entity.type.*;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
@@ -67,6 +64,9 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         } else if (packet.getType() == EntityType.ITEM_FRAME || packet.getType() == EntityType.GLOW_ITEM_FRAME) {
             // Item frames need the hanging direction
             entity = new ItemFrameEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), packet.getUuid(),
+                    definition, position, motion, yaw, pitch, headYaw, (Direction) packet.getData());
+        } else if (packet.getType() == EntityType.PAINTING) {
+            entity = new PaintingEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), packet.getUuid(),
                     definition, position, motion, yaw, pitch, headYaw, (Direction) packet.getData());
         } else if (packet.getType() == EntityType.FISHING_BOBBER) {
             // Fishing bobbers need the owner for the line

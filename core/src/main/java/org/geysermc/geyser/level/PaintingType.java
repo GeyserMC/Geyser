@@ -60,13 +60,9 @@ public enum PaintingType {
     BURNING_SKULL("BurningSkull", 4, 4);
 
     private static final PaintingType[] VALUES = values();
-    private String bedrockName;
-    private int width;
-    private int height;
-
-    public com.github.steveice10.mc.protocol.data.game.entity.type.PaintingType toJavaType() {
-        return com.github.steveice10.mc.protocol.data.game.entity.type.PaintingType.valueOf(name());
-    }
+    private final String bedrockName;
+    private final int width;
+    private final int height;
 
     public static PaintingType getByName(String javaName) {
         for (PaintingType paintingName : VALUES) {

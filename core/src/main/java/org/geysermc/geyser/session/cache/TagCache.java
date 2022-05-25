@@ -69,7 +69,6 @@ public class TagCache {
     }
 
     public void loadPacket(GeyserSession session, ClientboundUpdateTagsPacket packet) {
-        System.out.println(packet);
         Map<String, int[]> blockTags = packet.getTags().get("minecraft:block");
         this.leaves = IntList.of(blockTags.get("minecraft:leaves"));
         this.wool = IntList.of(blockTags.get("minecraft:wool"));

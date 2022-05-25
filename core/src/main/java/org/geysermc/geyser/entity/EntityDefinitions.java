@@ -272,8 +272,9 @@ public final class EntityDefinitions {
                     .type(EntityType.LLAMA_SPIT)
                     .heightAndWidth(0.25f)
                     .build();
-            PAINTING = EntityDefinition.inherited(PaintingEntity::new, entityBase)
+            PAINTING = EntityDefinition.<PaintingEntity>inherited(null, entityBase)
                     .type(EntityType.PAINTING)
+                    .addTranslator(MetadataType.PAINTING_VARIANT, PaintingEntity::setPaintingType)
                     .build();
             SHULKER_BULLET = EntityDefinition.inherited(ThrowableEntity::new, entityBase)
                     .type(EntityType.SHULKER_BULLET)
@@ -871,7 +872,7 @@ public final class EntityDefinitions {
         CAT = EntityDefinition.inherited(CatEntity::new, tameableEntityBase)
                 .type(EntityType.CAT)
                 .height(0.35f).width(0.3f)
-                .addTranslator(MetadataType.INT, CatEntity::setCatVariant)
+                .addTranslator(MetadataType.CAT_VARIANT, CatEntity::setCatVariant)
                 .addTranslator(MetadataType.BOOLEAN, CatEntity::setResting)
                 .addTranslator(null) // "resting state one" //TODO
                 .addTranslator(MetadataType.INT, CatEntity::setCollarColor)

@@ -106,10 +106,12 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
         session.setGameMode(packet.getGameMode());
 
+        String newDimension = packet.getDimension();
+
         boolean needsSpawnPacket = !session.isSentSpawnPacket();
         if (needsSpawnPacket) {
             // The player has yet to spawn so let's do that using some of the information in this Java packet
-            //session.setDimension(newDimension);
+            session.setDimension(newDimension);
             session.connect();
         }
 
@@ -145,7 +147,6 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             session.sendDownstreamPacket(new ServerboundCustomPayloadPacket("minecraft:register", PluginMessageChannels.getFloodgateRegisterData()));
         }
 
-        String newDimension = packet.getDimension();
         if (!newDimension.equals(session.getDimension())) {
             DimensionUtils.switchDimension(session, newDimension);
         } else if (DimensionUtils.isCustomBedrockNetherId() && newDimension.equalsIgnoreCase(DimensionUtils.NETHER)) {
