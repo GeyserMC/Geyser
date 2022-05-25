@@ -26,7 +26,6 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
@@ -121,7 +120,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         ServerboundPlayerActionPacket dropPacket = new ServerboundPlayerActionPacket(
                                 dropAll ? PlayerAction.DROP_ITEM_STACK : PlayerAction.DROP_ITEM,
-                                BlockUtils.POSITION_ZERO,
+                                Vector3i.ZERO,
                                 Direction.DOWN,
                                 session.getNextSequence()
                         );
@@ -264,7 +263,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
-                                new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ()),
+                                packet.getBlockPosition(),
                                 Direction.VALUES[packet.getBlockFace()],
                                 Hand.MAIN_HAND,
                                 packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
@@ -419,8 +418,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         PlayerAction action = session.getGameMode() == GameMode.CREATIVE ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING;
-                        Position pos = new Position(packet.getBlockPosition().getX(), packet.getBlockPosition().getY(), packet.getBlockPosition().getZ());
-                        ServerboundPlayerActionPacket breakPacket = new ServerboundPlayerActionPacket(action, pos, Direction.VALUES[packet.getBlockFace()], session.getNextSequence());
+                        ServerboundPlayerActionPacket breakPacket = new ServerboundPlayerActionPacket(action, packet.getBlockPosition(), Direction.VALUES[packet.getBlockFace()], session.getNextSequence());
                         session.sendDownstreamPacket(breakPacket);
                     }
                 }
@@ -428,7 +426,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             case ITEM_RELEASE:
                 if (packet.getActionType() == 0) {
                     // Followed to the Minecraft Protocol specification outlined at wiki.vg
-                    ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, BlockUtils.POSITION_ZERO,
+                    ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, Vector3i.ZERO,
                             Direction.DOWN, session.getNextSequence());
                     session.sendDownstreamPacket(releaseItemPacket);
                 }

@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetJigsawBlockPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundSignUpdatePacket;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.v503.Bedrock_v503;
@@ -109,7 +109,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             }
             // Put the final line on since it isn't done in the for loop
             if (iterator < lines.length) lines[iterator] = newMessage.toString();
-            Position pos = new Position(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
+            Vector3i pos = Vector3i.from(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
             ServerboundSignUpdatePacket signUpdatePacket = new ServerboundSignUpdatePacket(pos, lines);
             session.sendDownstreamPacket(signUpdatePacket);
 
@@ -118,7 +118,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
 
         } else if (id.equals("JigsawBlock")) {
             // Client has just sent a jigsaw block update
-            Position pos = new Position(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
+            Vector3i pos = Vector3i.from(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
             String name = tag.getString("name");
             String target = tag.getString("target");
             String pool = tag.getString("target_pool");

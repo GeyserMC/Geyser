@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.protocol.java.level;
 import com.github.steveice10.mc.protocol.data.game.level.event.*;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
@@ -88,7 +89,8 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             }
             GeyserImpl.getInstance().getLogger().debug("Unhandled sound event: " + soundEvent.name());
         } else if (packet.getEvent() instanceof ParticleEvent particleEvent) {
-            Vector3f pos = Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()).add(0.5f, 0.5f, 0.5f);
+            Vector3i origin = packet.getPosition();
+            Vector3f pos = Vector3f.from(origin.getX() + 0.5f, origin.getY() + 0.5f, origin.getZ() + 0.5f);
 
             LevelEventPacket effectPacket = new LevelEventPacket();
             effectPacket.setPosition(pos);

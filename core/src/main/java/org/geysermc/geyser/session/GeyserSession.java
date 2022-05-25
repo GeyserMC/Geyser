@@ -1302,7 +1302,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     private boolean disableBlocking() {
         if (playerEntity.getFlag(EntityFlag.BLOCKING)) {
             ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM,
-                    BlockUtils.POSITION_ZERO, Direction.DOWN, getNextSequence());
+                    Vector3i.ZERO, Direction.DOWN, getNextSequence());
             sendDownstreamPacket(releaseItemPacket);
             playerEntity.setFlag(EntityFlag.BLOCKING, false);
             return true;

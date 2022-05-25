@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.nukkitx.math.vector.Vector2i;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
@@ -117,19 +116,7 @@ public class ChunkUtils {
     }
 
     /**
-     * Sends a block update to the Bedrock client. If chunk caching is enabled and the platform is not Spigot, this also
-     * adds that block to the cache.
-     * @param session the Bedrock session to send/register the block to
-     * @param blockState the Java block state of the block
-     * @param position the position of the block
-     */
-    public static void updateBlock(GeyserSession session, int blockState, Position position) {
-        Vector3i pos = Vector3i.from(position.getX(), position.getY(), position.getZ());
-        updateBlock(session, blockState, pos);
-    }
-
-    /**
-     * Sends a block update to the Bedrock client. If chunk caching is enabled and the platform is not Spigot, this also
+     * Sends a block update to the Bedrock client. If the platform is not Spigot, this also
      * adds that block to the cache.
      * @param session the Bedrock session to send/register the block to
      * @param blockState the Java block state of the block

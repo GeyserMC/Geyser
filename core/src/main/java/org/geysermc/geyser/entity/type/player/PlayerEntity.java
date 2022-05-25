@@ -27,7 +27,6 @@ package org.geysermc.geyser.entity.type.player;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
@@ -265,7 +264,7 @@ public class PlayerEntity extends LivingEntity {
     }
 
     @Override
-    public Vector3i setBedPosition(EntityMetadata<Optional<Position>, ?> entityMetadata) {
+    public Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
         return bedPosition = super.setBedPosition(entityMetadata);
     }
 
