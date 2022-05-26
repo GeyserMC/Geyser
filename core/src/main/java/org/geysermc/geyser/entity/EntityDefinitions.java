@@ -146,6 +146,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<SquidEntity> SQUID;
     public static final EntityDefinition<AbstractSkeletonEntity> STRAY;
     public static final EntityDefinition<StriderEntity> STRIDER;
+    public static final EntityDefinition<TadpoleEntity> TADPOLE;
     public static final EntityDefinition<TNTEntity> TNT;
     public static final EntityDefinition<MinecartEntity> TNT_MINECART;
     public static final EntityDefinition<TraderLlamaEntity> TRADER_LLAMA;
@@ -650,6 +651,10 @@ public final class EntityDefinitions {
             SALMON = EntityDefinition.inherited(abstractFishEntityBase.factory(), abstractFishEntityBase)
                     .type(EntityType.SALMON)
                     .height(0.5f).width(0.7f)
+                    .build();
+            TADPOLE = EntityDefinition.inherited(TadpoleEntity::new, abstractFishEntityBase)
+                    .type(EntityType.TADPOLE)
+                    .height(0.3f).width(0.4f)
                     .build();
             TROPICAL_FISH = EntityDefinition.inherited(TropicalFishEntity::new, abstractFishEntityBase)
                     .type(EntityType.TROPICAL_FISH)
