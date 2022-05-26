@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.codec.MinecraftCodec;
 import com.github.steveice10.mc.protocol.codec.PacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.beta.BedrockBeta;
-import com.nukkitx.protocol.bedrock.v503.Bedrock_v503;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,10 +56,6 @@ public final class MinecraftProtocol {
     private static final PacketCodec DEFAULT_JAVA_CODEC = MinecraftCodec.CODEC;
 
     static {
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v503.V503_CODEC.toBuilder()
-                .minecraftVersion("1.18.30/1.18.31")
-                .build());
-
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
                 .minecraftVersion("1.19.0")
                 .build());
