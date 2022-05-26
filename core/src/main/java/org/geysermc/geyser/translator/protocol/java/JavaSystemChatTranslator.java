@@ -37,7 +37,6 @@ public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystem
 
     @Override
     public void translate(GeyserSession session, ClientboundSystemChatPacket packet) {
-        System.out.println(packet);
         TextPacket textPacket = new TextPacket();
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");

@@ -28,7 +28,6 @@ package org.geysermc.geyser.translator.protocol.java;
 import com.github.steveice10.mc.protocol.data.game.MessageType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundLoginPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundCustomPayloadPacket;
-import com.github.steveice10.opennbt.SNBTIO;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntTag;
 import com.nukkitx.protocol.bedrock.data.GameRuleData;
@@ -41,6 +40,7 @@ import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.text.TextDecoration;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -49,9 +49,6 @@ import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.JavaCodecEntry;
 import org.geysermc.geyser.util.PluginMessageUtils;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @Translator(packet = ClientboundLoginPacket.class)
@@ -67,28 +64,21 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
         JavaDimension.load(packet.getDimensionCodec(), dimensions);
 
-        SNBTIO.StringifiedNBTWriter writer = new SNBTIO.StringifiedNBTWriter(System.out);
-        try {
-            writer.writeTag(packet.getDimensionCodec(), true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        for (CompoundTag tag : JavaCodecEntry.iterateOverTag(packet.getDimensionCodec().get("minecraft:chat_type"))) {
+        Map<MessageType, TextDecoration> chatTypes = session.getChatTypes();
+        chatTypes.clear();
+        for (CompoundTag tag : JavaCodecEntry.iterateAsTag(packet.getDimensionCodec().get("minecraft:chat_type"))) {
             int id = ((IntTag) tag.get("id")).getValue();
-            MessageType type = MessageType.values()[id];
             CompoundTag element = tag.get("element");
             CompoundTag chat = element.get("chat");
             if (chat == null) {
                 continue;
             }
-
-            try (ByteArrayOutputStream out = new ByteArrayOutputStream(); SNBTIO.StringifiedNBTWriter nbtWriter = new SNBTIO.StringifiedNBTWriter(out)) {
-                nbtWriter.writeTag(chat, false);
-                System.out.println(out.toString(StandardCharsets.UTF_8));
-            } catch (IOException e) {
-                e.printStackTrace();
+            CompoundTag decoration = chat.get("decoration");
+            if (decoration == null) {
+                continue;
             }
+            MessageType type = MessageType.VALUES[id];
+            chatTypes.put(type, new TextDecoration(decoration));
         }
 
         // If the player is already initialized and a join game packet is sent, they

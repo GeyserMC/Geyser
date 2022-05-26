@@ -35,9 +35,9 @@ import java.util.Iterator;
 public record JavaCodecEntry() {
 
     /**
-     * Iterate over a Java Edition codec as a CompoundTag
+     * Iterate over a Java Edition codec and return each entry as a CompoundTag
      */
-    public static Iterable<CompoundTag> iterateOverTag(CompoundTag tag) {
+    public static Iterable<CompoundTag> iterateAsTag(CompoundTag tag) {
         ListTag value = tag.get("value");
         Iterator<Tag> originalIterator = value.iterator();
         return new Iterable<>() {

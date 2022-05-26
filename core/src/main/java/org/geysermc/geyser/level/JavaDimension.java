@@ -39,7 +39,7 @@ import java.util.Map;
 public record JavaDimension(int minY, int maxY, boolean piglinSafe, double worldCoordinateScale) {
 
     public static void load(CompoundTag tag, Map<String, JavaDimension> map) {
-        for (CompoundTag dimension : JavaCodecEntry.iterateOverTag(tag.get("minecraft:dimension_type"))) {
+        for (CompoundTag dimension : JavaCodecEntry.iterateAsTag(tag.get("minecraft:dimension_type"))) {
             CompoundTag elements = dimension.get("element");
             int minY = ((IntTag) elements.get("min_y")).getValue();
             int maxY = ((IntTag) elements.get("height")).getValue();
