@@ -188,7 +188,6 @@ public final class EntityUtils {
                 yOffset += 0.5f;
             }
             if (mount.getDefinition().entityType() == EntityType.ARMOR_STAND && mount.getFlag(EntityFlag.INVISIBLE)) {
-                ArmorStandEntity armorStand = (ArmorStandEntity) mount;
                 yOffset -= EntityDefinitions.ARMOR_STAND.height() * (((ArmorStandEntity) mount).isSmall() ? 0.55d : 1d);
             }
             Vector3f offset = Vector3f.from(xOffset, yOffset, zOffset);
