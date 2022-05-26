@@ -36,7 +36,7 @@ import com.nukkitx.protocol.bedrock.packet.AdventureSettingsPacket;
 import com.nukkitx.protocol.bedrock.packet.GameRulesChangedPacket;
 import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.AuthType;
@@ -56,7 +56,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
     @Override
     public void translate(GeyserSession session, ClientboundLoginPacket packet) {
-        PlayerEntity entity = session.getPlayerEntity();
+        SessionPlayerEntity entity = session.getPlayerEntity();
         entity.setEntityId(packet.getEntityId());
 
         Map<String, JavaDimension> dimensions = session.getDimensions();
@@ -115,6 +115,8 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             playerGameTypePacket.setGamemode(packet.getGameMode().ordinal());
             session.sendUpstreamPacket(playerGameTypePacket);
         }
+
+        entity.setLastDeathPosition(packet.getLastDeathPos());
 
         entity.updateBedrockMetadata();
 

@@ -55,6 +55,9 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
         session.setOpenInventory(null);
         session.setClosingInventory(false);
 
+        entity.setLastDeathPosition(packet.getLastDeathPos());
+        entity.updateBedrockMetadata();
+
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         playerGameTypePacket.setGamemode(packet.getGamemode().ordinal());
         session.sendUpstreamPacket(playerGameTypePacket);
