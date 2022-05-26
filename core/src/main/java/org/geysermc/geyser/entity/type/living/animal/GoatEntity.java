@@ -27,6 +27,7 @@ package org.geysermc.geyser.entity.type.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -65,12 +66,12 @@ public class GoatEntity extends AnimalEntity {
 
     @Nonnull
     @Override
-    protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
         if (!getFlag(EntityFlag.BABY) && itemInHand.getMapping(session).getJavaIdentifier().equals("minecraft:bucket")) {
             session.playSoundEvent(isScreamer ? SoundEvent.MILK_SCREAMER : SoundEvent.MILK, position);
             return InteractionResult.SUCCESS;
         } else {
-            return super.mobInteract(itemInHand);
+            return super.mobInteract(hand, itemInHand);
         }
     }
 }

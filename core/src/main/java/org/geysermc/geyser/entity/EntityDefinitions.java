@@ -51,6 +51,7 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
 public final class EntityDefinitions {
+    public static final EntityDefinition<AllayEntity> ALLAY;
     public static final EntityDefinition<AreaEffectCloudEntity> AREA_EFFECT_CLOUD;
     public static final EntityDefinition<ArmorStandEntity> ARMOR_STAND;
     public static final EntityDefinition<TippedArrowEntity> ARROW;
@@ -63,7 +64,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<SpiderEntity> CAVE_SPIDER;
     public static final EntityDefinition<MinecartEntity> CHEST_MINECART;
     public static final EntityDefinition<ChickenEntity> CHICKEN;
-    public static final EntityDefinition<BoatEntity> CHEST_BOAT;
+    public static final EntityDefinition<ChestBoatEntity> CHEST_BOAT;
     public static final EntityDefinition<AbstractFishEntity> COD;
     public static final EntityDefinition<CommandBlockMinecartEntity> COMMAND_BLOCK_MINECART;
     public static final EntityDefinition<CowEntity> COW;
@@ -211,7 +212,7 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataType.BOOLEAN, BoatEntity::setPaddlingRight)
                     .addTranslator(MetadataType.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityData.BOAT_BUBBLE_TIME, entityMetadata.getValue())) // May not actually do anything
                     .build();
-            CHEST_BOAT = EntityDefinition.inherited(BOAT.factory(), BOAT)
+            CHEST_BOAT = EntityDefinition.inherited(ChestBoatEntity::new, BOAT)
                     .type(EntityType.CHEST_BOAT)
                     .build();
             DRAGON_FIREBALL = EntityDefinition.inherited(FireballEntity::new, entityBase)
@@ -447,6 +448,10 @@ public final class EntityDefinitions {
 
         // Extends mob
         {
+            ALLAY = EntityDefinition.inherited(AllayEntity::new, mobEntityBase)
+                    .type(EntityType.ALLAY)
+                    .height(0.6f).width(0.35f)
+                    .build();
             BAT = EntityDefinition.inherited(BatEntity::new, mobEntityBase)
                     .type(EntityType.BAT)
                     .height(0.9f).width(0.5f)

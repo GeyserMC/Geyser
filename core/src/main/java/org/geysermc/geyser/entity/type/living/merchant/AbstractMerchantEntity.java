@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.type.living.merchant;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
@@ -51,7 +52,7 @@ public class AbstractMerchantEntity extends AgeableEntity {
 
     @Nonnull
     @Override
-    protected InteractiveTag testMobInteraction(@Nonnull GeyserItemStack itemInHand) {
+    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
         String javaIdentifier = itemInHand.getMapping(session).getJavaIdentifier();
         if (!javaIdentifier.equals("minecraft:villager_spawn_egg")
                 && (definition != EntityDefinitions.VILLAGER || !getFlag(EntityFlag.SLEEPING) && ((VillagerEntity) this).isCanTradeWith())) {
@@ -60,12 +61,12 @@ public class AbstractMerchantEntity extends AgeableEntity {
                 return InteractiveTag.TRADE;
             }
         }
-        return super.testMobInteraction(itemInHand);
+        return super.testMobInteraction(hand, itemInHand);
     }
 
     @Nonnull
     @Override
-    protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
         String javaIdentifier = itemInHand.getMapping(session).getJavaIdentifier();
         if (!javaIdentifier.equals("minecraft:villager_spawn_egg")
                 && (definition != EntityDefinitions.VILLAGER || !getFlag(EntityFlag.SLEEPING))
@@ -73,7 +74,7 @@ public class AbstractMerchantEntity extends AgeableEntity {
             // Trading time
             return InteractionResult.SUCCESS;
         } else {
-            return super.mobInteract(itemInHand);
+            return super.mobInteract(hand, itemInHand);
         }
     }
 }

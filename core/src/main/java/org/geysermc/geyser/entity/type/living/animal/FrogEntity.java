@@ -33,6 +33,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.OptionalInt;
@@ -64,5 +65,10 @@ public class FrogEntity extends AnimalEntity {
         } else {
             dirtyMetadata.put(EntityData.TARGET_EID, 0L);
         }
+    }
+
+    @Override
+    public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
+        return javaIdentifierStripped.equals("slime_ball");
     }
 }

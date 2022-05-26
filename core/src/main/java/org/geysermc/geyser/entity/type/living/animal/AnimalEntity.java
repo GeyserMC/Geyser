@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.type.living.animal;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -63,16 +64,16 @@ public class AnimalEntity extends AgeableEntity {
 
     @Nonnull
     @Override
-    protected InteractiveTag testMobInteraction(@Nonnull GeyserItemStack itemInHand) {
+    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
         if (canEat(itemInHand)) {
             return InteractiveTag.FEED;
         }
-        return super.testMobInteraction(itemInHand);
+        return super.testMobInteraction(hand, itemInHand);
     }
 
     @Nonnull
     @Override
-    protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
+    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
         if (canEat(itemInHand)) {
             // FEED
             if (getFlag(EntityFlag.BABY)) {
@@ -82,6 +83,6 @@ public class AnimalEntity extends AgeableEntity {
                 return InteractionResult.CONSUME;
             }
         }
-        return super.mobInteract(itemInHand);
+        return super.mobInteract(hand, itemInHand);
     }
 }

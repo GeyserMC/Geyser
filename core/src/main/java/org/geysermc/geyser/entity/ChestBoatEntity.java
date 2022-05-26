@@ -23,44 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type.living.animal;
+package org.geysermc.geyser.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 
-import javax.annotation.Nonnull;
 import java.util.UUID;
 
-public class CowEntity extends AnimalEntity {
-    public CowEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+public class ChestBoatEntity extends BoatEntity {
+    public ChestBoatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
-    @Nonnull
     @Override
-    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (getFlag(EntityFlag.BABY) || !itemInHand.getMapping(session).getJavaIdentifier().equals("minecraft:bucket")) {
-            return super.testMobInteraction(hand, itemInHand);
-        }
-
-        return InteractiveTag.MILK;
+    protected InteractiveTag testInteraction(Hand hand) {
+        return passengers.isEmpty() && !session.isSneaking() ? super.testInteraction(hand) : InteractiveTag.OPEN_CONTAINER;
     }
 
-    @Nonnull
     @Override
-    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
-        if (getFlag(EntityFlag.BABY) || !itemInHand.getMapping(session).getJavaIdentifier().equals("minecraft:bucket")) {
-            return super.mobInteract(hand, itemInHand);
-        }
-
-        session.playSoundEvent(SoundEvent.MILK, position);
-        return InteractionResult.SUCCESS;
+    public InteractionResult interact(Hand hand) {
+        return passengers.isEmpty() && !session.isSneaking() ? super.interact(hand) : InteractionResult.SUCCESS;
     }
 }
