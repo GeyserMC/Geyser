@@ -250,7 +250,7 @@ public class BlockRegistryPopulator {
                 builder.pickItem(pickItemNode.textValue().intern());
             }
 
-            if (javaId.equals("minecraft:obsidian") || javaId.equals("minecraft:crying_obsidian") || javaId.startsWith("minecraft:respawn_anchor")) {
+            if (javaId.equals("minecraft:obsidian") || javaId.equals("minecraft:crying_obsidian") || javaId.startsWith("minecraft:respawn_anchor") || javaId.startsWith("minecraft:reinforced_deepslate")) {
                 builder.pistonBehavior(PistonBehavior.BLOCK);
             } else {
                 JsonNode pistonBehaviorNode = entry.getValue().get("piston_behavior");
