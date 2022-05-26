@@ -156,6 +156,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<VillagerEntity> VILLAGER;
     public static final EntityDefinition<VindicatorEntity> VINDICATOR;
     public static final EntityDefinition<AbstractMerchantEntity> WANDERING_TRADER;
+    public static final EntityDefinition<WardenEntity> WARDEN;
     public static final EntityDefinition<RaidParticipantEntity> WITCH;
     public static final EntityDefinition<WitherEntity> WITHER;
     public static final EntityDefinition<AbstractSkeletonEntity> WITHER_SKELETON;
@@ -560,6 +561,11 @@ public final class EntityDefinitions {
                     .type(EntityType.VEX)
                     .height(0.8f).width(0.4f)
                     .addTranslator(MetadataType.BYTE, VexEntity::setVexFlags)
+                    .build();
+            WARDEN = EntityDefinition.inherited(WardenEntity::new, mobEntityBase)
+                    .type(EntityType.WARDEN)
+                    .height(2.9f).width(0.9f)
+                    .addTranslator(MetadataType.INT, WardenEntity::setAngerLevel)
                     .build();
             WITHER = EntityDefinition.inherited(WitherEntity::new, mobEntityBase)
                     .type(EntityType.WITHER)
