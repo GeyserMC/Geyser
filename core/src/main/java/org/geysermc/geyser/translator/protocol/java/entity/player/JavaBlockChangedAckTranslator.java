@@ -31,7 +31,7 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
 @Translator(packet = ClientboundBlockChangedAckPacket.class)
-public class JavaBlockBreakAckTranslator extends PacketTranslator<ClientboundBlockChangedAckPacket> {
+public class JavaBlockChangedAckTranslator extends PacketTranslator<ClientboundBlockChangedAckPacket> {
 
     @Override
     public void translate(GeyserSession session, ClientboundBlockChangedAckPacket packet) {

@@ -54,7 +54,8 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
         if (packet.getEvent() == com.github.steveice10.mc.protocol.data.game.level.event.SoundEvent.RECORD) {
             RecordEventData recordEventData = (RecordEventData) packet.getData();
             SoundEvent soundEvent = Registries.RECORDS.getOrDefault(recordEventData.getRecordId(), SoundEvent.STOP_RECORD);
-            Vector3f pos = Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()).add(0.5f, 0.5f, 0.5f);
+            Vector3i origin = packet.getPosition();
+            Vector3f pos = Vector3f.from(origin.getX() + 0.5f, origin.getY() + 0.5f, origin.getZ() + 0.5f);
 
             LevelSoundEventPacket levelSoundEvent = new LevelSoundEventPacket();
             levelSoundEvent.setIdentifier("");
