@@ -299,7 +299,6 @@ public class ArmorStandEntity extends LivingEntity {
             updateOffsetRequirement(false);
             if (positionUpdateRequired) {
                 positionUpdateRequired = false;
-                super.updatePassengerOffsets();
                 updatePosition();
             }
 
@@ -365,7 +364,6 @@ public class ArmorStandEntity extends LivingEntity {
             // As the above is applied, we need an offset
             updateOffsetRequirement(true);
             //update the passenger offset as armorstand is moving up by roughly 2 blocks
-            super.updatePassengerOffsets();
 
             if (secondEntity != null) {
                 secondEntity.despawnEntity();
@@ -414,6 +412,7 @@ public class ArmorStandEntity extends LivingEntity {
     private void updateOffsetRequirement(boolean newValue) {
         if (newValue != positionRequiresOffset) {
             this.positionRequiresOffset = newValue;
+            updatePassengerOffsets();
             if (positionRequiresOffset) {
                 this.position = applyOffsetToPosition(position);
             } else {
@@ -439,5 +438,9 @@ public class ArmorStandEntity extends LivingEntity {
     @Override
     public Vector3f getBedrockRotation() {
         return Vector3f.from(getYaw(), getYaw(), getYaw());
+    }
+
+    public boolean isSmall() {
+        return isSmall;
     }
 }
