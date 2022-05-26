@@ -89,6 +89,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<FireworkEntity> FIREWORK_ROCKET;
     public static final EntityDefinition<FishingHookEntity> FISHING_BOBBER;
     public static final EntityDefinition<FoxEntity> FOX;
+    public static final EntityDefinition<FrogEntity> FROG;
     public static final EntityDefinition<FurnaceMinecartEntity> FURNACE_MINECART; // Not present on Bedrock
     public static final EntityDefinition<GhastEntity> GHAST;
     public static final EntityDefinition<GiantEntity> GIANT;
@@ -739,6 +740,12 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataType.BYTE, FoxEntity::setFoxFlags)
                     .addTranslator(null) // Trusted player 1
                     .addTranslator(null) // Trusted player 2
+                    .build();
+            FROG = EntityDefinition.inherited(FrogEntity::new, ageableEntityBase)
+                    .type(EntityType.FROG)
+                    .heightAndWidth(0.5f)
+                    .addTranslator(MetadataType.FROG_VARIANT, FrogEntity::setFrogVariant)
+                    .addTranslator(MetadataType.OPTIONAL_VARINT, FrogEntity::setTongueTarget)
                     .build();
             HOGLIN = EntityDefinition.inherited(HoglinEntity::new, ageableEntityBase)
                     .type(EntityType.HOGLIN)
