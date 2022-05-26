@@ -38,6 +38,7 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.cumulus.SimpleForm;
 import org.geysermc.cumulus.response.SimpleFormResponse;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,15 +77,15 @@ public class AdvancementsCache {
                         .translator(MinecraftLocale::getLocaleString, session.getLocale())
                         .title("gui.advancements");
 
-        boolean hasAdvancements = false;
+        List<String> rootAdvancementIds = new ArrayList<>();
         for (Map.Entry<String, GeyserAdvancement> advancement : storedAdvancements.entrySet()) {
             if (advancement.getValue().getParentId() == null) { // No parent means this is a root advancement
-                hasAdvancements = true;
                 builder.button(MessageTranslator.convertMessage(advancement.getValue().getDisplayData().getTitle(), session.getLocale()));
+                rootAdvancementIds.add(advancement.getKey());
             }
         }
 
-        if (!hasAdvancements) {
+        if (rootAdvancementIds.isEmpty()) {
             builder.content("advancements.empty");
         }
 
@@ -94,20 +95,7 @@ public class AdvancementsCache {
                 return;
             }
 
-            String id = "";
-
-            int advancementIndex = 0;
-            for (Map.Entry<String, GeyserAdvancement> advancement : storedAdvancements.entrySet()) {
-                if (advancement.getValue().getParentId() == null) { // Root advancement
-                    if (advancementIndex == response.getClickedButtonId()) {
-                        id = advancement.getKey();
-                        break;
-                    } else {
-                        advancementIndex++;
-                    }
-                }
-            }
-
+            String id = rootAdvancementIds.get(response.getClickedButtonId());
             if (!id.equals("")) {
                 if (id.equals(currentAdvancementCategoryId)) {
                     // The server thinks we are already on this tab
@@ -136,12 +124,16 @@ public class AdvancementsCache {
                         .title(MessageTranslator.convertMessage(categoryAdvancement.getDisplayData().getTitle(), language))
                         .content(MessageTranslator.convertMessage(categoryAdvancement.getDisplayData().getDescription(), language));
 
+        List<GeyserAdvancement> visibleAdvancements = new ArrayList<>();
         if (currentAdvancementCategoryId != null) {
             for (GeyserAdvancement advancement : storedAdvancements.values()) {
-                if (advancement != null) {
+                boolean earned = isEarned(advancement);
+                if (earned || !advancement.getDisplayData().isHidden()) {
                     if (advancement.getParentId() != null && currentAdvancementCategoryId.equals(advancement.getRootId(this))) {
-                        boolean color = isEarned(advancement) || !advancement.getDisplayData().isShowToast();
-                        builder.button((color ? ChatColor.DARK_GREEN : "") + MessageTranslator.convertMessage(advancement.getDisplayData().getTitle()) + '\n');
+                        String color = earned ? advancement.getDisplayColor() : "";
+                        builder.button(color + MessageTranslator.convertMessage(advancement.getDisplayData().getTitle()) + '\n');
+
+                        visibleAdvancements.add(advancement);
                     }
                 }
             }
@@ -157,22 +149,8 @@ public class AdvancementsCache {
                 return;
             }
 
-            GeyserAdvancement advancement = null;
-            int advancementIndex = 0;
-            // Loop around to find the advancement that the client pressed
-            for (GeyserAdvancement advancementEntry : storedAdvancements.values()) {
-                if (advancementEntry.getParentId() != null &&
-                        currentAdvancementCategoryId.equals(advancementEntry.getRootId(this))) {
-                    if (advancementIndex == response.getClickedButtonId()) {
-                        advancement = advancementEntry;
-                        break;
-                    } else {
-                        advancementIndex++;
-                    }
-                }
-            }
-
-            if (advancement != null) {
+            if (response.getClickedButtonId() < visibleAdvancements.size()) {
+                GeyserAdvancement advancement = visibleAdvancements.get(response.getClickedButtonId());
                 buildAndShowInfoForm(advancement);
             } else {
                 buildAndShowMenuForm();
