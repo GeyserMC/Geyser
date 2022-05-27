@@ -53,6 +53,8 @@ public class ArmorStandEntity extends LivingEntity {
     @Getter
     private boolean isMarker = false;
     private boolean isInvisible = false;
+
+    @Getter
     private boolean isSmall = false;
 
     /**
@@ -441,7 +443,4 @@ public class ArmorStandEntity extends LivingEntity {
         return Vector3f.from(getYaw(), getYaw(), getYaw());
     }
 
-    public boolean isSmall() {
-        return isSmall;
-    }
 }
