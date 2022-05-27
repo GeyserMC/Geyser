@@ -76,6 +76,7 @@ public class ArmorStandEntity extends LivingEntity {
      * - No armor, no name: false
      * - No armor, yes name: true
      */
+    @Getter
     private boolean positionRequiresOffset = false;
     /**
      * Whether we should update the position of this armor stand after metadata updates.
@@ -412,9 +413,9 @@ public class ArmorStandEntity extends LivingEntity {
     private void updateOffsetRequirement(boolean newValue) {
         if (newValue != positionRequiresOffset) {
             this.positionRequiresOffset = newValue;
-            updatePassengerOffsets();
             if (positionRequiresOffset) {
                 this.position = applyOffsetToPosition(position);
+                updatePassengerOffsets();
             } else {
                 this.position = removeOffsetFromPosition(position);
             }
