@@ -47,7 +47,9 @@ public class FrogEntity extends AnimalEntity {
     @Override
     public void setPose(Pose pose) {
         setFlag(EntityFlag.JUMP_GOAL_JUMP, pose == Pose.LONG_JUMPING);
-        //TODO croaking and tongue using
+        setFlag(EntityFlag.CROAKING, pose == Pose.CROAKING);
+        setFlag(EntityFlag.EAT_MOB, pose == Pose.USING_TONGUE);
+
         super.setPose(pose);
     }
 
