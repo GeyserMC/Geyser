@@ -362,7 +362,7 @@ public class ArmorStandEntity extends LivingEntity {
         } else {
             // Nametag is not empty and there is no armor
             // We don't need to make a new entity
-            setFlag(EntityFlag.INVISIBLE, true);
+            setFlag(EntityFlag.INVISIBLE, false);
             dirtyMetadata.put(EntityData.SCALE, 0.0f);
             // As the above is applied, we need an offset
             updateOffsetRequirement(true);
