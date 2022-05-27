@@ -42,6 +42,7 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ParticleMapping;
 import org.geysermc.geyser.util.DimensionUtils;
 
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
@@ -150,6 +151,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                         stringPacket.setIdentifier(particleMapping.identifier());
                         stringPacket.setDimensionId(dimensionId);
                         stringPacket.setPosition(position);
+                        stringPacket.setMolangVariablesJson(Optional.empty());
                         return stringPacket;
                     };
                 } else {
