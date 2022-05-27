@@ -73,6 +73,7 @@ public final class EntityUtils {
             case SLOW_FALLING -> 27;
             case BAD_OMEN -> 28;
             case HERO_OF_THE_VILLAGE -> 29;
+            case DARKNESS -> 30;
             default -> effect.ordinal() + 1;
         };
     }
