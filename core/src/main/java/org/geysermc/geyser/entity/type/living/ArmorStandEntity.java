@@ -364,7 +364,6 @@ public class ArmorStandEntity extends LivingEntity {
             dirtyMetadata.put(EntityData.SCALE, 0.0f);
             // As the above is applied, we need an offset
             updateOffsetRequirement(true);
-            //update the passenger offset as armorstand is moving up by roughly 2 blocks
 
             if (secondEntity != null) {
                 secondEntity.despawnEntity();
@@ -415,6 +414,7 @@ public class ArmorStandEntity extends LivingEntity {
             this.positionRequiresOffset = newValue;
             if (positionRequiresOffset) {
                 this.position = applyOffsetToPosition(position);
+                //update the passenger offset as armorstand is moving up by roughly 2 blocks
                 updatePassengerOffsets();
             } else {
                 this.position = removeOffsetFromPosition(position);
