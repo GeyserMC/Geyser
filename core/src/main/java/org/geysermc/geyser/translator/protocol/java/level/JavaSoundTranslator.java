@@ -64,9 +64,6 @@ public class JavaSoundTranslator extends PacketTranslator<ClientboundSoundPacket
         LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
         SoundEvent sound = SoundUtils.toSoundEvent(soundMapping.getBedrock());
         if (sound == null) {
-            sound = SoundUtils.toSoundEvent(soundMapping.getBedrock());
-        }
-        if (sound == null) {
             sound = SoundUtils.toSoundEvent(packetSound);
         }
         if (sound == null) {

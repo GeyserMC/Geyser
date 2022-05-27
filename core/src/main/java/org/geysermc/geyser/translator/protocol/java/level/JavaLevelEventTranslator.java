@@ -25,15 +25,15 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
+import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import com.github.steveice10.mc.protocol.data.game.level.event.*;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelEventPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
-import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
-import com.nukkitx.protocol.bedrock.packet.TextPacket;
+import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
@@ -44,6 +44,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 
 import java.util.Collections;
 import java.util.Locale;
+import java.util.Set;
 
 @Translator(packet = ClientboundLevelEventPacket.class)
 public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelEventPacket> {
@@ -257,11 +258,84 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
             case WAX_ON -> effectPacket.setType(LevelEventType.PARTICLE_WAX_ON);
             case WAX_OFF -> effectPacket.setType(LevelEventType.PARTICLE_WAX_OFF);
             case SCRAPE -> effectPacket.setType(LevelEventType.PARTICLE_SCRAPE);
+            case SCULK_BLOCK_CHARGE -> {
+                SculkBlockChargeEventData eventData = (SculkBlockChargeEventData) packet.getData();
+                LevelEventGenericPacket levelEventPacket = new LevelEventGenericPacket();
+                // TODO add SCULK_BLOCK_CHARGE sound
+                if (eventData.getCharge() > 0) {
+                    levelEventPacket.setEventId(2037);
+                    levelEventPacket.setTag(
+                            NbtMap.builder()
+                                    .putInt("x", packet.getPosition().getX())
+                                    .putInt("y", packet.getPosition().getY())
+                                    .putInt("z", packet.getPosition().getZ())
+                                    .putShort("charge", (short) eventData.getCharge())
+                                    .putShort("facing", encodeFacing(eventData.getBlockFaces())) // TODO check if this is actually correct
+                                    .build()
+                    );
+                } else {
+                    levelEventPacket.setEventId(2038);
+                    levelEventPacket.setTag(
+                            NbtMap.builder()
+                                    .putInt("x", packet.getPosition().getX())
+                                    .putInt("y", packet.getPosition().getY())
+                                    .putInt("z", packet.getPosition().getZ())
+                                    .build()
+                    );
+                }
+                session.sendUpstreamPacket(levelEventPacket);
+                return;
+            }
+            case SCULK_SHRIEKER_SHRIEK -> {
+                LevelEventGenericPacket levelEventPacket = new LevelEventGenericPacket();
+                levelEventPacket.setEventId(2035);
+                levelEventPacket.setTag(
+                        NbtMap.builder()
+                                .putInt("originX", packet.getPosition().getX())
+                                .putInt("originY", packet.getPosition().getY())
+                                .putInt("originZ", packet.getPosition().getZ())
+                                .build()
+                );
+                session.sendUpstreamPacket(levelEventPacket);
+
+                LevelSoundEventPacket soundEventPacket = new LevelSoundEventPacket();
+                soundEventPacket.setSound(SoundEvent.SCULK_SHRIEKER_SHRIEK);
+                soundEventPacket.setPosition(packet.getPosition().toFloat());
+                soundEventPacket.setExtraData(-1);
+                soundEventPacket.setIdentifier("");
+                soundEventPacket.setBabySound(false);
+                soundEventPacket.setRelativeVolumeDisabled(false);
+                session.sendUpstreamPacket(soundEventPacket);
+                return;
+            }
             default -> {
                 GeyserImpl.getInstance().getLogger().debug("Unhandled level event: " + packet.getEvent());
                 return;
             }
         }
         session.sendUpstreamPacket(effectPacket);
+    }
+
+    private short encodeFacing(Set<Direction> blockFaces) {
+        short facing = 0;
+        if (blockFaces.contains(Direction.DOWN)) {
+            facing |= 1;
+        }
+        if (blockFaces.contains(Direction.UP)) {
+            facing |= 1 << 1;
+        }
+        if (blockFaces.contains(Direction.SOUTH)) {
+            facing |= 1 << 2;
+        }
+        if (blockFaces.contains(Direction.WEST)) {
+            facing |= 1 << 3;
+        }
+        if (blockFaces.contains(Direction.NORTH)) {
+            facing |= 1 << 4;
+        }
+        if (blockFaces.contains(Direction.EAST)) {
+            facing |= 1 << 5;
+        }
+        return facing;
     }
 }
