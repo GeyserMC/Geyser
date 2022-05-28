@@ -54,4 +54,9 @@ public class StopCommand extends GeyserCommand {
 
         geyser.getBootstrap().onDisable();
     }
+
+    @Override
+    public boolean isSuggestedOpOnly() {
+        return true;
+    }
 }

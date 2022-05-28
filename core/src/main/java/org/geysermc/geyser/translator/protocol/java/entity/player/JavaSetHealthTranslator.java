@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.java.entity.player;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.player.ClientboundSetHealthPacket;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
-import com.nukkitx.protocol.bedrock.packet.SetHealthPacket;
+import com.nukkitx.protocol.bedrock.packet.RespawnPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
@@ -44,10 +44,17 @@ public class JavaSetHealthTranslator extends PacketTranslator<ClientboundSetHeal
     public void translate(GeyserSession session, ClientboundSetHealthPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
 
-        int health = (int) Math.ceil(packet.getHealth());
-        SetHealthPacket setHealthPacket = new SetHealthPacket();
-        setHealthPacket.setHealth(health);
-        session.sendUpstreamPacket(setHealthPacket);
+        float oldHealth = entity.getHealth();
+        if (oldHealth <= 0f && Math.ceil(packet.getHealth()) > 0f) {
+            // Needed as of 1.18.30 (tested with a totem of undying on SPIGOT 1.12.2
+            // This shouldn't be triggered on a proper respawn because JavaSetHealthTranslator sets the health back to 20
+            // https://github.com/GeyserMC/Geyser/issues/2957
+            RespawnPacket respawnPacket = new RespawnPacket();
+            respawnPacket.setRuntimeEntityId(0);
+            respawnPacket.setPosition(entity.getPosition());
+            respawnPacket.setState(RespawnPacket.State.SERVER_READY);
+            session.sendUpstreamPacket(respawnPacket);
+        }
 
         entity.setHealth(packet.getHealth());
 

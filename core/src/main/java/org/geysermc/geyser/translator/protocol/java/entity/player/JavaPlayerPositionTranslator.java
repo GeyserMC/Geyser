@@ -74,7 +74,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
             movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
             movePlayerPacket.setPosition(entity.getPosition());
-            movePlayerPacket.setRotation(Vector3f.from(packet.getPitch(), packet.getYaw(), 0));
+            movePlayerPacket.setRotation(entity.getBedrockRotation());
             movePlayerPacket.setMode(MovePlayerPacket.Mode.RESPAWN);
 
             session.sendUpstreamPacket(movePlayerPacket);
@@ -86,13 +86,14 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
             ChunkUtils.updateChunkPosition(session, pos.toInt());
 
-            session.getGeyser().getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.entity.player.spawn", packet.getX(), packet.getY(), packet.getZ()));
+            if (session.getGeyser().getConfig().isDebugMode()) {
+                session.getGeyser().getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.entity.player.spawn", packet.getX(), packet.getY(), packet.getZ()));
+            }
             return;
         }
 
-        Entity vehicle = session.getPlayerEntity().getVehicle();
-        if (packet.isDismountVehicle() && vehicle != null) {
-
+        Entity vehicle;
+        if (packet.isDismountVehicle() && (vehicle = session.getPlayerEntity().getVehicle()) != null) {
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             linkPacket.setEntityLink(new EntityLinkData(vehicle.getGeyserId(), entity.getGeyserId(), EntityLinkData.Type.REMOVE, false, false));
             session.sendUpstreamPacket(linkPacket);
@@ -113,17 +114,15 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
         double newZ = packet.getZ() +
                 (packet.getRelative().contains(PositionElement.Z) ? entity.getPosition().getZ() : 0);
 
-        float newPitch = packet.getPitch() +
-                (packet.getRelative().contains(PositionElement.PITCH) ? entity.getBedrockRotation().getX() : 0);
-        float newYaw = packet.getYaw() +
-                (packet.getRelative().contains(PositionElement.YAW) ? entity.getBedrockRotation().getY() : 0);
+        float newPitch = packet.getPitch() + (packet.getRelative().contains(PositionElement.PITCH) ? entity.getPitch() : 0);
+        float newYaw = packet.getYaw() + (packet.getRelative().contains(PositionElement.YAW) ? entity.getYaw() : 0);
 
         int id = packet.getTeleportId();
 
         session.getGeyser().getLogger().debug("Teleport (" + id + ") from " + entity.getPosition().getX() + " " + (entity.getPosition().getY() - EntityDefinitions.PLAYER.offset()) + " " + entity.getPosition().getZ());
 
         Vector3f lastPlayerPosition = entity.getPosition().down(EntityDefinitions.PLAYER.offset());
-        float lastPlayerPitch = entity.getBedrockRotation().getX();
+        float lastPlayerPitch = entity.getPitch();
         Vector3f teleportDestination = Vector3f.from(newX, newY, newZ);
         entity.moveAbsolute(teleportDestination, newYaw, newPitch, true, true);
 

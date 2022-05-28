@@ -36,6 +36,8 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.DimensionUtils;
 
+import java.util.Optional;
+
 @Translator(packet = ClientboundAnimatePacket.class)
 public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePacket> {
 
@@ -50,6 +52,9 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
         switch (packet.getAnimation()) {
             case SWING_ARM:
                 animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
+                if (entity.getEntityId() == session.getPlayerEntity().getEntityId()) {
+                    session.activateArmAnimationTicking();
+                }
                 break;
             case SWING_OFFHAND:
                 // Use the OptionalPack to trigger the animation
@@ -74,6 +79,7 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
                 stringPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
                 stringPacket.setPosition(Vector3f.ZERO);
                 stringPacket.setUniqueEntityId(entity.getGeyserId());
+                stringPacket.setMolangVariablesJson(Optional.empty());
                 session.sendUpstreamPacket(stringPacket);
                 break;
             case LEAVE_BED:

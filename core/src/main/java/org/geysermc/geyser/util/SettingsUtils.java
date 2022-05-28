@@ -61,7 +61,7 @@ public class SettingsUtils {
 
             // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
             if (session.getPreferencesCache().isAllowShowCoordinates()) {
-                builder.toggle("geyser.settings.option.coordinates", session.getPreferencesCache().isPrefersShowCoordinates());
+                builder.toggle("%createWorldScreen.showCoordinates", session.getPreferencesCache().isPrefersShowCoordinates());
             }
 
             if (CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
@@ -169,6 +169,10 @@ public class SettingsUtils {
     }
 
     private static String translateEntry(String key, String locale) {
+        if (key.startsWith("%")) {
+            // Bedrock will translate
+            return key;
+        }
         if (key.startsWith("geyser.")) {
             return GeyserLocale.getPlayerLocaleString(key, locale);
         }

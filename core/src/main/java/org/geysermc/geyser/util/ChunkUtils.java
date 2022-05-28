@@ -45,24 +45,15 @@ import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
 
 import static org.geysermc.geyser.level.block.BlockStateValues.JAVA_AIR_ID;
 
 @UtilityClass
 public class ChunkUtils {
-    /**
-     * The minimum height Bedrock Edition will accept.
-     */
-    public static final int MINIMUM_ACCEPTED_HEIGHT = 0;
-    public static final int MINIMUM_ACCEPTED_HEIGHT_OVERWORLD = -64;
-    /**
-     * The maximum chunk height Bedrock Edition will accept, from the lowest point to the highest.
-     */
-    public static final int MAXIMUM_ACCEPTED_HEIGHT = 256;
-    public static final int MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD = 384;
-
     /**
      * An empty subchunk.
      */
@@ -160,10 +151,9 @@ public class ChunkUtils {
             // Otherwise, let's still store our reference to the item frame, but let the new block take precedence for now
         }
 
-        SkullPlayerEntity skull = session.getSkullCache().get(position);
-        if (skull != null && blockState != skull.getBlockState()) {
+        if (BlockStateValues.getSkullVariant(blockState) == -1) {
             // Skull is gone
-            skull.despawnEntity(position);
+            session.getSkullCache().removeSkull(position);
         }
 
         // Prevent moving_piston from being placed
@@ -249,17 +239,20 @@ public class ChunkUtils {
             throw new RuntimeException("Maximum Y must be a multiple of 16!");
         }
 
-        int dimension = DimensionUtils.javaToBedrock(session.getDimension());
-        boolean extendedHeight = dimension == 0;
-        session.getChunkCache().setExtendedHeight(extendedHeight);
+        BedrockDimension bedrockDimension = switch (session.getDimension()) {
+            case DimensionUtils.THE_END -> BedrockDimension.THE_END;
+            case DimensionUtils.NETHER -> DimensionUtils.isCustomBedrockNetherId() ? BedrockDimension.THE_END : BedrockDimension.THE_NETHER;
+            default -> BedrockDimension.OVERWORLD;
+        };
+        session.getChunkCache().setBedrockDimension(bedrockDimension);
 
         // Yell in the console if the world height is too height in the current scenario
         // The constraints change depending on if the player is in the overworld or not, and if experimental height is enabled
-        if (minY < (extendedHeight ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT)
-                || maxY > (extendedHeight ? MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD : MAXIMUM_ACCEPTED_HEIGHT)) {
+        // (Ignore this for the Nether. We can't change that at the moment without the workaround. :/ )
+        if (minY < bedrockDimension.minY() || (bedrockDimension.doUpperHeightWarn() && maxY > bedrockDimension.height())) {
             session.getGeyser().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds",
-                    extendedHeight ? MINIMUM_ACCEPTED_HEIGHT_OVERWORLD : MINIMUM_ACCEPTED_HEIGHT,
-                    extendedHeight ? MAXIMUM_ACCEPTED_HEIGHT_OVERWORLD : MAXIMUM_ACCEPTED_HEIGHT,
+                    String.valueOf(bedrockDimension.minY()),
+                    String.valueOf(bedrockDimension.height()),
                     session.getDimension()));
         }
 

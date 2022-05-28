@@ -30,8 +30,12 @@ import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class PiglinEntity extends BasePiglinEntity {
@@ -63,5 +67,31 @@ public class PiglinEntity extends BasePiglinEntity {
         super.updateBedrockMetadata();
 
         super.updateOffHand(session);
+    }
+
+    @Nonnull
+    @Override
+    protected InteractiveTag testMobInteraction(@Nonnull GeyserItemStack itemInHand) {
+        InteractiveTag tag = super.testMobInteraction(itemInHand);
+        if (tag != InteractiveTag.NONE) {
+            return tag;
+        } else {
+            return canGiveGoldTo(itemInHand) ? InteractiveTag.BARTER : InteractiveTag.NONE;
+        }
+    }
+
+    @Nonnull
+    @Override
+    protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
+        InteractionResult superResult = super.mobInteract(itemInHand);
+        if (superResult.consumesAction()) {
+            return superResult;
+        } else {
+            return canGiveGoldTo(itemInHand) ? InteractionResult.SUCCESS : InteractionResult.PASS;
+        }
+    }
+
+    private boolean canGiveGoldTo(@Nonnull GeyserItemStack itemInHand) {
+        return !getFlag(EntityFlag.BABY) && itemInHand.getJavaId() == session.getItemMappings().getStoredItems().goldIngot() && !getFlag(EntityFlag.ADMIRING);
     }
 }

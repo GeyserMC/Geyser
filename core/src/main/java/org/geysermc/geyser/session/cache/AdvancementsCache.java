@@ -32,6 +32,7 @@ import lombok.Setter;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.geyser.level.GeyserAdvancement;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -134,7 +135,7 @@ public class AdvancementsCache {
                 if (advancement != null) {
                     if (advancement.getParentId() != null && currentAdvancementCategoryId.equals(advancement.getRootId(this))) {
                         boolean color = isEarned(advancement) || !advancement.getDisplayData().isShowToast();
-                        builder.button((color ? "§6" : "") + MessageTranslator.convertMessage(advancement.getDisplayData().getTitle()) + '\n');
+                        builder.button((color ? ChatColor.DARK_GREEN : "") + MessageTranslator.convertMessage(advancement.getDisplayData().getTitle()) + '\n');
                     }
                 }
             }
@@ -252,10 +253,9 @@ public class AdvancementsCache {
     }
 
     public String getColorFromAdvancementFrameType(GeyserAdvancement advancement) {
-        String base = "\u00a7";
         if (advancement.getDisplayData().getFrameType() == Advancement.DisplayData.FrameType.CHALLENGE) {
-            return base + "5";
+            return ChatColor.DARK_PURPLE;
         }
-        return base + "a"; // Used for types TASK and GOAL
+        return ChatColor.GREEN; // Used for types TASK and GOAL
     }
 }

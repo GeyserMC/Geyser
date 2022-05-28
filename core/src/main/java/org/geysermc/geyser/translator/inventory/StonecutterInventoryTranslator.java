@@ -31,20 +31,14 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.Ser
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerSlotType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemStackRequest;
 import com.nukkitx.protocol.bedrock.data.inventory.StackRequestSlotInfoData;
-import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.CraftResultsDeprecatedStackRequestActionData;
+import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.CraftRecipeStackRequestActionData;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionData;
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
-import it.unimi.dsi.fastutil.ints.IntList;
-import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.inventory.StonecutterContainer;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.SlotType;
+import org.geysermc.geyser.inventory.*;
+import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
-import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
+import org.geysermc.geyser.session.GeyserSession;
 
 public class StonecutterInventoryTranslator extends AbstractBlockInventoryTranslator {
     public StonecutterInventoryTranslator() {
@@ -53,31 +47,26 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
 
     @Override
     protected boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
-        // First is pre-1.18. TODO remove after 1.17.40 support is dropped and refactor stonecutter support to use CraftRecipeStackRequestActionData's recipe ID
-        return action.getType() == StackRequestActionType.CRAFT_NON_IMPLEMENTED_DEPRECATED || action.getType() == StackRequestActionType.CRAFT_RECIPE;
+        return action.getType() == StackRequestActionType.CRAFT_RECIPE;
     }
 
     @Override
-    public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
-        // TODO: Also surely to change in the future
-        StackRequestActionData data = request.getActions()[1];
-        if (!(data instanceof CraftResultsDeprecatedStackRequestActionData craftData)) {
+    protected ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+        // Guarded by shouldHandleRequestFirst
+        CraftRecipeStackRequestActionData data = (CraftRecipeStackRequestActionData) request.getActions()[0];
+
+        // Look up all possible options of cutting from this ID
+        GeyserStonecutterData craftingData = session.getStonecutterRecipes().get(data.getRecipeNetworkId());
+        if (craftingData == null) {
             return rejectRequest(request);
         }
 
         StonecutterContainer container = (StonecutterContainer) inventory;
-        // Get the ID of the item we are cutting
-        int id = inventory.getItem(0).getJavaId();
-        // Look up all possible options of cutting from this ID
-        IntList results = session.getStonecutterRecipes().get(id);
-        if (results == null) {
-            return rejectRequest(request);
-        }
-
-        ItemStack javaOutput = ItemTranslator.translateToJava(craftData.getResultItems()[0], session.getItemMappings());
-        int button = results.indexOf(javaOutput.getId());
+        int button = craftingData.buttonId();
         // If we've already pressed the button with this item, no need to press it again!
         if (container.getStonecutterButton() != button) {
+            ItemStack javaOutput = craftingData.output();
+
             // Getting the index of the item in the Java stonecutter list
             ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(inventory.getId(), button);
             session.sendDownstreamPacket(packet);

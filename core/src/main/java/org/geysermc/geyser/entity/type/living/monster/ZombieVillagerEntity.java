@@ -33,33 +33,56 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.living.merchant.VillagerEntity;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class ZombieVillagerEntity extends ZombieEntity {
-    private boolean isTransforming;
 
     public ZombieVillagerEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     public void setTransforming(BooleanEntityMetadata entityMetadata) {
-        isTransforming = entityMetadata.getPrimitiveValue();
-        setFlag(EntityFlag.IS_TRANSFORMING, isTransforming);
+        setFlag(EntityFlag.IS_TRANSFORMING, entityMetadata.getPrimitiveValue());
         setFlag(EntityFlag.SHAKING, isShaking());
     }
 
     public void setZombieVillagerData(EntityMetadata<VillagerData, ?> entityMetadata) {
         VillagerData villagerData = entityMetadata.getValue();
-        dirtyMetadata.put(EntityData.VARIANT, VillagerEntity.VILLAGER_PROFESSIONS.get(villagerData.getProfession())); // Actually works properly with the OptionalPack
-        dirtyMetadata.put(EntityData.MARK_VARIANT, VillagerEntity.VILLAGER_REGIONS.get(villagerData.getType()));
+        dirtyMetadata.put(EntityData.VARIANT, VillagerEntity.getBedrockProfession(villagerData.getProfession())); // Actually works properly with the OptionalPack
+        dirtyMetadata.put(EntityData.MARK_VARIANT, VillagerEntity.getBedrockRegion(villagerData.getType()));
         // Used with the OptionalPack
         dirtyMetadata.put(EntityData.TRADE_TIER, villagerData.getLevel() - 1);
     }
 
     @Override
     protected boolean isShaking() {
-        return isTransforming || super.isShaking();
+        return getFlag(EntityFlag.IS_TRANSFORMING) || super.isShaking();
+    }
+
+    @Nonnull
+    @Override
+    protected InteractiveTag testMobInteraction(@Nonnull GeyserItemStack itemInHand) {
+        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().goldenApple()) {
+            return InteractiveTag.CURE;
+        } else {
+            return super.testMobInteraction(itemInHand);
+        }
+    }
+
+    @Nonnull
+    @Override
+    protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
+        if (itemInHand.getJavaId() == session.getItemMappings().getStoredItems().goldenApple()) {
+            // The client doesn't know if the entity has weakness as that's not usually sent over the network
+            return InteractionResult.CONSUME;
+        } else {
+            return super.mobInteract(itemInHand);
+        }
     }
 }

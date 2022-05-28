@@ -25,11 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity;
 
-import com.github.steveice10.mc.protocol.data.game.inventory.VillagerTrade;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSelectTradePacket;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
-import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
-import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.MerchantContainer;
 import org.geysermc.geyser.session.GeyserSession;
@@ -50,21 +47,14 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
                 return;
             }
             case COMPLETE_TRADE -> {
+                // Not sent as of 1.18.10
                 ServerboundSelectTradePacket selectTradePacket = new ServerboundSelectTradePacket(packet.getData());
                 session.sendDownstreamPacket(selectTradePacket);
 
                 session.scheduleInEventLoop(() -> {
-                    SessionPlayerEntity villager = session.getPlayerEntity();
                     Inventory openInventory = session.getOpenInventory();
                     if (openInventory instanceof MerchantContainer merchantInventory) {
-                        VillagerTrade[] trades = merchantInventory.getVillagerTrades();
-                        if (trades != null && packet.getData() >= 0 && packet.getData() < trades.length) {
-                            VillagerTrade trade = merchantInventory.getVillagerTrades()[packet.getData()];
-                            openInventory.setItem(2, GeyserItemStack.from(trade.getOutput()), session);
-                            // TODO this logic doesn't add up
-                            villager.addFakeTradeExperience(trade.getXp());
-                            villager.updateBedrockMetadata();
-                        }
+                        merchantInventory.onTradeSelected(session, packet.getData());
                     }
                 }, 100, TimeUnit.MILLISECONDS);
                 return;

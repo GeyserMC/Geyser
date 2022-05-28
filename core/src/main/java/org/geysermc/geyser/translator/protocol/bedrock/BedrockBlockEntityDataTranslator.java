@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.Ser
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundSignUpdatePacket;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
+import com.nukkitx.protocol.bedrock.v503.Bedrock_v503;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -41,12 +42,16 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
     @Override
     public void translate(GeyserSession session, BlockEntityDataPacket packet) {
         NbtMap tag = packet.getData();
-        if (tag.getString("id").equals("Sign")) {
+        String id = tag.getString("id");
+        if (id.equals("Sign")) {
+            String text = tag.getString("Text");
             // This is the reason why this all works - Bedrock sends packets every time you update the sign, Java only wants the final packet
             // But Bedrock sends one final packet when you're done editing the sign, which should be equal to the last message since there's no edits
             // So if the latest update does not match the last cached update then it's still being edited
-            if (!tag.getString("Text").equals(session.getLastSignMessage())) {
-                session.setLastSignMessage(tag.getString("Text"));
+            // TODO check 1.19:
+            // Bedrock only sends one packet as of 1.18.30. I (Camotoy) am suspicious this is a bug, but if it's permanent then we don't need the lastSignMessage variable.
+            if (session.getUpstream().getProtocolVersion() < Bedrock_v503.V503_CODEC.getProtocolVersion() && !text.equals(session.getLastSignMessage())) {
+                session.setLastSignMessage(text);
                 return;
             }
             // Otherwise the two messages are identical and we can get to work deconstructing
@@ -59,7 +64,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             // If it goes over the maximum, we need to start a new line to match Java
             int widthCount = 0;
             // This converts the message into the array'd message Java wants
-            for (char character : tag.getString("Text").toCharArray()) {
+            for (char character : text.toCharArray()) {
                 widthCount += SignUtils.getCharacterWidth(character);
                 // If we get a return in Bedrock, or go over the character width max, that signals to use the next line.
                 if (character == '\n' || widthCount > SignUtils.JAVA_CHARACTER_WIDTH_MAX) {
@@ -111,7 +116,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             // We set the sign text cached in the session to null to indicate there is no work-in-progress sign
             session.setLastSignMessage(null);
 
-        } else if (tag.getString("id").equals("JigsawBlock")) {
+        } else if (id.equals("JigsawBlock")) {
             // Client has just sent a jigsaw block update
             Position pos = new Position(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
             String name = tag.getString("name");

@@ -34,10 +34,7 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.ChatColor;
-import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.text.GsonComponentSerializerWrapper;
-import org.geysermc.geyser.text.MinecraftTranslationRegistry;
+import org.geysermc.geyser.text.*;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -85,8 +82,13 @@ public class MessageTranslator {
         TEAM_COLORS.put(TeamColor.STRIKETHROUGH, BASE + "m");
         TEAM_COLORS.put(TeamColor.ITALIC, BASE + "o");
 
-        // Temporary fix for https://github.com/KyoriPowered/adventure/issues/447
-        GsonComponentSerializer source = DefaultComponentSerializer.get();
+        // Temporary fix for https://github.com/KyoriPowered/adventure/issues/447 - TODO resolve properly
+        GsonComponentSerializer source = DefaultComponentSerializer.get()
+                .toBuilder()
+                // Use a custom legacy hover event deserializer since we don't use any of this data anyway, and
+                // fixes issues where legacy hover events throw deserialization errors
+                .legacyHoverEventSerializer(new DummyLegacyHoverEventSerializer())
+                .build();
         GSON_SERIALIZER = new GsonComponentSerializerWrapper(source);
         // Tell MCProtocolLib to use this serializer, too.
         DefaultComponentSerializer.set(GSON_SERIALIZER);

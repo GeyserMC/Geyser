@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.entity.type.player;
 
-import com.github.steveice10.mc.auth.data.GameProfile;
 import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
 import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeType;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
@@ -38,6 +37,7 @@ import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
 
@@ -70,7 +70,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     private int fakeTradeXp;
 
     public SessionPlayerEntity(GeyserSession session) {
-        super(session, -1, 1, new GameProfile(UUID.randomUUID(), "unknown"), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
+        super(session, -1, 1, UUID.randomUUID(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, "unknown", null);
 
         valid = true;
     }
@@ -134,6 +134,10 @@ public class SessionPlayerEntity extends PlayerEntity {
         return maxHealth;
     }
 
+    public float getHealth() {
+        return this.health;
+    }
+
     public void setHealth(float health) {
         this.health = health;
     }
@@ -165,6 +169,16 @@ public class SessionPlayerEntity extends PlayerEntity {
             maxHealth += 1;
         }
         return super.createHealthAttribute();
+    }
+
+    @Override
+    protected boolean hasShield(boolean offhand, ItemMapping shieldMapping) {
+        // Must be overridden to point to the player's inventory cache
+        if (offhand) {
+            return session.getPlayerInventory().getOffhand().getJavaId() == shieldMapping.getJavaId();
+        } else {
+            return session.getPlayerInventory().getItemInHand().getJavaId() == shieldMapping.getJavaId();
+        }
     }
 
     @Override

@@ -27,6 +27,7 @@ package org.geysermc.geyser.entity.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
@@ -35,6 +36,8 @@ import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -78,8 +81,8 @@ public class BoatEntity extends Entity {
     public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         // We don't include the rotation (y) as it causes the boat to appear sideways
         setPosition(position.add(0d, this.definition.offset(), 0d));
-        this.yaw = yaw + 90;
-        this.headYaw = yaw + 90;
+        setYaw(yaw + 90);
+        setHeadYaw(yaw + 90);
         setOnGround(isOnGround);
 
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
@@ -155,6 +158,27 @@ public class BoatEntity extends Entity {
             }
         } else {
             dirtyMetadata.put(EntityData.ROW_TIME_RIGHT, 0.0f);
+        }
+    }
+
+    @Override
+    protected InteractiveTag testInteraction(Hand hand) {
+        if (session.isSneaking()) {
+            return InteractiveTag.NONE;
+        } else if (passengers.size() < 2) {
+            return InteractiveTag.BOARD_BOAT;
+        } else {
+            return InteractiveTag.NONE;
+        }
+    }
+
+    @Override
+    public InteractionResult interact(Hand hand) {
+        if (session.isSneaking()) {
+            return InteractionResult.PASS;
+        } else {
+            // TODO: the client also checks for "out of control" ticks
+            return InteractionResult.SUCCESS;
         }
     }
 

@@ -65,9 +65,9 @@ public final class EntityDefinitions {
     public static final EntityDefinition<ChickenEntity> CHICKEN;
     public static final EntityDefinition<AbstractFishEntity> COD;
     public static final EntityDefinition<CommandBlockMinecartEntity> COMMAND_BLOCK_MINECART;
-    public static final EntityDefinition<AnimalEntity> COW;
+    public static final EntityDefinition<CowEntity> COW;
     public static final EntityDefinition<CreeperEntity> CREEPER;
-    public static final EntityDefinition<WaterEntity> DOLPHIN;
+    public static final EntityDefinition<DolphinEntity> DOLPHIN;
     public static final EntityDefinition<ChestedHorseEntity> DONKEY;
     public static final EntityDefinition<FireballEntity> DRAGON_FIREBALL;
     public static final EntityDefinition<ZombieEntity> DROWNED;
@@ -132,7 +132,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<ThrowableEntity> SHULKER_BULLET;
     public static final EntityDefinition<MonsterEntity> SILVERFISH;
     public static final EntityDefinition<SkeletonEntity> SKELETON;
-    public static final EntityDefinition<AbstractHorseEntity> SKELETON_HORSE;
+    public static final EntityDefinition<SkeletonHorseEntity> SKELETON_HORSE;
     public static final EntityDefinition<SlimeEntity> SLIME;
     public static final EntityDefinition<FireballEntity> SMALL_FIREBALL;
     public static final EntityDefinition<ThrowableItemEntity> SNOWBALL;
@@ -160,7 +160,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<WolfEntity> WOLF;
     public static final EntityDefinition<ZoglinEntity> ZOGLIN;
     public static final EntityDefinition<ZombieEntity> ZOMBIE;
-    public static final EntityDefinition<AbstractHorseEntity> ZOMBIE_HORSE;
+    public static final EntityDefinition<ZombieHorseEntity> ZOMBIE_HORSE;
     public static final EntityDefinition<ZombieVillagerEntity> ZOMBIE_VILLAGER;
     public static final EntityDefinition<ZombifiedPiglinEntity> ZOMBIFIED_PIGLIN;
 
@@ -459,7 +459,7 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataType.BOOLEAN, (entity, entityMetadata) -> entity.setFlag(EntityFlag.POWERED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                     .addTranslator(MetadataType.BOOLEAN, CreeperEntity::setIgnited)
                     .build();
-            DOLPHIN = EntityDefinition.inherited(WaterEntity::new, mobEntityBase)
+            DOLPHIN = EntityDefinition.inherited(DolphinEntity::new, mobEntityBase)
                     .type(EntityType.DOLPHIN)
                     .height(0.6f).width(0.9f)
                     //TODO check
@@ -723,7 +723,7 @@ public final class EntityDefinitions {
                     .type(EntityType.CHICKEN)
                     .height(0.7f).width(0.4f)
                     .build();
-            COW = EntityDefinition.inherited(AnimalEntity::new, ageableEntityBase)
+            COW = EntityDefinition.inherited(CowEntity::new, ageableEntityBase)
                     .type(EntityType.COW)
                     .height(1.4f).width(0.9f)
                     .build();
@@ -745,14 +745,14 @@ public final class EntityDefinitions {
                     .height(1.3f).width(0.9f)
                     .addTranslator(MetadataType.BOOLEAN, GoatEntity::setScreamer)
                     .build();
-            MOOSHROOM = EntityDefinition.inherited(MooshroomEntity::new, ageableEntityBase) // TODO remove class
+            MOOSHROOM = EntityDefinition.inherited(MooshroomEntity::new, ageableEntityBase)
                     .type(EntityType.MOOSHROOM)
                     .height(1.4f).width(0.9f)
-                    .addTranslator(MetadataType.STRING, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityData.VARIANT, entityMetadata.getValue().equals("brown") ? 1 : 0))
+                    .addTranslator(MetadataType.STRING, MooshroomEntity::setVariant)
                     .build();
             OCELOT = EntityDefinition.inherited(OcelotEntity::new, ageableEntityBase)
                     .type(EntityType.OCELOT)
-                    .height(0.35f).width(0.3f)
+                    .height(0.7f).width(0.6f)
                     .addTranslator(MetadataType.BOOLEAN, (ocelotEntity, entityMetadata) -> ocelotEntity.setFlag(EntityFlag.TRUSTING, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                     .build();
             PANDA = EntityDefinition.inherited(PandaEntity::new, ageableEntityBase)
@@ -783,7 +783,7 @@ public final class EntityDefinitions {
                     .build();
             SHEEP = EntityDefinition.inherited(SheepEntity::new, ageableEntityBase)
                     .type(EntityType.SHEEP)
-                    .heightAndWidth(0.9f)
+                    .height(1.3f).width(0.9f)
                     .addTranslator(MetadataType.BYTE, SheepEntity::setSheepFlags)
                     .build();
             STRIDER = EntityDefinition.inherited(StriderEntity::new, ageableEntityBase)
@@ -832,11 +832,11 @@ public final class EntityDefinitions {
                     .height(1.6f).width(1.3965f)
                     .addTranslator(MetadataType.INT, HorseEntity::setHorseVariant)
                     .build();
-            SKELETON_HORSE = EntityDefinition.inherited(abstractHorseEntityBase.factory(), abstractHorseEntityBase)
+            SKELETON_HORSE = EntityDefinition.inherited(SkeletonHorseEntity::new, abstractHorseEntityBase)
                     .type(EntityType.SKELETON_HORSE)
                     .height(1.6f).width(1.3965f)
                     .build();
-            ZOMBIE_HORSE = EntityDefinition.inherited(abstractHorseEntityBase.factory(), abstractHorseEntityBase)
+            ZOMBIE_HORSE = EntityDefinition.inherited(ZombieHorseEntity::new, abstractHorseEntityBase)
                     .type(EntityType.ZOMBIE_HORSE)
                     .height(1.6f).width(1.3965f)
                     .build();

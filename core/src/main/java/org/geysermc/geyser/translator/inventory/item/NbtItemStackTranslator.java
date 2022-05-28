@@ -29,12 +29,12 @@ import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.type.ItemMapping;
 
-public class NbtItemStackTranslator {
+public abstract class NbtItemStackTranslator {
 
     /**
      * Translate the item NBT to Bedrock
      * @param session the client's current session
-     * @param itemTag the item's CompoundTag
+     * @param itemTag the item's CompoundTag (cloned from Geyser's cached copy)
      * @param mapping Geyser's item mapping
      */
     public void translateToBedrock(GeyserSession session, CompoundTag itemTag, ItemMapping mapping) {
