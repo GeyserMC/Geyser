@@ -43,29 +43,29 @@ import java.util.concurrent.atomic.AtomicInteger;
 @RequiredArgsConstructor
 public class FormCache {
     private final FormDefinitions formDefinitions = FormDefinitions.instance();
-    private final AtomicInteger formId = new AtomicInteger(0);
+    private final AtomicInteger formIdCounter = new AtomicInteger(0);
     private final Int2ObjectMap<Form> forms = new Int2ObjectOpenHashMap<>();
     private final GeyserSession session;
 
     public int addForm(Form form) {
-        int windowId = formId.getAndIncrement();
-        forms.put(windowId, form);
-        return windowId;
+        int formId = formIdCounter.getAndIncrement();
+        forms.put(formId, form);
+        return formId;
     }
 
     public void showForm(Form form) {
-        int windowId = addForm(form);
+        int formId = addForm(form);
 
         if (session.getUpstream().isInitialized()) {
-            sendForm(windowId, form);
+            sendForm(formId, form);
         }
     }
 
-    private void sendForm(int windowId, Form form) {
+    private void sendForm(int formId, Form form) {
         String jsonData = formDefinitions.codecFor(form).jsonData(form);
 
         ModalFormRequestPacket formRequestPacket = new ModalFormRequestPacket();
-        formRequestPacket.setFormId(windowId);
+        formRequestPacket.setFormId(formId);
         formRequestPacket.setFormData(jsonData);
         session.sendUpstreamPacket(formRequestPacket);
 
@@ -74,8 +74,10 @@ public class FormCache {
             NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
             latencyPacket.setFromServer(true);
             latencyPacket.setTimestamp(-System.currentTimeMillis());
-            session.scheduleInEventLoop(() -> session.sendUpstreamPacket(latencyPacket),
-                    500, TimeUnit.MILLISECONDS);
+            session.scheduleInEventLoop(
+                    () -> session.sendUpstreamPacket(latencyPacket),
+                    500, TimeUnit.MILLISECONDS
+            );
         }
     }
 

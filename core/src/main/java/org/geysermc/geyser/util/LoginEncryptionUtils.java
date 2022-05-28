@@ -40,7 +40,10 @@ import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.ModalForm;
 import org.geysermc.cumulus.form.SimpleForm;
+import org.geysermc.cumulus.response.SimpleFormResponse;
+import org.geysermc.cumulus.response.result.FormResponseResult;
 import org.geysermc.cumulus.response.result.ResultType;
+import org.geysermc.cumulus.response.result.ValidFormResponseResult;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.session.GeyserSession;
@@ -59,6 +62,7 @@ import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
 import java.util.Iterator;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 
 public class LoginEncryptionUtils {
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
@@ -264,42 +268,49 @@ public class LoginEncryptionUtils {
      * Build a window that explains the user's credentials will be saved to the system.
      */
     public static void buildAndShowConsentWindow(GeyserSession session) {
-        String locale = session.getLocale();
         session.sendForm(
                 SimpleForm.builder()
+                        .translator(LoginEncryptionUtils::translate, session.getLocale())
                         .title("%gui.signIn")
-                        .content(GeyserLocale.getPlayerLocaleString("geyser.auth.login.save_token.warning", locale) +
-                                "\n\n" +
-                                GeyserLocale.getPlayerLocaleString("geyser.auth.login.save_token.proceed", locale))
+                        .content("""
+                                geyser.auth.login.save_token.warning
+
+                                geyser.auth.login.save_token.proceed""")
                         .button("%gui.ok")
                         .button("%gui.decline")
-                        .responseHandler((form, responseData) -> {
-                            SimpleFormResponse response = form.parseResponse(responseData);
-                            if (response.isCorrect() && response.getClickedButtonId() == 0) {
-                                session.authenticateWithMicrosoftCode(true);
-                            } else {
-                                session.disconnect("%disconnect.quitting");
-                            }
-                        }));
+                        .resultHandler(
+                                authenticateOrKickHandler(session),
+                                ResultType.CLOSED, ResultType.INVALID, ResultType.VALID
+                        )
+        );
     }
 
     public static void buildAndShowTokenExpiredWindow(GeyserSession session) {
-        String locale = session.getLocale();
         session.sendForm(
                 SimpleForm.builder()
-                        .title(GeyserLocale.getPlayerLocaleString("geyser.auth.login.form.expired", locale))
-                        .content(GeyserLocale.getPlayerLocaleString("geyser.auth.login.save_token.expired", locale) +
-                                "\n\n" +
-                                GeyserLocale.getPlayerLocaleString("geyser.auth.login.save_token.proceed", locale))
+                        .translator(LoginEncryptionUtils::translate, session.getLocale())
+                        .title("geyser.auth.login.form.expired")
+                        .content("""
+                                geyser.auth.login.save_token.expired
+
+                                geyser.auth.login.save_token.proceed""")
                         .button("%gui.ok")
-                        .responseHandler((form, responseData) -> {
-                            SimpleFormResponse response = form.parseResponse(responseData);
-                            if (response.isCorrect()) {
-                                session.authenticateWithMicrosoftCode(true);
-                            } else {
-                                session.disconnect("%disconnect.quitting");
-                            }
-                        }));
+                        .resultHandler(
+                                authenticateOrKickHandler(session),
+                                ResultType.CLOSED, ResultType.INVALID, ResultType.VALID
+                        )
+        );
+    }
+
+    private static BiConsumer<SimpleForm, FormResponseResult<SimpleFormResponse>> authenticateOrKickHandler(GeyserSession session) {
+        return (form, genericResult) -> {
+            if (genericResult instanceof ValidFormResponseResult<SimpleFormResponse> result &&
+                    result.response().clickedButtonId() == 0) {
+                session.authenticateWithMicrosoftCode(true);
+            } else {
+                session.disconnect("%disconnect.quitting");
+            }
+        };
     }
 
     public static void buildAndShowLoginDetailsWindow(GeyserSession session) {
@@ -377,5 +388,31 @@ public class LoginEncryptionUtils {
                             }
                         })
         );
+    }
+
+    /*
+    This checks per line if there is something to be translated, and it skips Bedrock translation keys (%)
+     */
+    private static String translate(String key, String locale) {
+        StringBuilder newValue = new StringBuilder();
+        int previousIndex = 0;
+        while (previousIndex < key.length()) {
+            int nextIndex = key.indexOf('\n', previousIndex);
+            int endIndex = nextIndex == -1 ? key.length() : nextIndex;
+
+            // if there is more to this line than just a new line char
+            if (endIndex - previousIndex > 1) {
+                String substring = key.substring(previousIndex, endIndex);
+                if (key.charAt(previousIndex) != '%') {
+                    newValue.append(GeyserLocale.getPlayerLocaleString(substring, locale));
+                } else {
+                    newValue.append(substring);
+                }
+            }
+            newValue.append('\n');
+
+            previousIndex = endIndex + 1;
+        }
+        return newValue.toString();
     }
 }
