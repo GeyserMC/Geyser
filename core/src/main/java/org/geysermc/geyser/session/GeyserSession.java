@@ -1465,8 +1465,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         startGamePacket.setPlayerPropertyData(NbtMap.EMPTY);
         startGamePacket.setWorldTemplateId(UUID.randomUUID());
 
-        startGamePacket.getExperiments().add(new ExperimentData("wild_update", true));
-
         SyncedPlayerMovementSettings settings = new SyncedPlayerMovementSettings();
         settings.setMovementMode(AuthoritativeMovementMode.CLIENT);
         settings.setRewindHistorySize(0);
