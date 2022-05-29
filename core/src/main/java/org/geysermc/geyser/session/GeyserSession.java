@@ -84,7 +84,7 @@ import lombok.Setter;
 import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.common.PlatformType;
 import org.geysermc.cumulus.form.Form;
-import org.geysermc.cumulus.util.FormBuilder;
+import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.geyser.Constants;

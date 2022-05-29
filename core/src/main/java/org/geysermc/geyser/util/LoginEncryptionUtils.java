@@ -42,7 +42,6 @@ import org.geysermc.cumulus.form.ModalForm;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.response.SimpleFormResponse;
 import org.geysermc.cumulus.response.result.FormResponseResult;
-import org.geysermc.cumulus.response.result.ResultType;
 import org.geysermc.cumulus.response.result.ValidFormResponseResult;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
@@ -237,26 +236,22 @@ public class LoginEncryptionUtils {
                         .optionalButton("geyser.auth.login.form.notice.btn_login.mojang", isPasswordAuthEnabled)
                         .button("geyser.auth.login.form.notice.btn_login.microsoft")
                         .button("geyser.auth.login.form.notice.btn_disconnect")
-                        .resultHandler(
-                                (form, result) -> buildAndShowLoginWindow(session),
-                                ResultType.CLOSED, ResultType.INVALID
-                        )
-                        .validResultHandler((form, response) -> {
-                            if (isPasswordAuthEnabled && response.clickedButtonId() == 0) {
+                        .closedOrInvalidResultHandler(() -> buildAndShowLoginWindow(session))
+                        .validResultHandler((response) -> {
+                            if (response.clickedButtonId() == 0) {
                                 session.setMicrosoftAccount(false);
                                 buildAndShowLoginDetailsWindow(session);
                                 return;
                             }
 
-                            if (isPasswordAuthEnabled && response.clickedButtonId() == 1) {
-                                session.setMicrosoftAccount(true);
-                                buildAndShowMicrosoftAuthenticationWindow(session);
-                                return;
-                            }
-
-                            if (response.clickedButtonId() == 0) {
-                                // Just show the OAuth code
-                                session.authenticateWithMicrosoftCode();
+                            if (response.clickedButtonId() == 1) {
+                                if (isPasswordAuthEnabled) {
+                                    session.setMicrosoftAccount(true);
+                                    buildAndShowMicrosoftAuthenticationWindow(session);
+                                } else {
+                                    // Just show the OAuth code
+                                    session.authenticateWithMicrosoftCode();
+                                }
                                 return;
                             }
 
@@ -278,10 +273,7 @@ public class LoginEncryptionUtils {
                                 geyser.auth.login.save_token.proceed""")
                         .button("%gui.ok")
                         .button("%gui.decline")
-                        .resultHandler(
-                                authenticateOrKickHandler(session),
-                                ResultType.CLOSED, ResultType.INVALID, ResultType.VALID
-                        )
+                        .resultHandler(authenticateOrKickHandler(session))
         );
     }
 
@@ -295,10 +287,7 @@ public class LoginEncryptionUtils {
 
                                 geyser.auth.login.save_token.proceed""")
                         .button("%gui.ok")
-                        .resultHandler(
-                                authenticateOrKickHandler(session),
-                                ResultType.CLOSED, ResultType.INVALID, ResultType.VALID
-                        )
+                        .resultHandler(authenticateOrKickHandler(session))
         );
     }
 
@@ -321,11 +310,8 @@ public class LoginEncryptionUtils {
                         .label("geyser.auth.login.form.details.desc")
                         .input("geyser.auth.login.form.details.email", "account@geysermc.org", "")
                         .input("geyser.auth.login.form.details.pass", "123456", "")
-                        .resultHandler(
-                                (form, result) -> buildAndShowLoginDetailsWindow(session),
-                                ResultType.CLOSED, ResultType.INVALID
-                        )
-                        .validResultHandler((form, response) -> session.authenticate(response.next(), response.next())));
+                        .closedOrInvalidResultHandler(() -> buildAndShowLoginDetailsWindow(session))
+                        .validResultHandler((response) -> session.authenticate(response.next(), response.next())));
     }
 
     /**
@@ -339,11 +325,8 @@ public class LoginEncryptionUtils {
                         .button("geyser.auth.login.method.browser")
                         .button("geyser.auth.login.method.password")
                         .button("geyser.auth.login.form.notice.btn_disconnect")
-                        .resultHandler(
-                                (form, result) -> buildAndShowLoginWindow(session),
-                                ResultType.CLOSED, ResultType.INVALID
-                        )
-                        .validResultHandler((form, response) -> {
+                        .closedOrInvalidResultHandler(() -> buildAndShowLoginWindow(session))
+                        .validResultHandler((response) -> {
                             if (response.clickedButtonId() == 0) {
                                 session.authenticateWithMicrosoftCode();
                             } else if (response.clickedButtonId() == 1) {
@@ -378,11 +361,8 @@ public class LoginEncryptionUtils {
                         .content(message.toString())
                         .button1("%gui.done")
                         .button2("%menu.disconnect")
-                        .resultHandler(
-                                (form, result) -> buildAndShowMicrosoftAuthenticationWindow(session),
-                                ResultType.CLOSED, ResultType.INVALID
-                        )
-                        .validResultHandler((form, response) -> {
+                        .closedOrInvalidResultHandler(() -> buildAndShowMicrosoftAuthenticationWindow(session))
+                        .validResultHandler((response) -> {
                             if (response.clickedButtonId() == 1) {
                                 session.disconnect(GeyserLocale.getPlayerLocaleString("geyser.auth.login.form.disconnect", session.getLocale()));
                             }

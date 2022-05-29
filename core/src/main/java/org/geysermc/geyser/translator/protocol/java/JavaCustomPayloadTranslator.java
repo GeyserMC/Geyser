@@ -31,7 +31,7 @@ import com.google.common.base.Charsets;
 import com.nukkitx.protocol.bedrock.packet.TransferPacket;
 import org.geysermc.cumulus.Forms;
 import org.geysermc.cumulus.form.Form;
-import org.geysermc.cumulus.util.FormType;
+import org.geysermc.cumulus.form.util.FormType;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;

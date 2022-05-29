@@ -114,7 +114,7 @@ public class SettingsUtils {
             }
         }
 
-        builder.validResultHandler((form, response) -> {
+        builder.validResultHandler((response) -> {
             if (showClientSettings) {
                 // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
                 if (session.getPreferencesCache().isAllowShowCoordinates()) {

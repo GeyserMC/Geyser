@@ -87,7 +87,7 @@ public class AdvancementsCache {
             builder.content("advancements.empty");
         }
 
-        builder.validResultHandler((form, response) -> {
+        builder.validResultHandler((response) -> {
             String id = "";
 
             int advancementIndex = 0;
@@ -143,11 +143,11 @@ public class AdvancementsCache {
 
         builder.button(GeyserLocale.getPlayerLocaleString("gui.back", language));
 
-        builder.closedResultHandler(form -> {
+        builder.closedResultHandler(() -> {
             // Indicate that we have closed the current advancement tab
             session.sendDownstreamPacket(new ServerboundSeenAdvancementsPacket());
 
-        }).validResultHandler((form, response) -> {
+        }).validResultHandler((response) -> {
             GeyserAdvancement advancement = null;
             int advancementIndex = 0;
             // Loop around to find the advancement that the client pressed
@@ -211,7 +211,7 @@ public class AdvancementsCache {
                         .title(MessageTranslator.convertMessage(advancement.getDisplayData().getTitle()))
                         .content(content)
                         .button(GeyserLocale.getPlayerLocaleString("gui.back", language))
-                        .validResultHandler((form, response) -> buildAndShowListForm())
+                        .validResultHandler((response) -> buildAndShowListForm())
         );
     }
 

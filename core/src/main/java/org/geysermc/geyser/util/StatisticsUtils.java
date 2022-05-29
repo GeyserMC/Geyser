@@ -67,7 +67,7 @@ public class StatisticsUtils {
                         .button("stat.itemsButton - stat_type.minecraft.dropped", FormImage.Type.PATH, "textures/ui/trash_default")
                         .button("stat.mobsButton - geyser.statistics.killed", FormImage.Type.PATH, "textures/items/diamond_sword")
                         .button("stat.mobsButton - geyser.statistics.killed_by", FormImage.Type.PATH, "textures/ui/wither_heart_flash")
-                        .validResultHandler((form, response) -> {
+                        .validResultHandler((response) -> {
                             SimpleForm.Builder builder =
                                     SimpleForm.builder()
                                             .translator(StatisticsUtils::translate, language);
@@ -196,7 +196,7 @@ public class StatisticsUtils {
                             session.sendForm(
                                     builder.content(assembledContent.toString())
                                             .button("gui.back", FormImage.Type.PATH, "textures/gui/newgui/undo")
-                                            .validResultHandler((form1, response1) -> buildAndSendStatisticsMenu(session)));
+                                            .validResultHandler((response1) -> buildAndSendStatisticsMenu(session)));
                         }));
     }
 
