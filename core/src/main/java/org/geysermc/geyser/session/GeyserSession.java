@@ -493,15 +493,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     private boolean thunder = false;
 
     /**
-     * Stores the last text inputted into a sign.
-     * <p>
-     * Bedrock sends packets every time you update the sign, Java only wants the final packet.
-     * Until we determine that the user has finished editing, we save the sign's current status.
-     */
-    @Setter
-    private String lastSignMessage;
-
-    /**
      * Stores a map of all statistics sent from the server.
      * The server only sends new statistics back to us, so in order to show all statistics we need to cache existing ones.
      */
