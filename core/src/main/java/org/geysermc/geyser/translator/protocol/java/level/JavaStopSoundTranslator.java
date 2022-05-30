@@ -25,15 +25,12 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.level.sound.BuiltinSound;
-import com.github.steveice10.mc.protocol.data.game.level.sound.CustomSound;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundStopSoundPacket;
 import com.nukkitx.protocol.bedrock.packet.StopSoundPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.type.SoundMapping;
+import org.geysermc.geyser.util.SoundUtils;
 
 @Translator(packet = ClientboundStopSoundPacket.class)
 public class JavaStopSoundTranslator extends PacketTranslator<ClientboundStopSoundPacket> {
@@ -49,36 +46,11 @@ public class JavaStopSoundTranslator extends PacketTranslator<ClientboundStopSou
             return;
         }
 
-        String packetSound;
-        if (packet.getSound() instanceof BuiltinSound) {
-            packetSound = ((BuiltinSound) packet.getSound()).getName();
-        } else if (packet.getSound() instanceof CustomSound) {
-            packetSound = ((CustomSound) packet.getSound()).getName();
-        } else {
-            session.getGeyser().getLogger().debug("Unknown sound packet, we were unable to map this. " + packet.toString());
-            return;
-        }
-        SoundMapping soundMapping = Registries.SOUNDS.get(packetSound.replace("minecraft:", ""));
-        session.getGeyser().getLogger()
-                .debug("[StopSound] Sound mapping " + packetSound + " -> "
-                        + soundMapping + (soundMapping == null ? "[not found]" : "")
-                        + " - " + packet.toString());
-        String playsound;
-        if (soundMapping == null || soundMapping.getPlaysound() == null) {
-            // no mapping
-            session.getGeyser().getLogger()
-                    .debug("[StopSound] Defaulting to sound server gave us.");
-            playsound = packetSound;
-        } else {
-            playsound = soundMapping.getPlaysound();
-        }
-
         StopSoundPacket stopSoundPacket = new StopSoundPacket();
-        stopSoundPacket.setSoundName(playsound);
-        // packet not mapped in the library
+        stopSoundPacket.setSoundName(SoundUtils.translatePlaySound(packet.getSound()));
         stopSoundPacket.setStoppingAllSound(false);
 
         session.sendUpstreamPacket(stopSoundPacket);
-        session.getGeyser().getLogger().debug("[StopSound] Packet sent - " + packet.toString() + " --> " + stopSoundPacket);
+        session.getGeyser().getLogger().debug("[StopSound] Stopped " + packet.getSound() + " -> " + stopSoundPacket.getSoundName());
     }
 }

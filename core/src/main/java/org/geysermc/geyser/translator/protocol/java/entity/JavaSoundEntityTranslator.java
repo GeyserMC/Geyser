@@ -23,27 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java.level;
+package org.geysermc.geyser.translator.protocol.java.entity;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundCustomSoundPacket;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.PlaySoundPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundSoundEntityPacket;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.SoundUtils;
 
-@Translator(packet = ClientboundCustomSoundPacket.class)
-public class JavaCustomSoundTranslator extends PacketTranslator<ClientboundCustomSoundPacket> {
-
+@Translator(packet = ClientboundSoundEntityPacket.class)
+public class JavaSoundEntityTranslator extends PacketTranslator<ClientboundSoundEntityPacket> {
     @Override
-    public void translate(GeyserSession session, ClientboundCustomSoundPacket packet) {
-        PlaySoundPacket playSoundPacket = new PlaySoundPacket();
-        playSoundPacket.setSound(SoundUtils.translatePlaySound(packet.getSound()));
-        playSoundPacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
-        playSoundPacket.setVolume(packet.getVolume());
-        playSoundPacket.setPitch(packet.getPitch());
-
-        session.sendUpstreamPacket(playSoundPacket);
+    public void translate(GeyserSession session, ClientboundSoundEntityPacket packet) {
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        if (entity == null) {
+            return;
+        }
+        SoundUtils.playBuiltinSound(session, packet.getSound(), entity.getPosition(), packet.getPitch());
     }
 }
