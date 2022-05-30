@@ -141,7 +141,7 @@ public class Entity {
      */
     protected void initializeMetadata() {
         dirtyMetadata.put(EntityData.SCALE, 1f);
-        dirtyMetadata.put(EntityData.COLOR, 0);
+        dirtyMetadata.put(EntityData.COLOR, (byte) 0);
         dirtyMetadata.put(EntityData.MAX_AIR_SUPPLY, getMaxAir());
         setDimensions(Pose.STANDING);
         setFlag(EntityFlag.HAS_GRAVITY, true);
@@ -351,7 +351,7 @@ public class Entity {
         dirtyMetadata.put(EntityData.AIR_SUPPLY, (short) MathUtils.constrain(amount, 0, getMaxAir()));
     }
 
-    protected int getMaxAir() {
+    protected short getMaxAir() {
         return 300;
     }
 

@@ -65,7 +65,7 @@ public class AxolotlEntity extends AnimalEntity {
     }
 
     @Override
-    protected int getMaxAir() {
+    protected short getMaxAir() {
         return 6000;
     }
 
