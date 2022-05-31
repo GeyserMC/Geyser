@@ -44,6 +44,8 @@ public class WardenEntity extends MonsterEntity implements Tickable {
     private int heartBeatDelay;
     private int tickCount;
 
+    private int sonicBoomTickDuration;
+
     public WardenEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
@@ -77,5 +79,17 @@ public class WardenEntity extends MonsterEntity implements Tickable {
             packet.setVolume((random.nextFloat() - random.nextFloat()) * 0.2f + 1.0f);
             session.sendUpstreamPacket(packet);
         }
+
+        if (--sonicBoomTickDuration == 0) {
+            setFlag(EntityFlag.SONIC_BOOM, false);
+            updateBedrockMetadata();
+        }
+    }
+
+    public void onSonicBoom() {
+        setFlag(EntityFlag.SONIC_BOOM, true);
+        updateBedrockMetadata();
+
+        sonicBoomTickDuration = 3 * 20;
     }
 }
