@@ -54,7 +54,12 @@ public class FrogEntity extends AnimalEntity {
     }
 
     public void setFrogVariant(IntEntityMetadata entityMetadata) {
-        dirtyMetadata.put(EntityData.VARIANT, entityMetadata.getPrimitiveValue());
+        int variant = entityMetadata.getPrimitiveValue();
+        dirtyMetadata.put(EntityData.VARIANT, switch (variant) {
+            case 1 -> 2; // White
+            case 2 -> 1; // Green
+            default -> variant;
+        });
     }
 
     public void setTongueTarget(ObjectEntityMetadata<OptionalInt> entityMetadata) {

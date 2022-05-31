@@ -110,7 +110,7 @@ public class MathUtils {
      * @param high The high bound of the clamp
      * @return the clamped value
      */
-    public static double clamp(float value, float low, float high) {
+    public static float clamp(float value, float low, float high) {
         if (value < low) {
             return low;
         }
