@@ -48,7 +48,6 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
 
     @Override
     public void translate(GeyserSession session, ClientboundEntityEventPacket packet) {
-        System.out.println(packet);
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null)
             return;
