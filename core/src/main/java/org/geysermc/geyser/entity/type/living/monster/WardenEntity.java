@@ -80,9 +80,12 @@ public class WardenEntity extends MonsterEntity implements Tickable {
             session.sendUpstreamPacket(packet);
         }
 
-        if (--sonicBoomTickDuration == 0) {
-            setFlag(EntityFlag.SONIC_BOOM, false);
-            updateBedrockMetadata();
+        if (sonicBoomTickDuration > 0) {
+            sonicBoomTickDuration--;
+            if (sonicBoomTickDuration == 0) {
+                setFlag(EntityFlag.SONIC_BOOM, false);
+                updateBedrockMetadata();
+            }
         }
     }
 
