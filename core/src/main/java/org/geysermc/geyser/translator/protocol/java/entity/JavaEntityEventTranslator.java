@@ -26,7 +26,6 @@
 package org.geysermc.geyser.translator.protocol.java.entity;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundEntityEventPacket;
-import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -42,7 +41,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Translator(packet = ClientboundEntityEventPacket.class)
@@ -50,6 +48,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
 
     @Override
     public void translate(GeyserSession session, ClientboundEntityEventPacket packet) {
+        System.out.println(packet);
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null)
             return;
@@ -180,8 +179,9 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case IRON_GOLEM_EMPTY_HAND:
                 entityEventPacket.setType(EntityEventType.GOLEM_FLOWER_WITHDRAW);
                 break;
-            case IRON_GOLEM_ATTACK:
-                if (entity.getDefinition() == EntityDefinitions.IRON_GOLEM || entity.getDefinition() == EntityDefinitions.EVOKER_FANGS) {
+            case ATTACK:
+                if (entity.getDefinition() == EntityDefinitions.IRON_GOLEM || entity.getDefinition() == EntityDefinitions.EVOKER_FANGS
+                        || entity.getDefinition() == EntityDefinitions.WARDEN) {
                     entityEventPacket.setType(EntityEventType.ATTACK_START);
                     if (entity.getDefinition() == EntityDefinitions.EVOKER_FANGS) {
                         ((EvokerFangsEntity) entity).setAttackStarted();
@@ -236,28 +236,14 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 break;
             case MAKE_POOF_PARTICLES:
                 if (entity instanceof LivingEntity) {
-                    // Not ideal, but...
-                    // LevelEventType.PARTICLE_DEATH_SMOKE doesn't work (as of 1.18.2 Bedrock)
-                    // EntityEventType.DEATH_SMOKE_CLOUD also plays the entity death noise
-                    // Bedrock sends the particles through EntityEventType.DEATH, but Java despawns the entity
-                    // prematurely so they don't show up.
-                    Vector3f position = entity.getPosition();
-                    float baseX = position.getX();
-                    float baseY = position.getY();
-                    float baseZ = position.getZ();
-                    float height = entity.getBoundingBoxHeight();
-                    float width = entity.getBoundingBoxWidth();
-                    Random random = ThreadLocalRandom.current();
-                    for (int i = 0; i < 20; i++) {
-                        // Reconstruct the Java Edition (1.18.1) logic, but in floats
-                        float x = baseX + width * (2.0f * random.nextFloat() - 1f);
-                        float y = baseY + height * random.nextFloat();
-                        float z = baseZ + width * (2.0f * random.nextFloat() - 1f);
-                        LevelEventPacket levelEventPacket = new LevelEventPacket();
-                        levelEventPacket.setPosition(Vector3f.from(x, y, z));
-                        levelEventPacket.setType(LevelEventType.PARTICLE_EXPLODE);
-                        session.sendUpstreamPacket(levelEventPacket);
-                    }
+                    // Note that this event usually makes noise, but because we set all entities as silent on the
+                    // client end this isn't an issue.
+                    entityEventPacket.setType(EntityEventType.DEATH_SMOKE_CLOUD);
+                }
+                break;
+            case WARDEN_RECEIVE_SIGNAL:
+                if (entity.getDefinition() == EntityDefinitions.WARDEN) {
+                    entityEventPacket.setType(EntityEventType.VIBRATION_DETECTED);
                 }
                 break;
         }

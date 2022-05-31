@@ -27,7 +27,6 @@ package org.geysermc.geyser.entity.type;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.PlaySoundPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
@@ -58,7 +57,7 @@ public class EvokerFangsEntity extends Entity implements Tickable {
 
     public void setAttackStarted() {
         this.attackStarted = true;
-        if (!getFlag(EntityFlag.SILENT)) {
+        if (!silent) {
             // Play the chomp sound
             PlaySoundPacket packet = new PlaySoundPacket();
             packet.setPosition(this.position);

@@ -31,13 +31,19 @@ import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
+import com.nukkitx.protocol.bedrock.packet.PlaySoundPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MathUtils;
 
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
-public class WardenEntity extends MonsterEntity {
+public class WardenEntity extends MonsterEntity implements Tickable {
+    private int heartBeatDelay;
+    private int tickCount;
+
     public WardenEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
@@ -53,6 +59,23 @@ public class WardenEntity extends MonsterEntity {
 
     public void setAngerLevel(IntEntityMetadata entityMetadata) {
         float anger = (float) entityMetadata.getPrimitiveValue() / 80f;
-        dirtyMetadata.put(EntityData.HEARTBEAT_INTERVAL_TICKS, 40 - GenericMath.floor(MathUtils.clamp(anger, 0.0F, 1.0F) * 30F));
+        heartBeatDelay = 40 - GenericMath.floor(MathUtils.clamp(anger, 0.0F, 1.0F) * 30F);
+        dirtyMetadata.put(EntityData.HEARTBEAT_INTERVAL_TICKS, heartBeatDelay);
+    }
+
+    @Override
+    public void tick() {
+        if (++tickCount % heartBeatDelay == 0 && !silent) {
+            // We have to do these calculations because they're clientside on Java Edition but we mute entities
+            // to prevent hearing their step sounds
+            ThreadLocalRandom random = ThreadLocalRandom.current();
+
+            PlaySoundPacket packet = new PlaySoundPacket();
+            packet.setSound("mob.warden.heartbeat");
+            packet.setPosition(position);
+            packet.setPitch(1.0f);
+            packet.setVolume((random.nextFloat() - random.nextFloat()) * 0.2f + 1.0f);
+            session.sendUpstreamPacket(packet);
+        }
     }
 }

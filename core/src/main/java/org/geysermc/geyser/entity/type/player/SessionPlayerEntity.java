@@ -76,6 +76,11 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
+    protected void setClientSideSilent() {
+        // Do nothing, since we want the session player to hear their own footstep sounds for example.
+    }
+
+    @Override
     public void spawnEntity() {
         // Already logged in
     }

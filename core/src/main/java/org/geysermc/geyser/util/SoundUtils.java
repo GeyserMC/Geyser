@@ -33,6 +33,7 @@ import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
+import com.nukkitx.protocol.bedrock.packet.PlaySoundPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -74,10 +75,9 @@ public class SoundUtils {
             return "";
         }
 
-        // Drop the namespace
-        int colonPos = packetSound.indexOf(":");
-        if (colonPos != -1) {
-            packetSound = packetSound.substring(colonPos + 1);
+        // Drop the Minecraft namespace if applicable
+        if (packetSound.startsWith("minecraft:")) {
+            packetSound = packetSound.substring("minecraft:".length());
         }
 
         SoundMapping soundMapping = Registries.SOUNDS.get(packetSound);
@@ -97,12 +97,23 @@ public class SoundUtils {
      * @param position the position
      * @param pitch the pitch
      */
-    public static void playBuiltinSound(GeyserSession session, BuiltinSound javaSound, Vector3f position, float pitch) {
+    public static void playBuiltinSound(GeyserSession session, BuiltinSound javaSound, Vector3f position, float volume, float pitch) {
         String packetSound = javaSound.getName();
 
         SoundMapping soundMapping = Registries.SOUNDS.get(packetSound);
         if (soundMapping == null) {
             session.getGeyser().getLogger().debug("[Builtin] Sound mapping for " + packetSound + " not found");
+            return;
+        }
+
+        if (soundMapping.getPlaysound() != null) {
+            // We always prefer the PlaySound mapping because we can control volume and pitch
+            PlaySoundPacket playSoundPacket = new PlaySoundPacket();
+            playSoundPacket.setSound(soundMapping.getPlaysound());
+            playSoundPacket.setPosition(position);
+            playSoundPacket.setVolume(volume);
+            playSoundPacket.setPitch(pitch);
+            session.sendUpstreamPacket(playSoundPacket);
             return;
         }
 

@@ -184,7 +184,7 @@ public final class EntityDefinitions {
                 .addTranslator(MetadataType.INT, Entity::setAir) // Air/bubbles
                 .addTranslator(MetadataType.OPTIONAL_CHAT, Entity::setDisplayName)
                 .addTranslator(MetadataType.BOOLEAN, Entity::setDisplayNameVisible)
-                .addTranslator(MetadataType.BOOLEAN, (entity, entityMetadata) -> entity.setFlag(EntityFlag.SILENT, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
+                .addTranslator(MetadataType.BOOLEAN, Entity::setSilent)
                 .addTranslator(MetadataType.BOOLEAN, Entity::setGravity)
                 .addTranslator(MetadataType.POSE, (entity, entityMetadata) -> entity.setPose(entityMetadata.getValue()))
                 .addTranslator(MetadataType.INT, Entity::setFreezing)
