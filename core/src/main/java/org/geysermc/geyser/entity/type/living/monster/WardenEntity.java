@@ -75,8 +75,8 @@ public class WardenEntity extends MonsterEntity implements Tickable {
             PlaySoundPacket packet = new PlaySoundPacket();
             packet.setSound("mob.warden.heartbeat");
             packet.setPosition(position);
-            packet.setPitch(1.0f);
-            packet.setVolume((random.nextFloat() - random.nextFloat()) * 0.2f + 1.0f);
+            packet.setPitch((random.nextFloat() - random.nextFloat()) * 0.2f + 1.0f);
+            packet.setVolume(1.0f);
             session.sendUpstreamPacket(packet);
         }
 

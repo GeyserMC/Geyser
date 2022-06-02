@@ -41,7 +41,9 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.SoundMapping;
 import org.geysermc.geyser.session.GeyserSession;
 
-public class SoundUtils {
+import java.util.Locale;
+
+public final class SoundUtils {
 
     /**
      * Maps a sound name to a sound event, null if one
@@ -50,9 +52,9 @@ public class SoundUtils {
      * @param sound the sound name
      * @return a sound event from the given sound
      */
-    public static SoundEvent toSoundEvent(String sound) {
+    private static SoundEvent toSoundEvent(String sound) {
         try {
-            return SoundEvent.valueOf(sound.toUpperCase().replace(".", "_"));
+            return SoundEvent.valueOf(sound.toUpperCase(Locale.ROOT).replace(".", "_"));
         } catch (Exception ex) {
             return null;
         }
@@ -160,5 +162,8 @@ public class SoundUtils {
         soundPacket.setBabySound(false); // might need to adjust this in the future
         soundPacket.setRelativeVolumeDisabled(false);
         session.sendUpstreamPacket(soundPacket);
+    }
+
+    private SoundUtils() {
     }
 }
