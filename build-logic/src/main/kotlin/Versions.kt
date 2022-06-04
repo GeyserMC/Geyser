@@ -33,7 +33,7 @@ object Versions {
     const val protocolVersion = "2a344e4"
     const val raknetVersion = "1.6.28-SNAPSHOT"
     const val mcauthlibVersion = "d9d773e"
-    const val mcprotocollibversion = "0771504"
+    const val mcprotocollibversion = "4e041f7"
     const val packetlibVersion = "2.1-SNAPSHOT"
     const val adventureVersion = "4.9.3"
     const val eventVersion = "3.0.0"
