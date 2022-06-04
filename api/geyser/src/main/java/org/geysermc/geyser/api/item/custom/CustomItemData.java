@@ -87,6 +87,9 @@ public interface CustomItemData {
     }
 
     interface Builder {
+        /**
+         * Will also set the display name and icon to the provided parameter, if it is currently not set.
+         */
         Builder name(@NonNull String name);
 
         Builder customItemOptions(@NonNull CustomItemOptions customItemOptions);

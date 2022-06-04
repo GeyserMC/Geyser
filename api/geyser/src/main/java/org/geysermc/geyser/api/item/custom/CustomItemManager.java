@@ -36,25 +36,6 @@ import java.util.Map;
  */
 public abstract class CustomItemManager {
     /**
-     * Registers a custom item with a base java item. This is used for custom model data etc. Note that you can only register custom items in the {@link GeyserPreInitializeEvent},
-     * and if add non-Bedrock items is not disabled in the config.
-     *
-     * @param identifier the base (java) item
-     * @param customItemData the custom item data to register
-     * @return if the item was registered
-     */
-    public abstract boolean registerCustomItem(@NonNull String identifier, @NonNull CustomItemData customItemData);
-
-    /**
-     * Registers a custom item with no base item. This is used for mods. Note that you can only register custom items in the {@link GeyserPreInitializeEvent},
-     * and if add non-Bedrock items is not disabled in the config.
-     *
-     * @param customItemData the custom item data to register
-     * @return if the item was registered
-     */
-    public abstract boolean registerCustomItem(@NonNull NonVanillaCustomItemData customItemData);
-
-    /**
      * Gets the custom item data for the given base item.
      *
      * @param identifier the base item

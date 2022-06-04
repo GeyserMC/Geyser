@@ -23,24 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.mappings.versions;
+package org.geysermc.geyser.registry.type;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.geysermc.geyser.api.item.custom.CustomItemData;
-import org.geysermc.geyser.item.GeyserCustomItemManager;
-import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
+import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 
-import java.nio.file.Path;
-import java.util.function.BiConsumer;
-
-public abstract class MappingsReader {
-    protected GeyserCustomItemManager customItemManager;
-
-    public MappingsReader(GeyserCustomItemManager customItemManager) {
-        this.customItemManager = customItemManager;
-    }
-
-    public abstract void readMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomItemData> consumer);
-
-    public abstract CustomItemData readItemMappingEntry(JsonNode node) throws InvalidCustomMappingsFileException;
+/**
+ * The return data of a successful registration of a custom item.
+ */
+public record NonVanillaItemRegistration(ComponentItemData componentItemData, ItemMapping mapping) {
 }

@@ -39,8 +39,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
-import org.geysermc.geyser.api.util.OptionalBoolean;
-import org.geysermc.geyser.item.GeyserCustomItemManager;
+import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -174,7 +173,7 @@ public abstract class ItemTranslator {
             builder.blockRuntimeId(bedrockItem.getBedrockBlockId());
         }
 
-        builder = translateCustomItem(nbt, builder, bedrockItem);
+        translateCustomItem(nbt, builder, bedrockItem);
 
         if (nbt != null) {
             // Translate the canDestroy and canPlaceOn Java NBT
@@ -300,7 +299,7 @@ public abstract class ItemTranslator {
         }
 
         CompoundTag nbt = itemStack.getNbt();
-        builder = translateCustomItem(nbt, builder, mapping);
+        translateCustomItem(nbt, builder, mapping);
 
         return builder;
     }
@@ -426,7 +425,7 @@ public abstract class ItemTranslator {
         if (object instanceof byte[]) {
             return new ByteArrayTag(name, (byte[]) object);
         }
-        
+
         if (object instanceof Byte) {
             return new ByteTag(name, (byte) object);
         }
@@ -537,38 +536,46 @@ public abstract class ItemTranslator {
     /**
      * Translates the custom model data of an item
      */
-    public static ItemData.Builder translateCustomItem(CompoundTag nbt, ItemData.Builder builder, ItemMapping mapping) {
-        if (nbt != null) {
-            CustomItemOptions nbtData = GeyserCustomItemManager.nbtToCustomItemOptions(nbt);
-            for (Object2IntMap.Entry<CustomItemOptions> mappingTypes : mapping.getCustomItemOptions().object2IntEntrySet()) {
-                if (mappingTypes.getKey().unbreaking() != OptionalBoolean.NOT_PRESENT) {
-                    if (mappingTypes.getKey().unbreaking() != nbtData.unbreaking()) {
-                        continue;
-                    }
-                }
+    private static void translateCustomItem(CompoundTag nbt, ItemData.Builder builder, ItemMapping mapping) {
+        int bedrockId = getCustomItem(nbt, mapping);
+        if (bedrockId != -1) {
+            builder.id(bedrockId);
+        }
+    }
 
-                if (mappingTypes.getKey().customModelData().isPresent()) {
-                    if (nbtData.customModelData().isEmpty()) {
-                        continue;
-                    } else if (mappingTypes.getKey().customModelData().getAsInt() != nbtData.customModelData().getAsInt()) {
-                        continue;
-                    }
-                }
+    private static int getCustomItem(CompoundTag nbt, ItemMapping mapping) {
+        if (nbt == null) {
+            return -1;
+        }
+        Object2IntMap<CustomItemOptions> customMappings = mapping.getCustomItemOptions();
+        if (customMappings.isEmpty()) {
+            return -1;
+        }
+        int customModelData = nbt.get("CustomModelData") instanceof IntTag customModelDataTag ? customModelDataTag.getValue() : 0;
+        TriState unbreakable = TriState.fromBoolean(nbt.get("Unbreakable") instanceof ByteTag unbreakableTag && unbreakableTag.getValue() == 1);
+        int damage = nbt.get("Damage") instanceof IntTag damageTag ? damageTag.getValue() : 0;
+        for (Object2IntMap.Entry<CustomItemOptions> mappingTypes : customMappings.object2IntEntrySet()) {
+            CustomItemOptions options = mappingTypes.getKey();
 
-                if (mappingTypes.getKey().damagePredicate().isPresent()) {
-                    if (nbtData.damagePredicate().isEmpty()) {
-                        continue;
-                    } else if (mappingTypes.getKey().damagePredicate().getAsInt() != nbtData.damagePredicate().getAsInt()) {
-                        continue;
-                    }
-                }
+            TriState unbreakingOption = options.unbreaking();
+            if (unbreakingOption == unbreakable) { // Implementation note: if the option is NOT_SET then this comparison will always be false because of how the item unbreaking TriState is created
+                return mappingTypes.getIntValue();
+            }
 
-                builder.id(mappingTypes.getIntValue());
-                break;
+            OptionalInt customModelDataOption = options.customModelData();
+            if (customModelDataOption.isPresent() && customModelDataOption.getAsInt() == customModelData) {
+                return mappingTypes.getIntValue();
+            }
+
+            OptionalInt damagePredicate = options.damagePredicate();
+            if (damagePredicate.isPresent() && damagePredicate.getAsInt() == damage) {
+                return mappingTypes.getIntValue();
             }
         }
-        return builder;
+        return -1;
     }
+
+
 
     /**
      * Checks if an {@link ItemStack} is equal to another item stack

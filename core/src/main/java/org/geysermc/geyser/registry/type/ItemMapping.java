@@ -26,7 +26,7 @@
 package org.geysermc.geyser.registry.type;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
@@ -42,7 +42,7 @@ import java.util.Set;
 public class ItemMapping {
     public static final ItemMapping AIR = new ItemMapping("minecraft:air", "minecraft:air", 0, 0, 0,
             BlockRegistries.BLOCKS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getBedrockAirId(),
-            64, null, null, null, null, 0, null, 0, null, false);
+            64, null, null, null, Object2IntMaps.emptyMap(), 0, null, false);
 
     String javaIdentifier;
     String bedrockIdentifier;
@@ -60,13 +60,9 @@ public class ItemMapping {
     String toolType;
     String toolTier;
 
-    String armorType;
-    String armorTier;
-    int protectionValue;
-
     String translationString;
 
-    Object2IntMap<CustomItemOptions> customItemOptions = new Object2IntOpenHashMap<>();
+    Object2IntMap<CustomItemOptions> customItemOptions;
 
     int maxDamage;
 
@@ -99,14 +95,5 @@ public class ItemMapping {
      */
     public boolean isTool() {
         return this.toolType != null;
-    }
-
-    /**
-     * Gets if this item is armor.
-     *
-     * @return if this item is armor
-     */
-    public boolean isArmor() {
-        return this.armorType != null;
     }
 }

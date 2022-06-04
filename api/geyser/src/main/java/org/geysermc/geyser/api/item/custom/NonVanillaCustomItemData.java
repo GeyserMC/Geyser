@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.item.custom;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
@@ -33,7 +34,7 @@ import java.util.OptionalInt;
 import java.util.Set;
 
 /**
- * This is used to store data for a custom item.
+ * Represents a completely custom item that is not based on an existing vanilla Minecraft item.
  */
 public interface NonVanillaCustomItemData extends CustomItemData {
     /**
@@ -48,14 +49,14 @@ public interface NonVanillaCustomItemData extends CustomItemData {
      *
      * @return the java item id of the item
      */
-    int javaId();
+    @NonNegative int javaId();
 
     /**
      * Gets the stack size of the item.
      *
      * @return the stack size of the item
      */
-    int stackSize();
+    @NonNegative int stackSize();
 
     /**
      * Gets the max damage of the item.
@@ -84,13 +85,6 @@ public interface NonVanillaCustomItemData extends CustomItemData {
      * @return the armor type of the item
      */
     @Nullable String armorType();
-
-    /**
-     * Gets the armor tier of the item.
-     *
-     * @return the armor tier of the item
-     */
-    @Nullable String armorTier();
 
     /**
      * Gets the armor protection value of the item.
@@ -151,9 +145,9 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
         Builder identifier(@NonNull String identifier);
 
-        Builder javaId(int javaId);
+        Builder javaId(@NonNegative int javaId);
 
-        Builder stackSize(int stackSize);
+        Builder stackSize(@NonNegative int stackSize);
 
         Builder maxDamage(int maxDamage);
 
@@ -162,8 +156,6 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder toolTier(@Nullable String toolTier);
 
         Builder armorType(@Nullable String armorType);
-
-        Builder armorTier(@Nullable String armorTier);
 
         Builder protectionValue(int protectionValue);
 

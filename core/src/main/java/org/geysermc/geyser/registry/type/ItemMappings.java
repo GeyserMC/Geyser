@@ -30,7 +30,6 @@ import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.Builder;
 import lombok.Value;
@@ -38,8 +37,10 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 @Builder
 @Value
@@ -47,14 +48,14 @@ public class ItemMappings {
 
     Map<String, ItemMapping> cachedJavaMappings = new WeakHashMap<>();
 
-    Int2ObjectMap<ItemMapping> items;
+    ItemMapping[] items;
 
     /**
      * A unique exception as this is an item in Bedrock, but not in Java.
      */
     ItemMapping lodestoneCompass;
 
-    List<ItemData> creativeItems;
+    ItemData[] creativeItems;
     List<StartGamePacket.ItemEntry> itemEntries;
 
     StoredItemMappings storedItems;
@@ -66,7 +67,7 @@ public class ItemMappings {
     IntList spawnEggIds;
     List<ItemData> carpets;
 
-    @Nullable ComponentItemData furnaceMinecartData;
+    List<ComponentItemData> componentItemData;
     Int2ObjectMap<String> customIdMappings;
 
     /**
@@ -89,7 +90,7 @@ public class ItemMappings {
      */
     @Nonnull
     public ItemMapping getMapping(int javaId) {
-        return this.items.getOrDefault(javaId, ItemMapping.AIR);
+        return javaId >= 0 && javaId < this.items.length ? this.items[javaId] : ItemMapping.AIR;
     }
 
     /**
@@ -101,7 +102,7 @@ public class ItemMappings {
      */
     public ItemMapping getMapping(String javaIdentifier) {
         return this.cachedJavaMappings.computeIfAbsent(javaIdentifier, key -> {
-            for (ItemMapping mapping : this.items.values()) {
+            for (ItemMapping mapping : this.items) {
                 if (mapping.getJavaIdentifier().equals(key)) {
                     return mapping;
                 }
@@ -127,7 +128,7 @@ public class ItemMappings {
         boolean isBlock = data.getBlockRuntimeId() != 0;
         boolean hasDamage = data.getDamage() != 0;
 
-        for (ItemMapping mapping : this.items.values()) {
+        for (ItemMapping mapping : this.items) {
             if (mapping.getBedrockId() == id) {
                 if (isBlock && !hasDamage) { // Pre-1.16.220 will not use block runtime IDs at all, so we shouldn't check either
                     if (data.getBlockRuntimeId() != mapping.getBedrockBlockId()) {

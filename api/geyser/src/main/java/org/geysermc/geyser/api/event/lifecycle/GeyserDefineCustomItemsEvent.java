@@ -23,24 +23,34 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.mappings.versions;
+package org.geysermc.geyser.api.event.lifecycle;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.event.Event;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
-import org.geysermc.geyser.item.GeyserCustomItemManager;
-import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
+import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 
-import java.nio.file.Path;
-import java.util.function.BiConsumer;
+/**
+ * Called on Geyser's startup when looking for custom items. Custom items must be registered through this event.
+ *
+ * This event will not be called if the "add non-Bedrock items" setting is disabled in the Geyser config.
+ */
+public abstract class GeyserDefineCustomItemsEvent implements Event {
+    /**
+     * Registers a custom item with a base Java item. This is used to register items with custom textures and properties
+     * based on NBT data.
+     *
+     * @param identifier the base (java) item
+     * @param customItemData the custom item data to register
+     * @return if the item was registered
+     */
+    public abstract boolean registerCustomItem(@NonNull String identifier, @NonNull CustomItemData customItemData);
 
-public abstract class MappingsReader {
-    protected GeyserCustomItemManager customItemManager;
-
-    public MappingsReader(GeyserCustomItemManager customItemManager) {
-        this.customItemManager = customItemManager;
-    }
-
-    public abstract void readMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomItemData> consumer);
-
-    public abstract CustomItemData readItemMappingEntry(JsonNode node) throws InvalidCustomMappingsFileException;
+    /**
+     * Registers a custom item with no base item. This is used for mods.
+     *
+     * @param customItemData the custom item data to register
+     * @return if the item was registered
+     */
+    public abstract boolean registerCustomItem(@NonNull NonVanillaCustomItemData customItemData);
 }

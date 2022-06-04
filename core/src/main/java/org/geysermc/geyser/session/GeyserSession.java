@@ -61,20 +61,18 @@ import com.github.steveice10.packetlib.tcp.TcpClientSession;
 import com.github.steveice10.packetlib.tcp.TcpSession;
 import com.nukkitx.math.GenericMath;
 import com.nukkitx.math.vector.*;
-import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
-import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.*;
 import com.nukkitx.protocol.bedrock.data.command.CommandPermission;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
-import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.*;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
-import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -93,6 +91,7 @@ import org.geysermc.floodgate.util.BedrockData;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
@@ -114,7 +113,6 @@ import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.auth.AuthData;
-import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.session.cache.*;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
@@ -134,7 +132,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 @Getter
 public class GeyserSession implements GeyserConnection, GeyserCommandSource {
@@ -591,16 +588,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         if (GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
             ItemComponentPacket componentPacket = new ItemComponentPacket();
-
-            if (this.itemMappings.getFurnaceMinecartData() != null) {
-                componentPacket.getItems().add(this.itemMappings.getFurnaceMinecartData());
-            }
-
-            List<ComponentItemData> customItems = this.geyser.getCustomItemManager().componentItemDataListFromVersion(upstream.getProtocolVersion());
-            if (customItems.size() != 0) {
-                componentPacket.getItems().addAll(customItems);
-            }
-
+            componentPacket.getItems().addAll(itemMappings.getComponentItemData());
             upstream.sendPacket(componentPacket);
         }
 
@@ -615,7 +603,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         upstream.sendPacket(entityPacket);
 
         CreativeContentPacket creativePacket = new CreativeContentPacket();
-        creativePacket.setContents(this.itemMappings.getCreativeItems().toArray(new ItemData[0]));
+        creativePacket.setContents(this.itemMappings.getCreativeItems());
         upstream.sendPacket(creativePacket);
 
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
@@ -1363,7 +1351,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public String locale() {
         return clientData.getLanguageCode();
-     }
+    }
 
     public void setServerRenderDistance(int renderDistance) {
         renderDistance = GenericMath.ceil(++renderDistance * MathUtils.SQRT_OF_TWO); //square to circle
@@ -1437,9 +1425,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
 
-        List<StartGamePacket.ItemEntry> items = new ArrayList<>(this.itemMappings.getItemEntries());
-        items.addAll(this.geyser.getCustomItemManager().startGameItemEntryListFromVersion(upstream.getProtocolVersion()));
-        startGamePacket.setItemEntries(items);
+        startGamePacket.setItemEntries(this.itemMappings.getItemEntries());
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);

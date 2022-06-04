@@ -29,149 +29,85 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
-import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.item.GeyserCustomItemManager;
-import org.geysermc.geyser.item.GeyserCustomRenderOffsets;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
+import org.geysermc.geyser.item.GeyserCustomRenderOffsets;
 import org.geysermc.geyser.item.tools.ToolBreakSpeedsUtils;
-import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
-import org.geysermc.geyser.registry.type.ItemMappings;
+import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 
-import java.util.*;
-import java.util.regex.Pattern;
+import java.util.List;
+import java.util.Map;
+import java.util.OptionalInt;
 
 public class CustomItemRegistryPopulator {
-    private static IntSet protocolVersions = Registries.ITEMS.get().keySet();
 
-    public static GeyserCustomMappingData populateRegistry(String baseItem, CustomItemData customItemData, int customItems) {
+    public static GeyserCustomMappingData.Mapping registerCustomItem(GeyserMappingItem javaItem, CustomItemData customItemData, int bedrockId) {
         String customItemName = GeyserCustomItemManager.CUSTOM_PREFIX + customItemData.name();
 
-        GeyserCustomMappingData returnData = new GeyserCustomMappingData();
-        int protocolIndex = 0;
-
-        for (Int2ObjectMap.Entry<ItemMappings> entry : Registries.ITEMS.get().int2ObjectEntrySet()) {
-            protocolIndex++;
-
-            int protocolVersion = entry.getIntKey();
-            ItemMappings itemMappings = entry.getValue();
-
-            ItemMapping javaItem = itemMappings.getMapping(baseItem);
-            if (javaItem == null) {
-                GeyserImpl.getInstance().getLogger().error("Could not find the java item to add custom model data to for " + baseItem + " in protocol version " + protocolVersion);
-                continue;
-            }
-
-            boolean nameExists = false;
-            for (String mappingName : itemMappings.getCustomIdMappings().values()) {
-                if (Pattern.matches("^" + customItemName + "(_([0-9])+)?$", mappingName)) {
-                    nameExists = true;
-                }
-            }
-            if (nameExists) {
+        /*
+        for (String mappingName : itemMappings.getCustomIdMappings().values()) {
+            if (Pattern.matches("^" + customItemName + "(_([0-9])+)?$", mappingName)) {
                 GeyserImpl.getInstance().getLogger().error("Custom item name '" + customItemData.name() + "' already exists and was registered again! Skipping...");
-                continue;
-            }
-
-            int javaCustomItemId = javaItem.getJavaId();
-            int customItemId = itemMappings.getItems().size() + (customItems * protocolVersions.size()) + protocolIndex;
-
-            ItemMapping customItemMapping = ItemMapping.builder()
-                    .javaIdentifier(baseItem)
-                    .bedrockIdentifier(customItemName)
-                    .javaId(javaCustomItemId)
-                    .bedrockId(customItemId)
-                    .bedrockData(0)
-                    .bedrockBlockId(-1)
-                    .stackSize(javaItem.getStackSize())
-                    .build();
-
-            StartGamePacket.ItemEntry startGamePacketItemEntry = new StartGamePacket.ItemEntry(customItemName, (short) customItemId, true);
-
-            NbtMapBuilder builder = createItemData(customItemData, javaItem, customItemName, customItemId, OptionalInt.empty(), null, false, javaItem.isTool());
-
-            if (customItemData.customItemOptions().hasCustomItemOptions()) {
-                javaItem.getCustomItemOptions().put(customItemData.customItemOptions(), customItemId);
-            } else {
-                GeyserImpl.getInstance().getLogger().warning("The custom item " + customItemData.name() + " has no registration types");
-            }
-
-            ComponentItemData componentItemData = new ComponentItemData(customItemName, builder.build());
-            returnData.addMapping(protocolVersion, new GeyserCustomMappingData.Mapping(componentItemData, customItemMapping, startGamePacketItemEntry, customItemName, customItemId));
-            itemMappings.getCustomIdMappings().put(customItemId, customItemName);
-        }
-
-        return returnData;
-    }
-
-    public static Int2ObjectMap<ComponentItemData> populateRegistry(NonVanillaCustomItemData customItemData, int customItems) {
-        Int2ObjectMap<ComponentItemData> componentItemDataMap = new Int2ObjectOpenHashMap<>();
-        int protocolIndex = 0;
-
-        protocolVersionsLoop:
-        for (Int2ObjectMap.Entry<ItemMappings> entry : Registries.ITEMS.get().int2ObjectEntrySet()) {
-            protocolIndex++;
-
-            int protocolVersion = entry.getIntKey();
-            ItemMappings itemMappings = entry.getValue();
-
-            for (ItemMapping mapping : itemMappings.getItems().values()) {
-                if (mapping.getJavaIdentifier().equals(customItemData.identifier()) || mapping.getBedrockIdentifier().equals(customItemData.identifier()) || mapping.getJavaId() == customItemData.javaId()) {
-                    GeyserImpl.getInstance().getLogger().error("The custom item " + customItemData.identifier() + " is overwriting an existing item in protocol version " + protocolVersion +"! Could not register it.");
-                    break protocolVersionsLoop;
-                }
-            }
-
-            String customIdentifier = customItemData.identifier();
-            int customItemId = itemMappings.getItems().size() + (customItems * protocolVersions.size()) + protocolIndex;
-
-            ItemMapping customItemMapping = ItemMapping.builder()
-                    .javaIdentifier(customIdentifier)
-                    .bedrockIdentifier(customIdentifier)
-                    .javaId(customItemData.javaId())
-                    .bedrockId(customItemId)
-                    .bedrockData(0)
-                    .bedrockBlockId(0)
-                    .stackSize(customItemData.stackSize())
-                    .toolType(customItemData.toolType())
-                    .toolTier(customItemData.toolTier())
-                    .armorType(customItemData.armorType())
-                    .armorTier(customItemData.armorTier())
-                    .protectionValue(customItemData.protectionValue())
-                    .translationString(customItemData.translationString())
-                    .maxDamage(customItemData.maxDamage())
-                    .repairMaterials(customItemData.repairMaterials())
-                    .hasSuspiciousStewEffect(false)
-                    .build();
-
-
-            NbtMapBuilder builder = createItemData(customItemData, customItemMapping, customItemData.identifier(), customItemId, customItemData.creativeCategory(), customItemData.creativeGroup(), customItemData.isHat(), customItemData.isTool());
-
-            itemMappings.getItems().put(customItemData.javaId(), customItemMapping);
-            componentItemDataMap.put(protocolVersion, new ComponentItemData(customIdentifier, builder.build()));
-            itemMappings.getItemEntries().add(new StartGamePacket.ItemEntry(customIdentifier, (short) customItemId, true));
-
-            if (customItemData.creativeGroup() != null || customItemData.creativeCategory().isPresent()) {
-                int netId = itemMappings.getCreativeItems().get(itemMappings.getCreativeItems().size() - 1).getNetId() + 1;
-
-                itemMappings.getCreativeItems().add(ItemData.builder()
-                        .id(customItemId)
-                        .netId(netId)
-                        .count(1).build());
+                return;
             }
         }
+        */
 
-        return componentItemDataMap;
+        StartGamePacket.ItemEntry startGamePacketItemEntry = new StartGamePacket.ItemEntry(customItemName, (short) bedrockId, true);
+
+        NbtMapBuilder builder = createComponentNbt(customItemData, javaItem, customItemName, bedrockId);
+        ComponentItemData componentItemData = new ComponentItemData(customItemName, builder.build());
+
+        return new GeyserCustomMappingData.Mapping(componentItemData, null, startGamePacketItemEntry, customItemName, bedrockId);
     }
 
-    private static NbtMapBuilder createItemData(CustomItemData customItemData, ItemMapping mapping, String customItemName, int customItemId, OptionalInt creativeCategory, String creativeGroup, boolean isHat, boolean isTool) {
+    static boolean initialCheck(String identifier, CustomItemData item, Map<String, GeyserMappingItem> mappings) {
+        if (!mappings.containsKey(identifier)) {
+            GeyserImpl.getInstance().getLogger().error("Could not find the Java item to add custom item properties to for " + item.name());
+            return false;
+        }
+        if (!item.customItemOptions().hasCustomItemOptions()) {
+            GeyserImpl.getInstance().getLogger().error("The custom item " + item.name() + " has no registration types");
+        }
+        return true;
+    }
+
+    public static NonVanillaItemRegistration registerCustomItem(NonVanillaCustomItemData customItemData, int customItemId) {
+        String customIdentifier = customItemData.identifier();
+
+        ItemMapping customItemMapping = ItemMapping.builder()
+                .javaIdentifier(customIdentifier)
+                .bedrockIdentifier(customIdentifier)
+                .javaId(customItemData.javaId())
+                .bedrockId(customItemId)
+                .bedrockData(0)
+                .bedrockBlockId(0)
+                .stackSize(customItemData.stackSize())
+                .toolType(customItemData.toolType())
+                .toolTier(customItemData.toolTier())
+                .translationString(customItemData.translationString())
+                .maxDamage(customItemData.maxDamage())
+                .repairMaterials(customItemData.repairMaterials())
+                .hasSuspiciousStewEffect(false)
+                .customItemOptions(Object2IntMaps.emptyMap())
+                .build();
+
+        NbtMapBuilder builder = createComponentNbt(customItemData, customItemData.identifier(), customItemId,
+                customItemData.creativeCategory(), customItemData.creativeGroup(), customItemData.isHat(), customItemData.isTool());
+        ComponentItemData componentItemData = new ComponentItemData(customIdentifier, builder.build());
+
+        return new NonVanillaItemRegistration(componentItemData, customItemMapping);
+    }
+
+    private static NbtMapBuilder createComponentNbt(CustomItemData customItemData, GeyserMappingItem mapping,
+                                                    String customItemName, int customItemId) {
         NbtMapBuilder builder = NbtMap.builder();
         builder.putString("name", customItemName)
                 .putInt("id", customItemId);
@@ -179,16 +115,48 @@ public class CustomItemRegistryPopulator {
         NbtMapBuilder itemProperties = NbtMap.builder();
         NbtMapBuilder componentBuilder = NbtMap.builder();
 
-        setupBasicItemInfo(mapping.getMaxDamage(), mapping.getStackSize(), isTool, customItemData, itemProperties, componentBuilder);
+        setupBasicItemInfo(mapping.getMaxDamage(), mapping.getStackSize(), mapping.getToolType() != null, customItemData, itemProperties, componentBuilder);
 
         boolean canDestroyInCreative = true;
-        if (mapping.isTool()) { // This is not using the isTool boolean because it is not just a render type here.
+        if (mapping.getToolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
             canDestroyInCreative = computeToolProperties(mapping.getToolTier(), mapping.getToolType(), itemProperties, componentBuilder);
         }
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
-        if (mapping.isArmor()) {
+        if (mapping.getArmorType() != null) {
             computeArmorProperties(mapping.getArmorType(), mapping.getProtectionValue(), componentBuilder);
+        }
+
+        computeRenderOffsets(false, customItemData, componentBuilder);
+
+        componentBuilder.putCompound("item_properties", itemProperties.build());
+        builder.putCompound("components", componentBuilder.build());
+
+        return builder;
+    }
+
+    private static NbtMapBuilder createComponentNbt(NonVanillaCustomItemData customItemData, String customItemName,
+                                                    int customItemId, OptionalInt creativeCategory,
+                                                    String creativeGroup, boolean isHat, boolean isTool) {
+        NbtMapBuilder builder = NbtMap.builder();
+        builder.putString("name", customItemName)
+                .putInt("id", customItemId);
+
+        NbtMapBuilder itemProperties = NbtMap.builder();
+        NbtMapBuilder componentBuilder = NbtMap.builder();
+
+        setupBasicItemInfo(customItemData.maxDamage(), customItemData.stackSize(), isTool, customItemData, itemProperties, componentBuilder);
+
+        boolean canDestroyInCreative = true;
+        String toolType = customItemData.toolType();
+        if (toolType != null) { // This is not using the isTool boolean because it is not just a render type here.
+            canDestroyInCreative = computeToolProperties(customItemData.toolTier(), toolType, itemProperties, componentBuilder);
+        }
+        itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
+
+        String armorType = customItemData.armorType();
+        if (armorType != null) {
+            computeArmorProperties(armorType, customItemData.protectionValue(), componentBuilder);
         }
 
         computeRenderOffsets(isHat, customItemData, componentBuilder);

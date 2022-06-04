@@ -46,20 +46,20 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.BiConsumer;
 
 public class GeyserCustomItemManager extends CustomItemManager {
     public static final String CUSTOM_PREFIX = "geyser_custom:";
 
-    private Map<String, List<CustomItemData>> customMappings = new HashMap<>();
+    private final Map<String, List<CustomItemData>> customMappings = new HashMap<>();
 
-    private List<GeyserCustomMappingData> registeredCustomItems = new ArrayList<>();
-    private Int2ObjectMap<List<ComponentItemData>> registeredComponentItems = new Int2ObjectOpenHashMap<>();
+    private final List<GeyserCustomMappingData> registeredCustomItems = new ArrayList<>();
 
     public GeyserCustomItemManager() {
         MappingsConfigReader.init(this);
     }
 
-    public void loadMappingsFromJson() {
+    public void loadMappingsFromJson(BiConsumer<String, CustomItemData> consumer) {
         Path customMappingsDirectory = MappingsConfigReader.getCustomMappingsDirectory();
         if (!Files.exists(customMappingsDirectory)) {
             try {
@@ -72,56 +72,12 @@ public class GeyserCustomItemManager extends CustomItemManager {
 
         Path[] mappingsFiles = MappingsConfigReader.getCustomMappingsFiles();
         for (Path mappingsFile : mappingsFiles) {
-            this.loadMappingsFromJson(mappingsFile);
+            MappingsConfigReader.readMappingsFromJson(mappingsFile, consumer);
         }
 
         if (this.registeredItemCount() != 0) {
             GeyserImpl.getInstance().getLogger().info("Registered " + this.registeredItemCount() + " custom items from mappings");
         }
-    }
-
-    public void loadMappingsFromJson(@NotNull Path file) {
-        MappingsConfigReader.readMappingsFromJson(file);
-    }
-
-    private boolean cantRegisterNewItem() {
-        return GeyserImpl.getInstance().isInitialized() || !GeyserImpl.getInstance().getConfig().isAddNonBedrockItems();
-    }
-
-    @Override
-    public boolean registerCustomItem(@NotNull String identifier, @NotNull CustomItemData customItemData) {
-        if (this.cantRegisterNewItem()) {
-            return false;
-        }
-
-        GeyserCustomMappingData registeredItem = CustomItemRegistryPopulator.populateRegistry(identifier, customItemData, this.registeredItemCount());
-
-        if (registeredItem.protocolsMappedCount() > 0) {
-            this.customMappings.computeIfAbsent(identifier, list -> new ArrayList<>()).add(customItemData);
-            this.registeredCustomItems.add(registeredItem);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    @Override
-    public boolean registerCustomItem(@NonNull NonVanillaCustomItemData customItemData) {
-        if (this.cantRegisterNewItem()) {
-            return false;
-        }
-
-        Int2ObjectMap<ComponentItemData> componentItemData = CustomItemRegistryPopulator.populateRegistry(customItemData, this.registeredItemCount());
-        if (componentItemData.size() > 0) {
-            for (Int2ObjectMap.Entry<ComponentItemData> entry : componentItemData.int2ObjectEntrySet()) {
-                this.registeredComponentItems.computeIfAbsent(entry.getIntKey(), list -> new ArrayList<>()).add(entry.getValue());
-            }
-
-            return true;
-        }
-
-        return false;
     }
 
     @Override
@@ -136,43 +92,5 @@ public class GeyserCustomItemManager extends CustomItemManager {
 
     public int registeredItemCount() {
         return this.registeredCustomItems.size();
-    }
-
-    public List<ComponentItemData> componentItemDataListFromVersion(int protocolVersion) {
-        List<ComponentItemData> componentItemDataList = new ArrayList<>();
-
-        for (GeyserCustomMappingData registeredItem : this.registeredCustomItems) {
-            componentItemDataList.add(registeredItem.getMapping(protocolVersion).componentItemData());
-        }
-
-        componentItemDataList.addAll(this.registeredComponentItems.getOrDefault(protocolVersion, new ArrayList<>()));
-
-        return componentItemDataList;
-    }
-
-    public List<StartGamePacket.ItemEntry> startGameItemEntryListFromVersion(int protocolVersion) {
-        List<StartGamePacket.ItemEntry> itemEntryList = new ArrayList<>();
-        for (GeyserCustomMappingData registeredItem : this.registeredCustomItems) {
-            itemEntryList.add(registeredItem.getMapping(protocolVersion).startGamePacketItemEntry());
-        }
-        return itemEntryList;
-    }
-
-    public static CustomItemOptions nbtToCustomItemOptions(CompoundTag nbt) {
-        CustomItemOptions.Builder customItemOptions = CustomItemOptions.builder();
-
-        if (nbt.get("CustomModelData") instanceof IntTag customModelDataTag) {
-            customItemOptions.customModelData(customModelDataTag.getValue());
-        }
-
-        if (nbt.get("Damage") instanceof IntTag damageTag) {
-            customItemOptions.damagePredicate(damageTag.getValue());
-        }
-
-        if (nbt.get("Unbreakable") instanceof ByteTag unbreakableTag) {
-            customItemOptions.unbreaking(unbreakableTag.getValue() == 1);
-        }
-
-        return customItemOptions.build();
     }
 }

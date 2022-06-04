@@ -25,67 +25,117 @@
 
 package org.geysermc.geyser.item;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
+import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
+import org.jetbrains.annotations.NotNull;
 
-public record GeyserCustomItemData(String name,
-                                   CustomItemOptions customItemOptions,
-                                   String displayName,
-                                   String icon,
-                                   boolean allowOffhand,
-                                   int textureSize,
-                                   CustomRenderOffsets renderOffsets) implements CustomItemData {
+@EqualsAndHashCode
+@ToString
+public class GeyserCustomItemData implements CustomItemData {
+    private final String name;
+    private final CustomItemOptions customItemOptions;
+    private final String displayName;
+    private final String icon;
+    private final boolean allowOffhand;
+    private final int textureSize;
+    private final CustomRenderOffsets renderOffsets;
 
-    public static class CustomItemDataBuilder implements CustomItemData.Builder {
-        private String name = null;
-        private CustomItemOptions customItemOptions = null;
+    public GeyserCustomItemData(String name,
+                                CustomItemOptions customItemOptions,
+                                String displayName,
+                                String icon,
+                                boolean allowOffhand,
+                                int textureSize,
+                                CustomRenderOffsets renderOffsets) {
+        this.name = name;
+        this.customItemOptions = customItemOptions;
+        this.displayName = displayName;
+        this.icon = icon;
+        this.allowOffhand = allowOffhand;
+        this.textureSize = textureSize;
+        this.renderOffsets = renderOffsets;
+    }
 
-        private String displayName = null;
-        private String icon = null;
-        private boolean allowOffhand = false;
-        private int textureSize = 16;
-        private CustomRenderOffsets renderOffsets = null;
+    public @NotNull String name() {
+        return name;
+    }
+
+    public CustomItemOptions customItemOptions() {
+        return customItemOptions;
+    }
+
+    public @NotNull String displayName() {
+        return displayName;
+    }
+
+    public @NotNull String icon() {
+        return icon;
+    }
+
+    public boolean allowOffhand() {
+        return allowOffhand;
+    }
+
+    public int textureSize() {
+        return textureSize;
+    }
+
+    public CustomRenderOffsets renderOffsets() {
+        return renderOffsets;
+    }
+
+    public static class BuilderImpl implements Builder {
+        protected String name = null;
+        protected CustomItemOptions customItemOptions = null;
+
+        protected String displayName = null;
+        protected String icon = null;
+        protected boolean allowOffhand = true; // Bedrock doesn't give items offhand allowance unless they serve gameplay purpose, but we want to be friendly with Java
+        protected int textureSize = 16;
+        protected CustomRenderOffsets renderOffsets = null;
 
         @Override
-        public CustomItemData.Builder name(@NonNull String name) {
+        public Builder name(@NonNull String name) {
             this.name = name;
             return this;
         }
 
         @Override
-        public CustomItemData.Builder customItemOptions(@NonNull CustomItemOptions customItemOptions) {
+        public Builder customItemOptions(@NonNull CustomItemOptions customItemOptions) {
             this.customItemOptions = customItemOptions;
             return this;
         }
 
         @Override
-        public CustomItemData.Builder displayName(@NonNull String displayName) {
+        public Builder displayName(@NonNull String displayName) {
             this.displayName = displayName;
             return this;
         }
 
         @Override
-        public CustomItemData.Builder icon(@NonNull String icon) {
+        public Builder icon(@NonNull String icon) {
             this.icon = icon;
             return this;
         }
 
         @Override
-        public CustomItemData.Builder allowOffhand(boolean allowOffhand) {
+        public Builder allowOffhand(boolean allowOffhand) {
             this.allowOffhand = allowOffhand;
             return this;
         }
 
         @Override
-        public CustomItemData.Builder textureSize(int textureSize) {
+        public Builder textureSize(int textureSize) {
             this.textureSize = textureSize;
             return this;
         }
 
         @Override
-        public CustomItemData.Builder renderOffsets(CustomRenderOffsets renderOffsets) {
+        public Builder renderOffsets(CustomRenderOffsets renderOffsets) {
             this.renderOffsets = renderOffsets;
             return this;
         }

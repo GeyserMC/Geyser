@@ -26,25 +26,25 @@
 package org.geysermc.geyser.item;
 
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
-import org.geysermc.geyser.api.util.OptionalBoolean;
+import org.geysermc.geyser.api.util.TriState;
 
 import java.util.OptionalInt;
 
-public record GeyserCustomItemOptions(OptionalBoolean unbreaking,
+public record GeyserCustomItemOptions(TriState unbreaking,
                                       OptionalInt customModelData,
                                       OptionalInt damagePredicate) implements CustomItemOptions {
 
     public static class CustomItemOptionsBuilder implements CustomItemOptions.Builder {
-        private OptionalBoolean unbreaking = OptionalBoolean.NOT_PRESENT;
+        private TriState unbreaking = TriState.NOT_SET;
         private OptionalInt customModelData = OptionalInt.empty();
         private OptionalInt damagePredicate = OptionalInt.empty();
 
         @Override
         public Builder unbreaking(boolean unbreaking) {
             if (unbreaking) {
-                this.unbreaking = OptionalBoolean.TRUE;
+                this.unbreaking = TriState.TRUE;
             } else {
-                this.unbreaking = OptionalBoolean.FALSE;
+                this.unbreaking = TriState.FALSE;
             }
             return this;
         }

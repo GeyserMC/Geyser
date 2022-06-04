@@ -116,11 +116,7 @@ public class ItemFrameEntity extends Entity {
             this.heldItem = entityMetadata.getValue();
             ItemData itemData = ItemTranslator.translateToBedrock(session, heldItem);
 
-            ItemMapping mapping = session.getItemMappings().getMapping(entityMetadata.getValue());
-            String identifier = session.getItemMappings().getCustomIdMappings().get(itemData.getId());
-            if (identifier == null) {
-                identifier = mapping.getBedrockIdentifier();
-            }
+            String customIdentifier = session.getItemMappings().getCustomIdMappings().get(itemData.getId());
 
             NbtMapBuilder builder = NbtMap.builder();
 
@@ -129,7 +125,7 @@ public class ItemFrameEntity extends Entity {
                 builder.put("tag", itemData.getTag());
             }
             builder.putShort("Damage", (short) itemData.getDamage());
-            builder.putString("Name", identifier);
+            builder.putString("Name", customIdentifier != null ? customIdentifier : session.getItemMappings().getMapping(entityMetadata.getValue()).getBedrockIdentifier());
             NbtMapBuilder tag = getDefaultTag().toBuilder();
             tag.put("Item", builder.build());
             tag.putFloat("ItemDropChance", 1.0f);

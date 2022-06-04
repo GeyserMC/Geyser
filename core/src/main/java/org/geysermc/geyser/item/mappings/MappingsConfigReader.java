@@ -27,6 +27,7 @@ package org.geysermc.geyser.item.mappings;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.item.GeyserCustomItemManager;
 import org.geysermc.geyser.item.mappings.versions.MappingsReader;
 import org.geysermc.geyser.item.mappings.versions.MappingsReader_v1_0_0;
@@ -36,6 +37,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
 
 public class MappingsConfigReader {
     private static final Map<String, MappingsReader> MAPPING_READERS = new HashMap<>();
@@ -58,7 +60,7 @@ public class MappingsConfigReader {
         }
     }
 
-    public static void readMappingsFromJson(Path file) {
+    public static void readMappingsFromJson(Path file, BiConsumer<String, CustomItemData> consumer) {
         JsonNode mappingsRoot;
         try {
             mappingsRoot = GeyserImpl.JSON_MAPPER.readTree(file.toFile());
@@ -78,6 +80,6 @@ public class MappingsConfigReader {
             return;
         }
 
-        MAPPING_READERS.get(formatVersion).readMappings(file, mappingsRoot);
+        MAPPING_READERS.get(formatVersion).readMappings(file, mappingsRoot, consumer);
     }
 }

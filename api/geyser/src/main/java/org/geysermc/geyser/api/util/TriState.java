@@ -25,16 +25,18 @@
 
 package org.geysermc.geyser.api.util;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * This is a way to represent a boolean, but with a non set value added.
+ * This class was inspired by adventure's version https://github.com/KyoriPowered/adventure/blob/main/4/api/src/main/java/net/kyori/adventure/util/TriState.java
  */
-public enum OptionalBoolean {
+public enum TriState {
     /**
-     * This is a way to represent a boolean, but with a non set value added. This class was inspired by adventure's version https://github.com/KyoriPowered/adventure/blob/main/4/api/src/main/java/net/kyori/adventure/util/TriState.java
+     * Describes a value that is not set, null, or not present.
      */
-    NOT_PRESENT,
+    NOT_SET,
 
     /**
      * Describes a true value.
@@ -62,16 +64,21 @@ public enum OptionalBoolean {
     /**
      * Creates a TriState from a boolean.
      *
+     * @param value the Boolean value
+     * @return the created TriState
+     */
+    public @NonNull
+    static TriState fromBoolean(@Nullable Boolean value) {
+        return value == null ? NOT_SET : fromBoolean(value.booleanValue());
+    }
+
+    /**
+     * Creates a TriState from a primitive boolean.
+     *
      * @param value the boolean value
      * @return the created TriState
      */
-    public static OptionalBoolean fromBoolean(Boolean value) {
-        if (value == null) {
-            return NOT_PRESENT;
-        } else if (value) {
-            return TRUE;
-        } else {
-            return FALSE;
-        }
+    public @NonNull static TriState fromBoolean(boolean value) {
+        return value ? TRUE : FALSE;
     }
 }
