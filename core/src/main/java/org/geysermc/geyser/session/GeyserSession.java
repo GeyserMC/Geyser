@@ -845,7 +845,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
             // We're going to connect through the JVM and not through TCP
             downstream = new LocalSession(this.remoteAddress, this.remotePort,
                     geyser.getBootstrap().getSocketAddress(), upstream.getAddress().getAddress().getHostAddress(),
-                    this.protocol, this.downstream.getCodecHelper());
+                    this.protocol, this.protocol.createHelper());
         } else {
             downstream = new TcpClientSession(this.remoteAddress, this.remotePort, this.protocol);
             disableSrvResolving();
@@ -1017,7 +1017,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
             setDaylightCycle(true);
         }
 
-        downstream.connect();
+        downstream.connect(false);
     }
 
     public void disconnect(String reason) {
