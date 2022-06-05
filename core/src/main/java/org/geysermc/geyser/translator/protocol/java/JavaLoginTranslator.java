@@ -62,11 +62,11 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         Map<String, JavaDimension> dimensions = session.getDimensions();
         dimensions.clear();
 
-        JavaDimension.load(packet.getDimensionCodec(), dimensions);
+        JavaDimension.load(packet.getRegistry(), dimensions);
 
         Map<MessageType, TextDecoration> chatTypes = session.getChatTypes();
         chatTypes.clear();
-        for (CompoundTag tag : JavaCodecEntry.iterateAsTag(packet.getDimensionCodec().get("minecraft:chat_type"))) {
+        for (CompoundTag tag : JavaCodecEntry.iterateAsTag(packet.getRegistry().get("minecraft:chat_type"))) {
             int id = ((IntTag) tag.get("id")).getValue();
             CompoundTag element = tag.get("element");
             CompoundTag chat = element.get("chat");
@@ -77,7 +77,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             if (decoration == null) {
                 continue;
             }
-            MessageType type = MessageType.VALUES[id];
+            MessageType type = MessageType.from(id);
             chatTypes.put(type, new TextDecoration(decoration));
         }
 
@@ -91,7 +91,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         }
         session.setWorldName(packet.getWorldName());
 
-        BiomeTranslator.loadServerBiomes(session, packet.getDimensionCodec());
+        BiomeTranslator.loadServerBiomes(session, packet.getRegistry());
         session.getTagCache().clear();
 
         session.setGameMode(packet.getGameMode());

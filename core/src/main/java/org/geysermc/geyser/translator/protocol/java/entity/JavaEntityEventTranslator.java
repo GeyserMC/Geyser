@@ -55,7 +55,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
 
         EntityEventPacket entityEventPacket = new EntityEventPacket();
         entityEventPacket.setRuntimeEntityId(entity.getGeyserId());
-        switch (packet.getStatus()) {
+        switch (packet.getEvent()) {
             case PLAYER_ENABLE_REDUCED_DEBUG:
                 session.setReducedDebugInfo(true);
                 return;

@@ -169,9 +169,10 @@ public class GeyserSpigotInjector extends GeyserInjector {
      * For the future, if someone wants to properly fix this - as of December 28, 2021, it happens on 1.16.5/1.17.1/1.18.1 EXCEPT Spigot 1.16.5
      */
     private void workAroundWeirdBug(GeyserBootstrap bootstrap) {
+        MinecraftProtocol protocol = new MinecraftProtocol();
         LocalSession session = new LocalSession(bootstrap.getGeyserConfig().getRemote().getAddress(),
                 bootstrap.getGeyserConfig().getRemote().getPort(), this.serverSocketAddress,
-                InetAddress.getLoopbackAddress().getHostAddress(), new MinecraftProtocol());
+                InetAddress.getLoopbackAddress().getHostAddress(), protocol, protocol.createHelper());
         session.connect();
     }
 
