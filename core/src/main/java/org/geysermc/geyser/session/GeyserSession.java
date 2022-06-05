@@ -1381,6 +1381,22 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         formCache.showForm(formBuilder.build());
     }
 
+    /**
+     * @deprecated since Cumulus version 1.1, and will be removed when Cumulus 2.0 releases. Please use the new forms instead.
+     */
+    @Deprecated
+    public void sendForm(org.geysermc.cumulus.Form<?> form) {
+        sendForm(form.newForm());
+    }
+
+    /**
+     * @deprecated since Cumulus version 1.1, and will be removed when Cumulus 2.0 releases. Please use the new forms instead.
+     */
+    @Deprecated
+    public void sendForm(org.geysermc.cumulus.util.FormBuilder<?, ?, ?, ?> formBuilder) {
+        sendForm(formBuilder.build());
+    }
+
     private void startGame() {
         StartGamePacket startGamePacket = new StartGamePacket();
         startGamePacket.setUniqueEntityId(playerEntity.getGeyserId());
