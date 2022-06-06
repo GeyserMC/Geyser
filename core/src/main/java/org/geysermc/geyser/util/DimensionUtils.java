@@ -26,13 +26,10 @@
 package org.geysermc.geyser.util;
 
 import com.github.steveice10.mc.protocol.data.game.entity.Effect;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.packet.ChangeDimensionPacket;
 import com.nukkitx.protocol.bedrock.packet.MobEffectPacket;
 import com.nukkitx.protocol.bedrock.packet.StopSoundPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -129,25 +126,6 @@ public class DimensionUtils {
             case THE_END -> 2;
             default -> 0;
         };
-    }
-
-    /**
-     * Determines the new dimension based on the {@link CompoundTag} sent by either the {@link com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundLoginPacket}
-     * or {@link com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundRespawnPacket}.
-     *
-     * @param dimensionTag the packet's dimension tag.
-     * @return the dimension identifier.
-     */
-    public static String getNewDimension(CompoundTag dimensionTag) {
-        if (dimensionTag == null || dimensionTag.isEmpty()) {
-            GeyserImpl.getInstance().getLogger().debug("Dimension tag was null or empty.");
-            return OVERWORLD;
-        }
-        if (dimensionTag.getValue().get("effects") != null) {
-            return ((StringTag) dimensionTag.getValue().get("effects")).getValue();
-        }
-        GeyserImpl.getInstance().getLogger().debug("Effects portion of the tag was null or empty.");
-        return OVERWORLD;
     }
 
     /**

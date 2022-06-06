@@ -29,7 +29,6 @@ import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
 import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeType;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
@@ -52,17 +51,13 @@ import lombok.Setter;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.InteractionResult;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Getter
 @Setter
@@ -123,12 +118,11 @@ public class LivingEntity extends Entity {
         session.sendUpstreamPacket(attributesPacket);
     }
 
-    public Vector3i setBedPosition(EntityMetadata<Optional<Position>, ?> entityMetadata) {
-        Optional<Position> optionalPos = entityMetadata.getValue();
+    public Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
+        Optional<Vector3i> optionalPos = entityMetadata.getValue();
         if (optionalPos.isPresent()) {
-            Position bedPosition = optionalPos.get();
-            Vector3i vector = Vector3i.from(bedPosition.getX(), bedPosition.getY(), bedPosition.getZ());
-            dirtyMetadata.put(EntityData.BED_POSITION, vector);
+            Vector3i bedPosition = optionalPos.get();
+            dirtyMetadata.put(EntityData.BED_POSITION, bedPosition);
             int bed = session.getGeyser().getWorldManager().getBlockAt(session, bedPosition);
             // Bed has to be updated, or else player is floating in the air
             ChunkUtils.updateBlock(session, bed, bedPosition);
@@ -136,7 +130,7 @@ public class LivingEntity extends Entity {
             // Has to be a byte or it does not work
             // (Bed position is what actually triggers sleep - "pose" is only optional)
             dirtyMetadata.put(EntityData.PLAYER_FLAGS, (byte) 2);
-            return vector;
+            return bedPosition;
         } else {
             // Player is no longer sleeping
             dirtyMetadata.put(EntityData.PLAYER_FLAGS, (byte) 0);

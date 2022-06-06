@@ -37,7 +37,6 @@ import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.AutoCraft
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.CraftRecipeStackRequestActionData;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import com.nukkitx.protocol.bedrock.packet.SetEntityLinkPacket;
-import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.inventory.Inventory;
@@ -140,10 +139,6 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public ItemStackResponsePacket.Response translateCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
-        if (session.getUpstream().getProtocolVersion() < Bedrock_v486.V486_CODEC.getProtocolVersion()) {
-            return super.translateCraftingRequest(session, inventory, request);
-        }
-
         // Behavior as of 1.18.10.
         // We set the net ID to the trade index + 1. This doesn't appear to cause issues and means we don't have to
         // store a map of net ID to trade index on our end.
@@ -153,12 +148,6 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator {
 
     @Override
     public ItemStackResponsePacket.Response translateAutoCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
-        if (session.getUpstream().getProtocolVersion() < Bedrock_v486.V486_CODEC.getProtocolVersion()) {
-            // We're not crafting here
-            // Called at least by consoles when pressing a trade option button
-            return translateRequest(session, inventory, request);
-        }
-
         // 1.18.10 update - seems impossible to call without consoles/controller input
         // We set the net ID to the trade index + 1. This doesn't appear to cause issues and means we don't have to
         // store a map of net ID to trade index on our end.

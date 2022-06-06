@@ -26,7 +26,6 @@
 package org.geysermc.geyser.entity.type.living.merchant;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.VillagerData;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
@@ -103,7 +102,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
     }
 
     @Override
-    public Vector3i setBedPosition(EntityMetadata<Optional<Position>, ?> entityMetadata) {
+    public Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
         return bedPosition = super.setBedPosition(entityMetadata);
     }
 

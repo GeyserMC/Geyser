@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.protocol.java;
 
 import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateAdvancementsPacket;
-import com.nukkitx.protocol.bedrock.packet.SetTitlePacket;
+import com.nukkitx.protocol.bedrock.packet.ToastRequestPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -36,7 +36,7 @@ import org.geysermc.geyser.session.cache.AdvancementsCache;
 import org.geysermc.geyser.level.GeyserAdvancement;
 import org.geysermc.geyser.text.MinecraftLocale;
 
-import java.util.Map;
+import java.util.Locale;
 
 @Translator(packet = ClientboundUpdateAdvancementsPacket.class)
 public class JavaUpdateAdvancementsTranslator extends PacketTranslator<ClientboundUpdateAdvancementsPacket> {
@@ -56,48 +56,39 @@ public class JavaUpdateAdvancementsTranslator extends PacketTranslator<Clientbou
 
         advancementsCache.getStoredAdvancementProgress().putAll(packet.getProgress());
 
-        sendToolbarAdvancementUpdates(session, packet);
-
         // Adds advancements to the player's stored advancements when advancements are sent
         for (Advancement advancement : packet.getAdvancements()) {
-            if (advancement.getDisplayData() != null && !advancement.getDisplayData().isHidden()) {
+            if (advancement.getDisplayData() != null && (!advancement.getDisplayData().isHidden() || advancement.getDisplayData().isShowToast())) {
                 GeyserAdvancement geyserAdvancement = GeyserAdvancement.from(advancement);
                 advancementsCache.getStoredAdvancements().put(advancement.getId(), geyserAdvancement);
             } else {
                 advancementsCache.getStoredAdvancements().remove(advancement.getId());
             }
         }
+
+        sendAdvancementToasts(session, packet);
     }
 
     /**
      * Handle all advancements progress updates
      */
-    public void sendToolbarAdvancementUpdates(GeyserSession session, ClientboundUpdateAdvancementsPacket packet) {
+    public void sendAdvancementToasts(GeyserSession session, ClientboundUpdateAdvancementsPacket packet) {
         if (packet.isReset()) {
             // Advancements are being cleared, so they can't be granted
             return;
         }
-        for (Map.Entry<String, Map<String, Long>> progress : packet.getProgress().entrySet()) {
-            GeyserAdvancement advancement = session.getAdvancementsCache().getStoredAdvancements().get(progress.getKey());
+        for (String advancementId : packet.getProgress().keySet()) {
+            GeyserAdvancement advancement = session.getAdvancementsCache().getStoredAdvancements().get(advancementId);
             if (advancement != null && advancement.getDisplayData() != null) {
-                if (session.getAdvancementsCache().isEarned(advancement)) {
-                    // Java uses some pink color for toast challenge completes
-                    String color = advancement.getDisplayData().getFrameType() == Advancement.DisplayData.FrameType.CHALLENGE ?
-                            "§d" : "§a";
+                if (advancement.getDisplayData().isShowToast() && session.getAdvancementsCache().isEarned(advancement)) {
+                    String frameType = advancement.getDisplayData().getFrameType().toString().toLowerCase(Locale.ROOT);
+                    String frameTitle = advancement.getDisplayColor() + MinecraftLocale.getLocaleString("advancements.toast." + frameType, session.getLocale());
                     String advancementName = MessageTranslator.convertMessage(advancement.getDisplayData().getTitle(), session.getLocale());
 
-                    // Send an action bar message stating they earned an achievement
-                    // Sent for instances where broadcasting advancements through chat are disabled
-                    SetTitlePacket titlePacket = new SetTitlePacket();
-                    titlePacket.setText(color + "[" + MinecraftLocale.getLocaleString("advancements.toast." +
-                            advancement.getDisplayData().getFrameType().toString().toLowerCase(), session.getLocale()) + "]§f " + advancementName);
-                    titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
-                    titlePacket.setFadeOutTime(3);
-                    titlePacket.setFadeInTime(3);
-                    titlePacket.setStayTime(3);
-                    titlePacket.setXuid("");
-                    titlePacket.setPlatformOnlineId("");
-                    session.sendUpstreamPacket(titlePacket);
+                    ToastRequestPacket toastRequestPacket = new ToastRequestPacket();
+                    toastRequestPacket.setTitle(frameTitle);
+                    toastRequestPacket.setContent(advancementName);
+                    session.sendUpstreamPacket(toastRequestPacket);
                 }
             }
         }

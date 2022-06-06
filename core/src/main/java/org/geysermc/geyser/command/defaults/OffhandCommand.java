@@ -28,11 +28,11 @@ package org.geysermc.geyser.command.defaults;
 import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
+import com.nukkitx.math.vector.Vector3i;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.BlockUtils;
 
 public class OffhandCommand extends GeyserCommand {
 
@@ -46,8 +46,8 @@ public class OffhandCommand extends GeyserCommand {
             return;
         }
 
-        ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.SWAP_HANDS, BlockUtils.POSITION_ZERO,
-                Direction.DOWN);
+        ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.SWAP_HANDS, Vector3i.ZERO,
+                Direction.DOWN, session.getNextSequence());
         session.sendDownstreamPacket(releaseItemPacket);
     }
 

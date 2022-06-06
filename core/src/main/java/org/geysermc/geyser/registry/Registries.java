@@ -27,7 +27,7 @@ package org.geysermc.geyser.registry;
 
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
-import com.github.steveice10.mc.protocol.data.game.level.event.SoundEvent;
+import com.github.steveice10.mc.protocol.data.game.level.event.LevelEvent;
 import com.github.steveice10.mc.protocol.data.game.level.particle.ParticleType;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
 import com.github.steveice10.packetlib.packet.Packet;
@@ -155,9 +155,9 @@ public final class Registries {
     public static final SimpleMappedRegistry<String, SoundMapping> SOUNDS = SimpleMappedRegistry.create("mappings/sounds.json", SoundRegistryLoader::new);
 
     /**
-     * A mapped registry holding {@link SoundEvent}s to their corresponding {@link LevelEventTranslator}.
+     * A mapped registry holding {@link LevelEvent}s to their corresponding {@link LevelEventTranslator}.
      */
-    public static final SimpleMappedRegistry<SoundEvent, LevelEventTranslator> SOUND_EVENTS = SimpleMappedRegistry.create("mappings/effects.json", SoundEventsRegistryLoader::new);
+    public static final SimpleMappedRegistry<LevelEvent, LevelEventTranslator> SOUND_LEVEL_EVENTS = SimpleMappedRegistry.create("mappings/effects.json", SoundEventsRegistryLoader::new);
 
     /**
      * A mapped registry holding {@link SoundTranslator}s to their corresponding {@link SoundInteractionTranslator}.

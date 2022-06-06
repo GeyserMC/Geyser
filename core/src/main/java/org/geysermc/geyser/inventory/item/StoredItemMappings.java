@@ -60,6 +60,7 @@ public class StoredItemMappings {
     private final int saddle;
     private final int shears;
     private final ItemMapping shield;
+    private final int slimeBall;
     private final int waterBucket;
     private final ItemMapping wheat;
     private final ItemMapping writableBook;
@@ -87,6 +88,7 @@ public class StoredItemMappings {
         this.saddle = load(itemMappings, "saddle").getJavaId();
         this.shears = load(itemMappings, "shears").getJavaId();
         this.shield = load(itemMappings, "shield");
+        this.slimeBall = load(itemMappings, "slime_ball").getJavaId();
         this.waterBucket = load(itemMappings, "water_bucket").getJavaId();
         this.wheat = load(itemMappings, "wheat");
         this.writableBook = load(itemMappings, "writable_book");

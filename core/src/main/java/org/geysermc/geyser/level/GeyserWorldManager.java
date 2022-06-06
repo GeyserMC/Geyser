@@ -27,15 +27,14 @@ package org.geysermc.geyser.level;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatPacket;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.ChunkCache;
 import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
-import org.geysermc.geyser.level.block.BlockStateValues;
 
 import java.util.Locale;
 
@@ -83,7 +82,7 @@ public class GeyserWorldManager extends WorldManager {
 
     @Override
     public void setGameRule(GeyserSession session, String name, Object value) {
-        session.sendDownstreamPacket(new ServerboundChatPacket("/gamerule " + name + " " + value));
+        session.sendCommand("gamerule " + name + " " + value);
         gameruleCache.put(name, String.valueOf(value));
     }
 
@@ -109,12 +108,12 @@ public class GeyserWorldManager extends WorldManager {
 
     @Override
     public void setPlayerGameMode(GeyserSession session, GameMode gameMode) {
-        session.sendDownstreamPacket(new ServerboundChatPacket("/gamemode " + gameMode.name().toLowerCase(Locale.ROOT)));
+        session.sendCommand("gamemode " + gameMode.name().toLowerCase(Locale.ROOT));
     }
 
     @Override
     public void setDifficulty(GeyserSession session, Difficulty difficulty) {
-        session.sendDownstreamPacket(new ServerboundChatPacket("/difficulty " + difficulty.name().toLowerCase(Locale.ROOT)));
+        session.sendCommand("difficulty " + difficulty.name().toLowerCase(Locale.ROOT));
     }
 
     @Override

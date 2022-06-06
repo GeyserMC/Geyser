@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatPacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
@@ -63,7 +62,6 @@ public class BedrockTextTranslator extends PacketTranslator<TextPacket> {
             return;
         }
 
-        ServerboundChatPacket chatPacket = new ServerboundChatPacket(message);
-        session.sendDownstreamPacket(chatPacket);
+        session.sendChat(message);
     }
 }

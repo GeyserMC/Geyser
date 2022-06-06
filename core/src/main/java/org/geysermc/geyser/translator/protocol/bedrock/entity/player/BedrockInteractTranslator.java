@@ -28,10 +28,10 @@ package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerState;
+import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.InteractPacket;
@@ -96,12 +96,10 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
             case OPEN_INVENTORY:
                 if (session.getOpenInventory() == null) {
                     Entity ridingEntity = session.getPlayerEntity().getVehicle();
-                    if (ridingEntity instanceof AbstractHorseEntity) {
-                        if (ridingEntity.getFlag(EntityFlag.TAMED)) {
-                            // We should request to open the horse inventory instead
-                            ServerboundPlayerCommandPacket openHorseWindowPacket = new ServerboundPlayerCommandPacket(session.getPlayerEntity().getEntityId(), PlayerState.OPEN_HORSE_INVENTORY);
-                            session.sendDownstreamPacket(openHorseWindowPacket);
-                        }
+                    if (ridingEntity instanceof AbstractHorseEntity || (ridingEntity != null && ridingEntity.getDefinition().entityType() == EntityType.CHEST_BOAT)) {
+                        // This mob has an inventory of its own that we should open instead.
+                        ServerboundPlayerCommandPacket openVehicleWindowPacket = new ServerboundPlayerCommandPacket(session.getPlayerEntity().getEntityId(), PlayerState.OPEN_VEHICLE_INVENTORY);
+                        session.sendDownstreamPacket(openVehicleWindowPacket);
                     } else {
                         session.setOpenInventory(session.getPlayerInventory());
 
