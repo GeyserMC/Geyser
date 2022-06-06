@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,7 @@ import lombok.Setter;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.chunk.GeyserChunk;
+import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.util.MathUtils;
 
 public class ChunkCache {
@@ -45,11 +46,11 @@ public class ChunkCache {
     private int heightY;
 
     /**
-     * Whether the Bedrock client believes they are in a world with a minimum of -64 and maximum of 320
+     * Which dimension Bedrock understands themselves to be in.
      */
     @Getter
     @Setter
-    private boolean isExtendedHeight = false;
+    private BedrockDimension bedrockDimension = BedrockDimension.OVERWORLD;
 
     public ChunkCache(GeyserSession session) {
         this.cache = !session.getGeyser().getWorldManager().hasOwnChunkCache(); // To prevent Spigot from initializing

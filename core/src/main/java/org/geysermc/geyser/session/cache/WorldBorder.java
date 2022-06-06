@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,6 @@ import com.nukkitx.math.vector.Vector2d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
-import com.nukkitx.protocol.bedrock.packet.PlayerFogPacket;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.entity.EntityDefinitions;
@@ -38,7 +37,6 @@ import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 
 import javax.annotation.Nonnull;
-import java.util.Collections;
 
 public class WorldBorder {
     private static final double DEFAULT_WORLD_BORDER_SIZE = 5.9999968E7D;
@@ -131,11 +129,26 @@ public class WorldBorder {
     }
 
     /**
-     * @return true as long the entity is within the world limits.
+     * @return true as long as the player entity is within the world limits.
      */
     public boolean isInsideBorderBoundaries() {
-        Vector3f entityPosition = session.getPlayerEntity().getPosition();
-        return entityPosition.getX() > minX && entityPosition.getX() < maxX && entityPosition.getZ() > minZ && entityPosition.getZ() < maxZ;
+        return isInsideBorderBoundaries(session.getPlayerEntity().getPosition());
+    }
+
+    public boolean isInsideBorderBoundaries(Vector3f position) {
+        return position.getX() > minX && position.getX() < maxX && position.getZ() > minZ && position.getZ() < maxZ;
+    }
+
+    private static final int CLOSE_TO_BORDER = 5;
+
+    /**
+     * @return if the player is close to the border boundaries. Used to always indicate a border even if there is no
+     * warning blocks set.
+     */
+    public boolean isCloseToBorderBoundaries() {
+        Vector3f position = session.getPlayerEntity().getPosition();
+        return !(position.getX() > minX + CLOSE_TO_BORDER && position.getX() < maxX - CLOSE_TO_BORDER
+                && position.getZ() > minZ + CLOSE_TO_BORDER && position.getZ() < maxZ - CLOSE_TO_BORDER);
     }
 
     /**
@@ -151,7 +164,7 @@ public class WorldBorder {
             // Move the player back, but allow gravity to take place
             // Teleported = true makes going back better, but disconnects the player from their mounted entity
             playerEntity.moveAbsolute(Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - EntityDefinitions.PLAYER.offset()), playerEntity.getPosition().getZ()),
-                    playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), session.getRidingVehicleEntity() == null);
+                    playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
         }
         return isInWorldBorder;
     }
@@ -245,16 +258,16 @@ public class WorldBorder {
         float particlePosY = entityPosition.getY();
         float particlePosZ = entityPosition.getZ();
 
-        if (entityPosition.getX() > warningMaxX) {
+        if (entityPosition.getX() > Math.min(warningMaxX, maxX - CLOSE_TO_BORDER)) {
             drawWall(Vector3f.from(maxX, particlePosY, particlePosZ), true);
         }
-        if (entityPosition.getX() < warningMinX) {
+        if (entityPosition.getX() < Math.max(warningMinX, minX + CLOSE_TO_BORDER)) {
             drawWall(Vector3f.from(minX, particlePosY, particlePosZ), true);
         }
-        if (entityPosition.getZ() > warningMaxZ) {
+        if (entityPosition.getZ() > Math.min(warningMaxZ, maxZ - CLOSE_TO_BORDER)) {
             drawWall(Vector3f.from(particlePosX, particlePosY, maxZ), false);
         }
-        if (entityPosition.getZ() < warningMinZ) {
+        if (entityPosition.getZ() < Math.max(warningMinZ, minZ + CLOSE_TO_BORDER)) {
             drawWall(Vector3f.from(particlePosX, particlePosY, minZ), false);
         }
     }

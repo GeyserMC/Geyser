@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,9 +38,9 @@ import org.geysermc.geyser.translator.protocol.Translator;
 public class BedrockRiderJumpTranslator extends PacketTranslator<RiderJumpPacket> {
     @Override
     public void translate(GeyserSession session, RiderJumpPacket packet) {
-        Entity vehicle = session.getRidingVehicleEntity();
+        Entity vehicle = session.getPlayerEntity().getVehicle();
         if (vehicle instanceof AbstractHorseEntity) {
-            ServerboundPlayerCommandPacket playerCommandPacket = new ServerboundPlayerCommandPacket((int) vehicle.getEntityId(),  PlayerState.START_HORSE_JUMP, packet.getJumpStrength());
+            ServerboundPlayerCommandPacket playerCommandPacket = new ServerboundPlayerCommandPacket(vehicle.getEntityId(), PlayerState.START_HORSE_JUMP, packet.getJumpStrength());
             session.sendDownstreamPacket(playerCommandPacket);
         }
     }

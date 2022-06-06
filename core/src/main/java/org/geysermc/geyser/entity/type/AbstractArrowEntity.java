@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,7 @@ import java.util.UUID;
 
 public class AbstractArrowEntity extends Entity {
 
-    public AbstractArrowEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public AbstractArrowEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
 
         // Set the correct texture if using the resource pack
@@ -70,8 +70,8 @@ public class AbstractArrowEntity extends Entity {
         super.setMotion(motion);
 
         double horizontalSpeed = Math.sqrt(motion.getX() * motion.getX() + motion.getZ() * motion.getZ());
-        this.yaw = (float) Math.toDegrees(Math.atan2(motion.getX(), motion.getZ()));
-        this.pitch = (float) Math.toDegrees(Math.atan2(motion.getY(), horizontalSpeed));
-        this.headYaw = yaw;
+        setYaw((float) Math.toDegrees(Math.atan2(motion.getX(), motion.getZ())));
+        setPitch((float) Math.toDegrees(Math.atan2(motion.getY(), horizontalSpeed)));
+        setHeadYaw(getYaw());
     }
 }

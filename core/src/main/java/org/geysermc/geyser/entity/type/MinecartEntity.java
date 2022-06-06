@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,16 +27,20 @@ package org.geysermc.geyser.entity.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 
 import java.util.UUID;
 
 public class MinecartEntity extends Entity {
 
-    public MinecartEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public MinecartEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position.add(0d, definition.offset(), 0d), motion, yaw, pitch, headYaw);
     }
 
@@ -62,6 +66,41 @@ public class MinecartEntity extends Entity {
     @Override
     public Vector3f getBedrockRotation() {
         // Note: minecart rotation on rails does not care about the actual rotation value
-        return Vector3f.from(0, yaw, 0);
+        return Vector3f.from(0, getYaw(), 0);
+    }
+
+    @Override
+    protected InteractiveTag testInteraction(Hand hand) {
+        if (definition == EntityDefinitions.CHEST_MINECART || definition == EntityDefinitions.HOPPER_MINECART) {
+            return InteractiveTag.OPEN_CONTAINER;
+        } else {
+            if (session.isSneaking()) {
+                return InteractiveTag.NONE;
+            } else if (!passengers.isEmpty()) {
+                // Can't enter if someone is inside
+                return InteractiveTag.NONE;
+            } else {
+                // Attempt to enter
+                return InteractiveTag.RIDE_MINECART;
+            }
+        }
+    }
+
+    @Override
+    public InteractionResult interact(Hand hand) {
+        if (definition == EntityDefinitions.CHEST_MINECART || definition == EntityDefinitions.HOPPER_MINECART) {
+            // Opening the UI of this minecart
+            return InteractionResult.SUCCESS;
+        } else {
+            if (session.isSneaking()) {
+                return InteractionResult.PASS;
+            } else if (!passengers.isEmpty()) {
+                // Can't enter if someone is inside
+                return InteractionResult.PASS;
+            } else {
+                // Attempt to enter
+                return InteractionResult.SUCCESS;
+            }
+        }
     }
 }

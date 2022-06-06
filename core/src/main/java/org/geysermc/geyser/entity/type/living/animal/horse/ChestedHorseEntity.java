@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,19 +26,39 @@
 package org.geysermc.geyser.entity.type.living.animal.horse;
 
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class ChestedHorseEntity extends AbstractHorseEntity {
 
-    public ChestedHorseEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public ChestedHorseEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
     protected int getContainerBaseSize() {
         return 16;
+    }
+
+    @Override
+    protected boolean testSaddle(@Nonnull GeyserItemStack itemInHand) {
+        // Not checked here
+        return false;
+    }
+
+    @Override
+    protected boolean testForChest(@Nonnull GeyserItemStack itemInHand) {
+        return itemInHand.getJavaId() == session.getItemMappings().getStoredItems().chest() && !getFlag(EntityFlag.CHESTED);
+    }
+
+    @Override
+    protected boolean additionalTestForInventoryOpen(@Nonnull GeyserItemStack itemInHand) {
+        // Armor won't work on these
+        return false;
     }
 }

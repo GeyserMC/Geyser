@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,17 +28,16 @@ package org.geysermc.geyser.entity.type;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.PlaySoundPacket;
 import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.level.physics.BoundingBox;
-import org.geysermc.geyser.translator.collision.BlockCollision;
-import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.level.block.BlockPositionIterator;
+import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.physics.BoundingBox;
+import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.util.BlockUtils;
 
 import java.util.UUID;
@@ -50,13 +49,13 @@ public class FishingHookEntity extends ThrowableEntity {
     private boolean inWater = false;
 
     @Getter
-    private final boolean isOwnerSessionPlayer;
+    private final long bedrockOwnerId;
     @Getter
     private long bedrockTargetId;
 
     private final BoundingBox boundingBox;
 
-    public FishingHookEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, Vector3f position, Vector3f motion, float yaw, float pitch, PlayerEntity owner) {
+    public FishingHookEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw, PlayerEntity owner) {
         super(session, entityId, geyserId, uuid, EntityDefinitions.FISHING_BOBBER, position, motion, yaw, pitch, 0f);
 
         this.boundingBox = new BoundingBox(0.125, 0.125, 0.125, 0.25, 0.25, 0.25);
@@ -66,25 +65,13 @@ public class FishingHookEntity extends ThrowableEntity {
         // so that it can be handled by moveAbsoluteImmediate.
         setBoundingBoxHeight(128);
 
-        isOwnerSessionPlayer = owner.getGeyserId() == session.getPlayerEntity().getGeyserId();
-        this.dirtyMetadata.put(EntityData.OWNER_EID, owner.getGeyserId());
-    }
-
-    @Override
-    public void spawnEntity() {
-
-        super.spawnEntity();
+        this.bedrockOwnerId = owner.getGeyserId();
+        this.dirtyMetadata.put(EntityData.OWNER_EID, this.bedrockOwnerId);
     }
 
     public void setHookedEntity(IntEntityMetadata entityMetadata) {
         int hookedEntityId = entityMetadata.getPrimitiveValue() - 1;
-        Entity entity;
-        if (session.getPlayerEntity().getEntityId() == hookedEntityId) {
-            entity = session.getPlayerEntity();
-        } else {
-            entity = session.getEntityCache().getEntityByJavaId(hookedEntityId);
-        }
-
+        Entity entity = session.getEntityCache().getEntityByJavaId(hookedEntityId);
         if (entity != null) {
             bedrockTargetId = entity.getGeyserId();
             dirtyMetadata.put(EntityData.TARGET_EID, bedrockTargetId);
@@ -141,7 +128,7 @@ public class FishingHookEntity extends ThrowableEntity {
     }
 
     private void sendSplashSound(GeyserSession session) {
-        if (!getFlag(EntityFlag.SILENT)) {
+        if (!silent) {
             float volume = (float) (0.2f * Math.sqrt(0.2 * (motion.getX() * motion.getX() + motion.getZ() * motion.getZ()) + motion.getY() * motion.getY()));
             if (volume > 1) {
                 volume = 1;
@@ -164,7 +151,7 @@ public class FishingHookEntity extends ThrowableEntity {
         float gravity = getGravity();
         motion = motion.down(gravity);
 
-        moveAbsoluteImmediate(position.add(motion), yaw, pitch, headYaw, onGround, false);
+        moveAbsoluteImmediate(position.add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
 
         float drag = getDrag();
         motion = motion.mul(drag);
@@ -172,7 +159,7 @@ public class FishingHookEntity extends ThrowableEntity {
 
     @Override
     protected float getGravity() {
-        if (!isInWater() && !onGround) {
+        if (!isInWater() && !isOnGround()) {
             return 0.03f;
         }
         return 0;

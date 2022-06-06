@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -64,7 +64,7 @@ public class GeyserSession {
     }
 
     public int getRenderDistance() {
-        return this.handle.getRenderDistance();
+        return this.handle.getServerRenderDistance();
     }
 
     public boolean isSentSpawnPacket() {
@@ -100,7 +100,7 @@ public class GeyserSession {
     }
 
     public void login() {
-        this.handle.login();
+        throw new UnsupportedOperationException();
     }
 
     public void authenticate(String username) {
@@ -120,7 +120,7 @@ public class GeyserSession {
     }
 
     public void close() {
-        this.handle.close();
+        throw new UnsupportedOperationException();
     }
 
     public void executeInEventLoop(Runnable runnable) {

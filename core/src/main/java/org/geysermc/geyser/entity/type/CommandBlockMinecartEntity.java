@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,16 +25,22 @@
 
 package org.geysermc.geyser.entity.type;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
+import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 
 import java.util.UUID;
 
 public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
 
-    public CommandBlockMinecartEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public CommandBlockMinecartEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
@@ -54,5 +60,31 @@ public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
     public void updateDefaultBlockMetadata() {
         dirtyMetadata.put(EntityData.DISPLAY_ITEM, session.getBlockMappings().getCommandBlockRuntimeId());
         dirtyMetadata.put(EntityData.DISPLAY_OFFSET, 6);
+    }
+
+    @Override
+    protected InteractiveTag testInteraction(Hand hand) {
+        if (session.canUseCommandBlocks()) {
+            return InteractiveTag.OPEN_CONTAINER;
+        } else {
+            return InteractiveTag.NONE;
+        }
+    }
+
+    @Override
+    public InteractionResult interact(Hand hand) {
+        if (session.canUseCommandBlocks()) {
+            // Client-side GUI required
+            ContainerOpenPacket openPacket = new ContainerOpenPacket();
+            openPacket.setBlockPosition(Vector3i.ZERO);
+            openPacket.setId((byte) 1);
+            openPacket.setType(ContainerType.COMMAND_BLOCK);
+            openPacket.setUniqueEntityId(geyserId);
+            session.sendUpstreamPacket(openPacket);
+
+            return InteractionResult.SUCCESS;
+        } else {
+            return InteractionResult.PASS;
+        }
     }
 }

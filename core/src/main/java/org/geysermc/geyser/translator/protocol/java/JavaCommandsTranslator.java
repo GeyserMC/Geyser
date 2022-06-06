@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,8 @@ package org.geysermc.geyser.translator.protocol.java;
 
 import com.github.steveice10.mc.protocol.data.game.command.CommandNode;
 import com.github.steveice10.mc.protocol.data.game.command.CommandParser;
+import com.github.steveice10.mc.protocol.data.game.command.properties.ResourceProperties;
+import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeType;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundCommandsPacket;
 import com.nukkitx.protocol.bedrock.data.command.CommandData;
 import com.nukkitx.protocol.bedrock.data.command.CommandEnumData;
@@ -58,6 +60,7 @@ import java.util.*;
 public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommandsPacket> {
 
     private static final String[] ALL_EFFECT_IDENTIFIERS = EntityUtils.getAllEffectIdentifiers();
+    private static final String[] ATTRIBUTES = AttributeType.Builtin.BUILTIN.keySet().toArray(new String[0]);
     private static final String[] ENUM_BOOLEAN = {"true", "false"};
     private static final String[] VALID_COLORS;
     private static final String[] VALID_SCOREBOARD_SLOTS;
@@ -203,10 +206,11 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
      * Convert Java edition command types to Bedrock edition
      *
      * @param session the session
-     * @param parser Command type to convert
+     * @param node Command type to convert
      * @return Bedrock parameter data type
      */
-    private static Object mapCommandType(GeyserSession session, CommandParser parser) {
+    private static Object mapCommandType(GeyserSession session, CommandNode node) {
+        CommandParser parser = node.getParser();
         if (parser == null) {
             return CommandParam.STRING;
         }
@@ -218,7 +222,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case BLOCK_POS -> CommandParam.BLOCK_POSITION;
             case COLUMN_POS, VEC3 -> CommandParam.POSITION;
             case MESSAGE -> CommandParam.MESSAGE;
-            case NBT, NBT_COMPOUND_TAG, NBT_TAG, NBT_PATH -> CommandParam.JSON;
+            case NBT_COMPOUND_TAG, NBT_TAG, NBT_PATH -> CommandParam.JSON; //TODO NBT was removed
             case RESOURCE_LOCATION, FUNCTION -> CommandParam.FILE_PATH;
             case BOOL -> ENUM_BOOLEAN;
             case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc
@@ -229,6 +233,14 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case COLOR -> VALID_COLORS;
             case SCOREBOARD_SLOT -> VALID_SCOREBOARD_SLOTS;
             case MOB_EFFECT -> ALL_EFFECT_IDENTIFIERS;
+            case RESOURCE, RESOURCE_OR_TAG -> {
+                String resource = ((ResourceProperties) node.getProperties()).getRegistryKey();
+                if (resource.equals("minecraft:attribute")) {
+                    yield ATTRIBUTES;
+                } else {
+                    yield CommandParam.STRING;
+                }
+            }
             default -> CommandParam.STRING;
         };
     }
@@ -236,7 +248,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     /**
      * Stores the command description and parameter data for best optimizing the Bedrock commands packet.
      */
-    private static record BedrockCommandInfo(String description, CommandParamData[][] paramData) {
+    private record BedrockCommandInfo(String description, CommandParamData[][] paramData) {
     }
 
     @Getter
@@ -302,18 +314,24 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                     }
                 } else {
                     // Put the non-enum param into the list
-                    Object mappedType = mapCommandType(session, paramNode.getParser());
+                    Object mappedType = mapCommandType(session, paramNode);
                     CommandEnumData enumData = null;
                     CommandParam type = null;
+                    boolean optional = this.paramNode.isExecutable();
                     if (mappedType instanceof String[]) {
                         enumData = new CommandEnumData(paramNode.getParser().name().toLowerCase(), (String[]) mappedType, false);
                     } else {
                         type = (CommandParam) mappedType;
+                        // Bedrock throws a fit if an optional message comes after a string or target
+                        // Example vanilla commands: ban-ip, ban, and kick
+                        if (optional && type == CommandParam.MESSAGE && (paramData.getType() == CommandParam.STRING || paramData.getType() == CommandParam.TARGET)) {
+                            optional = false;
+                        }
                     }
                     // IF enumData != null:
                     // In game, this will show up like <paramNode.getName(): enumData.getName()>
                     // So if paramNode.getName() == "value" and enumData.getName() == "bool": <value: bool>
-                    children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), this.paramNode.isExecutable(), enumData, type, null, Collections.emptyList())));
+                    children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), optional, enumData, type, null, Collections.emptyList())));
                 }
             }
 

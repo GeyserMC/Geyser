@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,7 +47,7 @@ public class BedrockItemFrameDropItemTranslator extends PacketTranslator<ItemFra
     public void translate(GeyserSession session, ItemFrameDropItemPacket packet) {
         Entity entity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
         if (entity != null) {
-            ServerboundInteractPacket interactPacket = new ServerboundInteractPacket((int) entity.getEntityId(),
+            ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(entity.getEntityId(),
                     InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
             session.sendDownstreamPacket(interactPacket);
         }

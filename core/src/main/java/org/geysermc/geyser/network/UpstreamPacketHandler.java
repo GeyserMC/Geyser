@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,17 +30,18 @@ import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
 import com.nukkitx.protocol.bedrock.data.ExperimentData;
 import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
-import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.pack.ResourcePack;
 import org.geysermc.geyser.pack.ResourcePackManifest;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
+import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.util.*;
+import org.geysermc.geyser.util.LoginEncryptionUtils;
+import org.geysermc.geyser.util.MathUtils;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -73,11 +74,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             String supportedVersions = MinecraftProtocol.getAllSupportedBedrockVersions();
             if (loginPacket.getProtocolVersion() > MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
                 // Too early to determine session locale
-                session.getGeyser().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.server", supportedVersions));
                 return true;
             } else if (loginPacket.getProtocolVersion() < MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()) {
-                session.getGeyser().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
                 return true;
             }
@@ -166,11 +165,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     stackPacket.getExperiments().add(new ExperimentData("data_driven_items", true));
                 }
 
-                if (session.getUpstream().getProtocolVersion() <= Bedrock_v471.V471_CODEC.getProtocolVersion()) {
-                    // Allow extended world height in the overworld to work for pre-1.18 clients
-                    stackPacket.getExperiments().add(new ExperimentData("caves_and_cliffs", true));
-                }
-
                 session.sendUpstreamPacket(stackPacket);
                 break;
 
@@ -189,6 +183,14 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private boolean couldLoginUserByName(String bedrockUsername) {
+        if (geyser.getConfig().getSavedUserLogins().contains(bedrockUsername)) {
+            String refreshToken = geyser.refreshTokenFor(bedrockUsername);
+            if (refreshToken != null) {
+                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.auth.stored_credentials", session.getAuthData().name()));
+                session.authenticateWithRefreshToken(refreshToken);
+                return true;
+            }
+        }
         if (geyser.getConfig().getUserAuths() != null) {
             GeyserConfiguration.IUserAuthenticationInfo info = geyser.getConfig().getUserAuths().get(bedrockUsername);
 
@@ -196,6 +198,12 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.auth.stored_credentials", session.getAuthData().name()));
                 session.setMicrosoftAccount(info.isMicrosoftAccount());
                 session.authenticate(info.getEmail(), info.getPassword());
+                return true;
+            }
+        }
+        PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getTask(session.getAuthData().xuid());
+        if (task != null) {
+            if (task.getAuthentication().isDone() && session.onMicrosoftLoginComplete(task)) {
                 return true;
             }
         }

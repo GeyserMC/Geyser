@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,7 @@ import java.util.Map;
 /**
  * A write-only wrapper for temporarily storing entity metadata that will be sent to Bedrock.
  */
-public class GeyserDirtyMetadata {
+public final class GeyserDirtyMetadata {
     private final Map<EntityData, Object> metadata = new Object2ObjectLinkedOpenHashMap<>();
 
     public void put(EntityData entityData, Object value) {
@@ -51,5 +51,10 @@ public class GeyserDirtyMetadata {
 
     public boolean hasEntries() {
         return !metadata.isEmpty();
+    }
+
+    @Override
+    public String toString() {
+        return metadata.toString();
     }
 }

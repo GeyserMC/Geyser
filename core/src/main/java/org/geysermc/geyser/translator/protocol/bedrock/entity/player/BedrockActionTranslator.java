@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,12 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.*;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.*;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
@@ -39,10 +41,8 @@ import com.nukkitx.protocol.bedrock.packet.*;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
-import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -77,79 +77,63 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 session.sendUpstreamPacket(attributesPacket);
                 break;
             case START_SWIMMING:
-                ServerboundPlayerCommandPacket startSwimPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);
-                session.sendDownstreamPacket(startSwimPacket);
+                if (!entity.getFlag(EntityFlag.SWIMMING)) {
+                    ServerboundPlayerCommandPacket startSwimPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SPRINTING);
+                    session.sendDownstreamPacket(startSwimPacket);
 
-                session.setSwimming(true);
+                    session.setSwimming(true);
+                }
                 break;
             case STOP_SWIMMING:
-                ServerboundPlayerCommandPacket stopSwimPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
-                session.sendDownstreamPacket(stopSwimPacket);
+                // Prevent packet spam when Bedrock players are crawling near the edge of a block
+                if (!session.getCollisionManager().mustPlayerCrawlHere()) {
+                    ServerboundPlayerCommandPacket stopSwimPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SPRINTING);
+                    session.sendDownstreamPacket(stopSwimPacket);
 
-                session.setSwimming(false);
+                    session.setSwimming(false);
+                }
                 break;
             case START_GLIDE:
                 // Otherwise gliding will not work in creative
                 ServerboundPlayerAbilitiesPacket playerAbilitiesPacket = new ServerboundPlayerAbilitiesPacket(false);
                 session.sendDownstreamPacket(playerAbilitiesPacket);
             case STOP_GLIDE:
-                ServerboundPlayerCommandPacket glidePacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.START_ELYTRA_FLYING);
+                ServerboundPlayerCommandPacket glidePacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_ELYTRA_FLYING);
                 session.sendDownstreamPacket(glidePacket);
                 break;
             case START_SNEAK:
-                ServerboundPlayerCommandPacket startSneakPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.START_SNEAKING);
+                ServerboundPlayerCommandPacket startSneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.sendDownstreamPacket(startSneakPacket);
 
-                // Toggle the shield, if relevant
-                PlayerInventory playerInv = session.getPlayerInventory();
-                ItemMapping shield = session.getItemMappings().getMapping("minecraft:shield");
-                if ((playerInv.getItemInHand().getJavaId() == shield.getJavaId()) ||
-                        (playerInv.getOffhand().getJavaId() == shield.getJavaId())) {
-                    ServerboundUseItemPacket useItemPacket;
-                    if (playerInv.getItemInHand().getJavaId() == shield.getJavaId()) {
-                        useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND);
-                    } else {
-                        // Else we just assume it's the offhand, to simplify logic and to assure the packet gets sent
-                        useItemPacket = new ServerboundUseItemPacket(Hand.OFF_HAND);
-                    }
-                    session.sendDownstreamPacket(useItemPacket);
-                    session.getPlayerEntity().setFlag(EntityFlag.BLOCKING, true);
-                    // metadata will be updated when sneaking
-                }
-
-                session.setSneaking(true);
+                session.startSneaking();
                 break;
             case STOP_SNEAK:
-                ServerboundPlayerCommandPacket stopSneakPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.STOP_SNEAKING);
+                ServerboundPlayerCommandPacket stopSneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SNEAKING);
                 session.sendDownstreamPacket(stopSneakPacket);
 
-                // Stop shield, if necessary
-                if (session.getPlayerEntity().getFlag(EntityFlag.BLOCKING)) {
-                    ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, BlockUtils.POSITION_ZERO, Direction.DOWN);
-                    session.sendDownstreamPacket(releaseItemPacket);
-                    session.getPlayerEntity().setFlag(EntityFlag.BLOCKING, false);
-                    // metadata will be updated when sneaking
-                }
-
-                session.setSneaking(false);
+                session.stopSneaking();
                 break;
             case START_SPRINT:
-                ServerboundPlayerCommandPacket startSprintPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.START_SPRINTING);
-                session.sendDownstreamPacket(startSprintPacket);
-                session.setSprinting(true);
+                if (!entity.getFlag(EntityFlag.SWIMMING)) {
+                    ServerboundPlayerCommandPacket startSprintPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SPRINTING);
+                    session.sendDownstreamPacket(startSprintPacket);
+                    session.setSprinting(true);
+                }
                 break;
             case STOP_SPRINT:
-                ServerboundPlayerCommandPacket stopSprintPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.STOP_SPRINTING);
-                session.sendDownstreamPacket(stopSprintPacket);
+                if (!entity.getFlag(EntityFlag.SWIMMING)) {
+                    ServerboundPlayerCommandPacket stopSprintPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.STOP_SPRINTING);
+                    session.sendDownstreamPacket(stopSprintPacket);
+                }
                 session.setSprinting(false);
                 break;
             case DROP_ITEM:
-                Position position = new Position(vector.getX(), vector.getY(), vector.getZ());
-                ServerboundPlayerActionPacket dropItemPacket = new ServerboundPlayerActionPacket(PlayerAction.DROP_ITEM, position, Direction.VALUES[packet.getFace()]);
+                ServerboundPlayerActionPacket dropItemPacket = new ServerboundPlayerActionPacket(PlayerAction.DROP_ITEM,
+                        vector, Direction.VALUES[packet.getFace()], session.getNextSequence());
                 session.sendDownstreamPacket(dropItemPacket);
                 break;
             case STOP_SLEEP:
-                ServerboundPlayerCommandPacket stopSleepingPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.LEAVE_BED);
+                ServerboundPlayerCommandPacket stopSleepingPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.LEAVE_BED);
                 session.sendDownstreamPacket(stopSleepingPacket);
                 break;
             case BLOCK_INTERACT:
@@ -178,16 +162,16 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 int blockUp = session.getGeyser().getWorldManager().getBlockAt(session, fireBlockPos);
                 String identifier = BlockRegistries.JAVA_IDENTIFIERS.get().get(blockUp);
                 if (identifier.startsWith("minecraft:fire") || identifier.startsWith("minecraft:soul_fire")) {
-                    ServerboundPlayerActionPacket startBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, new Position(fireBlockPos.getX(),
-                            fireBlockPos.getY(), fireBlockPos.getZ()), Direction.VALUES[packet.getFace()]);
+                    ServerboundPlayerActionPacket startBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, fireBlockPos,
+                            Direction.VALUES[packet.getFace()], session.getNextSequence());
                     session.sendDownstreamPacket(startBreakingPacket);
                     if (session.getGameMode() == GameMode.CREATIVE) {
                         break;
                     }
                 }
 
-                position = new Position(vector.getX(), vector.getY(), vector.getZ());
-                ServerboundPlayerActionPacket startBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING, position, Direction.VALUES[packet.getFace()]);
+                ServerboundPlayerActionPacket startBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.START_DIGGING,
+                        vector, Direction.VALUES[packet.getFace()], session.getNextSequence());
                 session.sendDownstreamPacket(startBreakingPacket);
                 break;
             case CONTINUE_BREAK:
@@ -215,15 +199,14 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                     // Survival also sends START_BREAK, but by attaching our process here adventure mode also works
                     Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, vector);
                     if (itemFrameEntity != null) {
-                        ServerboundInteractPacket interactPacket = new ServerboundInteractPacket((int) itemFrameEntity.getEntityId(),
+                        ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(itemFrameEntity.getEntityId(),
                                 InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
                         session.sendDownstreamPacket(interactPacket);
                         break;
                     }
                 }
 
-                position = new Position(vector.getX(), vector.getY(), vector.getZ());
-                ServerboundPlayerActionPacket abortBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.CANCEL_DIGGING, position, Direction.DOWN);
+                ServerboundPlayerActionPacket abortBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.CANCEL_DIGGING, vector, Direction.DOWN, session.getNextSequence());
                 session.sendDownstreamPacket(abortBreakingPacket);
                 LevelEventPacket stopBreak = new LevelEventPacket();
                 stopBreak.setType(LevelEventType.BLOCK_STOP_BREAK);

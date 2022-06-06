@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,13 @@ public class JavaGameProfileTranslator extends PacketTranslator<ClientboundGameP
         if (remoteAuthType == AuthType.FLOODGATE) {
             // We'll send the skin upload a bit after the handshake packet (aka this packet),
             // because otherwise the global server returns the data too fast.
-            session.getAuthData().upload(session.getGeyser());
+            // We upload it after we know for sure that the target server
+            // is ready to handle the result of the global server.
+            session.getGeyser().getSkinUploader().uploadSkin(session.getCertChainData(), session.getClientData().getOriginalString());
         }
+
+        // We no longer need these variables; they're just taking up space in memory now
+        session.setCertChainData(null);
+        session.getClientData().setOriginalString(null);
     }
 }

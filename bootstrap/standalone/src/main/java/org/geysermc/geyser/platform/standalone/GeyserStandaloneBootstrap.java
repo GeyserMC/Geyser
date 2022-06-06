@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -209,6 +209,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                 return;
             }
         }
+        geyserLogger.setDebug(geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         // Allow libraries like Protocol to have their debug information passthrough
@@ -273,6 +274,12 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     public Path getConfigFolder() {
         // Return the current working directory
         return Paths.get(System.getProperty("user.dir"));
+    }
+
+    @Override
+    public Path getSavedUserLoginsFolder() {
+        // Return the location of the config
+        return new File(configFilename).getAbsoluteFile().getParentFile().toPath();
     }
 
     @Override

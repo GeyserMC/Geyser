@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,42 +26,45 @@
 package org.geysermc.geyser.translator.inventory.item;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.opennbt.tag.builtin.*;
+import com.github.steveice10.opennbt.tag.builtin.ByteTag;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.network.MinecraftProtocol;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @ItemRemapper
 public class CompassTranslator extends ItemTranslator {
 
-    private final List<ItemMapping> appliedItems;
-
-    public CompassTranslator() {
-        appliedItems = Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
-                .getItems()
-                .values()
-                .stream()
-                .filter(entry -> entry.getJavaIdentifier().endsWith("compass"))
-                .collect(Collectors.toList());
+    @Override
+    protected ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
+        if (isLodestoneCompass(itemStack.getNbt())) {
+            // NBT will be translated in nbt/LodestoneCompassTranslator if applicable
+            return super.translateToBedrock(itemStack, mappings.getLodestoneCompass(), mappings);
+        }
+        return super.translateToBedrock(itemStack, mapping, mappings);
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
-        if (itemStack.getNbt() == null) return super.translateToBedrock(itemStack, mapping, mappings);
-
-        Tag lodestoneTag = itemStack.getNbt().get("LodestoneTracked");
-        if (lodestoneTag instanceof ByteTag) {
-            // Get the fake lodestonecompass entry
-            mapping = mappings.getStoredItems().lodestoneCompass();
-            // NBT will be translated in nbt/LodestoneCompassTranslator
+    protected ItemMapping getItemMapping(int javaId, CompoundTag nbt, ItemMappings mappings) {
+        if (isLodestoneCompass(nbt)) {
+            return mappings.getLodestoneCompass();
         }
+        return super.getItemMapping(javaId, nbt, mappings);
+    }
 
-        return super.translateToBedrock(itemStack, mapping, mappings);
+    private boolean isLodestoneCompass(CompoundTag nbt) {
+        if (nbt != null) {
+            Tag lodestoneTag = nbt.get("LodestoneTracked");
+            return lodestoneTag instanceof ByteTag;
+        }
+        return false;
     }
 
     @Override
@@ -76,6 +79,9 @@ public class CompassTranslator extends ItemTranslator {
 
     @Override
     public List<ItemMapping> getAppliedItems() {
-        return appliedItems;
+        return Arrays.stream(Registries.ITEMS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
+                        .getItems())
+                .filter(entry -> entry.getJavaIdentifier().endsWith("compass"))
+                .collect(Collectors.toList());
     }
 }

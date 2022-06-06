@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +40,7 @@ public record SoundEventEventTranslator(SoundEvent soundEvent,
         levelSoundEvent.setIdentifier(identifier);
         levelSoundEvent.setExtraData(extraData);
         levelSoundEvent.setRelativeVolumeDisabled(packet.isBroadcast());
-        levelSoundEvent.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()).add(0.5f, 0.5f, 0.5f));
+        levelSoundEvent.setPosition(Vector3f.from(packet.getPosition().getX() + 0.5f, packet.getPosition().getY() + 0.5f, packet.getPosition().getZ() + 0.5f));
         levelSoundEvent.setBabySound(false);
         session.sendUpstreamPacket(levelSoundEvent);
     }

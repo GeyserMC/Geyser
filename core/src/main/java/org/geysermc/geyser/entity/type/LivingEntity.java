@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,10 +29,12 @@ import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
 import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeType;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.AttributeData;
@@ -48,16 +50,14 @@ import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.ChunkUtils;
+import org.geysermc.geyser.util.InteractionResult;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Getter
 @Setter
@@ -80,7 +80,7 @@ public class LivingEntity extends Entity {
      */
     private boolean isMaxFrozenState = false;
 
-    public LivingEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public LivingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
@@ -94,13 +94,15 @@ public class LivingEntity extends Entity {
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
         byte xd = entityMetadata.getPrimitiveValue();
 
-        // Blocking gets triggered when using a bow, but if we set USING_ITEM for all items, it may look like
-        // you're "mining" with ex. a shield.
+        boolean isUsingItem = (xd & 0x01) == 0x01;
+        boolean isUsingOffhand = (xd & 0x02) == 0x02;
+
         ItemMapping shield = session.getItemMappings().getStoredItems().shield();
-        boolean isUsingShield = (getHand().getId() == shield.getBedrockId() ||
-                getHand().equals(ItemData.AIR) && getOffHand().getId() == shield.getBedrockId());
-        setFlag(EntityFlag.USING_ITEM, (xd & 0x01) == 0x01 && !isUsingShield);
-        setFlag(EntityFlag.BLOCKING, (xd & 0x01) == 0x01);
+        boolean isUsingShield = hasShield(isUsingOffhand, shield);
+
+        setFlag(EntityFlag.USING_ITEM, isUsingItem && !isUsingShield);
+        // Override the blocking
+        setFlag(EntityFlag.BLOCKING, isUsingItem && isUsingShield);
 
         // Riptide spin attack
         setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, (xd & 0x04) == 0x04);
@@ -116,12 +118,11 @@ public class LivingEntity extends Entity {
         session.sendUpstreamPacket(attributesPacket);
     }
 
-    public Vector3i setBedPosition(EntityMetadata<Optional<Position>, ?> entityMetadata) {
-        Optional<Position> optionalPos = entityMetadata.getValue();
+    public Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
+        Optional<Vector3i> optionalPos = entityMetadata.getValue();
         if (optionalPos.isPresent()) {
-            Position bedPosition = optionalPos.get();
-            Vector3i vector = Vector3i.from(bedPosition.getX(), bedPosition.getY(), bedPosition.getZ());
-            dirtyMetadata.put(EntityData.BED_POSITION, vector);
+            Vector3i bedPosition = optionalPos.get();
+            dirtyMetadata.put(EntityData.BED_POSITION, bedPosition);
             int bed = session.getGeyser().getWorldManager().getBlockAt(session, bedPosition);
             // Bed has to be updated, or else player is floating in the air
             ChunkUtils.updateBlock(session, bed, bedPosition);
@@ -129,11 +130,19 @@ public class LivingEntity extends Entity {
             // Has to be a byte or it does not work
             // (Bed position is what actually triggers sleep - "pose" is only optional)
             dirtyMetadata.put(EntityData.PLAYER_FLAGS, (byte) 2);
-            return vector;
+            return bedPosition;
         } else {
             // Player is no longer sleeping
             dirtyMetadata.put(EntityData.PLAYER_FLAGS, (byte) 0);
             return null;
+        }
+    }
+
+    protected boolean hasShield(boolean offhand, ItemMapping shieldMapping) {
+        if (offhand) {
+            return offHand.getId() == shieldMapping.getBedrockId();
+        } else {
+            return hand.getId() == shieldMapping.getBedrockId();
         }
     }
 
@@ -167,6 +176,36 @@ public class LivingEntity extends Entity {
         // Default health needs to be specified as the max health in order for maximum hearts to show correctly on mounted entities
         // Round health value up, so that Bedrock doesn't consider the entity to be dead when health is between 0 and 1
         return new AttributeData(GeyserAttributeType.HEALTH.getBedrockIdentifier(), 0f, this.maxHealth, (float) Math.ceil(this.health), this.maxHealth);
+    }
+
+    @Override
+    public boolean isAlive() {
+        return this.valid && health > 0f;
+    }
+
+    @Override
+    public InteractionResult interact(Hand hand) {
+        GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand(hand);
+        if (itemStack.getJavaId() == session.getItemMappings().getStoredItems().nameTag()) {
+            InteractionResult result = checkInteractWithNameTag(itemStack);
+            if (result.consumesAction()) {
+                return result;
+            }
+        }
+
+        return super.interact(hand);
+    }
+
+    /**
+     * Checks to see if a nametag interaction would go through.
+     */
+    protected final InteractionResult checkInteractWithNameTag(GeyserItemStack itemStack) {
+        CompoundTag nbt = itemStack.getNbt();
+        if (nbt != null && nbt.get("display") instanceof CompoundTag displayTag && displayTag.get("Name") instanceof StringTag) {
+            // The mob shall be named
+            return InteractionResult.SUCCESS;
+        }
+        return InteractionResult.PASS;
     }
 
     public void updateArmor(GeyserSession session) {
@@ -255,7 +294,9 @@ public class LivingEntity extends Entity {
         if (javaAttribute.getType() instanceof AttributeType.Builtin type) {
             switch (type) {
                 case GENERIC_MAX_HEALTH -> {
-                    this.maxHealth = (float) AttributeUtils.calculateValue(javaAttribute);
+                    // Since 1.18.0, setting the max health to 0 or below causes the entity to die on Bedrock but not on Java
+                    // See https://github.com/GeyserMC/Geyser/issues/2971
+                    this.maxHealth = Math.max((float) AttributeUtils.calculateValue(javaAttribute), 1f);
                     newAttributes.add(createHealthAttribute());
                 }
                 case GENERIC_ATTACK_DAMAGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.ATTACK_DAMAGE));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,13 +27,12 @@ package org.geysermc.geyser.util;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.setting.Difficulty;
+import org.geysermc.cumulus.component.DropdownComponent;
+import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.GameRule;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.level.WorldManager;
-import org.geysermc.cumulus.CustomForm;
-import org.geysermc.cumulus.component.DropdownComponent;
-import org.geysermc.cumulus.response.CustomFormResponse;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 
@@ -62,7 +61,7 @@ public class SettingsUtils {
 
             // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
             if (session.getPreferencesCache().isAllowShowCoordinates()) {
-                builder.toggle("geyser.settings.option.coordinates", session.getPreferencesCache().isPrefersShowCoordinates());
+                builder.toggle("%createWorldScreen.showCoordinates", session.getPreferencesCache().isPrefersShowCoordinates());
             }
 
             if (CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED) {
@@ -115,12 +114,7 @@ public class SettingsUtils {
             }
         }
 
-        builder.responseHandler((form, responseData) -> {
-            CustomFormResponse response = form.parseResponse(responseData);
-            if (response.isClosed() || response.isInvalid()) {
-                return;
-            }
-
+        builder.validResultHandler((response) -> {
             if (showClientSettings) {
                 // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.
                 if (session.getPreferencesCache().isAllowShowCoordinates()) {
@@ -175,6 +169,10 @@ public class SettingsUtils {
     }
 
     private static String translateEntry(String key, String locale) {
+        if (key.startsWith("%")) {
+            // Bedrock will translate
+            return key;
+        }
         if (key.startsWith("geyser.")) {
             return GeyserLocale.getPlayerLocaleString(key, locale);
         }

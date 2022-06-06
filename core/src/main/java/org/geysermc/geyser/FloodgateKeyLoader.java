@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,7 @@ public class FloodgateKeyLoader {
         if (floodgateDataFolder != null) {
             Path autoKey = floodgateDataFolder.resolve("key.pem");
             if (Files.exists(autoKey)) {
-                logger.info(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.auto_loaded"));
+                logger.debug(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.auto_loaded"));
                 return autoKey;
             } else {
                 logger.error(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.missing_key"));
@@ -52,7 +52,7 @@ public class FloodgateKeyLoader {
 
         Path floodgateKey;
         if (config.getFloodgateKeyFile().equals("public-key.pem")) {
-            logger.info("Floodgate 2.0 doesn't use a public/private key system anymore. We'll search for key.pem instead");
+            logger.debug("Floodgate 2.0 doesn't use a public/private key system anymore. We'll search for key.pem instead");
             floodgateKey = geyserDataFolder.resolve("key.pem");
         } else {
             floodgateKey = geyserDataFolder.resolve(config.getFloodgateKeyFile());

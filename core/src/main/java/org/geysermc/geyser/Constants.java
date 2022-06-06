@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,8 @@ public final class Constants {
     public static final String NEWS_PROJECT_NAME = "geyser";
 
     public static final String FLOODGATE_DOWNLOAD_LOCATION = "https://ci.opencollab.dev/job/GeyserMC/job/Floodgate/job/master/";
+
+    static final String SAVED_REFRESH_TOKEN_FILE = "saved-refresh-tokens.json";
 
     static {
         URI wsUri = null;

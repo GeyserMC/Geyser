@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +25,13 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
+import com.nukkitx.protocol.bedrock.packet.CommandRequestPacket;
 import org.geysermc.common.PlatformType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandManager;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.ServerboundChatPacket;
-import com.nukkitx.protocol.bedrock.packet.CommandRequestPacket;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
 @Translator(packet = CommandRequestPacket.class)
@@ -52,8 +50,7 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
                 return;
             }
 
-            ServerboundChatPacket chatPacket = new ServerboundChatPacket(message);
-            session.sendDownstreamPacket(chatPacket);
+            session.sendCommand(message.substring(1));
         }
     }
 }

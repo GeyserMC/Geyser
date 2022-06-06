@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +26,6 @@
 package org.geysermc.geyser.level.block;
 
 import com.nukkitx.network.util.Preconditions;
-import lombok.Getter;
-
 
 public class BlockPositionIterator {
     private final int minX;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,8 @@
  */
 
 package org.geysermc.geyser;
+
+import javax.annotation.Nullable;
 
 public interface GeyserLogger {
 
@@ -77,6 +79,15 @@ public interface GeyserLogger {
      * @param message the message to log
      */
     void debug(String message);
+
+    /**
+     * Logs an object to console if debug mode is enabled
+     *
+     * @param object the object to log
+     */
+    default void debug(@Nullable Object object) {
+        debug(String.valueOf(object));
+    }
 
     /**
      * Sets if the logger should print debug messages

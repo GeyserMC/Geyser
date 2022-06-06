@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -96,6 +96,13 @@ public interface GeyserBootstrap {
      * @return Path location of data folder
      */
     Path getConfigFolder();
+
+    /**
+     * @return the folder where user tokens are saved. This should always point to the location of the config.
+     */
+    default Path getSavedUserLoginsFolder() {
+        return getConfigFolder();
+    }
 
     /**
      * Information used for the bootstrap section of the debug dump

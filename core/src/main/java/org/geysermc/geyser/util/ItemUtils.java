@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,22 +26,30 @@
 package org.geysermc.geyser.util;
 
 import com.github.steveice10.opennbt.tag.builtin.*;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import org.geysermc.geyser.session.GeyserSession;
 
-public class ItemUtils {
+import javax.annotation.Nullable;
 
-    public static int getEnchantmentLevel(CompoundTag itemNBTData, String enchantmentId) {
-        ListTag enchantments = (itemNBTData == null ? null : itemNBTData.get("Enchantments"));
+public class ItemUtils {
+    private static Int2IntMap DYE_COLORS = null;
+
+    public static int getEnchantmentLevel(@Nullable CompoundTag itemNBTData, String enchantmentId) {
+        if (itemNBTData == null) {
+            return 0;
+        }
+        ListTag enchantments = itemNBTData.get("Enchantments");
         if (enchantments != null) {
-            int enchantmentLevel = 0;
             for (Tag tag : enchantments) {
                 CompoundTag enchantment = (CompoundTag) tag;
                 StringTag enchantId = enchantment.get("id");
                 if (enchantId.getValue().equals(enchantmentId)) {
-                    enchantmentLevel = (int) ((ShortTag) enchantment.get("lvl")).getValue();
+                    Tag lvl = enchantment.get("lvl");
+                    if (lvl != null && lvl.getValue() instanceof Number number) {
+                        return number.intValue();
+                    }
                 }
             }
-            return enchantmentLevel;
         }
         return 0;
     }
@@ -72,5 +80,20 @@ public class ItemUtils {
             }
         }
         return null;
+    }
+
+    /**
+     * Return the dye color associated with this Java item ID, if any. Returns -1 if no dye color exists for this item.
+     */
+    public static int dyeColorFor(int javaId) {
+        return DYE_COLORS.get(javaId);
+    }
+
+    public static void setDyeColors(Int2IntMap dyeColors) {
+        if (DYE_COLORS != null) {
+            throw new RuntimeException();
+        }
+        dyeColors.defaultReturnValue(-1);
+        DYE_COLORS = dyeColors;
     }
 }

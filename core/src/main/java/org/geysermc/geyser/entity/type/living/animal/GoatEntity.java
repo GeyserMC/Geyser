@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,21 +27,25 @@ package org.geysermc.geyser.entity.type.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
-import lombok.Getter;
+import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.InteractionResult;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class GoatEntity extends AnimalEntity {
     private static final float LONG_JUMPING_HEIGHT = 1.3f * 0.7f;
     private static final float LONG_JUMPING_WIDTH = 0.9f * 0.7f;
 
-    @Getter
     private boolean isScreamer;
 
-    public GoatEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public GoatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
@@ -57,6 +61,17 @@ public class GoatEntity extends AnimalEntity {
             setBoundingBoxHeight(LONG_JUMPING_HEIGHT);
         } else {
             super.setDimensions(pose);
+        }
+    }
+
+    @Nonnull
+    @Override
+    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        if (!getFlag(EntityFlag.BABY) && itemInHand.getMapping(session).getJavaIdentifier().equals("minecraft:bucket")) {
+            session.playSoundEvent(isScreamer ? SoundEvent.MILK_SCREAMER : SoundEvent.MILK, position);
+            return InteractionResult.SUCCESS;
+        } else {
+            return super.mobInteract(hand, itemInHand);
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -54,8 +54,9 @@ public class SoundRegistryLoader implements RegistryLoader<String, Map<String, S
         while(soundsIterator.hasNext()) {
             Map.Entry<String, JsonNode> next = soundsIterator.next();
             JsonNode brMap = next.getValue();
-            soundMappings.put(next.getKey(), new SoundMapping(
-                            next.getKey(),
+            String javaSound = next.getKey();
+            soundMappings.put(javaSound, new SoundMapping(
+                            javaSound,
                             brMap.has("bedrock_mapping") && brMap.get("bedrock_mapping").isTextual() ? brMap.get("bedrock_mapping").asText() : null,
                             brMap.has("playsound_mapping") && brMap.get("playsound_mapping").isTextual() ? brMap.get("playsound_mapping").asText() : null,
                             brMap.has("extra_data") && brMap.get("extra_data").isInt() ? brMap.get("extra_data").asInt() : -1,

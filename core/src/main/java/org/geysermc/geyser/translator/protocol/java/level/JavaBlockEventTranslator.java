@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.level.block.value.*;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockEventPacket;
 import com.nukkitx.math.vector.Vector3i;
@@ -35,14 +34,13 @@ import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.BlockEventPacket;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PistonCache;
+import org.geysermc.geyser.translator.level.block.entity.PistonBlockEntity;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.translator.level.block.entity.NoteblockBlockEntityTranslator;
-import org.geysermc.geyser.translator.level.block.entity.PistonBlockEntity;
-import org.geysermc.geyser.level.physics.Direction;
 
 @Translator(packet = ClientboundBlockEventPacket.class)
 public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockEventPacket> {
@@ -50,8 +48,8 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
     @Override
     public void translate(GeyserSession session, ClientboundBlockEventPacket packet) {
         BlockEventPacket blockEventPacket = new BlockEventPacket();
-        blockEventPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(),
-                packet.getPosition().getY(), packet.getPosition().getZ()));
+        Vector3i position = packet.getPosition();
+        blockEventPacket.setBlockPosition(position);
         if (packet.getValue() instanceof ChestValue value) {
             blockEventPacket.setEventType(1);
             blockEventPacket.setEventData(value.getViewers() > 0 ? 1 : 0);
@@ -60,11 +58,12 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
             blockEventPacket.setEventType(1);
             session.sendUpstreamPacket(blockEventPacket);
         } else if (packet.getValue() instanceof NoteBlockValue) {
-            NoteblockBlockEntityTranslator.translate(session, packet.getPosition());
+            int blockState = session.getGeyser().getWorldManager().getBlockAt(session, position);
+            blockEventPacket.setEventData(BlockStateValues.getNoteblockPitch(blockState));
+            session.sendUpstreamPacket(blockEventPacket);
         } else if (packet.getValue() instanceof PistonValue pistonValue) {
             PistonValueType action = (PistonValueType) packet.getType();
             Direction direction = Direction.fromPistonValue(pistonValue);
-            Vector3i position = Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
             PistonCache pistonCache = session.getPistonCache();
 
             if (session.getGeyser().getPlatformType() == PlatformType.SPIGOT) {
@@ -106,10 +105,8 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
             session.sendUpstreamPacket(blockEventPacket);
         } else if (packet.getValue() instanceof GenericBlockValue bellValue && packet.getBlockId() == BlockStateValues.JAVA_BELL_ID) {
             // Bells - needed to show ring from other players
-            Position position = packet.getPosition();
-
             BlockEntityDataPacket blockEntityPacket = new BlockEntityDataPacket();
-            blockEntityPacket.setBlockPosition(Vector3i.from(position.getX(), position.getY(), position.getZ()));
+            blockEntityPacket.setBlockPosition(position);
 
             NbtMapBuilder builder = NbtMap.builder();
             builder.putInt("x", position.getX());

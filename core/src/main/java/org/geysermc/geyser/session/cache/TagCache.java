@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,15 +28,19 @@ package org.geysermc.geyser.session.cache;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateTagsPacket;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.session.GeyserSession;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Map;
 
 /**
  * Manages information sent from the {@link ClientboundUpdateTagsPacket}. If that packet is not sent, all lists here
  * will remain empty, matching Java Edition behavior.
  */
+@ParametersAreNonnullByDefault
 public class TagCache {
     /* Blocks */
     private IntList leaves;
@@ -52,16 +56,19 @@ public class TagCache {
     private IntList requiresDiamondTool;
 
     /* Items */
+    private IntList axolotlTemptItems;
+    private IntList fishes;
     private IntList flowers;
     private IntList foxFood;
     private IntList piglinLoved;
+    private IntList smallFlowers;
 
     public TagCache() {
         // Ensure all lists are non-null
         clear();
     }
 
-    public void loadPacket(ClientboundUpdateTagsPacket packet) {
+    public void loadPacket(GeyserSession session, ClientboundUpdateTagsPacket packet) {
         Map<String, int[]> blockTags = packet.getTags().get("minecraft:block");
         this.leaves = IntList.of(blockTags.get("minecraft:leaves"));
         this.wool = IntList.of(blockTags.get("minecraft:wool"));
@@ -76,9 +83,19 @@ public class TagCache {
         this.requiresDiamondTool = IntList.of(blockTags.get("minecraft:needs_diamond_tool"));
 
         Map<String, int[]> itemTags = packet.getTags().get("minecraft:item");
+        this.axolotlTemptItems = IntList.of(itemTags.get("minecraft:axolotl_tempt_items"));
+        this.fishes = IntList.of(itemTags.get("minecraft:fishes"));
         this.flowers = IntList.of(itemTags.get("minecraft:flowers"));
         this.foxFood = IntList.of(itemTags.get("minecraft:fox_food"));
         this.piglinLoved = IntList.of(itemTags.get("minecraft:piglin_loved"));
+        this.smallFlowers = IntList.of(itemTags.get("minecraft:small_flowers"));
+
+        // Hack btw
+        boolean emulatePost1_14Logic = itemTags.get("minecraft:signs").length > 1;
+        session.setEmulatePost1_14Logic(emulatePost1_14Logic);
+        if (session.getGeyser().getLogger().isDebug()) {
+            session.getGeyser().getLogger().debug("Emulating post 1.14 villager logic for " + session.name() + "? " + emulatePost1_14Logic);
+        }
     }
 
     public void clear() {
@@ -94,9 +111,20 @@ public class TagCache {
         this.requiresIronTool = IntLists.emptyList();
         this.requiresDiamondTool = IntLists.emptyList();
 
+        this.axolotlTemptItems = IntLists.emptyList();
+        this.fishes = IntLists.emptyList();
         this.flowers = IntLists.emptyList();
         this.foxFood = IntLists.emptyList();
         this.piglinLoved = IntLists.emptyList();
+        this.smallFlowers = IntLists.emptyList();
+    }
+
+    public boolean isAxolotlTemptItem(ItemMapping itemMapping) {
+        return axolotlTemptItems.contains(itemMapping.getJavaId());
+    }
+
+    public boolean isFish(GeyserItemStack itemStack) {
+        return fishes.contains(itemStack.getJavaId());
     }
 
     public boolean isFlower(ItemMapping mapping) {
@@ -109,6 +137,10 @@ public class TagCache {
 
     public boolean shouldPiglinAdmire(ItemMapping mapping) {
         return piglinLoved.contains(mapping.getJavaId());
+    }
+
+    public boolean isSmallFlower(GeyserItemStack itemStack) {
+        return smallFlowers.contains(itemStack.getJavaId());
     }
 
     public boolean isAxeEffective(BlockMapping blockMapping) {

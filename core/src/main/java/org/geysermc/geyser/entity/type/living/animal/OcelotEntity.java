@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,21 +25,49 @@
 
 package org.geysermc.geyser.entity.type.living.animal;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class OcelotEntity extends AnimalEntity {
 
-    public OcelotEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public OcelotEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
     public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
         return javaIdentifierStripped.equals("cod") || javaIdentifierStripped.equals("salmon");
+    }
+
+    @Nonnull
+    @Override
+    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        if (!getFlag(EntityFlag.TRUSTING) && canEat(itemInHand) && session.getPlayerEntity().getPosition().distanceSquared(position) < 9f) {
+            // Attempt to feed
+            return InteractiveTag.FEED;
+        } else {
+            return super.testMobInteraction(hand, itemInHand);
+        }
+    }
+
+    @Nonnull
+    @Override
+    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        if (!getFlag(EntityFlag.TRUSTING) && canEat(itemInHand) && session.getPlayerEntity().getPosition().distanceSquared(position) < 9f) {
+            // Attempt to feed
+            return InteractionResult.SUCCESS;
+        } else {
+            return super.mobInteract(hand, itemInHand);
+        }
     }
 }

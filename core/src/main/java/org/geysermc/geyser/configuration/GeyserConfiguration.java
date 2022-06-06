@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,6 +44,9 @@ public interface GeyserConfiguration {
 
     IRemoteConfiguration getRemote();
 
+    List<String> getSavedUserLogins();
+
+    @Deprecated
     Map<String, ? extends IUserAuthenticationInfo> getUserAuths();
 
     boolean isCommandSuggestions();
@@ -76,6 +79,10 @@ public interface GeyserConfiguration {
 
     boolean isShowCoordinates();
 
+    boolean isDisableBedrockScaffolding();
+
+    boolean isAlwaysQuickChangeArmor();
+
     EmoteOffhandWorkaroundOption getEmoteOffhandWorkaround();
 
     String getDefaultLocale();
@@ -94,7 +101,13 @@ public interface GeyserConfiguration {
 
     boolean isAllowCustomSkulls();
 
+    int getMaxVisibleCustomSkulls();
+
+    int getCustomSkullRenderDistance();
+
     IMetricsInfo getMetrics();
+
+    int getPendingAuthenticationTimeout();
 
     interface IBedrockConfiguration {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,8 +48,10 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
         switch (packet.getAction()) {
             case SWING_ARM ->
                 // Delay so entity damage can be processed first
-                session.scheduleInEventLoop(() ->
-                        session.sendDownstreamPacket(new ServerboundSwingPacket(Hand.MAIN_HAND)),
+                session.scheduleInEventLoop(() -> {
+                            session.sendDownstreamPacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+                            session.activateArmAnimationTicking();
+                        },
                         25,
                         TimeUnit.MILLISECONDS
                 );

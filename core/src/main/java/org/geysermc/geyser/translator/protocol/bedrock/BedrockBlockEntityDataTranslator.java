@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSetJigsawBlockPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundSignUpdatePacket;
+import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.geysermc.geyser.session.GeyserSession;
@@ -41,15 +41,11 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
     @Override
     public void translate(GeyserSession session, BlockEntityDataPacket packet) {
         NbtMap tag = packet.getData();
-        if (tag.getString("id").equals("Sign")) {
-            // This is the reason why this all works - Bedrock sends packets every time you update the sign, Java only wants the final packet
-            // But Bedrock sends one final packet when you're done editing the sign, which should be equal to the last message since there's no edits
-            // So if the latest update does not match the last cached update then it's still being edited
-            if (!tag.getString("Text").equals(session.getLastSignMessage())) {
-                session.setLastSignMessage(tag.getString("Text"));
-                return;
-            }
-            // Otherwise the two messages are identical and we can get to work deconstructing
+        String id = tag.getString("id");
+        if (id.equals("Sign")) {
+            String text = tag.getString("Text");
+            // Note: as of 1.18.30, only one packet is sent from Bedrock when the sign is finished.
+            // Previous versions did not have this behavior.
             StringBuilder newMessage = new StringBuilder();
             // While Bedrock's sign lines are one string, Java's is an array of each line
             // (Initialized all with empty strings because it complains about null)
@@ -59,7 +55,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             // If it goes over the maximum, we need to start a new line to match Java
             int widthCount = 0;
             // This converts the message into the array'd message Java wants
-            for (char character : tag.getString("Text").toCharArray()) {
+            for (char character : text.toCharArray()) {
                 widthCount += SignUtils.getCharacterWidth(character);
                 // If we get a return in Bedrock, or go over the character width max, that signals to use the next line.
                 if (character == '\n' || widthCount > SignUtils.JAVA_CHARACTER_WIDTH_MAX) {
@@ -104,16 +100,13 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             }
             // Put the final line on since it isn't done in the for loop
             if (iterator < lines.length) lines[iterator] = newMessage.toString();
-            Position pos = new Position(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
+            Vector3i pos = Vector3i.from(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
             ServerboundSignUpdatePacket signUpdatePacket = new ServerboundSignUpdatePacket(pos, lines);
             session.sendDownstreamPacket(signUpdatePacket);
 
-            // We set the sign text cached in the session to null to indicate there is no work-in-progress sign
-            session.setLastSignMessage(null);
-
-        } else if (tag.getString("id").equals("JigsawBlock")) {
+        } else if (id.equals("JigsawBlock")) {
             // Client has just sent a jigsaw block update
-            Position pos = new Position(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
+            Vector3i pos = Vector3i.from(tag.getInt("x"), tag.getInt("y"), tag.getInt("z"));
             String name = tag.getString("name");
             String target = tag.getString("target");
             String pool = tag.getString("target_pool");

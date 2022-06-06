@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +27,11 @@ package org.geysermc.geyser.translator.protocol.java.entity;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundSetEntityDataPacket;
-import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.entity.InteractiveTagManager;
 
 @Translator(packet = ClientboundSetEntityDataPacket.class)
 public class JavaSetEntityDataTranslator extends PacketTranslator<ClientboundSetEntityDataPacket> {
@@ -40,12 +39,7 @@ public class JavaSetEntityDataTranslator extends PacketTranslator<ClientboundSet
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void translate(GeyserSession session, ClientboundSetEntityDataPacket packet) {
-        Entity entity;
-        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
-            entity = session.getPlayerEntity();
-        } else {
-            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        }
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) return;
 
         EntityDefinition<?> definition = entity.getDefinition();
@@ -65,8 +59,9 @@ public class JavaSetEntityDataTranslator extends PacketTranslator<ClientboundSet
         entity.updateBedrockMetadata();
 
         // Update the interactive tag, if necessary
-        if (session.getMouseoverEntity() != null && session.getMouseoverEntity().getEntityId() == entity.getEntityId()) {
-            InteractiveTagManager.updateTag(session, entity);
+        Entity mouseoverEntity = session.getMouseoverEntity();
+        if (mouseoverEntity != null && mouseoverEntity.getEntityId() == entity.getEntityId()) {
+            mouseoverEntity.updateInteractiveTag();
         }
     }
 }

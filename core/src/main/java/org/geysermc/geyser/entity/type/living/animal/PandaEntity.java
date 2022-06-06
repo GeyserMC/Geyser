@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,22 +27,28 @@ package org.geysermc.geyser.entity.type.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.UUID;
 
 public class PandaEntity extends AnimalEntity {
-    private int mainGene;
-    private int hiddenGene;
+    private Gene mainGene = Gene.NORMAL;
+    private Gene hiddenGene = Gene.NORMAL;
 
-    public PandaEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public PandaEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
@@ -61,12 +67,12 @@ public class PandaEntity extends AnimalEntity {
     }
 
     public void setMainGene(ByteEntityMetadata entityMetadata) {
-        mainGene = entityMetadata.getPrimitiveValue();
+        mainGene = Gene.fromId(entityMetadata.getPrimitiveValue());
         updateAppearance();
     }
 
     public void setHiddenGene(ByteEntityMetadata entityMetadata) {
-        hiddenGene = entityMetadata.getPrimitiveValue();
+        hiddenGene = Gene.fromId(entityMetadata.getPrimitiveValue());
         updateAppearance();
     }
 
@@ -86,23 +92,81 @@ public class PandaEntity extends AnimalEntity {
         return javaIdentifierStripped.equals("bamboo");
     }
 
+    @Nonnull
+    @Override
+    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        if (mainGene == Gene.WORRIED && session.isThunder()) {
+            return InteractiveTag.NONE;
+        }
+        return super.testMobInteraction(hand, itemInHand);
+    }
+
+    @Nonnull
+    @Override
+    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        if (mainGene == Gene.WORRIED && session.isThunder()) {
+            // Huh!
+            return InteractionResult.PASS;
+        } else if (getFlag(EntityFlag.LAYING_DOWN)) {
+            // Stop the panda from laying down
+            // TODO laying up is client-side?
+            return InteractionResult.SUCCESS;
+        } else if (canEat(itemInHand)) {
+            if (getFlag(EntityFlag.BABY)) {
+                playEntityEvent(EntityEventType.BABY_ANIMAL_FEED);
+            }
+            return InteractionResult.SUCCESS;
+        }
+        return InteractionResult.PASS;
+    }
+
+    @Override
+    protected boolean canBeLeashed() {
+        return false;
+    }
+
     /**
      * Update the panda's appearance, and take into consideration the recessive brown and weak traits that only show up
      * when both main and hidden genes match
      */
     private void updateAppearance() {
-        if (mainGene == 4 || mainGene == 5) {
-            // Main gene is a recessive trait
+        if (mainGene.isRecessive) {
             if (mainGene == hiddenGene) {
                 // Main and hidden genes match; this is what the panda looks like.
-                dirtyMetadata.put(EntityData.VARIANT, mainGene);
+                dirtyMetadata.put(EntityData.VARIANT, mainGene.ordinal());
             } else {
                 // Genes have no effect on appearance
-                dirtyMetadata.put(EntityData.VARIANT, 0);
+                dirtyMetadata.put(EntityData.VARIANT, Gene.NORMAL.ordinal());
             }
         } else {
             // No need to worry about hidden gene
-            dirtyMetadata.put(EntityData.VARIANT, mainGene);
+            dirtyMetadata.put(EntityData.VARIANT, mainGene.ordinal());
+        }
+    }
+
+    enum Gene {
+        NORMAL(false),
+        LAZY(false),
+        WORRIED(false),
+        PLAYFUL(false),
+        BROWN(true),
+        WEAK(true),
+        AGGRESSIVE(false);
+
+        private static final Gene[] VALUES = values();
+
+        private final boolean isRecessive;
+
+        Gene(boolean isRecessive) {
+            this.isRecessive = isRecessive;
+        }
+
+        @Nullable
+        private static Gene fromId(int id) {
+            if (id < 0 || id >= VALUES.length) {
+                return NORMAL;
+            }
+            return VALUES[id];
         }
     }
 }

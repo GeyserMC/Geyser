@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,7 @@ public class TameableEntity extends AnimalEntity {
     @Getter
     protected long ownerBedrockId;
 
-    public TameableEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public TameableEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
@@ -61,17 +61,30 @@ public class TameableEntity extends AnimalEntity {
         // Note: Must be set for wolf collar color to work
         if (entityMetadata.getValue().isPresent()) {
             // Owner UUID of entity
-            Entity entity = session.getEntityCache().getPlayerEntity(entityMetadata.getValue().get());
+            UUID uuid = entityMetadata.getValue().get();
+            Entity entity;
+            if (uuid.equals(session.getPlayerEntity().getUuid())) {
+                entity = session.getPlayerEntity();
+            } else {
+                entity = session.getEntityCache().getPlayerEntity(uuid);
+            }
             // Used as both a check since the player isn't in the entity cache and a normal fallback
             if (entity == null) {
-                entity = session.getPlayerEntity();
+                // Set to tame, but indicate that we are not the player that owns this
+                ownerBedrockId = Long.MAX_VALUE;
+            } else {
+                // Translate to entity ID
+                ownerBedrockId = entity.getGeyserId();
             }
-            // Translate to entity ID
-            ownerBedrockId = entity.getGeyserId();
         } else {
             // Reset
             ownerBedrockId = 0L;
         }
         dirtyMetadata.put(EntityData.OWNER_EID, ownerBedrockId);
+    }
+
+    @Override
+    protected boolean canBeLeashed() {
+        return isNotLeashed();
     }
 }

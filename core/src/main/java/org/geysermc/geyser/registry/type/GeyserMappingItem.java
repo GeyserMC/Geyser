@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,4 +44,6 @@ public class GeyserMappingItem {
     @JsonProperty("tool_tier") String toolTier;
     @JsonProperty("max_damage") int maxDamage = 0;
     @JsonProperty("repair_materials") List<String> repairMaterials;
+    @JsonProperty("has_suspicious_stew_effect") boolean hasSuspiciousStewEffect = false;
+    @JsonProperty("dye_color") int dyeColor = -1;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,12 +38,9 @@ public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundU
 
     @Override
     public void translate(GeyserSession session, ClientboundUpdateMobEffectPacket packet) {
-        Entity entity;
-        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
-            entity = session.getPlayerEntity();
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        if (entity == session.getPlayerEntity()) {
             session.getEffectCache().setEffect(packet.getEffect(), packet.getAmplifier());
-        } else {
-            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         }
         if (entity == null)
             return;

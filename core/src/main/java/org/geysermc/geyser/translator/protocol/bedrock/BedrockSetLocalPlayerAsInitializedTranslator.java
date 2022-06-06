@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,7 +43,17 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
 
                 if (session.getRemoteAuthType() == AuthType.ONLINE) {
                     if (!session.isLoggedIn()) {
-                        LoginEncryptionUtils.buildAndShowLoginWindow(session);
+                        if (session.getGeyser().getConfig().getSavedUserLogins().contains(session.name())) {
+                            if (session.getGeyser().refreshTokenFor(session.name()) == null) {
+                                LoginEncryptionUtils.buildAndShowConsentWindow(session);
+                            } else {
+                                // If the refresh token is not null and we're here, then the refresh token expired
+                                // and the expiration form has been cached
+                                session.getFormCache().resendAllForms();
+                            }
+                        } else {
+                            LoginEncryptionUtils.buildAndShowLoginWindow(session);
+                        }
                     }
                     // else we were able to log the user in
                 }
@@ -55,6 +65,9 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
                     if (session.getOpenInventory() != null && session.getOpenInventory().isPending()) {
                         InventoryUtils.openInventory(session, session.getOpenInventory());
                     }
+
+                    // What am I to expect - as of Bedrock 1.18
+                    session.getFormCache().resendAllForms();
                 }
             }
         }

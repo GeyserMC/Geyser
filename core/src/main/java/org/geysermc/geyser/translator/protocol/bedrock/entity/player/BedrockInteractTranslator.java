@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,10 +28,10 @@ package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerState;
+import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
-import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerType;
 import com.nukkitx.protocol.bedrock.packet.ContainerOpenPacket;
 import com.nukkitx.protocol.bedrock.packet.InteractPacket;
@@ -40,7 +40,6 @@ import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.entity.InteractiveTagManager;
 
 @Translator(packet = InteractPacket.class)
 public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> {
@@ -62,19 +61,18 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 if (session.getPlayerInventory().getItemInHand().getJavaId() == session.getItemMappings().getStoredItems().shield().getJavaId()) {
                     break;
                 }
-                ServerboundInteractPacket interactPacket = new ServerboundInteractPacket((int) entity.getEntityId(),
+                ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(entity.getEntityId(),
                         InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
                 session.sendDownstreamPacket(interactPacket);
                 break;
             case DAMAGE:
-                ServerboundInteractPacket attackPacket = new ServerboundInteractPacket((int) entity.getEntityId(),
+                ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(entity.getEntityId(),
                         InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
                 session.sendDownstreamPacket(attackPacket);
                 break;
             case LEAVE_VEHICLE:
-                ServerboundPlayerCommandPacket sneakPacket = new ServerboundPlayerCommandPacket((int) entity.getEntityId(), PlayerState.START_SNEAKING);
+                ServerboundPlayerCommandPacket sneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SNEAKING);
                 session.sendDownstreamPacket(sneakPacket);
-                session.setRidingVehicleEntity(null);
                 break;
             case MOUSEOVER:
                 // Handle the buttons for mobile - "Mount", etc; and the suggestions for console - "ZL: Mount", etc
@@ -85,7 +83,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                         return;
                     }
 
-                    InteractiveTagManager.updateTag(session, interactEntity);
+                    interactEntity.updateInteractiveTag();
                 } else {
                     if (session.getMouseoverEntity() != null) {
                         // No interactive tag should be sent
@@ -97,13 +95,11 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 break;
             case OPEN_INVENTORY:
                 if (session.getOpenInventory() == null) {
-                    Entity ridingEntity = session.getRidingVehicleEntity();
-                    if (ridingEntity instanceof AbstractHorseEntity) {
-                        if (ridingEntity.getFlag(EntityFlag.TAMED)) {
-                            // We should request to open the horse inventory instead
-                            ServerboundPlayerCommandPacket openHorseWindowPacket = new ServerboundPlayerCommandPacket((int) session.getPlayerEntity().getEntityId(), PlayerState.OPEN_HORSE_INVENTORY);
-                            session.sendDownstreamPacket(openHorseWindowPacket);
-                        }
+                    Entity ridingEntity = session.getPlayerEntity().getVehicle();
+                    if (ridingEntity instanceof AbstractHorseEntity || (ridingEntity != null && ridingEntity.getDefinition().entityType() == EntityType.CHEST_BOAT)) {
+                        // This mob has an inventory of its own that we should open instead.
+                        ServerboundPlayerCommandPacket openVehicleWindowPacket = new ServerboundPlayerCommandPacket(session.getPlayerEntity().getEntityId(), PlayerState.OPEN_VEHICLE_INVENTORY);
+                        session.sendDownstreamPacket(openVehicleWindowPacket);
                     } else {
                         session.setOpenInventory(session.getPlayerInventory());
 

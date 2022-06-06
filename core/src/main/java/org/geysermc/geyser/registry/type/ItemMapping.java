@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -39,7 +39,7 @@ import java.util.Set;
 public class ItemMapping {
     public static final ItemMapping AIR = new ItemMapping("minecraft:air", "minecraft:air", 0, 0, 0,
             BlockRegistries.BLOCKS.forVersion(MinecraftProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getBedrockAirId(),
-            64, null, null, null, 0, null);
+            64, null, null, null, 0, null, false);
 
     String javaIdentifier;
     String bedrockIdentifier;
@@ -62,6 +62,8 @@ public class ItemMapping {
     int maxDamage;
 
     Set<String> repairMaterials;
+
+    boolean hasSuspiciousStewEffect;
 
     /**
      * Gets if this item is a block.

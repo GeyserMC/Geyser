@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,6 @@ import com.google.gson.JsonElement;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.function.UnaryOperator;
 
@@ -62,9 +61,14 @@ public record GsonComponentSerializerWrapper(GsonComponentSerializer source) imp
     }
 
     @Override
-    public @Nullable Component deserialize(@NotNull String input) {
+    public @NotNull Component deserialize(@NotNull String input) {
         // See https://github.com/KyoriPowered/adventure/issues/447
-        return this.serializer().fromJson(input, Component.class);
+        Component component = this.serializer().fromJson(input, Component.class);
+        if (component == null) {
+            return Component.empty();
+        }
+
+        return component;
     }
 
     @Override

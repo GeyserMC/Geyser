@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,9 +33,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import java.nio.ByteBuffer;
 
 public class PluginMessageUtils {
-    private static final String SKIN_CHANNEL = "floodgate:skin";
     private static final byte[] GEYSER_BRAND_DATA;
-    private static final byte[] FLOODGATE_REGISTER_DATA;
 
     static {
         byte[] data = GeyserImpl.NAME.getBytes(Charsets.UTF_8);
@@ -44,8 +42,6 @@ public class PluginMessageUtils {
                         .put(writeVarInt(data.length))
                         .put(data)
                         .array();
-
-        FLOODGATE_REGISTER_DATA = (SKIN_CHANNEL + "\0floodgate:form\0floodgate:transfer\0floodgate:packet").getBytes(Charsets.UTF_8);
     }
 
     /**
@@ -55,22 +51,6 @@ public class PluginMessageUtils {
      */
     public static byte[] getGeyserBrandData() {
         return GEYSER_BRAND_DATA;
-    }
-
-    /**
-     * Get the prebuilt register data as a byte array
-     *
-     * @return the register data of the Floodgate channels
-     */
-    public static byte[] getFloodgateRegisterData() {
-        return FLOODGATE_REGISTER_DATA;
-    }
-
-    /**
-     * Returns the skin channel used in Floodgate
-     */
-    public static String getSkinChannel() {
-        return SKIN_CHANNEL;
     }
 
     public static void sendMessage(GeyserSession session, String channel, byte[] data) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@ import com.github.steveice10.mc.protocol.data.game.recipe.Recipe;
 import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
+import com.github.steveice10.mc.protocol.data.game.recipe.data.SmithingRecipeData;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.StoneCuttingRecipeData;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
 import com.nukkitx.nbt.NbtMap;
@@ -40,6 +41,10 @@ import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
 import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
+import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -76,7 +81,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         // Get the last known network ID (first used for the pregenerated recipes) and increment from there.
         int netId = InventoryUtils.LAST_RECIPE_NET_ID + 1;
 
-        Int2ObjectMap<Recipe> recipeMap = new Int2ObjectOpenHashMap<>(Registries.RECIPES.forVersion(session.getUpstream().getProtocolVersion()));
+        Int2ObjectMap<GeyserRecipe> recipeMap = new Int2ObjectOpenHashMap<>(Registries.RECIPES.forVersion(session.getUpstream().getProtocolVersion()));
         Int2ObjectMap<List<StoneCuttingRecipeData>> unsortedStonecutterData = new Int2ObjectOpenHashMap<>();
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
@@ -96,7 +101,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                         UUID uuid = UUID.randomUUID();
                         craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
                                 Arrays.asList(inputs), Collections.singletonList(output), uuid, "crafting_table", 0, netId));
-                        recipeMap.put(netId++, recipe);
+                        recipeMap.put(netId++, new GeyserShapelessRecipe(shapelessRecipeData));
                     }
                 }
                 case CRAFTING_SHAPED -> {
@@ -114,7 +119,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                         craftingDataPacket.getCraftingData().add(CraftingData.fromShaped(uuid.toString(),
                                 shapedRecipeData.getWidth(), shapedRecipeData.getHeight(), Arrays.asList(inputs),
                                 Collections.singletonList(output), uuid, "crafting_table", 0, netId));
-                        recipeMap.put(netId++, recipe);
+                        recipeMap.put(netId++, new GeyserShapedRecipe(shapedRecipeData));
                     }
                 }
                 case STONECUTTING -> {
@@ -128,6 +133,23 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     data.add(stoneCuttingData);
                     // Save for processing after all recipes have been received
                 }
+                case SMITHING -> {
+                    // Required to translate these as of 1.18.10, or else they cannot be crafted
+                    SmithingRecipeData recipeData = (SmithingRecipeData) recipe.getData();
+                    ItemData output = ItemTranslator.translateToBedrock(session, recipeData.getResult());
+                    for (ItemStack base : recipeData.getBase().getOptions()) {
+                        ItemData bedrockBase = ItemTranslator.translateToBedrock(session, base);
+
+                        for (ItemStack addition : recipeData.getAddition().getOptions()) {
+                            ItemData bedrockAddition = ItemTranslator.translateToBedrock(session, addition);
+
+                            UUID uuid = UUID.randomUUID();
+                            craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
+                                    Arrays.asList(bedrockBase, bedrockAddition),
+                                    Collections.singletonList(output), uuid, "smithing_table", 2, netId++));
+                        }
+                    }
+                }
                 default -> {
                     List<CraftingData> craftingData = recipeTypes.get(recipe.getType());
                     if (craftingData != null) {
@@ -139,21 +161,22 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
         craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.get());
 
-        Int2ObjectMap<IntList> stonecutterRecipeMap = new Int2ObjectOpenHashMap<>();
+        Int2ObjectMap<GeyserStonecutterData> stonecutterRecipeMap = new Int2ObjectOpenHashMap<>();
         for (Int2ObjectMap.Entry<List<StoneCuttingRecipeData>> data : unsortedStonecutterData.int2ObjectEntrySet()) {
             // Sort the list by each output item's Java identifier - this is how it's sorted on Java, and therefore
             // We can get the correct order for button pressing
             data.getValue().sort(Comparator.comparing((stoneCuttingRecipeData ->
-                    session.getItemMappings().getItems()
-                            .getOrDefault(stoneCuttingRecipeData.getResult().getId(), ItemMapping.AIR)
+                    session.getItemMappings().getMapping(stoneCuttingRecipeData.getResult())
                             .getJavaIdentifier())));
 
             // Now that it's sorted, let's translate these recipes
+            int buttonId = 0;
             for (StoneCuttingRecipeData stoneCuttingData : data.getValue()) {
                 // As of 1.16.4, all stonecutter recipes have one ingredient option
                 ItemStack ingredient = stoneCuttingData.getIngredient().getOptions()[0];
                 ItemData input = ItemTranslator.translateToBedrock(session, ingredient);
-                ItemData output = ItemTranslator.translateToBedrock(session, stoneCuttingData.getResult());
+                ItemStack javaOutput = stoneCuttingData.getResult();
+                ItemData output = ItemTranslator.translateToBedrock(session, javaOutput);
                 if (input.equals(ItemData.AIR) || output.equals(ItemData.AIR)) {
                     // Probably modded items
                     continue;
@@ -162,18 +185,16 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
 
                 // We need to register stonecutting recipes so they show up on Bedrock
                 craftingDataPacket.getCraftingData().add(CraftingData.fromShapeless(uuid.toString(),
-                        Collections.singletonList(input), Collections.singletonList(output), uuid, "stonecutter", 0, netId++));
+                        Collections.singletonList(input), Collections.singletonList(output), uuid, "stonecutter", 0, netId));
 
                 // Save the recipe list for reference when crafting
-                // Add the ingredient as the key and all possible values as the value
-                IntList outputs = stonecutterRecipeMap.computeIfAbsent(ingredient.getId(), ($) -> new IntArrayList());
-                outputs.add(stoneCuttingData.getResult().getId());
+                // Add the net ID as the key and the button required + output for the value
+                stonecutterRecipeMap.put(netId++, new GeyserStonecutterData(buttonId++, javaOutput));
             }
         }
 
         session.sendUpstreamPacket(craftingDataPacket);
         session.setCraftingRecipes(recipeMap);
-        session.getUnlockedRecipes().clear();
         session.setStonecutterRecipes(stonecutterRecipeMap);
         session.getLastRecipeNetId().set(netId);
     }
@@ -202,7 +223,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     GroupedItem groupedItem = entry.getKey();
                     int idCount = 0;
                     //not optimal
-                    for (ItemMapping mapping : session.getItemMappings().getItems().values()) {
+                    for (ItemMapping mapping : session.getItemMappings().getItems()) {
                         if (mapping.getBedrockId() == groupedItem.id) {
                             idCount++;
                         }

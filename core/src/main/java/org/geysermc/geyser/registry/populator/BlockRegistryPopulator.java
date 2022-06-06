@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,8 +28,7 @@ package org.geysermc.geyser.registry.populator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import com.nukkitx.nbt.*;
-import com.nukkitx.protocol.bedrock.v465.Bedrock_v465;
-import com.nukkitx.protocol.bedrock.v471.Bedrock_v471;
+import com.nukkitx.protocol.bedrock.beta.BedrockBeta;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -46,7 +45,10 @@ import org.geysermc.geyser.util.BlockUtils;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.zip.GZIPInputStream;
 
@@ -59,8 +61,7 @@ public class BlockRegistryPopulator {
 
     static {
         ImmutableMap.Builder<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> stateMapperBuilder = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
-                .put(ObjectIntPair.of("1_17_30", Bedrock_v465.V465_CODEC.getProtocolVersion()), EMPTY_MAPPER)
-                .put(ObjectIntPair.of("1_17_40", Bedrock_v471.V471_CODEC.getProtocolVersion()), EMPTY_MAPPER);
+                .put(ObjectIntPair.of("1_19_0", BedrockBeta.BETA_CODEC.getProtocolVersion()), EMPTY_MAPPER);
 
         BLOCK_MAPPERS = stateMapperBuilder.build();
     }
@@ -87,7 +88,6 @@ public class BlockRegistryPopulator {
             } catch (Exception e) {
                 throw new AssertionError("Unable to get blocks from runtime block states", e);
             }
-            Map<String, NbtMap> javaIdentifierToBedrockTag = new Object2ObjectOpenHashMap<>(blocksTag.size());
             // New since 1.16.100 - find the block runtime ID by the order given to us in the block palette,
             // as we no longer send a block palette
             Object2IntMap<NbtMap> blockStateOrderedMap = new Object2IntOpenHashMap<>(blocksTag.size());
@@ -157,10 +157,6 @@ public class BlockRegistryPopulator {
                     flowerPotBlocks.put(cleanJavaIdentifier.intern(), blocksTag.get(bedrockRuntimeId));
                 }
 
-                if (!cleanJavaIdentifier.equals(entry.getValue().get("bedrock_identifier").asText())) {
-                    javaIdentifierToBedrockTag.put(cleanJavaIdentifier.intern(), blocksTag.get(bedrockRuntimeId));
-                }
-
                 javaToBedrockBlocks[javaRuntimeId] = bedrockRuntimeId;
             }
 
@@ -195,7 +191,6 @@ public class BlockRegistryPopulator {
 
             BlockRegistries.BLOCKS.register(palette.getKey().valueInt(), builder.blockStateVersion(stateVersion)
                     .javaToBedrockBlocks(javaToBedrockBlocks)
-                    .javaIdentifierToBedrockTag(javaIdentifierToBedrockTag)
                     .itemFrames(itemFrames)
                     .flowerPotBlocks(flowerPotBlocks)
                     .jigsawStateIds(jigsawStateIds)
@@ -255,7 +250,7 @@ public class BlockRegistryPopulator {
                 builder.pickItem(pickItemNode.textValue().intern());
             }
 
-            if (javaId.equals("minecraft:obsidian") || javaId.equals("minecraft:crying_obsidian") || javaId.startsWith("minecraft:respawn_anchor")) {
+            if (javaId.equals("minecraft:obsidian") || javaId.equals("minecraft:crying_obsidian") || javaId.startsWith("minecraft:respawn_anchor") || javaId.startsWith("minecraft:reinforced_deepslate")) {
                 builder.pistonBehavior(PistonBehavior.BLOCK);
             } else {
                 JsonNode pistonBehaviorNode = entry.getValue().get("piston_behavior");

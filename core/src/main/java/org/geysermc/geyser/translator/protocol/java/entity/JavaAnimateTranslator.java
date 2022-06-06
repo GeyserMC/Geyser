@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,17 +36,14 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.DimensionUtils;
 
+import java.util.Optional;
+
 @Translator(packet = ClientboundAnimatePacket.class)
 public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePacket> {
 
     @Override
     public void translate(GeyserSession session, ClientboundAnimatePacket packet) {
-        Entity entity;
-        if (packet.getEntityId() == session.getPlayerEntity().getEntityId()) {
-            entity = session.getPlayerEntity();
-        } else {
-            entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
-        }
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null)
             return;
 
@@ -55,6 +52,9 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
         switch (packet.getAnimation()) {
             case SWING_ARM:
                 animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
+                if (entity.getEntityId() == session.getPlayerEntity().getEntityId()) {
+                    session.activateArmAnimationTicking();
+                }
                 break;
             case SWING_OFFHAND:
                 // Use the OptionalPack to trigger the animation
@@ -79,6 +79,7 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
                 stringPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
                 stringPacket.setPosition(Vector3f.ZERO);
                 stringPacket.setUniqueEntityId(entity.getGeyserId());
+                stringPacket.setMolangVariablesJson(Optional.empty());
                 session.sendUpstreamPacket(stringPacket);
                 break;
             case LEAVE_BED:

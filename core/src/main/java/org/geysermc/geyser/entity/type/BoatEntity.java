@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ package org.geysermc.geyser.entity.type;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.packet.AnimatePacket;
@@ -35,6 +36,8 @@ import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -65,7 +68,7 @@ public class BoatEntity extends Entity {
     // Looks too fast and too choppy with 0.1f, which is how I believe the Microsoftian client handles it
     private final float ROWING_SPEED = 0.05f;
 
-    public BoatEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public BoatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         // Initial rotation is incorrect
         super(session, entityId, geyserId, uuid, definition, position.add(0d, definition.offset(), 0d), motion, yaw + 90, 0, yaw + 90);
 
@@ -78,14 +81,18 @@ public class BoatEntity extends Entity {
     public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         // We don't include the rotation (y) as it causes the boat to appear sideways
         setPosition(position.add(0d, this.definition.offset(), 0d));
-        this.yaw = yaw + 90;
-        this.headYaw = yaw + 90;
+        setYaw(yaw + 90);
+        setHeadYaw(yaw + 90);
         setOnGround(isOnGround);
 
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
-        // Minimal glitching when ClientboundMoveVehiclePacket is sent
-        moveEntityPacket.setPosition(session.getRidingVehicleEntity() == this ? position.up(EntityDefinitions.PLAYER.offset() - this.definition.offset()) : this.position);
+        if (session.getPlayerEntity().getVehicle() == this && session.getPlayerEntity().isRidingInFront()) {
+            // Minimal glitching when ClientboundMoveVehiclePacket is sent
+            moveEntityPacket.setPosition(position.up(EntityDefinitions.PLAYER.offset() - this.definition.offset()));
+        } else {
+            moveEntityPacket.setPosition(this.position);
+        }
         moveEntityPacket.setRotation(getBedrockRotation());
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(teleported);
@@ -128,7 +135,7 @@ public class BoatEntity extends Entity {
             paddleTimeLeft = 0f;
             if (!this.passengers.isEmpty()) {
                 // Get the entity by the first stored passenger and convey motion in this manner
-                Entity entity = session.getEntityCache().getEntityByJavaId(this.passengers.iterator().nextLong());
+                Entity entity = this.passengers.get(0);
                 if (entity != null) {
                     updateLeftPaddle(session, entity);
                 }
@@ -144,13 +151,34 @@ public class BoatEntity extends Entity {
         if (isPaddlingRight) {
             paddleTimeRight = 0f;
             if (!this.passengers.isEmpty()) {
-                Entity entity = session.getEntityCache().getEntityByJavaId(this.passengers.iterator().nextLong());
+                Entity entity = this.passengers.get(0);
                 if (entity != null) {
                     updateRightPaddle(session, entity);
                 }
             }
         } else {
             dirtyMetadata.put(EntityData.ROW_TIME_RIGHT, 0.0f);
+        }
+    }
+
+    @Override
+    protected InteractiveTag testInteraction(Hand hand) {
+        if (session.isSneaking()) {
+            return InteractiveTag.NONE;
+        } else if (passengers.size() < 2) {
+            return InteractiveTag.BOARD_BOAT;
+        } else {
+            return InteractiveTag.NONE;
+        }
+    }
+
+    @Override
+    public InteractionResult interact(Hand hand) {
+        if (session.isSneaking()) {
+            return InteractionResult.PASS;
+        } else {
+            // TODO: the client also checks for "out of control" ticks
+            return InteractionResult.SUCCESS;
         }
     }
 

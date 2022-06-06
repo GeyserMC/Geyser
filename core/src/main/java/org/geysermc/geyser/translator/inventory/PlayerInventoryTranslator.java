@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +35,7 @@ import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.*;
 import com.nukkitx.protocol.bedrock.packet.InventoryContentPacket;
 import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
+import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.geysermc.geyser.inventory.*;
@@ -53,6 +54,11 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
 
     public PlayerInventoryTranslator() {
         super(46);
+    }
+
+    @Override
+    public int getGridSize() {
+        return 4;
     }
 
     @Override
@@ -370,14 +376,17 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                 }
             }
         }
-        for (int slot : affectedSlots) {
+        // Manually call iterator to prevent Integer boxing
+        IntIterator it = affectedSlots.iterator();
+        while (it.hasNext()) {
+            int slot = it.nextInt();
             sendCreativeAction(session, inventory, slot);
         }
         return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
     }
 
     @Override
-    public ItemStackResponsePacket.Response translateCreativeRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+    protected ItemStackResponsePacket.Response translateCreativeRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         ItemStack javaCreativeItem = null;
         IntSet affectedSlots = new IntOpenHashSet();
         CraftState craftState = CraftState.START;
@@ -401,7 +410,6 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     break;
                 }
                 case CRAFT_RESULTS_DEPRECATED: {
-                    CraftResultsDeprecatedStackRequestActionData deprecatedCraftAction = (CraftResultsDeprecatedStackRequestActionData) action;
                     if (craftState != CraftState.RECIPE_ID) {
                         return rejectRequest(request);
                     }
@@ -453,11 +461,36 @@ public class PlayerInventoryTranslator extends InventoryTranslator {
                     }
                     break;
                 }
+                case DROP: {
+                    // Can be replicated as of 1.18.2 Bedrock on mobile by clicking from the creative menu to outside it
+                    if (craftState != CraftState.DEPRECATED) {
+                        return rejectRequest(request);
+                    }
+
+                    DropStackRequestActionData dropAction = (DropStackRequestActionData) action;
+                    if (dropAction.getSource().getContainer() != ContainerSlotType.CREATIVE_OUTPUT || dropAction.getSource().getSlot() != 50) {
+                        return rejectRequest(request);
+                    }
+
+                    ItemStack dropStack;
+                    if (dropAction.getCount() == javaCreativeItem.getAmount()) {
+                        dropStack = javaCreativeItem;
+                    } else {
+                        // Specify custom count
+                        dropStack = new ItemStack(javaCreativeItem.getId(), dropAction.getCount(), javaCreativeItem.getNbt());
+                    }
+                    ServerboundSetCreativeModeSlotPacket creativeDropPacket = new ServerboundSetCreativeModeSlotPacket(-1, dropStack);
+                    session.sendDownstreamPacket(creativeDropPacket);
+                    break;
+                }
                 default:
                     return rejectRequest(request);
             }
         }
-        for (int slot : affectedSlots) {
+        // Manually call iterator to prevent Integer boxing
+        IntIterator it = affectedSlots.iterator();
+        while (it.hasNext()) {
+            int slot = it.nextInt();
             sendCreativeAction(session, inventory, slot);
         }
         return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));

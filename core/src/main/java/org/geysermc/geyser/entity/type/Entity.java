@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,16 +30,14 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
+import com.nukkitx.protocol.bedrock.data.entity.EntityEventType;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlags;
-import com.nukkitx.protocol.bedrock.packet.AddEntityPacket;
-import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
-import com.nukkitx.protocol.bedrock.packet.RemoveEntityPacket;
-import com.nukkitx.protocol.bedrock.packet.SetEntityDataPacket;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import com.nukkitx.protocol.bedrock.packet.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -48,8 +46,13 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.geyser.util.MathUtils;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -58,7 +61,7 @@ import java.util.UUID;
 public class Entity {
     protected final GeyserSession session;
 
-    protected long entityId;
+    protected int entityId;
     protected final long geyserId;
     protected UUID uuid;
 
@@ -79,6 +82,9 @@ public class Entity {
 
     protected EntityDefinition<?> definition;
 
+    /**
+     * Indicates if the entity has been initialized and spawned
+     */
     protected boolean valid;
 
     /* Metadata about this specific entity */
@@ -88,9 +94,12 @@ public class Entity {
     private float boundingBoxWidth;
     @Setter(AccessLevel.NONE)
     protected String nametag = "";
+    @Setter(AccessLevel.NONE)
+    protected boolean silent = false;
     /* Metadata end */
 
-    protected LongOpenHashSet passengers = new LongOpenHashSet();
+    protected List<Entity> passengers = Collections.emptyList();
+    protected Entity vehicle;
     /**
      * A container to store temporary metadata before it's sent to Bedrock.
      */
@@ -109,7 +118,7 @@ public class Entity {
     @Setter(AccessLevel.PROTECTED) // For players
     private boolean flagsDirty = false;
 
-    public Entity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         this.session = session;
 
         this.entityId = entityId;
@@ -134,13 +143,19 @@ public class Entity {
      */
     protected void initializeMetadata() {
         dirtyMetadata.put(EntityData.SCALE, 1f);
-        dirtyMetadata.put(EntityData.COLOR, 0);
+        dirtyMetadata.put(EntityData.COLOR, (byte) 0);
         dirtyMetadata.put(EntityData.MAX_AIR_SUPPLY, getMaxAir());
         setDimensions(Pose.STANDING);
         setFlag(EntityFlag.HAS_GRAVITY, true);
         setFlag(EntityFlag.HAS_COLLISION, true);
         setFlag(EntityFlag.CAN_SHOW_NAME, true);
         setFlag(EntityFlag.CAN_CLIMB, true);
+        // Let the Java server (or us) supply all sounds for an entity
+        setClientSideSilent();
+    }
+
+    protected void setClientSideSilent() {
+        setFlag(EntityFlag.SILENT, true);
     }
 
     public void spawnEntity() {
@@ -181,11 +196,11 @@ public class Entity {
     public boolean despawnEntity() {
         if (!valid) return true;
 
-        for (long passenger : passengers) { // Make sure all passengers on the despawned entity are updated
-            Entity entity = session.getEntityCache().getEntityByJavaId(passenger);
-            if (entity == null) continue;
-            entity.setFlag(EntityFlag.RIDING, false);
-            entity.updateBedrockMetadata();
+        for (Entity passenger : passengers) { // Make sure all passengers on the despawned entity are updated
+            if (passenger == null) continue;
+            passenger.setVehicle(null);
+            passenger.setFlag(EntityFlag.RIDING, false);
+            passenger.updateBedrockMetadata();
         }
 
         RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
@@ -197,7 +212,7 @@ public class Entity {
     }
 
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(relX, relY, relZ, yaw, pitch, this.headYaw, isOnGround);
+        moveRelative(relX, relY, relZ, yaw, pitch, getHeadYaw(), isOnGround);
     }
 
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
@@ -218,7 +233,7 @@ public class Entity {
     }
 
     public void moveAbsolute(Vector3f position, float yaw, float pitch, boolean isOnGround, boolean teleported) {
-        moveAbsolute(position, yaw, pitch, this.headYaw, isOnGround, teleported);
+        moveAbsolute(position, yaw, pitch, getHeadYaw(), isOnGround, teleported);
     }
 
     public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
@@ -247,7 +262,8 @@ public class Entity {
      * @param isOnGround Whether the entity is currently on the ground.
      */
     public void teleport(Vector3f position, float yaw, float pitch, boolean isOnGround) {
-        moveAbsolute(position, yaw, pitch, isOnGround, false);
+        // teleport will always set the headYaw to yaw
+        moveAbsolute(position, yaw, pitch, yaw, isOnGround, false);
     }
 
     /**
@@ -255,7 +271,7 @@ public class Entity {
      * @param headYaw The new head rotation of the entity.
      */
     public void updateHeadLookRotation(float headYaw) {
-        moveRelative(0, 0, 0, headYaw, pitch, this.headYaw, onGround);
+        moveRelative(0, 0, 0, getYaw(), getPitch(), headYaw, isOnGround());
     }
 
     /**
@@ -268,7 +284,7 @@ public class Entity {
      * @param isOnGround Whether the entity is currently on the ground.
      */
     public void updatePositionAndRotation(double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(moveX, moveY, moveZ, this.yaw, pitch, yaw, isOnGround);
+        moveRelative(moveX, moveY, moveZ, yaw, pitch, getHeadYaw(), isOnGround);
     }
 
     /**
@@ -343,7 +359,7 @@ public class Entity {
         dirtyMetadata.put(EntityData.AIR_SUPPLY, (short) MathUtils.constrain(amount, 0, getMaxAir()));
     }
 
-    protected int getMaxAir() {
+    protected short getMaxAir() {
         return 300;
     }
 
@@ -362,6 +378,10 @@ public class Entity {
         dirtyMetadata.put(EntityData.NAMETAG_ALWAYS_SHOW, (byte) (entityMetadata.getPrimitiveValue() ? 1 : 0));
     }
 
+    public final void setSilent(BooleanEntityMetadata entityMetadata) {
+        silent = entityMetadata.getPrimitiveValue();
+    }
+
     public void setGravity(BooleanEntityMetadata entityMetadata) {
         setFlag(EntityFlag.HAS_GRAVITY, !entityMetadata.getPrimitiveValue());
     }
@@ -369,9 +389,7 @@ public class Entity {
     /**
      * Usually used for bounding box and not animation.
      */
-    public void setPose(EntityMetadata<Pose, ?> entityMetadata) {
-        Pose pose = entityMetadata.getValue();
-
+    public void setPose(Pose pose) {
         setFlag(EntityFlag.SLEEPING, pose.equals(Pose.SLEEPING));
         // Triggered when crawling
         setFlag(EntityFlag.SWIMMING, pose.equals(Pose.SWIMMING));
@@ -387,11 +405,15 @@ public class Entity {
         setBoundingBoxWidth(definition.width());
     }
 
-    public void setBoundingBoxHeight(float height) {
+    public boolean setBoundingBoxHeight(float height) {
         if (height != boundingBoxHeight) {
             boundingBoxHeight = height;
             dirtyMetadata.put(EntityData.BOUNDING_BOX_HEIGHT, boundingBoxHeight);
+
+            updatePassengerOffsets();
+            return true;
         }
+        return false;
     }
 
     public void setBoundingBoxWidth(float width) {
@@ -427,20 +449,100 @@ public class Entity {
     }
 
     /**
-     * x = Pitch, y = HeadYaw, z = Yaw
+     * x = Pitch, y = Yaw, z = HeadYaw
      *
      * @return the bedrock rotation
      */
     public Vector3f getBedrockRotation() {
-        return Vector3f.from(pitch, headYaw, yaw);
+        return Vector3f.from(getPitch(), getYaw(), getHeadYaw());
+    }
+
+    /**
+     * Update the mount offsets of each passenger on this vehicle
+     */
+    protected void updatePassengerOffsets() {
+        for (Entity passenger : passengers) {
+            if (passenger != null) {
+                boolean rider = passengers.get(0) == this;
+                EntityUtils.updateMountOffset(passenger, this, rider, true, passengers.size() > 1);
+                passenger.updateBedrockMetadata();
+            }
+        }
+    }
+
+    /**
+     * Update this entity's mount offset
+     */
+    protected void updateMountOffset() {
+        if (vehicle != null) {
+            boolean rider = vehicle.getPassengers().get(0) == this;
+            EntityUtils.updateMountOffset(this, vehicle, rider, true, vehicle.getPassengers().size() > 1);
+            updateBedrockMetadata();
+        }
+    }
+
+    public boolean isAlive() {
+        return this.valid;
+    }
+
+    /**
+     * Update the suggestion that the client currently has on their screen for this entity (for example, "Feed" or "Ride")
+     */
+    public final void updateInteractiveTag() {
+        InteractiveTag tag = InteractiveTag.NONE;
+        for (Hand hand: EntityUtils.HANDS) {
+            tag = testInteraction(hand);
+            if (tag != InteractiveTag.NONE) {
+                break;
+            }
+        }
+        session.getPlayerEntity().getDirtyMetadata().put(EntityData.INTERACTIVE_TAG, tag.getValue());
+        session.getPlayerEntity().updateBedrockMetadata();
+    }
+
+    /**
+     * Test interacting with the given hand to see if we should send a tag to the Bedrock client.
+     * Should usually mirror {@link #interact(Hand)} without any side effects.
+     */
+    protected InteractiveTag testInteraction(Hand hand) {
+        return InteractiveTag.NONE;
+    }
+
+    /**
+     * Simulates interacting with an entity. The code here should mirror Java Edition code to the best of its ability,
+     * to ensure packet parity as well as functionality parity (such as sound effect responses).
+     */
+    public InteractionResult interact(Hand hand) {
+        return InteractionResult.PASS;
+    }
+
+    /**
+     * Simulates interacting with this entity at a specific click point. As of Java Edition 1.18.1, this is only used for armor stands.
+     */
+    public InteractionResult interactAt(Hand hand) {
+        return InteractionResult.PASS;
+    }
+
+    /**
+     * Send an entity event of the specified type to the Bedrock player from this entity.
+     */
+    public final void playEntityEvent(EntityEventType type) {
+        playEntityEvent(type, 0);
+    }
+
+    /**
+     * Send an entity event of the specified type with the specified data to the Bedrock player from this entity.
+     */
+    public final void playEntityEvent(EntityEventType type, int data) {
+        EntityEventPacket packet = new EntityEventPacket();
+        packet.setRuntimeEntityId(geyserId);
+        packet.setType(type);
+        packet.setData(data);
+        session.sendUpstreamPacket(packet);
     }
 
     @SuppressWarnings("unchecked")
     public <I extends Entity> I as(Class<I> entityClass) {
         return entityClass.isInstance(this) ? (I) this : null;
-    }
-
-    public <I extends Entity> boolean is(Class<I> entityClass) {
-        return entityClass.isInstance(this);
     }
 }

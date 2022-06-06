@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,10 @@ public class JavaSetTimeTranslator extends PacketTranslator<ClientboundSetTimePa
 
         // https://minecraft.gamepedia.com/Day-night_cycle#24-hour_Minecraft_day
         SetTimePacket setTimePacket = new SetTimePacket();
-        setTimePacket.setTime((int) Math.abs(time) % 24000);
+        // We use modulus to prevent an integer overflow
+        // 24000 is the range of ticks that a Minecraft day can be; we times by 8 so all moon phases are visible
+        // (Last verified behavior: Bedrock 1.18.12 / Java 1.18.2)
+        setTimePacket.setTime((int) (Math.abs(time) % (24000 * 8)));
         session.sendUpstreamPacket(setTimePacket);
         if (!session.isDaylightCycle() && time >= 0) {
             // Client thinks there is no daylight cycle but there is

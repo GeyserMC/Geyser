@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,16 +38,17 @@ import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequ
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
 import com.nukkitx.protocol.bedrock.packet.BlockEntityDataPacket;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
+import it.unimi.dsi.fastutil.ints.IntSets;
 import org.geysermc.geyser.inventory.BeaconContainer;
+import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InventoryUtils;
 
-import java.util.Collections;
+import java.util.OptionalInt;
 
 public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator {
     public BeaconInventoryTranslator() {
@@ -104,7 +105,7 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
     }
 
     @Override
-    public boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
+    protected boolean shouldHandleRequestFirst(StackRequestActionData action, Inventory inventory) {
         return action.getType() == StackRequestActionType.BEACON_PAYMENT;
     }
 
@@ -112,9 +113,13 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
     public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         // Input a beacon payment
         BeaconPaymentStackRequestActionData beaconPayment = (BeaconPaymentStackRequestActionData) request.getActions()[0];
-        ServerboundSetBeaconPacket packet = new ServerboundSetBeaconPacket(beaconPayment.getPrimaryEffect(), beaconPayment.getSecondaryEffect());
+        ServerboundSetBeaconPacket packet = new ServerboundSetBeaconPacket(toJava(beaconPayment.getPrimaryEffect()), toJava(beaconPayment.getSecondaryEffect()));
         session.sendDownstreamPacket(packet);
-        return acceptRequest(request, makeContainerEntries(session, inventory, Collections.emptySet()));
+        return acceptRequest(request, makeContainerEntries(session, inventory, IntSets.emptySet()));
+    }
+
+    private OptionalInt toJava(int effectChoice) {
+        return effectChoice == -1 ? OptionalInt.empty() : OptionalInt.of(effectChoice);
     }
 
     @Override

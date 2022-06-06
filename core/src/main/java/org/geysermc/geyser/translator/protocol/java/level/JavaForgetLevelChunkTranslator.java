@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,8 +30,11 @@ import com.nukkitx.math.vector.Vector3i;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.ChunkUtils;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 @Translator(packet = ClientboundForgetLevelChunkPacket.class)
 public class JavaForgetLevelChunkTranslator extends PacketTranslator<ClientboundForgetLevelChunkPacket> {
@@ -40,19 +43,18 @@ public class JavaForgetLevelChunkTranslator extends PacketTranslator<Clientbound
     public void translate(GeyserSession session, ClientboundForgetLevelChunkPacket packet) {
         session.getChunkCache().removeChunk(packet.getX(), packet.getZ());
 
-        //Checks if a skull is in an unloaded chunk then removes it
-        Iterator<Vector3i> iterator = session.getSkullCache().keySet().iterator();
-        while (iterator.hasNext()) {
-            Vector3i position = iterator.next();
+        // Checks if a skull is in an unloaded chunk then removes it
+        List<Vector3i> removedSkulls = new ArrayList<>();
+        for (Vector3i position : session.getSkullCache().getSkulls().keySet()) {
             if ((position.getX() >> 4) == packet.getX() && (position.getZ() >> 4) == packet.getZ()) {
-                session.getSkullCache().get(position).despawnEntity();
-                iterator.remove();
+                removedSkulls.add(position);
             }
         }
+        removedSkulls.forEach(session.getSkullCache()::removeSkull);
 
         if (!session.getGeyser().getWorldManager().shouldExpectLecternHandled()) {
             // Do the same thing with lecterns
-            iterator = session.getLecternCache().iterator();
+            Iterator<Vector3i> iterator = session.getLecternCache().iterator();
             while (iterator.hasNext()) {
                 Vector3i position = iterator.next();
                 if ((position.getX() >> 4) == packet.getX() && (position.getZ() >> 4) == packet.getZ()) {
@@ -60,5 +62,7 @@ public class JavaForgetLevelChunkTranslator extends PacketTranslator<Clientbound
                 }
             }
         }
+
+        ChunkUtils.sendEmptyChunk(session, packet.getX(), packet.getZ(), false);
     }
 }

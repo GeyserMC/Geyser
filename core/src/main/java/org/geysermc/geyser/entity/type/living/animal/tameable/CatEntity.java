@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,20 +28,25 @@ package org.geysermc.geyser.entity.type.living.animal.tameable;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class CatEntity extends TameableEntity {
 
     private byte collarColor;
 
-    public CatEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public CatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
@@ -97,5 +102,29 @@ public class CatEntity extends TameableEntity {
     @Override
     public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
         return javaIdentifierStripped.equals("cod") || javaIdentifierStripped.equals("salmon");
+    }
+
+    @Nonnull
+    @Override
+    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        boolean tamed = getFlag(EntityFlag.TAMED);
+        if (tamed && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
+            // Toggle sitting
+            return getFlag(EntityFlag.SITTING) ? InteractiveTag.STAND : InteractiveTag.SIT;
+        } else {
+            return !canEat(itemInHand) || health >= maxHealth && tamed ? InteractiveTag.NONE : InteractiveTag.FEED;
+        }
+    }
+
+    @Nonnull
+    @Override
+    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        boolean tamed = getFlag(EntityFlag.TAMED);
+        if (tamed && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
+            return InteractionResult.SUCCESS;
+        } else {
+            // Attempt to feed
+            return !canEat(itemInHand) || health >= maxHealth && tamed ? InteractionResult.PASS : InteractionResult.SUCCESS;
+        }
     }
 }

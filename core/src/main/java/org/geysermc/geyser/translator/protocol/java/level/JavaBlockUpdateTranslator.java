@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,17 +25,16 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockUpdatePacket;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.common.PlatformType;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.sound.BlockSoundInteractionTranslator;
-import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.util.ChunkUtils;
 
 @Translator(packet = ClientboundBlockUpdatePacket.class)
@@ -43,7 +42,7 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
 
     @Override
     public void translate(GeyserSession session, ClientboundBlockUpdatePacket packet) {
-        Position pos = packet.getEntry().getPosition();
+        Vector3i pos = packet.getEntry().getPosition();
         boolean updatePlacement = session.getGeyser().getPlatformType() != PlatformType.SPIGOT && // Spigot simply listens for the block place event
                 session.getGeyser().getWorldManager().getBlockAt(session, pos) != packet.getEntry().getBlock();
         ChunkUtils.updateBlock(session, packet.getEntry().getBlock(), pos);

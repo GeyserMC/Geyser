@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,20 +26,26 @@
 package org.geysermc.geyser.entity.type.living.animal;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class StriderEntity extends AnimalEntity {
 
     private boolean isCold = false;
 
-    public StriderEntity(GeyserSession session, long entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public StriderEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
 
         setFlag(EntityFlag.FIRE_IMMUNE, true);
@@ -60,12 +66,8 @@ public class StriderEntity extends AnimalEntity {
         // Needs to copy the parent state
         if (getFlag(EntityFlag.RIDING)) {
             boolean parentShaking = false;
-            //TODO optimize
-            for (Entity ent : session.getEntityCache().getEntities().values()) {
-                if (ent.getPassengers().contains(entityId) && ent instanceof StriderEntity) {
-                    parentShaking = ent.getFlag(EntityFlag.SHAKING);
-                    break;
-                }
+            if (vehicle instanceof StriderEntity) {
+                parentShaking = vehicle.getFlag(EntityFlag.SHAKING);
             }
     
             setFlag(EntityFlag.BREATHING, !parentShaking);
@@ -76,10 +78,9 @@ public class StriderEntity extends AnimalEntity {
         }
 
         // Update the passengers if we have any
-        for (long passenger : passengers) {
-            Entity passengerEntity = session.getEntityCache().getEntityByJavaId(passenger);
-            if (passengerEntity != null) {
-                passengerEntity.updateBedrockMetadata();
+        for (Entity passenger : passengers) {
+            if (passenger != null) {
+                passenger.updateBedrockMetadata();
             }
         }
 
@@ -94,5 +95,38 @@ public class StriderEntity extends AnimalEntity {
     @Override
     public boolean canEat(String javaIdentifierStripped, ItemMapping mapping) {
         return javaIdentifierStripped.equals("warped_fungus");
+    }
+
+    @Nonnull
+    @Override
+    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        if (!canEat(itemInHand) && getFlag(EntityFlag.SADDLED) && passengers.isEmpty() && !session.isSneaking()) {
+            // Mount Strider
+            return InteractiveTag.RIDE_STRIDER;
+        } else {
+            InteractiveTag tag = super.testMobInteraction(hand, itemInHand);
+            if (tag != InteractiveTag.NONE) {
+                return tag;
+            } else {
+                return EntityUtils.attemptToSaddle(session, this, itemInHand).consumesAction()
+                        ? InteractiveTag.SADDLE : InteractiveTag.NONE;
+            }
+        }
+    }
+
+    @Nonnull
+    @Override
+    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        if (!canEat(itemInHand) && getFlag(EntityFlag.SADDLED) && passengers.isEmpty() && !session.isSneaking()) {
+            // Mount Strider
+            return InteractionResult.SUCCESS;
+        } else {
+            InteractionResult superResult = super.mobInteract(hand, itemInHand);
+            if (superResult.consumesAction()) {
+                return superResult;
+            } else {
+                return EntityUtils.attemptToSaddle(session, this, itemInHand);
+            }
+        }
     }
 }

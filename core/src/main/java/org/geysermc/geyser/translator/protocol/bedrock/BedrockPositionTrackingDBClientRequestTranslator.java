@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -58,14 +58,14 @@ public class BedrockPositionTrackingDBClientRequestTranslator extends PacketTran
 
         // Build the NBT data for the update
         NbtMapBuilder builder = NbtMap.builder();
-        builder.putInt("dim", DimensionUtils.javaToBedrock(pos.getDimension()));
+        builder.putInt("dim", DimensionUtils.javaToBedrock(pos.dimension()));
         builder.putString("id", "0x" + String.format("%08X", packet.getTrackingId()));
 
         builder.putByte("version", (byte) 1); // Not sure what this is for
         builder.putByte("status", (byte) 0); // Not sure what this is for
 
         // Build the position for the update
-        builder.putList("pos", NbtType.INT, pos.getX(), pos.getY(), pos.getZ());
+        builder.putList("pos", NbtType.INT, pos.x(), pos.y(), pos.z());
         broadcastPacket.setTag(builder.build());
 
         session.sendUpstreamPacket(broadcastPacket);

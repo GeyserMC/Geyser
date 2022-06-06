@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,18 +25,7 @@
 
 package org.geysermc.geyser.session.auth;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.geysermc.geyser.GeyserImpl;
-
 import java.util.UUID;
 
-public record AuthData(String name, UUID uuid, String xuid,
-                       JsonNode certChainData, String clientData) {
-
-    public void upload(GeyserImpl geyser) {
-        // we can't upload the skin in LoginEncryptionUtil since the global server would return
-        // the skin too fast, that's why we upload it after we know for sure that the target server
-        // is ready to handle the result of the global server
-        geyser.getSkinUploader().uploadSkin(certChainData, clientData);
-    }
+public record AuthData(String name, UUID uuid, String xuid) {
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,17 +53,6 @@ public @interface SoundTranslator {
      * @return the value the item in the player's hand must contain
      */
     String[] items() default {};
-
-    /**
-     * The identifier(s) that the interacted entity must have.
-     * Leave empty to ignore.
-     *
-     * Only applies to interaction handlers that are an
-     * instance of {@link EntitySoundInteractionTranslator}.
-     *
-     * @return the value the item in the player's hand must contain
-     */
-    String[] entities() default {};
 
     /**
      * Controls if the interaction should still be

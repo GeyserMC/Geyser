@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2021 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,7 @@
 package org.geysermc.geyser;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.steveice10.packetlib.tcp.TcpSession;
@@ -37,6 +38,7 @@ import io.netty.channel.kqueue.KQueue;
 import io.netty.util.NettyRuntime;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.internal.SystemPropertyUtil;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -59,9 +61,12 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.session.SessionManager;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
+import org.geysermc.geyser.skin.SkinProvider;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
@@ -70,6 +75,9 @@ import org.geysermc.geyser.util.*;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -77,6 +85,7 @@ import java.net.UnknownHostException;
 import java.security.Key;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.regex.Matcher;
@@ -112,45 +121,42 @@ public class GeyserImpl implements GeyserApi {
 
     private FloodgateCipher cipher;
     private FloodgateSkinUploader skinUploader;
-    private final NewsHandler newsHandler;
+    private NewsHandler newsHandler;
 
     private volatile boolean shuttingDown = false;
 
-    private final ScheduledExecutorService scheduledThread;
+    private ScheduledExecutorService scheduledThread;
 
-    private final BedrockServer bedrockServer;
+    private BedrockServer bedrockServer;
     private final PlatformType platformType;
     private final GeyserBootstrap bootstrap;
 
-    private final Metrics metrics;
+    private Metrics metrics;
+
+    private PendingMicrosoftAuthentication pendingMicrosoftAuthentication;
+    @Getter(AccessLevel.NONE)
+    private Map<String, String> savedRefreshTokens;
 
     private static GeyserImpl instance;
 
     private GeyserImpl(PlatformType platformType, GeyserBootstrap bootstrap) {
-        long startupTime = System.currentTimeMillis();
-
-        this.bootstrap = bootstrap;
-
         instance = this;
 
         Geyser.set(this);
 
-        GeyserLogger logger = bootstrap.getGeyserLogger();
-        GeyserConfiguration config = bootstrap.getGeyserConfig();
-
         this.platformType = platformType;
+        this.bootstrap = bootstrap;
+
+        long startupTime = System.currentTimeMillis();
 
         GeyserLocale.finalizeDefaultLocale(this);
+        GeyserLogger logger = bootstrap.getGeyserLogger();
 
         logger.info("******************************************");
         logger.info("");
         logger.info(GeyserLocale.getLocaleStringLog("geyser.core.load", NAME, VERSION));
         logger.info("");
         logger.info("******************************************");
-
-        this.scheduledThread = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("Geyser Scheduled Thread"));
-
-        logger.setDebug(config.isDebugMode());
 
         /* Initialize translators and registries */
         BlockRegistries.init();
@@ -160,7 +166,48 @@ public class GeyserImpl implements GeyserApi {
         ItemTranslator.init();
         MessageTranslator.init();
         MinecraftLocale.init();
+
+        start();
+
+        GeyserConfiguration config = bootstrap.getGeyserConfig();
+
+        boolean isGui = false;
+        // This will check if we are in standalone and get the 'useGui' variable from there
+        if (platformType == PlatformType.STANDALONE) {
+            try {
+                Class<?> cls = Class.forName("org.geysermc.geyser.platform.standalone.GeyserStandaloneBootstrap");
+                isGui = (boolean) cls.getMethod("isUseGui").invoke(cls.cast(bootstrap));
+            } catch (Exception e) {
+                logger.debug("Failed detecting if standalone is using a GUI; if this is a GeyserConnect instance this can be safely ignored.");
+            }
+        }
+
+        double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
+        String message = GeyserLocale.getLocaleStringLog("geyser.core.finish.done", new DecimalFormat("#.###").format(completeTime)) + " ";
+        if (isGui) {
+            message += GeyserLocale.getLocaleStringLog("geyser.core.finish.gui");
+        } else {
+            message += GeyserLocale.getLocaleStringLog("geyser.core.finish.console");
+        }
+
+        logger.info(message);
+
+        if (platformType == PlatformType.STANDALONE) {
+            logger.warning(GeyserLocale.getLocaleStringLog("geyser.core.movement_warn"));
+        } else if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
+            VersionCheckUtils.checkForOutdatedFloodgate(logger);
+        }
+    }
+
+    private void start() {
+        this.scheduledThread = Executors.newSingleThreadScheduledExecutor(new DefaultThreadFactory("Geyser Scheduled Thread"));
+
+        GeyserLogger logger = bootstrap.getGeyserLogger();
+        GeyserConfiguration config = bootstrap.getGeyserConfig();
+
         ScoreboardUpdater.init();
+
+        SkinProvider.registerCacheImageTask(this);
 
         ResourcePack.loadPacks();
 
@@ -202,18 +249,6 @@ public class GeyserImpl implements GeyserApi {
         // Ensure that PacketLib does not create an event loop for handling packets; we'll do that ourselves
         TcpSession.USE_EVENT_LOOP_FOR_PACKETS = false;
 
-        if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
-            try {
-                Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
-                cipher = new AesCipher(new Base64Topping());
-                cipher.init(key);
-                logger.info(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
-                skinUploader = new FloodgateSkinUploader(this).start();
-            } catch (Exception exception) {
-                logger.severe(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
-            }
-        }
-
         String branch = "unknown";
         int buildNumber = -1;
         if (this.productionEnvironment()) {
@@ -231,7 +266,10 @@ public class GeyserImpl implements GeyserApi {
         } else {
             logger.debug("Not getting git properties for the news handler as we are in a development environment.");
         }
-        newsHandler = new NewsHandler(branch, buildNumber);
+
+        pendingMicrosoftAuthentication = new PendingMicrosoftAuthentication(config.getPendingAuthenticationTimeout());
+
+        this.newsHandler = new NewsHandler(branch, buildNumber);
 
         CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
@@ -271,19 +309,39 @@ public class GeyserImpl implements GeyserApi {
         if (shouldStartListener) {
             bedrockServer.bind().whenComplete((avoid, throwable) -> {
                 if (throwable == null) {
-                    logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
+                    logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", config.getBedrock().getAddress(),
+                            String.valueOf(config.getBedrock().getPort())));
                 } else {
-                    logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
-                    throwable.printStackTrace();
+                    String address = config.getBedrock().getAddress();
+                    int port = config.getBedrock().getPort();
+                    logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", address, String.valueOf(port)));
+                    if (!"0.0.0.0".equals(address)) {
+                        logger.info(ChatColor.GREEN + "Suggestion: try setting `address` under `bedrock` in the Geyser config back to 0.0.0.0");
+                        logger.info(ChatColor.GREEN + "Then, restart this server.");
+                    }
                 }
             }).join();
+        }
+
+        if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
+            try {
+                Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
+                cipher = new AesCipher(new Base64Topping());
+                cipher.init(key);
+                logger.debug(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
+                // Note: this is positioned after the bind so the skin uploader doesn't try to run if Geyser fails
+                // to load successfully. Spigot complains about class loader if the plugin is disabled.
+                skinUploader = new FloodgateSkinUploader(this).start();
+            } catch (Exception exception) {
+                logger.severe(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
+            }
         }
 
         if (config.getMetrics().isEnabled()) {
             metrics = new Metrics(this, "GeyserMC", config.getMetrics().getUniqueId(), false, java.util.logging.Logger.getLogger(""));
             metrics.addCustomChart(new Metrics.SingleLineChart("players", sessionManager::size));
             // Prevent unwanted words best we can
-            metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> config.getRemote().getAuthType().toString().toLowerCase()));
+            metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> config.getRemote().getAuthType().toString().toLowerCase(Locale.ROOT)));
             metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::getPlatformName));
             metrics.addCustomChart(new Metrics.SimplePie("defaultLocale", GeyserLocale::getDefaultLocale));
             metrics.addCustomChart(new Metrics.SimplePie("version", () -> GeyserImpl.VERSION));
@@ -367,30 +425,45 @@ public class GeyserImpl implements GeyserApi {
             metrics = null;
         }
 
-        boolean isGui = false;
-        // This will check if we are in standalone and get the 'useGui' variable from there
-        if (platformType == PlatformType.STANDALONE) {
-            try {
-                Class<?> cls = Class.forName("org.geysermc.geyser.platform.standalone.GeyserStandaloneBootstrap");
-                isGui = (boolean) cls.getMethod("isUseGui").invoke(cls.cast(bootstrap));
-            } catch (Exception e) {
-                logger.debug("Failed detecting if standalone is using a GUI; if this is a GeyserConnect instance this can be safely ignored.");
+        if (config.getRemote().getAuthType() == AuthType.ONLINE) {
+            if (config.getUserAuths() != null && !config.getUserAuths().isEmpty()) {
+                getLogger().warning("The 'userAuths' config section is now deprecated, and will be removed in the near future! " +
+                        "Please migrate to the new 'saved-user-logins' config option: " +
+                        "https://wiki.geysermc.org/geyser/understanding-the-config/");
             }
-        }
 
-        double completeTime = (System.currentTimeMillis() - startupTime) / 1000D;
-        String message = GeyserLocale.getLocaleStringLog("geyser.core.finish.done", new DecimalFormat("#.###").format(completeTime)) + " ";
-        if (isGui) {
-            message += GeyserLocale.getLocaleStringLog("geyser.core.finish.gui");
+            // May be written/read to on multiple threads from each GeyserSession as well as writing the config
+            savedRefreshTokens = new ConcurrentHashMap<>();
+
+            File tokensFile = bootstrap.getSavedUserLoginsFolder().resolve(Constants.SAVED_REFRESH_TOKEN_FILE).toFile();
+            if (tokensFile.exists()) {
+                TypeReference<Map<String, String>> type = new TypeReference<>() { };
+
+                Map<String, String> refreshTokenFile = null;
+                try {
+                    refreshTokenFile = JSON_MAPPER.readValue(tokensFile, type);
+                } catch (IOException e) {
+                    logger.error("Cannot load saved user tokens!", e);
+                }
+                if (refreshTokenFile != null) {
+                    List<String> validUsers = config.getSavedUserLogins();
+                    boolean doWrite = false;
+                    for (Map.Entry<String, String> entry : refreshTokenFile.entrySet()) {
+                        String user = entry.getKey();
+                        if (!validUsers.contains(user)) {
+                            // Perform a write to this file to purge the now-unused name
+                            doWrite = true;
+                            continue;
+                        }
+                        savedRefreshTokens.put(user, entry.getValue());
+                    }
+                    if (doWrite) {
+                        scheduleRefreshTokensWrite();
+                    }
+                }
+            }
         } else {
-            message += GeyserLocale.getLocaleStringLog("geyser.core.finish.console");
-        }
-        logger.info(message);
-
-        if (platformType == PlatformType.STANDALONE) {
-            logger.warning(GeyserLocale.getLocaleStringLog("geyser.core.movement_warn"));
-        } else if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
-            VersionCheckUtils.checkForOutdatedFloodgate(logger);
+            savedRefreshTokens = null;
         }
 
         newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
@@ -447,6 +520,8 @@ public class GeyserImpl implements GeyserApi {
         newsHandler.shutdown();
         this.getCommandManager().getCommands().clear();
 
+        ResourcePack.PACKS.clear();
+
         bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.done"));
     }
 
@@ -469,7 +544,17 @@ public class GeyserImpl implements GeyserApi {
     }
 
     public static GeyserImpl start(PlatformType platformType, GeyserBootstrap bootstrap) {
-        return new GeyserImpl(platformType, bootstrap);
+        if (instance == null) {
+            return new GeyserImpl(platformType, bootstrap);
+        }
+
+        // We've been reloaded
+        if (instance.isShuttingDown()) {
+            instance.shuttingDown = false;
+            instance.start();
+        }
+
+        return instance;
     }
 
     public GeyserLogger getLogger() {
@@ -486,6 +571,39 @@ public class GeyserImpl implements GeyserApi {
 
     public WorldManager getWorldManager() {
         return bootstrap.getWorldManager();
+    }
+
+    @Nullable
+    public String refreshTokenFor(@NonNull String bedrockName) {
+        return savedRefreshTokens.get(bedrockName);
+    }
+
+    public void saveRefreshToken(@NonNull String bedrockName, @NonNull String refreshToken) {
+        if (!getConfig().getSavedUserLogins().contains(bedrockName)) {
+            // Do not save this login
+            return;
+        }
+
+        // We can safely overwrite old instances because MsaAuthenticationService#getLoginResponseFromRefreshToken
+        // refreshes the token for us
+        if (!Objects.equals(refreshToken, savedRefreshTokens.put(bedrockName, refreshToken))) {
+            scheduleRefreshTokensWrite();
+        }
+    }
+
+    private void scheduleRefreshTokensWrite() {
+        scheduledThread.execute(() -> {
+            // Ensure all writes are handled on the same thread
+            File savedTokens = getBootstrap().getSavedUserLoginsFolder().resolve(Constants.SAVED_REFRESH_TOKEN_FILE).toFile();
+            TypeReference<Map<String, String>> type = new TypeReference<>() { };
+            try (FileWriter writer = new FileWriter(savedTokens)) {
+                JSON_MAPPER.writerFor(type)
+                        .withDefaultPrettyPrinter()
+                        .writeValue(writer, savedRefreshTokens);
+            } catch (IOException e) {
+                getLogger().error("Unable to write saved refresh tokens!", e);
+            }
+        });
     }
 
     public static GeyserImpl getInstance() {
