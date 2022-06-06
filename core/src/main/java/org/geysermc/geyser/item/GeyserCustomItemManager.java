@@ -25,35 +25,17 @@
 
 package org.geysermc.geyser.item;
 
-import com.github.steveice10.opennbt.tag.builtin.ByteTag;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.IntTag;
-import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
-import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
-import org.geysermc.geyser.api.item.custom.CustomItemManager;
-import org.geysermc.geyser.api.item.custom.CustomItemOptions;
-import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.item.mappings.MappingsConfigReader;
-import org.geysermc.geyser.registry.populator.CustomItemRegistryPopulator;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
 import java.util.function.BiConsumer;
 
-public class GeyserCustomItemManager extends CustomItemManager {
+public class GeyserCustomItemManager {
     public static final String CUSTOM_PREFIX = "geyser_custom:";
-
-    private final Map<String, List<CustomItemData>> customMappings = new HashMap<>();
-
-    private final List<GeyserCustomMappingData> registeredCustomItems = new ArrayList<>();
 
     public GeyserCustomItemManager() {
         MappingsConfigReader.init(this);
@@ -74,23 +56,5 @@ public class GeyserCustomItemManager extends CustomItemManager {
         for (Path mappingsFile : mappingsFiles) {
             MappingsConfigReader.readMappingsFromJson(mappingsFile, consumer);
         }
-
-        if (this.registeredItemCount() != 0) {
-            GeyserImpl.getInstance().getLogger().info("Registered " + this.registeredItemCount() + " custom items from mappings");
-        }
-    }
-
-    @Override
-    public @NotNull List<CustomItemData> customItemData(@NotNull String identifier) {
-        return this.customMappings.getOrDefault(identifier, Collections.emptyList());
-    }
-
-    @Override
-    public @NotNull Map<String, List<CustomItemData>> itemMappings() {
-        return this.customMappings;
-    }
-
-    public int registeredItemCount() {
-        return this.registeredCustomItems.size();
     }
 }

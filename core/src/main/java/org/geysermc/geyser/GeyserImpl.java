@@ -597,7 +597,6 @@ public class GeyserImpl implements GeyserApi {
         return this.eventBus;
     }
 
-    @Override
     public GeyserCustomItemManager customItemManager() {
         return this.customItemManager;
     }

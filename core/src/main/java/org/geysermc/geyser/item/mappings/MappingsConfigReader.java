@@ -65,18 +65,18 @@ public class MappingsConfigReader {
         try {
             mappingsRoot = GeyserImpl.JSON_MAPPER.readTree(file.toFile());
         } catch (IOException e) {
-            GeyserImpl.getInstance().getLogger().error("Failed to read custom mapping file: " + file.toString(), e);
+            GeyserImpl.getInstance().getLogger().error("Failed to read custom mapping file: " + file, e);
             return;
         }
 
         if (!mappingsRoot.has("format_version")) {
-            GeyserImpl.getInstance().getLogger().error("Mappings file " + file.toString() + " is missing the format version field!");
+            GeyserImpl.getInstance().getLogger().error("Mappings file " + file + " is missing the format version field!");
             return;
         }
 
         String formatVersion = mappingsRoot.get("format_version").asText();
         if (!MAPPING_READERS.containsKey(formatVersion)) {
-            GeyserImpl.getInstance().getLogger().error("Mappings file " + file.toString() + " has an unknown format version: " + formatVersion);
+            GeyserImpl.getInstance().getLogger().error("Mappings file " + file + " has an unknown format version: " + formatVersion);
             return;
         }
 

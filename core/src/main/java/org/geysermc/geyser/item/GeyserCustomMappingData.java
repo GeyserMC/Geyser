@@ -27,29 +27,6 @@ package org.geysermc.geyser.item;
 
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import org.geysermc.geyser.registry.type.ItemMapping;
 
-public class GeyserCustomMappingData {
-    private Int2ObjectMap<Mapping> mappings = new Int2ObjectOpenHashMap<>();
-
-    public void addMapping(int protocolVersion, Mapping mapping) {
-        if (mapping == null) {
-            throw new IllegalArgumentException("Mapping cannot be null");
-        }
-
-        mappings.put(protocolVersion, mapping);
-    }
-
-    public Mapping getMapping(int protocolVersion) {
-        return mappings.get(protocolVersion);
-    }
-
-    public int protocolsMappedCount() {
-        return mappings.size();
-    }
-
-    public record Mapping(ComponentItemData componentItemData, ItemMapping itemMapping, StartGamePacket.ItemEntry startGamePacketItemEntry, String stringId, int integerId) {
-    }
+public record GeyserCustomMappingData(ComponentItemData componentItemData, StartGamePacket.ItemEntry startGamePacketItemEntry, String stringId, int integerId) {
 }

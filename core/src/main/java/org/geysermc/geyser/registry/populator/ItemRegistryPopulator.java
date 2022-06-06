@@ -50,6 +50,7 @@ import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
+import org.geysermc.geyser.item.GeyserCustomItemManager;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -113,11 +114,7 @@ public class ItemRegistryPopulator {
 
                 @Override
                 public boolean registerCustomItem(@NonNull NonVanillaCustomItemData customItemData) {
-                    if (customItemData.javaId() < 0) {
-                        GeyserImpl.getInstance().getLogger().error("The custom item " + customItemData.identifier() +
-                                " cannot have a negative ID!");
-                        return false;
-                    }
+                    customItemData.javaId();
 
                     if (customItemData.identifier().startsWith("minecraft:")) {
                         GeyserImpl.getInstance().getLogger().error("The custom item " + customItemData.identifier() +
@@ -137,6 +134,11 @@ public class ItemRegistryPopulator {
             });
         } else {
             nonVanillaCustomItems = Collections.emptyList();
+        }
+
+        int customItemCount = customItems.size() + nonVanillaCustomItems.size();
+        if (customItemCount > 0) {
+            GeyserImpl.getInstance().getLogger().info("Registered " + customItemCount + " custom items");
         }
 
         // We can reduce some operations as Java information is the same across all palette versions
@@ -285,6 +287,7 @@ public class ItemRegistryPopulator {
             javaOnlyItems.addAll(palette.getValue().additionalTranslatedItems().keySet());
 
             Int2ObjectMap<String> customIdMappings = new Int2ObjectOpenHashMap<>();
+            List<String> registeredItemNames = new ArrayList<>(); // This is used to check for duplicate item names
 
             for (Map.Entry<String, GeyserMappingItem> entry : items.entrySet()) {
                 String javaIdentifier = entry.getKey().intern();
@@ -477,8 +480,18 @@ public class ItemRegistryPopulator {
 
                     for (CustomItemData customItem : customItemsToLoad) {
                         int customProtocolId = nextFreeBedrockId++;
-                        GeyserCustomMappingData.Mapping customMapping = CustomItemRegistryPopulator.registerCustomItem(
-                                mappingItem, customItem, customProtocolId
+
+                        String customItemName = GeyserCustomItemManager.CUSTOM_PREFIX + customItem.name();
+                        if (registeredItemNames.contains(customItemName)) {
+                            if (firstMappingsPass) {
+                                GeyserImpl.getInstance().getLogger().error("Custom item name '" + customItem.name() + "' already exists and was registered again! Skipping...");
+                            }
+                            continue;
+                        }
+                        registeredItemNames.add(customItemName);
+
+                        GeyserCustomMappingData customMapping = CustomItemRegistryPopulator.registerCustomItem(
+                                customItemName, mappingItem, customItem, customProtocolId
                         );
                         // StartGamePacket entry - needed for Bedrock to recognize the item through the protocol
                         entries.put(customMapping.stringId(), customMapping.startGamePacketItemEntry());

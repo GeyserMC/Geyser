@@ -31,7 +31,6 @@ import org.geysermc.api.Geyser;
 import org.geysermc.api.GeyserApiBase;
 import org.geysermc.geyser.api.command.CommandManager;
 import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.item.custom.CustomItemManager;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.network.BedrockListener;
@@ -115,13 +114,6 @@ public interface GeyserApi extends GeyserApiBase {
      * @return the event bus
      */
     EventBus eventBus();
-
-    /**
-     * Gets the {@link CustomItemManager}.
-     *
-     * @return the custom item manager
-     */
-    CustomItemManager customItemManager();
 
     /**
      * Gets the default {@link RemoteServer} configured

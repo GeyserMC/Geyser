@@ -34,7 +34,6 @@ import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
-import org.geysermc.geyser.item.GeyserCustomItemManager;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.GeyserCustomRenderOffsets;
 import org.geysermc.geyser.item.tools.ToolBreakSpeedsUtils;
@@ -47,25 +46,13 @@ import java.util.Map;
 import java.util.OptionalInt;
 
 public class CustomItemRegistryPopulator {
-
-    public static GeyserCustomMappingData.Mapping registerCustomItem(GeyserMappingItem javaItem, CustomItemData customItemData, int bedrockId) {
-        String customItemName = GeyserCustomItemManager.CUSTOM_PREFIX + customItemData.name();
-
-        /*
-        for (String mappingName : itemMappings.getCustomIdMappings().values()) {
-            if (Pattern.matches("^" + customItemName + "(_([0-9])+)?$", mappingName)) {
-                GeyserImpl.getInstance().getLogger().error("Custom item name '" + customItemData.name() + "' already exists and was registered again! Skipping...");
-                return;
-            }
-        }
-        */
-
+    public static GeyserCustomMappingData registerCustomItem(String customItemName, GeyserMappingItem javaItem, CustomItemData customItemData, int bedrockId) {
         StartGamePacket.ItemEntry startGamePacketItemEntry = new StartGamePacket.ItemEntry(customItemName, (short) bedrockId, true);
 
         NbtMapBuilder builder = createComponentNbt(customItemData, javaItem, customItemName, bedrockId);
         ComponentItemData componentItemData = new ComponentItemData(customItemName, builder.build());
 
-        return new GeyserCustomMappingData.Mapping(componentItemData, null, startGamePacketItemEntry, customItemName, bedrockId);
+        return new GeyserCustomMappingData(componentItemData, startGamePacketItemEntry, customItemName, bedrockId);
     }
 
     static boolean initialCheck(String identifier, CustomItemData item, Map<String, GeyserMappingItem> mappings) {
