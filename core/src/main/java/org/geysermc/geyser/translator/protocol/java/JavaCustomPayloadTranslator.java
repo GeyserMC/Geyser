@@ -103,7 +103,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
             transferPacket.setPort(port);
             session.sendUpstreamPacket(transferPacket);
 
-        } else if (channel.equals("floodgate:packet")) {
+        } else if (channel.equals(PluginMessageChannels.PACKET)) {
             logger.debug("A packet has been sent using the Floodgate api");
             byte[] data = packet.getData();
 
