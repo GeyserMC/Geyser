@@ -1393,7 +1393,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      * @deprecated since Cumulus version 1.1, and will be removed when Cumulus 2.0 releases. Please use the new forms instead.
      */
     @Deprecated
-    public void sendForm(org.geysermc.cumulus.util.FormBuilder<?, ?, ?, ?> formBuilder) {
+    public void sendForm(org.geysermc.cumulus.util.FormBuilder<?, ?> formBuilder) {
         sendForm(formBuilder.build());
     }
 
