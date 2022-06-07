@@ -29,6 +29,7 @@ import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.data.MappingData;
 import com.viaversion.viaversion.api.protocol.ProtocolPathEntry;
 import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
+import io.netty.buffer.ByteBuf;
 import me.lucko.commodore.CommodoreProvider;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
@@ -108,11 +109,9 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         }
 
         try {
-            // Required for the Cloudburst Network dependency to initialize.
-            Class.forName("io.netty.channel.kqueue.KQueue");
-        } catch (ClassNotFoundException e) {
-            // While we could support these older versions, the downside is not having KQueue working at all
-            // And since there are alternative ways to get Geyser working for these aging platforms, it's not worth it.
+            // AvailableCommandsSerializer_v291 complains otherwise
+            ByteBuf.class.getMethod("writeShortLE", int.class);
+        } catch (NoSuchMethodException e) {
             getLogger().severe("*********************************************");
             getLogger().severe("");
             getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_server.header"));

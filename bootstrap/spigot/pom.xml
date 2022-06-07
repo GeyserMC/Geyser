@@ -116,6 +116,12 @@
                                     <pattern>me.lucko.commodore</pattern>
                                     <shadedPattern>org.geysermc.geyser.platform.spigot.shaded.commodore</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <!-- This is not used because relocating breaks natives, but we must include it
+                                     or else we get ClassDefNotFound after 1.18.2 -->
+                                    <pattern>io.netty.channel.kqueue</pattern>
+                                    <shadedPattern>org.geysermc.geyser.platform.spigot.shaded.io.netty.channel.kqueue</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>
@@ -129,7 +135,6 @@
                             <!-- Needed because older Spigot builds do not provide the haproxy module -->
                             <exclude>io.netty:netty-transport-native-epoll:*</exclude>
                             <exclude>io.netty:netty-transport-native-unix-common:*</exclude>
-                            <exclude>io.netty:netty-transport-native-kqueue:*</exclude>
                             <exclude>io.netty:netty-handler:*</exclude>
                             <exclude>io.netty:netty-common:*</exclude>
                             <exclude>io.netty:netty-buffer:*</exclude>
