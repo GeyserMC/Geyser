@@ -772,6 +772,8 @@ public final class EntityDefinitions {
                     .type(EntityType.GOAT)
                     .height(1.3f).width(0.9f)
                     .addTranslator(MetadataType.BOOLEAN, GoatEntity::setScreamer)
+                    .addTranslator(MetadataType.BOOLEAN, GoatEntity::setHasLeftHorn)
+                    .addTranslator(MetadataType.BOOLEAN, GoatEntity::setHasRightHorn)
                     .build();
             MOOSHROOM = EntityDefinition.inherited(MooshroomEntity::new, ageableEntityBase)
                     .type(EntityType.MOOSHROOM)

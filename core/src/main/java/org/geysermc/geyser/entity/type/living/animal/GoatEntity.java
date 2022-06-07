@@ -30,6 +30,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanE
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.SoundEvent;
+import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -44,6 +45,8 @@ public class GoatEntity extends AnimalEntity {
     private static final float LONG_JUMPING_WIDTH = 0.9f * 0.7f;
 
     private boolean isScreamer;
+    private boolean hasLeftHorn;
+    private boolean hasRightHorn;
 
     public GoatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -73,5 +76,19 @@ public class GoatEntity extends AnimalEntity {
         } else {
             return super.mobInteract(hand, itemInHand);
         }
+    }
+
+    public void setHasLeftHorn(BooleanEntityMetadata entityMetadata) {
+        hasLeftHorn = entityMetadata.getPrimitiveValue();
+        setHornCount();
+    }
+
+    public void setHasRightHorn(BooleanEntityMetadata entityMetadata) {
+        hasRightHorn = entityMetadata.getPrimitiveValue();
+        setHornCount();
+    }
+
+    private void setHornCount() {
+        dirtyMetadata.put(EntityData.GOAT_HORN_COUNT, (hasLeftHorn ? 1 : 0) + (hasRightHorn ? 1 : 0));
     }
 }
