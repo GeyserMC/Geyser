@@ -26,6 +26,7 @@
 package org.geysermc.geyser.entity.type.living.monster;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
 import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
@@ -71,8 +72,8 @@ public class PiglinEntity extends BasePiglinEntity {
 
     @Nonnull
     @Override
-    protected InteractiveTag testMobInteraction(@Nonnull GeyserItemStack itemInHand) {
-        InteractiveTag tag = super.testMobInteraction(itemInHand);
+    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        InteractiveTag tag = super.testMobInteraction(hand, itemInHand);
         if (tag != InteractiveTag.NONE) {
             return tag;
         } else {
@@ -82,8 +83,8 @@ public class PiglinEntity extends BasePiglinEntity {
 
     @Nonnull
     @Override
-    protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
-        InteractionResult superResult = super.mobInteract(itemInHand);
+    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        InteractionResult superResult = super.mobInteract(hand, itemInHand);
         if (superResult.consumesAction()) {
             return superResult;
         } else {

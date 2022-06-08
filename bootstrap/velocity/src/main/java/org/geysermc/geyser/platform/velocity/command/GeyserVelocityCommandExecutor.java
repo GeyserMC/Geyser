@@ -27,11 +27,11 @@ package org.geysermc.geyser.platform.velocity.command;
 
 import com.velocitypowered.api.command.SimpleCommand;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandExecutor;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Arrays;

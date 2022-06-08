@@ -86,4 +86,14 @@ public abstract class GeyserCommand implements Command {
     public void setAliases(List<String> aliases) {
         this.aliases = aliases;
     }
+
+    /**
+     * Used for permission defaults on server implementations.
+     *
+     * @return if this command is designated to be used only by server operators.
+     */
+    @Override
+    public boolean isSuggestedOpOnly() {
+        return false;
+    }
 }

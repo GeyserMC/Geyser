@@ -31,9 +31,9 @@ import com.nukkitx.protocol.bedrock.packet.InventorySlotPacket;
 import lombok.AllArgsConstructor;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
-import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.ArrayList;
 import java.util.List;

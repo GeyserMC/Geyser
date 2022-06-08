@@ -27,7 +27,6 @@ package org.geysermc.geyser.inventory.recipe;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
-import com.github.steveice10.mc.protocol.data.game.recipe.RecipeType;
 import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapedRecipeData;
 
 public record GeyserShapedRecipe(int width, int height, Ingredient[] ingredients, ItemStack result) implements GeyserRecipe {

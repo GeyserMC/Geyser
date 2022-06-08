@@ -35,17 +35,18 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.geysermc.floodgate.util.DeviceOs;
+import org.geysermc.floodgate.util.FloodgateInfoHolder;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.AsteriskSerializer;
+import org.geysermc.geyser.util.CpuUtils;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.WebUtils;
-import org.geysermc.floodgate.util.DeviceOs;
-import org.geysermc.floodgate.util.FloodgateInfoHolder;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,6 +67,7 @@ public class DumpInfo {
 
     private final DumpInfo.VersionInfo versionInfo;
     private final int cpuCount;
+    private final String cpuName;
     private final Locale systemLocale;
     private final String systemEncoding;
     private Properties gitInfo;
@@ -83,6 +85,7 @@ public class DumpInfo {
         this.versionInfo = new VersionInfo();
 
         this.cpuCount = Runtime.getRuntime().availableProcessors();
+        this.cpuName = CpuUtils.tryGetProcessorName();
         this.systemLocale = Locale.getDefault();
         this.systemEncoding = System.getProperty("file.encoding");
 
