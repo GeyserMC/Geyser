@@ -30,7 +30,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.integrated.IntegratedServer;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import net.minecraft.world.GameMode;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.platform.fabric.GeyserFabricMod;
@@ -58,7 +58,7 @@ public class IntegratedServerMixin implements GeyserServerPortGetter {
             // Ensure player locale has been loaded, in case it's different from Java system language
             GeyserLocale.loadGeyserLocale(this.client.options.language);
             // Give indication that Geyser is loaded
-            this.client.player.sendMessage(new LiteralText(GeyserLocale.getPlayerLocaleString("geyser.core.start",
+            this.client.player.sendMessage(Text.literal(GeyserLocale.getPlayerLocaleString("geyser.core.start",
                     this.client.options.language, "localhost", String.valueOf(this.lanPort))), false);
         }
     }

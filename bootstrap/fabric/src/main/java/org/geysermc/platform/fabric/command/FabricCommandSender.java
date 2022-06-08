@@ -27,7 +27,7 @@ package org.geysermc.platform.fabric.command;
 
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.text.ChatColor;
@@ -49,7 +49,7 @@ public class FabricCommandSender implements CommandSender {
     @Override
     public void sendMessage(String message) {
         if (source.getEntity() instanceof ServerPlayerEntity) {
-            ((ServerPlayerEntity) source.getEntity()).sendMessage(new LiteralText(message), false);
+            ((ServerPlayerEntity) source.getEntity()).sendMessage(Text.literal(message), false);
         } else {
             GeyserImpl.getInstance().getLogger().info(ChatColor.toANSI(message + ChatColor.RESET));
         }
