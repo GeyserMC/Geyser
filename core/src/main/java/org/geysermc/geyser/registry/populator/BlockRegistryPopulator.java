@@ -28,9 +28,7 @@ package org.geysermc.geyser.registry.populator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import com.nukkitx.nbt.*;
-import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
-import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
-import com.nukkitx.protocol.bedrock.v503.Bedrock_v503;
+import com.nukkitx.protocol.bedrock.v527.Bedrock_v527;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -61,51 +59,9 @@ public class BlockRegistryPopulator {
     private static final ImmutableMap<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> BLOCK_MAPPERS;
     private static final BiFunction<String, NbtMapBuilder, String> EMPTY_MAPPER = (bedrockIdentifier, statesBuilder) -> null;
 
-    private static final BiFunction<String, NbtMapBuilder, String> V486_MAPPER = (bedrockIdentifier, statesBuilder) -> {
-        statesBuilder.remove("no_drop_bit"); // Used in skulls
-        if (bedrockIdentifier.equals("minecraft:glow_lichen")) {
-            // Moved around north, south, west
-            int bits = (int) statesBuilder.get("multi_face_direction_bits");
-            boolean north = (bits & (1 << 2)) != 0;
-            boolean south = (bits & (1 << 3)) != 0;
-            boolean west = (bits & (1 << 4)) != 0;
-            if (north) {
-                bits |= 1 << 4;
-            } else {
-                bits &= ~(1 << 4);
-            }
-            if (south) {
-                bits |= 1 << 2;
-            } else {
-                bits &= ~(1 << 2);
-            }
-            if (west) {
-                bits |= 1 << 3;
-            } else {
-                bits &= ~(1 << 3);
-            }
-            statesBuilder.put("multi_face_direction_bits", bits);
-        }
-        return null;
-    };
-
     static {
         ImmutableMap.Builder<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> stateMapperBuilder = ImmutableMap.<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>>builder()
-                .put(ObjectIntPair.of("1_18_0", Bedrock_v475.V475_CODEC.getProtocolVersion()), EMPTY_MAPPER)
-                .put(ObjectIntPair.of("1_18_10", Bedrock_v486.V486_CODEC.getProtocolVersion()), V486_MAPPER)
-                .put(ObjectIntPair.of("1_18_30", Bedrock_v503.V503_CODEC.getProtocolVersion()), (bedrockIdentifier, statesBuilder) -> {
-                    // Apply these fixes too
-                    V486_MAPPER.apply(bedrockIdentifier, statesBuilder);
-                    return switch (bedrockIdentifier) {
-                        case "minecraft:pistonArmCollision" -> "minecraft:piston_arm_collision";
-                        case "minecraft:stickyPistonArmCollision" -> "minecraft:sticky_piston_arm_collision";
-                        case "minecraft:movingBlock" -> "minecraft:moving_block";
-                        case "minecraft:tripWire" -> "minecraft:trip_wire";
-                        case "minecraft:seaLantern" -> "minecraft:sea_lantern";
-                        case "minecraft:concretePowder" -> "minecraft:concrete_powder";
-                        default -> null;
-                    };
-                });
+                .put(ObjectIntPair.of("1_19_0", Bedrock_v527.V527_CODEC.getProtocolVersion()), EMPTY_MAPPER);
 
         BLOCK_MAPPERS = stateMapperBuilder.build();
     }
@@ -294,7 +250,7 @@ public class BlockRegistryPopulator {
                 builder.pickItem(pickItemNode.textValue().intern());
             }
 
-            if (javaId.equals("minecraft:obsidian") || javaId.equals("minecraft:crying_obsidian") || javaId.startsWith("minecraft:respawn_anchor")) {
+            if (javaId.equals("minecraft:obsidian") || javaId.equals("minecraft:crying_obsidian") || javaId.startsWith("minecraft:respawn_anchor") || javaId.startsWith("minecraft:reinforced_deepslate")) {
                 builder.pistonBehavior(PistonBehavior.BLOCK);
             } else {
                 JsonNode pistonBehaviorNode = entry.getValue().get("piston_behavior");

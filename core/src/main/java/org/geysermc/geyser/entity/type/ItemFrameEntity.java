@@ -79,8 +79,8 @@ public class ItemFrameEntity extends Entity {
      */
     private boolean changed = true;
 
-    public ItemFrameEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, Direction direction) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, 0f);
+    public ItemFrameEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw, Direction direction) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
 
         NbtMapBuilder blockBuilder = NbtMap.builder()
                 .putString("name", this.definition.entityType() == EntityType.GLOW_ITEM_FRAME ? "minecraft:glow_frame" : "minecraft:frame")

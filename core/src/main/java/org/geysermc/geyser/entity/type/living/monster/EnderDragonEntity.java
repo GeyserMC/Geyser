@@ -213,7 +213,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
      */
     private void effectTick() {
         Random random = ThreadLocalRandom.current();
-        if (!getFlag(EntityFlag.SILENT)) {
+        if (!silent) {
             if (Math.cos(wingPosition * 2f * Math.PI) <= -0.3f && Math.cos(lastWingPosition * 2f * Math.PI) >= -0.3f) {
                 PlaySoundPacket playSoundPacket = new PlaySoundPacket();
                 playSoundPacket.setSound("mob.enderdragon.flap");

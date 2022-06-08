@@ -23,32 +23,35 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java.entity.player;
+package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.player.ClientboundBlockBreakAckPacket;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundSystemChatPacket;
+import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.util.ChunkUtils;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 
-@Translator(packet = ClientboundBlockBreakAckPacket.class)
-public class JavaBlockBreakAckTranslator extends PacketTranslator<ClientboundBlockBreakAckPacket> {
+@Translator(packet = ClientboundSystemChatPacket.class)
+public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystemChatPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundBlockBreakAckPacket packet) {
-        ChunkUtils.updateBlock(session, packet.getNewState(), packet.getPosition());
-        if (packet.getAction() == PlayerAction.START_DIGGING && !packet.isSuccessful()) {
-            LevelEventPacket stopBreak = new LevelEventPacket();
-            stopBreak.setType(LevelEventType.BLOCK_STOP_BREAK);
-            stopBreak.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
-            stopBreak.setData(0);
-            session.setBreakingBlock(BlockStateValues.JAVA_AIR_ID);
-            session.sendUpstreamPacket(stopBreak);
-        }
+    public void translate(GeyserSession session, ClientboundSystemChatPacket packet) {
+        TextPacket textPacket = new TextPacket();
+        textPacket.setPlatformChatId("");
+        textPacket.setSourceName("");
+        textPacket.setXuid(session.getAuthData().xuid());
+        // TODO new types
+        textPacket.setType(switch (packet.getType()) {
+            case CHAT -> TextPacket.Type.CHAT;
+            case SYSTEM -> TextPacket.Type.SYSTEM;
+            case GAME_INFO -> TextPacket.Type.TIP;
+            default -> TextPacket.Type.RAW;
+        });
+
+        textPacket.setNeedsTranslation(false);
+        textPacket.setMessage(MessageTranslator.convertMessage(packet.getContent(), session.getLocale()));
+
+        session.sendUpstreamPacket(textPacket);
     }
 }

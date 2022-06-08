@@ -38,7 +38,6 @@ import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.data.inventory.CraftingData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.CraftingDataPacket;
-import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
 import it.unimi.dsi.fastutil.ints.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -81,8 +80,6 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         Map<RecipeType, List<CraftingData>> recipeTypes = Registries.CRAFTING_DATA.forVersion(session.getUpstream().getProtocolVersion());
         // Get the last known network ID (first used for the pregenerated recipes) and increment from there.
         int netId = InventoryUtils.LAST_RECIPE_NET_ID + 1;
-
-        boolean applySmithingRecipes = session.getUpstream().getProtocolVersion() >= Bedrock_v486.V486_CODEC.getProtocolVersion();
 
         Int2ObjectMap<GeyserRecipe> recipeMap = new Int2ObjectOpenHashMap<>(Registries.RECIPES.forVersion(session.getUpstream().getProtocolVersion()));
         Int2ObjectMap<List<StoneCuttingRecipeData>> unsortedStonecutterData = new Int2ObjectOpenHashMap<>();
@@ -138,10 +135,6 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 }
                 case SMITHING -> {
                     // Required to translate these as of 1.18.10, or else they cannot be crafted
-                    if (!applySmithingRecipes) {
-                        continue;
-                    }
-
                     SmithingRecipeData recipeData = (SmithingRecipeData) recipe.getData();
                     ItemData output = ItemTranslator.translateToBedrock(session, recipeData.getResult());
                     for (ItemStack base : recipeData.getBase().getOptions()) {

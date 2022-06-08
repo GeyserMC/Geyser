@@ -51,6 +51,7 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
 public final class EntityDefinitions {
+    public static final EntityDefinition<AllayEntity> ALLAY;
     public static final EntityDefinition<AreaEffectCloudEntity> AREA_EFFECT_CLOUD;
     public static final EntityDefinition<ArmorStandEntity> ARMOR_STAND;
     public static final EntityDefinition<TippedArrowEntity> ARROW;
@@ -63,6 +64,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<SpiderEntity> CAVE_SPIDER;
     public static final EntityDefinition<MinecartEntity> CHEST_MINECART;
     public static final EntityDefinition<ChickenEntity> CHICKEN;
+    public static final EntityDefinition<ChestBoatEntity> CHEST_BOAT;
     public static final EntityDefinition<AbstractFishEntity> COD;
     public static final EntityDefinition<CommandBlockMinecartEntity> COMMAND_BLOCK_MINECART;
     public static final EntityDefinition<CowEntity> COW;
@@ -88,6 +90,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<FireworkEntity> FIREWORK_ROCKET;
     public static final EntityDefinition<FishingHookEntity> FISHING_BOBBER;
     public static final EntityDefinition<FoxEntity> FOX;
+    public static final EntityDefinition<FrogEntity> FROG;
     public static final EntityDefinition<FurnaceMinecartEntity> FURNACE_MINECART; // Not present on Bedrock
     public static final EntityDefinition<GhastEntity> GHAST;
     public static final EntityDefinition<GiantEntity> GIANT;
@@ -143,6 +146,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<SquidEntity> SQUID;
     public static final EntityDefinition<AbstractSkeletonEntity> STRAY;
     public static final EntityDefinition<StriderEntity> STRIDER;
+    public static final EntityDefinition<TadpoleEntity> TADPOLE;
     public static final EntityDefinition<TNTEntity> TNT;
     public static final EntityDefinition<MinecartEntity> TNT_MINECART;
     public static final EntityDefinition<TraderLlamaEntity> TRADER_LLAMA;
@@ -153,6 +157,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<VillagerEntity> VILLAGER;
     public static final EntityDefinition<VindicatorEntity> VINDICATOR;
     public static final EntityDefinition<AbstractMerchantEntity> WANDERING_TRADER;
+    public static final EntityDefinition<WardenEntity> WARDEN;
     public static final EntityDefinition<RaidParticipantEntity> WITCH;
     public static final EntityDefinition<WitherEntity> WITHER;
     public static final EntityDefinition<AbstractSkeletonEntity> WITHER_SKELETON;
@@ -179,7 +184,7 @@ public final class EntityDefinitions {
                 .addTranslator(MetadataType.INT, Entity::setAir) // Air/bubbles
                 .addTranslator(MetadataType.OPTIONAL_CHAT, Entity::setDisplayName)
                 .addTranslator(MetadataType.BOOLEAN, Entity::setDisplayNameVisible)
-                .addTranslator(MetadataType.BOOLEAN, (entity, entityMetadata) -> entity.setFlag(EntityFlag.SILENT, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
+                .addTranslator(MetadataType.BOOLEAN, Entity::setSilent)
                 .addTranslator(MetadataType.BOOLEAN, Entity::setGravity)
                 .addTranslator(MetadataType.POSE, (entity, entityMetadata) -> entity.setPose(entityMetadata.getValue()))
                 .addTranslator(MetadataType.INT, Entity::setFreezing)
@@ -208,6 +213,9 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataType.BOOLEAN, BoatEntity::setPaddlingLeft)
                     .addTranslator(MetadataType.BOOLEAN, BoatEntity::setPaddlingRight)
                     .addTranslator(MetadataType.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityData.BOAT_BUBBLE_TIME, entityMetadata.getValue())) // May not actually do anything
+                    .build();
+            CHEST_BOAT = EntityDefinition.inherited(ChestBoatEntity::new, BOAT)
+                    .type(EntityType.CHEST_BOAT)
                     .build();
             DRAGON_FIREBALL = EntityDefinition.inherited(FireballEntity::new, entityBase)
                     .type(EntityType.DRAGON_FIREBALL)
@@ -274,6 +282,7 @@ public final class EntityDefinitions {
                     .build();
             PAINTING = EntityDefinition.<PaintingEntity>inherited(null, entityBase)
                     .type(EntityType.PAINTING)
+                    .addTranslator(MetadataType.PAINTING_VARIANT, PaintingEntity::setPaintingType)
                     .build();
             SHULKER_BULLET = EntityDefinition.inherited(ThrowableEntity::new, entityBase)
                     .type(EntityType.SHULKER_BULLET)
@@ -441,6 +450,10 @@ public final class EntityDefinitions {
 
         // Extends mob
         {
+            ALLAY = EntityDefinition.inherited(AllayEntity::new, mobEntityBase)
+                    .type(EntityType.ALLAY)
+                    .height(0.6f).width(0.35f)
+                    .build();
             BAT = EntityDefinition.inherited(BatEntity::new, mobEntityBase)
                     .type(EntityType.BAT)
                     .height(0.9f).width(0.5f)
@@ -550,6 +563,11 @@ public final class EntityDefinitions {
                     .height(0.8f).width(0.4f)
                     .addTranslator(MetadataType.BYTE, VexEntity::setVexFlags)
                     .build();
+            WARDEN = EntityDefinition.inherited(WardenEntity::new, mobEntityBase)
+                    .type(EntityType.WARDEN)
+                    .height(2.9f).width(0.9f)
+                    .addTranslator(MetadataType.INT, WardenEntity::setAngerLevel)
+                    .build();
             WITHER = EntityDefinition.inherited(WitherEntity::new, mobEntityBase)
                     .type(EntityType.WITHER)
                     .height(3.5f).width(0.9f)
@@ -633,6 +651,10 @@ public final class EntityDefinitions {
             SALMON = EntityDefinition.inherited(abstractFishEntityBase.factory(), abstractFishEntityBase)
                     .type(EntityType.SALMON)
                     .height(0.5f).width(0.7f)
+                    .build();
+            TADPOLE = EntityDefinition.inherited(TadpoleEntity::new, abstractFishEntityBase)
+                    .type(EntityType.TADPOLE)
+                    .height(0.3f).width(0.4f)
                     .build();
             TROPICAL_FISH = EntityDefinition.inherited(TropicalFishEntity::new, abstractFishEntityBase)
                     .type(EntityType.TROPICAL_FISH)
@@ -735,6 +757,12 @@ public final class EntityDefinitions {
                     .addTranslator(null) // Trusted player 1
                     .addTranslator(null) // Trusted player 2
                     .build();
+            FROG = EntityDefinition.inherited(FrogEntity::new, ageableEntityBase)
+                    .type(EntityType.FROG)
+                    .heightAndWidth(0.5f)
+                    .addTranslator(MetadataType.FROG_VARIANT, FrogEntity::setFrogVariant)
+                    .addTranslator(MetadataType.OPTIONAL_VARINT, FrogEntity::setTongueTarget)
+                    .build();
             HOGLIN = EntityDefinition.inherited(HoglinEntity::new, ageableEntityBase)
                     .type(EntityType.HOGLIN)
                     .height(1.4f).width(1.3965f)
@@ -744,6 +772,8 @@ public final class EntityDefinitions {
                     .type(EntityType.GOAT)
                     .height(1.3f).width(0.9f)
                     .addTranslator(MetadataType.BOOLEAN, GoatEntity::setScreamer)
+                    .addTranslator(MetadataType.BOOLEAN, GoatEntity::setHasLeftHorn)
+                    .addTranslator(MetadataType.BOOLEAN, GoatEntity::setHasRightHorn)
                     .build();
             MOOSHROOM = EntityDefinition.inherited(MooshroomEntity::new, ageableEntityBase)
                     .type(EntityType.MOOSHROOM)
@@ -871,7 +901,7 @@ public final class EntityDefinitions {
         CAT = EntityDefinition.inherited(CatEntity::new, tameableEntityBase)
                 .type(EntityType.CAT)
                 .height(0.35f).width(0.3f)
-                .addTranslator(MetadataType.INT, CatEntity::setCatVariant)
+                .addTranslator(MetadataType.CAT_VARIANT, CatEntity::setCatVariant)
                 .addTranslator(MetadataType.BOOLEAN, CatEntity::setResting)
                 .addTranslator(null) // "resting state one" //TODO
                 .addTranslator(MetadataType.INT, CatEntity::setCollarColor)

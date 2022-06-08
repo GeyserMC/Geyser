@@ -27,6 +27,7 @@ package org.geysermc.geyser.entity.type.player;
 
 import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
 import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeType;
+import com.github.steveice10.mc.protocol.data.game.entity.metadata.GlobalPos;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.nukkitx.math.vector.Vector3f;
@@ -40,11 +41,10 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.AttributeUtils;
+import org.geysermc.geyser.util.DimensionUtils;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import javax.annotation.Nullable;
+import java.util.*;
 
 /**
  * The entity class specifically for a {@link GeyserSession}'s player.
@@ -73,6 +73,11 @@ public class SessionPlayerEntity extends PlayerEntity {
         super(session, -1, 1, UUID.randomUUID(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, "unknown", null);
 
         valid = true;
+    }
+
+    @Override
+    protected void setClientSideSilent() {
+        // Do nothing, since we want the session player to hear their own footstep sounds for example.
     }
 
     @Override
@@ -221,5 +226,15 @@ public class SessionPlayerEntity extends PlayerEntity {
 
         this.attributes.put(type, attributeData);
         return attributeData;
+    }
+
+    public void setLastDeathPosition(@Nullable GlobalPos pos) {
+        if (pos != null) {
+            dirtyMetadata.put(EntityData.PLAYER_LAST_DEATH_POS, pos.getPosition());
+            dirtyMetadata.put(EntityData.PLAYER_LAST_DEATH_DIMENSION, DimensionUtils.javaToBedrock(pos.getDimension()));
+            dirtyMetadata.put(EntityData.PLAYER_HAS_DIED, (byte) 1);
+        } else {
+            dirtyMetadata.put(EntityData.PLAYER_HAS_DIED, (byte) 0);
+        }
     }
 }

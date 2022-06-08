@@ -102,6 +102,25 @@ public class MathUtils {
     }
 
     /**
+     * Clamps the value between the low and high boundaries
+     * Copied from {@link com.nukkitx.math.GenericMath} with floats instead.
+     *
+     * @param value The value to clamp
+     * @param low The low bound of the clamp
+     * @param high The high bound of the clamp
+     * @return the clamped value
+     */
+    public static float clamp(float value, float low, float high) {
+        if (value < low) {
+            return low;
+        }
+        if (value > high) {
+            return high;
+        }
+        return value;
+    }
+
+    /**
      * Ensures the resulting object is a byte. Java Edition does not care whether a byte is encoded as an integer or not;
      * it converts it into a byte anyway.
      *

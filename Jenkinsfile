@@ -22,7 +22,9 @@ pipeline {
 
         stage ('Deploy') {
             when {
-                branch "master"
+                anyOf {
+                    branch "master"
+                }
             }
 
             steps {

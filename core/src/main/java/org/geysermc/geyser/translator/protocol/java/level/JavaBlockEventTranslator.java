@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.level.block.value.*;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundBlockEventPacket;
 import com.nukkitx.math.vector.Vector3i;
@@ -49,9 +48,8 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
     @Override
     public void translate(GeyserSession session, ClientboundBlockEventPacket packet) {
         BlockEventPacket blockEventPacket = new BlockEventPacket();
-        Position position = packet.getPosition();
-        Vector3i vector = Vector3i.from(position.getX(), position.getY(), position.getZ());
-        blockEventPacket.setBlockPosition(vector);
+        Vector3i position = packet.getPosition();
+        blockEventPacket.setBlockPosition(position);
         if (packet.getValue() instanceof ChestValue value) {
             blockEventPacket.setEventType(1);
             blockEventPacket.setEventData(value.getViewers() > 0 ? 1 : 0);
@@ -78,20 +76,20 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
                         return;
                     }
                     if (action != PistonValueType.CANCELLED_MID_PUSH) {
-                        Vector3i blockInFrontPos = vector.add(direction.getUnitVector());
+                        Vector3i blockInFrontPos = position.add(direction.getUnitVector());
                         int blockInFront = session.getGeyser().getWorldManager().getBlockAt(session, blockInFrontPos);
                         if (blockInFront != BlockStateValues.JAVA_AIR_ID) {
                             // Piston pulled something
                             return;
                         }
                     }
-                    PistonBlockEntity blockEntity = pistonCache.getPistons().computeIfAbsent(vector, pos -> new PistonBlockEntity(session, pos, direction, true, true));
+                    PistonBlockEntity blockEntity = pistonCache.getPistons().computeIfAbsent(position, pos -> new PistonBlockEntity(session, pos, direction, true, true));
                     if (blockEntity.getAction() != action) {
                         blockEntity.setAction(action, Object2IntMaps.emptyMap());
                     }
                 }
             } else {
-                PistonBlockEntity blockEntity = pistonCache.getPistons().computeIfAbsent(vector, pos -> {
+                PistonBlockEntity blockEntity = pistonCache.getPistons().computeIfAbsent(position, pos -> {
                     int blockId = session.getGeyser().getWorldManager().getBlockAt(session, position);
                     boolean sticky = BlockStateValues.isStickyPiston(blockId);
                     boolean extended = action != PistonValueType.PUSHING;
@@ -108,7 +106,7 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
         } else if (packet.getValue() instanceof GenericBlockValue bellValue && packet.getBlockId() == BlockStateValues.JAVA_BELL_ID) {
             // Bells - needed to show ring from other players
             BlockEntityDataPacket blockEntityPacket = new BlockEntityDataPacket();
-            blockEntityPacket.setBlockPosition(vector);
+            blockEntityPacket.setBlockPosition(position);
 
             NbtMapBuilder builder = NbtMap.builder();
             builder.putInt("x", position.getX());

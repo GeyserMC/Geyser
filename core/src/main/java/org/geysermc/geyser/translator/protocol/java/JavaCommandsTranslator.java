@@ -222,7 +222,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case BLOCK_POS -> CommandParam.BLOCK_POSITION;
             case COLUMN_POS, VEC3 -> CommandParam.POSITION;
             case MESSAGE -> CommandParam.MESSAGE;
-            case NBT, NBT_COMPOUND_TAG, NBT_TAG, NBT_PATH -> CommandParam.JSON;
+            case NBT_COMPOUND_TAG, NBT_TAG, NBT_PATH -> CommandParam.JSON; //TODO NBT was removed
             case RESOURCE_LOCATION, FUNCTION -> CommandParam.FILE_PATH;
             case BOOL -> ENUM_BOOLEAN;
             case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc
@@ -248,7 +248,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     /**
      * Stores the command description and parameter data for best optimizing the Bedrock commands packet.
      */
-    private static record BedrockCommandInfo(String description, CommandParamData[][] paramData) {
+    private record BedrockCommandInfo(String description, CommandParamData[][] paramData) {
     }
 
     @Getter
@@ -317,15 +317,21 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                     Object mappedType = mapCommandType(session, paramNode);
                     CommandEnumData enumData = null;
                     CommandParam type = null;
+                    boolean optional = this.paramNode.isExecutable();
                     if (mappedType instanceof String[]) {
                         enumData = new CommandEnumData(paramNode.getParser().name().toLowerCase(), (String[]) mappedType, false);
                     } else {
                         type = (CommandParam) mappedType;
+                        // Bedrock throws a fit if an optional message comes after a string or target
+                        // Example vanilla commands: ban-ip, ban, and kick
+                        if (optional && type == CommandParam.MESSAGE && (paramData.getType() == CommandParam.STRING || paramData.getType() == CommandParam.TARGET)) {
+                            optional = false;
+                        }
                     }
                     // IF enumData != null:
                     // In game, this will show up like <paramNode.getName(): enumData.getName()>
                     // So if paramNode.getName() == "value" and enumData.getName() == "bool": <value: bool>
-                    children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), this.paramNode.isExecutable(), enumData, type, null, Collections.emptyList())));
+                    children.add(new ParamInfo(paramNode, new CommandParamData(paramNode.getName(), optional, enumData, type, null, Collections.emptyList())));
                 }
             }
 

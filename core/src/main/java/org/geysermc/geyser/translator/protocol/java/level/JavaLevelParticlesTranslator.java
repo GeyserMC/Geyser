@@ -27,13 +27,18 @@ package org.geysermc.geyser.translator.protocol.java.level;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import com.github.steveice10.mc.protocol.data.game.level.particle.*;
+import com.github.steveice10.mc.protocol.data.game.level.particle.positionsource.BlockPositionSource;
+import com.github.steveice10.mc.protocol.data.game.level.particle.positionsource.EntityPositionSource;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundLevelParticlesPacket;
 import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import com.nukkitx.protocol.bedrock.packet.LevelEventGenericPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
 import com.nukkitx.protocol.bedrock.packet.SpawnParticleEffectPacket;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -131,6 +136,39 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                     return packet;
                 };
             }
+            case VIBRATION -> {
+                VibrationParticleData data = (VibrationParticleData) particle.getData();
+
+                Vector3f target;
+                if (data.getPositionSource() instanceof BlockPositionSource blockPositionSource) {
+                    target = blockPositionSource.getPosition().toFloat().add(0.5f, 0.5f, 0.5f);
+                } else if (data.getPositionSource() instanceof EntityPositionSource entityPositionSource) {
+                    Entity entity = session.getEntityCache().getEntityByJavaId(entityPositionSource.getEntityId());
+                    if (entity != null) {
+                        target = entity.getPosition().up(entityPositionSource.getYOffset());
+                    } else {
+                        session.getGeyser().getLogger().debug("Unable to find entity with Java Id: " + entityPositionSource.getEntityId() + " for vibration particle.");
+                        return null;
+                    }
+                } else {
+                    session.getGeyser().getLogger().debug("Unknown position source " + data.getPositionSource() + " for vibration particle.");
+                    return null;
+                }
+
+                return (position) -> {
+                    LevelEventGenericPacket packet = new LevelEventGenericPacket();
+                    packet.setEventId(2027);
+                    packet.setTag(
+                            NbtMap.builder()
+                                    .putCompound("origin", buildVec3PositionTag(position))
+                                    .putCompound("target", buildVec3PositionTag(target)) // There is a way to target an entity but that takes an attachPos instead of a y offset
+                                    .putFloat("speed", 20f)
+                                    .putFloat("timeToLive", data.getArrivalTicks() / 20f)
+                                    .build()
+                    );
+                    return packet;
+                };
+            }
             default -> {
                 ParticleMapping particleMapping = Registries.PARTICLES.get(particle.getType());
                 if (particleMapping == null) { //TODO ensure no particle can be null
@@ -159,5 +197,14 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                 }
             }
         }
+    }
+
+    private NbtMap buildVec3PositionTag(Vector3f position) {
+        return NbtMap.builder()
+                .putString("type", "vec3")
+                .putFloat("x", position.getX())
+                .putFloat("y", position.getY())
+                .putFloat("z", position.getZ())
+                .build();
     }
 }

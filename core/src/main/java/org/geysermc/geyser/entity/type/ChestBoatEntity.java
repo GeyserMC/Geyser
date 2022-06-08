@@ -23,27 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java.entity.spawn;
+package org.geysermc.geyser.entity.type;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.spawn.ClientboundAddPaintingPacket;
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
-import org.geysermc.geyser.entity.type.PaintingEntity;
+import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.level.PaintingType;
+import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.InteractiveTag;
 
-@Translator(packet = ClientboundAddPaintingPacket.class)
-public class JavaAddPaintingTranslator extends PacketTranslator<ClientboundAddPaintingPacket> {
+import java.util.UUID;
+
+public class ChestBoatEntity extends BoatEntity {
+    public ChestBoatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    }
 
     @Override
-    public void translate(GeyserSession session, ClientboundAddPaintingPacket packet) {
-        Vector3f position = Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ());
+    protected InteractiveTag testInteraction(Hand hand) {
+        return passengers.isEmpty() && !session.isSneaking() ? super.testInteraction(hand) : InteractiveTag.OPEN_CONTAINER;
+    }
 
-        PaintingEntity entity = new PaintingEntity(session, packet.getEntityId(),
-                session.getEntityCache().getNextEntityId().incrementAndGet(), packet.getUuid(),
-                position, PaintingType.getByPaintingType(packet.getPaintingType()), packet.getDirection().getHorizontalIndex());
-
-        session.getEntityCache().spawnEntity(entity);
+    @Override
+    public InteractionResult interact(Hand hand) {
+        return passengers.isEmpty() && !session.isSneaking() ? super.interact(hand) : InteractionResult.SUCCESS;
     }
 }

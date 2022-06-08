@@ -48,6 +48,8 @@ import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InventoryUtils;
 
+import java.util.OptionalInt;
+
 public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator {
     public BeaconInventoryTranslator() {
         super(1, new BlockInventoryHolder("minecraft:beacon", com.nukkitx.protocol.bedrock.data.inventory.ContainerType.BEACON) {
@@ -111,9 +113,13 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator 
     public ItemStackResponsePacket.Response translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
         // Input a beacon payment
         BeaconPaymentStackRequestActionData beaconPayment = (BeaconPaymentStackRequestActionData) request.getActions()[0];
-        ServerboundSetBeaconPacket packet = new ServerboundSetBeaconPacket(beaconPayment.getPrimaryEffect(), beaconPayment.getSecondaryEffect());
+        ServerboundSetBeaconPacket packet = new ServerboundSetBeaconPacket(toJava(beaconPayment.getPrimaryEffect()), toJava(beaconPayment.getSecondaryEffect()));
         session.sendDownstreamPacket(packet);
         return acceptRequest(request, makeContainerEntries(session, inventory, IntSets.emptySet()));
+    }
+
+    private OptionalInt toJava(int effectChoice) {
+        return effectChoice == -1 ? OptionalInt.empty() : OptionalInt.of(effectChoice);
     }
 
     @Override

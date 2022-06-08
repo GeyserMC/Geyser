@@ -26,9 +26,7 @@
 package org.geysermc.geyser.entity.type.living;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Rotation;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.protocol.bedrock.data.entity.EntityData;
@@ -168,27 +166,27 @@ public class ArmorStandEntity extends LivingEntity {
         setFlag(EntityFlag.ADMIRING, (xd & 0x08) == 0x08); // Has no baseplate
     }
 
-    public void setHeadRotation(EntityMetadata<Rotation, ?> entityMetadata) {
+    public void setHeadRotation(EntityMetadata<Vector3f, ?> entityMetadata) {
         onRotationUpdate(EntityData.MARK_VARIANT, EntityFlag.INTERESTED, EntityFlag.CHARGED, EntityFlag.POWERED, entityMetadata.getValue());
     }
 
-    public void setBodyRotation(EntityMetadata<Rotation, ?> entityMetadata) {
+    public void setBodyRotation(EntityMetadata<Vector3f, ?> entityMetadata) {
         onRotationUpdate(EntityData.VARIANT, EntityFlag.IN_LOVE, EntityFlag.CELEBRATING, EntityFlag.CELEBRATING_SPECIAL, entityMetadata.getValue());
     }
 
-    public void setLeftArmRotation(EntityMetadata<Rotation, ?> entityMetadata) {
+    public void setLeftArmRotation(EntityMetadata<Vector3f, ?> entityMetadata) {
         onRotationUpdate(EntityData.TRADE_TIER, EntityFlag.CHARGING, EntityFlag.CRITICAL, EntityFlag.DANCING, entityMetadata.getValue());
     }
 
-    public void setRightArmRotation(EntityMetadata<Rotation, ?> entityMetadata) {
+    public void setRightArmRotation(EntityMetadata<Vector3f, ?> entityMetadata) {
         onRotationUpdate(EntityData.MAX_TRADE_TIER, EntityFlag.ELDER, EntityFlag.EMOTING, EntityFlag.IDLING, entityMetadata.getValue());
     }
 
-    public void setLeftLegRotation(EntityMetadata<Rotation, ?> entityMetadata) {
+    public void setLeftLegRotation(EntityMetadata<Vector3f, ?> entityMetadata) {
         onRotationUpdate(EntityData.SKIN_ID, EntityFlag.IS_ILLAGER_CAPTAIN, EntityFlag.IS_IN_UI, EntityFlag.LINGERING, entityMetadata.getValue());
     }
 
-    public void setRightLegRotation(EntityMetadata<Rotation, ?> entityMetadata) {
+    public void setRightLegRotation(EntityMetadata<Vector3f, ?> entityMetadata) {
         onRotationUpdate(EntityData.HURT_DIRECTION, EntityFlag.IS_PREGNANT, EntityFlag.SHEARED, EntityFlag.STALKING, entityMetadata.getValue());
     }
 
@@ -203,13 +201,13 @@ public class ArmorStandEntity extends LivingEntity {
      * @param negativeZToggle the flag to set true if the Z value of rotation is negative
      * @param rotation the Java rotation value
      */
-    private void onRotationUpdate(EntityData dataLeech, EntityFlag negativeXToggle, EntityFlag negativeYToggle, EntityFlag negativeZToggle, Rotation rotation) {
+    private void onRotationUpdate(EntityData dataLeech, EntityFlag negativeXToggle, EntityFlag negativeYToggle, EntityFlag negativeZToggle, Vector3f rotation) {
         // Indicate that rotation should be checked
         setFlag(EntityFlag.BRIBED, true);
 
-        int rotationX = MathUtils.wrapDegreesToInt(rotation.getPitch());
-        int rotationY = MathUtils.wrapDegreesToInt(rotation.getYaw());
-        int rotationZ = MathUtils.wrapDegreesToInt(rotation.getRoll());
+        int rotationX = MathUtils.wrapDegreesToInt(rotation.getX());
+        int rotationY = MathUtils.wrapDegreesToInt(rotation.getY());
+        int rotationZ = MathUtils.wrapDegreesToInt(rotation.getZ());
         // The top bit acts like binary and determines if each rotation goes above 100
         // We don't do this for the negative values out of concerns of the number being too big
         int topBit = (Math.abs(rotationX) >= 100 ? 4 : 0) + (Math.abs(rotationY) >= 100 ? 2 : 0) + (Math.abs(rotationZ) >= 100 ? 1 : 0);

@@ -66,6 +66,7 @@ import org.geysermc.geyser.session.SessionManager;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
 import org.geysermc.geyser.skin.SkinProvider;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
@@ -203,7 +204,6 @@ public class GeyserImpl implements GeyserApi {
 
         GeyserLogger logger = bootstrap.getGeyserLogger();
         GeyserConfiguration config = bootstrap.getGeyserConfig();
-        logger.setDebug(config.isDebugMode());
 
         ScoreboardUpdater.init();
 
@@ -248,18 +248,6 @@ public class GeyserImpl implements GeyserApi {
 
         // Ensure that PacketLib does not create an event loop for handling packets; we'll do that ourselves
         TcpSession.USE_EVENT_LOOP_FOR_PACKETS = false;
-
-        if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
-            try {
-                Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
-                cipher = new AesCipher(new Base64Topping());
-                cipher.init(key);
-                logger.info(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
-                skinUploader = new FloodgateSkinUploader(this).start();
-            } catch (Exception exception) {
-                logger.severe(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
-            }
-        }
 
         String branch = "unknown";
         int buildNumber = -1;
@@ -321,12 +309,32 @@ public class GeyserImpl implements GeyserApi {
         if (shouldStartListener) {
             bedrockServer.bind().whenComplete((avoid, throwable) -> {
                 if (throwable == null) {
-                    logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
+                    logger.info(GeyserLocale.getLocaleStringLog("geyser.core.start", config.getBedrock().getAddress(),
+                            String.valueOf(config.getBedrock().getPort())));
                 } else {
-                    logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", config.getBedrock().getAddress(), String.valueOf(config.getBedrock().getPort())));
-                    throwable.printStackTrace();
+                    String address = config.getBedrock().getAddress();
+                    int port = config.getBedrock().getPort();
+                    logger.severe(GeyserLocale.getLocaleStringLog("geyser.core.fail", address, String.valueOf(port)));
+                    if (!"0.0.0.0".equals(address)) {
+                        logger.info(ChatColor.GREEN + "Suggestion: try setting `address` under `bedrock` in the Geyser config back to 0.0.0.0");
+                        logger.info(ChatColor.GREEN + "Then, restart this server.");
+                    }
                 }
             }).join();
+        }
+
+        if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
+            try {
+                Key key = new AesKeyProducer().produceFrom(config.getFloodgateKeyPath());
+                cipher = new AesCipher(new Base64Topping());
+                cipher.init(key);
+                logger.debug(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.loaded_key"));
+                // Note: this is positioned after the bind so the skin uploader doesn't try to run if Geyser fails
+                // to load successfully. Spigot complains about class loader if the plugin is disabled.
+                skinUploader = new FloodgateSkinUploader(this).start();
+            } catch (Exception exception) {
+                logger.severe(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
+            }
         }
 
         if (config.getMetrics().isEnabled()) {

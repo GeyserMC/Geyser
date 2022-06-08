@@ -28,9 +28,7 @@ package org.geysermc.geyser.network;
 import com.github.steveice10.mc.protocol.codec.MinecraftCodec;
 import com.github.steveice10.mc.protocol.codec.PacketCodec;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
-import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
-import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
-import com.nukkitx.protocol.bedrock.v503.Bedrock_v503;
+import com.nukkitx.protocol.bedrock.v527.Bedrock_v527;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,7 +43,7 @@ public final class MinecraftProtocol {
      * Default Bedrock codec that should act as a fallback. Should represent the latest available
      * release of the game that Geyser supports.
      */
-    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v503.V503_CODEC;
+    public static final BedrockPacketCodec DEFAULT_BEDROCK_CODEC = Bedrock_v527.V527_CODEC;
     /**
      * A list of all supported Bedrock versions that can join Geyser
      */
@@ -58,12 +56,8 @@ public final class MinecraftProtocol {
     private static final PacketCodec DEFAULT_JAVA_CODEC = MinecraftCodec.CODEC;
 
     static {
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v475.V475_CODEC.toBuilder().minecraftVersion("1.18.0/1.18.1/1.18.2").build());
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v486.V486_CODEC.toBuilder()
-                .minecraftVersion("1.18.10/1.18.12") // 1.18.11 is also supported, but was only on Switch and since that auto-updates it's not needed
-                .build());
         SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
-                .minecraftVersion("1.18.30/1.18.31")
+                .minecraftVersion("1.19.0")
                 .build());
     }
 

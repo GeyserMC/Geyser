@@ -27,7 +27,6 @@ package org.geysermc.geyser.entity.type.player;
 
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
@@ -169,6 +168,12 @@ public class PlayerEntity extends LivingEntity {
         }
 
         session.sendUpstreamPacket(movePlayerPacket);
+
+        if (teleported) {
+            // As of 1.19.0, head yaw seems to be ignored during teleports.
+            updateHeadLookRotation(headYaw);
+        }
+
         if (leftParrot != null) {
             leftParrot.moveAbsolute(position, yaw, pitch, headYaw, true, teleported);
         }
@@ -211,52 +216,8 @@ public class PlayerEntity extends LivingEntity {
         }
     }
 
-    @Override
-    public void updateHeadLookRotation(float headYaw) {
-        moveRelative(0, 0, 0, getYaw(), getPitch(), headYaw, isOnGround());
-        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-        movePlayerPacket.setRuntimeEntityId(geyserId);
-        movePlayerPacket.setPosition(position);
-        movePlayerPacket.setRotation(getBedrockRotation());
-        movePlayerPacket.setMode(MovePlayerPacket.Mode.HEAD_ROTATION);
-        session.sendUpstreamPacket(movePlayerPacket);
-    }
-
-    @Override
-    public void updatePositionAndRotation(double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(moveX, moveY, moveZ, yaw, pitch, isOnGround);
-        if (leftParrot != null) {
-            leftParrot.moveRelative(moveX, moveY, moveZ, yaw, pitch, isOnGround);
-        }
-        if (rightParrot != null) {
-            rightParrot.moveRelative(moveX, moveY, moveZ, yaw, pitch, isOnGround);
-        }
-    }
-
     public void updateRotation(float yaw, float pitch, float headYaw, boolean isOnGround) {
-        // the method below is called by super.updateRotation(yaw, pitch, isOnGround).
-        // but we have to be able to set the headYaw, so we call the method below directly.
-        super.moveRelative(0, 0, 0, yaw, pitch, headYaw, isOnGround);
-
-        // Both packets need to be sent or else player head rotation isn't correctly updated
-        MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-        movePlayerPacket.setRuntimeEntityId(geyserId);
-        movePlayerPacket.setPosition(position);
-        movePlayerPacket.setRotation(getBedrockRotation());
-        movePlayerPacket.setOnGround(isOnGround);
-        movePlayerPacket.setMode(MovePlayerPacket.Mode.HEAD_ROTATION);
-        session.sendUpstreamPacket(movePlayerPacket);
-        if (leftParrot != null) {
-            leftParrot.updateRotation(yaw, pitch, isOnGround);
-        }
-        if (rightParrot != null) {
-            rightParrot.updateRotation(yaw, pitch, isOnGround);
-        }
-    }
-
-    @Override
-    public void updateRotation(float yaw, float pitch, boolean isOnGround) {
-        updateRotation(yaw, pitch, getHeadYaw(), isOnGround);
+        moveRelative(0, 0, 0, yaw, pitch, headYaw, isOnGround);
     }
 
     @Override
@@ -265,7 +226,7 @@ public class PlayerEntity extends LivingEntity {
     }
 
     @Override
-    public Vector3i setBedPosition(EntityMetadata<Optional<Position>, ?> entityMetadata) {
+    public Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
         return bedPosition = super.setBedPosition(entityMetadata);
     }
 

@@ -25,45 +25,21 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
-import com.github.steveice10.mc.protocol.data.game.level.sound.BuiltinSound;
-import com.github.steveice10.mc.protocol.data.game.level.sound.CustomSound;
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundCustomSoundPacket;
 import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.packet.*;
+import com.nukkitx.protocol.bedrock.packet.PlaySoundPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.type.SoundMapping;
+import org.geysermc.geyser.util.SoundUtils;
 
 @Translator(packet = ClientboundCustomSoundPacket.class)
 public class JavaCustomSoundTranslator extends PacketTranslator<ClientboundCustomSoundPacket> {
 
     @Override
     public void translate(GeyserSession session, ClientboundCustomSoundPacket packet) {
-        String packetSound;
-        if (packet.getSound() instanceof BuiltinSound) {
-            packetSound = ((BuiltinSound) packet.getSound()).getName();
-        } else if (packet.getSound() instanceof CustomSound) {
-            packetSound = ((CustomSound) packet.getSound()).getName();
-        } else {
-            session.getGeyser().getLogger().debug("Unknown sound packet, we were unable to map this. " + packet.toString());
-            return;
-        }
-
-        SoundMapping soundMapping = Registries.SOUNDS.get(packetSound.replace("minecraft:", ""));
-        String playsound;
-        if (soundMapping == null || soundMapping.getPlaysound() == null) {
-            // no mapping
-            session.getGeyser().getLogger()
-                    .debug("[PlaySound] Defaulting to sound server gave us for " + packet.toString());
-            playsound = packetSound.replace("minecraft:", "");
-        } else {
-            playsound = soundMapping.getPlaysound();
-        }
-
         PlaySoundPacket playSoundPacket = new PlaySoundPacket();
-        playSoundPacket.setSound(playsound);
+        playSoundPacket.setSound(SoundUtils.translatePlaySound(packet.getSound()));
         playSoundPacket.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
         playSoundPacket.setVolume(packet.getVolume());
         playSoundPacket.setPitch(packet.getPitch());
