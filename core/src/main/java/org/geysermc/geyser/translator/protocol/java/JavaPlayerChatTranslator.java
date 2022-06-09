@@ -30,6 +30,7 @@ import com.nukkitx.protocol.bedrock.packet.TextPacket;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatTypeEntry;
 import org.geysermc.geyser.text.TextDecoration;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -44,22 +45,18 @@ public class JavaPlayerChatTranslator extends PacketTranslator<ClientboundPlayer
 
     @Override
     public void translate(GeyserSession session, ClientboundPlayerChatPacket packet) {
+        ChatTypeEntry entry = session.getChatTypes().get(packet.getTypeId());
+
         TextPacket textPacket = new TextPacket();
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");
         textPacket.setXuid(session.getAuthData().xuid());
-        // TODO new types
-        textPacket.setType(switch (packet.getType()) {
-            case CHAT -> TextPacket.Type.CHAT;
-            case SYSTEM -> TextPacket.Type.SYSTEM;
-            case GAME_INFO -> TextPacket.Type.TIP;
-            default -> TextPacket.Type.RAW;
-        });
+        textPacket.setType(entry.bedrockChatType());
 
         textPacket.setNeedsTranslation(false);
         Component message = packet.getUnsignedContent() == null ? packet.getSignedContent() : packet.getUnsignedContent();
 
-        TextDecoration decoration = session.getChatTypes().get(packet.getType());
+        TextDecoration decoration = entry.textDecoration();
         if (decoration != null) {
             // As of 1.19 - do this to apply all the styling for signed messages
             // Though, Bedrock cannot care about the signed stuff.

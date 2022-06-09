@@ -121,6 +121,7 @@ import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.session.cache.*;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
+import org.geysermc.geyser.text.ChatTypeEntry;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.text.TextDecoration;
@@ -336,7 +337,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      */
     private final Map<String, JavaDimension> dimensions = new Object2ObjectOpenHashMap<>(3);
 
-    private final Map<MessageType, TextDecoration> chatTypes = new EnumMap<>(MessageType.class);
+    private final Int2ObjectMap<ChatTypeEntry> chatTypes = new Int2ObjectOpenHashMap<>(7);
 
     @Setter
     private int breakingBlock;

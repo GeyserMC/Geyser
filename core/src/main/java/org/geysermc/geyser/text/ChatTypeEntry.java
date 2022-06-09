@@ -23,29 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.java;
+package org.geysermc.geyser.text;
 
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundSystemChatPacket;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 
-@Translator(packet = ClientboundSystemChatPacket.class)
-public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystemChatPacket> {
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-    @Override
-    public void translate(GeyserSession session, ClientboundSystemChatPacket packet) {
-        TextPacket textPacket = new TextPacket();
-        textPacket.setPlatformChatId("");
-        textPacket.setSourceName("");
-        textPacket.setXuid(session.getAuthData().xuid());
-        textPacket.setType(session.getChatTypes().get(packet.getTypeId()).bedrockChatType());
-
-        textPacket.setNeedsTranslation(false);
-        textPacket.setMessage(MessageTranslator.convertMessage(packet.getContent(), session.getLocale()));
-
-        session.sendUpstreamPacket(textPacket);
-    }
+public record ChatTypeEntry(@Nonnull TextPacket.Type bedrockChatType, @Nullable TextDecoration textDecoration) {
 }
