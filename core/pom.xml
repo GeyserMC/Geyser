@@ -155,7 +155,7 @@
         <dependency>
             <groupId>com.github.GeyserMC</groupId>
             <artifactId>MCProtocolLib</artifactId>
-            <version>3023c4d</version>
+            <version>bb2b414</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
