@@ -115,6 +115,9 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             // The player has yet to spawn so let's do that using some of the information in this Java packet
             session.setDimension(newDimension);
             session.connect();
+
+            // It is now safe to send these packets
+            session.getUpstream().sendPostStartGamePackets();
         }
 
         AdventureSettingsPacket bedrockPacket = new AdventureSettingsPacket();

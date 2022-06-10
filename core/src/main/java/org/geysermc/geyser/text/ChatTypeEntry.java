@@ -25,10 +25,33 @@
 
 package org.geysermc.geyser.text;
 
+import com.github.steveice10.mc.protocol.data.game.MessageType;
 import com.nukkitx.protocol.bedrock.packet.TextPacket;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public record ChatTypeEntry(@Nonnull TextPacket.Type bedrockChatType, @Nullable TextDecoration textDecoration) {
+    private static final ChatTypeEntry CHAT = new ChatTypeEntry(TextPacket.Type.CHAT, null);
+    private static final ChatTypeEntry SYSTEM = new ChatTypeEntry(TextPacket.Type.CHAT, null);
+    private static final ChatTypeEntry TIP = new ChatTypeEntry(TextPacket.Type.CHAT, null);
+    private static final ChatTypeEntry RAW = new ChatTypeEntry(TextPacket.Type.CHAT, null);
+
+    /**
+     * Apply defaults to a map so it isn't empty in the event a chat message is sent before the login packet.
+     */
+    public static void applyDefaults(Int2ObjectMap<ChatTypeEntry> chatTypes) {
+        // So the proper way to do this, probably, would be to dump the NBT data from vanilla and load it.
+        // But, the only way this happens is if a chat message is sent to us before the login packet, which is rare.
+        // So we'll just make sure chat ends up in the right place.
+        chatTypes.put(MessageType.CHAT.ordinal(), CHAT);
+        chatTypes.put(MessageType.SYSTEM.ordinal(), SYSTEM);
+        chatTypes.put(MessageType.GAME_INFO.ordinal(), TIP);
+        chatTypes.put(MessageType.SAY_COMMAND.ordinal(), RAW);
+        chatTypes.put(MessageType.MSG_COMMAND.ordinal(), RAW);
+        chatTypes.put(MessageType.TEAM_MSG_COMMAND.ordinal(), RAW);
+        chatTypes.put(MessageType.EMOTE_COMMAND.ordinal(), RAW);
+        chatTypes.put(MessageType.TELLRAW_COMMAND.ordinal(), RAW);
+    }
 }

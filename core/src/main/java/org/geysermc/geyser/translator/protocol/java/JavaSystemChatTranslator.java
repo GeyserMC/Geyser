@@ -46,6 +46,10 @@ public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystem
         textPacket.setNeedsTranslation(false);
         textPacket.setMessage(MessageTranslator.convertMessage(packet.getContent(), session.getLocale()));
 
-        session.sendUpstreamPacket(textPacket);
+        if (session.isSentSpawnPacket()) {
+            session.sendUpstreamPacket(textPacket);
+        } else {
+            session.getUpstream().queuePostStartGamePacket(textPacket);
+        }
     }
 }
