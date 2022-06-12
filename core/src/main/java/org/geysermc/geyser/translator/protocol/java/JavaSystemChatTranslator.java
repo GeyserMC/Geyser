@@ -41,17 +41,15 @@ public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystem
         textPacket.setPlatformChatId("");
         textPacket.setSourceName("");
         textPacket.setXuid(session.getAuthData().xuid());
-        // TODO new types
-        textPacket.setType(switch (packet.getType()) {
-            case CHAT -> TextPacket.Type.CHAT;
-            case SYSTEM -> TextPacket.Type.SYSTEM;
-            case GAME_INFO -> TextPacket.Type.TIP;
-            default -> TextPacket.Type.RAW;
-        });
+        textPacket.setType(session.getChatTypes().get(packet.getTypeId()).bedrockChatType());
 
         textPacket.setNeedsTranslation(false);
         textPacket.setMessage(MessageTranslator.convertMessage(packet.getContent(), session.locale()));
 
-        session.sendUpstreamPacket(textPacket);
+        if (session.isSentSpawnPacket()) {
+            session.sendUpstreamPacket(textPacket);
+        } else {
+            session.getUpstream().queuePostStartGamePacket(textPacket);
+        }
     }
 }

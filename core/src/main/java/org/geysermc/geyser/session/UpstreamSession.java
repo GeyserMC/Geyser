@@ -33,12 +33,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayDeque;
+import java.util.Queue;
 
 @RequiredArgsConstructor
 public class UpstreamSession {
     @Getter private final BedrockServerSession session;
     @Getter @Setter
     private boolean initialized = false;
+    private Queue<BedrockPacket> postStartGamePackets = new ArrayDeque<>();
 
     public void sendPacket(@NonNull BedrockPacket packet) {
         if (!isClosed()) {
@@ -54,6 +57,25 @@ public class UpstreamSession {
 
     public void disconnect(String reason) {
         session.disconnect(reason);
+    }
+
+    /**
+     * Queue a packet that must be delayed until after login.
+     */
+    public void queuePostStartGamePacket(BedrockPacket packet) {
+        postStartGamePackets.add(packet);
+    }
+
+    public void sendPostStartGamePackets() {
+        if (isClosed()) {
+            return;
+        }
+
+        BedrockPacket packet;
+        while ((packet = postStartGamePackets.poll()) != null) {
+            session.sendPacket(packet);
+        }
+        postStartGamePackets = null;
     }
 
     public boolean isClosed() {

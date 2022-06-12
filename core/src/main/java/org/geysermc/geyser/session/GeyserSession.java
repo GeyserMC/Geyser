@@ -37,7 +37,6 @@ import com.github.steveice10.mc.protocol.MinecraftProtocol;
 import com.github.steveice10.mc.protocol.codec.MinecraftCodecHelper;
 import com.github.steveice10.mc.protocol.data.ProtocolState;
 import com.github.steveice10.mc.protocol.data.UnexpectedEncryptionException;
-import com.github.steveice10.mc.protocol.data.game.MessageType;
 import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
 import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
@@ -123,9 +122,9 @@ import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.session.cache.*;
 import org.geysermc.geyser.skin.FloodgateSkinUploader;
+import org.geysermc.geyser.text.ChatTypeEntry;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
-import org.geysermc.geyser.text.TextDecoration;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
@@ -336,7 +335,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     private final Map<String, JavaDimension> dimensions = new Object2ObjectOpenHashMap<>(3);
 
-    private final Map<MessageType, TextDecoration> chatTypes = new EnumMap<>(MessageType.class);
+    private final Int2ObjectMap<ChatTypeEntry> chatTypes = new Int2ObjectOpenHashMap<>(8);
 
     @Setter
     private int breakingBlock;
@@ -546,6 +545,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         this.playerEntity = new SessionPlayerEntity(this);
         collisionManager.updatePlayerBoundingBox(this.playerEntity.getPosition());
+
+        ChatTypeEntry.applyDefaults(chatTypes);
 
         this.playerInventory = new PlayerInventory();
         this.openInventory = null;
