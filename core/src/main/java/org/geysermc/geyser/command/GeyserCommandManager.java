@@ -26,7 +26,6 @@
 package org.geysermc.geyser.command;
 
 import lombok.Getter;
-
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.common.PlatformType;
@@ -42,7 +41,10 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 public abstract class GeyserCommandManager extends CommandManager {
@@ -155,6 +157,7 @@ public abstract class GeyserCommandManager extends CommandManager {
         private String description = "";
         private String permission = "";
         private List<String> aliases;
+        private boolean suggestedOpOnly = false;
         private boolean executableOnConsole = true;
         private List<String> subCommands;
         private boolean bedrockOnly;
@@ -177,6 +180,12 @@ public abstract class GeyserCommandManager extends CommandManager {
 
         public CommandBuilder<T> aliases(List<String> aliases) {
             this.aliases = aliases;
+            return this;
+        }
+
+        @Override
+        public Command.Builder<T> suggestedOpOnly(boolean suggestedOpOnly) {
+            this.suggestedOpOnly = suggestedOpOnly;
             return this;
         }
 
@@ -229,6 +238,11 @@ public abstract class GeyserCommandManager extends CommandManager {
                 @Override
                 public List<String> aliases() {
                     return CommandBuilder.this.aliases == null ? Collections.emptyList() : CommandBuilder.this.aliases;
+                }
+
+                @Override
+                public boolean isSuggestedOpOnly() {
+                    return CommandBuilder.this.suggestedOpOnly;
                 }
 
                 @NonNull

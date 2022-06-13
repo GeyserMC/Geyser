@@ -69,7 +69,8 @@ public enum InteractiveTag {
     EQUIP_ARMOR_STAND("armorstand.equip"),
     READ,
     WAKE_VILLAGER("wakevillager"),
-    BARTER;
+    BARTER,
+    GIVE_ITEM_TO_ALLAY("allay");
 
     /**
      * The full string that should be passed on to the client.

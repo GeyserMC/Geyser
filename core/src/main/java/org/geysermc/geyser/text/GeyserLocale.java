@@ -28,10 +28,10 @@ package org.geysermc.geyser.text;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Locale;
@@ -116,12 +116,22 @@ public class GeyserLocale {
             return locale;
         }
 
+        Properties localeProp = new Properties();
+
+        File localLanguage;
+        Path localFolder = bootstrap.getConfigFolder().resolve("languages");
+        if (Files.exists(localFolder)) {
+            localLanguage = localFolder.resolve(locale + ".properties").toFile();
+        } else {
+            localLanguage = null;
+        }
+        boolean validLocalLanguage = localLanguage != null && localLanguage.exists();
+
         InputStream localeStream = bootstrap.getResourceOrNull("languages/texts/" + locale + ".properties");
 
         // Load the locale
         if (localeStream != null) {
             try {
-                Properties localeProp = new Properties();
                 try (InputStreamReader reader = new InputStreamReader(localeStream, StandardCharsets.UTF_8)) {
                     localeProp.load(reader);
                 } catch (Exception e) {
@@ -130,18 +140,37 @@ public class GeyserLocale {
 
                 // Insert the locale into the mappings
                 LOCALE_MAPPINGS.put(locale, localeProp);
-                return locale;
             } finally {
                 try {
                     localeStream.close();
                 } catch (IOException ignored) {}
             }
         } else {
-            if (GeyserImpl.getInstance() != null) {
+            if (GeyserImpl.getInstance() != null && !validLocalLanguage) {
+                // Don't warn on missing locales if a local file has been found
                 GeyserImpl.getInstance().getLogger().warning("Missing locale: " + locale);
             }
-            return null;
         }
+
+        // Load any language overrides that exist after, to override any strings that we just added
+        // By loading both, we ensure that if a language string doesn't exist in the custom properties folder,
+        // it's loaded from our jar
+        if (validLocalLanguage) {
+            try (InputStream stream = new FileInputStream(localLanguage)) {
+                localeProp.load(stream);
+            } catch (IOException e) {
+                String message = "Unable to load custom language override!";
+                if (GeyserImpl.getInstance() != null) {
+                    GeyserImpl.getInstance().getLogger().error(message, e);
+                } else {
+                    System.err.println(message);
+                    e.printStackTrace();
+                }
+            }
+
+            LOCALE_MAPPINGS.putIfAbsent(locale, localeProp);
+        }
+        return localeProp.isEmpty() ? null : locale;
     }
 
     /**

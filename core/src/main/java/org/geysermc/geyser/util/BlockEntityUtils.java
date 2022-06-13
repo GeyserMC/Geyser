@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityType;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMap;
@@ -82,10 +81,6 @@ public class BlockEntityUtils {
 
     public static BlockEntityTranslator getBlockEntityTranslator(BlockEntityType type) {
          return Registries.BLOCK_ENTITIES.get(type);
-    }
-
-    public static void updateBlockEntity(GeyserSession session, @Nonnull NbtMap blockEntity, Position position) {
-        updateBlockEntity(session, blockEntity, Vector3i.from(position.getX(), position.getY(), position.getZ()));
     }
 
     public static void updateBlockEntity(GeyserSession session, @Nonnull NbtMap blockEntity, Vector3i position) {

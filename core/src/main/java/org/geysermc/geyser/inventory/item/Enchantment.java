@@ -67,7 +67,8 @@ public enum Enchantment {
     MULTISHOT,
     PIERCING,
     QUICK_CHARGE,
-    SOUL_SPEED;
+    SOUL_SPEED,
+    SWIFT_SNEAK;
 
     private static final Enchantment[] VALUES = values();
 
@@ -109,6 +110,7 @@ public enum Enchantment {
         FROST_WALKER,
         BINDING_CURSE,
         SOUL_SPEED,
+        SWIFT_SNEAK,
         SHARPNESS,
         SMITE,
         BANE_OF_ARTHROPODS,

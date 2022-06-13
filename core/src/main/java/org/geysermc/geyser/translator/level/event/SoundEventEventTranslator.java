@@ -40,7 +40,7 @@ public record SoundEventEventTranslator(SoundEvent soundEvent,
         levelSoundEvent.setIdentifier(identifier);
         levelSoundEvent.setExtraData(extraData);
         levelSoundEvent.setRelativeVolumeDisabled(packet.isBroadcast());
-        levelSoundEvent.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()).add(0.5f, 0.5f, 0.5f));
+        levelSoundEvent.setPosition(Vector3f.from(packet.getPosition().getX() + 0.5f, packet.getPosition().getY() + 0.5f, packet.getPosition().getZ() + 0.5f));
         levelSoundEvent.setBabySound(false);
         session.sendUpstreamPacket(levelSoundEvent);
     }

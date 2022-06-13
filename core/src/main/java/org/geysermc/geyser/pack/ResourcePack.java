@@ -26,8 +26,8 @@
 package org.geysermc.geyser.pack;
 
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.FileUtils;
 
 import java.io.File;
 import java.util.HashMap;

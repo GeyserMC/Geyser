@@ -35,9 +35,9 @@ import com.nukkitx.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
-import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
@@ -140,6 +140,8 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
                             session.sendUpstreamPacket(movePlayerPacket);
                         }
                     }
+
+                    session.getSkullCache().updateVisibleSkulls();
                 }
             } else {
                 // Not a valid move
