@@ -26,7 +26,6 @@
 package org.geysermc.geyser.translator.protocol.java.level;
 
 import com.github.steveice10.mc.protocol.packet.ingame.clientbound.level.ClientboundSetDefaultSpawnPositionPacket;
-import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.packet.SetSpawnPositionPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -39,8 +38,7 @@ public class JavaSetDefaultSpawnPositionTranslator extends PacketTranslator<Clie
     @Override
     public void translate(GeyserSession session, ClientboundSetDefaultSpawnPositionPacket packet) {
         SetSpawnPositionPacket spawnPositionPacket = new SetSpawnPositionPacket();
-        spawnPositionPacket.setBlockPosition(Vector3i.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
-        spawnPositionPacket.setSpawnForced(true);
+        spawnPositionPacket.setBlockPosition(packet.getPosition());
         spawnPositionPacket.setDimensionId(DimensionUtils.javaToBedrock(session.getDimension()));
         spawnPositionPacket.setSpawnType(SetSpawnPositionPacket.Type.WORLD_SPAWN);
         session.sendUpstreamPacket(spawnPositionPacket);

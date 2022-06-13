@@ -29,8 +29,8 @@ import com.github.steveice10.opennbt.tag.builtin.ByteArrayTag;
 import com.github.steveice10.opennbt.tag.builtin.ByteTag;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.IntArrayTag;
-import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
 import org.geysermc.geyser.level.FireworkColor;
+import org.geysermc.geyser.translator.inventory.item.NbtItemStackTranslator;
 import org.geysermc.geyser.util.MathUtils;
 
 /**

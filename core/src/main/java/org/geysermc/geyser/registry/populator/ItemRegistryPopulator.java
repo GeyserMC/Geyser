@@ -37,10 +37,11 @@ import com.nukkitx.protocol.bedrock.data.SoundEvent;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
-import com.nukkitx.protocol.bedrock.v475.Bedrock_v475;
-import com.nukkitx.protocol.bedrock.v486.Bedrock_v486;
-import com.nukkitx.protocol.bedrock.v503.Bedrock_v503;
 import it.unimi.dsi.fastutil.ints.*;
+import com.nukkitx.protocol.bedrock.v527.Bedrock_v527;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.objects.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
@@ -73,9 +74,7 @@ public class ItemRegistryPopulator {
 
     public static void populate() {
         Map<String, PaletteVersion> paletteVersions = new Object2ObjectOpenHashMap<>();
-        paletteVersions.put("1_18_0", new PaletteVersion(Bedrock_v475.V475_CODEC.getProtocolVersion(), Collections.emptyMap()));
-        paletteVersions.put("1_18_10", new PaletteVersion(Bedrock_v486.V486_CODEC.getProtocolVersion(), Collections.emptyMap()));
-        paletteVersions.put("1_18_30", new PaletteVersion(Bedrock_v503.V503_CODEC.getProtocolVersion(), Collections.emptyMap()));
+        paletteVersions.put("1_19_0", new PaletteVersion(Bedrock_v527.V527_CODEC.getProtocolVersion(), Collections.emptyMap()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
@@ -300,18 +299,6 @@ public class ItemRegistryPopulator {
                     mappingItem = entry.getValue();
                 }
 
-                String bedrockIdentifier;
-                if (javaIdentifier.equals("minecraft:globe_banner_pattern") && palette.getValue().protocolVersion() < Bedrock_v486.V486_CODEC.getProtocolVersion()) {
-                    bedrockIdentifier = "minecraft:banner_pattern";
-                } else {
-                    bedrockIdentifier = mappingItem.getBedrockIdentifier();
-                    if (palette.getValue().protocolVersion() >= Bedrock_v503.V503_CODEC.getProtocolVersion()) {
-                        if (bedrockIdentifier.equals("minecraft:sealantern")) {
-                            bedrockIdentifier = "minecraft:sea_lantern";
-                        }
-                    }
-                }
-
                 if (customItemsAllowed && javaIdentifier.equals("minecraft:furnace_minecart")) {
                     javaFurnaceMinecartId = itemIndex;
                     itemIndex++;
@@ -320,6 +307,7 @@ public class ItemRegistryPopulator {
                     continue;
                 }
 
+                String bedrockIdentifier = mappingItem.getBedrockIdentifier();
                 int bedrockId = bedrockIdentifierToId.getInt(bedrockIdentifier);
                 if (bedrockId == Short.MIN_VALUE) {
                     throw new RuntimeException("Missing Bedrock ID in mappings: " + bedrockIdentifier);

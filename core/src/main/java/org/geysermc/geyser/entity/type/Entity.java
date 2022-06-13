@@ -94,6 +94,8 @@ public class Entity {
     private float boundingBoxWidth;
     @Setter(AccessLevel.NONE)
     protected String nametag = "";
+    @Setter(AccessLevel.NONE)
+    protected boolean silent = false;
     /* Metadata end */
 
     protected List<Entity> passengers = Collections.emptyList();
@@ -141,13 +143,19 @@ public class Entity {
      */
     protected void initializeMetadata() {
         dirtyMetadata.put(EntityData.SCALE, 1f);
-        dirtyMetadata.put(EntityData.COLOR, 0);
+        dirtyMetadata.put(EntityData.COLOR, (byte) 0);
         dirtyMetadata.put(EntityData.MAX_AIR_SUPPLY, getMaxAir());
         setDimensions(Pose.STANDING);
         setFlag(EntityFlag.HAS_GRAVITY, true);
         setFlag(EntityFlag.HAS_COLLISION, true);
         setFlag(EntityFlag.CAN_SHOW_NAME, true);
         setFlag(EntityFlag.CAN_CLIMB, true);
+        // Let the Java server (or us) supply all sounds for an entity
+        setClientSideSilent();
+    }
+
+    protected void setClientSideSilent() {
+        setFlag(EntityFlag.SILENT, true);
     }
 
     public void spawnEntity() {
@@ -351,7 +359,7 @@ public class Entity {
         dirtyMetadata.put(EntityData.AIR_SUPPLY, (short) MathUtils.constrain(amount, 0, getMaxAir()));
     }
 
-    protected int getMaxAir() {
+    protected short getMaxAir() {
         return 300;
     }
 
@@ -368,6 +376,10 @@ public class Entity {
 
     public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
         dirtyMetadata.put(EntityData.NAMETAG_ALWAYS_SHOW, (byte) (entityMetadata.getPrimitiveValue() ? 1 : 0));
+    }
+
+    public final void setSilent(BooleanEntityMetadata entityMetadata) {
+        silent = entityMetadata.getPrimitiveValue();
     }
 
     public void setGravity(BooleanEntityMetadata entityMetadata) {

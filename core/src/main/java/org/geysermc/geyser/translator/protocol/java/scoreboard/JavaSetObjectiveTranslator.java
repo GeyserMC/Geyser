@@ -31,15 +31,15 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.scoreboard.Cl
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.scoreboard.Objective;
+import org.geysermc.geyser.scoreboard.Scoreboard;
+import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
+import org.geysermc.geyser.scoreboard.UpdateType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.scoreboard.Objective;
-import org.geysermc.geyser.scoreboard.Scoreboard;
-import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
-import org.geysermc.geyser.scoreboard.UpdateType;
 
 @Translator(packet = ClientboundSetObjectivePacket.class)
 public class JavaSetObjectiveTranslator extends PacketTranslator<ClientboundSetObjectivePacket> {

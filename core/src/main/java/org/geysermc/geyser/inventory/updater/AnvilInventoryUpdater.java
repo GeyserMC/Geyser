@@ -27,7 +27,10 @@ package org.geysermc.geyser.inventory.updater;
 
 import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundRenameItemPacket;
-import com.github.steveice10.opennbt.tag.builtin.*;
+import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
+import com.github.steveice10.opennbt.tag.builtin.ListTag;
+import com.github.steveice10.opennbt.tag.builtin.StringTag;
+import com.github.steveice10.opennbt.tag.builtin.Tag;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
@@ -40,12 +43,12 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.AnvilContainer;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.EnchantmentData;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ItemUtils;
 
 import java.util.Objects;

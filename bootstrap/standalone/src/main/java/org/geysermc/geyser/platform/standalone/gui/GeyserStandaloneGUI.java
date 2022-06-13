@@ -28,10 +28,10 @@ package org.geysermc.geyser.platform.standalone.gui;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.command.GeyserCommand;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.standalone.GeyserStandaloneLogger;
 import org.geysermc.geyser.platform.standalone.command.GeyserStandaloneCommandManager;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.GeyserLocale;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;

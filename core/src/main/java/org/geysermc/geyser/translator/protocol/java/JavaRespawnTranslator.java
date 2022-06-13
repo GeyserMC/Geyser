@@ -33,9 +33,9 @@ import com.nukkitx.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 
@@ -54,6 +54,9 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
         session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
         session.setOpenInventory(null);
         session.setClosingInventory(false);
+
+        entity.setLastDeathPosition(packet.getLastDeathPos());
+        entity.updateBedrockMetadata();
 
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         playerGameTypePacket.setGamemode(packet.getGamemode().ordinal());
@@ -78,7 +81,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
             session.setThunder(false);
         }
 
-        String newDimension = DimensionUtils.getNewDimension(packet.getDimension());
+        String newDimension = packet.getDimension();
         if (!session.getDimension().equals(newDimension) || !packet.getWorldName().equals(session.getWorldName())) {
             // Switching to a new world (based off the world name change); send a fake dimension change
             if (!packet.getWorldName().equals(session.getWorldName()) && (session.getDimension().equals(newDimension)
@@ -90,8 +93,9 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
             }
             session.setWorldName(packet.getWorldName());
             DimensionUtils.switchDimension(session, newDimension);
-        }
 
-        ChunkUtils.loadDimensionTag(session, packet.getDimension());
+            session.setDimensionType(session.getDimensions().get(newDimension));
+            ChunkUtils.loadDimension(session);
+        }
     }
 }

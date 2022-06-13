@@ -26,12 +26,11 @@
 package org.geysermc.geyser.util;
 
 import com.github.steveice10.mc.protocol.data.game.statistic.*;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.cumulus.form.SimpleForm;
+import org.geysermc.cumulus.util.FormImage;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMappings;
-import org.geysermc.cumulus.SimpleForm;
-import org.geysermc.cumulus.response.SimpleFormResponse;
-import org.geysermc.cumulus.util.FormImage;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 
@@ -68,12 +67,7 @@ public class StatisticsUtils {
                         .button("stat.itemsButton - stat_type.minecraft.dropped", FormImage.Type.PATH, "textures/ui/trash_default")
                         .button("stat.mobsButton - geyser.statistics.killed", FormImage.Type.PATH, "textures/items/diamond_sword")
                         .button("stat.mobsButton - geyser.statistics.killed_by", FormImage.Type.PATH, "textures/ui/wither_heart_flash")
-                        .responseHandler((form, responseData) -> {
-                            SimpleFormResponse response = form.parseResponse(responseData);
-                            if (!response.isCorrect()) {
-                                return;
-                            }
-
+                        .validResultHandler((response) -> {
                             SimpleForm.Builder builder =
                                     SimpleForm.builder()
                                             .translator(StatisticsUtils::translate, language);
@@ -81,7 +75,7 @@ public class StatisticsUtils {
                             List<String> content = new ArrayList<>();
 
                             ItemMappings mappings = session.getItemMappings();
-                            switch (response.getClickedButtonId()) {
+                            switch (response.clickedButtonId()) {
                                 case 0:
                                     builder.title("stat.generalButton");
 
@@ -202,12 +196,7 @@ public class StatisticsUtils {
                             session.sendForm(
                                     builder.content(assembledContent.toString())
                                             .button("gui.back", FormImage.Type.PATH, "textures/gui/newgui/undo")
-                                            .responseHandler((form1, subFormResponseData) -> {
-                                                SimpleFormResponse response1 = form.parseResponse(subFormResponseData);
-                                                if (response1.isCorrect()) {
-                                                    buildAndSendStatisticsMenu(session);
-                                                }
-                                            }));
+                                            .validResultHandler((response1) -> buildAndSendStatisticsMenu(session)));
                         }));
     }
 

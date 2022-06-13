@@ -148,6 +148,13 @@ cache-images: 0
 # Allows custom skulls to be displayed. Keeping them enabled may cause a performance decrease on older/weaker devices.
 allow-custom-skulls: true
 
+# The maximum number of custom skulls to be displayed per player. Increasing this may decrease performance on weaker devices.
+# Setting this to -1 will cause all custom skulls to be displayed regardless of distance or number.
+max-visible-custom-skulls: 128
+
+# The radius in blocks around the player in which custom skulls are displayed.
+custom-skull-render-distance: 32
+
 # Whether to add (at this time, only) the furnace minecart as a separate item in the game, which normally does not exist in Bedrock Edition.
 # This should only need to be disabled if using a proxy that does not use the "transfer packet" style of server switching.
 # If this is disabled, furnace minecart items will be mapped to hopper minecart items.

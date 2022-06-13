@@ -49,7 +49,7 @@ public class HoglinEntity extends AnimalEntity {
 
     @Override
     protected boolean isShaking() {
-        return (!isImmuneToZombification && !session.isDimensionPiglinSafe()) || super.isShaking();
+        return (!isImmuneToZombification && !session.getDimensionType().piglinSafe()) || super.isShaking();
     }
 
     @Override

@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.type.living.animal.horse;
 
+import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
 import com.nukkitx.math.vector.Vector3f;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -42,13 +43,13 @@ public class ZombieHorseEntity extends AbstractHorseEntity {
 
     @Nonnull
     @Override
-    protected InteractiveTag testMobInteraction(@Nonnull GeyserItemStack itemInHand) {
-        return testUndeadHorseInteraction(itemInHand);
+    protected InteractiveTag testMobInteraction(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        return testUndeadHorseInteraction(hand, itemInHand);
     }
 
     @Nonnull
     @Override
-    protected InteractionResult mobInteract(@Nonnull GeyserItemStack itemInHand) {
-        return undeadHorseInteract(itemInHand);
+    protected InteractionResult mobInteract(Hand hand, @Nonnull GeyserItemStack itemInHand) {
+        return undeadHorseInteract(hand, itemInHand);
     }
 }

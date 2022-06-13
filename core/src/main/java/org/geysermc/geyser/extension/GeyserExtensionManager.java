@@ -34,10 +34,12 @@ import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.extension.StartupPhase;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.extension.ExtensionLoader;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.text.GeyserLocale;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class GeyserExtensionManager extends ExtensionManager {

@@ -16,6 +16,7 @@ platformRelocate("com.fasterxml.jackson")
 platformRelocate("net.kyori")
 platformRelocate("org.objectweb.asm")
 platformRelocate("me.lucko.commodore")
+platformRelocate("io.netty.channel.kqueue")
 
 // These dependencies are already present on the platform
 provided("io.papermc.paper", "paper-api", paperVersion)

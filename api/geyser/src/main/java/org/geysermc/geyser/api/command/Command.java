@@ -70,6 +70,13 @@ public interface Command {
     List<String> aliases();
 
     /**
+     * Gets if this command is designed to be used only by server operators.
+     *
+     * @return if this command is designated to be used only by server operators.
+     */
+    boolean isSuggestedOpOnly();
+
+    /**
      * Gets if this command is executable on console.
      *
      * @return if this command is executable on console
@@ -134,6 +141,14 @@ public interface Command {
          * @return the builder
          */
         Builder<T> aliases(List<String> aliases);
+
+        /**
+         * Sets if this command is designed to be used only by server operators.
+         *
+         * @param suggestedOpOnly if this command is designed to be used only by server operators
+         * @return the builder
+         */
+        Builder<T> suggestedOpOnly(boolean suggestedOpOnly);
 
         /**
          * Sets if this command is executable on console.

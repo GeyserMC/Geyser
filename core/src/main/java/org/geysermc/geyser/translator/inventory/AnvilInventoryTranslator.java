@@ -34,11 +34,11 @@ import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequ
 import com.nukkitx.protocol.bedrock.data.inventory.stackrequestactions.StackRequestActionType;
 import com.nukkitx.protocol.bedrock.packet.ItemStackResponsePacket;
 import org.geysermc.geyser.inventory.AnvilContainer;
+import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.updater.AnvilInventoryUpdater;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Objects;
 

@@ -41,12 +41,12 @@ import org.bukkit.event.block.BlockPistonEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.PistonCache;
 import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.translator.level.block.entity.PistonBlockEntity;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotWorldManager;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.PistonCache;
+import org.geysermc.geyser.translator.level.block.entity.PistonBlockEntity;
 
 import java.util.List;
 import java.util.Map;

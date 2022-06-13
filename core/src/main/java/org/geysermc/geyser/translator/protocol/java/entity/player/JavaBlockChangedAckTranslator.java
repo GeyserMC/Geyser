@@ -25,30 +25,16 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity.player;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.player.ClientboundBlockBreakAckPacket;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.protocol.bedrock.data.LevelEventType;
-import com.nukkitx.protocol.bedrock.packet.LevelEventPacket;
+import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.player.ClientboundBlockChangedAckPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.util.ChunkUtils;
 
-@Translator(packet = ClientboundBlockBreakAckPacket.class)
-public class JavaBlockBreakAckTranslator extends PacketTranslator<ClientboundBlockBreakAckPacket> {
+@Translator(packet = ClientboundBlockChangedAckPacket.class)
+public class JavaBlockChangedAckTranslator extends PacketTranslator<ClientboundBlockChangedAckPacket> {
 
     @Override
-    public void translate(GeyserSession session, ClientboundBlockBreakAckPacket packet) {
-        ChunkUtils.updateBlock(session, packet.getNewState(), packet.getPosition());
-        if (packet.getAction() == PlayerAction.START_DIGGING && !packet.isSuccessful()) {
-            LevelEventPacket stopBreak = new LevelEventPacket();
-            stopBreak.setType(LevelEventType.BLOCK_STOP_BREAK);
-            stopBreak.setPosition(Vector3f.from(packet.getPosition().getX(), packet.getPosition().getY(), packet.getPosition().getZ()));
-            stopBreak.setData(0);
-            session.setBreakingBlock(BlockStateValues.JAVA_AIR_ID);
-            session.sendUpstreamPacket(stopBreak);
-        }
+    public void translate(GeyserSession session, ClientboundBlockChangedAckPacket packet) {
+        // TODO
     }
 }

@@ -30,6 +30,7 @@ import org.geysermc.geyser.api.extension.StartupPhase;
 import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+
 import java.io.Reader;
 import java.util.*;
 

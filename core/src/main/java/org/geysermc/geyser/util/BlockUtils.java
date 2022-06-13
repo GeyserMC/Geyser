@@ -25,23 +25,18 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Position;
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.nukkitx.math.vector.Vector3i;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.PlayerInventory;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.collision.BlockCollision;
 
-public class BlockUtils {
-    /**
-     * A static constant of {@link Position} with all values being zero.
-     */
-    public static final Position POSITION_ZERO = new Position(0, 0, 0);
+public final class BlockUtils {
 
     private static boolean correctTool(GeyserSession session, BlockMapping blockMapping, String itemToolType) {
         switch (itemToolType) {
@@ -240,5 +235,8 @@ public class BlockUtils {
 
     public static BlockCollision getCollisionAt(GeyserSession session, int x, int y, int z) {
         return getCollision(session.getGeyser().getWorldManager().getBlockAt(session, x, y, z));
+    }
+
+    private BlockUtils() {
     }
 }

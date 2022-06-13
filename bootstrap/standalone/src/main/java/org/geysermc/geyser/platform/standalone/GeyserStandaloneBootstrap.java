@@ -38,10 +38,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
-import org.apache.logging.log4j.core.appender.RollingRandomAccessFileAppender;
 import org.geysermc.common.PlatformType;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
@@ -49,9 +48,9 @@ import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.standalone.command.GeyserStandaloneCommandManager;
-import org.geysermc.geyser.util.FileUtils;
-import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.platform.standalone.gui.GeyserStandaloneGUI;
+import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -211,6 +210,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                 return;
             }
         }
+        geyserLogger.setDebug(geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         // Allow libraries like Protocol to have their debug information passthrough
