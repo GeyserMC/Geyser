@@ -51,7 +51,6 @@ public class ArmorStandEntity extends LivingEntity {
     @Getter
     private boolean isMarker = false;
     private boolean isInvisible = false;
-
     @Getter
     private boolean isSmall = false;
 
@@ -414,7 +413,7 @@ public class ArmorStandEntity extends LivingEntity {
             this.positionRequiresOffset = newValue;
             if (positionRequiresOffset) {
                 this.position = applyOffsetToPosition(position);
-                //update the passenger offset as armorstand is moving up by roughly 2 blocks
+                // Update the passenger offset as armorstand is moving up by roughly 2 blocks
                 updatePassengerOffsets();
             } else {
                 this.position = removeOffsetFromPosition(position);
@@ -440,5 +439,4 @@ public class ArmorStandEntity extends LivingEntity {
     public Vector3f getBedrockRotation() {
         return Vector3f.from(getYaw(), getYaw(), getYaw());
     }
-
 }
