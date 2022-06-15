@@ -81,6 +81,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.security.Key;
 import java.text.DecimalFormat;
@@ -210,6 +211,14 @@ public class GeyserImpl implements GeyserApi {
         SkinProvider.registerCacheImageTask(this);
 
         ResourcePack.loadPacks();
+
+        if (config.getRemote().getAuthType() == AuthType.ONLINE && !config.getRemote().getAuthServer().equals("offline")) {
+            String rootUri = config.getRemote().getAuthServer();
+            StringBuilder rootUriBuilder = new StringBuilder(rootUri);
+            if (!rootUri.endsWith("/"))
+                rootUriBuilder.append("/");
+            ServiceRoot.registerYggdrasilServiceRoot(URI.create(rootUriBuilder.toString()));
+        }
 
         if (platformType != PlatformType.STANDALONE && config.getRemote().getAddress().equals("auto")) {
             // Set the remote address to localhost since that is where we are always connecting

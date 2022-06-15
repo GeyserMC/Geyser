@@ -218,6 +218,10 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
         @JsonProperty("auth-type")
         private AuthType authType = AuthType.ONLINE;
 
+        @Setter
+        @JsonProperty("auth-server")
+        private String authServer = "official";
+
         @JsonProperty("allow-password-authentication")
         private boolean passwordAuthentication = true;
 

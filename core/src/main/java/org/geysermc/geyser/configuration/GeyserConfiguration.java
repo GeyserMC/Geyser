@@ -147,6 +147,8 @@ public interface GeyserConfiguration {
 
         AuthType getAuthType();
 
+        String getAuthServer();
+
         boolean isPasswordAuthentication();
 
         boolean isUseProxyProtocol();

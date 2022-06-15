@@ -149,7 +149,7 @@
         <dependency>
             <groupId>com.github.GeyserMC</groupId>
             <artifactId>MCAuthLib</artifactId>
-            <version>d9d773e</version>
+            <version>1374241</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
