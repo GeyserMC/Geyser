@@ -32,6 +32,8 @@ dependencies {
         exclude group: 'com.google.guava', module: "guava"
         exclude group: 'com.google.code.gson', module: "gson"
         exclude group: 'org.slf4j'
+        exclude group: 'it.unimi.dsi.fastutil'
+        exclude group: 'io.netty.incubator'
     }
 }
 
@@ -80,7 +82,6 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 
 shadowJar {
     configurations = [project.configurations.shadow]
-    relocate("it.unimi.dsi.fastutil", "org.geysermc.relocate.fastutil")
     relocate("org.objectweb.asm", "org.geysermc.relocate.asm")
     relocate("org.yaml", "org.geysermc.relocate.yaml") // https://github.com/CardboardPowered/cardboard/issues/139
     relocate("com.fasterxml.jackson", "org.geysermc.relocate.jackson")
@@ -94,6 +95,7 @@ jar {
 remapJar {
     dependsOn(shadowJar)
     input = tasks.shadowJar.archiveFile
+    archiveName = "Geyser-Fabric.jar"
 }
 
 // configure the maven publication
