@@ -28,7 +28,10 @@ package org.geysermc.geyser.item;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.nbt.NbtType;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
+
+import java.util.List;
 
 public record GeyserCustomRenderOffsets(GeyserHand mainHand, GeyserHand offhand) {
     public static GeyserCustomRenderOffsets fromCustomRenderOffsets(CustomRenderOffsets customRenderOffsets) {
@@ -51,10 +54,10 @@ public record GeyserCustomRenderOffsets(GeyserHand mainHand, GeyserHand offhand)
 
         NbtMapBuilder builder = NbtMap.builder();
         if (mainHand != null) {
-            builder.put("main_hand", mainHand);
+            builder.putCompound("main_hand", mainHand);
         }
         if (offhand != null) {
-            builder.put("off_hand", offhand);
+            builder.putCompound("off_hand", offhand);
         }
 
         return builder.build();
@@ -85,10 +88,10 @@ public record GeyserCustomRenderOffsets(GeyserHand mainHand, GeyserHand offhand)
 
             NbtMapBuilder builder = NbtMap.builder();
             if (firstPerson != null) {
-                builder.put("first_person", firstPerson);
+                builder.putCompound("first_person", firstPerson);
             }
             if (thirdPerson != null) {
-                builder.put("third_person", thirdPerson);
+                builder.putCompound("third_person", thirdPerson);
             }
 
             return builder.build();
@@ -105,17 +108,17 @@ public record GeyserCustomRenderOffsets(GeyserHand mainHand, GeyserHand offhand)
         }
 
         public NbtMap toNbtMap() {
-            NbtMap position = null;
+            List<Float> position = null;
             if (this.position != null) {
-                position = this.position.toNbtMap();
+                position = this.position.toList();
             }
-            NbtMap rotation = null;
+            List<Float> rotation = null;
             if (this.rotation != null) {
-                rotation = this.rotation.toNbtMap();
+                rotation = this.rotation.toList();
             }
-            NbtMap scale = null;
+            List<Float> scale = null;
             if (this.scale != null) {
-                scale = this.scale.toNbtMap();
+                scale = this.scale.toList();
             }
 
             if (position == null && rotation == null && scale == null) {
@@ -124,13 +127,13 @@ public record GeyserCustomRenderOffsets(GeyserHand mainHand, GeyserHand offhand)
 
             NbtMapBuilder builder = NbtMap.builder();
             if (position != null) {
-                builder.put("position", position);
+                builder.putList("position", NbtType.FLOAT, position);
             }
             if (rotation != null) {
-                builder.put("rotation", rotation);
+                builder.putList("rotation", NbtType.FLOAT, rotation);
             }
             if (scale != null) {
-                builder.put("scale", scale);
+                builder.putList("scale", NbtType.FLOAT, scale);
             }
 
             return builder.build();
@@ -146,12 +149,8 @@ public record GeyserCustomRenderOffsets(GeyserHand mainHand, GeyserHand offhand)
             return new GeyserOffsetXYZ(offsetXYZ.x(), offsetXYZ.y(), offsetXYZ.z());
         }
 
-        public NbtMap toNbtMap() {
-            return NbtMap.builder()
-                    .putFloat("x", this.x)
-                    .putFloat("y", this.y)
-                    .putFloat("z", this.z)
-                    .build();
+        public List<Float> toList() {
+            return List.of(x, y, z);
         }
     }
 

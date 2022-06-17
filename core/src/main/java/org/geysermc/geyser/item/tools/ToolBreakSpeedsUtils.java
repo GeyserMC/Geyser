@@ -27,6 +27,7 @@ package org.geysermc.geyser.item.tools;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtType;
+import org.geysermc.geyser.GeyserImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,7 +53,14 @@ public class ToolBreakSpeedsUtils {
         return NbtMap.builder()
                 .putCompound("block", NbtMap.builder()
                         .putString("tags", builder.toString())
-                        .putInt("tags_version", 4)
+                        .build())
+                .putCompound("on_dig", NbtMap.builder()
+                        .putCompound("condition", NbtMap.builder()
+                                .putString("expression", "")
+                                .putInt("version", -1)
+                                .build())
+                        .putString("event", "tool_durability")
+                        .putString("target", "self")
                         .build())
                 .putInt("speed", speed)
                 .build();
@@ -63,8 +71,12 @@ public class ToolBreakSpeedsUtils {
                 .putCompound("block", NbtMap.builder()
                         .putString("name", block).build())
                 .putCompound("on_dig", NbtMap.builder()
+                        .putCompound("condition", NbtMap.builder()
+                                .putString("expression", "")
+                                .putInt("version", -1)
+                                .build())
                         .putString("event", "tool_durability")
-                        .putInt("target", 0)
+                        .putString("target", "self")
                         .build())
                 .putInt("speed", speed)
                 .build();
@@ -72,19 +84,22 @@ public class ToolBreakSpeedsUtils {
 
     private static NbtMap createDigger(List<NbtMap> speeds) {
         return NbtMap.builder()
-                .putBoolean("use_efficiency", true)
-                .putCompound("on_dig", NbtMap.builder()
-                        .putString("event", "tool_durability")
-                        .putInt("target", 0)
-                        .build())
                 .putList("destroy_speeds", NbtType.COMPOUND, speeds)
+                .putCompound("on_dig", NbtMap.builder()
+                        .putCompound("condition", NbtMap.builder()
+                                .putString("expression", "")
+                                .putInt("version", -1)
+                                .build())
+                        .putString("event", "tool_durability")
+                        .putString("target", "self")
+                        .build())
+                .putBoolean("use_efficiency", true)
                 .build();
     }
 
     public static NbtMap getAxeDigger(int speed) {
         List<NbtMap> speeds = new ArrayList<>();
         speeds.add(createTagBreakSpeed(speed, "wood", "pumpkin", "plant"));
-        //All speeds need adding
 
         return createDigger(speeds);
     }
@@ -96,7 +111,6 @@ public class ToolBreakSpeedsUtils {
         } else {
             speeds.add(createTagBreakSpeed(speed, "stone", "metal", "gravel", "iron_pick_diggable"));
         }
-        //All speeds need adding
 
         return createDigger(speeds);
     }
@@ -104,7 +118,6 @@ public class ToolBreakSpeedsUtils {
     public static NbtMap getShovelDigger(int speed) {
         List<NbtMap> speeds = new ArrayList<>();
         speeds.add(createTagBreakSpeed(speed, "dirt", "sand", "gravel", "grass", "snow"));
-        //All speeds need adding
 
         return createDigger(speeds);
     }
@@ -113,7 +126,6 @@ public class ToolBreakSpeedsUtils {
         List<NbtMap> speeds = new ArrayList<>();
         speeds.add(createBreakSpeed(speed, "minecraft:web"));
         speeds.add(createBreakSpeed(speed, "minecraft:bamboo"));
-        //All speeds need adding
 
         return createDigger(speeds);
     }

@@ -31,6 +31,7 @@ import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
+import org.geysermc.api.Geyser;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
@@ -172,8 +173,12 @@ public class CustomItemRegistryPopulator {
         itemProperties.putInt("max_stack_size", stackSize);
         if (maxDamage > 0) {
             componentBuilder.putCompound("minecraft:durability", NbtMap.builder()
+                    .putCompound("damage_chance", NbtMap.builder()
+                            .putInt("max", 1)
+                            .putInt("min", 1)
+                            .build())
                     .putInt("max_durability", maxDamage)
-                    .putFloat("damage_chance", 0.1f).build());
+                    .build());
             itemProperties.putBoolean("use_duration", true);
         }
     }
@@ -261,11 +266,11 @@ public class CustomItemRegistryPopulator {
 
             componentBuilder.putCompound("minecraft:render_offsets",
                     NbtMap.builder().putCompound("main_hand", NbtMap.builder()
-                                    .putCompound("first_person", xyzToNbtMap(scale3, scale3, scale3))
-                                    .putCompound("third_person", xyzToNbtMap(scale1, scale2, scale1)).build())
+                                    .putCompound("first_person", xyzToScaleList(scale3, scale3, scale3))
+                                    .putCompound("third_person", xyzToScaleList(scale1, scale2, scale1)).build())
                             .putCompound("off_hand", NbtMap.builder()
-                                    .putCompound("first_person", xyzToNbtMap(scale1, scale2, scale1))
-                                    .putCompound("third_person", xyzToNbtMap(scale1, scale2, scale1)).build()).build());
+                                    .putCompound("first_person", xyzToScaleList(scale1, scale2, scale1))
+                                    .putCompound("third_person", xyzToScaleList(scale1, scale2, scale1)).build()).build());
         }
     }
 
@@ -273,7 +278,7 @@ public class CustomItemRegistryPopulator {
         builder.putList("item_tags", NbtType.STRING, List.of("minecraft:is_" + tag));
     }
 
-    private static NbtMap xyzToNbtMap(float x, float y, float z) {
-        return NbtMap.builder().putCompound("scale", NbtMap.builder().putFloat("x", x).putFloat("y", y).putFloat("z", z).build()).build();
+    private static NbtMap xyzToScaleList(float x, float y, float z) {
+        return NbtMap.builder().putList("scale", NbtType.FLOAT, List.of(x, y, z)).build();
     }
 }

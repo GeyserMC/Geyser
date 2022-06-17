@@ -53,7 +53,7 @@ public enum ToolTier {
     public static ToolTier getByName(String name) {
         String upperCase = name.toUpperCase();
         for (ToolTier tier : VALUES) {
-            if (tier.name().equals(name)) {
+            if (tier.name().equals(upperCase)) {
                 return tier;
             }
         }
