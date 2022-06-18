@@ -80,6 +80,8 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.AccessLevel;
@@ -499,7 +501,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      * Stores a map of all statistics sent from the server.
      * The server only sends new statistics back to us, so in order to show all statistics we need to cache existing ones.
      */
-    private final Map<Statistic, Integer> statistics = new HashMap<>();
+    private final Object2IntMap<Statistic> statistics = new Object2IntOpenHashMap<>(0);
 
     /**
      * Whether we're expecting statistics to be sent back to us.
@@ -1688,7 +1690,7 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      *
      * @param statistics Updated statistics values
      */
-    public void updateStatistics(@NonNull Map<Statistic, Integer> statistics) {
+    public void updateStatistics(@Nonnull Object2IntMap<Statistic> statistics) {
         if (this.statistics.isEmpty()) {
             // Initialize custom statistics to 0, so that they appear in the form
             for (CustomStatistic customStatistic : CustomStatistic.values()) {
