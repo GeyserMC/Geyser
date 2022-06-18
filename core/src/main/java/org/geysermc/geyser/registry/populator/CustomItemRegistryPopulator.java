@@ -31,13 +31,13 @@ import com.nukkitx.nbt.NbtType;
 import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
-import org.geysermc.api.Geyser;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.GeyserCustomRenderOffsets;
-import org.geysermc.geyser.item.tools.ToolBreakSpeedsUtils;
+import org.geysermc.geyser.item.components.ToolBreakSpeedsUtils;
+import org.geysermc.geyser.item.components.WearableSlot;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
@@ -136,9 +136,8 @@ public class CustomItemRegistryPopulator {
         setupBasicItemInfo(customItemData.maxDamage(), customItemData.stackSize(), isTool, customItemData, itemProperties, componentBuilder);
 
         boolean canDestroyInCreative = true;
-        String toolType = customItemData.toolType();
-        if (toolType != null) { // This is not using the isTool boolean because it is not just a render type here.
-            canDestroyInCreative = computeToolProperties(customItemData.toolTier(), toolType, itemProperties, componentBuilder);
+        if (customItemData.toolType() != null) { // This is not using the isTool boolean because it is not just a render type here.
+            canDestroyInCreative = computeToolProperties(customItemData.toolTier(), customItemData.toolType(), itemProperties, componentBuilder);
         }
         itemProperties.putBoolean("can_destroy_in_creative", canDestroyInCreative);
 
@@ -189,28 +188,35 @@ public class CustomItemRegistryPopulator {
     private static boolean computeToolProperties(String toolTier, String toolType, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
         boolean canDestroyInCreative = true;
         float miningSpeed = 1.0f;
-        int toolSpeed = ToolBreakSpeedsUtils.toolTierToSpeed(toolTier);
 
-        switch (toolType) {
-            case "sword" -> {
-                miningSpeed = 1.5f;
-                canDestroyInCreative = false;
-                componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getSwordDigger(toolSpeed));
-                componentBuilder.putCompound("minecraft:weapon", NbtMap.EMPTY);
+        if (toolType.equals("shears")) {
+            componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getShearsDigger(15));
+        } else {
+            int toolSpeed = ToolBreakSpeedsUtils.toolTierToSpeed(toolTier);
+            switch (toolType) {
+                case "sword" -> {
+                    miningSpeed = 1.5f;
+                    canDestroyInCreative = false;
+                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getSwordDigger(toolSpeed));
+                    componentBuilder.putCompound("minecraft:weapon", NbtMap.EMPTY);
+                }
+                case "pickaxe" -> {
+                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getPickaxeDigger(toolSpeed, toolTier));
+                    setItemTag(componentBuilder, "pickaxe");
+                }
+                case "axe" -> {
+                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getAxeDigger(toolSpeed));
+                    setItemTag(componentBuilder, "axe");
+                }
+                case "shovel" -> {
+                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getShovelDigger(toolSpeed));
+                    setItemTag(componentBuilder, "shovel");
+                }
+                case "hoe" -> {
+                    componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getHoeDigger(toolSpeed));
+                    setItemTag(componentBuilder, "hoe");
+                }
             }
-            case "pickaxe" -> {
-                componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getPickaxeDigger(toolSpeed, toolTier));
-                setItemTag(componentBuilder, "pickaxe");
-            }
-            case "axe" -> {
-                componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getAxeDigger(toolSpeed));
-                setItemTag(componentBuilder, "axe");
-            }
-            case "shovel" -> {
-                componentBuilder.putCompound("minecraft:digger", ToolBreakSpeedsUtils.getShovelDigger(toolSpeed));
-                setItemTag(componentBuilder, "shovel");
-            }
-            case "hoe" -> setItemTag(componentBuilder, "hoe");
         }
 
         itemProperties.putBoolean("hand_equipped", true);
@@ -223,22 +229,22 @@ public class CustomItemRegistryPopulator {
         switch (armorType) {
             case "boots" -> {
                 componentBuilder.putString("minecraft:render_offsets", "boots");
-                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.feet").build());
+                componentBuilder.putCompound("minecraft:wearable", WearableSlot.FEET.getSlotNbt());
                 componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", protectionValue).build());
             }
             case "chestplate" -> {
                 componentBuilder.putString("minecraft:render_offsets", "chestplates");
-                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.chest").build());
+                componentBuilder.putCompound("minecraft:wearable", WearableSlot.CHEST.getSlotNbt());
                 componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", protectionValue).build());
             }
             case "leggings" -> {
                 componentBuilder.putString("minecraft:render_offsets", "leggings");
-                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.legs").build());
+                componentBuilder.putCompound("minecraft:wearable", WearableSlot.LEGS.getSlotNbt());
                 componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", protectionValue).build());
             }
             case "helmet" -> {
                 componentBuilder.putString("minecraft:render_offsets", "helmets");
-                componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.head").build());
+                componentBuilder.putCompound("minecraft:wearable", WearableSlot.HEAD.getSlotNbt());
                 componentBuilder.putCompound("minecraft:armor", NbtMap.builder().putInt("protection", protectionValue).build());
             }
         }
@@ -250,7 +256,7 @@ public class CustomItemRegistryPopulator {
             componentBuilder.putString("minecraft:render_offsets", "helmets");
 
             componentBuilder.remove("minecraft:wearable");
-            componentBuilder.putCompound("minecraft:wearable", NbtMap.builder().putString("slot", "slot.armor.head").build());
+            componentBuilder.putCompound("minecraft:wearable", WearableSlot.HEAD.getSlotNbt());
         }
 
         if (customItemData.renderOffsets() != null) {

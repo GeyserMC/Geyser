@@ -23,11 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.tools;
+package org.geysermc.geyser.item.components;
 
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtType;
-import org.geysermc.geyser.GeyserImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,10 +106,11 @@ public class ToolBreakSpeedsUtils {
     public static NbtMap getPickaxeDigger(int speed, String toolTier) {
         List<NbtMap> speeds = new ArrayList<>();
         if (toolTier.equals(ToolTier.DIAMOND.toString()) || toolTier.equals(ToolTier.NETHERITE.toString())) {
-            speeds.add(createTagBreakSpeed(speed, "stone", "metal", "gravel", "iron_pick_diggable", "diamond_pick_diggable"));
+            speeds.add(createTagBreakSpeed(speed, "iron_pick_diggable", "diamond_pick_diggable"));
         } else {
-            speeds.add(createTagBreakSpeed(speed, "stone", "metal", "gravel", "iron_pick_diggable"));
+            speeds.add(createTagBreakSpeed(speed, "iron_pick_diggable"));
         }
+        speeds.add(createTagBreakSpeed(speed, "stone", "metal", "rail", "mob_spawner"));
 
         return createDigger(speeds);
     }
@@ -126,6 +126,48 @@ public class ToolBreakSpeedsUtils {
         List<NbtMap> speeds = new ArrayList<>();
         speeds.add(createBreakSpeed(speed, "minecraft:web"));
         speeds.add(createBreakSpeed(speed, "minecraft:bamboo"));
+
+        return createDigger(speeds);
+    }
+
+    public static NbtMap getHoeDigger(int speed) {
+        List<NbtMap> speeds = new ArrayList<>();
+        speeds.add(createBreakSpeed(speed, "minecraft:leaves"));
+        speeds.add(createBreakSpeed(speed, "minecraft:leaves2"));
+        speeds.add(createBreakSpeed(speed, "minecraft:azalea_leaves"));
+        speeds.add(createBreakSpeed(speed, "minecraft:azalea_leaves_flowered"));
+
+        speeds.add(createBreakSpeed(speed, "minecraft:sculk"));
+        speeds.add(createBreakSpeed(speed, "minecraft:sculk_catalyst"));
+        speeds.add(createBreakSpeed(speed, "minecraft:sculk_sensor"));
+        speeds.add(createBreakSpeed(speed, "minecraft:sculk_shrieker"));
+        speeds.add(createBreakSpeed(speed, "minecraft:sculk_vein"));
+
+        speeds.add(createBreakSpeed(speed, "minecraft:nether_wart_block"));
+        speeds.add(createBreakSpeed(speed, "minecraft:warped_wart_block"));
+
+        speeds.add(createBreakSpeed(speed, "minecraft:hay_block"));
+        speeds.add(createBreakSpeed(speed, "minecraft:moss_block"));
+        speeds.add(createBreakSpeed(speed, "minecraft:shroomlight"));
+        speeds.add(createBreakSpeed(speed, "minecraft:sponge"));
+        speeds.add(createBreakSpeed(speed, "minecraft:target"));
+
+        return createDigger(speeds);
+    }
+
+    public static NbtMap getShearsDigger(int speed) {
+        List<NbtMap> speeds = new ArrayList<>();
+        speeds.add(createBreakSpeed(speed, "minecraft:web"));
+
+        speeds.add(createBreakSpeed(speed, "minecraft:leaves"));
+        speeds.add(createBreakSpeed(speed, "minecraft:leaves2"));
+        speeds.add(createBreakSpeed(speed, "minecraft:azalea_leaves"));
+        speeds.add(createBreakSpeed(speed, "minecraft:azalea_leaves_flowered"));
+
+        speeds.add(createBreakSpeed(speed, "minecraft:wool"));
+
+        speeds.add(createBreakSpeed(speed, "minecraft:glow_lichen"));
+        speeds.add(createBreakSpeed(speed, "minecraft:vine"));
 
         return createDigger(speeds);
     }

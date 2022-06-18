@@ -23,7 +23,9 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.tools;
+package org.geysermc.geyser.item.components;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 public enum ToolTier {
     WOODEN(2),
@@ -50,7 +52,7 @@ public enum ToolTier {
         return this.name().toLowerCase();
     }
 
-    public static ToolTier getByName(String name) {
+    public static ToolTier getByName(@NonNull String name) {
         String upperCase = name.toUpperCase();
         for (ToolTier tier : VALUES) {
             if (tier.name().equals(upperCase)) {
