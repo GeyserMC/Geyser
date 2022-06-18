@@ -23,17 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.velocity;
+package org.geysermc.geyser.platform.velocity;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
-import org.geysermc.connector.GeyserConnector;
+import org.geysermc.geyser.GeyserImpl;
 
 import java.lang.reflect.Method;
 
 public class GeyserVelocityCompressionDisabler extends ChannelOutboundHandlerAdapter {
-    public static final boolean ENABLED;
+    static final boolean ENABLED;
     private static final Class<?> COMPRESSION_PACKET_CLASS;
     private static final Class<?> LOGIN_SUCCESS_PACKET_CLASS;
     private static final Method SET_COMPRESSION_METHOD;
@@ -51,7 +51,7 @@ public class GeyserVelocityCompressionDisabler extends ChannelOutboundHandlerAda
                     .getMethod("setCompressionThreshold", int.class);
             enabled = true;
         } catch (Exception e) {
-            GeyserConnector.getInstance().getLogger().error("Could not initialize compression disabler!", e);
+            GeyserImpl.getInstance().getLogger().error("Could not initialize compression disabler!", e);
         }
 
         ENABLED = enabled;
@@ -69,9 +69,8 @@ public class GeyserVelocityCompressionDisabler extends ChannelOutboundHandlerAda
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         Class<?> msgClass = msg.getClass();
-        // instanceOf doesn't work. Unsure why.
-        if (COMPRESSION_PACKET_CLASS != msgClass) {
-            if (LOGIN_SUCCESS_PACKET_CLASS == msgClass) {
+        if (!COMPRESSION_PACKET_CLASS.isAssignableFrom(msgClass)) {
+            if (LOGIN_SUCCESS_PACKET_CLASS.isAssignableFrom(msgClass)) {
                 // We're past the point that compression can be enabled
                 // Invoke the method as it calls a Netty event and handles removing cleaner than we could
                 Object minecraftConnection = ctx.pipeline().get("handler");

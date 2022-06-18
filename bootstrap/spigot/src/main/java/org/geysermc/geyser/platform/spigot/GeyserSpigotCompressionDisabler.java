@@ -23,13 +23,13 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.platform.spigot;
+package org.geysermc.geyser.platform.spigot;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
 import org.bukkit.Bukkit;
-import org.geysermc.connector.GeyserConnector;
+import org.geysermc.geyser.GeyserImpl;
 
 /**
  * Disables the compression packet (and the compression handlers from being added to the pipeline) for Geyser clients
@@ -39,7 +39,7 @@ import org.geysermc.connector.GeyserConnector;
  * If we simply "cancel" or don't forward the packet, then the listener is never called.
  */
 public class GeyserSpigotCompressionDisabler extends ChannelOutboundHandlerAdapter {
-    public static final boolean ENABLED;
+    static final boolean ENABLED;
 
     private static final Class<?> COMPRESSION_PACKET_CLASS;
     private static final Class<?> LOGIN_SUCCESS_PACKET_CLASS;
@@ -56,7 +56,7 @@ public class GeyserSpigotCompressionDisabler extends ChannelOutboundHandlerAdapt
             loginSuccessPacketClass = findLoginSuccessPacket();
             enabled = true;
         } catch (Exception e) {
-            GeyserConnector.getInstance().getLogger().error("Could not initialize compression disabler!", e);
+            GeyserImpl.getInstance().getLogger().error("Could not initialize compression disabler!", e);
         }
         COMPRESSION_PACKET_CLASS = compressionPacketClass;
         LOGIN_SUCCESS_PACKET_CLASS = loginSuccessPacketClass;
