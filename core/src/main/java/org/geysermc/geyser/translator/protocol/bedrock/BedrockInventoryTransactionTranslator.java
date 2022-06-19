@@ -33,6 +33,7 @@ import com.github.steveice10.mc.protocol.data.game.entity.player.InteractAction;
 import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerAction;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
 import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.*;
+import com.nukkitx.math.vector.Vector3d;
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.protocol.bedrock.data.LevelEventType;
@@ -256,9 +257,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             int blockState = session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition());
                             if (blockState == BlockStateValues.JAVA_WATER_ID) {
                                 // Otherwise causes multiple mobs to spawn - just send a use item packet
-                                // TODO when we fix mobile bucket rotation, use it for this, too
-                                ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getNextSequence());
-                                session.sendDownstreamPacket(itemPacket);
+                                useItem(session, packet);
                                 break;
                             }
                         }
@@ -278,9 +277,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             if (session.getItemMappings().getBoatIds().contains(itemId) ||
                                     itemId == session.getItemMappings().getStoredItems().lilyPad() ||
                                     itemId == session.getItemMappings().getStoredItems().frogspawn()) {
-                                // TODO lily pad and frogspawn also require mobile rotation fixes
-                                ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getNextSequence());
-                                session.sendDownstreamPacket(itemPacket);
+                                useItem(session, packet);
                             } else if (session.getItemMappings().getBucketIds().contains(itemId)) {
                                 // Let the server decide if the bucket item should change, not the client, and revert the changes the client made
                                 InventorySlotPacket slotPacket = new InventorySlotPacket();
@@ -295,11 +292,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                     if (session.isSneaking() || blockState != BlockRegistries.JAVA_IDENTIFIERS.get("minecraft:crafting_table")) {
                                         // Delay the interaction in case the client doesn't intend to actually use the bucket
                                         // See BedrockActionTranslator.java
-                                        session.setBucketScheduledFuture(session.scheduleInEventLoop(() -> {
-                                            rotateIfNeeded(session, packet);
-                                            ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getNextSequence());
-                                            session.sendDownstreamPacket(itemPacket);
-                                        }, 5, TimeUnit.MILLISECONDS));
+                                        session.setBucketScheduledFuture(session.scheduleInEventLoop(() -> useItem(session, packet), 5, TimeUnit.MILLISECONDS));
                                     }
                                 }
                             }
@@ -343,8 +336,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             }
                         }
 
-                        ServerboundUseItemPacket useItemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getNextSequence());
-                        session.sendDownstreamPacket(useItemPacket);
+                        useItem(session, packet);
 
                         List<LegacySetItemSlotData> legacySlots = packet.getLegacySlots();
                         if (packet.getActions().size() == 1 && legacySlots.size() > 0) {
@@ -533,7 +525,12 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         session.sendUpstreamPacket(slotPacket);
     }
 
-    // TODO format so IntelliJ doesn't botch my beautiful drawing
+    private void useItem(GeyserSession session, InventoryTransactionPacket packet) {
+        lookAt(session, packet);
+        ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getNextSequence());
+        session.sendDownstreamPacket(itemPacket);
+    }
+
     /**
      * Determine the rotation necessary to activate this transaction.
      *
@@ -547,85 +544,35 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
      * |_____________ Intended target (-3, 2)
      *
      * We then use the Pythagorean Theorem to find the direct line (hypotenuse) on the XZ plane. Finding the angle of the
-     * triangle from there, closest to the player, gives us our yaw rotation value (with some offsets needed depending on
-     * the direction the player is looking at).
+     * triangle from there, closest to the player, gives us our yaw rotation value
      * Then doing the same using the new XZ distance and Y difference, we can find the direct line of sight from the
-     * player to the intended target, and the pitch rotation value. If the difference between the player's rotation and
-     * the desired target is too high, we update the player's rotation to our calculated values and then send the necessary packets.
+     * player to the intended target, and the pitch rotation value. We can then send the necessary packets to update
+     * the player's rotation.
+     *
+     * @param session the Geyser Session
+     * @param packet the packet with the block & click position to look at
      */
-    private void rotateIfNeeded(GeyserSession session, InventoryTransactionPacket packet) {
+    private void lookAt(GeyserSession session, InventoryTransactionPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
-        if (packet.getBlockPosition().getX() == Math.floor(entity.getPosition().getX()) && packet.getBlockPosition().getZ() == Math.floor(entity.getPosition().getZ())) {
-            // Standing on or above the block
-            System.out.println("Ignoring since we're standing on the block.");
-            return;
-        }
 
         Vector3f target = packet.getBlockPosition().toFloat().add(packet.getClickPosition());
-        float xDiff = entity.getPosition().getX() - target.getX();
-        float xDiffAbs = Math.abs(xDiff);
-        float yDiff = entity.getPosition().getY() - target.getY();
-        float yDiffAbs = Math.abs(yDiff);
-        float zDiff = entity.getPosition().getZ() - target.getZ();
-        float zDiffAbs = Math.abs(zDiff);
+        float xDiff = target.getX() - entity.getPosition().getX();
+        float yDiff = target.getY() - entity.getPosition().getY();
+        float zDiff = target.getZ() - entity.getPosition().getZ();
 
-        int xOffset;
-        if (xDiff < 0) {
-            if (zDiff > 0) {
-                // Between east and south
-                xOffset = -180;
-            } else {
-                // Between north and east
-                xOffset = -90;
-            }
-        } else {
-            if (zDiff > 0) {
-                // Between south and west
-                xOffset = 90;
-            } else {
-                // Between west and north
-                xOffset = 0;
-            }
-        }
-
-        // First triangle on the X and Z axis
-        double xzDistance = hypot(xDiffAbs, zDiffAbs);
-        double xRotation = Math.toDegrees(Math.acos(xDiffAbs / xzDistance)) + xOffset;
-        if (xOffset == 0) {
-            xRotation = 90 - xRotation;
-        } else if (xOffset == -180) {
-            // This can't be right
-            xRotation = -270 + -xRotation;
-        }
+        // First triangle on the XZ plane
+        double yaw = -Math.toDegrees(Math.atan2(xDiff, zDiff));
         // Second triangle on the Y axis using the hypotenuse of the first triangle as a side
-        double yDistance = hypot(xzDistance, yDiffAbs);
-        double yRotation = Math.toDegrees(Math.acos(Math.abs(xzDistance) / yDistance));
-        if (yDiff < 0) {
-            // Looking up
-            yRotation = -yRotation;
-        }
+        double xzHypot = Math.sqrt(xDiff * xDiff + zDiff * zDiff);
+        double pitch = -Math.toDegrees(Math.atan2(yDiff, xzHypot));
 
-        if (Math.abs(entity.getHeadYaw() - xRotation) > 3 || Math.abs(entity.getPitch() - yRotation) > 3) {
-            // Great enough distance that we need to move
-            entity.setPitch((float) yRotation);
-            entity.setYaw((float) xRotation);
-            entity.setHeadYaw((float) xRotation);
-            ServerboundMovePlayerRotPacket rotationPacket = new ServerboundMovePlayerRotPacket(entity.isOnGround(), entity.getYaw(), entity.getPitch());
-            session.sendDownstreamPacket(rotationPacket);
+        entity.setPitch((float) pitch);
+        entity.setYaw((float) yaw);
+        entity.setHeadYaw((float) yaw);
 
-            MovePlayerPacket playerPacket = new MovePlayerPacket();
-            playerPacket.setRuntimeEntityId(entity.getGeyserId());
-            playerPacket.setPosition(entity.getPosition());
-            playerPacket.setRotation(entity.getBedrockRotation());
-            playerPacket.setOnGround(entity.isOnGround());
-            playerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
-            playerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);
-            session.sendUpstreamPacket(playerPacket);
-        }
-    }
-
-    // TODO is it better to use Math.hypot ?
-    private double hypot(double a, double b) {
-        return Math.sqrt((a * a) + (b * b));
+        Vector3d playerPosition = session.getCollisionManager().getPlayerBoundingBox().getBottomCenter();
+        // This matches Java edition behavior
+        ServerboundMovePlayerPosRotPacket movementPacket = new ServerboundMovePlayerPosRotPacket(entity.isOnGround(), playerPosition.getX(), playerPosition.getY(), playerPosition.getZ(), entity.getYaw(), entity.getPitch());
+        session.sendDownstreamPacket(movementPacket);
     }
 }
