@@ -254,7 +254,7 @@ public class SkinManager {
             }
         }
 
-        private static GameProfileData loadFromJson(String encodedJson) throws IOException {
+        public static GameProfileData loadFromJson(String encodedJson) throws IOException {
             JsonNode skinObject = GeyserImpl.JSON_MAPPER.readTree(new String(Base64.getDecoder().decode(encodedJson), StandardCharsets.UTF_8));
             JsonNode textures = skinObject.get("textures");
 

@@ -31,12 +31,17 @@ import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMapBuilder;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.world.GeyserConvertSkullEvent;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.skin.SkinProvider;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @BlockEntity(type = BlockEntityType.SKULL)
 public class SkullBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
@@ -69,18 +74,65 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         return CompletableFuture.completedFuture(null);
     }
 
-    public static void translateSkull(GeyserSession session, CompoundTag tag, int posX, int posY, int posZ, int blockState) {
-        Vector3i blockPosition = Vector3i.from(posX, posY, posZ);
-        getTextures(tag).whenComplete((texturesProperty, throwable) -> {
+    public static int translateSkull(GeyserSession session, CompoundTag tag, int posX, int posY, int posZ, int blockState) {
+        try {
+            String texturesProperty = getTextures(tag).get();
+            Vector3i blockPosition = Vector3i.from(posX, posY, posZ);
             if (texturesProperty == null) {
                 session.getGeyser().getLogger().debug("Custom skull with invalid SkullOwner tag: " + blockPosition + " " + tag);
-                return;
+                return -1;
             }
-            if (session.getEventLoop().inEventLoop()) {
+            int runtimeId = translateCustomSkull(session, blockPosition, texturesProperty, blockState);
+            if (runtimeId == -1) {
                 session.getSkullCache().putSkull(blockPosition, texturesProperty, blockState);
             } else {
-                session.executeInEventLoop(() -> session.getSkullCache().putSkull(blockPosition, texturesProperty, blockState));
+                session.getSkullCache().putSkull(blockPosition, texturesProperty, blockState, runtimeId);
             }
-        });
+            return runtimeId;
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static int translateCustomSkull(GeyserSession session, Vector3i blockPosition, String texturesProperty, int blockState) {
+        try {
+            SkinManager.GameProfileData gameProfileData = SkinManager.GameProfileData.loadFromJson(texturesProperty);
+            if (gameProfileData == null || gameProfileData.skinUrl() == null) {
+                session.getGeyser().getLogger().debug("Player skull with invalid Skin tag: " + blockPosition + " Textures: " + texturesProperty);
+                return -1;
+            }
+
+            String skinUrl = gameProfileData.skinUrl();
+            String skinHash = skinUrl.substring(skinUrl.lastIndexOf('/') + 1);
+
+            byte floorRotation = BlockStateValues.getSkullRotation(blockState);
+            GeyserConvertSkullEvent.WallDirection wallDirection = GeyserConvertSkullEvent.WallDirection.INVALID;
+            boolean onFloor = true;
+            if (floorRotation == -1) {
+                // Wall skull
+                onFloor = false;
+                int wallRotation = BlockStateValues.getSkullWallDirections().get(blockState);
+                wallDirection = switch (wallRotation) {
+                    case 0 -> GeyserConvertSkullEvent.WallDirection.SOUTH;
+                    case 90 -> GeyserConvertSkullEvent.WallDirection.WEST;
+                    case 180 -> GeyserConvertSkullEvent.WallDirection.NORTH;
+                    case 270 -> GeyserConvertSkullEvent.WallDirection.EAST;
+                    default -> GeyserConvertSkullEvent.WallDirection.INVALID;
+                };
+            }
+            GeyserConvertSkullEvent event = new GeyserConvertSkullEvent(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), onFloor, wallDirection, floorRotation, skinHash);
+            GeyserImpl.getInstance().getEventBus().fire(event);
+
+            if (event.getNewBlockState() != null) {
+                return session.getBlockMappings().getCustomBlockStateIds().getOrDefault(event.getNewBlockState(), -1);
+            }
+
+            if (event.isCancelled()) {
+                return -1;
+            }
+        } catch (IOException e) {
+            session.getGeyser().getLogger().debug("Player skull with invalid Skin tag: " + blockPosition + " Textures: " + texturesProperty + " Message: " + e.getMessage());
+        }
+        return -1;
     }
 }

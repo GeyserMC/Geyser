@@ -31,9 +31,11 @@ import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import lombok.Builder;
 import lombok.Value;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 
 import javax.annotation.Nonnull;
@@ -69,6 +71,8 @@ public class ItemMappings {
 
     List<ComponentItemData> componentItemData;
     Int2ObjectMap<String> customIdMappings;
+
+    Object2IntMap<CustomBlockData> customBlockItemIds;
 
     /**
      * Gets an {@link ItemMapping} from the given {@link ItemStack}.

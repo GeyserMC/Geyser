@@ -135,16 +135,21 @@ public class ChunkUtils {
             // Otherwise, let's still store our reference to the item frame, but let the new block take precedence for now
         }
 
-        if (BlockStateValues.getSkullVariant(blockState) == -1) {
+        int blockId = session.getBlockMappings().getBedrockBlockId(blockState);
+        int skullVariant = BlockStateValues.getSkullVariant(blockState);
+        if (skullVariant == -1) {
             // Skull is gone
             session.getSkullCache().removeSkull(position);
+        } else if (skullVariant == 3) {
+            int customRuntimeId = session.getSkullCache().updateSkull(position, blockState);
+            if (customRuntimeId != -1) {
+                blockId = customRuntimeId;
+            }
         }
 
         // Prevent moving_piston from being placed
         // It's used for extending piston heads, but it isn't needed on Bedrock and causes pistons to flicker
         if (!BlockStateValues.isMovingPiston(blockState)) {
-            int blockId = session.getBlockMappings().getBedrockBlockId(blockState);
-
             UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
             updateBlockPacket.setDataLayer(0);
             updateBlockPacket.setBlockPosition(position);

@@ -505,10 +505,18 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
      */
     private void restoreCorrectBlock(GeyserSession session, Vector3i blockPos, InventoryTransactionPacket packet) {
         int javaBlockState = session.getGeyser().getWorldManager().getBlockAt(session, blockPos);
+        int bedrockId = session.getBlockMappings().getBedrockBlockId(javaBlockState);
+        if (BlockStateValues.getSkullVariant(javaBlockState) == 3) {
+            int customRuntimeId = session.getSkullCache().updateSkull(blockPos, javaBlockState);
+            if (customRuntimeId != -1) {
+                bedrockId = customRuntimeId;
+            }
+        }
+
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setBlockPosition(blockPos);
-        updateBlockPacket.setRuntimeId(session.getBlockMappings().getBedrockBlockId(javaBlockState));
+        updateBlockPacket.setRuntimeId(bedrockId);
         updateBlockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(updateBlockPacket);
 

@@ -27,6 +27,9 @@ package org.geysermc.geyser.registry.provider;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.block.custom.CustomBlockData;
+import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
+import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
@@ -37,6 +40,9 @@ import org.geysermc.geyser.command.GeyserCommandManager;
 import org.geysermc.geyser.item.GeyserCustomItemData;
 import org.geysermc.geyser.item.GeyserCustomItemOptions;
 import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
+import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
+import org.geysermc.geyser.level.block.GeyserCustomBlockData;
+import org.geysermc.geyser.level.block.GeyserCustomBlockPermutation;
 import org.geysermc.geyser.registry.ProviderRegistries;
 import org.geysermc.geyser.registry.SimpleMappedRegistry;
 
@@ -52,6 +58,11 @@ public class GeyserBuilderProvider extends AbstractProvider implements BuilderPr
     @Override
     public void registerProviders(Map<Class<?>, ProviderSupplier> providers) {
         providers.put(Command.Builder.class, args -> new GeyserCommandManager.CommandBuilder<>((Class<? extends CommandSource>) args[0]));
+
+        providers.put(CustomBlockComponents.Builder.class, args -> new GeyserCustomBlockComponents.BuilderImpl());
+        providers.put(CustomBlockData.Builder.class, args -> new GeyserCustomBlockData.BuilderImpl());
+        providers.put(CustomBlockPermutation.Builder.class, args -> new GeyserCustomBlockPermutation.BuilderImpl());
+
         providers.put(CustomItemData.Builder.class, args -> new GeyserCustomItemData.CustomItemDataBuilder());
         providers.put(CustomItemOptions.Builder.class, args -> new GeyserCustomItemOptions.CustomItemOptionsBuilder());
         providers.put(NonVanillaCustomItemData.Builder.class, args -> new GeyserNonVanillaCustomItemData.NonVanillaCustomItemDataBuilder());

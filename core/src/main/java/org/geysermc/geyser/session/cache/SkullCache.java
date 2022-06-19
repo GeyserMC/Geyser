@@ -27,12 +27,14 @@ package org.geysermc.geyser.session.cache;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
+import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.level.block.entity.SkullBlockEntityTranslator;
 
 import java.util.*;
 
@@ -75,6 +77,17 @@ public class SkullCache {
         Skull skull = skulls.computeIfAbsent(position, Skull::new);
         skull.texturesProperty = texturesProperty;
         skull.blockState = blockState;
+        if (skull.customRuntimeId != -1) {
+            skull.customRuntimeId = -1;
+
+            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+            updateBlockPacket.setBlockPosition(position);
+            updateBlockPacket.setRuntimeId(session.getBlockMappings().getBedrockBlockId(blockState));
+            updateBlockPacket.setDataLayer(0);
+            session.sendUpstreamPacket(updateBlockPacket);
+        }
 
         if (skull.entity != null) {
             skull.entity.updateSkull(skull);
@@ -106,6 +119,24 @@ public class SkullCache {
         }
     }
 
+    public void putSkull(Vector3i position, String texturesProperty, int blockState, int customRuntimeId) {
+        Skull skull = skulls.computeIfAbsent(position, Skull::new);
+        skull.texturesProperty = texturesProperty;
+        skull.blockState = blockState;
+        skull.customRuntimeId = customRuntimeId;
+
+        boolean hadEntity = skull.entity != null;
+        freeSkullEntity(skull);
+
+        if (cullingEnabled) {
+            inRangeSkulls.remove(skull);
+            if (hadEntity && inRangeSkulls.size() >= maxVisibleSkulls) {
+                // Reassign entity to the closest skull without an entity
+                assignSkullEntity(inRangeSkulls.get(maxVisibleSkulls - 1));
+            }
+        }
+    }
+
     public void removeSkull(Vector3i position) {
         Skull skull = skulls.remove(position);
         if (skull != null) {
@@ -122,6 +153,20 @@ public class SkullCache {
         }
     }
 
+    public int updateSkull(Vector3i position, int blockState) {
+        Skull skull = skulls.remove(position);
+        if (skull != null) {
+            int customRuntimeId = SkullBlockEntityTranslator.translateCustomSkull(session, position, skull.texturesProperty, blockState);
+            if (customRuntimeId != -1) {
+                putSkull(position, skull.texturesProperty, blockState, customRuntimeId);
+            } else {
+                putSkull(position, skull.texturesProperty, blockState);
+            }
+            return customRuntimeId;
+        }
+        return -1;
+    }
+
     public void updateVisibleSkulls() {
         if (cullingEnabled) {
             // No need to recheck skull visibility for small movements
@@ -132,6 +177,10 @@ public class SkullCache {
 
             inRangeSkulls.clear();
             for (Skull skull : skulls.values()) {
+                if (skull.customRuntimeId != -1) {
+                    continue;
+                }
+
                 skull.distanceSquared = skull.position.distanceSquared(lastPlayerPosition.getX(), lastPlayerPosition.getY(), lastPlayerPosition.getZ());
                 if (skull.distanceSquared > skullRenderDistanceSquared) {
                     freeSkullEntity(skull);
@@ -203,6 +252,7 @@ public class SkullCache {
     public static class Skull {
         private String texturesProperty;
         private int blockState;
+        private int customRuntimeId = -1;
         private SkullPlayerEntity entity;
 
         private final Vector3i position;

@@ -46,6 +46,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntImmutableList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -273,7 +274,18 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                 // Check for custom skulls
                 if (session.getPreferencesCache().showCustomSkulls() && type == BlockEntityType.SKULL && tag != null && tag.contains("SkullOwner")) {
-                    SkullBlockEntityTranslator.translateSkull(session, tag, x + chunkBlockX, y, z + chunkBlockZ, blockState);
+                    int runtimeId = SkullBlockEntityTranslator.translateSkull(session, tag, x + chunkBlockX, y, z + chunkBlockZ, blockState);
+                    if (runtimeId != -1) {
+                        int bedrockSectionY = (y >> 4) - (bedrockDimension.minY() >> 4);
+                        GeyserChunkSection bedrockSection = sections[bedrockSectionY];
+                        IntList palette = bedrockSection.getBlockStorageArray()[0].getPalette();
+                        if (palette instanceof IntImmutableList || palette instanceof IntLists.Singleton) {
+                            // TODO there has to be a better way to expand the palette .-.
+                            bedrockSection = bedrockSection.copy();
+                            sections[bedrockSectionY] = bedrockSection;
+                        }
+                        bedrockSection.setFullBlock(x, y & 0xF, z, 0, runtimeId);
+                    }
                 }
             }
 

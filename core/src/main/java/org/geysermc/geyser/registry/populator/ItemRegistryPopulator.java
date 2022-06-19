@@ -46,6 +46,7 @@ import it.unimi.dsi.fastutil.objects.*;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomItemsEvent;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
@@ -198,6 +199,8 @@ public class ItemRegistryPopulator {
             // Temporary mapping to create stored items
             Map<String, ItemMapping> identifierToMapping = new Object2ObjectOpenHashMap<>();
 
+            BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.getValue().protocolVersion());
+
             int netId = 1;
             List<ItemData> creativeItems = new ArrayList<>();
             for (JsonNode itemNode : creativeItemEntries) {
@@ -216,6 +219,10 @@ public class ItemRegistryPopulator {
                 JsonNode blockRuntimeIdNode = itemNode.get("blockRuntimeId");
                 if (blockRuntimeIdNode != null) {
                     blockRuntimeId = blockRuntimeIdNode.asInt();
+
+                    if (blockMappings.getRemappedVanillaIds().length != 0) {
+                        blockRuntimeId = blockMappings.getRemappedVanillaIds()[blockRuntimeId];
+                    }
                 }
                 JsonNode nbtNode = itemNode.get("nbt_b64");
                 if (nbtNode != null) {
@@ -269,8 +276,6 @@ public class ItemRegistryPopulator {
                     }
                 }
             }
-
-            BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.getValue().protocolVersion());
 
             int itemIndex = 0;
             int javaFurnaceMinecartId = 0;
@@ -631,6 +636,19 @@ public class ItemRegistryPopulator {
                 }
             }
 
+            // Register the item forms of custom blocks
+            Object2IntMap<CustomBlockData> customBlockItemIds = Object2IntMaps.emptyMap();
+            if (BlockRegistries.CUSTOM_BLOCKS.get().length != 0) {
+                customBlockItemIds = new Object2IntOpenHashMap<>();
+                for (CustomBlockData customBlock : BlockRegistries.CUSTOM_BLOCKS.get()) {
+                    int customProtocolId = nextFreeBedrockId++;
+                    String identifier = BlockRegistryPopulator.CUSTOM_PREFIX + customBlock.name();
+
+                    entries.put(identifier, new StartGamePacket.ItemEntry(identifier, (short) customProtocolId));
+                    customBlockItemIds.put(customBlock, customProtocolId);
+                }
+            }
+
             ItemMappings itemMappings = ItemMappings.builder()
                     .items(mappings.toArray(new ItemMapping[0]))
                     .creativeItems(creativeItems.toArray(new ItemData[0]))
@@ -645,6 +663,7 @@ public class ItemRegistryPopulator {
                     .componentItemData(componentItemData)
                     .lodestoneCompass(lodestoneEntry)
                     .customIdMappings(customIdMappings)
+                    .customBlockItemIds(customBlockItemIds)
                     .build();
 
             Registries.ITEMS.register(palette.getValue().protocolVersion(), itemMappings);

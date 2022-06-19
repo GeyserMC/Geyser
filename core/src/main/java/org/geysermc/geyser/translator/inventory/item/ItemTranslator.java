@@ -38,6 +38,8 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.block.custom.CustomBlockData;
+import org.geysermc.geyser.api.event.GeyserConvertSkullInventoryEvent;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -45,11 +47,13 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.FileUtils;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -174,6 +178,10 @@ public abstract class ItemTranslator {
         }
 
         translateCustomItem(nbt, builder, bedrockItem);
+
+        if (bedrockItem == session.getItemMappings().getStoredItems().playerHead()) {
+            translatePlayerHead(session, nbt, builder, bedrockItem);
+        }
 
         if (nbt != null) {
             // Translate the canDestroy and canPlaceOn Java NBT
@@ -540,6 +548,50 @@ public abstract class ItemTranslator {
         int bedrockId = getCustomItem(nbt, mapping);
         if (bedrockId != -1) {
             builder.id(bedrockId);
+        }
+    }
+    
+    private static void translatePlayerHead(GeyserSession session, CompoundTag nbt, ItemData.Builder builder, ItemMapping mapping) {
+        if (nbt != null && nbt.contains("SkullOwner")) {
+            String skinHash = null;
+            Tag skullOwner = nbt.get("SkullOwner");
+            if (skullOwner instanceof StringTag) {
+                // It's a username give up d:
+                return;
+            } else if (skullOwner instanceof CompoundTag) {
+                Tag properties = ((CompoundTag) skullOwner).get("Properties");
+                if (properties instanceof CompoundTag) {
+                    Tag textures = ((CompoundTag) properties).get("textures");
+                    if (textures instanceof ListTag) {
+                        List<Tag> textureTags = ((ListTag) textures).getValue();
+                        if (!textureTags.isEmpty()) {
+                            Tag skinTag = textureTags.get(0);
+                            if (skinTag instanceof CompoundTag) {
+                                Tag valueTag = ((CompoundTag) skinTag).get("Value");
+                                String encodedJson = (String) valueTag.getValue();
+                                try {
+                                    SkinManager.GameProfileData data = SkinManager.GameProfileData.loadFromJson(encodedJson);
+                                    skinHash = data.skinUrl().substring(data.skinUrl().lastIndexOf('/') + 1);
+                                } catch (IOException e) {
+                                    session.getGeyser().getLogger().debug("Not sure how to handle skull head item display. " + nbt + " " + e.getMessage());
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (skinHash == null) {
+                session.getGeyser().getLogger().debug("Not sure how to handle skull head item display. " + nbt);
+            }
+            GeyserConvertSkullInventoryEvent skullInventoryEvent = new GeyserConvertSkullInventoryEvent(skinHash);
+            GeyserImpl.getInstance().getEventBus().fire(skullInventoryEvent);
+
+            CustomBlockData replacementBlock = skullInventoryEvent.replacementBlock();
+            if (replacementBlock != null) {
+                int bedrockId = session.getItemMappings().getCustomBlockItemIds().getInt(replacementBlock);
+                builder.id(bedrockId);
+            }
         }
     }
 

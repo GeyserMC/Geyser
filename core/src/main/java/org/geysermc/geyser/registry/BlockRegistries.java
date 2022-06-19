@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.registry.populator.BlockRegistryPopulator;
 import org.geysermc.geyser.registry.type.BlockMapping;
@@ -71,6 +72,11 @@ public class BlockRegistries {
      * A registry containing all the waterlogged blockstates.
      */
     public static final SimpleRegistry<IntSet> WATERLOGGED = SimpleRegistry.create(RegistryLoaders.empty(IntOpenHashSet::new));
+
+    /**
+     * A registry containing all the custom blocks.
+     */
+    public static final ArrayRegistry<CustomBlockData> CUSTOM_BLOCKS = ArrayRegistry.create(RegistryLoaders.empty(() -> new CustomBlockData[] {}));
 
     static {
         BlockRegistryPopulator.populate();
