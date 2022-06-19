@@ -28,10 +28,8 @@ package org.geysermc.geyser.event;
 import net.kyori.event.EventSubscriber;
 import net.kyori.event.SimpleEventBus;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.event.Event;
-import org.geysermc.geyser.api.event.EventBus;
-import org.geysermc.geyser.api.event.EventSubscription;
-import org.geysermc.geyser.api.event.Subscribe;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.*;
 import org.geysermc.geyser.api.extension.Extension;
 import org.lanternpowered.lmbda.LambdaFactory;
 
@@ -50,8 +48,8 @@ public class GeyserEventBus implements EventBus {
 
     @NonNull
     @Override
-    public <T extends Event> EventSubscription<T> subscribe(@NonNull Extension extension, @NonNull Class<T> eventClass, @NonNull Consumer<? super T> consumer) {
-        return this.subscribe(eventClass, consumer, extension, Subscribe.PostOrder.NORMAL);
+    public <T extends Event> EventSubscription<T> subscribe(@NonNull EventListener eventListener, @NonNull Class<T> eventClass, @NonNull Consumer<? super T> consumer) {
+        return this.subscribe(eventClass, consumer, eventListener, Subscribe.PostOrder.NORMAL);
     }
 
     @Override
@@ -61,7 +59,7 @@ public class GeyserEventBus implements EventBus {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void register(@NonNull Extension extension, @NonNull Object eventHolder) {
+    public void register(@NonNull EventListener eventListener, @NonNull Object eventHolder) {
         for (Method method : eventHolder.getClass().getMethods()) {
             if (!method.isAnnotationPresent(Subscribe.class)) {
                 continue;
@@ -79,7 +77,7 @@ public class GeyserEventBus implements EventBus {
 
             try {
                 Class<? extends Event> type = (Class<? extends Event>) method.getParameters()[0].getType();
-                this.subscribe(type, eventHolder, LambdaFactory.createBiConsumer(CALLER.unreflect(method)), extension, subscribe.postOrder());
+                this.subscribe(type, eventHolder, LambdaFactory.createBiConsumer(CALLER.unreflect(method)), eventListener, subscribe.postOrder());
             } catch (IllegalAccessException ex) {
                 ex.printStackTrace();
             }
@@ -87,8 +85,8 @@ public class GeyserEventBus implements EventBus {
     }
 
     @Override
-    public void unregisterAll(@NonNull Extension extension) {
-        this.bus.unregister((Predicate<EventSubscriber<?>>) subscriber -> extension.equals(((AbstractEventSubscription<?>) subscriber).owner()));
+    public void unregisterAll(@NonNull EventListener eventListener) {
+        this.bus.unregister((Predicate<EventSubscriber<?>>) subscriber -> eventListener.equals(((AbstractEventSubscription<?>) subscriber).owner()));
     }
 
     @Override
@@ -107,14 +105,14 @@ public class GeyserEventBus implements EventBus {
                 .collect(Collectors.toSet());
     }
 
-    private <T extends Event> EventSubscription<T> subscribe(Class<T> eventClass, Consumer<? super T> handler, Extension extension, Subscribe.PostOrder postOrder) {
-        BaseEventSubscription<T> eventSubscription = new BaseEventSubscription<>(this, eventClass, extension, postOrder, handler);
+    private <T extends Event> EventSubscription<T> subscribe(Class<T> eventClass, Consumer<? super T> handler, EventListener eventListener, Subscribe.PostOrder postOrder) {
+        BaseEventSubscription<T> eventSubscription = new BaseEventSubscription<>(this, eventClass, eventListener, postOrder, handler);
         this.bus.register(eventClass, eventSubscription);
         return eventSubscription;
     }
 
-    private <T extends Event> EventSubscription<T> subscribe(Class<T> eventClass, Object eventHolder, BiConsumer<Object, ? super T> handler, Extension extension, Subscribe.PostOrder postOrder) {
-        GeneratedEventSubscription<T> eventSubscription = new GeneratedEventSubscription<>(this, eventClass, extension, postOrder, eventHolder, handler);
+    private <T extends Event> EventSubscription<T> subscribe(Class<T> eventClass, Object eventHolder, BiConsumer<Object, ? super T> handler, EventListener eventListener, Subscribe.PostOrder postOrder) {
+        GeneratedEventSubscription<T> eventSubscription = new GeneratedEventSubscription<>(this, eventClass, eventListener, postOrder, eventHolder, handler);
         this.bus.register(eventClass, eventSubscription);
         return eventSubscription;
     }

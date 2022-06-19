@@ -48,7 +48,7 @@ import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 public class GeyserExtensionLoader extends ExtensionLoader {
-    private static final Path EXTENSION_DIRECTORY = Paths.get("extensions");
+    private static final Path EXTENSION_DIRECTORY = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("extensions");
     private static final Pattern API_VERSION_PATTERN = Pattern.compile("^\\d+\\.\\d+\\.\\d+$");
     private static final Pattern[] EXTENSION_FILTERS = new Pattern[] { Pattern.compile("^.+\\.jar$") };
 

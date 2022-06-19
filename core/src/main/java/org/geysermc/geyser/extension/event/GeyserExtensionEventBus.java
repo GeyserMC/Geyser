@@ -26,10 +26,7 @@
 package org.geysermc.geyser.extension.event;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.event.Event;
-import org.geysermc.geyser.api.event.EventBus;
-import org.geysermc.geyser.api.event.EventSubscription;
-import org.geysermc.geyser.api.event.ExtensionEventBus;
+import org.geysermc.geyser.api.event.*;
 import org.geysermc.geyser.api.extension.Extension;
 
 import java.util.Set;
@@ -55,8 +52,8 @@ public record GeyserExtensionEventBus(EventBus eventBus,
 
     @NonNull
     @Override
-    public <T extends Event> EventSubscription<T> subscribe(@NonNull Extension extension, @NonNull Class<T> eventClass, @NonNull Consumer<? super T> consumer) {
-        return this.eventBus.subscribe(extension, eventClass, consumer);
+    public <T extends Event> EventSubscription<T> subscribe(@NonNull EventListener eventListener, @NonNull Class<T> eventClass, @NonNull Consumer<? super T> consumer) {
+        return this.eventBus.subscribe(eventListener, eventClass, consumer);
     }
 
     @Override
@@ -65,13 +62,13 @@ public record GeyserExtensionEventBus(EventBus eventBus,
     }
 
     @Override
-    public void register(@NonNull Extension extension, @NonNull Object eventHolder) {
-        this.eventBus.register(extension, eventHolder);
+    public void register(@NonNull EventListener eventListener, @NonNull Object eventHolder) {
+        this.eventBus.register(eventListener, eventHolder);
     }
 
     @Override
-    public void unregisterAll(@NonNull Extension extension) {
-        this.eventBus.unregisterAll(extension);
+    public void unregisterAll(@NonNull EventListener eventListener) {
+        this.eventBus.unregisterAll(eventListener);
     }
 
     @Override

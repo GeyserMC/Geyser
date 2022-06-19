@@ -36,7 +36,6 @@ import java.util.function.Consumer;
  * or "listening" to events and firing them.
  */
 public interface EventBus {
-
     /**
      * Subscribes to the given event see {@link EventSubscription}.
      *
@@ -44,14 +43,15 @@ public interface EventBus {
      * is that this method takes in an extension parameter which allows for
      * the event to be unsubscribed upon extension disable and reloads.
      *
-     * @param extension the extension to subscribe the event to
+     * @param eventListener the event listener to subscribe the event to
      * @param eventClass the class of the event
      * @param consumer the consumer for handling the event
      * @param <T> the event class
      * @return the event subscription
      */
     @NonNull
-    <T extends Event> EventSubscription<T> subscribe(@NonNull Extension extension, @NonNull Class<T> eventClass, @NonNull Consumer<? super T> consumer);
+    <T extends Event> EventSubscription<T> subscribe(@NonNull EventListener eventListener, @NonNull Class<T> eventClass, @NonNull Consumer<? super T> consumer);
+
 
     /**
      * Unsubscribes the given {@link EventSubscription}.
@@ -63,17 +63,17 @@ public interface EventBus {
     /**
      * Registers events for the given listener.
      *
-     * @param extension the extension registering the event
+     * @param eventListener the event listener registering the event
      * @param eventHolder the listener
      */
-    void register(@NonNull Extension extension, @NonNull Object eventHolder);
+    void register(@NonNull EventListener eventListener, @NonNull Object eventHolder);
 
     /**
-     * Unregisters all events from a given {@link Extension}.
+     * Unregisters all events from a given {@link EventListener}.
      *
-     * @param extension the extension
+     * @param eventListener the listener
      */
-     void unregisterAll(@NonNull Extension extension);
+    void unregisterAll(@NonNull EventListener eventListener);
 
     /**
      * Fires the given {@link Event}.

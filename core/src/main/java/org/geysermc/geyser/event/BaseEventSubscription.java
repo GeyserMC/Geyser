@@ -28,8 +28,10 @@ package org.geysermc.geyser.event;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.Event;
 import org.geysermc.geyser.api.event.EventBus;
+import org.geysermc.geyser.api.event.EventListener;
 import org.geysermc.geyser.api.event.Subscribe;
 import org.geysermc.geyser.api.extension.Extension;
 
@@ -40,7 +42,7 @@ import java.util.function.Consumer;
 public class BaseEventSubscription<T extends Event> extends AbstractEventSubscription<T> {
     private final Consumer<? super T> eventConsumer;
 
-    public BaseEventSubscription(EventBus eventBus, Class<T> eventClass, Extension owner, Subscribe.PostOrder order, Consumer<? super T> eventConsumer) {
+    public BaseEventSubscription(EventBus eventBus, Class<T> eventClass, EventListener owner, Subscribe.PostOrder order, Consumer<? super T> eventConsumer) {
         super(eventBus, eventClass, owner, order);
 
         this.eventConsumer = eventConsumer;
@@ -51,7 +53,14 @@ public class BaseEventSubscription<T extends Event> extends AbstractEventSubscri
         try {
             this.eventConsumer.accept(event);
         } catch (Throwable ex) {
-            this.owner.logger().warning("Unable to fire event " + event.getClass().getSimpleName() + " with subscription " + this.eventConsumer.getClass().getSimpleName());
+            String message = "Unable to fire event " + event.getClass().getSimpleName() + " with subscription " + this.eventConsumer.getClass().getSimpleName();
+
+            if (this.owner instanceof Extension extension) {
+                extension.logger().warning(message);
+            } else {
+                GeyserImpl.getInstance().getLogger().warning(message);
+            }
+
             ex.printStackTrace();
         }
     }
