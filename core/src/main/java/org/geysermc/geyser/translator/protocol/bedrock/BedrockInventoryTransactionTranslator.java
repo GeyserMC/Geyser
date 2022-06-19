@@ -578,13 +578,15 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         if (session.getLookBackScheduledFuture() != null) {
             session.getLookBackScheduledFuture().cancel(false);
         }
-        session.setLookBackScheduledFuture(session.scheduleInEventLoop(() -> {
-            Vector3d newPlayerPosition = session.getCollisionManager().getPlayerBoundingBox().getBottomCenter();
-            if (!newPlayerPosition.equals(playerPosition) || entity.getYaw() != returnPacket.getYaw() || entity.getPitch() != returnPacket.getPitch()) {
-                // The player moved/rotated so there is no need to change their rotation back
-                return;
-            }
-            session.sendDownstreamPacket(returnPacket);
-        }, 150, TimeUnit.MILLISECONDS));
+        if (Math.abs(entity.getYaw() - yaw) > 1f || Math.abs(entity.getPitch() - pitch) > 1f) {
+            session.setLookBackScheduledFuture(session.scheduleInEventLoop(() -> {
+                Vector3d newPlayerPosition = session.getCollisionManager().getPlayerBoundingBox().getBottomCenter();
+                if (!newPlayerPosition.equals(playerPosition) || entity.getYaw() != returnPacket.getYaw() || entity.getPitch() != returnPacket.getPitch()) {
+                    // The player moved/rotated so there is no need to change their rotation back
+                    return;
+                }
+                session.sendDownstreamPacket(returnPacket);
+            }, 150, TimeUnit.MILLISECONDS));
+        }
     }
 }

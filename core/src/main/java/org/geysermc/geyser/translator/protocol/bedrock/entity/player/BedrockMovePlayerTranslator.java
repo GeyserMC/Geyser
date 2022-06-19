@@ -77,6 +77,12 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
         boolean positionChanged = !entity.getPosition().equals(packet.getPosition());
         boolean rotationChanged = entity.getYaw() != yaw || entity.getPitch() != pitch || entity.getHeadYaw() != headYaw;
 
+        if (session.getLookBackScheduledFuture() != null) {
+            // Resend the rotation if it was changed by Geyser
+            rotationChanged |= !session.getLookBackScheduledFuture().isDone();
+            session.getLookBackScheduledFuture().cancel(false);
+        }
+
         // If only the pitch and yaw changed
         // This isn't needed, but it makes the packets closer to vanilla
         // It also means you can't "lag back" while only looking, in theory
