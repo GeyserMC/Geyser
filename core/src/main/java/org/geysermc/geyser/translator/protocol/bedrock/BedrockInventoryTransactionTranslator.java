@@ -273,10 +273,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         if (packet.getItemInHand() != null) {
                             int itemId = packet.getItemInHand().getId();
-                            // Otherwise boats will not be able to be placed in survival and buckets, lily pads, and frogspawn won't work on mobile
+                            // Otherwise boats will not be able to be placed in survival and buckets, lily pads, frogspawn, and glass bottles won't work on mobile
                             if (session.getItemMappings().getBoatIds().contains(itemId) ||
                                     itemId == session.getItemMappings().getStoredItems().lilyPad() ||
-                                    itemId == session.getItemMappings().getStoredItems().frogspawn()) {
+                                    itemId == session.getItemMappings().getStoredItems().frogspawn() ||
+                                    itemId == session.getItemMappings().getStoredItems().glassBottle()) {
                                 useItem(session, packet);
                             } else if (session.getItemMappings().getBucketIds().contains(itemId)) {
                                 // Let the server decide if the bucket item should change, not the client, and revert the changes the client made
@@ -561,18 +562,28 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         float zDiff = target.getZ() - entity.getPosition().getZ();
 
         // First triangle on the XZ plane
-        double yaw = -Math.toDegrees(Math.atan2(xDiff, zDiff));
+        float yaw = (float) -Math.toDegrees(Math.atan2(xDiff, zDiff));
         // Second triangle on the Y axis using the hypotenuse of the first triangle as a side
         double xzHypot = Math.sqrt(xDiff * xDiff + zDiff * zDiff);
-        double pitch = -Math.toDegrees(Math.atan2(yDiff, xzHypot));
-
-        entity.setPitch((float) pitch);
-        entity.setYaw((float) yaw);
-        entity.setHeadYaw((float) yaw);
+        float pitch = (float) -Math.toDegrees(Math.atan2(yDiff, xzHypot));
 
         Vector3d playerPosition = session.getCollisionManager().getPlayerBoundingBox().getBottomCenter();
+        ServerboundMovePlayerPosRotPacket returnPacket = new ServerboundMovePlayerPosRotPacket(entity.isOnGround(), playerPosition.getX(), playerPosition.getY(), playerPosition.getZ(), entity.getYaw(), entity.getPitch());
+
         // This matches Java edition behavior
-        ServerboundMovePlayerPosRotPacket movementPacket = new ServerboundMovePlayerPosRotPacket(entity.isOnGround(), playerPosition.getX(), playerPosition.getY(), playerPosition.getZ(), entity.getYaw(), entity.getPitch());
+        ServerboundMovePlayerPosRotPacket movementPacket = new ServerboundMovePlayerPosRotPacket(entity.isOnGround(), playerPosition.getX(), playerPosition.getY(), playerPosition.getZ(), yaw, pitch);
         session.sendDownstreamPacket(movementPacket);
+
+        if (session.getLookBackScheduledFuture() != null) {
+            session.getLookBackScheduledFuture().cancel(false);
+        }
+        session.setLookBackScheduledFuture(session.scheduleInEventLoop(() -> {
+            Vector3d newPlayerPosition = session.getCollisionManager().getPlayerBoundingBox().getBottomCenter();
+            if (!newPlayerPosition.equals(playerPosition) || entity.getYaw() != returnPacket.getYaw() || entity.getPitch() != returnPacket.getPitch()) {
+                // The player moved/rotated so there is no need to change their rotation back
+                return;
+            }
+            session.sendDownstreamPacket(returnPacket);
+        }, 50, TimeUnit.MILLISECONDS));
     }
 }

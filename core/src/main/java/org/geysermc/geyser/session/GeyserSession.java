@@ -524,6 +524,12 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      */
     private ScheduledFuture<?> tickThread = null;
 
+    /**
+     * Used to return the player to their original rotation after using an item in BedrockInventoryTransactionTranslator
+     */
+    @Setter
+    private ScheduledFuture<?> lookBackScheduledFuture = null;
+
     private MinecraftProtocol protocol;
 
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop eventLoop) {
