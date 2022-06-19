@@ -71,6 +71,7 @@ public class BucketSoundInteractionTranslator implements BlockSoundInteractionTr
             case "minecraft:salmon_bucket":
             case "minecraft:pufferfish_bucket":
             case "minecraft:tropical_fish_bucket":
+            case "minecraft:tadpole_bucket":
                 soundEvent = SoundEvent.BUCKET_EMPTY_FISH;
                 break;
             case "minecraft:water_bucket":
