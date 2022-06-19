@@ -272,11 +272,15 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamPacket(blockPacket);
 
                         if (packet.getItemInHand() != null) {
-                            // Otherwise boats will not be able to be placed in survival and buckets won't work on mobile
-                            if (session.getItemMappings().getBoatIds().contains(packet.getItemInHand().getId())) {
+                            int itemId = packet.getItemInHand().getId();
+                            // Otherwise boats will not be able to be placed in survival and buckets, lily pads, and frogspawn won't work on mobile
+                            if (session.getItemMappings().getBoatIds().contains(itemId) ||
+                                    itemId == session.getItemMappings().getStoredItems().lilyPad() ||
+                                    itemId == session.getItemMappings().getStoredItems().frogspawn()) {
+                                // TODO lily pad and frogspawn also require mobile rotation fixes
                                 ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getNextSequence());
                                 session.sendDownstreamPacket(itemPacket);
-                            } else if (session.getItemMappings().getBucketIds().contains(packet.getItemInHand().getId())) {
+                            } else if (session.getItemMappings().getBucketIds().contains(itemId)) {
                                 // Let the server decide if the bucket item should change, not the client, and revert the changes the client made
                                 InventorySlotPacket slotPacket = new InventorySlotPacket();
                                 slotPacket.setContainerId(ContainerId.INVENTORY);
@@ -284,7 +288,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 slotPacket.setItem(packet.getItemInHand());
                                 session.sendUpstreamPacket(slotPacket);
                                 // Don't send ServerboundUseItemPacket for powder snow buckets
-                                if (packet.getItemInHand().getId() != session.getItemMappings().getStoredItems().powderSnowBucket().getBedrockId()) {
+                                if (itemId != session.getItemMappings().getStoredItems().powderSnowBucket().getBedrockId()) {
                                     // Special check for crafting tables since clients don't send BLOCK_INTERACT when interacting
                                     int blockState = session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition());
                                     if (session.isSneaking() || blockState != BlockRegistries.JAVA_IDENTIFIERS.get("minecraft:crafting_table")) {

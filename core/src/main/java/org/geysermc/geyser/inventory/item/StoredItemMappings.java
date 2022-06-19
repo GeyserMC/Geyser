@@ -48,10 +48,12 @@ public class StoredItemMappings {
     private final ItemMapping enchantedBook;
     private final ItemMapping fishingRod;
     private final int flintAndSteel;
+    private final int frogspawn;
     private final int goldenApple;
     private final int goldIngot;
     private final int ironIngot;
     private final int lead;
+    private final int lilyPad;
     private final ItemMapping milkBucket;
     private final int nameTag;
     private final ItemMapping powderSnowBucket;
@@ -76,10 +78,12 @@ public class StoredItemMappings {
         this.enchantedBook = load(itemMappings, "enchanted_book");
         this.fishingRod = load(itemMappings, "fishing_rod");
         this.flintAndSteel = load(itemMappings, "flint_and_steel").getJavaId();
+        this.frogspawn = load(itemMappings, "frogspawn").getBedrockId();
         this.goldenApple = load(itemMappings, "golden_apple").getJavaId();
         this.goldIngot = load(itemMappings, "gold_ingot").getJavaId();
         this.ironIngot = load(itemMappings, "iron_ingot").getJavaId();
         this.lead = load(itemMappings, "lead").getJavaId();
+        this.lilyPad = load(itemMappings, "lily_pad").getBedrockId();
         this.milkBucket = load(itemMappings, "milk_bucket");
         this.nameTag = load(itemMappings, "name_tag").getJavaId();
         this.powderSnowBucket = load(itemMappings, "powder_snow_bucket");
