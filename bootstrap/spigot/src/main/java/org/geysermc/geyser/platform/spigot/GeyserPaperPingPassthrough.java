@@ -55,8 +55,8 @@ public final class GeyserPaperPingPassthrough implements IGeyserPingPassthrough 
             // We'd rather *not* use deprecations here, but unfortunately any Adventure class would be relocated at
             // runtime because we still have to shade in our own Adventure class. For now.
             PaperServerListPingEvent event = new PaperServerListPingEvent(new GeyserStatusClient(inetSocketAddress),
-                    Bukkit.getMotd(), Bukkit.getOnlinePlayers().size(), Bukkit.getMaxPlayers(), Bukkit.getVersion(),
-                    MinecraftProtocol.getJavaProtocolVersion(), null);
+                    Bukkit.getMotd(), Bukkit.shouldSendChatPreviews(), Bukkit.getOnlinePlayers().size(),
+                    Bukkit.getMaxPlayers(), Bukkit.getVersion(), MinecraftProtocol.getJavaProtocolVersion(), null);
             Bukkit.getPluginManager().callEvent(event);
             if (event.isCancelled()) {
                 // We have to send a ping, so not really sure what else to do here.
