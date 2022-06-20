@@ -51,8 +51,8 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     private final Set<String> repairMaterials;
     private final OptionalInt creativeCategory;
     private final String creativeGroup;
-    private final boolean isHat;
-    private final boolean isTool;
+    private final boolean hat;
+    private final boolean tool;
 
     public GeyserNonVanillaCustomItemData(BuilderImpl builder) {
         super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand,
@@ -70,8 +70,8 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         this.repairMaterials = builder.repairMaterials;
         this.creativeCategory = builder.creativeCategory;
         this.creativeGroup = builder.creativeGroup;
-        this.isHat = builder.isHat;
-        this.isTool = builder.isTool;
+        this.hat = builder.hat;
+        this.tool = builder.tool;
     }
 
     @Override
@@ -135,13 +135,13 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     }
 
     @Override
-    public boolean isHat() {
-        return isHat;
+    public boolean hat() {
+        return hat;
     }
 
     @Override
-    public boolean isTool() {
-        return isTool;
+    public boolean tool() {
+        return tool;
     }
 
     public static class BuilderImpl extends GeyserCustomItemData.BuilderImpl implements NonVanillaCustomItemData.Builder {
@@ -165,8 +165,8 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         private OptionalInt creativeCategory = OptionalInt.empty();
         private String creativeGroup = null;
 
-        private boolean isHat = false;
-        private boolean isTool = false;
+        private boolean hat = false;
+        private boolean tool = false;
 
         @Override
         public NonVanillaCustomItemData.Builder name(@NonNull String name) {
@@ -271,14 +271,14 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder isHat(boolean isHat) {
-            this.isHat = isHat;
+        public NonVanillaCustomItemData.Builder hat(boolean isHat) {
+            this.hat = isHat;
             return this;
         }
 
         @Override
-        public NonVanillaCustomItemData.Builder isTool(boolean isTool) {
-            this.isTool = isTool;
+        public NonVanillaCustomItemData.Builder tool(boolean isTool) {
+            this.tool = isTool;
             return this;
         }
 
