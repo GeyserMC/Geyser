@@ -143,7 +143,7 @@ public class GeyserCustomItemData implements CustomItemData {
         @Override
         public CustomItemData build() {
             if (this.name == null || this.customItemOptions == null) {
-                throw new IllegalArgumentException("Name and custom item data must be set");
+                throw new IllegalArgumentException("Name and custom item options must be set");
             }
 
             if (this.displayName == null) {

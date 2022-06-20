@@ -27,16 +27,18 @@ package org.geysermc.geyser.item.components;
 
 import com.nukkitx.nbt.NbtMap;
 
+import java.util.Locale;
+
 public enum WearableSlot {
     HEAD,
     CHEST,
     LEGS,
     FEET;
 
-    private NbtMap slotNbt;
+    private final NbtMap slotNbt;
 
     WearableSlot() {
-        this.slotNbt = NbtMap.builder().putString("slot", "slot.armor." + this.name().toLowerCase()).build();
+        this.slotNbt = NbtMap.builder().putString("slot", "slot.armor." + this.name().toLowerCase(Locale.ROOT)).build();
     }
 
     public NbtMap getSlotNbt() {

@@ -29,6 +29,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
@@ -175,7 +176,8 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
 
         @Override
         public NonVanillaCustomItemData.Builder customItemOptions(@NonNull CustomItemOptions customItemOptions) {
-            return (NonVanillaCustomItemData.Builder) super.customItemOptions(customItemOptions);
+            //Do nothing, as that value won't be read
+            return this;
         }
 
         @Override
@@ -186,6 +188,11 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         @Override
         public NonVanillaCustomItemData.Builder displayName(@NonNull String displayName) {
             return (NonVanillaCustomItemData.Builder) super.displayName(displayName);
+        }
+
+        @Override
+        public NonVanillaCustomItemData.Builder icon(@NonNull String icon) {
+            return (NonVanillaCustomItemData.Builder) super.icon(icon);
         }
 
         @Override
@@ -287,6 +294,9 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
             if (identifier == null || javaId == -1) {
                 throw new IllegalArgumentException("Identifier and javaId must be set");
             }
+
+            super.customItemOptions(CustomItemOptions.builder().build());
+            super.build();
             return new GeyserNonVanillaCustomItemData(this);
         }
     }
