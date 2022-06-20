@@ -38,23 +38,8 @@ public class GeyserCustomItemManager {
     public static final String CUSTOM_PREFIX = "geyser_custom:";
 
     public GeyserCustomItemManager() {
-        MappingsConfigReader.init(this);
+        MappingsConfigReader.init();
     }
 
-    public void loadMappingsFromJson(BiConsumer<String, CustomItemData> consumer) {
-        Path customMappingsDirectory = MappingsConfigReader.getCustomMappingsDirectory();
-        if (!Files.exists(customMappingsDirectory)) {
-            try {
-                Files.createDirectories(customMappingsDirectory);
-            } catch (IOException e) {
-                GeyserImpl.getInstance().getLogger().error("Failed to create custom mappings directory", e);
-                return;
-            }
-        }
 
-        Path[] mappingsFiles = MappingsConfigReader.getCustomMappingsFiles();
-        for (Path mappingsFile : mappingsFiles) {
-            MappingsConfigReader.readMappingsFromJson(mappingsFile, consumer);
-        }
-    }
 }

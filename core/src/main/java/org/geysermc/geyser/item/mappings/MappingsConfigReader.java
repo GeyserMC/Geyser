@@ -28,7 +28,6 @@ package org.geysermc.geyser.item.mappings;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
-import org.geysermc.geyser.item.GeyserCustomItemManager;
 import org.geysermc.geyser.item.mappings.versions.MappingsReader;
 import org.geysermc.geyser.item.mappings.versions.MappingsReader_v1_0_0;
 
@@ -40,19 +39,16 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 public class MappingsConfigReader {
-    private static final Map<String, MappingsReader> MAPPING_READERS = new HashMap<>();
+    private final Map<String, MappingsReader> mappingReaders = new HashMap<>();
+    private final Path customMappingsDirectory = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("custom_mappings");
 
-    public static void init(GeyserCustomItemManager customItemManager) {
-        MAPPING_READERS.put("1.0.0", new MappingsReader_v1_0_0(customItemManager));
+    public MappingsConfigReader() {
+        this.mappingReaders.put("1.0.0", new MappingsReader_v1_0_0());
     }
 
-    public static Path getCustomMappingsDirectory() {
-        return GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("custom_mappings");
-    }
-
-    public static Path[] getCustomMappingsFiles() {
+    public Path[] getCustomMappingsFiles() {
         try {
-            return Files.walk(getCustomMappingsDirectory())
+            return Files.walk(this.customMappingsDirectory)
                     .filter(child -> child.toString().endsWith(".json"))
                     .toArray(Path[]::new);
         } catch (IOException e) {
@@ -60,7 +56,24 @@ public class MappingsConfigReader {
         }
     }
 
-    public static void readMappingsFromJson(Path file, BiConsumer<String, CustomItemData> consumer) {
+    public void loadMappingsFromJson(BiConsumer<String, CustomItemData> consumer) {
+        Path customMappingsDirectory = this.customMappingsDirectory;
+        if (!Files.exists(customMappingsDirectory)) {
+            try {
+                Files.createDirectories(customMappingsDirectory);
+            } catch (IOException e) {
+                GeyserImpl.getInstance().getLogger().error("Failed to create custom mappings directory", e);
+                return;
+            }
+        }
+
+        Path[] mappingsFiles = this.getCustomMappingsFiles();
+        for (Path mappingsFile : mappingsFiles) {
+            this.readMappingsFromJson(mappingsFile, consumer);
+        }
+    }
+
+    public void readMappingsFromJson(Path file, BiConsumer<String, CustomItemData> consumer) {
         JsonNode mappingsRoot;
         try {
             mappingsRoot = GeyserImpl.JSON_MAPPER.readTree(file.toFile());
@@ -75,11 +88,11 @@ public class MappingsConfigReader {
         }
 
         String formatVersion = mappingsRoot.get("format_version").asText();
-        if (!MAPPING_READERS.containsKey(formatVersion)) {
+        if (!this.mappingReaders.containsKey(formatVersion)) {
             GeyserImpl.getInstance().getLogger().error("Mappings file " + file + " has an unknown format version: " + formatVersion);
             return;
         }
 
-        MAPPING_READERS.get(formatVersion).readMappings(file, mappingsRoot, consumer);
+        this.mappingReaders.get(formatVersion).readMappings(file, mappingsRoot, consumer);
     }
 }

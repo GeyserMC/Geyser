@@ -67,8 +67,7 @@ public enum TriState {
      * @param value the Boolean value
      * @return the created TriState
      */
-    public @NonNull
-    static TriState fromBoolean(@Nullable Boolean value) {
+    public static @NonNull TriState fromBoolean(@Nullable Boolean value) {
         return value == null ? NOT_SET : fromBoolean(value.booleanValue());
     }
 

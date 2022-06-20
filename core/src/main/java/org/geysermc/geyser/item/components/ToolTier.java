@@ -27,6 +27,8 @@ package org.geysermc.geyser.item.components;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
+import java.util.Locale;
+
 public enum ToolTier {
     WOODEN(2),
     STONE(4),
@@ -49,11 +51,11 @@ public enum ToolTier {
 
     @Override
     public String toString() {
-        return this.name().toLowerCase();
+        return this.name().toLowerCase(Locale.ROOT);
     }
 
     public static ToolTier getByName(@NonNull String name) {
-        String upperCase = name.toUpperCase();
+        String upperCase = name.toUpperCase(Locale.ROOT);
         for (ToolTier tier : VALUES) {
             if (tier.name().equals(upperCase)) {
                 return tier;

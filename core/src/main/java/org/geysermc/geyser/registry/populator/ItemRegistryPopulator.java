@@ -53,6 +53,7 @@ import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomItemManager;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
+import org.geysermc.geyser.item.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.*;
@@ -92,9 +93,11 @@ public class ItemRegistryPopulator {
 
         Multimap<String, CustomItemData> customItems = MultimapBuilder.hashKeys().hashSetValues().build();
         List<NonVanillaCustomItemData> nonVanillaCustomItems;
+
+        MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         if (customItemsAllowed) {
             // Load custom items from mappings files
-            GeyserImpl.getInstance().customItemManager().loadMappingsFromJson((key, item) -> {
+            mappingsConfigReader.loadMappingsFromJson((key, item) -> {
                 if (CustomItemRegistryPopulator.initialCheck(key, item, items)) {
                     customItems.get(key).add(item);
                 }
@@ -113,8 +116,6 @@ public class ItemRegistryPopulator {
 
                 @Override
                 public boolean registerCustomItem(@NonNull NonVanillaCustomItemData customItemData) {
-                    customItemData.javaId();
-
                     if (customItemData.identifier().startsWith("minecraft:")) {
                         GeyserImpl.getInstance().getLogger().error("The custom item " + customItemData.identifier() +
                                 " is attempting to masquerade as a vanilla Minecraft item!");
@@ -286,7 +287,7 @@ public class ItemRegistryPopulator {
             javaOnlyItems.addAll(palette.getValue().additionalTranslatedItems().keySet());
 
             Int2ObjectMap<String> customIdMappings = new Int2ObjectOpenHashMap<>();
-            List<String> registeredItemNames = new ArrayList<>(); // This is used to check for duplicate item names
+            Set<String> registeredItemNames = new ObjectOpenHashSet<>(); // This is used to check for duplicate item names
 
             for (Map.Entry<String, GeyserMappingItem> entry : items.entrySet()) {
                 String javaIdentifier = entry.getKey().intern();
@@ -470,13 +471,12 @@ public class ItemRegistryPopulator {
                         int customProtocolId = nextFreeBedrockId++;
 
                         String customItemName = GeyserCustomItemManager.CUSTOM_PREFIX + customItem.name();
-                        if (registeredItemNames.contains(customItemName)) {
+                        if (!registeredItemNames.add(customItemName)) {
                             if (firstMappingsPass) {
                                 GeyserImpl.getInstance().getLogger().error("Custom item name '" + customItem.name() + "' already exists and was registered again! Skipping...");
                             }
                             continue;
                         }
-                        registeredItemNames.add(customItemName);
 
                         GeyserCustomMappingData customMapping = CustomItemRegistryPopulator.registerCustomItem(
                                 customItemName, mappingItem, customItem, customProtocolId

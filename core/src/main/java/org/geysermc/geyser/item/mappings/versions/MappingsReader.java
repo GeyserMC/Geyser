@@ -34,12 +34,6 @@ import java.nio.file.Path;
 import java.util.function.BiConsumer;
 
 public abstract class MappingsReader {
-    protected GeyserCustomItemManager customItemManager;
-
-    public MappingsReader(GeyserCustomItemManager customItemManager) {
-        this.customItemManager = customItemManager;
-    }
-
     public abstract void readMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomItemData> consumer);
 
     public abstract CustomItemData readItemMappingEntry(JsonNode node) throws InvalidCustomMappingsFileException;

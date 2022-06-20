@@ -149,7 +149,6 @@ public class GeyserImpl implements GeyserApi {
 
     private final EventBus eventBus;
     private final GeyserExtensionManager extensionManager;
-    private final GeyserCustomItemManager customItemManager;
     private final GeyserProviderManager providerManager = new GeyserProviderManager();
 
     private final RemoteServer remoteServer;
@@ -181,9 +180,6 @@ public class GeyserImpl implements GeyserApi {
         logger.info(GeyserLocale.getLocaleStringLog("geyser.core.load", NAME, VERSION));
         logger.info("");
         logger.info("******************************************");
-
-        /* Initialize custom model data manager */
-        this.customItemManager = new GeyserCustomItemManager();
 
         /* Initialize event bus */
         this.eventBus = new GeyserEventBus();
@@ -622,10 +618,6 @@ public class GeyserImpl implements GeyserApi {
     @Override
     public EventBus eventBus() {
         return this.eventBus;
-    }
-
-    public GeyserCustomItemManager customItemManager() {
-        return this.customItemManager;
     }
 
     public RemoteServer defaultRemoteServer() {

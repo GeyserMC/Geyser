@@ -127,14 +127,14 @@ public interface NonVanillaCustomItemData extends CustomItemData {
      *
      * @return if the item is a hat
      */
-    boolean isHat();
+    boolean hat();
 
     /**
      * Gets if the item is a tool. This is used to set the render type of the item, if the item is handheld.
      *
      * @return if the item is a tool
      */
-    boolean isTool();
+    boolean tool();
 
     static NonVanillaCustomItemData.Builder builder() {
         return GeyserApi.api().providerManager().builderProvider().provideBuilder(NonVanillaCustomItemData.Builder.class);
@@ -167,9 +167,9 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
         Builder creativeGroup(@Nullable String creativeGroup);
 
-        Builder isHat(boolean isHat);
+        Builder hat(boolean isHat);
 
-        Builder isTool(boolean isTool);
+        Builder tool(boolean isTool);
 
         @Override
         Builder displayName(@NonNull String displayName);

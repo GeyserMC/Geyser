@@ -37,10 +37,6 @@ import java.nio.file.Path;
 import java.util.function.BiConsumer;
 
 public class MappingsReader_v1_0_0 extends MappingsReader {
-    public MappingsReader_v1_0_0(GeyserCustomItemManager customItemManager) {
-        super(customItemManager);
-    }
-
     @Override
     public void readMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomItemData> consumer) {
         this.readItemMappings(file, mappingsRoot, consumer);

@@ -36,7 +36,7 @@ import java.util.OptionalInt;
  */
 public interface CustomItemOptions {
     /**
-     * Gets if an item's unbreaking status should trigger this registration.
+     * Gets if the item should be unbreakable.
      *
      * @return if the item should be unbreakable
      */
