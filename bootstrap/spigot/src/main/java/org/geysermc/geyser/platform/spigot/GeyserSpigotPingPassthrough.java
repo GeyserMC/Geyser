@@ -56,7 +56,7 @@ public class GeyserSpigotPingPassthrough implements IGeyserPingPassthrough {
             );
             Bukkit.getOnlinePlayers().stream().map(Player::getName).forEach(geyserPingInfo.getPlayerList()::add);
             return geyserPingInfo;
-        } catch (Exception e) {
+        } catch (Exception | LinkageError e) { // LinkageError in the event that method/constructor signatures change
             logger.debug("Error while getting Bukkit ping passthrough: " + e);
             return null;
         }

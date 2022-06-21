@@ -80,7 +80,7 @@ public final class GeyserPaperPingPassthrough implements IGeyserPingPassthrough 
             }
 
             return geyserPingInfo;
-        } catch (Exception e) {
+        } catch (Exception | LinkageError e) { // LinkageError in the event that method/constructor signatures change
             logger.debug("Error while getting Paper ping passthrough: " + e);
             return null;
         }
