@@ -173,6 +173,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             session.setLastInteractionTime(System.currentTimeMillis());
                         }
 
+                        if (isIncorrectHeldItem(session, packet)) {
+                            restoreCorrectBlock(session, blockPos, packet);
+                            return;
+                        }
+
                         // Bedrock sends block interact code for a Java entity so we send entity code back to Java
                         if (session.getBlockMappings().isItemFrame(packet.getBlockRuntimeId())) {
                             Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
@@ -195,18 +200,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         // CraftBukkit+ check - see https://github.com/PaperMC/Paper/blob/458db6206daae76327a64f4e2a17b67a7e38b426/Spigot-Server-Patches/0532-Move-range-check-for-block-placing-up.patch
                         Vector3f playerPosition = session.getPlayerEntity().getPosition();
-
-                        // Adjust position for current eye height
-                        switch (session.getPose()) {
-                            case SNEAKING ->
-                                playerPosition = playerPosition.sub(0, (EntityDefinitions.PLAYER.offset() - 1.27f), 0);
-                            case SWIMMING,
-                                FALL_FLYING, // Elytra
-                                SPIN_ATTACK -> // Trident spin attack
-                                playerPosition = playerPosition.sub(0, (EntityDefinitions.PLAYER.offset() - 0.4f), 0);
-                            case SLEEPING ->
-                                playerPosition = playerPosition.sub(0, (EntityDefinitions.PLAYER.offset() - 0.2f), 0);
-                        } // else, we don't have to modify the position
+                        playerPosition = playerPosition.down(EntityDefinitions.PLAYER.offset() - getEyeHeight(session));
 
                         boolean creative = session.getGameMode() == GameMode.CREATIVE;
 
@@ -277,17 +271,21 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             // Otherwise boats will not be able to be placed in survival and buckets, lily pads, frogspawn, and glass bottles won't work on mobile
                             if (session.getItemMappings().getBoatIds().contains(itemId) ||
                                     itemId == session.getItemMappings().getStoredItems().lilyPad() ||
-                                    itemId == session.getItemMappings().getStoredItems().frogspawn() ||
-                                    itemId == session.getItemMappings().getStoredItems().glassBottle()) {
+                                    itemId == session.getItemMappings().getStoredItems().frogspawn()) {
+                                useItem(session, packet);
+                            } else if (itemId == session.getItemMappings().getStoredItems().glassBottle()) {
+                                int blockState = session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition());
+                                if (!session.isSneaking() && BlockStateValues.isCauldron(blockState) && !BlockStateValues.isNonWaterCauldron(blockState)) {
+                                    // ServerboundUseItemPacket is not sent for water cauldrons and glass bottles
+                                    return;
+                                }
                                 useItem(session, packet);
                             } else if (session.getItemMappings().getBucketIds().contains(itemId)) {
-                                // Let the server decide if the bucket item should change, not the client, and revert the changes the client made
-                                InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), packet.getHotbarSlot() + 36);
                                 // Don't send ServerboundUseItemPacket for powder snow buckets
                                 if (itemId != session.getItemMappings().getStoredItems().powderSnowBucket().getBedrockId()) {
                                     int blockState = session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition());
-                                    if (BlockStateValues.isCauldron(blockState)) {
-                                        // ServerboundUseItemPacket is never sent for cauldrons and buckets
+                                    if (!session.isSneaking() && BlockStateValues.isCauldron(blockState)) {
+                                        // ServerboundUseItemPacket is not sent for cauldrons and buckets
                                         return;
                                     }
                                     session.setPlacedBucket(useItem(session, packet));
@@ -318,6 +316,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.setInteracting(true);
                     }
                     case 1 -> {
+                        if (isIncorrectHeldItem(session, packet)) {
+                            InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot()));
+                            break;
+                        }
+
                         // Handled when sneaking
                         if (session.getPlayerInventory().getItemInHand().getJavaId() == mappings.getStoredItems().shield().getJavaId()) {
                             break;
@@ -518,10 +521,25 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         session.sendUpstreamPacket(updateWaterPacket);
 
         // Reset the item in hand to prevent "missing" blocks
-        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), packet.getHotbarSlot() + 36);
+        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot()));
+    }
+
+    private boolean isIncorrectHeldItem(GeyserSession session, InventoryTransactionPacket packet) {
+        int heldItemId = packet.getItemInHand() == null ? ItemData.AIR.getId() : packet.getItemInHand().getId();
+        int javaSlot = session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot());
+        ItemData expectedItemData = session.getPlayerInventory().getItem(javaSlot).getItemData(session);
+
+        if (expectedItemData.getId() != heldItemId) {
+            session.getGeyser().getLogger().debug(session.name() + "'s held item has desynced! Expected: " + expectedItemData.getId() + " Received: " + heldItemId);
+            session.getGeyser().getLogger().debug("Packet: " + packet);
+            return true;
+        }
+        return false;
     }
 
     private boolean useItem(GeyserSession session, InventoryTransactionPacket packet) {
+        // Let the server decide if the bucket item should change, not the client, and revert the changes the client made
+        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot()));
         // Check if the player is interacting with a block
         if (!session.isSneaking()) {
             int blockState = session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition());
@@ -532,6 +550,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
         Vector3f target = packet.getBlockPosition().toFloat().add(packet.getClickPosition());
         lookAt(session, target);
+
         ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getNextSequence());
         session.sendDownstreamPacket(itemPacket);
         return true;
@@ -559,11 +578,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
      * @param target the position to look at
      */
     private void lookAt(GeyserSession session, Vector3f target) {
-        SessionPlayerEntity entity = session.getPlayerEntity();
-
-        float xDiff = target.getX() - entity.getPosition().getX();
-        float yDiff = target.getY() - entity.getPosition().getY();
-        float zDiff = target.getZ() - entity.getPosition().getZ();
+        // Use the bounding box's position since we need the player's position seen by the Java server
+        Vector3d playerPosition = session.getCollisionManager().getPlayerBoundingBox().getBottomCenter();
+        float xDiff = (float) (target.getX() - playerPosition.getX());
+        float yDiff = (float) (target.getY() - (playerPosition.getY() + getEyeHeight(session)));
+        float zDiff = (float) (target.getZ() - playerPosition.getZ());
 
         // First triangle on the XZ plane
         float yaw = (float) -Math.toDegrees(Math.atan2(xDiff, zDiff));
@@ -571,9 +590,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         double xzHypot = Math.sqrt(xDiff * xDiff + zDiff * zDiff);
         float pitch = (float) -Math.toDegrees(Math.atan2(yDiff, xzHypot));
 
-        Vector3d playerPosition = session.getCollisionManager().getPlayerBoundingBox().getBottomCenter();
+        SessionPlayerEntity entity = session.getPlayerEntity();
         ServerboundMovePlayerPosRotPacket returnPacket = new ServerboundMovePlayerPosRotPacket(entity.isOnGround(), playerPosition.getX(), playerPosition.getY(), playerPosition.getZ(), entity.getYaw(), entity.getPitch());
-
         // This matches Java edition behavior
         ServerboundMovePlayerPosRotPacket movementPacket = new ServerboundMovePlayerPosRotPacket(entity.isOnGround(), playerPosition.getX(), playerPosition.getY(), playerPosition.getZ(), yaw, pitch);
         session.sendDownstreamPacket(movementPacket);
@@ -591,5 +609,16 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 session.sendDownstreamPacket(returnPacket);
             }, 150, TimeUnit.MILLISECONDS));
         }
+    }
+
+    private float getEyeHeight(GeyserSession session) {
+        return switch (session.getPose()) {
+            case SNEAKING -> 1.27f;
+            case SWIMMING,
+                FALL_FLYING, // Elytra
+                SPIN_ATTACK -> 0.4f; // Trident spin attack
+            case SLEEPING -> 0.2f;
+            default -> EntityDefinitions.PLAYER.offset();
+        };
     }
 }
