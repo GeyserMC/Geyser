@@ -518,11 +518,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         session.sendUpstreamPacket(updateWaterPacket);
 
         // Reset the item in hand to prevent "missing" blocks
-        InventorySlotPacket slotPacket = new InventorySlotPacket();
-        slotPacket.setContainerId(ContainerId.INVENTORY);
-        slotPacket.setSlot(packet.getHotbarSlot());
-        slotPacket.setItem(packet.getItemInHand());
-        session.sendUpstreamPacket(slotPacket);
+        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), packet.getHotbarSlot() + 36);
     }
 
     private boolean useItem(GeyserSession session, InventoryTransactionPacket packet) {
