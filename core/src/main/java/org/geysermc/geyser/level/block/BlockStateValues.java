@@ -52,7 +52,7 @@ public final class BlockStateValues {
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
     private static final IntSet HORIZONTAL_FACING_JIGSAWS = new IntOpenHashSet();
-    public static final IntSet INTERACTABLE_BLOCKS = new IntOpenHashSet();
+    private static final IntSet INTERACTABLE_BLOCKS = new IntOpenHashSet();
     private static final LecternHasBookMap LECTERN_BOOK_STATES = new LecternHasBookMap();
     private static final IntSet NON_WATER_CAULDRONS = new IntOpenHashSet();
     private static final Int2IntMap NOTEBLOCK_PITCHES = new FixedInt2IntMap();
@@ -285,8 +285,7 @@ public final class BlockStateValues {
     }
 
     /**
-     * Interacting with a cauldron with a bucket must only send ServerboundUseItemOnPacket and not ServerboundUseItemPacket
-     * as otherwise it can result in the liquid being placed.
+     * When using a bucket on a cauldron sending a ServerboundUseItemPacket can result in the liquid being placed.
      *
      * @return if this Java block state is a cauldron
      */
