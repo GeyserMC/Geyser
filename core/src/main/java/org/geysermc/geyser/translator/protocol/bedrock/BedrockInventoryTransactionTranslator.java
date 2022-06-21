@@ -252,7 +252,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             int blockState = session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition());
                             if (blockState == BlockStateValues.JAVA_WATER_ID) {
                                 // Otherwise causes multiple mobs to spawn - just send a use item packet
-                                useItem(session, packet);
+                                useItem(session, packet, blockState);
                                 break;
                             }
                         }
@@ -268,27 +268,26 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         if (packet.getItemInHand() != null) {
                             int itemId = packet.getItemInHand().getId();
+                            int blockState = session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition());
                             // Otherwise boats will not be able to be placed in survival and buckets, lily pads, frogspawn, and glass bottles won't work on mobile
                             if (session.getItemMappings().getBoatIds().contains(itemId) ||
                                     itemId == session.getItemMappings().getStoredItems().lilyPad() ||
                                     itemId == session.getItemMappings().getStoredItems().frogspawn()) {
-                                useItem(session, packet);
+                                useItem(session, packet, blockState);
                             } else if (itemId == session.getItemMappings().getStoredItems().glassBottle()) {
-                                int blockState = session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition());
                                 if (!session.isSneaking() && BlockStateValues.isCauldron(blockState) && !BlockStateValues.isNonWaterCauldron(blockState)) {
                                     // ServerboundUseItemPacket is not sent for water cauldrons and glass bottles
                                     return;
                                 }
-                                useItem(session, packet);
+                                useItem(session, packet, blockState);
                             } else if (session.getItemMappings().getBucketIds().contains(itemId)) {
                                 // Don't send ServerboundUseItemPacket for powder snow buckets
                                 if (itemId != session.getItemMappings().getStoredItems().powderSnowBucket().getBedrockId()) {
-                                    int blockState = session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition());
                                     if (!session.isSneaking() && BlockStateValues.isCauldron(blockState)) {
                                         // ServerboundUseItemPacket is not sent for cauldrons and buckets
                                         return;
                                     }
-                                    session.setPlacedBucket(useItem(session, packet));
+                                    session.setPlacedBucket(useItem(session, packet, blockState));
                                 } else {
                                     session.setPlacedBucket(true);
                                 }
@@ -537,12 +536,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         return false;
     }
 
-    private boolean useItem(GeyserSession session, InventoryTransactionPacket packet) {
-        // Let the server decide if the bucket item should change, not the client, and revert the changes the client made
+    private boolean useItem(GeyserSession session, InventoryTransactionPacket packet, int blockState) {
+        // Let the server decide if the item should change, not the client, and revert the changes the client made
         InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot()));
         // Check if the player is interacting with a block
         if (!session.isSneaking()) {
-            int blockState = session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition());
             if (BlockStateValues.isInteractableBlock(blockState)) {
                 return false;
             }
