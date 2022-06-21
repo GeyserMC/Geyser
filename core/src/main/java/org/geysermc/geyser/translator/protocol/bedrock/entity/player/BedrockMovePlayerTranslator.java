@@ -81,6 +81,7 @@ public class BedrockMovePlayerTranslator extends PacketTranslator<MovePlayerPack
             // Resend the rotation if it was changed by Geyser
             rotationChanged |= !session.getLookBackScheduledFuture().isDone();
             session.getLookBackScheduledFuture().cancel(false);
+            session.setLookBackScheduledFuture(null);
         }
 
         // If only the pitch and yaw changed

@@ -55,6 +55,7 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.BlockUtils;
@@ -281,20 +282,17 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 useItem(session, packet);
                             } else if (session.getItemMappings().getBucketIds().contains(itemId)) {
                                 // Let the server decide if the bucket item should change, not the client, and revert the changes the client made
-                                InventorySlotPacket slotPacket = new InventorySlotPacket();
-                                slotPacket.setContainerId(ContainerId.INVENTORY);
-                                slotPacket.setSlot(packet.getHotbarSlot());
-                                slotPacket.setItem(packet.getItemInHand());
-                                session.sendUpstreamPacket(slotPacket);
+                                InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), packet.getHotbarSlot() + 36);
                                 // Don't send ServerboundUseItemPacket for powder snow buckets
                                 if (itemId != session.getItemMappings().getStoredItems().powderSnowBucket().getBedrockId()) {
-                                    // Special check for crafting tables since clients don't send BLOCK_INTERACT when interacting
                                     int blockState = session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition());
-                                    if (session.isSneaking() || blockState != BlockRegistries.JAVA_IDENTIFIERS.get("minecraft:crafting_table")) {
-                                        // Delay the interaction in case the client doesn't intend to actually use the bucket
-                                        // See BedrockActionTranslator.java
-                                        session.setBucketScheduledFuture(session.scheduleInEventLoop(() -> useItem(session, packet), 5, TimeUnit.MILLISECONDS));
+                                    if (BlockStateValues.isCauldron(blockState)) {
+                                        // ServerboundUseItemPacket is never sent for cauldrons and buckets
+                                        return;
                                     }
+                                    session.setPlacedBucket(useItem(session, packet));
+                                } else {
+                                    session.setPlacedBucket(true);
                                 }
                             }
                         }
@@ -527,10 +525,20 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         session.sendUpstreamPacket(slotPacket);
     }
 
-    private void useItem(GeyserSession session, InventoryTransactionPacket packet) {
-        lookAt(session, packet);
+    private boolean useItem(GeyserSession session, InventoryTransactionPacket packet) {
+        // Check if the player is interacting with a block
+        if (!session.isSneaking()) {
+            int blockState = session.getGeyser().getWorldManager().getBlockAt(session, packet.getBlockPosition());
+            if (BlockStateValues.isInteractableBlock(blockState)) {
+                return false;
+            }
+        }
+
+        Vector3f target = packet.getBlockPosition().toFloat().add(packet.getClickPosition());
+        lookAt(session, target);
         ServerboundUseItemPacket itemPacket = new ServerboundUseItemPacket(Hand.MAIN_HAND, session.getNextSequence());
         session.sendDownstreamPacket(itemPacket);
+        return true;
     }
 
     /**
@@ -552,12 +560,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
      * the player's rotation.
      *
      * @param session the Geyser Session
-     * @param packet the packet with the block & click position to look at
+     * @param target the position to look at
      */
-    private void lookAt(GeyserSession session, InventoryTransactionPacket packet) {
+    private void lookAt(GeyserSession session, Vector3f target) {
         SessionPlayerEntity entity = session.getPlayerEntity();
 
-        Vector3f target = packet.getBlockPosition().toFloat().add(packet.getClickPosition());
         float xDiff = target.getX() - entity.getPosition().getX();
         float yDiff = target.getY() - entity.getPosition().getY();
         float zDiff = target.getZ() - entity.getPosition().getZ();

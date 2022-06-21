@@ -34,6 +34,7 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.level.physics.PistonBehavior;
+import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.collection.FixedInt2ByteMap;
 import org.geysermc.geyser.util.collection.FixedInt2IntMap;
 import org.geysermc.geyser.util.collection.LecternHasBookMap;
@@ -44,12 +45,14 @@ import java.util.Locale;
  * Used for block entities if the Java block state contains Bedrock block information.
  */
 public final class BlockStateValues {
+    private static final IntSet ALL_CAULDRONS = new IntOpenHashSet();
     private static final Int2IntMap BANNER_COLORS = new FixedInt2IntMap();
     private static final Int2ByteMap BED_COLORS = new FixedInt2ByteMap();
     private static final Int2ByteMap COMMAND_BLOCK_VALUES = new Int2ByteOpenHashMap();
     private static final Int2ObjectMap<DoubleChestValue> DOUBLE_CHEST_VALUES = new Int2ObjectOpenHashMap<>();
     private static final Int2ObjectMap<String> FLOWER_POT_VALUES = new Int2ObjectOpenHashMap<>();
     private static final IntSet HORIZONTAL_FACING_JIGSAWS = new IntOpenHashSet();
+    public static final IntSet INTERACTABLE_BLOCKS = new IntOpenHashSet();
     private static final LecternHasBookMap LECTERN_BOOK_STATES = new LecternHasBookMap();
     private static final IntSet NON_WATER_CAULDRONS = new IntOpenHashSet();
     private static final Int2IntMap NOTEBLOCK_PITCHES = new FixedInt2IntMap();
@@ -84,6 +87,55 @@ public final class BlockStateValues {
      * @param blockData      JsonNode of info about the block from blocks.json
      */
     public static void storeBlockStateValues(String javaId, int javaBlockState, JsonNode blockData) {
+        String cleanJavaId = BlockUtils.getCleanIdentifier(javaId);
+        switch (cleanJavaId) {
+            case "minecraft:anvil":
+            case "minecraft:barrel":
+            case "minecraft:beacon":
+            case "minecraft:brewing_stand":
+            case "minecraft:cartography_table":
+            case "minecraft:crafting_table":
+            case "minecraft:dispenser":
+            case "minecraft:dragon_egg":
+            case "minecraft:dropper":
+            case "minecraft:enchanting_table":
+            case "minecraft:grindstone":
+            case "minecraft:hopper":
+            case "minecraft:lever":
+            case "minecraft:loom":
+            case "minecraft:note_block":
+            case "minecraft:smithing_table":
+            case "minecraft:smoker":
+            case "minecraft:stonecutter":
+                INTERACTABLE_BLOCKS.add(javaBlockState);
+                break;
+            default:
+                if (cleanJavaId.contains("furnace")) { // Furnace and Blast furnaces
+                    INTERACTABLE_BLOCKS.add(javaBlockState);
+                } else if (cleanJavaId.endsWith("_bed")) {
+                    INTERACTABLE_BLOCKS.add(javaBlockState);
+                } else if (cleanJavaId.endsWith("_button")) {
+                    INTERACTABLE_BLOCKS.add(javaBlockState);
+                } else if (cleanJavaId.startsWith("minecraft:cave_vines") && javaId.contains("berries=true")) { // cave_vines and cave_vines_plant
+                    INTERACTABLE_BLOCKS.add(javaBlockState);
+                } else if (cleanJavaId.endsWith("chest")) { // chest, ender_chest, and trapped_chest
+                    INTERACTABLE_BLOCKS.add(javaBlockState);
+                } else if (cleanJavaId.endsWith("door") && !cleanJavaId.contains("iron")) { // All wooden doors and wooden trapdoors
+                    INTERACTABLE_BLOCKS.add(javaBlockState);
+                } else if (cleanJavaId.endsWith("fence_gate")) {
+                    INTERACTABLE_BLOCKS.add(javaBlockState);
+                } else if (cleanJavaId.startsWith("minecraft:potted_")) {
+                    INTERACTABLE_BLOCKS.add(javaBlockState);
+                } else if (javaId.equals("minecraft:jukebox[has_record=true]")) {
+                    INTERACTABLE_BLOCKS.add(javaBlockState);
+                } else if (cleanJavaId.endsWith("shulker_box")) {
+                    INTERACTABLE_BLOCKS.add(javaBlockState);
+                } else if (cleanJavaId.endsWith("_sign")) {
+                    INTERACTABLE_BLOCKS.add(javaBlockState);
+                }
+        }
+
+
         JsonNode bannerColor = blockData.get("banner_color");
         if (bannerColor != null) {
             BANNER_COLORS.put(javaBlockState, (byte) bannerColor.intValue());
@@ -193,6 +245,9 @@ public final class BlockStateValues {
             return;
         }
 
+        if (javaId.contains("cauldron")) {
+            ALL_CAULDRONS.add(javaBlockState);
+        }
         if (javaId.contains("_cauldron") && !javaId.contains("water_")) {
              NON_WATER_CAULDRONS.add(javaBlockState);
         }
@@ -225,8 +280,28 @@ public final class BlockStateValues {
      *
      * @return if this Java block state is a non-empty non-water cauldron
      */
-    public static boolean isCauldron(int state) {
+    public static boolean isNonWaterCauldron(int state) {
         return NON_WATER_CAULDRONS.contains(state);
+    }
+
+    /**
+     * Interacting with a cauldron with a bucket must only send ServerboundUseItemOnPacket and not ServerboundUseItemPacket
+     * as otherwise it can result in the liquid being placed.
+     *
+     * @return if this Java block state is a cauldron
+     */
+    public static boolean isCauldron(int state) {
+        return ALL_CAULDRONS.contains(state);
+    }
+
+    /**
+     * Blocks that are interactable will unconditionally do some action and should block ServerboundUseItemPacket from
+     * being sent.
+     *
+     * @return if this Java block state is interactable
+     */
+    public static boolean isInteractableBlock(int state) {
+        return INTERACTABLE_BLOCKS.contains(state);
     }
 
     /**

@@ -433,11 +433,10 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     private long lastInteractionTime;
 
     /**
-     * Stores a future interaction to place a bucket. Will be cancelled if the client instead intended to
-     * interact with a block.
+     * Stores whether the player intended to place a bucket.
      */
     @Setter
-    private ScheduledFuture<?> bucketScheduledFuture;
+    private boolean placedBucket;
 
     /**
      * Used to send a movement packet every three seconds if the player hasn't moved. Prevents timeouts when AFK in certain instances.

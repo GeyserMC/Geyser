@@ -38,7 +38,7 @@ public class BucketSoundInteractionTranslator implements BlockSoundInteractionTr
 
     @Override
     public void translate(GeyserSession session, Vector3f position, String identifier) {
-        if (session.getBucketScheduledFuture() == null) {
+        if (!session.isPlacedBucket()) {
             return; // No bucket was really interacted with
         }
         GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand();
@@ -84,7 +84,7 @@ public class BucketSoundInteractionTranslator implements BlockSoundInteractionTr
         if (soundEvent != null) {
             soundEventPacket.setSound(soundEvent);
             session.sendUpstreamPacket(soundEventPacket);
-            session.setBucketScheduledFuture(null);
+            session.setPlacedBucket(false);
         }
     }
 }
