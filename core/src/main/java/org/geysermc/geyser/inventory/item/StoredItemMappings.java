@@ -42,6 +42,7 @@ public class StoredItemMappings {
     private final ItemMapping banner;
     private final ItemMapping barrier;
     private final int bowl;
+    private final int bucket;
     private final int chest;
     private final ItemMapping compass;
     private final ItemMapping crossbow;
@@ -73,6 +74,7 @@ public class StoredItemMappings {
         this.banner = load(itemMappings, "white_banner"); // As of 1.17.10, all banners have the same Bedrock ID
         this.barrier = load(itemMappings, "barrier");
         this.bowl = load(itemMappings, "bowl").getJavaId();
+        this.bucket = load(itemMappings, "bucket").getBedrockId();
         this.chest = load(itemMappings, "chest").getJavaId();
         this.compass = load(itemMappings, "compass");
         this.crossbow = load(itemMappings, "crossbow");

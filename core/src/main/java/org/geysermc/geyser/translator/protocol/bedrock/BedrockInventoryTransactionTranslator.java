@@ -541,7 +541,26 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
     private boolean useItem(GeyserSession session, InventoryTransactionPacket packet, int blockState) {
         // Update the player's inventory to remove any items added by the client itself
-        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateInventory(session, session.getPlayerInventory());
+        Inventory playerInventory = session.getPlayerInventory();
+        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, playerInventory, playerInventory.getOffsetForHotbar(packet.getHotbarSlot()));
+        if (packet.getItemInHand().getCount() > 1) {
+            if (packet.getItemInHand().getId() == session.getItemMappings().getStoredItems().bucket() ||
+                packet.getItemInHand().getId() == session.getItemMappings().getStoredItems().glassBottle()) {
+                // Using a stack of buckets or glass bottles will result in an item being added to the first empty slot.
+                // We need to revert the item in case the interaction fails. The order goes from left to right in the
+                // hotbar. Then left to right and top to bottom in the inventory.
+                for (int i = 0; i < 36; i++) {
+                    int slot = i;
+                    if (i < 9) {
+                        slot = playerInventory.getOffsetForHotbar(slot);
+                    }
+                    if (playerInventory.getItem(slot).isEmpty()) {
+                        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, playerInventory, slot);
+                        break;
+                    }
+                }
+            }
+        }
         // Check if the player is interacting with a block
         if (!session.isSneaking()) {
             if (BlockRegistries.INTERACTIVE.get().contains(blockState)) {
