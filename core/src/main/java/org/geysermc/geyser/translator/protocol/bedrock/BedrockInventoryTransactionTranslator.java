@@ -334,6 +334,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             } else if (session.getItemMappings().getSpawnEggIds().contains(packet.getItemInHand().getId())) {
                                 // Handled in case 0
                                 break;
+                            } else if (packet.getItemInHand().getId() == session.getItemMappings().getStoredItems().glassBottle()) {
+                                // Handled in case 0
+                                break;
                             }
                         }
 
@@ -537,8 +540,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     }
 
     private boolean useItem(GeyserSession session, InventoryTransactionPacket packet, int blockState) {
-        // Let the server decide if the item should change, not the client, and revert the changes the client made
-        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot()));
+        // Update the player's inventory to remove any items added by the client itself
+        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateInventory(session, session.getPlayerInventory());
         // Check if the player is interacting with a block
         if (!session.isSneaking()) {
             if (BlockRegistries.INTERACTIVE.get().contains(blockState)) {
