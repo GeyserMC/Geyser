@@ -541,7 +541,12 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot()));
         // Check if the player is interacting with a block
         if (!session.isSneaking()) {
-            if (BlockStateValues.isInteractableBlock(blockState)) {
+            if (BlockRegistries.INTERACTIVE.get().contains(blockState)) {
+                return false;
+            }
+
+            boolean mayBuild = session.getGameMode() == GameMode.SURVIVAL || session.getGameMode() == GameMode.CREATIVE;
+            if (mayBuild && BlockRegistries.INTERACTIVE_MAY_BUILD.get().contains(blockState)) {
                 return false;
             }
         }
