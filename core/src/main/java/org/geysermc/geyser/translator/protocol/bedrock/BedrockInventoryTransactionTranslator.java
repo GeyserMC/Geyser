@@ -542,8 +542,9 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     private boolean useItem(GeyserSession session, InventoryTransactionPacket packet, int blockState) {
         // Update the player's inventory to remove any items added by the client itself
         Inventory playerInventory = session.getPlayerInventory();
-        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, playerInventory, playerInventory.getOffsetForHotbar(packet.getHotbarSlot()));
-        if (packet.getItemInHand().getCount() > 1) {
+        int heldItemSlot = playerInventory.getOffsetForHotbar(packet.getHotbarSlot());
+        InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, playerInventory, heldItemSlot);
+        if (playerInventory.getItem(heldItemSlot).getAmount() > 1) {
             if (packet.getItemInHand().getId() == session.getItemMappings().getStoredItems().bucket() ||
                 packet.getItemInHand().getId() == session.getItemMappings().getStoredItems().glassBottle()) {
                 // Using a stack of buckets or glass bottles will result in an item being added to the first empty slot.
