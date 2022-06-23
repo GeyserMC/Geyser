@@ -66,7 +66,7 @@ public class GeyserSpigotPingPassthrough implements IGeyserPingPassthrough {
     private static class GeyserPingEvent extends ServerListPingEvent {
 
         public GeyserPingEvent(InetAddress address, String motd, int numPlayers, int maxPlayers) {
-            super(address, motd, numPlayers, maxPlayers);
+            super(address, motd, Bukkit.shouldSendChatPreviews(), numPlayers, maxPlayers);
         }
 
         @Override
