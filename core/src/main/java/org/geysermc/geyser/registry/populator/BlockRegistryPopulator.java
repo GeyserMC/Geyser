@@ -26,6 +26,7 @@
 package org.geysermc.geyser.registry.populator;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableMap;
 import com.nukkitx.nbt.*;
 import com.nukkitx.protocol.bedrock.v527.Bedrock_v527;
@@ -355,6 +356,24 @@ public class BlockRegistryPopulator {
         BlockRegistries.CLEAN_JAVA_IDENTIFIERS.set(cleanIdentifiers.toArray(new String[0]));
 
         BLOCKS_JSON = blocksJson;
+
+        JsonNode blockInteractionsJson;
+        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResource("mappings/interactions.json")) {
+            blockInteractionsJson = GeyserImpl.JSON_MAPPER.readTree(stream);
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load Java block interaction mappings", e);
+        }
+
+        BlockRegistries.INTERACTIVE.set(toBlockStateSet((ArrayNode) blockInteractionsJson.get("always_consumes")));
+        BlockRegistries.INTERACTIVE_MAY_BUILD.set(toBlockStateSet((ArrayNode) blockInteractionsJson.get("requires_may_build")));
+    }
+
+    private static IntSet toBlockStateSet(ArrayNode node) {
+        IntSet blockStateSet = new IntOpenHashSet(node.size());
+        for (JsonNode javaIdentifier : node) {
+            blockStateSet.add(BlockRegistries.JAVA_IDENTIFIERS.get().getInt(javaIdentifier.textValue()));
+        }
+        return blockStateSet;
     }
 
     private static NbtMap buildBedrockState(JsonNode node, int blockStateVersion, BiFunction<String, NbtMapBuilder, String> statesMapper) {

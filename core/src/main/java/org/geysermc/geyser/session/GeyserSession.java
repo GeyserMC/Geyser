@@ -433,11 +433,10 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     private long lastInteractionTime;
 
     /**
-     * Stores a future interaction to place a bucket. Will be cancelled if the client instead intended to
-     * interact with a block.
+     * Stores whether the player intended to place a bucket.
      */
     @Setter
-    private ScheduledFuture<?> bucketScheduledFuture;
+    private boolean placedBucket;
 
     /**
      * Used to send a movement packet every three seconds if the player hasn't moved. Prevents timeouts when AFK in certain instances.
@@ -523,6 +522,12 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      * The thread that will run every 50 milliseconds - one Minecraft tick.
      */
     private ScheduledFuture<?> tickThread = null;
+
+    /**
+     * Used to return the player to their original rotation after using an item in BedrockInventoryTransactionTranslator
+     */
+    @Setter
+    private ScheduledFuture<?> lookBackScheduledFuture = null;
 
     private MinecraftProtocol protocol;
 

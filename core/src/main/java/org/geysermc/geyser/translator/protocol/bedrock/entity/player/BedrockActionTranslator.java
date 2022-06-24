@@ -136,14 +136,6 @@ public class BedrockActionTranslator extends PacketTranslator<PlayerActionPacket
                 ServerboundPlayerCommandPacket stopSleepingPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.LEAVE_BED);
                 session.sendDownstreamPacket(stopSleepingPacket);
                 break;
-            case BLOCK_INTERACT:
-                // Client means to interact with a block; cancel bucket interaction, if any
-                if (session.getBucketScheduledFuture() != null) {
-                    session.getBucketScheduledFuture().cancel(true);
-                    session.setBucketScheduledFuture(null);
-                }
-                // Otherwise handled in BedrockInventoryTransactionTranslator
-                break;
             case START_BREAK:
                 // Start the block breaking animation
                 if (session.getGameMode() != GameMode.CREATIVE) {

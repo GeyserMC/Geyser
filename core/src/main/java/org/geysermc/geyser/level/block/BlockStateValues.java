@@ -44,6 +44,7 @@ import java.util.Locale;
  * Used for block entities if the Java block state contains Bedrock block information.
  */
 public final class BlockStateValues {
+    private static final IntSet ALL_CAULDRONS = new IntOpenHashSet();
     private static final Int2IntMap BANNER_COLORS = new FixedInt2IntMap();
     private static final Int2ByteMap BED_COLORS = new FixedInt2ByteMap();
     private static final Int2ByteMap COMMAND_BLOCK_VALUES = new Int2ByteOpenHashMap();
@@ -193,6 +194,9 @@ public final class BlockStateValues {
             return;
         }
 
+        if (javaId.contains("cauldron")) {
+            ALL_CAULDRONS.add(javaBlockState);
+        }
         if (javaId.contains("_cauldron") && !javaId.contains("water_")) {
              NON_WATER_CAULDRONS.add(javaBlockState);
         }
@@ -225,8 +229,17 @@ public final class BlockStateValues {
      *
      * @return if this Java block state is a non-empty non-water cauldron
      */
-    public static boolean isCauldron(int state) {
+    public static boolean isNonWaterCauldron(int state) {
         return NON_WATER_CAULDRONS.contains(state);
+    }
+
+    /**
+     * When using a bucket on a cauldron sending a ServerboundUseItemPacket can result in the liquid being placed.
+     *
+     * @return if this Java block state is a cauldron
+     */
+    public static boolean isCauldron(int state) {
+        return ALL_CAULDRONS.contains(state);
     }
 
     /**
