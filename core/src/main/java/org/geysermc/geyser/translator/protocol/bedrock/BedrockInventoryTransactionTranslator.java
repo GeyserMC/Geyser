@@ -56,6 +56,7 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
+import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.BlockUtils;
@@ -527,12 +528,12 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     }
 
     private boolean isIncorrectHeldItem(GeyserSession session, InventoryTransactionPacket packet) {
-        int heldItemId = packet.getItemInHand() == null ? ItemData.AIR.getId() : packet.getItemInHand().getId();
         int javaSlot = session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot());
-        ItemData expectedItemData = session.getPlayerInventory().getItem(javaSlot).getItemData(session);
+        int expectedItemId = ItemTranslator.getBedrockItemMapping(session, session.getPlayerInventory().getItem(javaSlot)).getBedrockId();
+        int heldItemId = packet.getItemInHand() == null ? ItemData.AIR.getId() : packet.getItemInHand().getId();
 
-        if (expectedItemData.getId() != heldItemId) {
-            session.getGeyser().getLogger().debug(session.name() + "'s held item has desynced! Expected: " + expectedItemData.getId() + " Received: " + heldItemId);
+        if (expectedItemId != heldItemId) {
+            session.getGeyser().getLogger().debug(session.name() + "'s held item has desynced! Expected: " + expectedItemId + " Received: " + heldItemId);
             session.getGeyser().getLogger().debug("Packet: " + packet);
             return true;
         }
