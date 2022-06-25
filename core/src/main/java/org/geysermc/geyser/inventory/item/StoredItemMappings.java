@@ -50,6 +50,7 @@ public class StoredItemMappings {
     private final ItemMapping fishingRod;
     private final int flintAndSteel;
     private final int frogspawn;
+    private final int goatHorn;
     private final int glassBottle;
     private final int goldenApple;
     private final int goldIngot;
@@ -82,6 +83,7 @@ public class StoredItemMappings {
         this.fishingRod = load(itemMappings, "fishing_rod");
         this.flintAndSteel = load(itemMappings, "flint_and_steel").getJavaId();
         this.frogspawn = load(itemMappings, "frogspawn").getBedrockId();
+        this.goatHorn = load(itemMappings, "goat_horn").getJavaId();
         this.glassBottle = load(itemMappings, "glass_bottle").getBedrockId();
         this.goldenApple = load(itemMappings, "golden_apple").getJavaId();
         this.goldIngot = load(itemMappings, "gold_ingot").getJavaId();
