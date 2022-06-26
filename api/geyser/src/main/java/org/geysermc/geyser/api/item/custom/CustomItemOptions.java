@@ -72,7 +72,7 @@ public interface CustomItemOptions {
     }
 
     interface Builder {
-        Builder unbreakable(boolean unbreaking);
+        Builder unbreakable(boolean unbreakable);
 
         Builder customModelData(int customModelData);
 
