@@ -34,7 +34,7 @@ import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import java.nio.file.Path;
 import java.util.function.BiConsumer;
 
-public class MappingsReader_v1_0_0 extends MappingsReader {
+public class MappingsReader_v1 extends MappingsReader {
     @Override
     public void readMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomItemData> consumer) {
         this.readItemMappings(file, mappingsRoot, consumer);
@@ -74,7 +74,7 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
 
         JsonNode unbreaking = node.get("unbreaking");
         if (unbreaking != null && unbreaking.isBoolean()) {
-            customItemOptions.unbreaking(unbreaking.asBoolean());
+            customItemOptions.unbreakable(unbreaking.asBoolean());
         }
 
         return customItemOptions.build();

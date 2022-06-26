@@ -187,7 +187,7 @@ public class GeyserImpl implements GeyserApi {
         this.extensionManager = new GeyserExtensionManager();
         this.extensionManager.init();
 
-        this.extensionManager.enablePreInitializeExtensions();
+        this.extensionManager.enableExtensions();
         this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
 
         /* Initialize registries */
@@ -259,8 +259,6 @@ public class GeyserImpl implements GeyserApi {
         SkinProvider.registerCacheImageTask(this);
 
         ResourcePack.loadPacks();
-
-        this.extensionManager.enableExtensions();
 
         if (platformType != PlatformType.STANDALONE && config.getRemote().getAddress().equals("auto")) {
             // Set the remote address to localhost since that is where we are always connecting
@@ -584,6 +582,7 @@ public class GeyserImpl implements GeyserApi {
     @Override
     public void reload() {
         shutdown();
+        this.extensionManager.enableExtensions();
         bootstrap.onEnable();
     }
 

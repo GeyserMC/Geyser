@@ -26,24 +26,24 @@
 package org.geysermc.geyser.item.mappings;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.item.mappings.versions.MappingsReader;
-import org.geysermc.geyser.item.mappings.versions.MappingsReader_v1_0_0;
+import org.geysermc.geyser.item.mappings.versions.MappingsReader_v1;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.BiConsumer;
 
 public class MappingsConfigReader {
-    private final Map<String, MappingsReader> mappingReaders = new HashMap<>();
+    private final Int2ObjectMap<MappingsReader> mappingReaders = new Int2ObjectOpenHashMap<>();
     private final Path customMappingsDirectory = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("custom_mappings");
 
     public MappingsConfigReader() {
-        this.mappingReaders.put("1.0.0", new MappingsReader_v1_0_0());
+        this.mappingReaders.put(1, new MappingsReader_v1());
     }
 
     public Path[] getCustomMappingsFiles() {
@@ -87,7 +87,7 @@ public class MappingsConfigReader {
             return;
         }
 
-        String formatVersion = mappingsRoot.get("format_version").asText();
+        int formatVersion = mappingsRoot.get("format_version").asInt();
         if (!this.mappingReaders.containsKey(formatVersion)) {
             GeyserImpl.getInstance().getLogger().error("Mappings file " + file + " has an unknown format version: " + formatVersion);
             return;

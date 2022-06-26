@@ -557,7 +557,7 @@ public abstract class ItemTranslator {
         for (Object2IntMap.Entry<CustomItemOptions> mappingTypes : customMappings.object2IntEntrySet()) {
             CustomItemOptions options = mappingTypes.getKey();
 
-            TriState unbreakingOption = options.unbreaking();
+            TriState unbreakingOption = options.unbreakable();
             if (unbreakingOption == unbreakable) { // Implementation note: if the option is NOT_SET then this comparison will always be false because of how the item unbreaking TriState is created
                 return mappingTypes.getIntValue();
             }

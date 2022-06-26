@@ -40,7 +40,7 @@ public interface CustomItemOptions {
      *
      * @return if the item should be unbreakable
      */
-    @NonNull TriState unbreaking();
+    @NonNull TriState unbreakable();
 
     /**
      * Gets the item's custom model data predicate.
@@ -62,7 +62,7 @@ public interface CustomItemOptions {
      * @return true if the item at least one options set
      */
     default boolean hasCustomItemOptions() {
-        return this.unbreaking() != TriState.NOT_SET ||
+        return this.unbreakable() != TriState.NOT_SET ||
                 this.customModelData().isPresent() ||
                 this.damagePredicate().isPresent();
     }
@@ -72,7 +72,7 @@ public interface CustomItemOptions {
     }
 
     interface Builder {
-        Builder unbreaking(boolean unbreaking);
+        Builder unbreakable(boolean unbreaking);
 
         Builder customModelData(int customModelData);
 

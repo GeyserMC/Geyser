@@ -30,21 +30,21 @@ import org.geysermc.geyser.api.util.TriState;
 
 import java.util.OptionalInt;
 
-public record GeyserCustomItemOptions(TriState unbreaking,
+public record GeyserCustomItemOptions(TriState unbreakable,
                                       OptionalInt customModelData,
                                       OptionalInt damagePredicate) implements CustomItemOptions {
 
     public static class CustomItemOptionsBuilder implements CustomItemOptions.Builder {
-        private TriState unbreaking = TriState.NOT_SET;
+        private TriState unbreakable = TriState.NOT_SET;
         private OptionalInt customModelData = OptionalInt.empty();
         private OptionalInt damagePredicate = OptionalInt.empty();
 
         @Override
-        public Builder unbreaking(boolean unbreaking) {
-            if (unbreaking) {
-                this.unbreaking = TriState.TRUE;
+        public Builder unbreakable(boolean unbreakable) {
+            if (unbreakable) {
+                this.unbreakable = TriState.TRUE;
             } else {
-                this.unbreaking = TriState.FALSE;
+                this.unbreakable = TriState.FALSE;
             }
             return this;
         }
@@ -63,7 +63,7 @@ public record GeyserCustomItemOptions(TriState unbreaking,
 
         @Override
         public CustomItemOptions build() {
-            return new GeyserCustomItemOptions(unbreaking, customModelData, damagePredicate);
+            return new GeyserCustomItemOptions(unbreakable, customModelData, damagePredicate);
         }
     }
 }

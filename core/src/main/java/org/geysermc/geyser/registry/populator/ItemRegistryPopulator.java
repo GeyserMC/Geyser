@@ -602,7 +602,7 @@ public class ItemRegistryPopulator {
                 componentItemData.add(new ComponentItemData("geysermc:furnace_minecart", builder.build()));
 
                 // Register any completely custom items given to us
-                Set<Integer> registeredJavaIds = new ObjectOpenHashSet<>(); //Used to check for duplicate item java ids
+                IntSet registeredJavaIds = new IntOpenHashSet(); // Used to check for duplicate item java ids
                 for (NonVanillaCustomItemData customItem : nonVanillaCustomItems) {
                     if (!registeredJavaIds.add(customItem.javaId())) {
                         if (firstMappingsPass) {
