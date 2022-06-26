@@ -31,9 +31,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.api.extension.StartupPhase;
-import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.extension.ExtensionLoader;
+import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Collection;
@@ -101,11 +100,9 @@ public class GeyserExtensionManager extends ExtensionManager {
         }
     }
 
-    public void enablePreInitializeExtensions() {
+    public void enableExtensions() {
         for (Extension extension : this.extensions()) {
-            if (extension.description().startupPhase() == StartupPhase.PRE_INITIALIZE) {
-                this.enable(extension);
-            }
+            this.enable(extension);
         }
     }
 
@@ -115,12 +112,6 @@ public class GeyserExtensionManager extends ExtensionManager {
 
             extension.setEnabled(false);
             GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.extensions.disable.success", extension.description().name()));
-        }
-    }
-
-    public void enableExtensions() {
-        for (Extension extension : this.extensions()) {
-            this.enable(extension);
         }
     }
 

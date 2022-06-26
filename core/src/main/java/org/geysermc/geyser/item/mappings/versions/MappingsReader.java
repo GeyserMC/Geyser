@@ -27,6 +27,7 @@ package org.geysermc.geyser.item.mappings.versions;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
+import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 
 import java.nio.file.Path;
@@ -36,4 +37,57 @@ public abstract class MappingsReader {
     public abstract void readMappings(Path file, JsonNode mappingsRoot, BiConsumer<String, CustomItemData> consumer);
 
     public abstract CustomItemData readItemMappingEntry(JsonNode node) throws InvalidCustomMappingsFileException;
+
+    protected CustomRenderOffsets fromJsonNode(JsonNode node) {
+        if (node == null || !node.isObject()) {
+            return null;
+        }
+
+        return new CustomRenderOffsets(
+                getHandOffsets(node, "main_hand"),
+                getHandOffsets(node, "off_hand")
+        );
+    }
+
+    protected CustomRenderOffsets.Hand getHandOffsets(JsonNode node, String hand) {
+        JsonNode tmpNode = node.get(hand);
+        if (tmpNode == null || !tmpNode.isObject()) {
+            return null;
+        }
+
+        return new CustomRenderOffsets.Hand(
+                getPerspectiveOffsets(tmpNode, "first_person"),
+                getPerspectiveOffsets(tmpNode, "third_person")
+        );
+    }
+
+    protected CustomRenderOffsets.Offset getPerspectiveOffsets(JsonNode node, String perspective) {
+        JsonNode tmpNode = node.get(perspective);
+        if (tmpNode == null || !tmpNode.isObject()) {
+            return null;
+        }
+
+        return new CustomRenderOffsets.Offset(
+                getOffsetXYZ(tmpNode, "position"),
+                getOffsetXYZ(tmpNode, "rotation"),
+                getOffsetXYZ(tmpNode, "scale")
+        );
+    }
+
+    protected CustomRenderOffsets.OffsetXYZ getOffsetXYZ(JsonNode node, String offsetType) {
+        JsonNode tmpNode = node.get(offsetType);
+        if (tmpNode == null || !tmpNode.isObject()) {
+            return null;
+        }
+
+        if (!tmpNode.has("x") || !tmpNode.has("y") || !tmpNode.has("z")) {
+            return null;
+        }
+
+        return new CustomRenderOffsets.OffsetXYZ(
+                tmpNode.get("x").floatValue(),
+                tmpNode.get("y").floatValue(),
+                tmpNode.get("z").floatValue()
+        );
+    }
 }

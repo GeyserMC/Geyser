@@ -33,15 +33,16 @@ import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import it.unimi.dsi.fastutil.objects.Object2IntMaps;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
+import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
-import org.geysermc.geyser.item.GeyserCustomRenderOffsets;
 import org.geysermc.geyser.item.components.ToolBreakSpeedsUtils;
 import org.geysermc.geyser.item.components.WearableSlot;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
@@ -259,12 +260,10 @@ public class CustomItemRegistryPopulator {
             componentBuilder.putCompound("minecraft:wearable", WearableSlot.HEAD.getSlotNbt());
         }
 
-        if (customItemData.renderOffsets() != null) {
-            GeyserCustomRenderOffsets renderOffsets = GeyserCustomRenderOffsets.fromCustomRenderOffsets(customItemData.renderOffsets());
-            if (renderOffsets != null) {
-                componentBuilder.remove("minecraft:render_offsets");
-                componentBuilder.putCompound("minecraft:render_offsets", renderOffsets.toNbtMap());
-            }
+        CustomRenderOffsets renderOffsets = customItemData.renderOffsets();
+        if (renderOffsets != null) {
+            componentBuilder.remove("minecraft:render_offsets");
+            componentBuilder.putCompound("minecraft:render_offsets", toNbtMap(renderOffsets));
         } else if (customItemData.textureSize() != 16 && !componentBuilder.containsKey("minecraft:render_offsets")) {
             float scale1 = (float) (0.075 / (customItemData.textureSize() / 16f));
             float scale2 = (float) (0.125 / (customItemData.textureSize() / 16f));
@@ -278,6 +277,77 @@ public class CustomItemRegistryPopulator {
                                     .putCompound("first_person", xyzToScaleList(scale1, scale2, scale1))
                                     .putCompound("third_person", xyzToScaleList(scale1, scale2, scale1)).build()).build());
         }
+    }
+
+    private static NbtMap toNbtMap(CustomRenderOffsets renderOffsets) {
+        NbtMapBuilder builder = NbtMap.builder();
+
+        CustomRenderOffsets.Hand mainHand = renderOffsets.mainHand();
+        if (mainHand != null) {
+            NbtMap nbt = toNbtMap(mainHand);
+            if (nbt != null) {
+                builder.putCompound("main_hand", nbt);
+            }
+        }
+        CustomRenderOffsets.Hand offhand = renderOffsets.offhand();
+        if (offhand != null) {
+            NbtMap nbt = toNbtMap(offhand);
+            if (nbt != null) {
+                builder.putCompound("off_hand", nbt);
+            }
+        }
+
+        return builder.build();
+    }
+
+    private static NbtMap toNbtMap(CustomRenderOffsets.Hand hand) {
+        NbtMap firstPerson = toNbtMap(hand.firstPerson());
+        NbtMap thirdPerson = toNbtMap(hand.thirdPerson());
+
+        if (firstPerson == null && thirdPerson == null) {
+            return null;
+        }
+
+        NbtMapBuilder builder = NbtMap.builder();
+        if (firstPerson != null) {
+            builder.putCompound("first_person", firstPerson);
+        }
+        if (thirdPerson != null) {
+            builder.putCompound("third_person", thirdPerson);
+        }
+
+        return builder.build();
+    }
+
+    private static NbtMap toNbtMap(@Nullable CustomRenderOffsets.Offset offset) {
+        if (offset == null) {
+            return null;
+        }
+
+        CustomRenderOffsets.OffsetXYZ position = offset.position();
+        CustomRenderOffsets.OffsetXYZ rotation = offset.rotation();
+        CustomRenderOffsets.OffsetXYZ scale = offset.scale();
+
+        if (position == null && rotation == null && scale == null) {
+            return null;
+        }
+
+        NbtMapBuilder builder = NbtMap.builder();
+        if (position != null) {
+            builder.putList("position", NbtType.FLOAT, toList(position));
+        }
+        if (rotation != null) {
+            builder.putList("rotation", NbtType.FLOAT, toList(rotation));
+        }
+        if (scale != null) {
+            builder.putList("scale", NbtType.FLOAT, toList(scale));
+        }
+
+        return builder.build();
+    }
+
+    private static List<Float> toList(CustomRenderOffsets.OffsetXYZ xyz) {
+        return List.of(xyz.x(), xyz.y(), xyz.z());
     }
 
     private static void setItemTag(NbtMapBuilder builder, String tag) {

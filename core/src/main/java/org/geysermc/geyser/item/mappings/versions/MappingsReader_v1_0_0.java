@@ -29,7 +29,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
-import org.geysermc.geyser.item.GeyserCustomRenderOffsets;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 
 import java.nio.file.Path;
@@ -116,7 +115,7 @@ public class MappingsReader_v1_0_0 extends MappingsReader {
         if (node.has("render_offsets")) {
             JsonNode tmpNode = node.get("render_offsets");
 
-            customItemData.renderOffsets(GeyserCustomRenderOffsets.fromJsonNode(tmpNode));
+            customItemData.renderOffsets(fromJsonNode(tmpNode));
         }
 
         return customItemData.build();

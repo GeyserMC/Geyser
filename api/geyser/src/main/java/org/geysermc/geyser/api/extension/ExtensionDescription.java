@@ -73,12 +73,4 @@ public interface ExtensionDescription {
      */
     @NonNull
     List<String> authors();
-
-    /**
-     * Gets the extensison's startup phase.
-     *
-     * @return the extension's startup phase
-     */
-    @NonNull
-    StartupPhase startupPhase();
 }
