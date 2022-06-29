@@ -100,6 +100,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.command.CommandSender;
 import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
+import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -1765,6 +1766,17 @@ public class GeyserSession implements GeyserConnection, CommandSender {
         packet.setIdentifier(":");
         packet.setExtraData(-1);
         sendUpstreamPacket(packet);
+    }
+
+    public float getEyeHeight() {
+        return switch (pose) {
+            case SNEAKING -> 1.27f;
+            case SWIMMING,
+                    FALL_FLYING, // Elytra
+                    SPIN_ATTACK -> 0.4f; // Trident spin attack
+            case SLEEPING -> 0.2f;
+            default -> EntityDefinitions.PLAYER.offset();
+        };
     }
 
     public MinecraftCodecHelper getCodecHelper() {

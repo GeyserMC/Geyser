@@ -201,7 +201,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         // CraftBukkit+ check - see https://github.com/PaperMC/Paper/blob/458db6206daae76327a64f4e2a17b67a7e38b426/Spigot-Server-Patches/0532-Move-range-check-for-block-placing-up.patch
                         Vector3f playerPosition = session.getPlayerEntity().getPosition();
-                        playerPosition = playerPosition.down(EntityDefinitions.PLAYER.offset() - getEyeHeight(session));
+                        playerPosition = playerPosition.down(EntityDefinitions.PLAYER.offset() - session.getEyeHeight());
 
                         boolean creative = session.getGameMode() == GameMode.CREATIVE;
 
@@ -608,7 +608,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         // Use the bounding box's position since we need the player's position seen by the Java server
         Vector3d playerPosition = session.getCollisionManager().getPlayerBoundingBox().getBottomCenter();
         float xDiff = (float) (target.getX() - playerPosition.getX());
-        float yDiff = (float) (target.getY() - (playerPosition.getY() + getEyeHeight(session)));
+        float yDiff = (float) (target.getY() - (playerPosition.getY() + session.getEyeHeight()));
         float zDiff = (float) (target.getZ() - playerPosition.getZ());
 
         // First triangle on the XZ plane
@@ -636,16 +636,5 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 session.sendDownstreamPacket(returnPacket);
             }, 150, TimeUnit.MILLISECONDS));
         }
-    }
-
-    private float getEyeHeight(GeyserSession session) {
-        return switch (session.getPose()) {
-            case SNEAKING -> 1.27f;
-            case SWIMMING,
-                FALL_FLYING, // Elytra
-                SPIN_ATTACK -> 0.4f; // Trident spin attack
-            case SLEEPING -> 0.2f;
-            default -> EntityDefinitions.PLAYER.offset();
-        };
     }
 }

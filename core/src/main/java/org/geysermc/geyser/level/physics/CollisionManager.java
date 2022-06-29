@@ -405,6 +405,17 @@ public class CollisionManager {
         return session.getGeyser().getWorldManager().getBlockAt(session, session.getPlayerEntity().getPosition().toInt()) == BlockStateValues.JAVA_WATER_ID;
     }
 
+    public boolean isWaterInEyes() {
+        double eyeX = playerBoundingBox.getMiddleX();
+        double eyeY = playerBoundingBox.getMiddleY() - playerBoundingBox.getSizeY() / 2d + session.getEyeHeight() - (1 / 9d);
+        double eyeZ = playerBoundingBox.getMiddleZ();
+
+        int blockID = session.getGeyser().getWorldManager().getBlockAt(session, (int) Math.floor(eyeX), (int) Math.floor(eyeY), (int) Math.floor(eyeZ));
+        double waterHeight = BlockStateValues.getWaterHeight(blockID);
+
+        return waterHeight != -1 && eyeY < (Math.floor(eyeY) + waterHeight);
+    }
+
     /**
      * Updates scaffolding entity flags
      * Scaffolding needs to be checked per-move since it's a flag in Bedrock but Java does it client-side
