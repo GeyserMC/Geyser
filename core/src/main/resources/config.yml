@@ -139,7 +139,7 @@ always-quick-change-armor: false
 emote-offhand-workaround: "disabled"
 
 # The default locale if we dont have the one the client requested. Uncomment to not use the default system language.
-# default-locale: en_us
+# default-locale: "en_us"
 
 # Specify how many days images will be cached to disk to save downloading them from the internet.
 # A value of 0 is disabled. (Default: 0)
