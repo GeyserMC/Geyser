@@ -88,7 +88,7 @@ public class GeyserCustomItemData implements CustomItemData {
         return renderOffsets;
     }
 
-    public static class BuilderImpl implements Builder {
+    public static class CustomItemDataBuilder implements Builder {
         protected String name = null;
         protected CustomItemOptions customItemOptions = null;
 

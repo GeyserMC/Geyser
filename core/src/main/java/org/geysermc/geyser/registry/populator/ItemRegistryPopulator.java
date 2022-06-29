@@ -103,9 +103,9 @@ public class ItemRegistryPopulator {
             });
 
             nonVanillaCustomItems = new ObjectArrayList<>();
-            GeyserImpl.getInstance().eventBus().fire(new GeyserDefineCustomItemsEvent() {
+            GeyserImpl.getInstance().eventBus().fire(new GeyserDefineCustomItemsEvent(customItems, nonVanillaCustomItems) {
                 @Override
-                public boolean registerCustomItem(@NonNull String identifier, @NonNull CustomItemData customItemData) {
+                public boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData) {
                     if (CustomItemRegistryPopulator.initialCheck(identifier, customItemData, items)) {
                         customItems.get(identifier).add(customItemData);
                         return true;
@@ -114,7 +114,7 @@ public class ItemRegistryPopulator {
                 }
 
                 @Override
-                public boolean registerCustomItem(@NonNull NonVanillaCustomItemData customItemData) {
+                public boolean register(@NonNull NonVanillaCustomItemData customItemData) {
                     if (customItemData.identifier().startsWith("minecraft:")) {
                         GeyserImpl.getInstance().getLogger().error("The custom item " + customItemData.identifier() +
                                 " is attempting to masquerade as a vanilla Minecraft item!");

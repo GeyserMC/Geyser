@@ -29,10 +29,10 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.OptionalInt;
 import java.util.Set;
@@ -55,7 +55,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     private final boolean hat;
     private final boolean tool;
 
-    public GeyserNonVanillaCustomItemData(BuilderImpl builder) {
+    public GeyserNonVanillaCustomItemData(NonVanillaCustomItemDataBuilder builder) {
         super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand,
                 builder.textureSize, builder.renderOffsets);
 
@@ -76,7 +76,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     }
 
     @Override
-    public String identifier() {
+    public @NotNull String identifier() {
         return identifier;
     }
 
@@ -126,7 +126,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     }
 
     @Override
-    public OptionalInt creativeCategory() {
+    public @NotNull OptionalInt creativeCategory() {
         return creativeCategory;
     }
 
@@ -145,7 +145,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         return tool;
     }
 
-    public static class BuilderImpl extends GeyserCustomItemData.BuilderImpl implements NonVanillaCustomItemData.Builder {
+    public static class NonVanillaCustomItemDataBuilder extends GeyserCustomItemData.CustomItemDataBuilder implements NonVanillaCustomItemData.Builder {
         private String identifier = null;
         private int javaId = -1;
 
