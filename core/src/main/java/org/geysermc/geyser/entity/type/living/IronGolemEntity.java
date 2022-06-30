@@ -45,6 +45,8 @@ public class IronGolemEntity extends GolemEntity {
         setFlag(EntityFlag.BRIBED, true);
         // Required, or else the overlay is black
         dirtyMetadata.put(EntityData.COLOR_2, (byte) 0);
+        // Default max health. Ensures correct cracked texture is used
+        maxHealth = 100f;
     }
 
     @Nonnull
