@@ -294,7 +294,7 @@ public class ArmorStandEntity extends LivingEntity {
         if (!primaryEntity) return;
         
         if (!isInvisible) {
-            // It is either impossible to show armor, or the armor stand isn't invisible. We good.
+            // The armor stand isn't invisible. We good.
             setFlag(EntityFlag.INVISIBLE, false);
         }
 
