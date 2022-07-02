@@ -78,7 +78,7 @@ public interface GeyserApiBase {
      * @return the major API version. Bumped whenever a significant breaking change or feature addition is added.
      */
     default int majorApiVersion() {
-        return 0;
+        return 1;
     }
 
     /**

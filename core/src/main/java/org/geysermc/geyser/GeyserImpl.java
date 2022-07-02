@@ -116,7 +116,7 @@ public class GeyserImpl implements GeyserApi {
     public static final String GIT_VERSION = "${gitVersion}"; // A fallback for running in IDEs
     public static final String VERSION = "${version}"; // A fallback for running in IDEs
 
-    public static final int BUILD_NUMBER = Integer.parseInt("${buildNumber}");
+    public static final String BUILD_NUMBER = "${buildNumber}";
     public static final String BRANCH = "${branch}";
 
     /**
@@ -318,7 +318,7 @@ public class GeyserImpl implements GeyserApi {
 
         pendingMicrosoftAuthentication = new PendingMicrosoftAuthentication(config.getPendingAuthenticationTimeout());
 
-        this.newsHandler = new NewsHandler(BRANCH, BUILD_NUMBER);
+        this.newsHandler = new NewsHandler(BRANCH, this.buildNumber());
 
         CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
@@ -630,6 +630,14 @@ public class GeyserImpl implements GeyserApi {
     @Override
     public int maxPlayers() {
         return this.getConfig().getMaxPlayers();
+    }
+
+    public int buildNumber() {
+        if (!this.isProductionEnvironment()) {
+            return 0;
+        }
+
+        return Integer.parseInt(BUILD_NUMBER);
     }
 
     public static GeyserImpl start(PlatformType platformType, GeyserBootstrap bootstrap) {

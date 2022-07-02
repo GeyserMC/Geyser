@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.objects.Object2ReferenceMap;
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.api.Geyser;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.ExtensionEventBus;
 import org.geysermc.geyser.api.extension.*;
@@ -125,14 +126,6 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
     @Override
     protected void loadAllExtensions(@NonNull ExtensionManager extensionManager) {
-        // noinspection ConstantConditions
-        if (!GeyserImpl.VERSION.contains(".")) {
-            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_version_number"));
-            return;
-        }
-
-        String[] apiVersion = GeyserImpl.VERSION.split("\\.");
-
         try {
             if (Files.notExists(EXTENSION_DIRECTORY)) {
                 Files.createDirectory(EXTENSION_DIRECTORY);
@@ -166,27 +159,30 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                             return;
                         }
 
+                        int majorVersion = Geyser.api().majorApiVersion();
+                        int minorVersion = Geyser.api().minorApiVersion();
+
                         try {
                             // Check the format: majorVersion.minorVersion.patch
                             if (!API_VERSION_PATTERN.matcher(description.apiVersion()).matches()) {
                                 throw new IllegalArgumentException();
                             }
                         } catch (NullPointerException | IllegalArgumentException e) {
-                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_format", name, apiVersion[0] + "." + apiVersion[1]));
+                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_format", name, majorVersion + "." + minorVersion));
                             return;
                         }
 
                         String[] versionArray = description.apiVersion().split("\\.");
 
                         // Completely different API version
-                        if (!Objects.equals(Integer.valueOf(versionArray[0]), Integer.valueOf(apiVersion[0]))) {
-                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, apiVersion[0] + "." + apiVersion[1]));
+                        if (Integer.parseInt(versionArray[0]) != majorVersion) {
+                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, majorVersion + "." + minorVersion));
                             return;
                         }
 
                         // If the extension requires new API features, being backwards compatible
-                        if (Integer.parseInt(versionArray[1]) > Integer.parseInt(apiVersion[1])) {
-                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, apiVersion[0] + "." + apiVersion[1]));
+                        if (Integer.parseInt(versionArray[1]) > minorVersion) {
+                            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_api_version", name, majorVersion + "." + minorVersion));
                             return;
                         }
 
