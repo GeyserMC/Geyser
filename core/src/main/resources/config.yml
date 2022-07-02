@@ -76,6 +76,17 @@ saved-user-logins:
   - ThisExampleUsernameShouldBeLongEnoughToNeverBeAnXboxUsername
   - ThisOtherExampleUsernameShouldAlsoBeLongEnough
 
+# Settings for splitscreen players
+splitscreen:
+  enabled: false
+  # Mappings of console profiles to Bedrock accounts.
+  # This is necessary due to a bug in console clients not sending enough auth data to the server.
+  # To get the XUID for a player, check the server logs when they log in normally (not via splitscreen)
+  users:
+    Console Player Name:
+      bedrock-username: Bedrock Username
+      xuid: 0000000000000000
+
 # Specify how many seconds to wait while user authorizes Geyser to access their Microsoft account.
 # User is allowed to disconnect from the server during this period.
 pending-authentication-timeout: 120

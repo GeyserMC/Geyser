@@ -73,6 +73,7 @@ import com.nukkitx.protocol.bedrock.data.entity.EntityFlag;
 import com.nukkitx.protocol.bedrock.packet.*;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
+import io.netty.channel.EventLoopGroup;
 import it.unimi.dsi.fastutil.bytes.ByteArrays;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
@@ -132,6 +133,7 @@ import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MathUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.net.ConnectException;
@@ -152,13 +154,14 @@ public class GeyserSession implements GeyserConnection, CommandSender {
     /**
      * Id used in protocol to refer to primary client (0) or splitscreen subclients (>0)
      */
-    private int clientId;
+    private final int clientId;
 
     @Setter
     private ECPublicKey identityPublicKey;
 
     private final @Nonnull GeyserImpl geyser;
     private final @Nonnull UpstreamSession upstream;
+    private final @Nonnull EventLoopGroup eventLoopGroup;
     /**
      * The loop where all packets and ticking is processed to prevent concurrency issues.
      * If this is manually called, ensure that any exceptions are properly handled.
@@ -548,11 +551,12 @@ public class GeyserSession implements GeyserConnection, CommandSender {
 
     private MinecraftProtocol protocol;
 
-    public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop eventLoop, int clientId) {
+    public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, @NotNull EventLoopGroup eventLoopGroup, int clientId) {
         this.geyser = geyser;
         this.upstream = new UpstreamSession(bedrockServerSession, clientId);
         this.clientId = clientId;
-        this.eventLoop = eventLoop;
+        this.eventLoopGroup = eventLoopGroup;
+        this.eventLoop = this.eventLoopGroup.next();
 
         this.advancementsCache = new AdvancementsCache(this);
         this.bookEditCache = new BookEditCache(this);
