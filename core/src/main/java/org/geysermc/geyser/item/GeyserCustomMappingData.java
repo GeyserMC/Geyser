@@ -23,29 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.item;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import com.nukkitx.protocol.bedrock.data.inventory.ComponentItemData;
+import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 
-import java.util.List;
-
-/**
- * Represents Geyser's own serialized item information before being processed per-version
- */
-@Data
-public class GeyserMappingItem {
-    @JsonProperty("bedrock_identifier") String bedrockIdentifier;
-    @JsonProperty("bedrock_data") int bedrockData;
-    Integer firstBlockRuntimeId;
-    Integer lastBlockRuntimeId;
-    @JsonProperty("stack_size") int stackSize = 64;
-    @JsonProperty("tool_type") String toolType;
-    @JsonProperty("tool_tier") String toolTier;
-    @JsonProperty("armor_type") String armorType;
-    @JsonProperty("protection_value") int protectionValue;
-    @JsonProperty("max_damage") int maxDamage = 0;
-    @JsonProperty("repair_materials") List<String> repairMaterials;
-    @JsonProperty("has_suspicious_stew_effect") boolean hasSuspiciousStewEffect = false;
-    @JsonProperty("dye_color") int dyeColor = -1;
+public record GeyserCustomMappingData(ComponentItemData componentItemData, StartGamePacket.ItemEntry startGamePacketItemEntry, String stringId, int integerId) {
 }

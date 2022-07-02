@@ -23,29 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.item.components;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import com.nukkitx.nbt.NbtMap;
 
-import java.util.List;
+import java.util.Locale;
 
-/**
- * Represents Geyser's own serialized item information before being processed per-version
- */
-@Data
-public class GeyserMappingItem {
-    @JsonProperty("bedrock_identifier") String bedrockIdentifier;
-    @JsonProperty("bedrock_data") int bedrockData;
-    Integer firstBlockRuntimeId;
-    Integer lastBlockRuntimeId;
-    @JsonProperty("stack_size") int stackSize = 64;
-    @JsonProperty("tool_type") String toolType;
-    @JsonProperty("tool_tier") String toolTier;
-    @JsonProperty("armor_type") String armorType;
-    @JsonProperty("protection_value") int protectionValue;
-    @JsonProperty("max_damage") int maxDamage = 0;
-    @JsonProperty("repair_materials") List<String> repairMaterials;
-    @JsonProperty("has_suspicious_stew_effect") boolean hasSuspiciousStewEffect = false;
-    @JsonProperty("dye_color") int dyeColor = -1;
+public enum WearableSlot {
+    HEAD,
+    CHEST,
+    LEGS,
+    FEET;
+
+    private final NbtMap slotNbt;
+
+    WearableSlot() {
+        this.slotNbt = NbtMap.builder().putString("slot", "slot.armor." + this.name().toLowerCase(Locale.ROOT)).build();
+    }
+
+    public NbtMap getSlotNbt() {
+        return slotNbt;
+    }
 }

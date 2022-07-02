@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer
 
 val terminalConsoleVersion = "1.2.0"
-val jlineVersion = "3.10.0"
+val jlineVersion = "3.21.0"
 
 dependencies {
     api(projects.core)

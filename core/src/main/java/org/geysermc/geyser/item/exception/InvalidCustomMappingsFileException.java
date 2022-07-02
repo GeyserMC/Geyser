@@ -23,29 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.item.exception;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+public class InvalidCustomMappingsFileException extends Exception {
+    public InvalidCustomMappingsFileException(Throwable cause) {
+        super(cause);
+    }
 
-import java.util.List;
+    public InvalidCustomMappingsFileException(String message) {
+        super(message);
+    }
 
-/**
- * Represents Geyser's own serialized item information before being processed per-version
- */
-@Data
-public class GeyserMappingItem {
-    @JsonProperty("bedrock_identifier") String bedrockIdentifier;
-    @JsonProperty("bedrock_data") int bedrockData;
-    Integer firstBlockRuntimeId;
-    Integer lastBlockRuntimeId;
-    @JsonProperty("stack_size") int stackSize = 64;
-    @JsonProperty("tool_type") String toolType;
-    @JsonProperty("tool_tier") String toolTier;
-    @JsonProperty("armor_type") String armorType;
-    @JsonProperty("protection_value") int protectionValue;
-    @JsonProperty("max_damage") int maxDamage = 0;
-    @JsonProperty("repair_materials") List<String> repairMaterials;
-    @JsonProperty("has_suspicious_stew_effect") boolean hasSuspiciousStewEffect = false;
-    @JsonProperty("dye_color") int dyeColor = -1;
+    public InvalidCustomMappingsFileException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

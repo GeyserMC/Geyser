@@ -180,21 +180,25 @@ public class GeyserImpl implements GeyserApi {
         logger.info("");
         logger.info("******************************************");
 
-        /* Initialize translators and registries */
-        BlockRegistries.init();
-        Registries.init();
+        /* Initialize event bus */
+        this.eventBus = new GeyserEventBus();
 
+        /* Load Extensions */
+        this.extensionManager = new GeyserExtensionManager();
+        this.extensionManager.init();
+
+        this.extensionManager.enableExtensions();
+        this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
+
+        /* Initialize registries */
+        Registries.init();
+        BlockRegistries.init();
+
+        /* Initialize translators */
         EntityDefinitions.init();
         ItemTranslator.init();
         MessageTranslator.init();
         MinecraftLocale.init();
-
-        /* Load Extensions */
-        this.eventBus = new GeyserEventBus();
-        this.extensionManager = new GeyserExtensionManager();
-        this.extensionManager.init();
-
-        this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
 
         start();
 
@@ -255,8 +259,6 @@ public class GeyserImpl implements GeyserApi {
         SkinProvider.registerCacheImageTask(this);
 
         ResourcePack.loadPacks();
-
-        this.extensionManager.enableExtensions();
 
         if (platformType != PlatformType.STANDALONE && config.getRemote().getAddress().equals("auto")) {
             // Set the remote address to localhost since that is where we are always connecting
@@ -580,6 +582,7 @@ public class GeyserImpl implements GeyserApi {
     @Override
     public void reload() {
         shutdown();
+        this.extensionManager.enableExtensions();
         bootstrap.onEnable();
     }
 
@@ -615,7 +618,6 @@ public class GeyserImpl implements GeyserApi {
         return this.eventBus;
     }
 
-    @Override
     public RemoteServer defaultRemoteServer() {
         return this.remoteServer;
     }
