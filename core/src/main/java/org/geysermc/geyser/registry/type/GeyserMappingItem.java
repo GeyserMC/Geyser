@@ -43,7 +43,6 @@ public class GeyserMappingItem {
     @JsonProperty("tool_type") String toolType;
     @JsonProperty("tool_tier") String toolTier;
     @JsonProperty("armor_type") String armorType;
-    @JsonProperty("armor_tier") String armorTier;
     @JsonProperty("protection_value") int protectionValue;
     @JsonProperty("max_damage") int maxDamage = 0;
     @JsonProperty("repair_materials") List<String> repairMaterials;

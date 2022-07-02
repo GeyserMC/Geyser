@@ -52,8 +52,8 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     private final Set<String> repairMaterials;
     private final OptionalInt creativeCategory;
     private final String creativeGroup;
-    private final boolean hat;
-    private final boolean tool;
+    private final boolean isHat;
+    private final boolean isTool;
 
     public GeyserNonVanillaCustomItemData(NonVanillaCustomItemDataBuilder builder) {
         super(builder.name, builder.customItemOptions, builder.displayName, builder.icon, builder.allowOffhand,
@@ -71,8 +71,8 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         this.repairMaterials = builder.repairMaterials;
         this.creativeCategory = builder.creativeCategory;
         this.creativeGroup = builder.creativeGroup;
-        this.hat = builder.hat;
-        this.tool = builder.tool;
+        this.isHat = builder.hat;
+        this.isTool = builder.tool;
     }
 
     @Override
@@ -136,13 +136,13 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     }
 
     @Override
-    public boolean hat() {
-        return hat;
+    public boolean isHat() {
+        return isHat;
     }
 
     @Override
-    public boolean tool() {
-        return tool;
+    public boolean isTool() {
+        return isTool;
     }
 
     public static class NonVanillaCustomItemDataBuilder extends GeyserCustomItemData.CustomItemDataBuilder implements NonVanillaCustomItemData.Builder {

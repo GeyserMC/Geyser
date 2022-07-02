@@ -575,8 +575,6 @@ public abstract class ItemTranslator {
         return -1;
     }
 
-
-
     /**
      * Checks if an {@link ItemStack} is equal to another item stack
      *
