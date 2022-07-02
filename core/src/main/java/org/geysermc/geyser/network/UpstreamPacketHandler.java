@@ -27,11 +27,9 @@ package org.geysermc.geyser.network;
 
 import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockPacketCodec;
-import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.data.ExperimentData;
 import com.nukkitx.protocol.bedrock.data.ResourcePackType;
 import com.nukkitx.protocol.bedrock.packet.*;
-import io.netty.channel.EventLoop;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.pack.ResourcePack;
@@ -40,6 +38,7 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
+import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
@@ -99,7 +98,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         session.setBlockMappings(BlockRegistries.BLOCKS.forVersion(loginPacket.getProtocolVersion()));
         session.setItemMappings(Registries.ITEMS.forVersion(loginPacket.getProtocolVersion()));
 
-        LoginEncryptionUtils.encryptPlayerConnection(session, loginPacket);
+        LoginEncryptionUtils.encryptPlayerConnection(geyser, session, loginPacket);
 
         if (session.isClosed()) {
             // Can happen if Xbox validation fails
@@ -137,26 +136,43 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
      */
     @Override
     public boolean handle(SubClientLoginPacket loginPacket) {
+        GeyserSession mainSession = this.sessions.get(0);
+
+        if (!geyser.getConfig().getSplitscreen().isEnabled()) {
+            mainSession.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.splitscreen_not_enabled"));
+            return true;
+        }
+
         int clientId = loginPacket.getClientId();
+        GeyserSession session = new GeyserSession(
+                geyser,
+                mainSession.getUpstream().getSession(),
+                mainSession.getEventLoopGroup(),
+                clientId
+        );
+        this.sessions.add(clientId, session);
 
-        // TODO not very clean reaching through Upstream...
-        GeyserSession baseGeyserSession = this.sessions.get(0);
-        BedrockServerSession bedrockServerSession = baseGeyserSession.getUpstream().getSession();
-        EventLoop eventLoop = baseGeyserSession.getDownstream().getChannel().eventLoop();
+        LoginEncryptionUtils.handleCertChainData(geyser, session, loginPacket);
+        LoginEncryptionUtils.handleClientData(geyser, session, loginPacket);
 
-        GeyserSession newGeyserSession = new GeyserSession(geyser, bedrockServerSession, eventLoop, clientId);
-        this.sessions.add(clientId, newGeyserSession);
-
-        LoginEncryptionUtils.handleCertChainData(geyser, newGeyserSession, loginPacket);
-        LoginEncryptionUtils.handleClientData(geyser, newGeyserSession, loginPacket);
+        // Set the block translation based off the main session
+        session.setBlockMappings(mainSession.getBlockMappings());
+        session.setItemMappings(mainSession.getItemMappings());
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setSenderId(clientId);
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
+        session.sendUpstreamPacket(playStatus);
 
-        newGeyserSession.sendUpstreamPacket(playStatus);
+        geyser.getSessionManager().addPendingSession(session);
 
-        newGeyserSession.connect();
+        AuthData authData = session.getAuthData();
+        if (authData.xuid().length() == 0) {
+            geyser.getLogger().info("Splitscreen user %s does not have a xuid mapped in the geyser splitscreen config.".formatted(authData.name()));
+            sessions.forEach(s -> s.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.splitscreen_user_mapping_missing", authData.name())));
+        } else {
+            session.authenticate(authData.name());
+        }
 
         return true;
     }

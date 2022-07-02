@@ -55,7 +55,7 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
     }
 
     boolean defaultHandler(BedrockPacket packet) {
-        geyser.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName() + " for client " + packet.getClientId());
+        geyser.getLogger().debug("Handled packet: %s for client %s".formatted(packet.getClass().getSimpleName(), packet.getClientId()));
         return false;
     }
 
