@@ -91,7 +91,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     private String minecraftVersion;
 
     @Override
-    public void onEnable() {
+    public void onLoad() {
         GeyserLocale.init(this);
 
         // This is manually done instead of using Bukkit methods to save the config because otherwise comments get removed
@@ -109,6 +109,13 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             return;
         }
 
+        this.geyserLogger = new GeyserSpigotLogger(getLogger(), geyserConfig.isDebugMode());
+
+        this.geyser = GeyserImpl.load(PlatformType.SPIGOT, this);
+    }
+
+    @Override
+    public void onEnable() {
         try {
             // AvailableCommandsSerializer_v291 complains otherwise
             ByteBuf.class.getMethod("writeShortLE", int.class);
@@ -138,7 +145,6 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             geyserConfig.getBedrock().setPort(Bukkit.getPort());
         }
 
-        this.geyserLogger = new GeyserSpigotLogger(getLogger(), geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
 
         // Remove this in like a year
@@ -163,7 +169,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
         // Turn "(MC: 1.16.4)" into 1.16.4.
         this.minecraftVersion = Bukkit.getServer().getVersion().split("\\(MC: ")[1].split("\\)")[0];
 
-        this.geyser = GeyserImpl.start(PlatformType.SPIGOT, this);
+        GeyserImpl.start();
 
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserSpigotPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);

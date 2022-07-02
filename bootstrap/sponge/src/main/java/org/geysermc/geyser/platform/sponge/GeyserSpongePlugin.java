@@ -111,7 +111,9 @@ public class GeyserSpongePlugin implements GeyserBootstrap {
 
         this.geyserLogger = new GeyserSpongeLogger(logger, geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-        this.geyser = GeyserImpl.start(PlatformType.SPONGE, this);
+
+        this.geyser = GeyserImpl.load(PlatformType.SPONGE, this);
+        GeyserImpl.start();
 
         if (geyserConfig.isLegacyPingPassthrough()) {
             this.geyserSpongePingPassthrough = GeyserLegacyPingPassthrough.init(geyser);

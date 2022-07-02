@@ -52,7 +52,6 @@ public interface EventBus {
     @NonNull
     <T extends Event> EventSubscription<T> subscribe(@NonNull EventListener eventListener, @NonNull Class<T> eventClass, @NonNull Consumer<? super T> consumer);
 
-
     /**
      * Unsubscribes the given {@link EventSubscription}.
      *

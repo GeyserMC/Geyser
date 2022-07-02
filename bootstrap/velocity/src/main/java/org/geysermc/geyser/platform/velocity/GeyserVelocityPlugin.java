@@ -140,7 +140,8 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
         geyserConfig.loadFloodgate(this, proxyServer, configFolder.toFile());
 
-        this.geyser = GeyserImpl.start(PlatformType.VELOCITY, this);
+        this.geyser = GeyserImpl.load(PlatformType.VELOCITY, this);
+        GeyserImpl.start();
 
         this.geyserInjector = new GeyserVelocityInjector(proxyServer);
         // Will be initialized after the proxy has been bound

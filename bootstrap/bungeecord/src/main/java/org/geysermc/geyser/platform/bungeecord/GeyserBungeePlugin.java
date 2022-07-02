@@ -120,7 +120,8 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
         geyserConfig.loadFloodgate(this);
 
-        this.geyser = GeyserImpl.start(PlatformType.BUNGEECORD, this);
+        this.geyser = GeyserImpl.load(PlatformType.BUNGEECORD, this);
+        GeyserImpl.start();
 
         this.geyserInjector = new GeyserBungeeInjector(this);
         this.geyserInjector.initializeLocalChannel(this);
