@@ -76,8 +76,7 @@ public class BannerTranslator extends NbtItemStackTranslator {
     }
 
     public BannerTranslator() {
-        appliedItems = Arrays.stream(Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
-                        .getItems())
+        appliedItems = Arrays.stream(Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion()).getItems())
                 .filter(entry -> entry.getJavaIdentifier().endsWith("banner"))
                 .collect(Collectors.toList());
     }

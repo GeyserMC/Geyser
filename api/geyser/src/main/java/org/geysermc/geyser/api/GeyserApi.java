@@ -116,7 +116,7 @@ public interface GeyserApi extends GeyserApiBase {
     EventBus eventBus();
 
     /**
-     * Get's the default {@link RemoteServer} configured
+     * Gets the default {@link RemoteServer} configured
      * within the config file that is used by default.
      *
      * @return the default remote server used within Geyser

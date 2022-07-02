@@ -76,7 +76,7 @@ public interface EventBus {
     void unregisterAll(@NonNull EventListener eventListener);
 
     /**
-     * Fires the given {@link Event}.
+     * Fires the given {@link Event} and returns the result.
      *
      * @param event the event to fire
      *

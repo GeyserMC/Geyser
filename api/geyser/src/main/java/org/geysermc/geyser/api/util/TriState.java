@@ -23,68 +23,61 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.api;
+package org.geysermc.geyser.api.util;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.api.connection.Connection;
-
-import java.util.List;
-import java.util.UUID;
 
 /**
- * The base API class.
+ * This is a way to represent a boolean, but with a non set value added.
+ * This class was inspired by adventure's version https://github.com/KyoriPowered/adventure/blob/main/4/api/src/main/java/net/kyori/adventure/util/TriState.java
  */
-public interface GeyserApiBase {
+public enum TriState {
     /**
-     * Gets the session from the given UUID, if applicable. The player must be logged in to the Java server
-     * for this to return a non-null value.
-     *
-     * @param uuid the UUID of the session
-     * @return the session from the given UUID, if applicable
+     * Describes a value that is not set, null, or not present.
      */
-    @Nullable
-    Connection connectionByUuid(@NonNull UUID uuid);
+    NOT_SET,
 
     /**
-     * Gets the session from the given
-     * XUID, if applicable.
-     *
-     * @param xuid the XUID of the session
-     * @return the session from the given UUID, if applicable
+     * Describes a true value.
      */
-    @Nullable
-    Connection connectionByXuid(@NonNull String xuid);
+    TRUE,
 
     /**
-     * Gets the session from the given
-     * name, if applicable.
-     *
-     * @param name the uuid of the session
-     * @return the session from the given name, if applicable
+     * Describes a false value.
      */
-    @Nullable
-    Connection connectionByName(@NonNull String name);
+    FALSE;
 
     /**
-     * Gets all the online sessions.
+     * Converts the TriState to a boolean.
      *
-     * @return all the online sessions
+     * @return the boolean value of the TriState
      */
-    @NonNull
-    List<? extends Connection> onlineConnections();
-
-    /**
-     * @return the major API version. Bumped whenever a significant breaking change or feature addition is added.
-     */
-    default int majorApiVersion() {
-        return 1;
+    public @Nullable Boolean toBoolean() {
+        return switch (this) {
+            case TRUE -> true;
+            case FALSE -> false;
+            default -> null;
+        };
     }
 
     /**
-     * @return the minor API version. May be bumped for new API additions.
+     * Creates a TriState from a boolean.
+     *
+     * @param value the Boolean value
+     * @return the created TriState
      */
-    default int minorApiVersion() {
-        return 0;
+    public static @NonNull TriState fromBoolean(@Nullable Boolean value) {
+        return value == null ? NOT_SET : fromBoolean(value.booleanValue());
+    }
+
+    /**
+     * Creates a TriState from a primitive boolean.
+     *
+     * @param value the boolean value
+     * @return the created TriState
+     */
+    public @NonNull static TriState fromBoolean(boolean value) {
+        return value ? TRUE : FALSE;
     }
 }

@@ -23,29 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.api.item.custom;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-
-import java.util.List;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
- * Represents Geyser's own serialized item information before being processed per-version
+ * This class is used to store the render offsets of custom items.
  */
-@Data
-public class GeyserMappingItem {
-    @JsonProperty("bedrock_identifier") String bedrockIdentifier;
-    @JsonProperty("bedrock_data") int bedrockData;
-    Integer firstBlockRuntimeId;
-    Integer lastBlockRuntimeId;
-    @JsonProperty("stack_size") int stackSize = 64;
-    @JsonProperty("tool_type") String toolType;
-    @JsonProperty("tool_tier") String toolTier;
-    @JsonProperty("armor_type") String armorType;
-    @JsonProperty("protection_value") int protectionValue;
-    @JsonProperty("max_damage") int maxDamage = 0;
-    @JsonProperty("repair_materials") List<String> repairMaterials;
-    @JsonProperty("has_suspicious_stew_effect") boolean hasSuspiciousStewEffect = false;
-    @JsonProperty("dye_color") int dyeColor = -1;
+public record CustomRenderOffsets(@Nullable Hand mainHand, @Nullable Hand offhand) {
+    /**
+     * The hand that is used for the offset.
+     */
+    public record Hand(@Nullable Offset firstPerson, @Nullable Offset thirdPerson) {
+    }
+
+    /**
+     * The offset of the item.
+     */
+    public record Offset(@Nullable OffsetXYZ position, @Nullable OffsetXYZ rotation, @Nullable OffsetXYZ scale) {
+    }
+
+    /**
+     * X, Y and Z positions for the offset.
+     */
+    public record OffsetXYZ(float x, float y, float z) {
+    }
 }

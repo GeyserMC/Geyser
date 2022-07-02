@@ -23,29 +23,44 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.type;
+package org.geysermc.geyser.item.components;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.List;
+import java.util.Locale;
 
-/**
- * Represents Geyser's own serialized item information before being processed per-version
- */
-@Data
-public class GeyserMappingItem {
-    @JsonProperty("bedrock_identifier") String bedrockIdentifier;
-    @JsonProperty("bedrock_data") int bedrockData;
-    Integer firstBlockRuntimeId;
-    Integer lastBlockRuntimeId;
-    @JsonProperty("stack_size") int stackSize = 64;
-    @JsonProperty("tool_type") String toolType;
-    @JsonProperty("tool_tier") String toolTier;
-    @JsonProperty("armor_type") String armorType;
-    @JsonProperty("protection_value") int protectionValue;
-    @JsonProperty("max_damage") int maxDamage = 0;
-    @JsonProperty("repair_materials") List<String> repairMaterials;
-    @JsonProperty("has_suspicious_stew_effect") boolean hasSuspiciousStewEffect = false;
-    @JsonProperty("dye_color") int dyeColor = -1;
+public enum ToolTier {
+    WOODEN(2),
+    STONE(4),
+    IRON(6),
+    GOLDEN(12),
+    DIAMOND(8),
+    NETHERITE(9);
+
+    public static final ToolTier[] VALUES = values();
+
+    private final int speed;
+
+    ToolTier(int speed) {
+        this.speed = speed;
+    }
+
+    public int getSpeed() {
+        return speed;
+    }
+
+    @Override
+    public String toString() {
+        return this.name().toLowerCase(Locale.ROOT);
+    }
+
+    public static ToolTier getByName(@NonNull String name) {
+        String upperCase = name.toUpperCase(Locale.ROOT);
+        for (ToolTier tier : VALUES) {
+            if (tier.name().equals(upperCase)) {
+                return tier;
+            }
+        }
+        return null;
+    }
 }

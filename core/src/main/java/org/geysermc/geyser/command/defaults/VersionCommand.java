@@ -79,7 +79,7 @@ public class VersionCommand extends GeyserCommand {
                         URLEncoder.encode(GeyserImpl.BRANCH, StandardCharsets.UTF_8.toString()) + "/lastSuccessfulBuild/api/xml?xpath=//buildNumber");
                 if (buildXML.startsWith("<buildNumber>")) {
                     int latestBuildNum = Integer.parseInt(buildXML.replaceAll("<(\\\\)?(/)?buildNumber>", "").trim());
-                    int buildNum = GeyserImpl.BUILD_NUMBER;
+                    int buildNum = this.geyser.buildNumber();
                     if (latestBuildNum == buildNum) {
                         sender.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.no_updates", sender.locale()));
                     } else {

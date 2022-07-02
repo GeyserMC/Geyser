@@ -116,7 +116,7 @@ public class GeyserImpl implements GeyserApi {
     public static final String GIT_VERSION = "${gitVersion}"; // A fallback for running in IDEs
     public static final String VERSION = "${version}"; // A fallback for running in IDEs
 
-    public static final int BUILD_NUMBER = Integer.parseInt("${buildNumber}");
+    public static final String BUILD_NUMBER = "${buildNumber}";
     public static final String BRANCH = "${branch}";
 
     /**
@@ -180,21 +180,25 @@ public class GeyserImpl implements GeyserApi {
         logger.info("");
         logger.info("******************************************");
 
-        /* Initialize translators and registries */
-        BlockRegistries.init();
-        Registries.init();
+        /* Initialize event bus */
+        this.eventBus = new GeyserEventBus();
 
+        /* Load Extensions */
+        this.extensionManager = new GeyserExtensionManager();
+        this.extensionManager.init();
+
+        this.extensionManager.enableExtensions();
+        this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
+
+        /* Initialize registries */
+        Registries.init();
+        BlockRegistries.init();
+
+        /* Initialize translators */
         EntityDefinitions.init();
         ItemTranslator.init();
         MessageTranslator.init();
         MinecraftLocale.init();
-
-        /* Load Extensions */
-        this.eventBus = new GeyserEventBus();
-        this.extensionManager = new GeyserExtensionManager();
-        this.extensionManager.init();
-
-        this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
 
         start();
 
@@ -256,8 +260,6 @@ public class GeyserImpl implements GeyserApi {
 
         ResourcePack.loadPacks();
 
-        this.extensionManager.enableExtensions();
-
         if (platformType != PlatformType.STANDALONE && config.getRemote().getAddress().equals("auto")) {
             // Set the remote address to localhost since that is where we are always connecting
             try {
@@ -316,7 +318,7 @@ public class GeyserImpl implements GeyserApi {
 
         pendingMicrosoftAuthentication = new PendingMicrosoftAuthentication(config.getPendingAuthenticationTimeout());
 
-        this.newsHandler = new NewsHandler(BRANCH, BUILD_NUMBER);
+        this.newsHandler = new NewsHandler(BRANCH, this.buildNumber());
 
         CooldownUtils.setDefaultShowCooldown(config.getShowCooldown());
         DimensionUtils.changeBedrockNetherId(config.isAboveBedrockNetherBuilding()); // Apply End dimension ID workaround to Nether
@@ -580,6 +582,7 @@ public class GeyserImpl implements GeyserApi {
     @Override
     public void reload() {
         shutdown();
+        this.extensionManager.enableExtensions();
         bootstrap.onEnable();
     }
 
@@ -615,7 +618,6 @@ public class GeyserImpl implements GeyserApi {
         return this.eventBus;
     }
 
-    @Override
     public RemoteServer defaultRemoteServer() {
         return this.remoteServer;
     }
@@ -628,6 +630,14 @@ public class GeyserImpl implements GeyserApi {
     @Override
     public int maxPlayers() {
         return this.getConfig().getMaxPlayers();
+    }
+
+    public int buildNumber() {
+        if (!this.isProductionEnvironment()) {
+            return 0;
+        }
+
+        return Integer.parseInt(BUILD_NUMBER);
     }
 
     public static GeyserImpl start(PlatformType platformType, GeyserBootstrap bootstrap) {

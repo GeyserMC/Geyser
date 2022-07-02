@@ -29,8 +29,14 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.command.CommandSource;
+import org.geysermc.geyser.api.item.custom.CustomItemData;
+import org.geysermc.geyser.api.item.custom.CustomItemOptions;
+import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.provider.BuilderProvider;
 import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.item.GeyserCustomItemData;
+import org.geysermc.geyser.item.GeyserCustomItemOptions;
+import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
 import org.geysermc.geyser.registry.ProviderRegistries;
 import org.geysermc.geyser.registry.SimpleMappedRegistry;
 
@@ -46,6 +52,9 @@ public class GeyserBuilderProvider extends AbstractProvider implements BuilderPr
     @Override
     public void registerProviders(Map<Class<?>, ProviderSupplier> providers) {
         providers.put(Command.Builder.class, args -> new GeyserCommandManager.CommandBuilder<>((Class<? extends CommandSource>) args[0]));
+        providers.put(CustomItemData.Builder.class, args -> new GeyserCustomItemData.CustomItemDataBuilder());
+        providers.put(CustomItemOptions.Builder.class, args -> new GeyserCustomItemOptions.CustomItemOptionsBuilder());
+        providers.put(NonVanillaCustomItemData.Builder.class, args -> new GeyserNonVanillaCustomItemData.NonVanillaCustomItemDataBuilder());
     }
 
     @Override

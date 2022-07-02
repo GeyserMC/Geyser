@@ -36,8 +36,7 @@ import java.util.Map;
  * Called when commands are defined within Geyser.
  *
  * @param commandManager the command manager
- * @param commands a mutable list of the currently
- *                 registered default commands
+ * @param commands an immutable view of the default commands
  */
 public record GeyserDefineCommandsEvent(@NonNull CommandManager commandManager, @NonNull Map<String, Command> commands) implements Event {
 }
