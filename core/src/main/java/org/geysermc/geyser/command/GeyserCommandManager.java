@@ -70,7 +70,7 @@ public abstract class GeyserCommandManager extends CommandManager {
             register(new StopCommand(geyser, "stop", "geyser.commands.stop.desc", "geyser.command.stop"));
         }
 
-        this.geyser.eventBus().fire(new GeyserDefineCommandsEvent(this, this.commands));
+        this.geyser.eventBus().fire(new GeyserDefineCommandsEvent(this, this.commands()));
     }
 
     @Override
