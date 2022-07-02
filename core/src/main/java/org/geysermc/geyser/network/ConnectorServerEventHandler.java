@@ -175,7 +175,7 @@ public class ConnectorServerEventHandler implements BedrockServerEventHandler {
             bedrockServerSession.setPacketCodec(MinecraftProtocol.DEFAULT_BEDROCK_CODEC);
             bedrockServerSession.setLogging(true);
             bedrockServerSession.setCompressionLevel(geyser.getConfig().getBedrock().getCompressionLevel());
-            bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(geyser, new GeyserSession(geyser, bedrockServerSession, eventLoopGroup.next(), clientId)));
+            bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(geyser, new GeyserSession(geyser, bedrockServerSession, eventLoopGroup, clientId)));
             // Set the packet codec to default just in case we need to send disconnect packets.
         } catch (Throwable e) {
             // Error must be caught or it will be swallowed

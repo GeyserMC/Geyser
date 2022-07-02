@@ -25,10 +25,7 @@
 
 package org.geysermc.geyser.session.auth;
 
-import lombok.ToString;
-
 import java.util.UUID;
 
-@ToString
 public record AuthData(String name, UUID uuid, String xuid) {
 }

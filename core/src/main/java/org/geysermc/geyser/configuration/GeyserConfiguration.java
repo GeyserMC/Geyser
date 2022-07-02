@@ -27,8 +27,8 @@ package org.geysermc.geyser.configuration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.network.CIDRMatcher;
+import org.geysermc.geyser.session.auth.AuthType;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.nio.file.Path;
@@ -48,6 +48,8 @@ public interface GeyserConfiguration {
 
     @Deprecated
     Map<String, ? extends IUserAuthenticationInfo> getUserAuths();
+
+    ISplitscreenConfiguration getSplitscreen();
 
     boolean isCommandSuggestions();
 
@@ -164,6 +166,28 @@ public interface GeyserConfiguration {
          */
         @Deprecated
         boolean isMicrosoftAccount();
+    }
+
+    interface ISplitscreenConfiguration {
+
+        boolean isEnabled();
+
+        /**
+         * Will be removed after splitscreen XUID bug in consoles is fixed
+         */
+        @Deprecated
+        Map<String, ? extends ISplitscreenUserInfo> getUsers();
+    }
+
+    /**
+     * Will be removed after splitscreen XUID bug in consoles is fixed
+     */
+    @Deprecated
+    interface ISplitscreenUserInfo {
+
+        String getBedrockUsername();
+
+        String getXuid();
     }
 
     interface IMetricsInfo {

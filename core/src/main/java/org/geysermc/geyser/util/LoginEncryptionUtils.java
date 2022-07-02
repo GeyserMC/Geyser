@@ -36,7 +36,9 @@ import com.nimbusds.jose.shaded.json.JSONValue;
 import com.nukkitx.network.util.Preconditions;
 import com.nukkitx.protocol.bedrock.packet.LoginPacket;
 import com.nukkitx.protocol.bedrock.packet.ServerToClientHandshakePacket;
+import com.nukkitx.protocol.bedrock.packet.SubClientLoginPacket;
 import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
+import io.netty.util.AsciiString;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.ModalForm;
 import org.geysermc.cumulus.form.SimpleForm;
@@ -45,6 +47,8 @@ import org.geysermc.cumulus.response.result.FormResponseResult;
 import org.geysermc.cumulus.response.result.ValidFormResponseResult;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.configuration.GeyserConfiguration.ISplitscreenUserInfo;
+import org.geysermc.geyser.network.UpstreamPacketHandler;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
@@ -56,10 +60,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 
@@ -117,66 +122,186 @@ public class LoginEncryptionUtils {
         return mojangSigned;
     }
 
-    public static void encryptPlayerConnection(GeyserSession session, LoginPacket loginPacket) {
+    public static void handleCertChainData(GeyserImpl geyser, GeyserSession session, LoginPacket loginPacket) {
+        handleCertChainData(geyser, session, loginPacket.getChainData(), true);
+    }
+
+    public static void handleCertChainData(GeyserImpl geyser, GeyserSession session, SubClientLoginPacket loginPacket) {
+        handleCertChainData(geyser, session, loginPacket.getChainData(), false);
+    }
+
+    private static void handleCertChainData(GeyserImpl geyser, GeyserSession session, AsciiString chainData, boolean isMainClient) {
+        JsonNode certChainData;
+        try {
+            certChainData = getCertChainData(chainData);
+        } catch (Exception ex) {
+            throw new RuntimeException("Cannot get cert chain data: " + ex.getMessage(), ex);
+        }
+
+        boolean validChain;
+        try {
+            validChain = !isMainClient || validateChainData(certChainData);
+
+            geyser.getLogger().debug(String.format("Is player data valid? %s", validChain));
+        } catch (Exception ex) {
+            // rethrow until we can wrap in custom exceptions
+            throw new RuntimeException("Unable to validate chain data: " + ex.getMessage(), ex);
+        }
+
+        if (!validChain && !geyser.getConfig().isEnableProxyConnections()) {
+            session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
+            return;
+        }
+
+        JsonNode certChainPayload = getCertChainPayload(certChainData);
+
+        AuthData authData = getAuthData(geyser, session, certChainPayload);
+        session.setAuthData(authData);
+
+        ECPublicKey identityPublicKey = getIdentityPublicKey(certChainPayload);
+        session.setIdentityPublicKey(identityPublicKey);
+    }
+
+    public static void handleClientData(GeyserImpl geyser, GeyserSession session, LoginPacket loginPacket) {
+        handleClientData(geyser, session, loginPacket.getSkinData());
+    }
+
+    public static void handleClientData(GeyserImpl geyser, GeyserSession session, SubClientLoginPacket loginPacket) {
+        handleClientData(geyser, session, loginPacket.getSkinData());
+    }
+
+    private static void handleClientData(GeyserImpl geyser, GeyserSession session, AsciiString skinData) {
+        BedrockClientData bedrockClientData = getClientData(skinData, session.getIdentityPublicKey());
+
+        // SubClientLoginPacket is missing some clientData fields:
+        // * ServerAddress
+        // * LanguageCode
+        // * DeviceModel
+        // * UiProfile
+        // We only really need LanguageCode right now
+        if (session.getClientId() != 0) {
+            BedrockClientData mainClientData = ((UpstreamPacketHandler)session.getUpstream().getSession().getPacketHandler()).getSessions().get(0).getClientData();
+
+            geyser.getLogger().debug("" + mainClientData);
+            geyser.getLogger().debug("" + bedrockClientData);
+
+            bedrockClientData.setLanguageCode(mainClientData.getLanguageCode());
+        }
+
+        session.setClientData(bedrockClientData);
+    }
+
+    private static BedrockClientData getClientData(AsciiString skinData, ECPublicKey identityPublicKey) {
+        BedrockClientData bedrockClientData;
+        try {
+            String clientData = skinData.toString();
+            JWSObject clientJwt = JWSObject.parse(clientData);
+            EncryptionUtils.verifyJwt(clientJwt, identityPublicKey);
+
+            bedrockClientData = JSON_MAPPER.convertValue(JSON_MAPPER.readTree(clientJwt.getPayload().toBytes()), BedrockClientData.class);
+        } catch (Exception ex) {
+            throw new RuntimeException("Unable to set auth data: " + ex.getMessage(), ex);
+        }
+        return bedrockClientData;
+    }
+
+    private static ECPublicKey getIdentityPublicKey(JsonNode payload) {
+        if (payload.get("identityPublicKey").getNodeType() != JsonNodeType.STRING) {
+            throw new RuntimeException("Identity Public Key was not found!");
+        }
+        ECPublicKey identityPublicKey;
+        try {
+            identityPublicKey = EncryptionUtils.generateKey(payload.get("identityPublicKey").textValue());
+        } catch (Exception ex) {
+            throw new RuntimeException("Unable to set auth data: " + ex.getMessage(), ex);
+        }
+        return identityPublicKey;
+    }
+
+    private static AuthData getAuthData(GeyserImpl geyser, GeyserSession session, JsonNode payload) {
+        if (payload.get("extraData").getNodeType() != JsonNodeType.OBJECT) {
+            throw new RuntimeException("AuthData was not found!");
+        }
+
+        JsonNode extraData = payload.get("extraData");
+        geyser.getLogger().debug(extraData.toString());
+
+        String displayName = extraData.get("displayName").asText();
+        UUID uuid = UUID.fromString(extraData.get("identity").asText());
+        String xuid = extraData.get("XUID").asText();
+
+        GeyserConfiguration.ISplitscreenConfiguration splitscreenConfig = geyser.getConfig().getSplitscreen();
+        if (splitscreenConfig.isEnabled()) {
+            Map<String, ? extends ISplitscreenUserInfo> splitscreenUsers = splitscreenConfig.getUsers();
+            if (splitscreenUsers == null) {
+                splitscreenUsers = new HashMap<>();
+            }
+            if (xuid.length() == 0) {
+                ISplitscreenUserInfo splitscreenUser = splitscreenUsers.get(displayName);
+                if (splitscreenUser != null && splitscreenUser.getXuid() != null) {
+                    xuid = splitscreenUser.getXuid();
+                    if (splitscreenUser.getBedrockUsername() != null) {
+                        displayName = splitscreenUser.getBedrockUsername();
+                    }
+                }
+            } else {
+                String xuidToMatch = xuid;
+                boolean isInList = splitscreenUsers.entrySet().stream().anyMatch(
+                    user -> {
+                        String mappedXUID = user.getValue().getXuid();
+                        return mappedXUID != null && mappedXUID.equals(xuidToMatch);
+                    }
+                );
+                if (!isInList) {
+                    geyser.getLogger().info(
+                        """
+                        Add the following user to the geyser splitscreen config to allow them to play via splitscreen:
+                        
+                            Profile Username (Change this):
+                              bedrock-username: %s
+                              xuid: %s
+                        """.formatted(displayName, xuid)
+                    );
+                }
+            }
+        }
+
+        AuthData authData = new AuthData(displayName, uuid, xuid);
+        geyser.getLogger().debug(authData.toString());
+        return authData;
+    }
+
+    private static JsonNode getCertChainData(AsciiString chainData) {
         JsonNode certData;
         try {
-            certData = JSON_MAPPER.readTree(loginPacket.getChainData().toByteArray());
+            certData = JSON_MAPPER.readTree(chainData.toByteArray());
         } catch (IOException ex) {
-            throw new RuntimeException("Certificate JSON can not be read.");
+            throw new RuntimeException("Certificate JSON can not be read: " + ex.getMessage(), ex);
         }
 
         JsonNode certChainData = certData.get("chain");
         if (certChainData.getNodeType() != JsonNodeType.ARRAY) {
             throw new RuntimeException("Certificate data is not valid");
         }
-
-        encryptConnectionWithCert(session, loginPacket.getSkinData().toString(), certChainData);
+        return certChainData;
     }
 
-    private static void encryptConnectionWithCert(GeyserSession session, String clientData, JsonNode certChainData) {
+    private static JsonNode getCertChainPayload(JsonNode certChainData) {
+        JsonNode payload;
         try {
-            GeyserImpl geyser = session.getGeyser();
-
-            boolean validChain = validateChainData(certChainData);
-
-            geyser.getLogger().debug(String.format("Is player data valid? %s", validChain));
-
-            if (!validChain && !session.getGeyser().getConfig().isEnableProxyConnections()) {
-                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
-                return;
-            }
             JWSObject jwt = JWSObject.parse(certChainData.get(certChainData.size() - 1).asText());
-            JsonNode payload = JSON_MAPPER.readTree(jwt.getPayload().toBytes());
+            payload = JSON_MAPPER.readTree(jwt.getPayload().toBytes());
+        } catch (Exception ex) {
+            throw new RuntimeException("Unable to set auth data: " + ex.getMessage(), ex);
+        }
+        return payload;
+    }
 
-            if (payload.get("extraData").getNodeType() != JsonNodeType.OBJECT) {
-                throw new RuntimeException("AuthData was not found!");
-            }
-
-            JsonNode extraData = payload.get("extraData");
-            session.setAuthenticationData(new AuthData(
-                    extraData.get("displayName").asText(),
-                    UUID.fromString(extraData.get("identity").asText()),
-                    extraData.get("XUID").asText()
-            ));
-
-            session.setCertChainData(certChainData);
-
-            if (payload.get("identityPublicKey").getNodeType() != JsonNodeType.STRING) {
-                throw new RuntimeException("Identity Public Key was not found!");
-            }
-
-            ECPublicKey identityPublicKey = EncryptionUtils.generateKey(payload.get("identityPublicKey").textValue());
-            JWSObject clientJwt = JWSObject.parse(clientData);
-            EncryptionUtils.verifyJwt(clientJwt, identityPublicKey);
-
-            JsonNode clientDataJson = JSON_MAPPER.readTree(clientJwt.getPayload().toBytes());
-            BedrockClientData data = JSON_MAPPER.convertValue(clientDataJson, BedrockClientData.class);
-            data.setOriginalString(clientData);
-            session.setClientData(data);
-
+    public static void encryptPlayerConnection(GeyserImpl geyser, GeyserSession session, LoginPacket loginPacket) {
+        try {
             if (EncryptionUtils.canUseEncryption()) {
                 try {
-                    LoginEncryptionUtils.startEncryptionHandshake(session, identityPublicKey);
+                    LoginEncryptionUtils.startEncryptionHandshake(session);
                 } catch (Throwable e) {
                     // An error can be thrown on older Java 8 versions about an invalid key
                     if (geyser.getConfig().isDebugMode()) {
@@ -190,17 +315,17 @@ public class LoginEncryptionUtils {
             }
         } catch (Exception ex) {
             session.disconnect("disconnectionScreen.internalError.cantConnect");
-            throw new RuntimeException("Unable to complete login", ex);
+            throw new RuntimeException("Unable to complete login: " + ex.getMessage(), ex);
         }
     }
 
-    private static void startEncryptionHandshake(GeyserSession session, PublicKey key) throws Exception {
+    private static void startEncryptionHandshake(GeyserSession session) throws Exception {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("EC");
         generator.initialize(new ECGenParameterSpec("secp384r1"));
         KeyPair serverKeyPair = generator.generateKeyPair();
 
         byte[] token = EncryptionUtils.generateRandomToken();
-        SecretKey encryptionKey = EncryptionUtils.getSecretKey(serverKeyPair.getPrivate(), key, token);
+        SecretKey encryptionKey = EncryptionUtils.getSecretKey(serverKeyPair.getPrivate(), session.getIdentityPublicKey(), token);
         session.getUpstream().getSession().enableEncryption(encryptionKey);
 
         ServerToClientHandshakePacket packet = new ServerToClientHandshakePacket();
@@ -213,6 +338,20 @@ public class LoginEncryptionUtils {
             geyser.getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.encryption.line_1"));
             geyser.getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.encryption.line_2", "https://geysermc.org/supported_java"));
             HAS_SENT_ENCRYPTION_MESSAGE = true;
+        }
+    }
+
+    public static void handleOnlineAuthentication(GeyserSession session) {
+        if (session.getGeyser().getConfig().getSavedUserLogins().contains(session.name())) {
+            if (session.getGeyser().refreshTokenFor(session.name()) == null) {
+                LoginEncryptionUtils.buildAndShowConsentWindow(session);
+            } else {
+                // If the refresh token is not null and we're here, then the refresh token expired
+                // and the expiration form has been cached
+                session.getFormCache().resendAllForms();
+            }
+        } else {
+            LoginEncryptionUtils.buildAndShowLoginWindow(session);
         }
     }
 

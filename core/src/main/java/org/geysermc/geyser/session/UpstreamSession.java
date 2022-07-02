@@ -90,7 +90,6 @@ public class UpstreamSession {
 
         BedrockPacket packet;
         while ((packet = postStartGamePackets.poll()) != null) {
-            packet.setClientId(clientId);
             session.sendPacket(packet);
         }
         postStartGamePackets = null;
