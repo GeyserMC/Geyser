@@ -77,6 +77,8 @@ public final class BlockStateValues {
     public static int JAVA_SPAWNER_ID;
     public static int JAVA_WATER_ID;
 
+    public static final int NUM_WATER_LEVELS = 9;
+
     /**
      * Determines if the block state contains Bedrock block information
      *
@@ -449,13 +451,36 @@ public final class BlockStateValues {
 
     /**
      * Get the level of water from the block state.
-     * This is used in FishingHookEntity to create splash sounds when the hook hits the water.
      *
      * @param state BlockState of the block
      * @return The water level or -1 if the block isn't water
      */
     public static int getWaterLevel(int state) {
         return WATER_LEVEL.getOrDefault(state, -1);
+    }
+
+    /**
+     * Get the height of water from the block state
+     * This is used in FishingHookEntity to create splash sounds when the hook hits the water. In addition,
+     * CollisionManager uses this to determine if the player's eyes are in water.
+     *
+     * @param state BlockState of the block
+     * @return The water height or -1 if the block does not contain water
+     */
+    public static double getWaterHeight(int state) {
+        int waterLevel = BlockStateValues.getWaterLevel(state);
+        if (BlockRegistries.WATERLOGGED.get().contains(state)) {
+            waterLevel = 0;
+        }
+        if (waterLevel >= 0) {
+            double waterHeight = 1 - (waterLevel + 1) / ((double) NUM_WATER_LEVELS);
+            // Falling water is a full block
+            if (waterLevel >= 8) {
+                waterHeight = 1;
+            }
+            return waterHeight;
+        }
+        return -1;
     }
 
     /**
