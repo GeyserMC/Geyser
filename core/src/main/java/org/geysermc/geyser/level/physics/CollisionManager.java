@@ -411,7 +411,7 @@ public class CollisionManager {
         double eyeY = playerBoundingBox.getMiddleY() - playerBoundingBox.getSizeY() / 2d + session.getEyeHeight();
         double eyeZ = playerBoundingBox.getMiddleZ();
 
-        eyeY -= 1 / ((double) BlockStateValues.NUM_WATER_LAYERS); // Subtract the height of one water layer
+        eyeY -= 1 / ((double) BlockStateValues.NUM_WATER_LEVELS); // Subtract the height of one water layer
         int blockID = session.getGeyser().getWorldManager().getBlockAt(session, GenericMath.floor(eyeX), GenericMath.floor(eyeY), GenericMath.floor(eyeZ));
         double waterHeight = BlockStateValues.getWaterHeight(blockID);
 

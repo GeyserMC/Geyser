@@ -77,7 +77,7 @@ public final class BlockStateValues {
     public static int JAVA_SPAWNER_ID;
     public static int JAVA_WATER_ID;
 
-    public static final int NUM_WATER_LAYERS = 9;
+    public static final int NUM_WATER_LEVELS = 9;
 
     /**
      * Determines if the block state contains Bedrock block information
@@ -473,7 +473,7 @@ public final class BlockStateValues {
             waterLevel = 0;
         }
         if (waterLevel >= 0) {
-            double waterHeight = 1 - (waterLevel + 1) / ((double) NUM_WATER_LAYERS);
+            double waterHeight = 1 - (waterLevel + 1) / ((double) NUM_WATER_LEVELS);
             // Falling water is a full block
             if (waterLevel >= 8) {
                 waterHeight = 1;
