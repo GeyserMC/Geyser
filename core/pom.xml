@@ -11,11 +11,19 @@
     <artifactId>core</artifactId>
 
     <properties>
-        <adventure.version>4.9.3</adventure.version>
+        <adventure.version>4.12.0-20220629.025215-9</adventure.version> <!-- Snapshot fixes https://github.com/KyoriPowered/adventure/issues/792 -->
         <fastutil.version>8.5.2</fastutil.version>
         <jackson.version>2.13.2</jackson.version>
         <netty.version>4.1.66.Final</netty.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <!-- For Adventure snapshots -->
+            <id>sonatype-s01</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -166,6 +174,11 @@
                     <groupId>com.github.GeyserMC</groupId>
                     <artifactId>mcauthlib</artifactId>
                 </exclusion>
+                <exclusion>
+                    <!-- Remove when MCProtocolLib updates to 4.12-SNAPSHOT or later -->
+                    <groupId>net.kyori</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -242,6 +255,19 @@
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-text-serializer-plain</artifactId>
+            <version>${adventure.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- Remove the following two when MCProtocolLib updates to 4.12-SNAPSHOT or later -->
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-text-serializer-gson</artifactId>
+            <version>${adventure.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-text-serializer-gson-legacy-impl</artifactId>
             <version>${adventure.version}</version>
             <scope>compile</scope>
         </dependency>
