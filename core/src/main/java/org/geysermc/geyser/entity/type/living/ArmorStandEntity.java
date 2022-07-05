@@ -293,12 +293,10 @@ public class ArmorStandEntity extends LivingEntity {
         // A secondary entity always has to have the offset applied, so it remains invisible and the nametag shows.
         if (!primaryEntity) return;
         
-        if (!isInvisible || isMarker) {
+        if (!isInvisible) {
             // The armor stand isn't invisible. We good.
             setFlag(EntityFlag.INVISIBLE, false);
-        }
-
-        if (!isInvisible) {
+            
             updateOffsetRequirement(!isMarker);
             if (positionUpdateRequired) {
                 positionUpdateRequired = false;
