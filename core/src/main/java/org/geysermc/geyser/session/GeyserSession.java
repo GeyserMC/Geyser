@@ -140,7 +140,6 @@ import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
-import java.security.interfaces.ECPublicKey;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -155,9 +154,6 @@ public class GeyserSession implements GeyserConnection, CommandSender {
      * Id used in protocol to refer to primary client (0) or splitscreen subclients (>0)
      */
     private final int clientId;
-
-    @Setter
-    private ECPublicKey identityPublicKey;
 
     private final @Nonnull GeyserImpl geyser;
     private final @Nonnull UpstreamSession upstream;
