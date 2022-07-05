@@ -144,7 +144,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         GeyserSession session = new GeyserSession(
                 geyser,
                 mainSession.getUpstream().getSession(),
-                mainSession.getEventLoopGroup(),
+                mainSession.getEventLoop(),
                 clientId
         );
 
