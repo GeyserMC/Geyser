@@ -48,7 +48,6 @@ import org.geysermc.cumulus.response.result.ValidFormResponseResult;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.configuration.GeyserConfiguration.ISplitscreenUserInfo;
-import org.geysermc.geyser.network.UpstreamPacketHandler;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
@@ -122,15 +121,21 @@ public class LoginEncryptionUtils {
         return mojangSigned;
     }
 
-    public static void handleCertChainData(GeyserImpl geyser, GeyserSession session, LoginPacket loginPacket) {
-        handleCertChainData(geyser, session, loginPacket.getChainData(), true);
+    public static void handleEncryption(GeyserImpl geyser, GeyserSession session, LoginPacket loginPacket) {
+        handleEncryption(geyser, session, loginPacket.getChainData(), loginPacket.getSkinData(), true);
     }
 
-    public static void handleCertChainData(GeyserImpl geyser, GeyserSession session, SubClientLoginPacket loginPacket) {
-        handleCertChainData(geyser, session, loginPacket.getChainData(), false);
+    public static void handleEncryption(GeyserImpl geyser, GeyserSession session, SubClientLoginPacket loginPacket) {
+        handleEncryption(geyser, session, loginPacket.getChainData(), loginPacket.getSkinData(), false);
     }
 
-    private static void handleCertChainData(GeyserImpl geyser, GeyserSession session, AsciiString chainData, boolean isMainClient) {
+    private static void handleEncryption(
+            GeyserImpl geyser,
+            GeyserSession session,
+            AsciiString chainData,
+            AsciiString skinData,
+            boolean isMainClient
+    ) {
         JsonNode certChainData;
         try {
             certChainData = getCertChainData(chainData);
@@ -155,40 +160,22 @@ public class LoginEncryptionUtils {
 
         JsonNode certChainPayload = getCertChainPayload(certChainData);
 
-        AuthData authData = getAuthData(geyser, session, certChainPayload);
+        ECPublicKey identityPublicKey = getIdentityPublicKey(certChainPayload);
+
+        AuthData authData = getAuthData(geyser, certChainPayload);
+        geyser.getLogger().debug(authData.toString());
         session.setAuthData(authData);
 
-        ECPublicKey identityPublicKey = getIdentityPublicKey(certChainPayload);
-        session.setIdentityPublicKey(identityPublicKey);
-    }
+        BedrockClientData bedrockClientData = getClientData(skinData, identityPublicKey);
+        geyser.getLogger().debug(bedrockClientData.toString());
+        session.setClientData(bedrockClientData);
 
-    public static void handleClientData(GeyserImpl geyser, GeyserSession session, LoginPacket loginPacket) {
-        handleClientData(geyser, session, loginPacket.getSkinData());
-    }
-
-    public static void handleClientData(GeyserImpl geyser, GeyserSession session, SubClientLoginPacket loginPacket) {
-        handleClientData(geyser, session, loginPacket.getSkinData());
-    }
-
-    private static void handleClientData(GeyserImpl geyser, GeyserSession session, AsciiString skinData) {
-        BedrockClientData bedrockClientData = getClientData(skinData, session.getIdentityPublicKey());
-
-        // SubClientLoginPacket is missing some clientData fields:
-        // * ServerAddress
-        // * LanguageCode
-        // * DeviceModel
-        // * UiProfile
-        // We only really need LanguageCode right now
-        if (session.getClientId() != 0) {
-            BedrockClientData mainClientData = ((UpstreamPacketHandler)session.getUpstream().getSession().getPacketHandler()).getSessions().get(0).getClientData();
-
-            geyser.getLogger().debug("" + mainClientData);
-            geyser.getLogger().debug("" + bedrockClientData);
-
-            bedrockClientData.setLanguageCode(mainClientData.getLanguageCode());
+        if (!isMainClient) {
+            // Encryption isn't necessary for subclients
+            return;
         }
 
-        session.setClientData(bedrockClientData);
+        encryptPlayerConnection(geyser, session, identityPublicKey);
     }
 
     private static BedrockClientData getClientData(AsciiString skinData, ECPublicKey identityPublicKey) {
@@ -218,7 +205,7 @@ public class LoginEncryptionUtils {
         return identityPublicKey;
     }
 
-    private static AuthData getAuthData(GeyserImpl geyser, GeyserSession session, JsonNode payload) {
+    private static AuthData getAuthData(GeyserImpl geyser, JsonNode payload) {
         if (payload.get("extraData").getNodeType() != JsonNodeType.OBJECT) {
             throw new RuntimeException("AuthData was not found!");
         }
@@ -266,9 +253,7 @@ public class LoginEncryptionUtils {
             }
         }
 
-        AuthData authData = new AuthData(displayName, uuid, xuid);
-        geyser.getLogger().debug(authData.toString());
-        return authData;
+        return new AuthData(displayName, uuid, xuid);
     }
 
     private static JsonNode getCertChainData(AsciiString chainData) {
@@ -297,11 +282,11 @@ public class LoginEncryptionUtils {
         return payload;
     }
 
-    public static void encryptPlayerConnection(GeyserImpl geyser, GeyserSession session, LoginPacket loginPacket) {
+    public static void encryptPlayerConnection(GeyserImpl geyser, GeyserSession session, ECPublicKey identityPublicKey) {
         try {
             if (EncryptionUtils.canUseEncryption()) {
                 try {
-                    LoginEncryptionUtils.startEncryptionHandshake(session);
+                    LoginEncryptionUtils.startEncryptionHandshake(session, identityPublicKey);
                 } catch (Throwable e) {
                     // An error can be thrown on older Java 8 versions about an invalid key
                     if (geyser.getConfig().isDebugMode()) {
@@ -319,13 +304,13 @@ public class LoginEncryptionUtils {
         }
     }
 
-    private static void startEncryptionHandshake(GeyserSession session) throws Exception {
+    private static void startEncryptionHandshake(GeyserSession session, ECPublicKey identityPublicKey) throws Exception {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("EC");
         generator.initialize(new ECGenParameterSpec("secp384r1"));
         KeyPair serverKeyPair = generator.generateKeyPair();
 
         byte[] token = EncryptionUtils.generateRandomToken();
-        SecretKey encryptionKey = EncryptionUtils.getSecretKey(serverKeyPair.getPrivate(), session.getIdentityPublicKey(), token);
+        SecretKey encryptionKey = EncryptionUtils.getSecretKey(serverKeyPair.getPrivate(), identityPublicKey, token);
         session.getUpstream().getSession().enableEncryption(encryptionKey);
 
         ServerToClientHandshakePacket packet = new ServerToClientHandshakePacket();
@@ -338,20 +323,6 @@ public class LoginEncryptionUtils {
             geyser.getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.encryption.line_1"));
             geyser.getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.encryption.line_2", "https://geysermc.org/supported_java"));
             HAS_SENT_ENCRYPTION_MESSAGE = true;
-        }
-    }
-
-    public static void handleOnlineAuthentication(GeyserSession session) {
-        if (session.getGeyser().getConfig().getSavedUserLogins().contains(session.name())) {
-            if (session.getGeyser().refreshTokenFor(session.name()) == null) {
-                LoginEncryptionUtils.buildAndShowConsentWindow(session);
-            } else {
-                // If the refresh token is not null and we're here, then the refresh token expired
-                // and the expiration form has been cached
-                session.getFormCache().resendAllForms();
-            }
-        } else {
-            LoginEncryptionUtils.buildAndShowLoginWindow(session);
         }
     }
 

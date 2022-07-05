@@ -40,6 +40,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.AuthType;
+import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MathUtils;
@@ -54,8 +55,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private boolean translateAndDefault(BedrockPacket packet) {
-        int clientId = packet.getClientId();
-        GeyserSession session = sessions.get(clientId);
+        GeyserSession session = sessions.get(packet.getClientId());
 
         return Registries.BEDROCK_PACKET_TRANSLATORS.translate(packet.getClass(), packet, session);
     }
@@ -67,8 +67,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(LoginPacket loginPacket) {
-        int clientId = loginPacket.getClientId();
-        GeyserSession session = sessions.get(clientId);
+        GeyserSession session = sessions.get(loginPacket.getClientId());
 
         if (geyser.isShuttingDown()) {
             // Don't allow new players in if we're no longer operating
@@ -91,14 +90,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         session.getUpstream().getSession().setPacketCodec(packetCodec);
 
-        LoginEncryptionUtils.handleCertChainData(geyser, session, loginPacket);
-        LoginEncryptionUtils.handleClientData(geyser, session, loginPacket);
+        LoginEncryptionUtils.handleEncryption(geyser, session, loginPacket);
 
         // Set the block translation based off of version
         session.setBlockMappings(BlockRegistries.BLOCKS.forVersion(loginPacket.getProtocolVersion()));
         session.setItemMappings(Registries.ITEMS.forVersion(loginPacket.getProtocolVersion()));
-
-        LoginEncryptionUtils.encryptPlayerConnection(geyser, session, loginPacket);
 
         if (session.isClosed()) {
             // Can happen if Xbox validation fails
@@ -130,15 +126,16 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
      * GeyserSession is created at this point
      * Some things have been done for the main client and don't need to be repeated:
      * * Version compatibility
-     * * Encryption
      * * Resource packs
      * Instead we can immediately connect the session
      */
     @Override
     public boolean handle(SubClientLoginPacket loginPacket) {
-        GeyserSession mainSession = this.sessions.get(0);
+        GeyserSession mainSession = sessions.get(0);
 
         if (!geyser.getConfig().getSplitscreen().isEnabled()) {
+            // For some reason it isn't possible to disconnect a splitscreen session,
+            // we can only disconnect all sessions via the main session
             mainSession.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.splitscreen_not_enabled"));
             return true;
         }
@@ -150,37 +147,43 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 mainSession.getEventLoopGroup(),
                 clientId
         );
-        this.sessions.add(clientId, session);
 
-        LoginEncryptionUtils.handleCertChainData(geyser, session, loginPacket);
-        LoginEncryptionUtils.handleClientData(geyser, session, loginPacket);
+        LoginEncryptionUtils.handleEncryption(geyser, session, loginPacket);
+
+        AuthData authData = session.getAuthData();
+        if (authData.xuid().length() == 0) {
+            geyser.getLogger().info("Splitscreen user %s does not have a xuid mapped in the geyser splitscreen config.".formatted(authData.name()));
+            // For some reason it isn't possible to disconnect a splitscreen session,
+            // we can only disconnect all sessions via the main session
+            mainSession.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.splitscreen_user_mapping_missing", authData.name()));
+            return true;
+        }
 
         // Set the block translation based off the main session
         session.setBlockMappings(mainSession.getBlockMappings());
         session.setItemMappings(mainSession.getItemMappings());
+
+        // The sub client data is missing some data fields. Only the language field truly matters.
+        BedrockClientData clientData = session.getClientData();
+        clientData.setLanguageCode(mainSession.getClientData().getLanguageCode());
+        session.setClientData(clientData);
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setSenderId(clientId);
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
         session.sendUpstreamPacket(playStatus);
 
+        sessions.add(clientId, session);
         geyser.getSessionManager().addPendingSession(session);
 
-        AuthData authData = session.getAuthData();
-        if (authData.xuid().length() == 0) {
-            geyser.getLogger().info("Splitscreen user %s does not have a xuid mapped in the geyser splitscreen config.".formatted(authData.name()));
-            sessions.forEach(s -> s.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.splitscreen_user_mapping_missing", authData.name())));
-        } else {
-            session.authenticate(authData.name());
-        }
+        session.authenticate(authData.name());
 
         return true;
     }
 
     @Override
     public boolean handle(ResourcePackClientResponsePacket packet) {
-        int clientId = packet.getClientId();
-        GeyserSession session = sessions.get(clientId);
+        GeyserSession session = sessions.get(packet.getClientId());
 
         switch (packet.getStatus()) {
             case COMPLETED:
@@ -243,8 +246,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ModalFormResponsePacket packet) {
-        int clientId = packet.getClientId();
-        GeyserSession session = sessions.get(clientId);
+        GeyserSession session = sessions.get(packet.getClientId());
 
         session.executeInEventLoop(() -> session.getFormCache().handleResponse(packet));
         return true;
@@ -283,8 +285,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(MovePlayerPacket packet) {
-        int clientId = packet.getClientId();
-        GeyserSession session = sessions.get(clientId);
+        GeyserSession session = sessions.get(packet.getClientId());
 
         if (session.isLoggingIn()) {
             SetTitlePacket titlePacket = new SetTitlePacket();
@@ -303,8 +304,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public boolean handle(ResourcePackChunkRequestPacket packet) {
-        int clientId = packet.getClientId();
-        GeyserSession session = sessions.get(clientId);
+        GeyserSession session = sessions.get(packet.getClientId());
 
         ResourcePackChunkDataPacket data = new ResourcePackChunkDataPacket();
         ResourcePack pack = ResourcePack.PACKS.get(packet.getPackId().toString());
@@ -335,13 +335,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         int clientId = packet.getClientId();
 
         // Don't do anything for main client, that's handled by Session DisconnectHandler
-        if (clientId == 0) return false;
+        if (clientId == 0) {
+            return false;
+        }
 
-        GeyserSession session = sessions.get(clientId);
+        sessions.get(clientId).disconnect(packet.getKickMessage());
 
-        session.disconnect(packet.getKickMessage());
-
-        this.sessions.remove(clientId);
+        sessions.remove(clientId);
 
         return true;
     }
