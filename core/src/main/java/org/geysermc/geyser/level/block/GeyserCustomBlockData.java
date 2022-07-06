@@ -69,10 +69,10 @@ public class GeyserCustomBlockData implements CustomBlockData {
 
     @Override
     public CustomBlockState.Builder blockStateBuilder() {
-        return new GeyserCustomBlockState.BuilderImpl(this);
+        return new GeyserCustomBlockState.CustomBlockStateBuilder(this);
     }
 
-    public static class BuilderImpl implements Builder {
+    public static class CustomBlockDataBuilder implements Builder {
         private String name;
         private CustomBlockComponents components;
         private Map<String, CustomBlockProperty<?>> properties = new Object2ObjectOpenHashMap<>();

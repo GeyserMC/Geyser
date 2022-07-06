@@ -38,7 +38,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
-import org.geysermc.geyser.api.block.custom.component.CollisionComponent;
+import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
@@ -347,20 +347,20 @@ public class BlockRegistryPopulator {
             return NbtMap.EMPTY;
         }
         NbtMapBuilder builder = NbtMap.builder();
-        if (components.aimCollision() != null) {
-            CollisionComponent collisionComponent = components.aimCollision();
+        if (components.selectionBox() != null) {
+            BoxComponent selectionBox = components.selectionBox();
             builder.putCompound("minecraft:aim_collision", NbtMap.builder()
                     .putBoolean("enabled", true)
-                    .putList("origin", NbtType.FLOAT, collisionComponent.originX(), collisionComponent.originY(), collisionComponent.originZ())
-                    .putList("size", NbtType.FLOAT, collisionComponent.sizeX(), collisionComponent.sizeY(), collisionComponent.sizeZ())
+                    .putList("origin", NbtType.FLOAT, selectionBox.originX(), selectionBox.originY(), selectionBox.originZ())
+                    .putList("size", NbtType.FLOAT, selectionBox.sizeX(), selectionBox.sizeY(), selectionBox.sizeZ())
                     .build());
         }
-        if (components.entityCollision() != null) {
-            CollisionComponent collisionComponent = components.entityCollision();
+        if (components.collisionBox() != null) {
+            BoxComponent collisionBox = components.collisionBox();
             builder.putCompound("minecraft:block_collision", NbtMap.builder()
                     .putBoolean("enabled", true)
-                    .putList("origin", NbtType.FLOAT, collisionComponent.originX(), collisionComponent.originY(), collisionComponent.originZ())
-                    .putList("size", NbtType.FLOAT, collisionComponent.sizeX(), collisionComponent.sizeY(), collisionComponent.sizeZ())
+                    .putList("origin", NbtType.FLOAT, collisionBox.originX(), collisionBox.originY(), collisionBox.originZ())
+                    .putList("size", NbtType.FLOAT, collisionBox.sizeX(), collisionBox.sizeY(), collisionBox.sizeZ())
                     .build());
         }
         if (components.geometry() != null) {
@@ -374,7 +374,7 @@ public class BlockRegistryPopulator {
                 MaterialInstance materialInstance = entry.getValue();
                 materialsBuilder.putCompound(entry.getKey(), NbtMap.builder()
                         .putString("texture", materialInstance.texture())
-                        .putString("render_method", materialInstance.renderMethod().toString().toLowerCase(Locale.ROOT))
+                        .putString("render_method", materialInstance.renderMethod())
                         .putBoolean("face_dimming", materialInstance.faceDimming())
                         .putBoolean("ambient_occlusion", materialInstance.faceDimming())
                         .build());
@@ -396,12 +396,12 @@ public class BlockRegistryPopulator {
         }
         if (components.lightEmission() != null) {
             builder.putCompound("minecraft:block_light_emission", NbtMap.builder()
-                    .putFloat("value", components.lightEmission())
+                    .putFloat("value", ((float) components.lightEmission()) / 15f)
                     .build());
         }
-        if (components.lightFilter() != null) {
+        if (components.lightDampening() != null) {
             builder.putCompound("minecraft:block_light_filter", NbtMap.builder()
-                    .putByte("value", components.lightFilter().byteValue())
+                    .putByte("value", components.lightDampening().byteValue())
                     .build());
         }
         if (components.rotation() != null) {

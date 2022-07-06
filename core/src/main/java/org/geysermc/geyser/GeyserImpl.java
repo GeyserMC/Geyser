@@ -595,7 +595,7 @@ public class GeyserImpl implements GeyserApi {
     @Override
     public boolean isProductionEnvironment() {
         // noinspection ConstantConditions - changes in production
-        return !"git-local/dev-0000000".equals(GeyserImpl.GIT_VERSION);
+        return !"${gitVersion}".equals(GeyserImpl.GIT_VERSION);
     }
 
     @Override

@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.level.block;
 
-import org.geysermc.geyser.api.block.custom.component.CollisionComponent;
+import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.component.RotationComponent;
@@ -33,17 +33,17 @@ import org.geysermc.geyser.api.block.custom.component.RotationComponent;
 import java.util.Map;
 
 public class GeyserCustomBlockComponents implements CustomBlockComponents {
-    private final CollisionComponent aimCollision;
-    private final CollisionComponent entityCollision;
+    private final BoxComponent aimCollision;
+    private final BoxComponent entityCollision;
     private final String geometry;
     private final Map<String, MaterialInstance> materialInstances;
     private final Float destroyTime;
     private final Float friction;
-    private final Float lightEmission;
-    private final Integer lightFilter;
+    private final Integer lightEmission;
+    private final Integer lightDampening;
     private final RotationComponent rotation;
 
-    public GeyserCustomBlockComponents(BuilderImpl builder) {
+    private GeyserCustomBlockComponents(CustomBlockComponentsBuilder builder) {
         this.aimCollision = builder.aimCollision;
         this.entityCollision = builder.entityCollision;
         this.geometry = builder.geometry;
@@ -51,17 +51,17 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         this.destroyTime = builder.destroyTime;
         this.friction = builder.friction;
         this.lightEmission = builder.lightEmission;
-        this.lightFilter = builder.lightFilter;
+        this.lightDampening = builder.lightFilter;
         this.rotation = builder.rotation;
     }
 
     @Override
-    public CollisionComponent aimCollision() {
+    public BoxComponent selectionBox() {
         return aimCollision;
     }
 
     @Override
-    public CollisionComponent entityCollision() {
+    public BoxComponent collisionBox() {
         return entityCollision;
     }
 
@@ -86,13 +86,13 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     }
 
     @Override
-    public Float lightEmission() {
+    public Integer lightEmission() {
         return lightEmission;
     }
 
     @Override
-    public Integer lightFilter() {
-        return lightFilter;
+    public Integer lightDampening() {
+        return lightDampening;
     }
 
     @Override
@@ -100,25 +100,25 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         return rotation;
     }
 
-    public static class BuilderImpl implements Builder {
-        protected CollisionComponent aimCollision;
-        protected CollisionComponent entityCollision;
+    public static class CustomBlockComponentsBuilder implements Builder {
+        protected BoxComponent aimCollision;
+        protected BoxComponent entityCollision;
         protected String geometry;
         protected Map<String, MaterialInstance> materialInstances;
         protected Float destroyTime;
         protected Float friction;
-        protected Float lightEmission;
+        protected Integer lightEmission;
         protected Integer lightFilter;
         protected RotationComponent rotation;
 
         @Override
-        public Builder aimCollision(CollisionComponent aimCollision) {
+        public Builder aimCollision(BoxComponent aimCollision) {
             this.aimCollision = aimCollision;
             return this;
         }
 
         @Override
-        public Builder entityCollision(CollisionComponent entityCollision) {
+        public Builder entityCollision(BoxComponent entityCollision) {
             this.entityCollision = entityCollision;
             return this;
         }
@@ -148,7 +148,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         }
 
         @Override
-        public Builder lightEmission(Float lightEmission) {
+        public Builder lightEmission(Integer lightEmission) {
             this.lightEmission = lightEmission;
             return this;
         }

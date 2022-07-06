@@ -28,9 +28,9 @@ package org.geysermc.geyser.api.block.custom.component;
 import java.util.Map;
 
 public interface CustomBlockComponents {
-    CollisionComponent aimCollision();
+    BoxComponent selectionBox();
 
-    CollisionComponent entityCollision();
+    BoxComponent collisionBox();
 
     String geometry();
 
@@ -40,16 +40,16 @@ public interface CustomBlockComponents {
 
     Float friction();
 
-    Float lightEmission();
+    Integer lightEmission();
 
-    Integer lightFilter();
+    Integer lightDampening();
 
     RotationComponent rotation();
 
     interface Builder {
-        Builder aimCollision(CollisionComponent aimCollision);
+        Builder aimCollision(BoxComponent aimCollision);
 
-        Builder entityCollision(CollisionComponent entityCollision);
+        Builder entityCollision(BoxComponent entityCollision);
 
         Builder geometry(String geometry);
 
@@ -59,7 +59,7 @@ public interface CustomBlockComponents {
 
         Builder friction(Float friction);
 
-        Builder lightEmission(Float lightEmission);
+        Builder lightEmission(Integer lightEmission);
 
         Builder lightFilter(Integer lightFilter);
 

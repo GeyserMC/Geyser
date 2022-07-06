@@ -59,9 +59,9 @@ public class GeyserBuilderProvider extends AbstractProvider implements BuilderPr
     public void registerProviders(Map<Class<?>, ProviderSupplier> providers) {
         providers.put(Command.Builder.class, args -> new GeyserCommandManager.CommandBuilder<>((Class<? extends CommandSource>) args[0]));
 
-        providers.put(CustomBlockComponents.Builder.class, args -> new GeyserCustomBlockComponents.BuilderImpl());
-        providers.put(CustomBlockData.Builder.class, args -> new GeyserCustomBlockData.BuilderImpl());
-        providers.put(CustomBlockPermutation.Builder.class, args -> new GeyserCustomBlockPermutation.BuilderImpl());
+        providers.put(CustomBlockComponents.Builder.class, args -> new GeyserCustomBlockComponents.CustomBlockComponentsBuilder());
+        providers.put(CustomBlockData.Builder.class, args -> new GeyserCustomBlockData.CustomBlockDataBuilder());
+        providers.put(CustomBlockPermutation.Builder.class, args -> new GeyserCustomBlockPermutation.CustomBlockPermutationBuilder());
 
         providers.put(CustomItemData.Builder.class, args -> new GeyserCustomItemData.CustomItemDataBuilder());
         providers.put(CustomItemOptions.Builder.class, args -> new GeyserCustomItemOptions.CustomItemOptionsBuilder());

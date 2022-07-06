@@ -27,6 +27,6 @@ package org.geysermc.geyser.api.block.custom.component;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-public record MaterialInstance(@NonNull String texture, @NonNull RenderMethod renderMethod, boolean faceDimming, boolean ambientOcclusion) {
+public record MaterialInstance(@NonNull String texture, @NonNull String renderMethod, boolean faceDimming, boolean ambientOcclusion) {
 
 }

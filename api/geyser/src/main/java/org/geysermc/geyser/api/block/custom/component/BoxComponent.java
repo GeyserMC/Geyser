@@ -25,6 +25,6 @@
 
 package org.geysermc.geyser.api.block.custom.component;
 
-public record CollisionComponent(float originX, float originY, float originZ,
-                                 float sizeX, float sizeY, float sizeZ) {
+public record BoxComponent(float originX, float originY, float originZ,
+                           float sizeX, float sizeY, float sizeZ) {
 }

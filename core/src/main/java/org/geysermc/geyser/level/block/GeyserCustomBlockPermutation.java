@@ -49,7 +49,7 @@ public class GeyserCustomBlockPermutation implements CustomBlockPermutation {
         return components;
     }
 
-    public static class BuilderImpl implements Builder {
+    public static class CustomBlockPermutationBuilder implements Builder {
         private String condition;
         private CustomBlockComponents components;
 
