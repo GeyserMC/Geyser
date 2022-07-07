@@ -1469,7 +1469,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setItemEntries(this.itemMappings.getItemEntries());
         startGamePacket.getBlockProperties().addAll(this.blockMappings.getBlockProperties());
 
-        startGamePacket.getExperiments().add(new ExperimentData("vanilla_experiments", true));
         startGamePacket.getExperiments().add(new ExperimentData("data_driven_items", true));
         startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));

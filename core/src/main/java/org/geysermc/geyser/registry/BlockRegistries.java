@@ -34,6 +34,7 @@ import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.registry.populator.BlockRegistryPopulator;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.BlockMappings;
+import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.util.collection.Object2IntBiMap;
 
 /**
@@ -77,6 +78,12 @@ public class BlockRegistries {
      * A registry containing all the custom blocks.
      */
     public static final ArrayRegistry<CustomBlockData> CUSTOM_BLOCKS = ArrayRegistry.create(RegistryLoaders.empty(() -> new CustomBlockData[] {}));
+
+    /**
+     * A registry which stores skin texture hashes to custom skull blocks.
+     * TODO add loader/populator
+     */
+    public static final SimpleMappedRegistry<String, CustomSkull> CUSTOM_SKULLS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     static {
         BlockRegistryPopulator.populate();

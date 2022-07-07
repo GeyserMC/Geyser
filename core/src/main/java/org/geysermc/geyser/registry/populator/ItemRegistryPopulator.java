@@ -642,7 +642,7 @@ public class ItemRegistryPopulator {
                 customBlockItemIds = new Object2IntOpenHashMap<>();
                 for (CustomBlockData customBlock : BlockRegistries.CUSTOM_BLOCKS.get()) {
                     int customProtocolId = nextFreeBedrockId++;
-                    String identifier = BlockRegistryPopulator.CUSTOM_PREFIX + customBlock.name();
+                    String identifier = customBlock.identifier();
 
                     entries.put(identifier, new StartGamePacket.ItemEntry(identifier, (short) customProtocolId));
                     customBlockItemIds.put(customBlock, customProtocolId);

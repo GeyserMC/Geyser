@@ -64,11 +64,11 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
         BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(type, position.getX(), position.getY(), position.getZ(),
                 packet.getNbt(), blockState), packet.getPosition());
         // Check for custom skulls.
-        boolean customSkull = false;
+        boolean hasCustomHeadBlock = false;
         if (session.getPreferencesCache().showCustomSkulls() && packet.getNbt() != null && packet.getNbt().contains("SkullOwner")) {
             int runtimeId = SkullBlockEntityTranslator.translateSkull(session, packet.getNbt(), position, blockState);
             if (runtimeId != -1) {
-                customSkull = true;
+                hasCustomHeadBlock = true;
                 UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
                 updateBlockPacket.setDataLayer(0);
                 updateBlockPacket.setBlockPosition(position);
@@ -78,7 +78,7 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
                 session.sendUpstreamPacket(updateBlockPacket);
             }
         }
-        if (!customSkull) {
+        if (!hasCustomHeadBlock) {
             BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(type, position.getX(), position.getY(), position.getZ(),
                     packet.getNbt(), blockState), packet.getPosition());
         }

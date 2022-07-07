@@ -43,6 +43,7 @@ import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.level.block.entity.BedrockOnlyBlockEntity;
 
@@ -141,9 +142,10 @@ public class ChunkUtils {
             // Skull is gone
             session.getSkullCache().removeSkull(position);
         } else if (skullVariant == 3) {
-            int customRuntimeId = session.getSkullCache().updateSkull(position, blockState);
-            if (customRuntimeId != -1) {
-                blockId = customRuntimeId;
+            // The changed block was a player skull so check if a custom block was defined for this skull
+            SkullCache.Skull skull = session.getSkullCache().updateSkull(position, blockState);
+            if (skull != null && skull.getCustomRuntimeId() != -1) {
+                blockId = skull.getCustomRuntimeId();
             }
         }
 

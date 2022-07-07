@@ -31,14 +31,13 @@ import com.github.steveice10.opennbt.tag.builtin.ListTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NbtMapBuilder;
+import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.event.world.GeyserConvertSkullEvent;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.skin.SkinManager;
+import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.skin.SkinProvider;
 
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -75,63 +74,46 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     }
 
     public static int translateSkull(GeyserSession session, CompoundTag tag, Vector3i blockPosition, int blockState) {
-        try {
-            String texturesProperty = getTextures(tag).get();
+        CompletableFuture<String> texturesFuture = getTextures(tag);
+        if (texturesFuture.isDone()) {
+            try {
+                SkullCache.Skull skull = session.getSkullCache().putSkull(blockPosition, texturesFuture.get(), blockState);
+                return skull.getCustomRuntimeId();
+            } catch (InterruptedException | ExecutionException e) {
+                session.getGeyser().getLogger().debug("Failed to acquire textures for custom skull: " + blockPosition + " " + tag);
+                if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
+                    e.printStackTrace();
+                }
+            }
+            return -1;
+        }
+
+        // SkullOwner contained a username, so we have to wait for it to be retrieved
+        texturesFuture.whenComplete((texturesProperty, throwable) -> {
             if (texturesProperty == null) {
                 session.getGeyser().getLogger().debug("Custom skull with invalid SkullOwner tag: " + blockPosition + " " + tag);
-                return -1;
+                return;
             }
-            int runtimeId = translateCustomSkull(session, blockPosition, texturesProperty, blockState);
-            if (runtimeId == -1) {
-                session.getSkullCache().putSkull(blockPosition, texturesProperty, blockState);
+            if (session.getEventLoop().inEventLoop()) {
+                putSkull(session, blockPosition, texturesProperty, blockState);
             } else {
-                session.getSkullCache().putSkull(blockPosition, texturesProperty, blockState, runtimeId);
+                session.executeInEventLoop(() -> putSkull(session, blockPosition, texturesProperty, blockState));
             }
-            return runtimeId;
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        }
+        });
+        // We don't have the textures yet, so we can't determine if a custom block was defined for this skull
+        return -1;
     }
 
-    public static int translateCustomSkull(GeyserSession session, Vector3i blockPosition, String texturesProperty, int blockState) {
-        try {
-            SkinManager.GameProfileData gameProfileData = SkinManager.GameProfileData.loadFromJson(texturesProperty);
-            if (gameProfileData == null || gameProfileData.skinUrl() == null) {
-                session.getGeyser().getLogger().debug("Player skull with invalid Skin tag: " + blockPosition + " Textures: " + texturesProperty);
-                return -1;
-            }
-
-            String skinUrl = gameProfileData.skinUrl();
-            String skinHash = skinUrl.substring(skinUrl.lastIndexOf('/') + 1);
-
-            byte floorRotation = BlockStateValues.getSkullRotation(blockState);
-            GeyserConvertSkullEvent.WallDirection wallDirection = GeyserConvertSkullEvent.WallDirection.INVALID;
-            boolean onFloor = true;
-            if (floorRotation == -1) {
-                // Wall skull
-                onFloor = false;
-                int wallRotation = BlockStateValues.getSkullWallDirections().get(blockState);
-                wallDirection = switch (wallRotation) {
-                    case 0 -> GeyserConvertSkullEvent.WallDirection.SOUTH;
-                    case 90 -> GeyserConvertSkullEvent.WallDirection.WEST;
-                    case 180 -> GeyserConvertSkullEvent.WallDirection.NORTH;
-                    case 270 -> GeyserConvertSkullEvent.WallDirection.EAST;
-                    default -> GeyserConvertSkullEvent.WallDirection.INVALID;
-                };
-            }
-            GeyserConvertSkullEvent event = new GeyserConvertSkullEvent(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), onFloor, wallDirection, floorRotation, skinHash);
-            GeyserImpl.getInstance().getEventBus().fire(event);
-
-            if (event.getNewBlockState() != null) {
-                return session.getBlockMappings().getCustomBlockStateIds().getOrDefault(event.getNewBlockState(), -1);
-            }
-
-            if (event.isCancelled()) {
-                return -1;
-            }
-        } catch (IOException e) {
-            session.getGeyser().getLogger().debug("Player skull with invalid Skin tag: " + blockPosition + " Textures: " + texturesProperty + " Message: " + e.getMessage());
+    private static void putSkull(GeyserSession session, Vector3i blockPosition, String texturesProperty, int blockState) {
+        SkullCache.Skull skull = session.getSkullCache().putSkull(blockPosition, texturesProperty, blockState);
+        if (skull.getCustomRuntimeId() != -1) {
+            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
+            updateBlockPacket.setDataLayer(0);
+            updateBlockPacket.setBlockPosition(blockPosition);
+            updateBlockPacket.setRuntimeId(skull.getCustomRuntimeId());
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
+            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
+            session.sendUpstreamPacket(updateBlockPacket);
         }
-        return -1;
     }
 }

@@ -27,15 +27,20 @@ package org.geysermc.geyser.session.cache;
 
 import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
-import com.nukkitx.protocol.bedrock.packet.UpdateBlockPacket;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
+import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.level.block.entity.SkullBlockEntityTranslator;
+import org.geysermc.geyser.skin.SkinManager;
 
+import java.io.IOException;
 import java.util.*;
 
 public class SkullCache {
@@ -73,20 +78,33 @@ public class SkullCache {
         this.skullRenderDistanceSquared = distance * distance;
     }
 
-    public void putSkull(Vector3i position, String texturesProperty, int blockState) {
+    public Skull putSkull(Vector3i position, String texturesProperty, int blockState) {
         Skull skull = skulls.computeIfAbsent(position, Skull::new);
-        skull.texturesProperty = texturesProperty;
+        if (!texturesProperty.equals(skull.texturesProperty)) {
+            skull.texturesProperty = texturesProperty;
+            try {
+                SkinManager.GameProfileData gameProfileData = SkinManager.GameProfileData.loadFromJson(texturesProperty);
+                if (gameProfileData != null && gameProfileData.skinUrl() != null) {
+                    String skinUrl = gameProfileData.skinUrl();
+                    skull.skinHash = skinUrl.substring(skinUrl.lastIndexOf('/') + 1);
+                } else {
+                    session.getGeyser().getLogger().debug("Player skull with invalid Skin tag: " + position + " Textures: " + texturesProperty);
+                    skull.skinHash = null;
+                }
+            } catch (IOException e) {
+                session.getGeyser().getLogger().debug("Player skull with invalid Skin tag: " + position + " Textures: " + texturesProperty);
+                if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
+                    e.printStackTrace();
+                }
+                skull.skinHash = null;
+            }
+        }
         skull.blockState = blockState;
-        if (skull.customRuntimeId != -1) {
-            skull.customRuntimeId = -1;
+        skull.customRuntimeId = translateCustomSkull(skull.skinHash, blockState);
 
-            UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
-            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
-            updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
-            updateBlockPacket.setBlockPosition(position);
-            updateBlockPacket.setRuntimeId(session.getBlockMappings().getBedrockBlockId(blockState));
-            updateBlockPacket.setDataLayer(0);
-            session.sendUpstreamPacket(updateBlockPacket);
+        if (skull.customRuntimeId != -1) {
+            reassignSkullEntity(skull);
+            return skull;
         }
 
         if (skull.entity != null) {
@@ -94,10 +112,10 @@ public class SkullCache {
         } else {
             if (!cullingEnabled) {
                 assignSkullEntity(skull);
-                return;
+                return skull;
             }
             if (lastPlayerPosition == null) {
-                return;
+                return skull;
             }
             skull.distanceSquared = position.distanceSquared(lastPlayerPosition.getX(), lastPlayerPosition.getY(), lastPlayerPosition.getZ());
             if (skull.distanceSquared < skullRenderDistanceSquared) {
@@ -117,54 +135,22 @@ public class SkullCache {
                 }
             }
         }
-    }
-
-    public void putSkull(Vector3i position, String texturesProperty, int blockState, int customRuntimeId) {
-        Skull skull = skulls.computeIfAbsent(position, Skull::new);
-        skull.texturesProperty = texturesProperty;
-        skull.blockState = blockState;
-        skull.customRuntimeId = customRuntimeId;
-
-        boolean hadEntity = skull.entity != null;
-        freeSkullEntity(skull);
-
-        if (cullingEnabled) {
-            inRangeSkulls.remove(skull);
-            if (hadEntity && inRangeSkulls.size() >= maxVisibleSkulls) {
-                // Reassign entity to the closest skull without an entity
-                assignSkullEntity(inRangeSkulls.get(maxVisibleSkulls - 1));
-            }
-        }
+        return skull;
     }
 
     public void removeSkull(Vector3i position) {
         Skull skull = skulls.remove(position);
         if (skull != null) {
-            boolean hadEntity = skull.entity != null;
-            freeSkullEntity(skull);
-
-            if (cullingEnabled) {
-                inRangeSkulls.remove(skull);
-                if (hadEntity && inRangeSkulls.size() >= maxVisibleSkulls) {
-                    // Reassign entity to the closest skull without an entity
-                    assignSkullEntity(inRangeSkulls.get(maxVisibleSkulls - 1));
-                }
-            }
+            reassignSkullEntity(skull);
         }
     }
 
-    public int updateSkull(Vector3i position, int blockState) {
-        Skull skull = skulls.remove(position);
+    public Skull updateSkull(Vector3i position, int blockState) {
+        Skull skull = skulls.get(position);
         if (skull != null) {
-            int customRuntimeId = SkullBlockEntityTranslator.translateCustomSkull(session, position, skull.texturesProperty, blockState);
-            if (customRuntimeId != -1) {
-                putSkull(position, skull.texturesProperty, blockState, customRuntimeId);
-            } else {
-                putSkull(position, skull.texturesProperty, blockState);
-            }
-            return customRuntimeId;
+            putSkull(position, skull.texturesProperty, blockState);
         }
-        return -1;
+        return skull;
     }
 
     public void updateVisibleSkulls() {
@@ -239,6 +225,19 @@ public class SkullCache {
         }
     }
 
+    private void reassignSkullEntity(Skull skull) {
+        boolean hadEntity = skull.entity != null;
+        freeSkullEntity(skull);
+
+        if (cullingEnabled) {
+            inRangeSkulls.remove(skull);
+            if (hadEntity && inRangeSkulls.size() >= maxVisibleSkulls) {
+                // Reassign entity to the closest skull without an entity
+                assignSkullEntity(inRangeSkulls.get(maxVisibleSkulls - 1));
+            }
+        }
+    }
+
     public void clear() {
         skulls.clear();
         inRangeSkulls.clear();
@@ -247,10 +246,30 @@ public class SkullCache {
         lastPlayerPosition = null;
     }
 
+    private int translateCustomSkull(String skinHash, int blockState) {
+        CustomSkull customSkull = BlockRegistries.CUSTOM_SKULLS.get(skinHash);
+        if (customSkull != null) {
+            byte floorRotation = BlockStateValues.getSkullRotation(blockState);
+            CustomBlockState customBlockState;
+            if (floorRotation == -1) {
+                // Wall skull
+                int wallDirection = BlockStateValues.getSkullWallDirections().get(blockState);
+                customBlockState = customSkull.getWallBlockState(wallDirection);
+            } else {
+                customBlockState = customSkull.getFloorBlockState(floorRotation);
+            }
+
+            return session.getBlockMappings().getCustomBlockStateIds().getOrDefault(customBlockState, -1);
+        }
+        return -1;
+    }
+
     @RequiredArgsConstructor
     @Data
     public static class Skull {
         private String texturesProperty;
+        private String skinHash;
+
         private int blockState;
         private int customRuntimeId = -1;
         private SkullPlayerEntity entity;

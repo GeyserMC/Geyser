@@ -53,6 +53,11 @@ public class GeyserCustomBlockData implements CustomBlockData {
     }
 
     @Override
+    public @NonNull String identifier() {
+        return "geyser:" + name;
+    }
+
+    @Override
     public CustomBlockComponents components() {
         return components;
     }

@@ -50,6 +50,7 @@ import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.BlockMappings;
+import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.util.BlockUtils;
 
 import java.io.DataInputStream;
@@ -78,8 +79,6 @@ public class BlockRegistryPopulator {
      */
     private static JsonNode BLOCKS_JSON;
 
-    public static final String CUSTOM_PREFIX = "";
-
     public static void populate() {
         registerJavaBlocks();
         registerCustomBedrockBlocks();
@@ -96,15 +95,19 @@ public class BlockRegistryPopulator {
                 return true;
             }
         });
+
+        for (CustomSkull customSkull : BlockRegistries.CUSTOM_SKULLS.get().values()) {
+            customBlocks.add(customSkull.getCustomBlockData());
+        }
+
         BlockRegistries.CUSTOM_BLOCKS.set(customBlocks.toArray(new CustomBlockData[0]));
         GeyserImpl.getInstance().getLogger().debug("Registered " + customBlocks.size() + " custom blocks.");
     }
 
     private static void generateCustomBlockStates(CustomBlockData customBlock, List<NbtMap> blockStates, List<CustomBlockState> customExtBlockStates, int stateVersion) {
-        String name = CUSTOM_PREFIX + customBlock.name();
         if (customBlock.properties().isEmpty()) {
             blockStates.add(NbtMap.builder()
-                    .putString("name", name)
+                    .putString("name", customBlock.identifier())
                     .putInt("version", stateVersion)
                     .putCompound("states", NbtMap.EMPTY)
                     .build());
@@ -116,7 +119,6 @@ public class BlockRegistryPopulator {
 
         for (int i = 0; i < totalPermutations; i++) {
             NbtMapBuilder statesBuilder = NbtMap.builder();
-
             int permIndex = i;
             for (CustomBlockProperty<?> property : customBlock.properties().values()) {
                 statesBuilder.put(property.name(), property.values().get(permIndex % property.values().size()));
@@ -125,11 +127,11 @@ public class BlockRegistryPopulator {
             NbtMap states = statesBuilder.build();
 
             blockStates.add(NbtMap.builder()
-                    .putString("name", name)
+                    .putString("name", customBlock.identifier())
                     .putInt("version", stateVersion)
                     .putCompound("states", states)
                     .build());
-            customExtBlockStates.add(new GeyserCustomBlockState(name, states));
+            customExtBlockStates.add(new GeyserCustomBlockState(customBlock.name(), states));
         }
     }
 
@@ -168,7 +170,7 @@ public class BlockRegistryPopulator {
                 .putList("permutations", NbtType.COMPOUND, permutations)
                 .putList("properties", NbtType.COMPOUND, properties)
                 .build();
-        return new BlockPropertyData(CUSTOM_PREFIX + customBlock.name(), propertyTag);
+        return new BlockPropertyData(customBlock.identifier(), propertyTag);
     }
 
     private static void registerBedrockBlocks() {

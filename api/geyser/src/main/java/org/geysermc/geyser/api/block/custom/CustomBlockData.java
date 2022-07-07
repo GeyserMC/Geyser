@@ -38,6 +38,8 @@ import java.util.Map;
 public interface CustomBlockData {
     @NonNull String name();
 
+    @NonNull String identifier();
+
     CustomBlockComponents components();
 
     @NonNull Map<String, CustomBlockProperty<?>> properties();

@@ -25,5 +25,5 @@
 
 package org.geysermc.geyser.api.block.custom.component;
 
-public record RotationComponent(float x, float y, float z) {
+public record RotationComponent(int x, int y, int z) {
 }
