@@ -158,16 +158,8 @@ public class GeyserImpl implements GeyserApi {
         logger.info("");
         logger.info("******************************************");
 
-        /* Initialize translators and registries */
-        BlockRegistries.init();
-        Registries.init();
-
-        EntityDefinitions.init();
-        ItemTranslator.init();
-        MessageTranslator.init();
-        MinecraftLocale.init();
-
-        start();
+        init(); //Initialize translators and registries
+        start(); //Starts GeyserMc
 
         GeyserConfiguration config = bootstrap.getGeyserConfig();
 
@@ -197,6 +189,19 @@ public class GeyserImpl implements GeyserApi {
         } else if (config.getRemote().getAuthType() == AuthType.FLOODGATE) {
             VersionCheckUtils.checkForOutdatedFloodgate(logger);
         }
+    }
+    
+    /**
+     * Initialize translators and registries
+     */
+    private void init() {
+        BlockRegistries.init();
+        Registries.init();
+
+        EntityDefinitions.init();
+        ItemTranslator.init();
+        MessageTranslator.init();
+        MinecraftLocale.init();
     }
 
     private void start() {
