@@ -53,7 +53,6 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.FileUtils;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -180,7 +179,7 @@ public abstract class ItemTranslator {
         translateCustomItem(nbt, builder, bedrockItem);
 
         if (bedrockItem == session.getItemMappings().getStoredItems().playerHead()) {
-            translatePlayerHead(session, nbt, builder, bedrockItem);
+            translatePlayerHead(session, nbt, builder);
         }
 
         if (nbt != null) {
@@ -551,39 +550,19 @@ public abstract class ItemTranslator {
         }
     }
     
-    private static void translatePlayerHead(GeyserSession session, CompoundTag nbt, ItemData.Builder builder, ItemMapping mapping) {
+    private static void translatePlayerHead(GeyserSession session, CompoundTag nbt, ItemData.Builder builder) {
         if (nbt != null && nbt.contains("SkullOwner")) {
-            String skinHash = null;
-            Tag skullOwner = nbt.get("SkullOwner");
-            if (skullOwner instanceof StringTag) {
+            if (!(nbt.get("SkullOwner") instanceof CompoundTag skullOwner)) {
                 // It's a username give up d:
                 return;
-            } else if (skullOwner instanceof CompoundTag) {
-                Tag properties = ((CompoundTag) skullOwner).get("Properties");
-                if (properties instanceof CompoundTag) {
-                    Tag textures = ((CompoundTag) properties).get("textures");
-                    if (textures instanceof ListTag) {
-                        List<Tag> textureTags = ((ListTag) textures).getValue();
-                        if (!textureTags.isEmpty()) {
-                            Tag skinTag = textureTags.get(0);
-                            if (skinTag instanceof CompoundTag) {
-                                Tag valueTag = ((CompoundTag) skinTag).get("Value");
-                                String encodedJson = (String) valueTag.getValue();
-                                try {
-                                    SkinManager.GameProfileData data = SkinManager.GameProfileData.loadFromJson(encodedJson);
-                                    skinHash = data.skinUrl().substring(data.skinUrl().lastIndexOf('/') + 1);
-                                } catch (IOException e) {
-                                    session.getGeyser().getLogger().debug("Not sure how to handle skull head item display. " + nbt + " " + e.getMessage());
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                }
             }
-            if (skinHash == null) {
+            SkinManager.GameProfileData data = SkinManager.GameProfileData.from(skullOwner);
+            if (data == null) {
                 session.getGeyser().getLogger().debug("Not sure how to handle skull head item display. " + nbt);
+                return;
             }
+
+            String skinHash = data.skinUrl().substring(data.skinUrl().lastIndexOf('/') + 1);
             GeyserConvertSkullInventoryEvent skullInventoryEvent = new GeyserConvertSkullInventoryEvent(skinHash);
             GeyserImpl.getInstance().getEventBus().fire(skullInventoryEvent);
 

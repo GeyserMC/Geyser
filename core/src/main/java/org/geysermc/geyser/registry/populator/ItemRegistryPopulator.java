@@ -646,6 +646,7 @@ public class ItemRegistryPopulator {
 
                     entries.put(identifier, new StartGamePacket.ItemEntry(identifier, (short) customProtocolId));
                     customBlockItemIds.put(customBlock, customProtocolId);
+                    customIdMappings.put(customProtocolId, identifier);
                 }
             }
 

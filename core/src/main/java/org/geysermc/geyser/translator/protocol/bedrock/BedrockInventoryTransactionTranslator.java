@@ -53,6 +53,7 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.BlockUtils;
@@ -507,9 +508,10 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         int javaBlockState = session.getGeyser().getWorldManager().getBlockAt(session, blockPos);
         int bedrockId = session.getBlockMappings().getBedrockBlockId(javaBlockState);
         if (BlockStateValues.getSkullVariant(javaBlockState) == 3) {
-            int customRuntimeId = session.getSkullCache().updateSkull(blockPos, javaBlockState);
-            if (customRuntimeId != -1) {
-                bedrockId = customRuntimeId;
+            // The changed block was a player skull so check if a custom block was defined for this skull
+            SkullCache.Skull skull = session.getSkullCache().getSkulls().get(blockPos);
+            if (skull != null && skull.getCustomRuntimeId() != -1) {
+                bedrockId = skull.getCustomRuntimeId();
             }
         }
 

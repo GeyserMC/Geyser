@@ -74,10 +74,9 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         return CompletableFuture.completedFuture(null);
     }
 
-    public static int translateSkull(GeyserSession session, CompoundTag tag, int posX, int posY, int posZ, int blockState) {
+    public static int translateSkull(GeyserSession session, CompoundTag tag, Vector3i blockPosition, int blockState) {
         try {
             String texturesProperty = getTextures(tag).get();
-            Vector3i blockPosition = Vector3i.from(posX, posY, posZ);
             if (texturesProperty == null) {
                 session.getGeyser().getLogger().debug("Custom skull with invalid SkullOwner tag: " + blockPosition + " " + tag);
                 return -1;

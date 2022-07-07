@@ -100,10 +100,11 @@ public class BlockRegistryPopulator {
         GeyserImpl.getInstance().getLogger().debug("Registered " + customBlocks.size() + " custom blocks.");
     }
 
-    private static void generateCustomBlockStates(List<NbtMap> blockStates, List<CustomBlockState> customExtBlockStates, CustomBlockData customBlock, int stateVersion) {
+    private static void generateCustomBlockStates(CustomBlockData customBlock, List<NbtMap> blockStates, List<CustomBlockState> customExtBlockStates, int stateVersion) {
+        String name = CUSTOM_PREFIX + customBlock.name();
         if (customBlock.properties().isEmpty()) {
             blockStates.add(NbtMap.builder()
-                    .putString("name", CUSTOM_PREFIX + customBlock.name())
+                    .putString("name", name)
                     .putInt("version", stateVersion)
                     .putCompound("states", NbtMap.EMPTY)
                     .build());
@@ -121,7 +122,6 @@ public class BlockRegistryPopulator {
                 statesBuilder.put(property.name(), property.values().get(permIndex % property.values().size()));
                 permIndex /= property.values().size();
             }
-            String name = CUSTOM_PREFIX + customBlock.name();
             NbtMap states = statesBuilder.build();
 
             blockStates.add(NbtMap.builder()
@@ -171,17 +171,6 @@ public class BlockRegistryPopulator {
         return new BlockPropertyData(CUSTOM_PREFIX + customBlock.name(), propertyTag);
     }
 
-    private static final long FNV1_64_OFFSET_BASIS = 0xcbf29ce484222325L;
-    private static final long FNV1_64_PRIME = 1099511628211L;
-
-    private static long fnv164(String str) {
-        long hash = FNV1_64_OFFSET_BASIS;
-        for (byte b : str.getBytes(StandardCharsets.UTF_8)) {
-            hash *= FNV1_64_PRIME;
-            hash ^= b;
-        }
-        return hash;
-    }
     private static void registerBedrockBlocks() {
         for (Map.Entry<ObjectIntPair<String>, BiFunction<String, NbtMapBuilder, String>> palette : BLOCK_MAPPERS.entrySet()) {
             NbtList<NbtMap> blocksTag;
@@ -203,19 +192,13 @@ public class BlockRegistryPopulator {
             if (BlockRegistries.CUSTOM_BLOCKS.get().length != 0) {
                 for (CustomBlockData customBlock : BlockRegistries.CUSTOM_BLOCKS.get()) {
                     customBlockProperties.add(generateBlockPropertyData(customBlock));
-                    generateCustomBlockStates(customBlockStates, customExtBlockStates, customBlock, stateVersion);
+                    generateCustomBlockStates(customBlock, customBlockStates, customExtBlockStates, stateVersion);
                 }
                 blockStates.addAll(customBlockStates);
                 GeyserImpl.getInstance().getLogger().debug("Added " + customBlockStates.size() + " custom block states to v" + palette.getKey().valueInt() + " palette.");
 
-                if (palette.getKey().valueInt() > 486) {
-                    // Version 1.18.30 and above sort the palette by the FNV1 64 bit hash of the name
-                    blockStates.sort((a, b) -> Long.compareUnsigned(fnv164(a.getString("name")), fnv164(b.getString("name"))));
-                } else {
-                    // Version below 1.18.30 sort the palette alphabetically by name
-                    blockStates.sort(Comparator.comparing(state -> state.getString("name")));
-                }
-
+                // The palette is sorted by the FNV1 64-bit hash of the name
+                blockStates.sort((a, b) -> Long.compareUnsigned(fnv164(a.getString("name")), fnv164(b.getString("name"))));
             }
 
             // New since 1.16.100 - find the block runtime ID by the order given to us in the block palette,
@@ -601,5 +584,17 @@ public class BlockRegistryPopulator {
         }
         tagBuilder.put("states", statesBuilder.build());
         return tagBuilder.build();
+    }
+
+    private static final long FNV1_64_OFFSET_BASIS = 0xcbf29ce484222325L;
+    private static final long FNV1_64_PRIME = 1099511628211L;
+
+    private static long fnv164(String str) {
+        long hash = FNV1_64_OFFSET_BASIS;
+        for (byte b : str.getBytes(StandardCharsets.UTF_8)) {
+            hash *= FNV1_64_PRIME;
+            hash ^= b;
+        }
+        return hash;
     }
 }

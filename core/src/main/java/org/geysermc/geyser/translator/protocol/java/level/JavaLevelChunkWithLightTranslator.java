@@ -274,7 +274,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                 // Check for custom skulls
                 if (session.getPreferencesCache().showCustomSkulls() && type == BlockEntityType.SKULL && tag != null && tag.contains("SkullOwner")) {
-                    int runtimeId = SkullBlockEntityTranslator.translateSkull(session, tag, x + chunkBlockX, y, z + chunkBlockZ, blockState);
+                    int runtimeId = SkullBlockEntityTranslator.translateSkull(session, tag, Vector3i.from(x + chunkBlockX, y, z + chunkBlockZ), blockState);
                     if (runtimeId != -1) {
                         int bedrockSectionY = (y >> 4) - (bedrockDimension.minY() >> 4);
                         GeyserChunkSection bedrockSection = sections[bedrockSectionY];
