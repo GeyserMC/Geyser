@@ -22,6 +22,7 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+
 package org.geysermc.geyser.registry.type;
 
 import lombok.Data;
@@ -47,8 +48,8 @@ public class CustomSkull {
 
     private CustomBlockData customBlockData;
 
-    private static final String DIRECTION_PROPERTY = "davchoo:direction";
-    private static final String TYPE_PROPERTY = "davchoo:type";
+    private static final String DIRECTION_PROPERTY = "geyser_skull:direction";
+    private static final String TYPE_PROPERTY = "geyser_skull:type";
 
     private static final int[] ROTATIONS = {0, -90, 180, 90};
 
@@ -57,7 +58,7 @@ public class CustomSkull {
 
         CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
                 .destroyTime(1.5f)
-                .materialInstances(Map.of("*", new MaterialInstance("davchoo." + skinHash + "_player_skin", "alpha_test", true, true)))
+                .materialInstances(Map.of("*", new MaterialInstance("geyser." + skinHash + "_player_skin", "alpha_test", true, true)))
                 .lightFilter(0)
                 .build();
 
@@ -67,7 +68,7 @@ public class CustomSkull {
         addWallPermutations(permutations);
 
         customBlockData = new GeyserCustomBlockData.CustomBlockDataBuilder()
-                .name("player_head_" + skinHash)
+                .name("player_skull_" + skinHash)
                 .components(components)
                 .intProperty(DIRECTION_PROPERTY, IntStream.rangeClosed(0, 15).boxed().toList())
                 .intProperty(TYPE_PROPERTY, IntStream.rangeClosed(0, 2).boxed().toList())
@@ -106,7 +107,7 @@ public class CustomSkull {
 
     private void addDefaultPermutation(List<CustomBlockPermutation> permutations) {
         CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
-                .geometry("geometry.davchoo.player_head_hand")
+                .geometry("geometry.geyser.player_skull_hand")
                 .rotation(new RotationComponent(0, 180, 0))
                 .build();
 
@@ -132,7 +133,7 @@ public class CustomSkull {
                 CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
                         .aimCollision(box)
                         .entityCollision(box)
-                        .geometry("geometry.davchoo.player_head_floor_" + quadrantNames[i])
+                        .geometry("geometry.geyser.player_skull_floor_" + quadrantNames[i])
                         .rotation(rotation)
                         .build();
 
@@ -158,7 +159,7 @@ public class CustomSkull {
             CustomBlockComponents components = new GeyserCustomBlockComponents.CustomBlockComponentsBuilder()
                     .aimCollision(box)
                     .entityCollision(box)
-                    .geometry("geometry.davchoo.player_head_wall")
+                    .geometry("geometry.geyser.player_skull_wall")
                     .rotation(rotation)
                     .build();
 

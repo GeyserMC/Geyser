@@ -71,7 +71,7 @@ public class ResourcePackManifest {
     @ToString
     public static class Module {
         private String description;
-        private String name;
+        private String type;
         private UUID uuid;
         private int[] version;
     }

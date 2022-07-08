@@ -82,6 +82,7 @@ public class SkullCache {
         Skull skull = skulls.computeIfAbsent(position, Skull::new);
         if (!texturesProperty.equals(skull.texturesProperty)) {
             skull.texturesProperty = texturesProperty;
+            skull.skinHash = null;
             try {
                 SkinManager.GameProfileData gameProfileData = SkinManager.GameProfileData.loadFromJson(texturesProperty);
                 if (gameProfileData != null && gameProfileData.skinUrl() != null) {
@@ -89,14 +90,12 @@ public class SkullCache {
                     skull.skinHash = skinUrl.substring(skinUrl.lastIndexOf('/') + 1);
                 } else {
                     session.getGeyser().getLogger().debug("Player skull with invalid Skin tag: " + position + " Textures: " + texturesProperty);
-                    skull.skinHash = null;
                 }
             } catch (IOException e) {
                 session.getGeyser().getLogger().debug("Player skull with invalid Skin tag: " + position + " Textures: " + texturesProperty);
                 if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                     e.printStackTrace();
                 }
-                skull.skinHash = null;
             }
         }
         skull.blockState = blockState;

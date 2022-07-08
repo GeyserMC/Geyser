@@ -27,6 +27,7 @@ package org.geysermc.geyser.pack;
 
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.text.GeyserLocale;
 
@@ -77,11 +78,16 @@ public class ResourcePack {
         }
 
         List<Path> resourcePacks;
-        try {
-            resourcePacks = Files.walk(directory).collect(Collectors.toList());
+        try (Stream<Path> stream = Files.walk(directory)) {
+            resourcePacks = stream.collect(Collectors.toList());
         } catch (IOException e) {
             GeyserImpl.getInstance().getLogger().error("Could not list packs directory", e);
             return;
+        }
+
+        Path skullResourcePack = SkullResourcePackManager.createResourcePack(BlockRegistries.CUSTOM_SKULLS.get().keySet());
+        if (skullResourcePack != null) {
+            resourcePacks.add(skullResourcePack);
         }
 
         GeyserLoadResourcePacksEvent event = new GeyserLoadResourcePacksEvent(resourcePacks);
@@ -95,11 +101,8 @@ public class ResourcePack {
 
                 pack.sha256 = FileUtils.calculateSHA256(file);
 
-                Stream<? extends ZipEntry> stream = null;
-                try {
-                    ZipFile zip = new ZipFile(file);
-
-                    stream = zip.stream();
+                try (ZipFile zip = new ZipFile(file);
+                     Stream<? extends ZipEntry> stream = zip.stream()) {
                     stream.forEach((x) -> {
                         if (x.getName().contains("manifest.json")) {
                             try {
@@ -121,10 +124,6 @@ public class ResourcePack {
                 } catch (Exception e) {
                     GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", file.getName()));
                     e.printStackTrace();
-                } finally {
-                    if (stream != null) {
-                        stream.close();
-                    }
                 }
             }
         }
