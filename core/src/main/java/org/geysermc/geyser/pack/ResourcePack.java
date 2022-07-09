@@ -85,7 +85,7 @@ public class ResourcePack {
             return;
         }
 
-        Path skullResourcePack = SkullResourcePackManager.createResourcePack(BlockRegistries.CUSTOM_SKULLS.get().keySet());
+        Path skullResourcePack = SkullResourcePackManager.createResourcePack();
         if (skullResourcePack != null) {
             resourcePacks.add(skullResourcePack);
         }

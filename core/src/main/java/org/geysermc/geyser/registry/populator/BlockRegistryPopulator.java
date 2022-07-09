@@ -86,7 +86,11 @@ public class BlockRegistryPopulator {
 
         BLOCKS_JSON = null;
     }
+
     private static void registerCustomBedrockBlocks() {
+        if (!GeyserImpl.getInstance().getConfig().isAddCustomBlocks()) {
+            return;
+        }
         List<CustomBlockData> customBlocks = new ArrayList<>();
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomBlocksEvent() {
             @Override

@@ -108,7 +108,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     header.getUuid().toString(), header.getVersionString(), resourcePack.getFile().length(),
                             "", "", "", false, false));
         }
-        resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().getConfig().isForceResourcePacks());
+        resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().getConfig().isForceResourcePacks() || GeyserImpl.getInstance().getConfig().isAddCustomSkullBlocks());
         session.sendUpstreamPacket(resourcePacksInfo);
 
         GeyserLocale.loadGeyserLocale(session.locale());

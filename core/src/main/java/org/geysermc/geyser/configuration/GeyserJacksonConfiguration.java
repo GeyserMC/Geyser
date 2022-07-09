@@ -142,6 +142,15 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
     @JsonProperty("above-bedrock-nether-building")
     private boolean aboveBedrockNetherBuilding = false;
 
+    @JsonProperty("add-custom-blocks")
+    boolean addCustomBlocks = true;
+
+    @JsonProperty("add-custom-skull-blocks")
+    boolean addCustomSkullBlocks = false;
+
+    @JsonProperty("custom-skull-profiles")
+    List<String> customSkullProfiles = Collections.emptyList();
+
     @JsonProperty("force-resource-packs")
     private boolean forceResourcePacks = true;
 
@@ -277,6 +286,10 @@ public abstract class GeyserJacksonConfiguration implements GeyserConfiguration 
 
     @JsonProperty("config-version")
     private int configVersion = 0;
+
+    public boolean isAddCustomSkullBlocks() {
+        return addCustomBlocks && addCustomSkullBlocks;
+    }
 
     /**
      * Ensure that the port deserializes in the config as a number no matter what.

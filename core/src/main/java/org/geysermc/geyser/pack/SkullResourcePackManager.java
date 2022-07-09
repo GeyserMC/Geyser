@@ -26,11 +26,14 @@
 package org.geysermc.geyser.pack;
 
 import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.util.FileUtils;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -40,26 +43,40 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.*;
 import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 public class SkullResourcePackManager {
 
-    private static final long RESOURCE_PACK_VERSION = 4;
+    private static final long RESOURCE_PACK_VERSION = 5;
+
+    private static final Path SKULL_SKIN_CACHE_PATH = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("player_skulls");
+
+    public static final Map<String, Path> SKULL_SKINS = new Object2ObjectOpenHashMap<>();
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static Path createResourcePack(Set<String> skins) {
-        Path packPath = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("player_skulls.mcpack");
-        File packFile = packPath.toFile();
-        if (skins.isEmpty()) {
-            packFile.delete(); // No need to keep resource pack
-            GeyserImpl.getInstance().getLogger().debug("No skins to create player skull resource pack.");
+    public static Path createResourcePack() {
+        Path cachePath = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache");
+        try {
+            Files.createDirectories(cachePath);
+        } catch (IOException e) {
+            GeyserImpl.getInstance().getLogger().severe("Unable to create directories for player skull resource pack!", e);
             return null;
         }
-        if (packFile.exists() && canReusePack(skins, packFile)) {
+        cleanSkullSkinCache();
+
+        Path packPath = cachePath.resolve("player_skulls.mcpack");
+        File packFile = packPath.toFile();
+        if (BlockRegistries.CUSTOM_SKULLS.get().isEmpty() || !GeyserImpl.getInstance().getConfig().isAddCustomSkullBlocks()) {
+            packFile.delete(); // No need to keep resource pack
+            return null;
+        }
+        if (packFile.exists() && canReusePack(packFile)) {
             GeyserImpl.getInstance().getLogger().info("Reusing cached player skull resource pack.");
             return packPath;
         }
@@ -68,19 +85,74 @@ public class SkullResourcePackManager {
         GeyserImpl.getInstance().getLogger().info("Creating skull resource pack.");
         packFile.delete();
         try (ZipOutputStream zipOS = new ZipOutputStream(Files.newOutputStream(packPath, StandardOpenOption.WRITE, StandardOpenOption.CREATE))) {
-            addBaseResources(zipOS, skins);
-            addSkinTextures(zipOS, skins);
-            addAttachables(zipOS, skins);
+            addBaseResources(zipOS);
+            addSkinTextures(zipOS);
+            addAttachables(zipOS);
             GeyserImpl.getInstance().getLogger().info("Finished creating skull resource pack.");
             return packPath;
         } catch (IOException e) {
-            GeyserImpl.getInstance().getLogger().error("Unable to create player skull resource pack!", e);
+            GeyserImpl.getInstance().getLogger().severe("Unable to create player skull resource pack!", e);
+            GeyserImpl.getInstance().getLogger().severe("Bedrock players will see dirt blocks instead of custom skull blocks.");
             packFile.delete();
         }
         return null;
     }
 
-    private static void addBaseResources(ZipOutputStream zipOS, Set<String> skins) throws IOException {
+    public static void cacheSkullSkin(String skinUrl, String skinHash) throws IOException {
+        Path skinPath = SKULL_SKINS.get(skinHash);
+        if (skinPath != null) {
+            return;
+        }
+
+        Files.createDirectories(SKULL_SKIN_CACHE_PATH);
+        skinPath = SKULL_SKIN_CACHE_PATH.resolve(skinHash + ".png");
+        if (Files.exists(skinPath)) {
+            SKULL_SKINS.put(skinHash, skinPath);
+            return;
+        }
+
+        BufferedImage image = SkinProvider.requestImage(skinUrl, null);
+        if (image.getHeight() != 64) {
+            // We have to resize legacy skins to 64x64 for them to be displayed properly
+            BufferedImage modernSkin = new BufferedImage(64, 64, image.getType());
+
+            Graphics g = modernSkin.createGraphics();
+            g.drawImage(image, 0, 0, null);
+            g.setColor(new Color(0, 0, 0, 0));
+            g.fillRect(0, 32, 64, 32);
+            g.dispose();
+
+            image.flush();
+            image = modernSkin;
+        }
+
+        ImageIO.write(image, "png", skinPath.toFile());
+        SKULL_SKINS.put(skinHash, skinPath);
+        GeyserImpl.getInstance().getLogger().debug("Cached player skull to " + skinPath + " for " + skinHash);
+    }
+
+    public static void cleanSkullSkinCache() {
+        try (Stream<Path> stream = Files.list(SKULL_SKIN_CACHE_PATH)) {
+            int removeCount = 0;
+            for (Path path : stream.toList()) {
+                String skinHash = path.getFileName().toString();
+                skinHash = skinHash.substring(0, skinHash.length() - ".png".length());
+                if (!SKULL_SKINS.containsKey(skinHash) && path.toFile().delete()) {
+                    removeCount++;
+                }
+            }
+            if (removeCount != 0) {
+                GeyserImpl.getInstance().getLogger().debug("Removed " + removeCount + " unnecessary skull skins.");
+            }
+        } catch (IOException e) {
+            GeyserImpl.getInstance().getLogger().debug("Unable to clean up skull skin cache.");
+            if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static void addBaseResources(ZipOutputStream zipOS) throws IOException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(GeyserImpl.getInstance().getBootstrap().getResource("bedrock/skull_resource_pack_files.txt")))) {
             List<String> lines = reader.lines().toList();
             for (String path : lines) {
@@ -90,9 +162,9 @@ public class SkullResourcePackManager {
                 String resourcePath = "bedrock/" + path;
                 switch (path) {
                     case "skull_resource_pack/manifest.json" ->
-                            fillTemplate(zipOS, resourcePath, template -> fillManifestJson(template, skins));
+                            fillTemplate(zipOS, resourcePath, SkullResourcePackManager::fillManifestJson);
                     case "skull_resource_pack/textures/terrain_texture.json" ->
-                            fillTemplate(zipOS, resourcePath, template -> fillTerrainTextureJson(template, skins));
+                            fillTemplate(zipOS, resourcePath, SkullResourcePackManager::fillTerrainTextureJson);
                     default -> zipOS.write(FileUtils.readAllBytes(resourcePath));
                 }
                 zipOS.closeEntry();
@@ -100,9 +172,9 @@ public class SkullResourcePackManager {
         }
     }
 
-    private static void addAttachables(ZipOutputStream zipOS, Set<String> skins) throws IOException {
+    private static void addAttachables(ZipOutputStream zipOS) throws IOException {
         String template = new String(FileUtils.readAllBytes("bedrock/skull_resource_pack/attachables/template_attachable.json"), StandardCharsets.UTF_8);
-        for (String skinHash : skins) {
+        for (String skinHash : SKULL_SKINS.keySet()) {
             ZipEntry entry = new ZipEntry("skull_resource_pack/attachables/" + skinHash + ".json");
             zipOS.putNextEntry(entry);
             zipOS.write(fillAttachableJson(template, skinHash).getBytes(StandardCharsets.UTF_8));
@@ -110,22 +182,13 @@ public class SkullResourcePackManager {
         }
     }
 
-    private static void addSkinTextures(ZipOutputStream zipOS, Set<String> skins) throws IOException {
-        Path skullSkinCache = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("player_skulls");
-        Files.createDirectories(skullSkinCache);
-        for (String skin : skins) {
-            Path skinPath = skullSkinCache.resolve(skin + ".png");
-            if (!Files.exists(skinPath)) {
-                // TODO this should go somewhere else and be async somehow
-                BufferedImage image = SkinProvider.requestImage("http://textures.minecraft.net/texture/" + skin, null);
-                ImageIO.write(image, "png", skinPath.toFile());
-                GeyserImpl.getInstance().getLogger().debug("Cached player skull to file " + skinPath + " for " + skin);
-            }
-
-            ZipEntry entry = new ZipEntry("skull_resource_pack/textures/blocks/" + skin + ".png");
-
+    private static void addSkinTextures(ZipOutputStream zipOS) throws IOException {
+        for (Path skinPath : SKULL_SKINS.values()) {
+            ZipEntry entry = new ZipEntry("skull_resource_pack/textures/blocks/" + skinPath.getFileName());
             zipOS.putNextEntry(entry);
-            zipOS.write(FileUtils.readAllBytes(skinPath.toFile()));
+            try (InputStream stream = Files.newInputStream(skinPath)) {
+                stream.transferTo(zipOS);
+            }
             zipOS.closeEntry();
         }
     }
@@ -141,26 +204,26 @@ public class SkullResourcePackManager {
                 .replace("${texture}", skinHash);
     }
 
-    private static String fillManifestJson(String template, Set<String> skins) {
-        Pair<UUID, UUID> uuids = generatePackUUIDs(skins);
+    private static String fillManifestJson(String template) {
+        Pair<UUID, UUID> uuids = generatePackUUIDs();
         return template.replace("${uuid1}", uuids.first().toString())
                 .replace("${uuid2}", uuids.second().toString());
     }
 
-    private static String fillTerrainTextureJson(String template, Set<String> skins) {
+    private static String fillTerrainTextureJson(String template) {
         StringBuilder textures = new StringBuilder();
-        for (String skinHash : skins) {
-            String texture = String.format("\"geyser.%s_player_skin\":{\"textures\":\"textures/blocks/%s\"},", skinHash, skinHash);
+        for (String skinHash : SKULL_SKINS.keySet()) {
+            String texture = String.format("\"geyser.%s_player_skin\":{\"textures\":\"textures/blocks/%s\"},\n", skinHash, skinHash);
             textures.append(texture);
         }
         if (textures.length() != 0) {
             // Remove trailing comma
-            textures.deleteCharAt(textures.length() - 1);
+            textures.delete(textures.length() - 2, textures.length());
         }
         return template.replace("${texture_data}", textures);
     }
 
-    private static Pair<UUID, UUID> generatePackUUIDs(Set<String> skins) {
+    private static Pair<UUID, UUID> generatePackUUIDs() {
         UUID uuid1 = UUID.randomUUID();
         UUID uuid2 = UUID.randomUUID();
         try {
@@ -168,7 +231,7 @@ public class SkullResourcePackManager {
             for (int i = 0; i < 8; i++) {
                 md.update((byte) ((RESOURCE_PACK_VERSION >> (i * 8)) & 0xFF));
             }
-            skins.stream()
+            SKULL_SKINS.keySet().stream()
                     .sorted()
                     .map(hash -> hash.getBytes(StandardCharsets.UTF_8))
                     .forEach(md::update);
@@ -183,8 +246,8 @@ public class SkullResourcePackManager {
         return Pair.of(uuid1, uuid2);
     }
 
-    private static boolean canReusePack(Set<String> skins, File packFile) {
-        Pair<UUID, UUID> uuids = generatePackUUIDs(skins);
+    private static boolean canReusePack(File packFile) {
+        Pair<UUID, UUID> uuids = generatePackUUIDs();
         try (ZipFile zipFile = new ZipFile(packFile)) {
             Optional<? extends ZipEntry> manifestEntry = zipFile.stream()
                     .filter(entry -> entry.getName().contains("manifest.json"))

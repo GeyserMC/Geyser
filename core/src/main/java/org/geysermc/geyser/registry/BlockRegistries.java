@@ -32,6 +32,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.registry.populator.BlockRegistryPopulator;
+import org.geysermc.geyser.registry.populator.CustomSkullRegistryPopulator;
 import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.CustomSkull;
@@ -81,11 +82,11 @@ public class BlockRegistries {
 
     /**
      * A registry which stores skin texture hashes to custom skull blocks.
-     * TODO add loader/populator
      */
     public static final SimpleMappedRegistry<String, CustomSkull> CUSTOM_SKULLS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     static {
+        CustomSkullRegistryPopulator.populate();
         BlockRegistryPopulator.populate();
     }
 
